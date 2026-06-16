@@ -6,6 +6,8 @@
 from ccxt.async_support.base.prediction_exchange import PredictionExchange
 from ccxt.abstract.prediction.myriad import ImplicitAPI
 import asyncio
+import json
+from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
 from ccxt.base.types import Any, Int, Market, Num, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, PredictionEvent
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -50,6 +52,11 @@ class myriad(PredictionExchange, ImplicitAPI):
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'prediction': True,
+                'watchOrderBook': True,
+                'watchOrders': True,
+                'watchPositions': True,
+                'watchTicker': True,
+                'watchTrades': True,
             },
             'timeframes': {
                 # Myriad maps timeframes to price_chart bucket keys
@@ -64,9 +71,11 @@ class myriad(PredictionExchange, ImplicitAPI):
                 'logo': 'https://myriad.markets/favicon.ico',
                 'api': {
                     'myriad': 'https://api-v2.myriadprotocol.com',
+                    'ws': 'wss://ws.myriadprotocol.com/ws',
                 },
                 'test': {
                     'myriad': 'https://api-v2.staging.myriadprotocol.com',
+                    'ws': 'wss://ws.staging.myriadprotocol.com/ws',
                 },
                 'www': 'https://myriad.markets',
                 'doc': ['https://docs.myriad.markets'],
@@ -1929,6 +1938,425 @@ class myriad(PredictionExchange, ImplicitAPI):
             'resolutionSource': self.safe_string(rawEvent, 'resolutionSource'),
             'info': rawEvent,
         })
+
+    def request_id(self, url: str) -> float:
+        existing = self.safe_value(self.options, 'requestId')
+        if existing is None:
+            self.options['requestId'] = self.create_safe_dictionary()
+        options = self.options['requestId']
+        previousValue = self.safe_integer(options, url, 0)
+        newValue = self.sum(previousValue, 1)
+        self.options['requestId'][url] = newValue
+        return newValue
+
+    def from_wei(self, wei: Str) -> Num:
+        if wei is None:
+            return None
+        return self.parse_number(Precise.string_div(wei, '1000000000000000000'))
+
+    def market_outcome_to_symbol(self, networkId: Str, marketId: Str, outcomeId: Str) -> Str:
+        ocId = networkId + ':' + marketId + '/' + outcomeId
+        outcomeObj = self.safe_dict(self.outcomes_by_id, ocId)
+        return self.safe_string(outcomeObj, 'symbol')
+
+    async def connect_centrifugo(self, url: str) -> Any:
+        # Centrifugo requires an anonymous connect command before any subscribe. This sends it once per
+        # connection and resolves when the connect reply arrives(see handleCentrifugoFrame). The base
+        # clears client.subscriptions on reconnect, so an absent 'connect' marker means a fresh handshake.
+        client = self.client(url)
+        connectSent = self.safe_value(client.subscriptions, 'connect')
+        if connectSent is None:
+            self.options['wsConnected'] = False
+            requestId = self.request_id(url)
+            # give the anonymous connect a name so the params object is non-empty(PHP serialises an
+            # empty array JSON array, which Centrifugo rejects)
+            connectMsg: dict = {'connect': {'name': 'ccxt'}, 'id': requestId}
+            return await self.watch(url, 'centrifugoConnected', connectMsg, 'connect')
+        if self.safe_bool(self.options, 'wsConnected', False):
+            # the connect reply already arrived on self connection — safe to subscribe immediately
+            return None
+        # connect is in flight(sent by a concurrent subscribe) — wait on the shared reply future
+        return await client.future('centrifugoConnected')
+
+    async def pong(self, client, message=None):
+        # Centrifugo server pings are empty frames; reply with the same empty frame to keep the link alive
+        await client.send('{}')
+
+    async def subscribe_myriad_channel(self, messageHash: str, channel: str, params={}) -> Any:
+        url = self.safe_string(self.urls['api'], 'ws')
+        # finish the connect handshake first so the subscribe frame is sent after the connect reply
+        await self.connect_centrifugo(url)
+        requestId = self.request_id(url)
+        subscribeMsg: dict = {'subscribe': {'channel': channel}, 'id': requestId}
+        return await self.watch(url, messageHash, subscribeMsg, channel)
+
+    def handle_message(self, client, message):
+        # Centrifugo packs several commands per frame joined by \n; a multi-command frame fails the
+        # base json.loadsand arrives here raw string, a single command arrives already parsed
+        if isinstance(message, str):
+            lines = message.split('\n')
+            linesLength = len(lines)
+            for i in range(0, linesLength):
+                line = lines[i]
+                if len(line) > 0:
+                    parsed = json.loads(line)
+                    self.handle_centrifugo_frame(client, parsed)
+            return
+        self.handle_centrifugo_frame(client, message)
+
+    def handle_centrifugo_frame(self, client, msg):
+        keys = list(msg.keys())
+        keysLength = len(keys)
+        if keysLength == 0:
+            self.spawn(self.pong, client, msg)
+            return
+        connectReply = self.safe_dict(msg, 'connect')
+        if connectReply is not None:
+            # connect acknowledged — unblock connectCentrifugo so channel subscribes can be sent
+            self.options['wsConnected'] = True
+            client.resolve(True, 'centrifugoConnected')
+            return
+        push = self.safe_dict(msg, 'push')
+        if push is None:
+            return
+        channel = self.safe_string(push, 'channel')
+        if channel is None:
+            return
+        pub = self.safe_dict(push, 'pub', {})
+        data = self.safe_dict(pub, 'data', {})
+        parts = channel.split(':')
+        channelType = self.safe_string(parts, 0)
+        if channelType == 'orderbook':
+            self.handle_order_book(client, data)
+        elif channelType == 'trades':
+            self.handle_trades(client, data)
+        elif channelType == 'prices':
+            self.handle_ticker(client, data)
+        elif channelType == 'orders':
+            self.handle_order(client, data)
+        elif channelType == 'positions':
+            self.handle_position(client, data)
+
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+        """
+        streams the order book for an outcome over the Centrifugo websocket; the channel is delta-only so the book is seeded from the REST snapshot
+
+        https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
+
+        :param str symbol: unified outcome symbol
+        :param int [limit]: the maximum number of order book entries to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+        """
+        await self.load_markets()
+        self.ensure_outcomes_loaded()
+        outcomeObj = self.outcome(symbol)
+        info = self.safe_dict(outcomeObj, 'info', {})
+        networkId = self.safe_string(info, 'networkId')
+        marketId = self.safe_string(info, 'marketId')
+        sym = self.safeOutcomeSymbol(symbol, outcomeObj)
+        channel = 'orderbook:' + networkId + ':' + marketId
+        messageHash = 'orderbook::' + sym
+        if self.safe_value(self.orderbooks, sym) is None:
+            await self.seed_order_book(symbol, sym, limit)
+        orderbook = await self.subscribe_myriad_channel(messageHash, channel, params)
+        return orderbook.limit()
+
+    async def seed_order_book(self, symbol: str, sym: str, limit: Int = None):
+        # the order book channel streams deltas only, so seed the live book from the REST snapshot
+        snapshot = await self.fetch_order_book(symbol, limit)
+        orderbook = self.order_book({})
+        orderbook.reset(snapshot)
+        self.orderbooks[sym] = orderbook
+
+    def handle_order_book(self, client, data):
+        networkId = self.safe_string(data, 'networkId')
+        marketId = self.safe_string(data, 'marketId')
+        ts = self.safe_integer(data, 'ts')
+        changes = self.safe_list(data, 'changes', [])
+        changesLength = len(changes)
+        updated: dict = {}
+        for i in range(0, changesLength):
+            change = changes[i]
+            outcomeId = self.safe_string(change, 'outcome')
+            sym = self.market_outcome_to_symbol(networkId, marketId, outcomeId)
+            if sym is None:
+                continue
+            if self.safe_value(self.orderbooks, sym) is None:
+                continue
+            orderbook = self.orderbooks[sym]
+            price = self.from_wei(self.safe_string(change, 'price'))
+            amount = self.from_wei(self.safe_string(change, 'amount'))
+            sideStr = self.safe_string(change, 'side')
+            bookSide = orderbook['bids'] if (sideStr == 'bid') else orderbook['asks']
+            bookSide.storeArray([price, amount])
+            orderbook['timestamp'] = ts
+            orderbook['datetime'] = self.iso8601(ts)
+            updated[sym] = True
+        updatedSymbols = list(updated.keys())
+        updatedLength = len(updatedSymbols)
+        for k in range(0, updatedLength):
+            sym = updatedSymbols[k]
+            client.resolve(self.orderbooks[sym], 'orderbook::' + sym)
+
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+        """
+        streams public trades for an outcome over the Centrifugo websocket
+
+        https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
+
+        :param str symbol: unified outcome symbol
+        :param int [since]: timestamp in ms of the earliest trade
+        :param int [limit]: the maximum number of trades to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+        """
+        await self.load_markets()
+        self.ensure_outcomes_loaded()
+        outcomeObj = self.outcome(symbol)
+        info = self.safe_dict(outcomeObj, 'info', {})
+        networkId = self.safe_string(info, 'networkId')
+        marketId = self.safe_string(info, 'marketId')
+        sym = self.safeOutcomeSymbol(symbol, outcomeObj)
+        channel = 'trades:' + networkId + ':' + marketId
+        messageHash = 'trades::' + sym
+        trades = await self.subscribe_myriad_channel(messageHash, channel, params)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+
+    def handle_trades(self, client, data):
+        networkId = self.safe_string(data, 'networkId')
+        marketId = self.safe_string(data, 'marketId')
+        ts = self.safe_integer(data, 'ts')
+        txHash = self.safe_string(data, 'txHash')
+        taker = self.safe_dict(data, 'taker', {})
+        outcomeId = self.safe_string(taker, 'outcome')
+        sym = self.market_outcome_to_symbol(networkId, marketId, outcomeId)
+        if sym is None:
+            return
+        market = self.safe_market(sym)
+        # the trades channel reports human-decimal values(averagePrice "0.14", totalAmount "1"),
+        # unlike the orders channel which is 1e18-scaled — so read them directly without fromWei
+        fees = self.safe_dict(taker, 'totalFees', {})
+        trade = self.safe_trade({
+            'id': txHash,
+            'info': data,
+            'timestamp': ts,
+            'datetime': self.iso8601(ts),
+            'symbol': sym,
+            'order': self.safe_string(taker, 'orderHash'),
+            'type': None,
+            'side': self.safe_string_lower(taker, 'side'),
+            'takerOrMaker': 'taker',
+            'price': self.safe_number(taker, 'averagePrice'),
+            'amount': self.safe_number(taker, 'totalAmount'),
+            'cost': None,
+            'fee': {
+                'cost': self.safe_number(fees, 'total'),
+                'currency': self.safe_string(market, 'quote'),
+            },
+        }, market)
+        if self.trades is None:
+            self.trades = self.create_safe_dictionary()
+        if self.safe_value(self.trades, sym) is None:
+            tradesLimit = self.safe_integer(self.options, 'tradesLimit', 1000)
+            self.trades[sym] = ArrayCache(tradesLimit)
+        stored = self.trades[sym]
+        stored.append(trade)
+        client.resolve(stored, 'trades::' + sym)
+
+    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
+        """
+        streams best bid/ask/last for an outcome over the Centrifugo prices channel
+
+        https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
+
+        :param str symbol: unified outcome symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+        """
+        await self.load_markets()
+        self.ensure_outcomes_loaded()
+        outcomeObj = self.outcome(symbol)
+        info = self.safe_dict(outcomeObj, 'info', {})
+        networkId = self.safe_string(info, 'networkId')
+        marketId = self.safe_string(info, 'marketId')
+        sym = self.safeOutcomeSymbol(symbol, outcomeObj)
+        channel = 'prices:' + networkId + ':' + marketId
+        messageHash = 'ticker::' + sym
+        return await self.subscribe_myriad_channel(messageHash, channel, params)
+
+    def handle_ticker(self, client, data):
+        networkId = self.safe_string(data, 'networkId')
+        marketId = self.safe_string(data, 'marketId')
+        ts = self.safe_integer(data, 'ts')
+        outcomes = self.safe_list(data, 'outcomes', [])
+        outcomesLength = len(outcomes)
+        if self.tickers is None:
+            self.tickers = self.create_safe_dictionary()
+        for i in range(0, outcomesLength):
+            oc = outcomes[i]
+            outcomeId = self.safe_string(oc, 'outcome')
+            sym = self.market_outcome_to_symbol(networkId, marketId, outcomeId)
+            if sym is None:
+                continue
+            market = self.safe_market(sym)
+            last = self.from_wei(self.safe_string(oc, 'last'))
+            ticker = self.safe_ticker({
+                'symbol': sym,
+                'timestamp': ts,
+                'datetime': self.iso8601(ts),
+                'high': None,
+                'low': None,
+                'bid': self.from_wei(self.safe_string(oc, 'bestBid')),
+                'bidVolume': None,
+                'ask': self.from_wei(self.safe_string(oc, 'bestAsk')),
+                'askVolume': None,
+                'vwap': None,
+                'open': None,
+                'close': last,
+                'last': last,
+                'previousClose': None,
+                'change': None,
+                'percentage': None,
+                'average': None,
+                'baseVolume': None,
+                'quoteVolume': None,
+                'info': oc,
+            }, market)
+            self.tickers[sym] = ticker
+            client.resolve(ticker, 'ticker::' + sym)
+
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+        """
+        streams the wallet's order lifecycle updates over the Centrifugo orders channel
+
+        https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
+
+        :param str [symbol]: unified outcome symbol to filter by
+        :param int [since]: timestamp in ms of the earliest order
+        :param int [limit]: the maximum number of orders to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+        """
+        await self.load_markets()
+        self.ensure_outcomes_loaded()
+        trader = self.wallet_address_from_keys()
+        networkId = self.safe_string(self.options, 'defaultNetworkId', '56')
+        if symbol is not None:
+            outcomeObj = self.outcome(symbol)
+            info = self.safe_dict(outcomeObj, 'info', {})
+            networkId = self.safe_string(info, 'networkId', networkId)
+            symbol = self.safeOutcomeSymbol(symbol, outcomeObj)
+        channel = 'orders:' + networkId + ':' + trader
+        messageHash = 'orders'
+        orders = await self.subscribe_myriad_channel(messageHash, channel, params)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+
+    def handle_order(self, client, data):
+        if self.orders is None:
+            limit = self.safe_integer(self.options, 'ordersLimit', 1000)
+            self.orders = ArrayCacheBySymbolById(limit)
+        networkId = self.safe_string(data, 'networkId')
+        marketId = self.safe_string(data, 'marketId')
+        outcomeId = self.safe_string(data, 'outcome')
+        sym = self.market_outcome_to_symbol(networkId, marketId, outcomeId)
+        price = self.from_wei(self.safe_string(data, 'price'))
+        amount = self.from_wei(self.safe_string(data, 'amount'))
+        filled = self.from_wei(self.safe_string(data, 'filledAmount'))
+        status = self.parse_order_status(self.safe_string_lower(data, 'status'))
+        tif = self.safe_string_upper(data, 'timeInForce')
+        isMarketTif = (tif == 'FOK') or (tif == 'FAK')
+        timestamp = self.parse8601(self.safe_string_2(data, 'updatedAt', 'createdAt'))
+        parsed = self.safe_order({
+            'id': self.safe_string(data, 'orderHash'),
+            'clientOrderId': None,
+            'info': data,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': sym,
+            'type': 'market' if isMarketTif else 'limit',
+            'timeInForce': tif,
+            'side': self.safe_string_lower(data, 'side'),
+            'price': price,
+            'amount': amount,
+            'filled': filled,
+            'remaining': None,
+            'average': None,
+            'cost': None,
+            'status': status,
+            'fee': None,
+            'trades': None,
+        })
+        stored = self.orders
+        stored.append(parsed)
+        client.resolve(stored, 'orders')
+        if sym is not None:
+            client.resolve(stored, 'orders::' + sym)
+
+    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
+        """
+        streams the wallet's share-balance changes over the Centrifugo positions channel
+
+        https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
+
+        :param str[] [symbols]: unified outcome symbols to filter by
+        :param int [since]: timestamp in ms of the earliest position update
+        :param int [limit]: the maximum number of position updates to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+        """
+        await self.load_markets()
+        self.ensure_outcomes_loaded()
+        trader = self.wallet_address_from_keys()
+        networkId = self.safe_string(self.options, 'defaultNetworkId', '56')
+        channel = 'positions:' + networkId + ':' + trader
+        messageHash = 'positions'
+        positions = await self.subscribe_myriad_channel(messageHash, channel, params)
+        if self.newUpdates:
+            return positions
+        return self.filter_by_symbols_since_limit(positions, symbols, since, limit, True)
+
+    def handle_position(self, client, data):
+        if self.positions is None:
+            limit = self.safe_integer(self.options, 'positionsLimit', 1000)
+            self.positions = ArrayCacheBySymbolById(limit)
+        networkId = self.safe_string(data, 'networkId')
+        marketId = self.safe_string(data, 'marketId')
+        outcomeId = self.safe_string(data, 'outcome')
+        sym = self.market_outcome_to_symbol(networkId, marketId, outcomeId)
+        ts = self.safe_integer(data, 'ts')
+        # the positions channel emits a signed share delta per fill/redeem/split/merge; the absolute
+        # balance and entry price are not pushed(refetch via fetchPositions when the full state is needed)
+        balance = self.from_wei(self.safe_string(data, 'balance'))
+        parsed = self.safe_position({
+            'info': data,
+            'id': self.safe_string(data, 'txHash'),
+            'symbol': sym,
+            'timestamp': ts,
+            'datetime': self.iso8601(ts),
+            'side': 'long',
+            'contracts': balance,
+            'entryPrice': None,
+            'markPrice': None,
+            'notional': None,
+            'collateral': None,
+            'unrealizedPnl': None,
+        })
+        stored = self.positions
+        stored.append(parsed)
+        client.resolve(stored, 'positions')
+
+    def wallet_address_from_keys(self) -> str:
+        # the orders/positions channels are keyed by the lowercase trader address(Centrifugo channels
+        # are case-sensitive); lowercase here so the channel matches regardless of the address checksum.
+        # check length too: an unset walletAddress is an empty string(not None) in some languages
+        address = self.walletAddress
+        hasWallet = (address is not None) and (len(self.walletAddress) > 0)
+        if not hasWallet:
+            if self.privateKey is None:
+                raise ArgumentsRequired(self.id + ' requires a walletAddress or privateKey to watch private channels')
+            address = self.eth_get_address_from_private_key(self.privateKey)
+        return address.lower()
 
     def sign(self, path: Any, api: Any = 'myriad', method='GET', params={}, headers: Any = None, body: Any = None):
         """

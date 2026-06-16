@@ -406,6 +406,78 @@ export default class myriad extends Exchange {
      * @returns {object} an event structure
      */
     parseEvent(rawEvent: Dict): any;
+    requestId(url: string): number;
+    fromWei(wei: Str): Num;
+    marketOutcomeToSymbol(networkId: Str, marketId: Str, outcomeId: Str): Str;
+    connectCentrifugo(url: string): Promise<any>;
+    pong(client: any, message?: any): Promise<void>;
+    subscribeMyriadChannel(messageHash: string, channel: string, params?: {}): Promise<any>;
+    handleMessage(client: any, message: any): void;
+    handleCentrifugoFrame(client: any, msg: any): void;
+    /**
+     * @method
+     * @name myriad#watchOrderBook
+     * @description streams the order book for an outcome over the Centrifugo websocket; the channel is delta-only so the book is seeded from the REST snapshot
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
+     * @param {string} symbol unified outcome symbol
+     * @param {int} [limit] the maximum number of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+     */
+    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    seedOrderBook(symbol: string, sym: string, limit?: Int): Promise<void>;
+    handleOrderBook(client: any, data: any): void;
+    /**
+     * @method
+     * @name myriad#watchTrades
+     * @description streams public trades for an outcome over the Centrifugo websocket
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
+     * @param {string} symbol unified outcome symbol
+     * @param {int} [since] timestamp in ms of the earliest trade
+     * @param {int} [limit] the maximum number of trades to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+     */
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    handleTrades(client: any, data: any): void;
+    /**
+     * @method
+     * @name myriad#watchTicker
+     * @description streams best bid/ask/last for an outcome over the Centrifugo prices channel
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
+     * @param {string} symbol unified outcome symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+     */
+    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    handleTicker(client: any, data: any): void;
+    /**
+     * @method
+     * @name myriad#watchOrders
+     * @description streams the wallet's order lifecycle updates over the Centrifugo orders channel
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
+     * @param {string} [symbol] unified outcome symbol to filter by
+     * @param {int} [since] timestamp in ms of the earliest order
+     * @param {int} [limit] the maximum number of orders to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    handleOrder(client: any, data: any): void;
+    /**
+     * @method
+     * @name myriad#watchPositions
+     * @description streams the wallet's share-balance changes over the Centrifugo positions channel
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
+     * @param {string[]} [symbols] unified outcome symbols to filter by
+     * @param {int} [since] timestamp in ms of the earliest position update
+     * @param {int} [limit] the maximum number of position updates to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+     */
+    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
+    handlePosition(client: any, data: any): void;
+    walletAddressFromKeys(): string;
     /**
      * @ignore
      * @method

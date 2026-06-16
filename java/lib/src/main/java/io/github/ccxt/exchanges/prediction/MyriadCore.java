@@ -54,6 +54,11 @@ public class MyriadCore extends MyriadApi
                 put( "fetchTrades", true );
                 put( "fetchTradingFee", true );
                 put( "prediction", true );
+                put( "watchOrderBook", true );
+                put( "watchOrders", true );
+                put( "watchPositions", true );
+                put( "watchTicker", true );
+                put( "watchTrades", true );
             }} );
             put( "timeframes", new java.util.HashMap<String, Object>() {{
                 put( "1m", "24h" );
@@ -67,9 +72,11 @@ public class MyriadCore extends MyriadApi
                 put( "logo", "https://myriad.markets/favicon.ico" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "myriad", "https://api-v2.myriadprotocol.com" );
+                    put( "ws", "wss://ws.myriadprotocol.com/ws" );
                 }} );
                 put( "test", new java.util.HashMap<String, Object>() {{
                     put( "myriad", "https://api-v2.staging.myriadprotocol.com" );
+                    put( "ws", "wss://ws.staging.myriadprotocol.com/ws" );
                 }} );
                 put( "www", "https://myriad.markets" );
                 put( "doc", new java.util.ArrayList<Object>(java.util.Arrays.asList("https://docs.myriad.markets")) );
@@ -2524,6 +2531,607 @@ final Object finalNetworkId = networkId;
             put( "resolutionSource", MyriadCore.this.safeString(rawEvent, "resolutionSource") );
             put( "info", rawEvent );
         }});
+    }
+
+    public Object requestId(Object url)
+    {
+        Object existing = this.safeValue(this.options, "requestId");
+        if (Helpers.isTrue(Helpers.isEqual(existing, null)))
+        {
+            Helpers.addElementToObject(this.options, "requestId", this.createSafeDictionary());
+        }
+        Object options = Helpers.GetValue(this.options, "requestId");
+        Object previousValue = this.safeInteger(options, url, 0);
+        Object newValue = this.sum(previousValue, 1);
+        Helpers.addElementToObject(Helpers.GetValue(this.options, "requestId"), url, newValue);
+        return newValue;
+    }
+
+    public Object fromWei(Object wei)
+    {
+        if (Helpers.isTrue(Helpers.isEqual(wei, null)))
+        {
+            return null;
+        }
+        return this.parseNumber(Precise.stringDiv(wei, "1000000000000000000"));
+    }
+
+    public Object marketOutcomeToSymbol(Object networkId, Object marketId, Object outcomeId)
+    {
+        Object ocId = Helpers.add(Helpers.add(Helpers.add(Helpers.add(networkId, ":"), marketId), "/"), outcomeId);
+        Object outcomeObj = this.safeDict(this.outcomes_by_id, ocId);
+        return this.safeString(outcomeObj, "symbol");
+    }
+
+    public java.util.concurrent.CompletableFuture<Object> connectCentrifugo(Object url)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            // Centrifugo requires an anonymous connect command before any subscribe. This sends it once per
+            // connection and resolves when the connect reply arrives (see handleCentrifugoFrame). The base
+            // clears client.subscriptions on reconnect, so an absent 'connect' marker means a fresh handshake.
+            Client client = this.client(url);
+            Object connectSent = this.safeValue(client.subscriptions, "connect");
+            if (Helpers.isTrue(Helpers.isEqual(connectSent, null)))
+            {
+                Helpers.addElementToObject(this.options, "wsConnected", false);
+                Object requestId = this.requestId(url);
+                // give the anonymous connect a name so the params object is non-empty (PHP serialises an
+                // empty array as a JSON array, which Centrifugo rejects)
+                Object connectMsg = new java.util.HashMap<String, Object>() {{
+                    put( "connect", new java.util.HashMap<String, Object>() {{
+                        put( "name", "ccxt" );
+                    }} );
+                    put( "id", requestId );
+                }};
+                return (this.watch(url, "centrifugoConnected", connectMsg, "connect", null)).join();
+            }
+            if (Helpers.isTrue(this.safeBool(this.options, "wsConnected", false)))
+            {
+                // the connect reply already arrived on this connection — safe to subscribe immediately
+                return null;
+            }
+            // connect is in flight (sent by a concurrent subscribe) — wait on the shared reply future
+            return client.future("centrifugoConnected").getFuture().join();
+        });
+
+    }
+
+    public java.util.concurrent.CompletableFuture<Object> pong(Client client, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            // Centrifugo server pings are empty frames; reply with the same empty frame to keep the link alive
+            Object message = Helpers.getArg(optionalArgs, 0, null);
+            (client.send("{}")).join();
+            return null;
+        });
+
+    }
+
+    public java.util.concurrent.CompletableFuture<Object> subscribeMyriadChannel(Object messageHash, Object channel, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object url = this.safeString(Helpers.GetValue(this.urls, "api"), "ws");
+            // finish the connect handshake first so the subscribe frame is sent after the connect reply
+            (this.connectCentrifugo(url)).join();
+            Object requestId = this.requestId(url);
+            Object subscribeMsg = new java.util.HashMap<String, Object>() {{
+                put( "subscribe", new java.util.HashMap<String, Object>() {{
+                    put( "channel", channel );
+                }} );
+                put( "id", requestId );
+            }};
+            return (this.watch(url, messageHash, subscribeMsg, channel, null)).join();
+        });
+
+    }
+
+    public void handleMessage(Client client, Object message)
+    {
+        // Centrifugo packs several commands per frame joined by \n; a multi-command frame fails the
+        // base JSON.parse and arrives here as a raw string, a single command arrives already parsed
+        if (Helpers.isTrue((message instanceof String)))
+        {
+            Object lines = Helpers.split(message, "\n");
+            Object linesLength = Helpers.getArrayLength(lines);
+            for (var i = 0; Helpers.isLessThan(i, linesLength); i++)
+            {
+                Object line = Helpers.GetValue(lines, i);
+                if (Helpers.isTrue(Helpers.isGreaterThan(((String)line).length(), 0)))
+                {
+                    Object parsed = Helpers.parseJson(line);
+                    this.handleCentrifugoFrame(client, parsed);
+                }
+            }
+            return;
+        }
+        this.handleCentrifugoFrame(client, message);
+    }
+
+    public void handleCentrifugoFrame(Client client, Object msg)
+    {
+        Object keys = Helpers.objectKeys(msg);
+        Object keysLength = Helpers.getArrayLength(keys);
+        if (Helpers.isTrue(Helpers.isEqual(keysLength, 0)))
+        {
+            this.spawn(() -> { try { this.pong(client, msg); } catch(Exception _e) { throw new RuntimeException(_e); } });
+            return;
+        }
+        Object connectReply = this.safeDict(msg, "connect");
+        if (Helpers.isTrue(!Helpers.isEqual(connectReply, null)))
+        {
+            // connect acknowledged — unblock connectCentrifugo so channel subscribes can be sent
+            Helpers.addElementToObject(this.options, "wsConnected", true);
+            client.resolve(true, "centrifugoConnected");
+            return;
+        }
+        Object push = this.safeDict(msg, "push");
+        if (Helpers.isTrue(Helpers.isEqual(push, null)))
+        {
+            return;
+        }
+        Object channel = this.safeString(push, "channel");
+        if (Helpers.isTrue(Helpers.isEqual(channel, null)))
+        {
+            return;
+        }
+        Object pub = this.safeDict(push, "pub", new java.util.HashMap<String, Object>() {{}});
+        Object data = this.safeDict(pub, "data", new java.util.HashMap<String, Object>() {{}});
+        Object parts = Helpers.split(channel, ":");
+        Object channelType = this.safeString(parts, 0);
+        if (Helpers.isTrue(Helpers.isEqual(channelType, "orderbook")))
+        {
+            this.handleOrderBook(client, data);
+        } else if (Helpers.isTrue(Helpers.isEqual(channelType, "trades")))
+        {
+            this.handleTrades(client, data);
+        } else if (Helpers.isTrue(Helpers.isEqual(channelType, "prices")))
+        {
+            this.handleTicker(client, data);
+        } else if (Helpers.isTrue(Helpers.isEqual(channelType, "orders")))
+        {
+            this.handleOrder(client, data);
+        } else if (Helpers.isTrue(Helpers.isEqual(channelType, "positions")))
+        {
+            this.handlePosition(client, data);
+        }
+    }
+
+    /**
+     * @method
+     * @name myriad#watchOrderBook
+     * @description streams the order book for an outcome over the Centrifugo websocket; the channel is delta-only so the book is seeded from the REST snapshot
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
+     * @param {string} symbol unified outcome symbol
+     * @param {int} [limit] the maximum number of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+     */
+    public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object limit = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            (this.loadMarkets()).join();
+            this.ensureOutcomesLoaded();
+            Object outcomeObj = this.outcome(symbol);
+            Object info = this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}});
+            Object networkId = this.safeString(info, "networkId");
+            Object marketId = this.safeString(info, "marketId");
+            Object sym = this.safeOutcomeSymbol(symbol, outcomeObj);
+            Object channel = Helpers.add(Helpers.add(Helpers.add("orderbook:", networkId), ":"), marketId);
+            Object messageHash = Helpers.add("orderbook::", sym);
+            if (Helpers.isTrue(Helpers.isEqual(this.safeValue(this.orderbooks, sym), null)))
+            {
+                (this.seedOrderBook(symbol, sym, limit)).join();
+            }
+            Object orderbook = (this.subscribeMyriadChannel(messageHash, channel, parameters)).join();
+            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+        });
+
+    }
+
+    public java.util.concurrent.CompletableFuture<Object> seedOrderBook(Object symbol, Object sym, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            // the order book channel streams deltas only, so seed the live book from the REST snapshot
+            Object limit = Helpers.getArg(optionalArgs, 0, null);
+            Object snapshot = (this.fetchOrderBook(symbol, limit)).join();
+            Object orderbook = this.orderBook(new java.util.HashMap<String, Object>() {{}});
+            Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
+            Helpers.addElementToObject(this.orderbooks, sym, orderbook);
+            return null;
+        });
+
+    }
+
+    public void handleOrderBook(Client client, Object data)
+    {
+        Object networkId = this.safeString(data, "networkId");
+        Object marketId = this.safeString(data, "marketId");
+        Object ts = this.safeInteger(data, "ts");
+        Object changes = this.safeList(data, "changes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object changesLength = Helpers.getArrayLength(changes);
+        Object updated = new java.util.HashMap<String, Object>() {{}};
+        for (var i = 0; Helpers.isLessThan(i, changesLength); i++)
+        {
+            Object change = Helpers.GetValue(changes, i);
+            Object outcomeId = this.safeString(change, "outcome");
+            Object sym = this.marketOutcomeToSymbol(networkId, marketId, outcomeId);
+            if (Helpers.isTrue(Helpers.isEqual(sym, null)))
+            {
+                continue;
+            }
+            if (Helpers.isTrue(Helpers.isEqual(this.safeValue(this.orderbooks, sym), null)))
+            {
+                continue;
+            }
+            Object orderbook = Helpers.GetValue(this.orderbooks, sym);
+            Object price = this.fromWei(this.safeString(change, "price"));
+            Object amount = this.fromWei(this.safeString(change, "amount"));
+            Object sideStr = this.safeString(change, "side");
+            Object bookSide = ((Helpers.isTrue((Helpers.isEqual(sideStr, "bid"))))) ? Helpers.GetValue(orderbook, "bids") : Helpers.GetValue(orderbook, "asks");
+            Helpers.callDynamically(bookSide, "storeArray", new Object[]{new java.util.ArrayList<Object>(java.util.Arrays.asList(price, amount))});
+            Helpers.addElementToObject(orderbook, "timestamp", ts);
+            Helpers.addElementToObject(orderbook, "datetime", this.iso8601(ts));
+            Helpers.addElementToObject(updated, sym, true);
+        }
+        Object updatedSymbols = Helpers.objectKeys(updated);
+        Object updatedLength = Helpers.getArrayLength(updatedSymbols);
+        for (var k = 0; Helpers.isLessThan(k, updatedLength); k++)
+        {
+            Object sym = Helpers.GetValue(updatedSymbols, k);
+            client.resolve(Helpers.GetValue(this.orderbooks, sym), Helpers.add("orderbook::", sym));
+        }
+    }
+
+    /**
+     * @method
+     * @name myriad#watchTrades
+     * @description streams public trades for an outcome over the Centrifugo websocket
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
+     * @param {string} symbol unified outcome symbol
+     * @param {int} [since] timestamp in ms of the earliest trade
+     * @param {int} [limit] the maximum number of trades to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+     */
+    public java.util.concurrent.CompletableFuture<Object> watchTrades(Object symbol, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object since = Helpers.getArg(optionalArgs, 0, null);
+            Object limit = Helpers.getArg(optionalArgs, 1, null);
+            Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+            (this.loadMarkets()).join();
+            this.ensureOutcomesLoaded();
+            Object outcomeObj = this.outcome(symbol);
+            Object info = this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}});
+            Object networkId = this.safeString(info, "networkId");
+            Object marketId = this.safeString(info, "marketId");
+            Object sym = this.safeOutcomeSymbol(symbol, outcomeObj);
+            Object channel = Helpers.add(Helpers.add(Helpers.add("trades:", networkId), ":"), marketId);
+            Object messageHash = Helpers.add("trades::", sym);
+            Object trades = (this.subscribeMyriadChannel(messageHash, channel, parameters)).join();
+            return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+        });
+
+    }
+
+    public void handleTrades(Client client, Object data)
+    {
+        Object networkId = this.safeString(data, "networkId");
+        Object marketId = this.safeString(data, "marketId");
+        Object ts = this.safeInteger(data, "ts");
+        Object txHash = this.safeString(data, "txHash");
+        Object taker = this.safeDict(data, "taker", new java.util.HashMap<String, Object>() {{}});
+        Object outcomeId = this.safeString(taker, "outcome");
+        Object sym = this.marketOutcomeToSymbol(networkId, marketId, outcomeId);
+        if (Helpers.isTrue(Helpers.isEqual(sym, null)))
+        {
+            return;
+        }
+        Object market = this.safeMarket(sym);
+        // the trades channel reports human-decimal values (averagePrice "0.14", totalAmount "1"),
+        // unlike the orders channel which is 1e18-scaled — so read them directly without fromWei
+        Object fees = this.safeDict(taker, "totalFees", new java.util.HashMap<String, Object>() {{}});
+        final Object finalSym = sym;
+        Object trade = this.safeTrade(new java.util.HashMap<String, Object>() {{
+            put( "id", txHash );
+            put( "info", data );
+            put( "timestamp", ts );
+            put( "datetime", MyriadCore.this.iso8601(ts) );
+            put( "symbol", finalSym );
+            put( "order", MyriadCore.this.safeString(taker, "orderHash") );
+            put( "type", null );
+            put( "side", MyriadCore.this.safeStringLower(taker, "side") );
+            put( "takerOrMaker", "taker" );
+            put( "price", MyriadCore.this.safeNumber(taker, "averagePrice") );
+            put( "amount", MyriadCore.this.safeNumber(taker, "totalAmount") );
+            put( "cost", null );
+            put( "fee", new java.util.HashMap<String, Object>() {{
+                put( "cost", MyriadCore.this.safeNumber(fees, "total") );
+                put( "currency", MyriadCore.this.safeString(market, "quote") );
+            }} );
+        }}, market);
+        if (Helpers.isTrue(Helpers.isEqual(this.trades, null)))
+        {
+            this.trades = this.createSafeDictionary();
+        }
+        if (Helpers.isTrue(Helpers.isEqual(this.safeValue(this.trades, sym), null)))
+        {
+            Object tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Helpers.addElementToObject(this.trades, sym, new ArrayCache(((Number)tradesLimit).intValue()));
+        }
+        Object stored = Helpers.GetValue(this.trades, sym);
+        Helpers.callDynamically(stored, "append", new Object[]{trade});
+        client.resolve(stored, Helpers.add("trades::", sym));
+    }
+
+    /**
+     * @method
+     * @name myriad#watchTicker
+     * @description streams best bid/ask/last for an outcome over the Centrifugo prices channel
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
+     * @param {string} symbol unified outcome symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+     */
+    public java.util.concurrent.CompletableFuture<Object> watchTicker(Object symbol, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            (this.loadMarkets()).join();
+            this.ensureOutcomesLoaded();
+            Object outcomeObj = this.outcome(symbol);
+            Object info = this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}});
+            Object networkId = this.safeString(info, "networkId");
+            Object marketId = this.safeString(info, "marketId");
+            Object sym = this.safeOutcomeSymbol(symbol, outcomeObj);
+            Object channel = Helpers.add(Helpers.add(Helpers.add("prices:", networkId), ":"), marketId);
+            Object messageHash = Helpers.add("ticker::", sym);
+            return (this.subscribeMyriadChannel(messageHash, channel, parameters)).join();
+        });
+
+    }
+
+    public void handleTicker(Client client, Object data)
+    {
+        Object networkId = this.safeString(data, "networkId");
+        Object marketId = this.safeString(data, "marketId");
+        Object ts = this.safeInteger(data, "ts");
+        Object outcomes = this.safeList(data, "outcomes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object outcomesLength = Helpers.getArrayLength(outcomes);
+        if (Helpers.isTrue(Helpers.isEqual(this.tickers, null)))
+        {
+            this.tickers = this.createSafeDictionary();
+        }
+        for (var i = 0; Helpers.isLessThan(i, outcomesLength); i++)
+        {
+            Object oc = Helpers.GetValue(outcomes, i);
+            Object outcomeId = this.safeString(oc, "outcome");
+            Object sym = this.marketOutcomeToSymbol(networkId, marketId, outcomeId);
+            if (Helpers.isTrue(Helpers.isEqual(sym, null)))
+            {
+                continue;
+            }
+            Object market = this.safeMarket(sym);
+            Object last = this.fromWei(this.safeString(oc, "last"));
+            final Object finalSym = sym;
+            Object ticker = this.safeTicker(new java.util.HashMap<String, Object>() {{
+                put( "symbol", finalSym );
+                put( "timestamp", ts );
+                put( "datetime", MyriadCore.this.iso8601(ts) );
+                put( "high", null );
+                put( "low", null );
+                put( "bid", MyriadCore.this.fromWei(MyriadCore.this.safeString(oc, "bestBid")) );
+                put( "bidVolume", null );
+                put( "ask", MyriadCore.this.fromWei(MyriadCore.this.safeString(oc, "bestAsk")) );
+                put( "askVolume", null );
+                put( "vwap", null );
+                put( "open", null );
+                put( "close", last );
+                put( "last", last );
+                put( "previousClose", null );
+                put( "change", null );
+                put( "percentage", null );
+                put( "average", null );
+                put( "baseVolume", null );
+                put( "quoteVolume", null );
+                put( "info", oc );
+            }}, market);
+            Helpers.addElementToObject(this.tickers, sym, ticker);
+            client.resolve(ticker, Helpers.add("ticker::", sym));
+        }
+    }
+
+    /**
+     * @method
+     * @name myriad#watchOrders
+     * @description streams the wallet's order lifecycle updates over the Centrifugo orders channel
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
+     * @param {string} [symbol] unified outcome symbol to filter by
+     * @param {int} [since] timestamp in ms of the earliest order
+     * @param {int} [limit] the maximum number of orders to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    public java.util.concurrent.CompletableFuture<Object> watchOrders(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            (this.loadMarkets()).join();
+            this.ensureOutcomesLoaded();
+            Object trader = this.walletAddressFromKeys();
+            Object networkId = this.safeString(this.options, "defaultNetworkId", "56");
+            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            {
+                Object outcomeObj = this.outcome(symbol);
+                Object info = this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}});
+                networkId = this.safeString(info, "networkId", networkId);
+                symbol = this.safeOutcomeSymbol(symbol, outcomeObj);
+            }
+            Object channel = Helpers.add(Helpers.add(Helpers.add("orders:", networkId), ":"), trader);
+            Object messageHash = "orders";
+            Object orders = (this.subscribeMyriadChannel(messageHash, channel, parameters)).join();
+            return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        });
+
+    }
+
+    public void handleOrder(Client client, Object data)
+    {
+        if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
+        {
+            Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
+        }
+        Object networkId = this.safeString(data, "networkId");
+        Object marketId = this.safeString(data, "marketId");
+        Object outcomeId = this.safeString(data, "outcome");
+        Object sym = this.marketOutcomeToSymbol(networkId, marketId, outcomeId);
+        Object price = this.fromWei(this.safeString(data, "price"));
+        Object amount = this.fromWei(this.safeString(data, "amount"));
+        Object filled = this.fromWei(this.safeString(data, "filledAmount"));
+        Object status = this.parseOrderStatus(this.safeStringLower(data, "status"));
+        Object tif = this.safeStringUpper(data, "timeInForce");
+        Object isMarketTif = Helpers.isTrue((Helpers.isEqual(tif, "FOK"))) || Helpers.isTrue((Helpers.isEqual(tif, "FAK")));
+        Object timestamp = this.parse8601(this.safeString2(data, "updatedAt", "createdAt"));
+        final Object finalSym = sym;
+        final Object finalTif = tif;
+        Object parsed = this.safeOrder(new java.util.HashMap<String, Object>() {{
+            put( "id", MyriadCore.this.safeString(data, "orderHash") );
+            put( "clientOrderId", null );
+            put( "info", data );
+            put( "timestamp", timestamp );
+            put( "datetime", MyriadCore.this.iso8601(timestamp) );
+            put( "symbol", finalSym );
+            put( "type", ((Helpers.isTrue(isMarketTif))) ? "market" : "limit" );
+            put( "timeInForce", finalTif );
+            put( "side", MyriadCore.this.safeStringLower(data, "side") );
+            put( "price", price );
+            put( "amount", amount );
+            put( "filled", filled );
+            put( "remaining", null );
+            put( "average", null );
+            put( "cost", null );
+            put( "status", status );
+            put( "fee", null );
+            put( "trades", null );
+        }});
+        Object stored = this.orders;
+        Helpers.callDynamically(stored, "append", new Object[]{parsed});
+        client.resolve(stored, "orders");
+        if (Helpers.isTrue(!Helpers.isEqual(sym, null)))
+        {
+            client.resolve(stored, Helpers.add("orders::", sym));
+        }
+    }
+
+    /**
+     * @method
+     * @name myriad#watchPositions
+     * @description streams the wallet's share-balance changes over the Centrifugo positions channel
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
+     * @param {string[]} [symbols] unified outcome symbols to filter by
+     * @param {int} [since] timestamp in ms of the earliest position update
+     * @param {int} [limit] the maximum number of position updates to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+     */
+    public java.util.concurrent.CompletableFuture<Object> watchPositions(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object symbols = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            (this.loadMarkets()).join();
+            this.ensureOutcomesLoaded();
+            Object trader = this.walletAddressFromKeys();
+            Object networkId = this.safeString(this.options, "defaultNetworkId", "56");
+            Object channel = Helpers.add(Helpers.add(Helpers.add("positions:", networkId), ":"), trader);
+            Object messageHash = "positions";
+            Object positions = (this.subscribeMyriadChannel(messageHash, channel, parameters)).join();
+            if (Helpers.isTrue(this.newUpdates))
+            {
+                return positions;
+            }
+            return this.filterBySymbolsSinceLimit(positions, symbols, since, limit, true);
+        });
+
+    }
+
+    public void handlePosition(Client client, Object data)
+    {
+        if (Helpers.isTrue(Helpers.isEqual(this.positions, null)))
+        {
+            Object limit = this.safeInteger(this.options, "positionsLimit", 1000);
+            this.positions = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
+        }
+        Object networkId = this.safeString(data, "networkId");
+        Object marketId = this.safeString(data, "marketId");
+        Object outcomeId = this.safeString(data, "outcome");
+        Object sym = this.marketOutcomeToSymbol(networkId, marketId, outcomeId);
+        Object ts = this.safeInteger(data, "ts");
+        // the positions channel emits a signed share delta per fill/redeem/split/merge; the absolute
+        // balance and entry price are not pushed (refetch via fetchPositions when the full state is needed)
+        Object balance = this.fromWei(this.safeString(data, "balance"));
+        Object parsed = this.safePosition(new java.util.HashMap<String, Object>() {{
+            put( "info", data );
+            put( "id", MyriadCore.this.safeString(data, "txHash") );
+            put( "symbol", sym );
+            put( "timestamp", ts );
+            put( "datetime", MyriadCore.this.iso8601(ts) );
+            put( "side", "long" );
+            put( "contracts", balance );
+            put( "entryPrice", null );
+            put( "markPrice", null );
+            put( "notional", null );
+            put( "collateral", null );
+            put( "unrealizedPnl", null );
+        }});
+        Object stored = this.positions;
+        Helpers.callDynamically(stored, "append", new Object[]{parsed});
+        client.resolve(stored, "positions");
+    }
+
+    public Object walletAddressFromKeys()
+    {
+        // the orders/positions channels are keyed by the lowercase trader address (Centrifugo channels
+        // are case-sensitive); lowercase here so the channel matches regardless of the address checksum.
+        // check length too: an unset walletAddress is an empty string (not undefined) in some languages
+        Object address = this.walletAddress;
+        Object hasWallet = Helpers.isTrue((!Helpers.isEqual(address, null))) && Helpers.isTrue((Helpers.isGreaterThan(((String)this.walletAddress).length(), 0)));
+        if (!Helpers.isTrue(hasWallet))
+        {
+            if (Helpers.isTrue(Helpers.isEqual(this.privateKey, null)))
+            {
+                throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a walletAddress or privateKey to watch private channels")) ;
+            }
+            address = this.ethGetAddressFromPrivateKey(this.privateKey);
+        }
+        return ((String)address).toLowerCase();
     }
 
     /**

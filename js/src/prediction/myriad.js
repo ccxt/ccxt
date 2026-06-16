@@ -23,6 +23,7 @@ import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from '../abstract/prediction/myriad.js';
 import { ecdsa } from '../base/functions/crypto.js';
+import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { ArgumentsRequired, NotSupported, ExchangeError } from '../../ccxt.js';
 // ---------------------------------------------------------------------------
@@ -65,6 +66,11 @@ export default class myriad extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'prediction': true,
+                'watchOrderBook': true,
+                'watchOrders': true,
+                'watchPositions': true,
+                'watchTicker': true,
+                'watchTrades': true,
             },
             'timeframes': {
                 // Myriad maps timeframes to price_chart bucket keys
@@ -79,9 +85,11 @@ export default class myriad extends Exchange {
                 'logo': 'https://myriad.markets/favicon.ico',
                 'api': {
                     'myriad': 'https://api-v2.myriadprotocol.com',
+                    'ws': 'wss://ws.myriadprotocol.com/ws',
                 },
                 'test': {
                     'myriad': 'https://api-v2.staging.myriadprotocol.com',
+                    'ws': 'wss://ws.staging.myriadprotocol.com/ws',
                 },
                 'www': 'https://myriad.markets',
                 'doc': ['https://docs.myriad.markets'],
@@ -2088,6 +2096,459 @@ export default class myriad extends Exchange {
             'resolutionSource': this.safeString(rawEvent, 'resolutionSource'),
             'info': rawEvent,
         });
+    }
+    requestId(url) {
+        const existing = this.safeValue(this.options, 'requestId');
+        if (existing === undefined) {
+            this.options['requestId'] = this.createSafeDictionary();
+        }
+        const options = this.options['requestId'];
+        const previousValue = this.safeInteger(options, url, 0);
+        const newValue = this.sum(previousValue, 1);
+        this.options['requestId'][url] = newValue;
+        return newValue;
+    }
+    fromWei(wei) {
+        if (wei === undefined) {
+            return undefined;
+        }
+        return this.parseNumber(Precise.stringDiv(wei, '1000000000000000000'));
+    }
+    marketOutcomeToSymbol(networkId, marketId, outcomeId) {
+        const ocId = networkId + ':' + marketId + '/' + outcomeId;
+        const outcomeObj = this.safeDict(this.outcomes_by_id, ocId);
+        return this.safeString(outcomeObj, 'symbol');
+    }
+    async connectCentrifugo(url) {
+        // Centrifugo requires an anonymous connect command before any subscribe. This sends it once per
+        // connection and resolves when the connect reply arrives (see handleCentrifugoFrame). The base
+        // clears client.subscriptions on reconnect, so an absent 'connect' marker means a fresh handshake.
+        const client = this.client(url);
+        const connectSent = this.safeValue(client.subscriptions, 'connect');
+        if (connectSent === undefined) {
+            this.options['wsConnected'] = false;
+            const requestId = this.requestId(url);
+            // give the anonymous connect a name so the params object is non-empty (PHP serialises an
+            // empty array as a JSON array, which Centrifugo rejects)
+            const connectMsg = { 'connect': { 'name': 'ccxt' }, 'id': requestId };
+            return await this.watch(url, 'centrifugoConnected', connectMsg, 'connect');
+        }
+        if (this.safeBool(this.options, 'wsConnected', false)) {
+            // the connect reply already arrived on this connection — safe to subscribe immediately
+            return undefined;
+        }
+        // connect is in flight (sent by a concurrent subscribe) — wait on the shared reply future
+        return await client.future('centrifugoConnected');
+    }
+    async pong(client, message = undefined) {
+        // Centrifugo server pings are empty frames; reply with the same empty frame to keep the link alive
+        await client.send('{}');
+    }
+    async subscribeMyriadChannel(messageHash, channel, params = {}) {
+        const url = this.safeString(this.urls['api'], 'ws');
+        // finish the connect handshake first so the subscribe frame is sent after the connect reply
+        await this.connectCentrifugo(url);
+        const requestId = this.requestId(url);
+        const subscribeMsg = { 'subscribe': { 'channel': channel }, 'id': requestId };
+        return await this.watch(url, messageHash, subscribeMsg, channel);
+    }
+    handleMessage(client, message) {
+        // Centrifugo packs several commands per frame joined by \n; a multi-command frame fails the
+        // base JSON.parse and arrives here as a raw string, a single command arrives already parsed
+        if (typeof message === 'string') {
+            const lines = message.split('\n');
+            const linesLength = lines.length;
+            for (let i = 0; i < linesLength; i++) {
+                const line = lines[i];
+                if (line.length > 0) {
+                    const parsed = JSON.parse(line);
+                    this.handleCentrifugoFrame(client, parsed);
+                }
+            }
+            return;
+        }
+        this.handleCentrifugoFrame(client, message);
+    }
+    handleCentrifugoFrame(client, msg) {
+        const keys = Object.keys(msg);
+        const keysLength = keys.length;
+        if (keysLength === 0) {
+            this.spawn(this.pong, client, msg);
+            return;
+        }
+        const connectReply = this.safeDict(msg, 'connect');
+        if (connectReply !== undefined) {
+            // connect acknowledged — unblock connectCentrifugo so channel subscribes can be sent
+            this.options['wsConnected'] = true;
+            client.resolve(true, 'centrifugoConnected');
+            return;
+        }
+        const push = this.safeDict(msg, 'push');
+        if (push === undefined) {
+            return;
+        }
+        const channel = this.safeString(push, 'channel');
+        if (channel === undefined) {
+            return;
+        }
+        const pub = this.safeDict(push, 'pub', {});
+        const data = this.safeDict(pub, 'data', {});
+        const parts = channel.split(':');
+        const channelType = this.safeString(parts, 0);
+        if (channelType === 'orderbook') {
+            this.handleOrderBook(client, data);
+        }
+        else if (channelType === 'trades') {
+            this.handleTrades(client, data);
+        }
+        else if (channelType === 'prices') {
+            this.handleTicker(client, data);
+        }
+        else if (channelType === 'orders') {
+            this.handleOrder(client, data);
+        }
+        else if (channelType === 'positions') {
+            this.handlePosition(client, data);
+        }
+    }
+    /**
+     * @method
+     * @name myriad#watchOrderBook
+     * @description streams the order book for an outcome over the Centrifugo websocket; the channel is delta-only so the book is seeded from the REST snapshot
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
+     * @param {string} symbol unified outcome symbol
+     * @param {int} [limit] the maximum number of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+     */
+    async watchOrderBook(symbol, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        this.ensureOutcomesLoaded();
+        const outcomeObj = this.outcome(symbol);
+        const info = this.safeDict(outcomeObj, 'info', {});
+        const networkId = this.safeString(info, 'networkId');
+        const marketId = this.safeString(info, 'marketId');
+        const sym = this.safeOutcomeSymbol(symbol, outcomeObj);
+        const channel = 'orderbook:' + networkId + ':' + marketId;
+        const messageHash = 'orderbook::' + sym;
+        if (this.safeValue(this.orderbooks, sym) === undefined) {
+            await this.seedOrderBook(symbol, sym, limit);
+        }
+        const orderbook = await this.subscribeMyriadChannel(messageHash, channel, params);
+        return orderbook.limit();
+    }
+    async seedOrderBook(symbol, sym, limit = undefined) {
+        // the order book channel streams deltas only, so seed the live book from the REST snapshot
+        const snapshot = await this.fetchOrderBook(symbol, limit);
+        const orderbook = this.orderBook({});
+        orderbook.reset(snapshot);
+        this.orderbooks[sym] = orderbook;
+    }
+    handleOrderBook(client, data) {
+        const networkId = this.safeString(data, 'networkId');
+        const marketId = this.safeString(data, 'marketId');
+        const ts = this.safeInteger(data, 'ts');
+        const changes = this.safeList(data, 'changes', []);
+        const changesLength = changes.length;
+        const updated = {};
+        for (let i = 0; i < changesLength; i++) {
+            const change = changes[i];
+            const outcomeId = this.safeString(change, 'outcome');
+            const sym = this.marketOutcomeToSymbol(networkId, marketId, outcomeId);
+            if (sym === undefined) {
+                continue;
+            }
+            if (this.safeValue(this.orderbooks, sym) === undefined) {
+                continue;
+            }
+            const orderbook = this.orderbooks[sym];
+            const price = this.fromWei(this.safeString(change, 'price'));
+            const amount = this.fromWei(this.safeString(change, 'amount'));
+            const sideStr = this.safeString(change, 'side');
+            const bookSide = (sideStr === 'bid') ? orderbook['bids'] : orderbook['asks'];
+            bookSide.storeArray([price, amount]);
+            orderbook['timestamp'] = ts;
+            orderbook['datetime'] = this.iso8601(ts);
+            updated[sym] = true;
+        }
+        const updatedSymbols = Object.keys(updated);
+        const updatedLength = updatedSymbols.length;
+        for (let k = 0; k < updatedLength; k++) {
+            const sym = updatedSymbols[k];
+            client.resolve(this.orderbooks[sym], 'orderbook::' + sym);
+        }
+    }
+    /**
+     * @method
+     * @name myriad#watchTrades
+     * @description streams public trades for an outcome over the Centrifugo websocket
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
+     * @param {string} symbol unified outcome symbol
+     * @param {int} [since] timestamp in ms of the earliest trade
+     * @param {int} [limit] the maximum number of trades to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+     */
+    async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        this.ensureOutcomesLoaded();
+        const outcomeObj = this.outcome(symbol);
+        const info = this.safeDict(outcomeObj, 'info', {});
+        const networkId = this.safeString(info, 'networkId');
+        const marketId = this.safeString(info, 'marketId');
+        const sym = this.safeOutcomeSymbol(symbol, outcomeObj);
+        const channel = 'trades:' + networkId + ':' + marketId;
+        const messageHash = 'trades::' + sym;
+        const trades = await this.subscribeMyriadChannel(messageHash, channel, params);
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+    }
+    handleTrades(client, data) {
+        const networkId = this.safeString(data, 'networkId');
+        const marketId = this.safeString(data, 'marketId');
+        const ts = this.safeInteger(data, 'ts');
+        const txHash = this.safeString(data, 'txHash');
+        const taker = this.safeDict(data, 'taker', {});
+        const outcomeId = this.safeString(taker, 'outcome');
+        const sym = this.marketOutcomeToSymbol(networkId, marketId, outcomeId);
+        if (sym === undefined) {
+            return;
+        }
+        const market = this.safeMarket(sym);
+        // the trades channel reports human-decimal values (averagePrice "0.14", totalAmount "1"),
+        // unlike the orders channel which is 1e18-scaled — so read them directly without fromWei
+        const fees = this.safeDict(taker, 'totalFees', {});
+        const trade = this.safeTrade({
+            'id': txHash,
+            'info': data,
+            'timestamp': ts,
+            'datetime': this.iso8601(ts),
+            'symbol': sym,
+            'order': this.safeString(taker, 'orderHash'),
+            'type': undefined,
+            'side': this.safeStringLower(taker, 'side'),
+            'takerOrMaker': 'taker',
+            'price': this.safeNumber(taker, 'averagePrice'),
+            'amount': this.safeNumber(taker, 'totalAmount'),
+            'cost': undefined,
+            'fee': {
+                'cost': this.safeNumber(fees, 'total'),
+                'currency': this.safeString(market, 'quote'),
+            },
+        }, market);
+        if (this.trades === undefined) {
+            this.trades = this.createSafeDictionary();
+        }
+        if (this.safeValue(this.trades, sym) === undefined) {
+            const tradesLimit = this.safeInteger(this.options, 'tradesLimit', 1000);
+            this.trades[sym] = new ArrayCache(tradesLimit);
+        }
+        const stored = this.trades[sym];
+        stored.append(trade);
+        client.resolve(stored, 'trades::' + sym);
+    }
+    /**
+     * @method
+     * @name myriad#watchTicker
+     * @description streams best bid/ask/last for an outcome over the Centrifugo prices channel
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
+     * @param {string} symbol unified outcome symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+     */
+    async watchTicker(symbol, params = {}) {
+        await this.loadMarkets();
+        this.ensureOutcomesLoaded();
+        const outcomeObj = this.outcome(symbol);
+        const info = this.safeDict(outcomeObj, 'info', {});
+        const networkId = this.safeString(info, 'networkId');
+        const marketId = this.safeString(info, 'marketId');
+        const sym = this.safeOutcomeSymbol(symbol, outcomeObj);
+        const channel = 'prices:' + networkId + ':' + marketId;
+        const messageHash = 'ticker::' + sym;
+        return await this.subscribeMyriadChannel(messageHash, channel, params);
+    }
+    handleTicker(client, data) {
+        const networkId = this.safeString(data, 'networkId');
+        const marketId = this.safeString(data, 'marketId');
+        const ts = this.safeInteger(data, 'ts');
+        const outcomes = this.safeList(data, 'outcomes', []);
+        const outcomesLength = outcomes.length;
+        if (this.tickers === undefined) {
+            this.tickers = this.createSafeDictionary();
+        }
+        for (let i = 0; i < outcomesLength; i++) {
+            const oc = outcomes[i];
+            const outcomeId = this.safeString(oc, 'outcome');
+            const sym = this.marketOutcomeToSymbol(networkId, marketId, outcomeId);
+            if (sym === undefined) {
+                continue;
+            }
+            const market = this.safeMarket(sym);
+            const last = this.fromWei(this.safeString(oc, 'last'));
+            const ticker = this.safeTicker({
+                'symbol': sym,
+                'timestamp': ts,
+                'datetime': this.iso8601(ts),
+                'high': undefined,
+                'low': undefined,
+                'bid': this.fromWei(this.safeString(oc, 'bestBid')),
+                'bidVolume': undefined,
+                'ask': this.fromWei(this.safeString(oc, 'bestAsk')),
+                'askVolume': undefined,
+                'vwap': undefined,
+                'open': undefined,
+                'close': last,
+                'last': last,
+                'previousClose': undefined,
+                'change': undefined,
+                'percentage': undefined,
+                'average': undefined,
+                'baseVolume': undefined,
+                'quoteVolume': undefined,
+                'info': oc,
+            }, market);
+            this.tickers[sym] = ticker;
+            client.resolve(ticker, 'ticker::' + sym);
+        }
+    }
+    /**
+     * @method
+     * @name myriad#watchOrders
+     * @description streams the wallet's order lifecycle updates over the Centrifugo orders channel
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
+     * @param {string} [symbol] unified outcome symbol to filter by
+     * @param {int} [since] timestamp in ms of the earliest order
+     * @param {int} [limit] the maximum number of orders to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        this.ensureOutcomesLoaded();
+        const trader = this.walletAddressFromKeys();
+        let networkId = this.safeString(this.options, 'defaultNetworkId', '56');
+        if (symbol !== undefined) {
+            const outcomeObj = this.outcome(symbol);
+            const info = this.safeDict(outcomeObj, 'info', {});
+            networkId = this.safeString(info, 'networkId', networkId);
+            symbol = this.safeOutcomeSymbol(symbol, outcomeObj);
+        }
+        const channel = 'orders:' + networkId + ':' + trader;
+        const messageHash = 'orders';
+        const orders = await this.subscribeMyriadChannel(messageHash, channel, params);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+    }
+    handleOrder(client, data) {
+        if (this.orders === undefined) {
+            const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheBySymbolById(limit);
+        }
+        const networkId = this.safeString(data, 'networkId');
+        const marketId = this.safeString(data, 'marketId');
+        const outcomeId = this.safeString(data, 'outcome');
+        const sym = this.marketOutcomeToSymbol(networkId, marketId, outcomeId);
+        const price = this.fromWei(this.safeString(data, 'price'));
+        const amount = this.fromWei(this.safeString(data, 'amount'));
+        const filled = this.fromWei(this.safeString(data, 'filledAmount'));
+        const status = this.parseOrderStatus(this.safeStringLower(data, 'status'));
+        const tif = this.safeStringUpper(data, 'timeInForce');
+        const isMarketTif = (tif === 'FOK') || (tif === 'FAK');
+        const timestamp = this.parse8601(this.safeString2(data, 'updatedAt', 'createdAt'));
+        const parsed = this.safeOrder({
+            'id': this.safeString(data, 'orderHash'),
+            'clientOrderId': undefined,
+            'info': data,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'symbol': sym,
+            'type': isMarketTif ? 'market' : 'limit',
+            'timeInForce': tif,
+            'side': this.safeStringLower(data, 'side'),
+            'price': price,
+            'amount': amount,
+            'filled': filled,
+            'remaining': undefined,
+            'average': undefined,
+            'cost': undefined,
+            'status': status,
+            'fee': undefined,
+            'trades': undefined,
+        });
+        const stored = this.orders;
+        stored.append(parsed);
+        client.resolve(stored, 'orders');
+        if (sym !== undefined) {
+            client.resolve(stored, 'orders::' + sym);
+        }
+    }
+    /**
+     * @method
+     * @name myriad#watchPositions
+     * @description streams the wallet's share-balance changes over the Centrifugo positions channel
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
+     * @param {string[]} [symbols] unified outcome symbols to filter by
+     * @param {int} [since] timestamp in ms of the earliest position update
+     * @param {int} [limit] the maximum number of position updates to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+     */
+    async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        this.ensureOutcomesLoaded();
+        const trader = this.walletAddressFromKeys();
+        const networkId = this.safeString(this.options, 'defaultNetworkId', '56');
+        const channel = 'positions:' + networkId + ':' + trader;
+        const messageHash = 'positions';
+        const positions = await this.subscribeMyriadChannel(messageHash, channel, params);
+        if (this.newUpdates) {
+            return positions;
+        }
+        return this.filterBySymbolsSinceLimit(positions, symbols, since, limit, true);
+    }
+    handlePosition(client, data) {
+        if (this.positions === undefined) {
+            const limit = this.safeInteger(this.options, 'positionsLimit', 1000);
+            this.positions = new ArrayCacheBySymbolById(limit);
+        }
+        const networkId = this.safeString(data, 'networkId');
+        const marketId = this.safeString(data, 'marketId');
+        const outcomeId = this.safeString(data, 'outcome');
+        const sym = this.marketOutcomeToSymbol(networkId, marketId, outcomeId);
+        const ts = this.safeInteger(data, 'ts');
+        // the positions channel emits a signed share delta per fill/redeem/split/merge; the absolute
+        // balance and entry price are not pushed (refetch via fetchPositions when the full state is needed)
+        const balance = this.fromWei(this.safeString(data, 'balance'));
+        const parsed = this.safePosition({
+            'info': data,
+            'id': this.safeString(data, 'txHash'),
+            'symbol': sym,
+            'timestamp': ts,
+            'datetime': this.iso8601(ts),
+            'side': 'long',
+            'contracts': balance,
+            'entryPrice': undefined,
+            'markPrice': undefined,
+            'notional': undefined,
+            'collateral': undefined,
+            'unrealizedPnl': undefined,
+        });
+        const stored = this.positions;
+        stored.append(parsed);
+        client.resolve(stored, 'positions');
+    }
+    walletAddressFromKeys() {
+        // the orders/positions channels are keyed by the lowercase trader address (Centrifugo channels
+        // are case-sensitive); lowercase here so the channel matches regardless of the address checksum.
+        // check length too: an unset walletAddress is an empty string (not undefined) in some languages
+        let address = this.walletAddress;
+        const hasWallet = (address !== undefined) && (this.walletAddress.length > 0);
+        if (!hasWallet) {
+            if (this.privateKey === undefined) {
+                throw new ArgumentsRequired(this.id + ' requires a walletAddress or privateKey to watch private channels');
+            }
+            address = this.ethGetAddressFromPrivateKey(this.privateKey);
+        }
+        return address.toLowerCase();
     }
     /**
      * @ignore

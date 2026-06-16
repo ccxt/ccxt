@@ -692,6 +692,193 @@ func (this *Myriad) FetchEvents(params ...any) ([]map[string]any, error) {
     }
     return ccxt.NewMapArray(res), nil
 }
+/**
+ * @method
+ * @name myriad#watchOrderBook
+ * @description streams the order book for an outcome over the Centrifugo websocket; the channel is delta-only so the book is seeded from the REST snapshot
+ * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
+ * @param {string} symbol unified outcome symbol
+ * @param {int} [limit] the maximum number of order book entries to return
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+ */
+func (this *Myriad) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBookOptions) (ccxt.OrderBook, error) {
+
+    opts := ccxt.WatchOrderBookOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var limit any = nil
+    if opts.Limit != nil {
+        limit = *opts.Limit
+    }
+
+    var params any = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.WatchOrderBook(symbol, limit, params)
+    if ccxt.IsError(res) {
+        return ccxt.OrderBook{}, ccxt.CreateReturnError(res)
+    }
+    return ccxt.NewOrderBookFromWs(res), nil
+}
+/**
+ * @method
+ * @name myriad#watchTrades
+ * @description streams public trades for an outcome over the Centrifugo websocket
+ * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
+ * @param {string} symbol unified outcome symbol
+ * @param {int} [since] timestamp in ms of the earliest trade
+ * @param {int} [limit] the maximum number of trades to return
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+ */
+func (this *Myriad) WatchTrades(symbol string, options ...ccxt.WatchTradesOptions) ([]ccxt.Trade, error) {
+
+    opts := ccxt.WatchTradesOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var since any = nil
+    if opts.Since != nil {
+        since = *opts.Since
+    }
+
+    var limit any = nil
+    if opts.Limit != nil {
+        limit = *opts.Limit
+    }
+
+    var params any = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.WatchTrades(symbol, since, limit, params)
+    if ccxt.IsError(res) {
+        return nil, ccxt.CreateReturnError(res)
+    }
+    return ccxt.NewTradeArray(res), nil
+}
+/**
+ * @method
+ * @name myriad#watchTicker
+ * @description streams best bid/ask/last for an outcome over the Centrifugo prices channel
+ * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
+ * @param {string} symbol unified outcome symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+ */
+func (this *Myriad) WatchTicker(symbol string, options ...ccxt.WatchTickerOptions) (ccxt.Ticker, error) {
+
+    opts := ccxt.WatchTickerOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var params any = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.WatchTicker(symbol, params)
+    if ccxt.IsError(res) {
+        return ccxt.Ticker{}, ccxt.CreateReturnError(res)
+    }
+    return ccxt.NewTicker(res), nil
+}
+/**
+ * @method
+ * @name myriad#watchOrders
+ * @description streams the wallet's order lifecycle updates over the Centrifugo orders channel
+ * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
+ * @param {string} [symbol] unified outcome symbol to filter by
+ * @param {int} [since] timestamp in ms of the earliest order
+ * @param {int} [limit] the maximum number of orders to return
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ */
+func (this *Myriad) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Order, error) {
+
+    opts := ccxt.WatchOrdersOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbol any = nil
+    if opts.Symbol != nil {
+        symbol = *opts.Symbol
+    }
+
+    var since any = nil
+    if opts.Since != nil {
+        since = *opts.Since
+    }
+
+    var limit any = nil
+    if opts.Limit != nil {
+        limit = *opts.Limit
+    }
+
+    var params any = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.WatchOrders(symbol, since, limit, params)
+    if ccxt.IsError(res) {
+        return nil, ccxt.CreateReturnError(res)
+    }
+    return ccxt.NewOrderArray(res), nil
+}
+/**
+ * @method
+ * @name myriad#watchPositions
+ * @description streams the wallet's share-balance changes over the Centrifugo positions channel
+ * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
+ * @param {string[]} [symbols] unified outcome symbols to filter by
+ * @param {int} [since] timestamp in ms of the earliest position update
+ * @param {int} [limit] the maximum number of position updates to return
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+ */
+func (this *Myriad) WatchPositions(options ...ccxt.WatchPositionsOptions) ([]ccxt.Position, error) {
+
+    opts := ccxt.WatchPositionsOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbols any = nil
+    if opts.Symbols != nil {
+        symbols = *opts.Symbols
+    }
+
+    var since any = nil
+    if opts.Since != nil {
+        since = *opts.Since
+    }
+
+    var limit any = nil
+    if opts.Limit != nil {
+        limit = *opts.Limit
+    }
+
+    var params any = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.WatchPositions(symbols, since, limit, params)
+    if ccxt.IsError(res) {
+        return nil, ccxt.CreateReturnError(res)
+    }
+    return ccxt.NewPositionArray(res), nil
+}
 // missing typed methods from base
 //nolint
 func (this *Myriad) LoadMarkets(params ...any) (map[string]ccxt.MarketInterface, error) { return this.exchangeTyped.LoadMarkets(params...) }
@@ -875,14 +1062,9 @@ func (this *Myriad) WatchMyLiquidationsForSymbols(symbols []string, options ...c
 func (this *Myriad) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccxt.Trade, error) {return this.exchangeTyped.WatchMyTrades(options...)}
 func (this *Myriad) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions) ([]ccxt.OHLCV, error) {return this.exchangeTyped.WatchOHLCV(symbol, options...)}
 func (this *Myriad) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...ccxt.WatchOHLCVForSymbolsOptions) (map[string]map[string][]ccxt.OHLCV, error) {return this.exchangeTyped.WatchOHLCVForSymbols(symbolsAndTimeframes, options...)}
-func (this *Myriad) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBookOptions) (ccxt.OrderBook, error) {return this.exchangeTyped.WatchOrderBook(symbol, options...)}
 func (this *Myriad) WatchOrderBookForSymbols(symbols []string, options ...ccxt.WatchOrderBookForSymbolsOptions) (ccxt.OrderBook, error) {return this.exchangeTyped.WatchOrderBookForSymbols(symbols, options...)}
-func (this *Myriad) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.WatchOrders(options...)}
 func (this *Myriad) WatchOrdersForSymbols(symbols []string, options ...ccxt.WatchOrdersForSymbolsOptions) ([]ccxt.Order, error) {return this.exchangeTyped.WatchOrdersForSymbols(symbols, options...)}
 func (this *Myriad) WatchPosition(options ...ccxt.WatchPositionOptions) (ccxt.Position, error) {return this.exchangeTyped.WatchPosition(options...)}
-func (this *Myriad) WatchPositions(options ...ccxt.WatchPositionsOptions) ([]ccxt.Position, error) {return this.exchangeTyped.WatchPositions(options...)}
-func (this *Myriad) WatchTicker(symbol string, options ...ccxt.WatchTickerOptions) (ccxt.Ticker, error) {return this.exchangeTyped.WatchTicker(symbol, options...)}
 func (this *Myriad) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Tickers, error) {return this.exchangeTyped.WatchTickers(options...)}
-func (this *Myriad) WatchTrades(symbol string, options ...ccxt.WatchTradesOptions) ([]ccxt.Trade, error) {return this.exchangeTyped.WatchTrades(symbol, options...)}
 func (this *Myriad) WatchTradesForSymbols(symbols []string, options ...ccxt.WatchTradesForSymbolsOptions) ([]ccxt.Trade, error) {return this.exchangeTyped.WatchTradesForSymbols(symbols, options...)}
 func (this *Myriad) WithdrawWs(code string, amount float64, address string, options ...ccxt.WithdrawWsOptions) (ccxt.Transaction, error) {return this.exchangeTyped.WithdrawWs(code, amount, address, options...)}

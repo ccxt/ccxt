@@ -14,6 +14,8 @@ use ccxt\Precise;
 use \React\Async;
 use \React\Promise;
 use \React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
 
 class myriad extends Exchange {
 
@@ -51,6 +53,11 @@ class myriad extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'prediction' => true,
+                'watchOrderBook' => true,
+                'watchOrders' => true,
+                'watchPositions' => true,
+                'watchTicker' => true,
+                'watchTrades' => true,
             ),
             'timeframes' => array(
                 // Myriad maps timeframes to price_chart bucket keys
@@ -65,9 +72,11 @@ class myriad extends Exchange {
                 'logo' => 'https://myriad.markets/favicon.ico',
                 'api' => array(
                     'myriad' => 'https://api-v2.myriadprotocol.com',
+                    'ws' => 'wss://ws.myriadprotocol.com/ws',
                 ),
                 'test' => array(
                     'myriad' => 'https://api-v2.staging.myriadprotocol.com',
+                    'ws' => 'wss://ws.staging.myriadprotocol.com/ws',
                 ),
                 'www' => 'https://myriad.markets',
                 'doc' => array( 'https://docs.myriad.markets' ),
@@ -2132,6 +2141,493 @@ class myriad extends Exchange {
             'resolutionSource' => $this->safe_string($rawEvent, 'resolutionSource'),
             'info' => $rawEvent,
         ));
+    }
+
+    public function request_id(string $url): float {
+        $existing = $this->safe_value($this->options, 'requestId');
+        if ($existing === null) {
+            $this->options['requestId'] = $this->create_safe_dictionary();
+        }
+        $options = $this->options['requestId'];
+        $previousValue = $this->safe_integer($options, $url, 0);
+        $newValue = $this->sum($previousValue, 1);
+        $this->options['requestId'][$url] = $newValue;
+        return $newValue;
+    }
+
+    public function from_wei(?string $wei): ?float {
+        if ($wei === null) {
+            return null;
+        }
+        return $this->parse_number(Precise::string_div($wei, '1000000000000000000'));
+    }
+
+    public function market_outcome_to_symbol(?string $networkId, ?string $marketId, ?string $outcomeId): ?string {
+        $ocId = $networkId . ':' . $marketId . '/' . $outcomeId;
+        $outcomeObj = $this->safe_dict($this->outcomes_by_id, $ocId);
+        return $this->safe_string($outcomeObj, 'symbol');
+    }
+
+    public function connect_centrifugo(string $url): PromiseInterface {
+        return Async\async(function () use ($url) {
+            // Centrifugo requires an anonymous connect command before any subscribe. This sends it once per
+            // connection and resolves when the connect reply arrives (see handleCentrifugoFrame). The base
+            // clears $client->subscriptions on reconnect, so an absent 'connect' marker means a fresh handshake.
+            $client = $this->client($url);
+            $connectSent = $this->safe_value($client->subscriptions, 'connect');
+            if ($connectSent === null) {
+                $this->options['wsConnected'] = false;
+                $requestId = $this->request_id($url);
+                // give the anonymous connect a name so the params object is non-empty (PHP serialises an
+                // empty array JSON array, which Centrifugo rejects)
+                $connectMsg = array( 'connect' => array( 'name' => 'ccxt' ), 'id' => $requestId );
+                return Async\await($this->watch($url, 'centrifugoConnected', $connectMsg, 'connect'));
+            }
+            if ($this->safe_bool($this->options, 'wsConnected', false)) {
+                // the connect reply already arrived on this connection — safe to subscribe immediately
+                return null;
+            }
+            // connect is in flight (sent by a concurrent subscribe) — wait on the shared reply future
+            return Async\await($client->future ('centrifugoConnected'));
+        }) ();
+    }
+
+    public function pong($client, $message = null) {
+        return Async\async(function () use ($client, $message) {
+            // Centrifugo server pings are empty frames; reply with the same empty frame to keep the link alive
+            Async\await($client->send ('{}'));
+        }) ();
+    }
+
+    public function subscribe_myriad_channel(string $messageHash, string $channel, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($messageHash, $channel, $params) {
+            $url = $this->safe_string($this->urls['api'], 'ws');
+            // finish the connect handshake first so the subscribe frame is sent after the connect reply
+            Async\await($this->connect_centrifugo($url));
+            $requestId = $this->request_id($url);
+            $subscribeMsg = array( 'subscribe' => array( 'channel' => $channel ), 'id' => $requestId );
+            return Async\await($this->watch($url, $messageHash, $subscribeMsg, $channel));
+        }) ();
+    }
+
+    public function handle_message($client, $message) {
+        // Centrifugo packs several commands per frame joined by \n; a multi-command frame fails the
+        // base JSON.parse and arrives here raw string, a single command arrives already $parsed
+        if (gettype($message) === 'string') {
+            $lines = explode('\n', $message);
+            $linesLength = count($lines);
+            for ($i = 0; $i < $linesLength; $i++) {
+                $line = $lines[$i];
+                if (strlen($line) > 0) {
+                    $parsed = json_decode($line, $as_associative_array = true);
+                    $this->handle_centrifugo_frame($client, $parsed);
+                }
+            }
+            return;
+        }
+        $this->handle_centrifugo_frame($client, $message);
+    }
+
+    public function handle_centrifugo_frame($client, $msg) {
+        $keys = is_array($msg) ? array_keys($msg) : array();
+        $keysLength = count($keys);
+        if ($keysLength === 0) {
+            $this->spawn(array($this, 'pong'), $client, $msg);
+            return;
+        }
+        $connectReply = $this->safe_dict($msg, 'connect');
+        if ($connectReply !== null) {
+            // connect acknowledged — unblock connectCentrifugo so $channel subscribes can be sent
+            $this->options['wsConnected'] = true;
+            $client->resolve (true, 'centrifugoConnected');
+            return;
+        }
+        $push = $this->safe_dict($msg, 'push');
+        if ($push === null) {
+            return;
+        }
+        $channel = $this->safe_string($push, 'channel');
+        if ($channel === null) {
+            return;
+        }
+        $pub = $this->safe_dict($push, 'pub', array());
+        $data = $this->safe_dict($pub, 'data', array());
+        $parts = explode(':', $channel);
+        $channelType = $this->safe_string($parts, 0);
+        if ($channelType === 'orderbook') {
+            $this->handle_order_book($client, $data);
+        } elseif ($channelType === 'trades') {
+            $this->handle_trades($client, $data);
+        } elseif ($channelType === 'prices') {
+            $this->handle_ticker($client, $data);
+        } elseif ($channelType === 'orders') {
+            $this->handle_order($client, $data);
+        } elseif ($channelType === 'positions') {
+            $this->handle_position($client, $data);
+        }
+    }
+
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $limit, $params) {
+            /**
+             * streams the order book for an outcome over the Centrifugo websocket; the $channel is delta-only so the book is seeded from the REST snapshot
+             *
+             * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
+             *
+             * @param {string} $symbol unified outcome $symbol
+             * @param {int} [$limit] the maximum number of order book entries to return
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+             */
+            Async\await($this->load_markets());
+            $this->ensure_outcomes_loaded();
+            $outcomeObj = $this->outcome ($symbol);
+            $info = $this->safe_dict($outcomeObj, 'info', array());
+            $networkId = $this->safe_string($info, 'networkId');
+            $marketId = $this->safe_string($info, 'marketId');
+            $sym = $this->safeOutcomeSymbol ($symbol, $outcomeObj);
+            $channel = 'orderbook:' . $networkId . ':' . $marketId;
+            $messageHash = 'orderbook::' . $sym;
+            if ($this->safe_value($this->orderbooks, $sym) === null) {
+                Async\await($this->seed_order_book($symbol, $sym, $limit));
+            }
+            $orderbook = Async\await($this->subscribe_myriad_channel($messageHash, $channel, $params));
+            return $orderbook->limit ();
+        }) ();
+    }
+
+    public function seed_order_book(string $symbol, string $sym, ?int $limit = null) {
+        return Async\async(function () use ($symbol, $sym, $limit) {
+            // the order book channel streams deltas only, so seed the live book from the REST $snapshot
+            $snapshot = Async\await($this->fetch_order_book($symbol, $limit));
+            $orderbook = $this->order_book(array());
+            $orderbook->reset ($snapshot);
+            $this->orderbooks[$sym] = $orderbook;
+        }) ();
+    }
+
+    public function handle_order_book($client, $data) {
+        $networkId = $this->safe_string($data, 'networkId');
+        $marketId = $this->safe_string($data, 'marketId');
+        $ts = $this->safe_integer($data, 'ts');
+        $changes = $this->safe_list($data, 'changes', array());
+        $changesLength = count($changes);
+        $updated = array();
+        for ($i = 0; $i < $changesLength; $i++) {
+            $change = $changes[$i];
+            $outcomeId = $this->safe_string($change, 'outcome');
+            $sym = $this->market_outcome_to_symbol($networkId, $marketId, $outcomeId);
+            if ($sym === null) {
+                continue;
+            }
+            if ($this->safe_value($this->orderbooks, $sym) === null) {
+                continue;
+            }
+            $orderbook = $this->orderbooks[$sym];
+            $price = $this->from_wei($this->safe_string($change, 'price'));
+            $amount = $this->from_wei($this->safe_string($change, 'amount'));
+            $sideStr = $this->safe_string($change, 'side');
+            $bookSide = ($sideStr === 'bid') ? $orderbook['bids'] : $orderbook['asks'];
+            $bookSide->storeArray (array( $price, $amount ));
+            $orderbook['timestamp'] = $ts;
+            $orderbook['datetime'] = $this->iso8601($ts);
+            $updated[$sym] = true;
+        }
+        $updatedSymbols = is_array($updated) ? array_keys($updated) : array();
+        $updatedLength = count($updatedSymbols);
+        for ($k = 0; $k < $updatedLength; $k++) {
+            $sym = $updatedSymbols[$k];
+            $client->resolve ($this->orderbooks[$sym], 'orderbook::' . $sym);
+        }
+    }
+
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * streams public $trades for an outcome over the Centrifugo websocket
+             *
+             * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
+             *
+             * @param {string} $symbol unified outcome $symbol
+             * @param {int} [$since] timestamp in ms of the earliest trade
+             * @param {int} [$limit] the maximum number of $trades to return
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-$trades)
+             */
+            Async\await($this->load_markets());
+            $this->ensure_outcomes_loaded();
+            $outcomeObj = $this->outcome ($symbol);
+            $info = $this->safe_dict($outcomeObj, 'info', array());
+            $networkId = $this->safe_string($info, 'networkId');
+            $marketId = $this->safe_string($info, 'marketId');
+            $sym = $this->safeOutcomeSymbol ($symbol, $outcomeObj);
+            $channel = 'trades:' . $networkId . ':' . $marketId;
+            $messageHash = 'trades::' . $sym;
+            $trades = Async\await($this->subscribe_myriad_channel($messageHash, $channel, $params));
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        }) ();
+    }
+
+    public function handle_trades($client, $data) {
+        $networkId = $this->safe_string($data, 'networkId');
+        $marketId = $this->safe_string($data, 'marketId');
+        $ts = $this->safe_integer($data, 'ts');
+        $txHash = $this->safe_string($data, 'txHash');
+        $taker = $this->safe_dict($data, 'taker', array());
+        $outcomeId = $this->safe_string($taker, 'outcome');
+        $sym = $this->market_outcome_to_symbol($networkId, $marketId, $outcomeId);
+        if ($sym === null) {
+            return;
+        }
+        $market = $this->safe_market($sym);
+        // the trades channel reports human-decimal values (averagePrice "0.14", totalAmount "1"),
+        // unlike the orders channel which is 1e18-scaled — so read them directly without fromWei
+        $fees = $this->safe_dict($taker, 'totalFees', array());
+        $trade = $this->safe_trade(array(
+            'id' => $txHash,
+            'info' => $data,
+            'timestamp' => $ts,
+            'datetime' => $this->iso8601($ts),
+            'symbol' => $sym,
+            'order' => $this->safe_string($taker, 'orderHash'),
+            'type' => null,
+            'side' => $this->safe_string_lower($taker, 'side'),
+            'takerOrMaker' => 'taker',
+            'price' => $this->safe_number($taker, 'averagePrice'),
+            'amount' => $this->safe_number($taker, 'totalAmount'),
+            'cost' => null,
+            'fee' => array(
+                'cost' => $this->safe_number($fees, 'total'),
+                'currency' => $this->safe_string($market, 'quote'),
+            ),
+        ), $market);
+        if ($this->trades === null) {
+            $this->trades = $this->create_safe_dictionary();
+        }
+        if ($this->safe_value($this->trades, $sym) === null) {
+            $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
+            $this->trades[$sym] = new ArrayCache ($tradesLimit);
+        }
+        $stored = $this->trades[$sym];
+        $stored->append ($trade);
+        $client->resolve ($stored, 'trades::' . $sym);
+    }
+
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * streams best bid/ask/last for an outcome over the Centrifugo prices $channel
+             *
+             * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
+             *
+             * @param {string} $symbol unified outcome $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+             */
+            Async\await($this->load_markets());
+            $this->ensure_outcomes_loaded();
+            $outcomeObj = $this->outcome ($symbol);
+            $info = $this->safe_dict($outcomeObj, 'info', array());
+            $networkId = $this->safe_string($info, 'networkId');
+            $marketId = $this->safe_string($info, 'marketId');
+            $sym = $this->safeOutcomeSymbol ($symbol, $outcomeObj);
+            $channel = 'prices:' . $networkId . ':' . $marketId;
+            $messageHash = 'ticker::' . $sym;
+            return Async\await($this->subscribe_myriad_channel($messageHash, $channel, $params));
+        }) ();
+    }
+
+    public function handle_ticker($client, $data) {
+        $networkId = $this->safe_string($data, 'networkId');
+        $marketId = $this->safe_string($data, 'marketId');
+        $ts = $this->safe_integer($data, 'ts');
+        $outcomes = $this->safe_list($data, 'outcomes', array());
+        $outcomesLength = count($outcomes);
+        if ($this->tickers === null) {
+            $this->tickers = $this->create_safe_dictionary();
+        }
+        for ($i = 0; $i < $outcomesLength; $i++) {
+            $oc = $outcomes[$i];
+            $outcomeId = $this->safe_string($oc, 'outcome');
+            $sym = $this->market_outcome_to_symbol($networkId, $marketId, $outcomeId);
+            if ($sym === null) {
+                continue;
+            }
+            $market = $this->safe_market($sym);
+            $last = $this->from_wei($this->safe_string($oc, 'last'));
+            $ticker = $this->safe_ticker(array(
+                'symbol' => $sym,
+                'timestamp' => $ts,
+                'datetime' => $this->iso8601($ts),
+                'high' => null,
+                'low' => null,
+                'bid' => $this->from_wei($this->safe_string($oc, 'bestBid')),
+                'bidVolume' => null,
+                'ask' => $this->from_wei($this->safe_string($oc, 'bestAsk')),
+                'askVolume' => null,
+                'vwap' => null,
+                'open' => null,
+                'close' => $last,
+                'last' => $last,
+                'previousClose' => null,
+                'change' => null,
+                'percentage' => null,
+                'average' => null,
+                'baseVolume' => null,
+                'quoteVolume' => null,
+                'info' => $oc,
+            ), $market);
+            $this->tickers[$sym] = $ticker;
+            $client->resolve ($ticker, 'ticker::' . $sym);
+        }
+    }
+
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * streams the wallet's order lifecycle updates over the Centrifugo $orders $channel
+             *
+             * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
+             *
+             * @param {string} [$symbol] unified outcome $symbol to filter by
+             * @param {int} [$since] timestamp in ms of the earliest order
+             * @param {int} [$limit] the maximum number of $orders to return
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+             */
+            Async\await($this->load_markets());
+            $this->ensure_outcomes_loaded();
+            $trader = $this->wallet_address_from_keys();
+            $networkId = $this->safe_string($this->options, 'defaultNetworkId', '56');
+            if ($symbol !== null) {
+                $outcomeObj = $this->outcome ($symbol);
+                $info = $this->safe_dict($outcomeObj, 'info', array());
+                $networkId = $this->safe_string($info, 'networkId', $networkId);
+                $symbol = $this->safeOutcomeSymbol ($symbol, $outcomeObj);
+            }
+            $channel = 'orders:' . $networkId . ':' . $trader;
+            $messageHash = 'orders';
+            $orders = Async\await($this->subscribe_myriad_channel($messageHash, $channel, $params));
+            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        }) ();
+    }
+
+    public function handle_order($client, $data) {
+        if ($this->orders === null) {
+            $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
+            $this->orders = new ArrayCacheBySymbolById ($limit);
+        }
+        $networkId = $this->safe_string($data, 'networkId');
+        $marketId = $this->safe_string($data, 'marketId');
+        $outcomeId = $this->safe_string($data, 'outcome');
+        $sym = $this->market_outcome_to_symbol($networkId, $marketId, $outcomeId);
+        $price = $this->from_wei($this->safe_string($data, 'price'));
+        $amount = $this->from_wei($this->safe_string($data, 'amount'));
+        $filled = $this->from_wei($this->safe_string($data, 'filledAmount'));
+        $status = $this->parse_order_status($this->safe_string_lower($data, 'status'));
+        $tif = $this->safe_string_upper($data, 'timeInForce');
+        $isMarketTif = ($tif === 'FOK') || ($tif === 'FAK');
+        $timestamp = $this->parse8601($this->safe_string_2($data, 'updatedAt', 'createdAt'));
+        $parsed = $this->safe_order(array(
+            'id' => $this->safe_string($data, 'orderHash'),
+            'clientOrderId' => null,
+            'info' => $data,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'symbol' => $sym,
+            'type' => $isMarketTif ? 'market' : 'limit',
+            'timeInForce' => $tif,
+            'side' => $this->safe_string_lower($data, 'side'),
+            'price' => $price,
+            'amount' => $amount,
+            'filled' => $filled,
+            'remaining' => null,
+            'average' => null,
+            'cost' => null,
+            'status' => $status,
+            'fee' => null,
+            'trades' => null,
+        ));
+        $stored = $this->orders;
+        $stored->append ($parsed);
+        $client->resolve ($stored, 'orders');
+        if ($sym !== null) {
+            $client->resolve ($stored, 'orders::' . $sym);
+        }
+    }
+
+    public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $since, $limit, $params) {
+            /**
+             * streams the wallet's share-balance changes over the Centrifugo $positions $channel
+             *
+             * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
+             *
+             * @param {string[]} [$symbols] unified outcome $symbols to filter by
+             * @param {int} [$since] timestamp in ms of the earliest position update
+             * @param {int} [$limit] the maximum number of position updates to return
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+             */
+            Async\await($this->load_markets());
+            $this->ensure_outcomes_loaded();
+            $trader = $this->wallet_address_from_keys();
+            $networkId = $this->safe_string($this->options, 'defaultNetworkId', '56');
+            $channel = 'positions:' . $networkId . ':' . $trader;
+            $messageHash = 'positions';
+            $positions = Async\await($this->subscribe_myriad_channel($messageHash, $channel, $params));
+            if ($this->newUpdates) {
+                return $positions;
+            }
+            return $this->filter_by_symbols_since_limit($positions, $symbols, $since, $limit, true);
+        }) ();
+    }
+
+    public function handle_position($client, $data) {
+        if ($this->positions === null) {
+            $limit = $this->safe_integer($this->options, 'positionsLimit', 1000);
+            $this->positions = new ArrayCacheBySymbolById ($limit);
+        }
+        $networkId = $this->safe_string($data, 'networkId');
+        $marketId = $this->safe_string($data, 'marketId');
+        $outcomeId = $this->safe_string($data, 'outcome');
+        $sym = $this->market_outcome_to_symbol($networkId, $marketId, $outcomeId);
+        $ts = $this->safe_integer($data, 'ts');
+        // the positions channel emits a signed share delta per fill/redeem/split/merge; the absolute
+        // $balance and entry price are not pushed (refetch via fetchPositions when the full state is needed)
+        $balance = $this->from_wei($this->safe_string($data, 'balance'));
+        $parsed = $this->safe_position(array(
+            'info' => $data,
+            'id' => $this->safe_string($data, 'txHash'),
+            'symbol' => $sym,
+            'timestamp' => $ts,
+            'datetime' => $this->iso8601($ts),
+            'side' => 'long',
+            'contracts' => $balance,
+            'entryPrice' => null,
+            'markPrice' => null,
+            'notional' => null,
+            'collateral' => null,
+            'unrealizedPnl' => null,
+        ));
+        $stored = $this->positions;
+        $stored->append ($parsed);
+        $client->resolve ($stored, 'positions');
+    }
+
+    public function wallet_address_from_keys(): string {
+        // the orders/positions channels are keyed by the lowercase trader $address (Centrifugo channels
+        // are case-sensitive); lowercase here so the channel matches regardless of the $address checksum.
+        // check length too => an unset walletAddress is an empty string (not null) in some languages
+        $address = $this->walletAddress;
+        $hasWallet = ($address !== null) && (strlen($this->walletAddress) > 0);
+        if (!$hasWallet) {
+            if ($this->privateKey === null) {
+                throw new ArgumentsRequired($this->id . ' requires a walletAddress or privateKey to watch private channels');
+            }
+            $address = $this->eth_get_address_from_private_key($this->privateKey);
+        }
+        return strtolower($address);
     }
 
     public function sign(mixed $path, mixed $api = 'myriad', $method = 'GET', $params = array (), mixed $headers = null, mixed $body = null) {

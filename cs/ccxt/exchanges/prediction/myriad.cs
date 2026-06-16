@@ -41,6 +41,11 @@ public partial class myriad : PredictionExchange
                 { "fetchTrades", true },
                 { "fetchTradingFee", true },
                 { "prediction", true },
+                { "watchOrderBook", true },
+                { "watchOrders", true },
+                { "watchPositions", true },
+                { "watchTicker", true },
+                { "watchTrades", true },
             } },
             { "timeframes", new Dictionary<string, object>() {
                 { "1m", "24h" },
@@ -54,9 +59,11 @@ public partial class myriad : PredictionExchange
                 { "logo", "https://myriad.markets/favicon.ico" },
                 { "api", new Dictionary<string, object>() {
                     { "myriad", "https://api-v2.myriadprotocol.com" },
+                    { "ws", "wss://ws.myriadprotocol.com/ws" },
                 } },
                 { "test", new Dictionary<string, object>() {
                     { "myriad", "https://api-v2.staging.myriadprotocol.com" },
+                    { "ws", "wss://ws.staging.myriadprotocol.com/ws" },
                 } },
                 { "www", "https://myriad.markets" },
                 { "doc", new List<object>() {"https://docs.myriad.markets"} },
@@ -2339,6 +2346,545 @@ public partial class myriad : PredictionExchange
             { "resolutionSource", this.safeString(rawEvent, "resolutionSource") },
             { "info", rawEvent },
         }));
+    }
+
+    public virtual object requestId(object url)
+    {
+        object existing = this.safeValue(this.options, "requestId");
+        if (isTrue(isEqual(existing, null)))
+        {
+            ((IDictionary<string,object>)this.options)["requestId"] = this.createSafeDictionary();
+        }
+        object options = getValue(this.options, "requestId");
+        object previousValue = this.safeInteger(options, url, 0);
+        object newValue = this.sum(previousValue, 1);
+        ((IDictionary<string,object>)getValue(this.options, "requestId"))[(string)url] = newValue;
+        return newValue;
+    }
+
+    public virtual object fromWei(object wei)
+    {
+        if (isTrue(isEqual(wei, null)))
+        {
+            return null;
+        }
+        return this.parseNumber(Precise.stringDiv(wei, "1000000000000000000"));
+    }
+
+    public virtual object marketOutcomeToSymbol(object networkId, object marketId, object outcomeId)
+    {
+        object ocId = add(add(add(add(networkId, ":"), marketId), "/"), outcomeId);
+        object outcomeObj = this.safeDict(this.outcomes_by_id, ocId);
+        return this.safeString(outcomeObj, "symbol");
+    }
+
+    public async virtual Task<object> connectCentrifugo(object url)
+    {
+        // Centrifugo requires an anonymous connect command before any subscribe. This sends it once per
+        // connection and resolves when the connect reply arrives (see handleCentrifugoFrame). The base
+        // clears ((WebSocketClient)client).subscriptions on reconnect, so an absent 'connect' marker means a fresh handshake.
+        var client = this.client(url);
+        object connectSent = this.safeValue(((WebSocketClient)client).subscriptions, "connect");
+        if (isTrue(isEqual(connectSent, null)))
+        {
+            ((IDictionary<string,object>)this.options)["wsConnected"] = false;
+            object requestId = this.requestId(url);
+            // give the anonymous connect a name so the params object is non-empty (PHP serialises an
+            // empty array as a JSON array, which Centrifugo rejects)
+            object connectMsg = new Dictionary<string, object>() {
+                { "connect", new Dictionary<string, object>() {
+                    { "name", "ccxt" },
+                } },
+                { "id", requestId },
+            };
+            return await this.watch(url, "centrifugoConnected", connectMsg, "connect");
+        }
+        if (isTrue(this.safeBool(this.options, "wsConnected", false)))
+        {
+            // the connect reply already arrived on this connection — safe to subscribe immediately
+            return null;
+        }
+        // connect is in flight (sent by a concurrent subscribe) — wait on the shared reply future
+        return await client.future("centrifugoConnected");
+    }
+
+    public async virtual Task pong(WebSocketClient client, object message = null)
+    {
+        // Centrifugo server pings are empty frames; reply with the same empty frame to keep the link alive
+        await client.send("{}");
+    }
+
+    public async virtual Task<object> subscribeMyriadChannel(object messageHash, object channel, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object url = this.safeString(getValue(this.urls, "api"), "ws");
+        // finish the connect handshake first so the subscribe frame is sent after the connect reply
+        await this.connectCentrifugo(url);
+        object requestId = this.requestId(url);
+        object subscribeMsg = new Dictionary<string, object>() {
+            { "subscribe", new Dictionary<string, object>() {
+                { "channel", channel },
+            } },
+            { "id", requestId },
+        };
+        return await this.watch(url, messageHash, subscribeMsg, channel);
+    }
+
+    public override void handleMessage(WebSocketClient client, object message)
+    {
+        // Centrifugo packs several commands per frame joined by \n; a multi-command frame fails the
+        // base JSON.parse and arrives here as a raw string, a single command arrives already parsed
+        if (isTrue((message is string)))
+        {
+            object lines = ((string)message).Split(new [] {((string)"\n")}, StringSplitOptions.None).ToList<object>();
+            object linesLength = getArrayLength(lines);
+            for (object i = 0; isLessThan(i, linesLength); postFixIncrement(ref i))
+            {
+                object line = getValue(lines, i);
+                if (isTrue(isGreaterThan(((string)line).Length, 0)))
+                {
+                    object parsed = parseJson(line);
+                    this.handleCentrifugoFrame(client as WebSocketClient, parsed);
+                }
+            }
+            return;
+        }
+        this.handleCentrifugoFrame(client as WebSocketClient, message);
+    }
+
+    public virtual void handleCentrifugoFrame(WebSocketClient client, object msg)
+    {
+        object keys = new List<object>(((IDictionary<string,object>)msg).Keys);
+        object keysLength = getArrayLength(keys);
+        if (isTrue(isEqual(keysLength, 0)))
+        {
+            this.spawn(this.pong, new object[] { client, msg});
+            return;
+        }
+        object connectReply = this.safeDict(msg, "connect");
+        if (isTrue(!isEqual(connectReply, null)))
+        {
+            // connect acknowledged — unblock connectCentrifugo so channel subscribes can be sent
+            ((IDictionary<string,object>)this.options)["wsConnected"] = true;
+            callDynamically(client as WebSocketClient, "resolve", new object[] {true, "centrifugoConnected"});
+            return;
+        }
+        object push = this.safeDict(msg, "push");
+        if (isTrue(isEqual(push, null)))
+        {
+            return;
+        }
+        object channel = this.safeString(push, "channel");
+        if (isTrue(isEqual(channel, null)))
+        {
+            return;
+        }
+        object pub = this.safeDict(push, "pub", new Dictionary<string, object>() {});
+        object data = this.safeDict(pub, "data", new Dictionary<string, object>() {});
+        object parts = ((string)channel).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
+        object channelType = this.safeString(parts, 0);
+        if (isTrue(isEqual(channelType, "orderbook")))
+        {
+            this.handleOrderBook(client as WebSocketClient, data);
+        } else if (isTrue(isEqual(channelType, "trades")))
+        {
+            this.handleTrades(client as WebSocketClient, data);
+        } else if (isTrue(isEqual(channelType, "prices")))
+        {
+            this.handleTicker(client as WebSocketClient, data);
+        } else if (isTrue(isEqual(channelType, "orders")))
+        {
+            this.handleOrder(client as WebSocketClient, data);
+        } else if (isTrue(isEqual(channelType, "positions")))
+        {
+            this.handlePosition(client as WebSocketClient, data);
+        }
+    }
+
+    /**
+     * @method
+     * @name myriad#watchOrderBook
+     * @description streams the order book for an outcome over the Centrifugo websocket; the channel is delta-only so the book is seeded from the REST snapshot
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
+     * @param {string} symbol unified outcome symbol
+     * @param {int} [limit] the maximum number of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+     */
+    public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        this.ensureOutcomesLoaded();
+        object outcomeObj = this.outcome(symbol);
+        object info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
+        object networkId = this.safeString(info, "networkId");
+        object marketId = this.safeString(info, "marketId");
+        object sym = this.safeOutcomeSymbol(symbol, outcomeObj);
+        object channel = add(add(add("orderbook:", networkId), ":"), marketId);
+        object messageHash = add("orderbook::", sym);
+        if (isTrue(isEqual(this.safeValue(this.orderbooks, sym), null)))
+        {
+            await this.seedOrderBook(symbol, sym, limit);
+        }
+        object orderbook = await this.subscribeMyriadChannel(messageHash, channel, parameters);
+        return (orderbook as IOrderBook).limit();
+    }
+
+    public async virtual Task seedOrderBook(object symbol, object sym, object limit = null)
+    {
+        // the order book channel streams deltas only, so seed the live book from the REST snapshot
+        object snapshot = await this.fetchOrderBook(symbol, limit);
+        object orderbook = this.orderBook(new Dictionary<string, object>() {});
+        (orderbook as IOrderBook).reset(snapshot);
+        ((IDictionary<string,object>)this.orderbooks)[(string)sym] = orderbook;
+    }
+
+    public virtual void handleOrderBook(WebSocketClient client, object data)
+    {
+        object networkId = this.safeString(data, "networkId");
+        object marketId = this.safeString(data, "marketId");
+        object ts = this.safeInteger(data, "ts");
+        object changes = this.safeList(data, "changes", new List<object>() {});
+        object changesLength = getArrayLength(changes);
+        object updated = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, changesLength); postFixIncrement(ref i))
+        {
+            object change = getValue(changes, i);
+            object outcomeId = this.safeString(change, "outcome");
+            object sym = this.marketOutcomeToSymbol(networkId, marketId, outcomeId);
+            if (isTrue(isEqual(sym, null)))
+            {
+                continue;
+            }
+            if (isTrue(isEqual(this.safeValue(this.orderbooks, sym), null)))
+            {
+                continue;
+            }
+            object orderbook = getValue(this.orderbooks, sym);
+            object price = this.fromWei(this.safeString(change, "price"));
+            object amount = this.fromWei(this.safeString(change, "amount"));
+            object sideStr = this.safeString(change, "side");
+            object bookSide = ((bool) isTrue((isEqual(sideStr, "bid")))) ? getValue(orderbook, "bids") : getValue(orderbook, "asks");
+            (bookSide as IOrderBookSide).storeArray(new List<object>() {price, amount});
+            ((IDictionary<string,object>)orderbook)["timestamp"] = ts;
+            ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(ts);
+            ((IDictionary<string,object>)updated)[(string)sym] = true;
+        }
+        object updatedSymbols = new List<object>(((IDictionary<string,object>)updated).Keys);
+        object updatedLength = getArrayLength(updatedSymbols);
+        for (object k = 0; isLessThan(k, updatedLength); postFixIncrement(ref k))
+        {
+            object sym = getValue(updatedSymbols, k);
+            callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.orderbooks, sym), add("orderbook::", sym)});
+        }
+    }
+
+    /**
+     * @method
+     * @name myriad#watchTrades
+     * @description streams public trades for an outcome over the Centrifugo websocket
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
+     * @param {string} symbol unified outcome symbol
+     * @param {int} [since] timestamp in ms of the earliest trade
+     * @param {int} [limit] the maximum number of trades to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+     */
+    public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        this.ensureOutcomesLoaded();
+        object outcomeObj = this.outcome(symbol);
+        object info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
+        object networkId = this.safeString(info, "networkId");
+        object marketId = this.safeString(info, "marketId");
+        object sym = this.safeOutcomeSymbol(symbol, outcomeObj);
+        object channel = add(add(add("trades:", networkId), ":"), marketId);
+        object messageHash = add("trades::", sym);
+        object trades = await this.subscribeMyriadChannel(messageHash, channel, parameters);
+        return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+    }
+
+    public virtual void handleTrades(WebSocketClient client, object data)
+    {
+        object networkId = this.safeString(data, "networkId");
+        object marketId = this.safeString(data, "marketId");
+        object ts = this.safeInteger(data, "ts");
+        object txHash = this.safeString(data, "txHash");
+        object taker = this.safeDict(data, "taker", new Dictionary<string, object>() {});
+        object outcomeId = this.safeString(taker, "outcome");
+        object sym = this.marketOutcomeToSymbol(networkId, marketId, outcomeId);
+        if (isTrue(isEqual(sym, null)))
+        {
+            return;
+        }
+        object market = this.safeMarket(sym);
+        // the trades channel reports human-decimal values (averagePrice "0.14", totalAmount "1"),
+        // unlike the orders channel which is 1e18-scaled — so read them directly without fromWei
+        object fees = this.safeDict(taker, "totalFees", new Dictionary<string, object>() {});
+        object trade = this.safeTrade(new Dictionary<string, object>() {
+            { "id", txHash },
+            { "info", data },
+            { "timestamp", ts },
+            { "datetime", this.iso8601(ts) },
+            { "symbol", sym },
+            { "order", this.safeString(taker, "orderHash") },
+            { "type", null },
+            { "side", this.safeStringLower(taker, "side") },
+            { "takerOrMaker", "taker" },
+            { "price", this.safeNumber(taker, "averagePrice") },
+            { "amount", this.safeNumber(taker, "totalAmount") },
+            { "cost", null },
+            { "fee", new Dictionary<string, object>() {
+                { "cost", this.safeNumber(fees, "total") },
+                { "currency", this.safeString(market, "quote") },
+            } },
+        }, market);
+        if (isTrue(isEqual(this.trades, null)))
+        {
+            this.trades = this.createSafeDictionary();
+        }
+        if (isTrue(isEqual(this.safeValue(this.trades, sym), null)))
+        {
+            object tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
+            ((IDictionary<string,object>)this.trades)[(string)sym] = new ArrayCache(tradesLimit);
+        }
+        object stored = getValue(this.trades, sym);
+        callDynamically(stored, "append", new object[] {trade});
+        callDynamically(client as WebSocketClient, "resolve", new object[] {stored, add("trades::", sym)});
+    }
+
+    /**
+     * @method
+     * @name myriad#watchTicker
+     * @description streams best bid/ask/last for an outcome over the Centrifugo prices channel
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
+     * @param {string} symbol unified outcome symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+     */
+    public async override Task<object> watchTicker(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        this.ensureOutcomesLoaded();
+        object outcomeObj = this.outcome(symbol);
+        object info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
+        object networkId = this.safeString(info, "networkId");
+        object marketId = this.safeString(info, "marketId");
+        object sym = this.safeOutcomeSymbol(symbol, outcomeObj);
+        object channel = add(add(add("prices:", networkId), ":"), marketId);
+        object messageHash = add("ticker::", sym);
+        return await this.subscribeMyriadChannel(messageHash, channel, parameters);
+    }
+
+    public virtual void handleTicker(WebSocketClient client, object data)
+    {
+        object networkId = this.safeString(data, "networkId");
+        object marketId = this.safeString(data, "marketId");
+        object ts = this.safeInteger(data, "ts");
+        object outcomes = this.safeList(data, "outcomes", new List<object>() {});
+        object outcomesLength = getArrayLength(outcomes);
+        if (isTrue(isEqual(this.tickers, null)))
+        {
+            this.tickers = this.createSafeDictionary();
+        }
+        for (object i = 0; isLessThan(i, outcomesLength); postFixIncrement(ref i))
+        {
+            object oc = getValue(outcomes, i);
+            object outcomeId = this.safeString(oc, "outcome");
+            object sym = this.marketOutcomeToSymbol(networkId, marketId, outcomeId);
+            if (isTrue(isEqual(sym, null)))
+            {
+                continue;
+            }
+            object market = this.safeMarket(sym);
+            object last = this.fromWei(this.safeString(oc, "last"));
+            object ticker = this.safeTicker(new Dictionary<string, object>() {
+                { "symbol", sym },
+                { "timestamp", ts },
+                { "datetime", this.iso8601(ts) },
+                { "high", null },
+                { "low", null },
+                { "bid", this.fromWei(this.safeString(oc, "bestBid")) },
+                { "bidVolume", null },
+                { "ask", this.fromWei(this.safeString(oc, "bestAsk")) },
+                { "askVolume", null },
+                { "vwap", null },
+                { "open", null },
+                { "close", last },
+                { "last", last },
+                { "previousClose", null },
+                { "change", null },
+                { "percentage", null },
+                { "average", null },
+                { "baseVolume", null },
+                { "quoteVolume", null },
+                { "info", oc },
+            }, market);
+            ((IDictionary<string,object>)this.tickers)[(string)sym] = ticker;
+            callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, add("ticker::", sym)});
+        }
+    }
+
+    /**
+     * @method
+     * @name myriad#watchOrders
+     * @description streams the wallet's order lifecycle updates over the Centrifugo orders channel
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
+     * @param {string} [symbol] unified outcome symbol to filter by
+     * @param {int} [since] timestamp in ms of the earliest order
+     * @param {int} [limit] the maximum number of orders to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        this.ensureOutcomesLoaded();
+        object trader = this.walletAddressFromKeys();
+        object networkId = this.safeString(this.options, "defaultNetworkId", "56");
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            object outcomeObj = this.outcome(symbol);
+            object info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
+            networkId = this.safeString(info, "networkId", networkId);
+            symbol = this.safeOutcomeSymbol(symbol, outcomeObj);
+        }
+        object channel = add(add(add("orders:", networkId), ":"), trader);
+        object messageHash = "orders";
+        object orders = await this.subscribeMyriadChannel(messageHash, channel, parameters);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+    }
+
+    public virtual void handleOrder(WebSocketClient client, object data)
+    {
+        if (isTrue(isEqual(this.orders, null)))
+        {
+            object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            this.orders = new ArrayCacheBySymbolById(limit);
+        }
+        object networkId = this.safeString(data, "networkId");
+        object marketId = this.safeString(data, "marketId");
+        object outcomeId = this.safeString(data, "outcome");
+        object sym = this.marketOutcomeToSymbol(networkId, marketId, outcomeId);
+        object price = this.fromWei(this.safeString(data, "price"));
+        object amount = this.fromWei(this.safeString(data, "amount"));
+        object filled = this.fromWei(this.safeString(data, "filledAmount"));
+        object status = this.parseOrderStatus(this.safeStringLower(data, "status"));
+        object tif = this.safeStringUpper(data, "timeInForce");
+        object isMarketTif = isTrue((isEqual(tif, "FOK"))) || isTrue((isEqual(tif, "FAK")));
+        object timestamp = this.parse8601(this.safeString2(data, "updatedAt", "createdAt"));
+        object parsed = this.safeOrder(new Dictionary<string, object>() {
+            { "id", this.safeString(data, "orderHash") },
+            { "clientOrderId", null },
+            { "info", data },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "symbol", sym },
+            { "type", ((bool) isTrue(isMarketTif)) ? "market" : "limit" },
+            { "timeInForce", tif },
+            { "side", this.safeStringLower(data, "side") },
+            { "price", price },
+            { "amount", amount },
+            { "filled", filled },
+            { "remaining", null },
+            { "average", null },
+            { "cost", null },
+            { "status", status },
+            { "fee", null },
+            { "trades", null },
+        });
+        object stored = this.orders;
+        callDynamically(stored, "append", new object[] {parsed});
+        callDynamically(client as WebSocketClient, "resolve", new object[] {stored, "orders"});
+        if (isTrue(!isEqual(sym, null)))
+        {
+            callDynamically(client as WebSocketClient, "resolve", new object[] {stored, add("orders::", sym)});
+        }
+    }
+
+    /**
+     * @method
+     * @name myriad#watchPositions
+     * @description streams the wallet's share-balance changes over the Centrifugo positions channel
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
+     * @param {string[]} [symbols] unified outcome symbols to filter by
+     * @param {int} [since] timestamp in ms of the earliest position update
+     * @param {int} [limit] the maximum number of position updates to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+     */
+    public async override Task<object> watchPositions(object symbols = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        this.ensureOutcomesLoaded();
+        object trader = this.walletAddressFromKeys();
+        object networkId = this.safeString(this.options, "defaultNetworkId", "56");
+        object channel = add(add(add("positions:", networkId), ":"), trader);
+        object messageHash = "positions";
+        object positions = await this.subscribeMyriadChannel(messageHash, channel, parameters);
+        if (isTrue(this.newUpdates))
+        {
+            return positions;
+        }
+        return this.filterBySymbolsSinceLimit(positions, symbols, since, limit, true);
+    }
+
+    public virtual void handlePosition(WebSocketClient client, object data)
+    {
+        if (isTrue(isEqual(this.positions, null)))
+        {
+            object limit = this.safeInteger(this.options, "positionsLimit", 1000);
+            this.positions = new ArrayCacheBySymbolById(limit);
+        }
+        object networkId = this.safeString(data, "networkId");
+        object marketId = this.safeString(data, "marketId");
+        object outcomeId = this.safeString(data, "outcome");
+        object sym = this.marketOutcomeToSymbol(networkId, marketId, outcomeId);
+        object ts = this.safeInteger(data, "ts");
+        // the positions channel emits a signed share delta per fill/redeem/split/merge; the absolute
+        // balance and entry price are not pushed (refetch via fetchPositions when the full state is needed)
+        object balance = this.fromWei(this.safeString(data, "balance"));
+        object parsed = this.safePosition(new Dictionary<string, object>() {
+            { "info", data },
+            { "id", this.safeString(data, "txHash") },
+            { "symbol", sym },
+            { "timestamp", ts },
+            { "datetime", this.iso8601(ts) },
+            { "side", "long" },
+            { "contracts", balance },
+            { "entryPrice", null },
+            { "markPrice", null },
+            { "notional", null },
+            { "collateral", null },
+            { "unrealizedPnl", null },
+        });
+        object stored = this.positions;
+        callDynamically(stored, "append", new object[] {parsed});
+        callDynamically(client as WebSocketClient, "resolve", new object[] {stored, "positions"});
+    }
+
+    public virtual object walletAddressFromKeys()
+    {
+        // the orders/positions channels are keyed by the lowercase trader address (Centrifugo channels
+        // are case-sensitive); lowercase here so the channel matches regardless of the address checksum.
+        // check length too: an unset walletAddress is an empty string (not undefined) in some languages
+        object address = this.walletAddress;
+        object hasWallet = isTrue((!isEqual(address, null))) && isTrue((isGreaterThan(((string)this.walletAddress).Length, 0)));
+        if (!isTrue(hasWallet))
+        {
+            if (isTrue(isEqual(this.privateKey, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " requires a walletAddress or privateKey to watch private channels")) ;
+            }
+            address = this.ethGetAddressFromPrivateKey(this.privateKey);
+        }
+        return ((string)address).ToLower();
     }
 
     /**
