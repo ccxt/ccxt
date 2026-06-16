@@ -2608,6 +2608,15 @@ func  (this *BitmartCore) HandleMessage(client any, message any)  {
         }
         if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(channel, "fundingRate"), 0)) {
             this.HandleFundingRate(client, message)
+            return
+        }
+        // 'ticker' is a substring of 'bookTicker', so a bookTicker channel could
+        // be wrongly captured by (or double-dispatched with) the 'ticker' key in a
+        // first-match loop (in Go map iteration order is randomized). Check the
+        // bookTicker prefix explicitly, then fall back to a simple first-match.
+        if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(channel, "bookTicker"), 0)) {
+            this.HandleBidAsk(client, message)
+            return
         }
         var keys any = ccxt.ObjectKeys(methods)
         for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(keys)); i++ {
@@ -2615,6 +2624,7 @@ func  (this *BitmartCore) HandleMessage(client any, message any)  {
             if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(channel, key), 0)) {
                 var method any = this.SafeValue(methods, key)
                 ccxt.CallDynamically(method, client, message)
+                return
             }
         }
     }
