@@ -349,6 +349,39 @@ func (this *Myriad) CancelAllOrders(options ...ccxt.CancelAllOrdersOptions) (map
 }
 /**
  * @method
+ * @name myriad#cancelOrders
+ * @description cancels multiple open order book orders by hash in one request (gasless)
+ * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828177961fd94a6055966f
+ * @param {string[]} ids the order hashes to cancel
+ * @param {string} [symbol] not used by myriad cancelOrders
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ */
+func (this *Myriad) CancelOrders(ids []string, options ...ccxt.CancelOrdersOptions) ([]ccxt.Order, error) {
+
+    opts := ccxt.CancelOrdersOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbol any = nil
+    if opts.Symbol != nil {
+        symbol = *opts.Symbol
+    }
+
+    var params any = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.CancelOrders(ids, symbol, params)
+    if ccxt.IsError(res) {
+        return nil, ccxt.CreateReturnError(res)
+    }
+    return ccxt.NewOrderArray(res), nil
+}
+/**
+ * @method
  * @name myriad#fetchOrder
  * @description fetches a single order book order by its hash
  * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828116b8a0d976baea1df0
@@ -469,6 +502,68 @@ func (this *Myriad) FetchOpenOrders(options ...ccxt.FetchOpenOrdersOptions) ([]c
         return nil, ccxt.CreateReturnError(res)
     }
     return ccxt.NewOrderArray(res), nil
+}
+/**
+ * @method
+ * @name myriad#fetchMyTrades
+ * @description fetches the wallet's filled order book orders as trades. Note: Myriad's REST exposes the order's
+ * limit price, not the per-fill execution price, so the price reflects the order's limit (exact for resting/limit
+ * fills, an upper/lower bound for market orders) — use watchTrades for live execution prices
+ * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828171a003cf996487d008
+ * @param {string} [symbol] unified outcome symbol to filter by
+ * @param {int} [since] timestamp in ms of the earliest trade
+ * @param {int} [limit] the maximum number of trades to return
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+ */
+func (this *Myriad) FetchMyTrades(options ...ccxt.FetchMyTradesOptions) ([]ccxt.Trade, error) {
+
+    opts := ccxt.FetchMyTradesOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbol any = nil
+    if opts.Symbol != nil {
+        symbol = *opts.Symbol
+    }
+
+    var since any = nil
+    if opts.Since != nil {
+        since = *opts.Since
+    }
+
+    var limit any = nil
+    if opts.Limit != nil {
+        limit = *opts.Limit
+    }
+
+    var params any = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchMyTrades(symbol, since, limit, params)
+    if ccxt.IsError(res) {
+        return nil, ccxt.CreateReturnError(res)
+    }
+    return ccxt.NewTradeArray(res), nil
+}
+/**
+ * @method
+ * @name myriad#fetchBalance
+ * @description fetches the wallet's on-chain collateral balance for the order-book network (USD1 on BNB Chain)
+ * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.network_id] the network id (defaults to options.defaultNetworkId, '56')
+ * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+ */
+func (this *Myriad) FetchBalance(params ...any) (ccxt.Balances, error) {
+    res := <- this.Core.FetchBalance(params...)
+    if ccxt.IsError(res) {
+        return ccxt.Balances{}, ccxt.CreateReturnError(res)
+    }
+    return ccxt.NewBalances(res), nil
 }
 /**
  * @method
@@ -882,7 +977,6 @@ func (this *Myriad) WatchPositions(options ...ccxt.WatchPositionsOptions) ([]ccx
 // missing typed methods from base
 //nolint
 func (this *Myriad) LoadMarkets(params ...any) (map[string]ccxt.MarketInterface, error) { return this.exchangeTyped.LoadMarkets(params...) }
-func (this *Myriad) CancelOrders(ids []string, options ...ccxt.CancelOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.CancelOrders(ids, options...)}
 func (this *Myriad) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...ccxt.CancelOrdersWithClientOrderIdsOptions) ([]ccxt.Order, error) {return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)}
 func (this *Myriad) CancelAllOrdersAfter(timeout int64, options ...ccxt.CancelAllOrdersAfterOptions) (map[string]any, error) {return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)}
 func (this *Myriad) CancelOrderWithClientOrderId(clientOrderId string, options ...ccxt.CancelOrderWithClientOrderIdOptions) (ccxt.Order, error) {return this.exchangeTyped.CancelOrderWithClientOrderId(clientOrderId, options...)}
@@ -918,7 +1012,6 @@ func (this *Myriad) EditOrderWithClientOrderId(clientOrderId string, symbol stri
 func (this *Myriad) EditOrders(orders []ccxt.OrderRequest, options ...ccxt.EditOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.EditOrders(orders, options...)}
 func (this *Myriad) FetchAccounts(params ...any) ([]ccxt.Account, error) {return this.exchangeTyped.FetchAccounts(params...)}
 func (this *Myriad) FetchAllGreeks(options ...ccxt.FetchAllGreeksOptions) ([]ccxt.Greeks, error) {return this.exchangeTyped.FetchAllGreeks(options...)}
-func (this *Myriad) FetchBalance(params ...any) (ccxt.Balances, error) {return this.exchangeTyped.FetchBalance(params...)}
 func (this *Myriad) FetchBidsAsks(options ...ccxt.FetchBidsAsksOptions) (ccxt.Tickers, error) {return this.exchangeTyped.FetchBidsAsks(options...)}
 func (this *Myriad) FetchBorrowInterest(options ...ccxt.FetchBorrowInterestOptions) ([]ccxt.BorrowInterest, error) {return this.exchangeTyped.FetchBorrowInterest(options...)}
 func (this *Myriad) FetchBorrowRate(code string, amount float64, options ...ccxt.FetchBorrowRateOptions) (map[string]any, error) {return this.exchangeTyped.FetchBorrowRate(code, amount, options...)}
@@ -966,7 +1059,6 @@ func (this *Myriad) FetchMarkOHLCV(symbol string, options ...ccxt.FetchMarkOHLCV
 func (this *Myriad) FetchMarkPrice(symbol string, options ...ccxt.FetchMarkPriceOptions) (ccxt.Ticker, error) {return this.exchangeTyped.FetchMarkPrice(symbol, options...)}
 func (this *Myriad) FetchMarkPrices(options ...ccxt.FetchMarkPricesOptions) (ccxt.Tickers, error) {return this.exchangeTyped.FetchMarkPrices(options...)}
 func (this *Myriad) FetchMyLiquidations(options ...ccxt.FetchMyLiquidationsOptions) ([]ccxt.Liquidation, error) {return this.exchangeTyped.FetchMyLiquidations(options...)}
-func (this *Myriad) FetchMyTrades(options ...ccxt.FetchMyTradesOptions) ([]ccxt.Trade, error) {return this.exchangeTyped.FetchMyTrades(options...)}
 func (this *Myriad) FetchOpenInterest(symbol string, options ...ccxt.FetchOpenInterestOptions) (ccxt.OpenInterest, error) {return this.exchangeTyped.FetchOpenInterest(symbol, options...)}
 func (this *Myriad) FetchOpenInterestHistory(symbol string, options ...ccxt.FetchOpenInterestHistoryOptions) ([]ccxt.OpenInterest, error) {return this.exchangeTyped.FetchOpenInterestHistory(symbol, options...)}
 func (this *Myriad) FetchOpenInterests(options ...ccxt.FetchOpenInterestsOptions) (ccxt.OpenInterests, error) {return this.exchangeTyped.FetchOpenInterests(options...)}

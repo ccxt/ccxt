@@ -1,6 +1,6 @@
 /// <reference lib="es2015" />
 import Exchange from '../abstract/prediction/myriad.js';
-import type { Int, Str, Num, Dict, Strings, Order, Market, Ticker, Tickers, OrderBook, OHLCV, Trade, TradingFeeInterface, PredictionEvent, Position } from '../base/types.js';
+import type { Int, Str, Num, Dict, int, Strings, Order, Market, Ticker, Tickers, OrderBook, OHLCV, Trade, TradingFeeInterface, PredictionEvent, Position, Balances } from '../base/types.js';
 /**
  * @class myriad
  * @augments Exchange
@@ -206,6 +206,17 @@ export default class myriad extends Exchange {
     cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
     /**
      * @method
+     * @name myriad#cancelOrders
+     * @description cancels multiple open order book orders by hash in one request (gasless)
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828177961fd94a6055966f
+     * @param {string[]} ids the order hashes to cancel
+     * @param {string} [symbol] not used by myriad cancelOrders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    cancelOrders(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
+    /**
+     * @method
      * @name myriad#fetchOrder
      * @description fetches a single order book order by its hash
      * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828116b8a0d976baea1df0
@@ -241,6 +252,33 @@ export default class myriad extends Exchange {
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    /**
+     * @method
+     * @name myriad#fetchMyTrades
+     * @description fetches the wallet's filled order book orders as trades. Note: Myriad's REST exposes the order's
+     * limit price, not the per-fill execution price, so the price reflects the order's limit (exact for resting/limit
+     * fills, an upper/lower bound for market orders) — use watchTrades for live execution prices
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828171a003cf996487d008
+     * @param {string} [symbol] unified outcome symbol to filter by
+     * @param {int} [since] timestamp in ms of the earliest trade
+     * @param {int} [limit] the maximum number of trades to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     */
+    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    orderToTrade(order: Dict): Trade;
+    /**
+     * @method
+     * @name myriad#fetchBalance
+     * @description fetches the wallet's on-chain collateral balance for the order-book network (USD1 on BNB Chain)
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network_id] the network id (defaults to options.defaultNetworkId, '56')
+     * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+     */
+    fetchBalance(params?: {}): Promise<Balances>;
+    hexToDecimalString(hexValue: string): Str;
+    fromWeiWithDecimals(hexValue: string, decimals: Int): Str;
     parseTradeTx(txHash: string, quote: Dict, market: any, side: string): Order;
     /**
      * @ignore
@@ -478,6 +516,7 @@ export default class myriad extends Exchange {
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
     handlePosition(client: any, data: any): void;
     walletAddressFromKeys(): string;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
     /**
      * @ignore
      * @method

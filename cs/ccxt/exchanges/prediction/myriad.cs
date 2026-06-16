@@ -24,12 +24,14 @@ public partial class myriad : PredictionExchange
                 { "option", false },
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
+                { "cancelOrders", true },
                 { "createOrder", true },
-                { "fetchBalance", false },
+                { "fetchBalance", true },
                 { "fetchCurrencies", false },
                 { "fetchEvent", true },
                 { "fetchEvents", true },
                 { "fetchMarkets", true },
+                { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
                 { "fetchOpenOrders", true },
                 { "fetchOrder", true },
@@ -126,8 +128,28 @@ public partial class myriad : PredictionExchange
                 { "trading", new Dictionary<string, object>() {
                     { "tierBased", false },
                     { "percentage", true },
-                    { "maker", 0.02 },
-                    { "taker", 0.02 },
+                    { "maker", 0.01 },
+                    { "taker", 0.01 },
+                } },
+            } },
+            { "exceptions", new Dictionary<string, object>() {
+                { "exact", new Dictionary<string, object>() {
+                    { "Order not found", typeof(OrderNotFound) },
+                    { "Market not found", typeof(BadSymbol) },
+                    { "Invalid order payload", typeof(InvalidOrder) },
+                } },
+                { "broad", new Dictionary<string, object>() {
+                    { "Insufficient", typeof(InsufficientFunds) },
+                    { "allowance", typeof(InsufficientFunds) },
+                    { "not found", typeof(OrderNotFound) },
+                    { "Unauthorized", typeof(AuthenticationError) },
+                    { "Forbidden", typeof(AuthenticationError) },
+                    { "rate limit", typeof(RateLimitExceeded) },
+                    { "Too many requests", typeof(RateLimitExceeded) },
+                    { "expired", typeof(InvalidOrder) },
+                    { "closed", typeof(InvalidOrder) },
+                    { "resolved", typeof(InvalidOrder) },
+                    { "Invalid", typeof(InvalidOrder) },
                 } },
             } },
             { "options", new Dictionary<string, object>() {
@@ -149,6 +171,9 @@ public partial class myriad : PredictionExchange
                         { "predictionMarket", "0x39E66eE6b2ddaf4DEfDEd3038E0162180dbeF340" },
                         { "obExchangeAddress", "0xa0b6f8ef8EdB64f395018D1933f2273Ce9f0f16A" },
                         { "obConditionalTokens", "0x6413734f92248D4B29ae35883290BD93212654Dc" },
+                        { "collateralToken", "0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d" },
+                        { "collateralCurrency", "USD1" },
+                        { "collateralDecimals", 18 },
                     } },
                     { "2741", new Dictionary<string, object>() {
                         { "rpcUrl", "https://api.mainnet.abs.xyz" },
@@ -711,7 +736,14 @@ public partial class myriad : PredictionExchange
         {
             return await this.createOrderbookOrder(symbol, type, side, amount, price, rest);
         }
-        return await this.createAmmOrder(symbol, type, side, amount, price, rest);
+        // the on-chain AMM path requires native gas and has not been verified end to end; keep it behind
+        // an explicit opt-in so callers do not silently hit an untested signing/broadcast path
+        object enableAmm = this.safeBool2(parameters, "enableAmm", "enableAmmOrders", this.safeBool(this.options, "enableAmmOrders", false));
+        if (!isTrue(enableAmm))
+        {
+            throw new NotSupported ((string)add(this.id, " createOrder() only supports the gasless order book; this market uses the on-chain AMM (needs native gas and is unverified) — pass params.enableAmm=true to opt in")) ;
+        }
+        return await this.createAmmOrder(symbol, type, side, amount, price, this.omit(rest, new List<object>() {"enableAmm", "enableAmmOrders"}));
     }
 
     /**
@@ -1005,7 +1037,16 @@ public partial class myriad : PredictionExchange
         object timestamp = this.parse8601(this.safeString(order, "createdAt"));
         object tif = this.safeStringUpper(order, "timeInForce");
         object isMarketTif = isTrue((isEqual(tif, "FOK"))) || isTrue((isEqual(tif, "FAK")));
+        // resolve the outcome symbol from market/outcome ids when no market was passed (e.g. fetchOrders without a symbol)
         object symbol = ((bool) isTrue((isEqual(market, null)))) ? null : this.safeString(market, "symbol");
+        if (isTrue(isEqual(symbol, null)))
+        {
+            // the REST order has no top-level networkId; order book lives on the default network
+            object networkId = this.safeString2(order, "networkId", "network_id", this.safeString(this.options, "defaultNetworkId", "56"));
+            object marketId = this.safeString(inner, "marketId");
+            object outcomeId = this.safeString(inner, "outcomeId");
+            symbol = this.marketOutcomeToSymbol(networkId, marketId, outcomeId);
+        }
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", orderHash },
             { "clientOrderId", null },
@@ -1105,7 +1146,8 @@ public partial class myriad : PredictionExchange
             marketId = this.safeString(info, "marketId", marketId);
             networkId = this.safeString(info, "networkId", networkId);
         }
-        object timestamp = this.numberToString(this.seconds());
+        // timestamp defaults to now (unix seconds) but can be pinned via params for idempotent retries
+        object timestamp = this.safeString(parameters, "timestamp", this.numberToString(this.seconds()));
         object message = new Dictionary<string, object>() {
             { "trader", trader },
             { "marketId", marketId },
@@ -1120,6 +1162,55 @@ public partial class myriad : PredictionExchange
             { "network_id", this.parseToInt(networkId) },
         };
         return await this.myriadPublicPostOrdersCancelAll(request);
+    }
+
+    /**
+     * @method
+     * @name myriad#cancelOrders
+     * @description cancels multiple open order book orders by hash in one request (gasless)
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828177961fd94a6055966f
+     * @param {string[]} ids the order hashes to cancel
+     * @param {string} [symbol] not used by myriad cancelOrders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(this.privateKey, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " cancelOrders() requires a privateKey to sign the cancellations")) ;
+        }
+        await this.loadMarkets();
+        object idsLength = getArrayLength(ids);
+        object signedOrders = new List<object>() {};
+        object wrappers = new List<object>() {};
+        object networkId = this.safeString(this.options, "defaultNetworkId", "56");
+        for (object i = 0; isLessThan(i, idsLength); postFixIncrement(ref i))
+        {
+            object id = getValue(ids, i);
+            object fetched = await this.myriadPublicGetOrdersHash(new Dictionary<string, object>() {
+                { "hash", id },
+            });
+            object rawOrder = this.safeDict(fetched, "order", new Dictionary<string, object>() {});
+            networkId = this.safeString2(fetched, "networkId", "network_id", networkId);
+            object message = this.clobOrderMessage(rawOrder);
+            object signature = this.signClobOrder(message, networkId);
+            ((IList<object>)signedOrders).Add(new Dictionary<string, object>() {
+                { "order", message },
+                { "signature", signature },
+            });
+            ((IList<object>)wrappers).Add(this.extend(fetched, new Dictionary<string, object>() {
+                { "status", "canceled" },
+                { "networkId", networkId },
+            }));
+        }
+        object request = new Dictionary<string, object>() {
+            { "orders", signedOrders },
+            { "network_id", this.parseToInt(networkId) },
+        };
+        await this.myriadPublicPostOrdersCancelBatch(this.extend(request, parameters));
+        return this.parseOrders(wrappers, null, null, null);
     }
 
     /**
@@ -1214,6 +1305,148 @@ public partial class myriad : PredictionExchange
         return await this.fetchOrders(symbol, since, limit, this.extend(request, parameters));
     }
 
+    /**
+     * @method
+     * @name myriad#fetchMyTrades
+     * @description fetches the wallet's filled order book orders as trades. Note: Myriad's REST exposes the order's
+     * limit price, not the per-fill execution price, so the price reflects the order's limit (exact for resting/limit
+     * fills, an upper/lower bound for market orders) — use watchTrades for live execution prices
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828171a003cf996487d008
+     * @param {string} [symbol] unified outcome symbol to filter by
+     * @param {int} [since] timestamp in ms of the earliest trade
+     * @param {int} [limit] the maximum number of trades to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     */
+    public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object request = new Dictionary<string, object>() {
+            { "status", "filled" },
+        };
+        object orders = await this.fetchOrders(symbol, since, limit, this.extend(request, parameters));
+        object trades = new List<object>() {};
+        object ordersLength = getArrayLength(orders);
+        for (object i = 0; isLessThan(i, ordersLength); postFixIncrement(ref i))
+        {
+            object order = getValue(orders, i);
+            ((IList<object>)trades).Add(this.orderToTrade(order));
+        }
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
+    }
+
+    public virtual object orderToTrade(object order)
+    {
+        object timestamp = this.safeInteger(order, "timestamp");
+        object orderType = this.safeString(order, "type");
+        // the REST filled-order response carries the order's limit price (= the fill price for limit
+        // orders, but only the protective bound for market orders), so omit the price for market orders
+        object price = null;
+        if (isTrue(!isEqual(orderType, "market")))
+        {
+            price = this.safeNumber(order, "price");
+        }
+        return this.safeTrade(new Dictionary<string, object>() {
+            { "id", this.safeString(order, "id") },
+            { "order", this.safeString(order, "id") },
+            { "info", this.safeDict(order, "info", new Dictionary<string, object>() {}) },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "symbol", this.safeString(order, "symbol") },
+            { "type", orderType },
+            { "side", this.safeString(order, "side") },
+            { "takerOrMaker", null },
+            { "price", price },
+            { "amount", this.safeNumber(order, "filled") },
+            { "cost", null },
+            { "fee", null },
+        });
+    }
+
+    /**
+     * @method
+     * @name myriad#fetchBalance
+     * @description fetches the wallet's on-chain collateral balance for the order-book network (USD1 on BNB Chain)
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network_id] the network id (defaults to options.defaultNetworkId, '56')
+     * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+     */
+    public async override Task<object> fetchBalance(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object networkId = this.safeString(parameters, "network_id", this.safeString(this.options, "defaultNetworkId", "56"));
+        object chains = this.safeDict(this.options, "chains", new Dictionary<string, object>() {});
+        object chainConfig = this.safeDict(chains, networkId, new Dictionary<string, object>() {});
+        object rpcUrl = this.safeString2(parameters, "rpcUrl", "rpc", this.safeString(chainConfig, "rpcUrl"));
+        object token = this.safeString2(parameters, "token", "tokenAddress", this.safeString(chainConfig, "collateralToken"));
+        if (isTrue(isEqual(token, null)))
+        {
+            throw new NotSupported ((string)add(add(this.id, " fetchBalance() has no collateral token configured for network "), networkId)) ;
+        }
+        object currency = this.safeString(chainConfig, "collateralCurrency", "USD1");
+        object decimals = this.safeInteger(chainConfig, "collateralDecimals", 18);
+        object owner = this.walletAddressFromKeys();
+        // ERC20 balanceOf(owner) = selector 0x70a08231 + the 32-byte left-padded owner address
+        object callData = add("0x70a08231", this.padHexAddress(owner));
+        object callParams = new List<object>() {new Dictionary<string, object>() {
+    { "to", token },
+    { "data", callData },
+}, "latest"};
+        object raw = await this.ethRpc(rpcUrl, "eth_call", callParams);
+        object balanceString = this.fromWeiWithDecimals(raw, decimals);
+        object result = new Dictionary<string, object>() {
+            { "info", new Dictionary<string, object>() {
+                { "balanceHex", raw },
+                { "token", token },
+                { "networkId", networkId },
+            } },
+        };
+        object account = this.account();
+        ((IDictionary<string,object>)account)["free"] = balanceString;
+        ((IDictionary<string,object>)account)["total"] = balanceString;
+        ((IDictionary<string,object>)result)[(string)currency] = account;
+        return this.safeBalance(result);
+    }
+
+    public virtual object hexToDecimalString(object hexValue)
+    {
+        // portable hex -> decimal string (avoids convertToBigInt, which is not uniform across languages)
+        object stripped = this.remove0xPrefix(hexValue);
+        if (isTrue(isTrue((isEqual(stripped, null))) || isTrue((isEqual(stripped, "")))))
+        {
+            return null;
+        }
+        object chars = this.stringToCharsArray(((string)stripped).ToLower());
+        object n = getArrayLength(chars);
+        object digits = "0123456789abcdef";
+        object result = "0";
+        for (object i = 0; isLessThan(i, n); postFixIncrement(ref i))
+        {
+            object v = getIndexOf(digits, getValue(chars, i));
+            if (isTrue(isGreaterThan(v, -1)))
+            {
+                result = Precise.stringAdd(Precise.stringMul(result, "16"), this.numberToString(v));
+            }
+        }
+        return result;
+    }
+
+    public virtual object fromWeiWithDecimals(object hexValue, object decimals)
+    {
+        object decimalString = this.hexToDecimalString(hexValue);
+        if (isTrue(isEqual(decimalString, null)))
+        {
+            return null;
+        }
+        object scale = "1";
+        for (object i = 0; isLessThan(i, decimals); postFixIncrement(ref i))
+        {
+            scale = add(scale, "0");
+        }
+        return Precise.stringDiv(decimalString, scale);
+    }
+
     public virtual object parseTradeTx(object txHash, object quote, object market, object side)
     {
         return this.safeOrder(new Dictionary<string, object>() {
@@ -1291,10 +1524,17 @@ public partial class myriad : PredictionExchange
         object volume24h = this.safeNumber(raw, "volume24h");
         object slugBase = ((bool) isTrue((!isEqual(eventSlug, null)))) ? eventSlug : networkId;
         object marketSymbol = this.slugToMarketSymbol(slugBase, slug);
-        // the collateral token (address + decimals) is per-market; carry it for on-chain trading
+        // the collateral token (symbol + address + decimals) is per-market; carry it for on-chain trading
         object tokenObj = this.safeDict(raw, "token", new Dictionary<string, object>() {});
         object tokenAddress = this.safeString(tokenObj, "address");
         object tokenDecimals = this.safeInteger(tokenObj, "decimals", 18);
+        object quoteCurrency = this.safeString(tokenObj, "symbol", "USDC");
+        // per-side fees: buys are charged the taker fee, sells the maker fee (mirrors fetchTradingFee)
+        object feesObj = this.safeDict(raw, "fees", new Dictionary<string, object>() {});
+        object buyFees = this.safeDict(feesObj, "buy", new Dictionary<string, object>() {});
+        object sellFees = this.safeDict(feesObj, "sell", new Dictionary<string, object>() {});
+        object takerFee = this.safeNumber(buyFees, "fee", 0.01);
+        object makerFee = this.safeNumber(sellFees, "fee", 0);
         object outcomes = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(rawOutcomes)); postFixIncrement(ref i))
         {
@@ -1327,10 +1567,10 @@ public partial class myriad : PredictionExchange
             { "id", add(add(networkId, ":"), marketId) },
             { "symbol", marketSymbol },
             { "base", slug },
-            { "quote", "USDC" },
+            { "quote", quoteCurrency },
             { "settle", null },
             { "baseId", add(add(networkId, ":"), marketId) },
-            { "quoteId", "USDC" },
+            { "quoteId", quoteCurrency },
             { "settleId", null },
             { "type", "prediction" },
             { "spot", false },
@@ -1348,8 +1588,8 @@ public partial class myriad : PredictionExchange
             { "expiryDatetime", endDate },
             { "strike", null },
             { "optionType", null },
-            { "taker", 0.02 },
-            { "maker", 0.02 },
+            { "taker", takerFee },
+            { "maker", makerFee },
             { "percentage", true },
             { "tierBased", false },
             { "feeSide", "get" },
@@ -2373,6 +2613,11 @@ public partial class myriad : PredictionExchange
 
     public virtual object marketOutcomeToSymbol(object networkId, object marketId, object outcomeId)
     {
+        // guard the ids before concatenating: a missing id would crash on string + None in Python/PHP
+        if (isTrue(isTrue(isTrue((isEqual(networkId, null))) || isTrue((isEqual(marketId, null)))) || isTrue((isEqual(outcomeId, null)))))
+        {
+            return null;
+        }
         object ocId = add(add(add(add(networkId, ":"), marketId), "/"), outcomeId);
         object outcomeObj = this.safeDict(this.outcomes_by_id, ocId);
         return this.safeString(outcomeObj, "symbol");
@@ -2523,11 +2768,31 @@ public partial class myriad : PredictionExchange
         object sym = this.safeOutcomeSymbol(symbol, outcomeObj);
         object channel = add(add(add("orderbook:", networkId), ":"), marketId);
         object messageHash = add("orderbook::", sym);
-        if (isTrue(isEqual(this.safeValue(this.orderbooks, sym), null)))
+        object url = this.safeString(getValue(this.urls, "api"), "ws");
+        // finish the connect handshake first so the client exists and the subscribe follows the connect reply
+        await this.connectCentrifugo(url);
+        var client = this.client(url);
+        object isNewSubscription = isEqual(this.safeValue(((WebSocketClient)client).subscriptions, channel), null);
+        if (isTrue(isNewSubscription))
         {
+            // the channel only streams deltas, so (re)seed the live book from the REST snapshot on a
+            // fresh subscription (first call or after a reconnect that cleared ((WebSocketClient)client).subscriptions)
             await this.seedOrderBook(symbol, sym, limit);
         }
-        object orderbook = await this.subscribeMyriadChannel(messageHash, channel, parameters);
+        object requestId = this.requestId(url);
+        object subscribeMsg = new Dictionary<string, object>() {
+            { "subscribe", new Dictionary<string, object>() {
+                { "channel", channel },
+            } },
+            { "id", requestId },
+        };
+        var future = this.watch(url, messageHash, subscribeMsg, channel);
+        if (isTrue(isNewSubscription))
+        {
+            // return the freshly-seeded book immediately instead of blocking until the next delta
+            callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.orderbooks, sym), messageHash});
+        }
+        object orderbook = await future;
         return (orderbook as IOrderBook).limit();
     }
 
@@ -2885,6 +3150,24 @@ public partial class myriad : PredictionExchange
             address = this.ethGetAddressFromPrivateKey(this.privateKey);
         }
         return ((string)address).ToLower();
+    }
+
+    public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
+    {
+        // Myriad error responses are { "error": "<message>", "details": [...] } with a 4xx status
+        if (isTrue(isEqual(response, null)))
+        {
+            return null;
+        }
+        object error = this.safeString(response, "error");
+        if (isTrue(isTrue((isEqual(error, null))) || isTrue((isEqual(error, "")))))
+        {
+            return null;
+        }
+        object feedback = add(add(this.id, " "), body);
+        this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), error, feedback);
+        this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), error, feedback);
+        throw new ExchangeError ((string)feedback) ;
     }
 
     /**

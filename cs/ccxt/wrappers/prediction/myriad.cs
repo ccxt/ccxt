@@ -300,6 +300,32 @@ public partial class myriad
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
+    /// cancels multiple open order book orders by hash in one request (gasless)
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828177961fd94a6055966f"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : not used by myriad cancelOrders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [order structures](https://docs.ccxt.com/#/?id=order-structure).</returns>
+    public async Task<List<Order>> CancelOrders(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelOrders(ids, symbol, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
     /// fetches a single order book order by its hash
     /// </summary>
     /// <remarks>
@@ -416,6 +442,72 @@ public partial class myriad
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOpenOrders(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
+    /// fetches the wallet's filled order book orders as trades. Note: Myriad's REST exposes the order's
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828171a003cf996487d008"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified outcome symbol to filter by
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest trade
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of trades to return
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure).</returns>
+    public async Task<List<Trade>> FetchMyTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchMyTrades(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
+    }
+    /// <summary>
+    /// fetches the wallet's on-chain collateral balance for the order-book network (USD1 on BNB Chain)
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.myriad.markets/builders/myriad-order-book/order-book-api"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.network_id</term>
+    /// <description>
+    /// string : the network id (defaults to options.defaultNetworkId, '56')
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [balance structure](https://docs.ccxt.com/#/?id=balance-structure).</returns>
+    public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchBalance(parameters);
+        return new Balances(res);
     }
     /// <summary>
     /// fetches the current price for a single outcome by loading the parent market

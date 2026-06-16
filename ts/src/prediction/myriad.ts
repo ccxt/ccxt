@@ -20,13 +20,13 @@ import Exchange from '../abstract/prediction/myriad.js';
 import { ecdsa } from '../base/functions/crypto.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import type {
-    Int, Str, Num, Dict,
+    Int, Str, Num, Dict, int,
     Strings, Order,
     Market, Ticker, Tickers, OrderBook, OHLCV, Trade, TradingFeeInterface,
-    PredictionEvent, Position,
+    PredictionEvent, Position, Balances,
 } from '../base/types.js';
 import { Precise } from '../base/Precise.js';
-import { ArgumentsRequired, NotSupported, ExchangeError } from '../../ccxt.js';
+import { ArgumentsRequired, NotSupported, ExchangeError, InvalidOrder, InsufficientFunds, OrderNotFound, BadSymbol, AuthenticationError, RateLimitExceeded } from '../../ccxt.js';
 
 // ---------------------------------------------------------------------------
 
@@ -52,12 +52,14 @@ export default class myriad extends Exchange {
                 'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'cancelOrders': true,
                 'createOrder': true,
-                'fetchBalance': false,
+                'fetchBalance': true,
                 'fetchCurrencies': false,
                 'fetchEvent': true,
                 'fetchEvents': true,
                 'fetchMarkets': true,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -156,8 +158,28 @@ export default class myriad extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': 0.02,
-                    'taker': 0.02,
+                    'maker': 0.01,
+                    'taker': 0.01,
+                },
+            },
+            'exceptions': {
+                'exact': {
+                    'Order not found': OrderNotFound,
+                    'Market not found': BadSymbol,
+                    'Invalid order payload': InvalidOrder,
+                },
+                'broad': {
+                    'Insufficient': InsufficientFunds,
+                    'allowance': InsufficientFunds,
+                    'not found': OrderNotFound,
+                    'Unauthorized': AuthenticationError,
+                    'Forbidden': AuthenticationError,
+                    'rate limit': RateLimitExceeded,
+                    'Too many requests': RateLimitExceeded,
+                    'expired': InvalidOrder,
+                    'closed': InvalidOrder,
+                    'resolved': InvalidOrder,
+                    'Invalid': InvalidOrder,
                 },
             },
             'options': {
@@ -179,7 +201,7 @@ export default class myriad extends Exchange {
                 // obExchangeAddress is the EIP-712 verifyingContract for the gasless order book.
                 // rpcUrl can be overridden via params.rpcUrl or options.chains[networkId].rpcUrl
                 'chains': {
-                    '56': { 'rpcUrl': 'https://bsc-dataseed.binance.org/', 'predictionMarket': '0x39E66eE6b2ddaf4DEfDEd3038E0162180dbeF340', 'obExchangeAddress': '0xa0b6f8ef8EdB64f395018D1933f2273Ce9f0f16A', 'obConditionalTokens': '0x6413734f92248D4B29ae35883290BD93212654Dc' },
+                    '56': { 'rpcUrl': 'https://bsc-dataseed.binance.org/', 'predictionMarket': '0x39E66eE6b2ddaf4DEfDEd3038E0162180dbeF340', 'obExchangeAddress': '0xa0b6f8ef8EdB64f395018D1933f2273Ce9f0f16A', 'obConditionalTokens': '0x6413734f92248D4B29ae35883290BD93212654Dc', 'collateralToken': '0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d', 'collateralCurrency': 'USD1', 'collateralDecimals': 18 },
                     '2741': { 'rpcUrl': 'https://api.mainnet.abs.xyz', 'predictionMarket': '0x3e0F5F8F5Fb043aBFA475C0308417Bf72c463289' },
                     '59144': { 'rpcUrl': 'https://rpc.linea.build', 'predictionMarket': '0x39e66ee6b2ddaf4defded3038e0162180dbef340' },
                 },
@@ -667,7 +689,13 @@ export default class myriad extends Exchange {
         if (tradingModel === 'ob') {
             return await this.createOrderbookOrder (symbol, type, side, amount, price, rest);
         }
-        return await this.createAmmOrder (symbol, type, side, amount, price, rest);
+        // the on-chain AMM path requires native gas and has not been verified end to end; keep it behind
+        // an explicit opt-in so callers do not silently hit an untested signing/broadcast path
+        const enableAmm = this.safeBool2 (params, 'enableAmm', 'enableAmmOrders', this.safeBool (this.options, 'enableAmmOrders', false));
+        if (!enableAmm) {
+            throw new NotSupported (this.id + ' createOrder() only supports the gasless order book; this market uses the on-chain AMM (needs native gas and is unverified) — pass params.enableAmm=true to opt in');
+        }
+        return await this.createAmmOrder (symbol, type, side, amount, price, this.omit (rest, [ 'enableAmm', 'enableAmmOrders' ]));
     }
 
     /**
@@ -910,7 +938,15 @@ export default class myriad extends Exchange {
         const timestamp = this.parse8601 (this.safeString (order, 'createdAt'));
         const tif = this.safeStringUpper (order, 'timeInForce');
         const isMarketTif = (tif === 'FOK') || (tif === 'FAK');
-        const symbol = (market === undefined) ? undefined : this.safeString (market, 'symbol');
+        // resolve the outcome symbol from market/outcome ids when no market was passed (e.g. fetchOrders without a symbol)
+        let symbol = (market === undefined) ? undefined : this.safeString (market, 'symbol');
+        if (symbol === undefined) {
+            // the REST order has no top-level networkId; order book lives on the default network
+            const networkId = this.safeString2 (order, 'networkId', 'network_id', this.safeString (this.options, 'defaultNetworkId', '56'));
+            const marketId = this.safeString (inner, 'marketId');
+            const outcomeId = this.safeString (inner, 'outcomeId');
+            symbol = this.marketOutcomeToSymbol (networkId, marketId, outcomeId);
+        }
         return this.safeOrder ({
             'id': orderHash,
             'clientOrderId': undefined,
@@ -997,7 +1033,8 @@ export default class myriad extends Exchange {
             marketId = this.safeString (info, 'marketId', marketId);
             networkId = this.safeString (info, 'networkId', networkId);
         }
-        const timestamp = this.numberToString (this.seconds ());
+        // timestamp defaults to now (unix seconds) but can be pinned via params for idempotent retries
+        const timestamp = this.safeString (params, 'timestamp', this.numberToString (this.seconds ()));
         const message: Dict = {
             'trader': trader,
             'marketId': marketId,
@@ -1012,6 +1049,43 @@ export default class myriad extends Exchange {
             'network_id': this.parseToInt (networkId),
         };
         return await this.myriadPublicPostOrdersCancelAll (request);
+    }
+
+    /**
+     * @method
+     * @name myriad#cancelOrders
+     * @description cancels multiple open order book orders by hash in one request (gasless)
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828177961fd94a6055966f
+     * @param {string[]} ids the order hashes to cancel
+     * @param {string} [symbol] not used by myriad cancelOrders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> {
+        if (this.privateKey === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrders() requires a privateKey to sign the cancellations');
+        }
+        await this.loadMarkets ();
+        const idsLength = ids.length;
+        const signedOrders = [];
+        const wrappers = [];
+        let networkId = this.safeString (this.options, 'defaultNetworkId', '56');
+        for (let i = 0; i < idsLength; i++) {
+            const id = ids[i];
+            const fetched = await this.myriadPublicGetOrdersHash ({ 'hash': id });
+            const rawOrder = this.safeDict (fetched, 'order', {});
+            networkId = this.safeString2 (fetched, 'networkId', 'network_id', networkId);
+            const message = this.clobOrderMessage (rawOrder);
+            const signature = this.signClobOrder (message, networkId);
+            signedOrders.push ({ 'order': message, 'signature': signature });
+            wrappers.push (this.extend (fetched, { 'status': 'canceled', 'networkId': networkId }));
+        }
+        const request: Dict = {
+            'orders': signedOrders,
+            'network_id': this.parseToInt (networkId),
+        };
+        await this.myriadPublicPostOrdersCancelBatch (this.extend (request, params));
+        return this.parseOrders (wrappers, undefined, undefined, undefined);
     }
 
     /**
@@ -1092,6 +1166,126 @@ export default class myriad extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
+    /**
+     * @method
+     * @name myriad#fetchMyTrades
+     * @description fetches the wallet's filled order book orders as trades. Note: Myriad's REST exposes the order's
+     * limit price, not the per-fill execution price, so the price reflects the order's limit (exact for resting/limit
+     * fills, an upper/lower bound for market orders) — use watchTrades for live execution prices
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828171a003cf996487d008
+     * @param {string} [symbol] unified outcome symbol to filter by
+     * @param {int} [since] timestamp in ms of the earliest trade
+     * @param {int} [limit] the maximum number of trades to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     */
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        const request: Dict = {
+            'status': 'filled',
+        };
+        const orders = await this.fetchOrders (symbol, since, limit, this.extend (request, params));
+        const trades = [];
+        const ordersLength = orders.length;
+        for (let i = 0; i < ordersLength; i++) {
+            const order = orders[i];
+            trades.push (this.orderToTrade (order));
+        }
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+    }
+
+    orderToTrade (order: Dict): Trade {
+        const timestamp = this.safeInteger (order, 'timestamp');
+        const orderType = this.safeString (order, 'type');
+        // the REST filled-order response carries the order's limit price (= the fill price for limit
+        // orders, but only the protective bound for market orders), so omit the price for market orders
+        let price = undefined;
+        if (orderType !== 'market') {
+            price = this.safeNumber (order, 'price');
+        }
+        return this.safeTrade ({
+            'id': this.safeString (order, 'id'),
+            'order': this.safeString (order, 'id'),
+            'info': this.safeDict (order, 'info', {}),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': this.safeString (order, 'symbol'),
+            'type': orderType,
+            'side': this.safeString (order, 'side'),
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': this.safeNumber (order, 'filled'),
+            'cost': undefined,
+            'fee': undefined,
+        });
+    }
+
+    /**
+     * @method
+     * @name myriad#fetchBalance
+     * @description fetches the wallet's on-chain collateral balance for the order-book network (USD1 on BNB Chain)
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network_id] the network id (defaults to options.defaultNetworkId, '56')
+     * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+     */
+    async fetchBalance (params = {}): Promise<Balances> {
+        const networkId = this.safeString (params, 'network_id', this.safeString (this.options, 'defaultNetworkId', '56'));
+        const chains = this.safeDict (this.options, 'chains', {});
+        const chainConfig = this.safeDict (chains, networkId, {});
+        const rpcUrl = this.safeString2 (params, 'rpcUrl', 'rpc', this.safeString (chainConfig, 'rpcUrl'));
+        const token = this.safeString2 (params, 'token', 'tokenAddress', this.safeString (chainConfig, 'collateralToken'));
+        if (token === undefined) {
+            throw new NotSupported (this.id + ' fetchBalance() has no collateral token configured for network ' + networkId);
+        }
+        const currency = this.safeString (chainConfig, 'collateralCurrency', 'USD1');
+        const decimals = this.safeInteger (chainConfig, 'collateralDecimals', 18);
+        const owner = this.walletAddressFromKeys ();
+        // ERC20 balanceOf(owner) = selector 0x70a08231 + the 32-byte left-padded owner address
+        const callData = '0x70a08231' + this.padHexAddress (owner);
+        const callParams = [ { 'to': token, 'data': callData }, 'latest' ];
+        const raw = await this.ethRpc (rpcUrl, 'eth_call', callParams);
+        const balanceString = this.fromWeiWithDecimals (raw, decimals);
+        const result: Dict = {
+            'info': { 'balanceHex': raw, 'token': token, 'networkId': networkId },
+        };
+        const account = this.account ();
+        account['free'] = balanceString;
+        account['total'] = balanceString;
+        result[currency] = account;
+        return this.safeBalance (result);
+    }
+
+    hexToDecimalString (hexValue: string): Str {
+        // portable hex -> decimal string (avoids convertToBigInt, which is not uniform across languages)
+        const stripped = this.remove0xPrefix (hexValue);
+        if ((stripped === undefined) || (stripped === '')) {
+            return undefined;
+        }
+        const chars = this.stringToCharsArray (stripped.toLowerCase ());
+        const n = chars.length;
+        const digits = '0123456789abcdef';
+        let result = '0';
+        for (let i = 0; i < n; i++) {
+            const v = digits.indexOf (chars[i]);
+            if (v > -1) {
+                result = Precise.stringAdd (Precise.stringMul (result, '16'), this.numberToString (v));
+            }
+        }
+        return result;
+    }
+
+    fromWeiWithDecimals (hexValue: string, decimals: Int): Str {
+        const decimalString = this.hexToDecimalString (hexValue);
+        if (decimalString === undefined) {
+            return undefined;
+        }
+        let scale = '1';
+        for (let i = 0; i < decimals; i++) {
+            scale = scale + '0';
+        }
+        return Precise.stringDiv (decimalString, scale);
+    }
+
     parseTradeTx (txHash: string, quote: Dict, market: any, side: string): Order {
         return this.safeOrder ({
             'id': txHash,
@@ -1164,10 +1358,17 @@ export default class myriad extends Exchange {
         const volume24h = this.safeNumber (raw, 'volume24h');
         const slugBase = (eventSlug !== undefined) ? eventSlug : networkId;
         const marketSymbol = this.slugToMarketSymbol (slugBase, slug);
-        // the collateral token (address + decimals) is per-market; carry it for on-chain trading
+        // the collateral token (symbol + address + decimals) is per-market; carry it for on-chain trading
         const tokenObj = this.safeDict (raw, 'token', {});
         const tokenAddress = this.safeString (tokenObj, 'address');
         const tokenDecimals = this.safeInteger (tokenObj, 'decimals', 18);
+        const quoteCurrency = this.safeString (tokenObj, 'symbol', 'USDC');
+        // per-side fees: buys are charged the taker fee, sells the maker fee (mirrors fetchTradingFee)
+        const feesObj = this.safeDict (raw, 'fees', {});
+        const buyFees = this.safeDict (feesObj, 'buy', {});
+        const sellFees = this.safeDict (feesObj, 'sell', {});
+        const takerFee = this.safeNumber (buyFees, 'fee', 0.01);
+        const makerFee = this.safeNumber (sellFees, 'fee', 0);
         const outcomes: any[] = [];
         for (let i = 0; i < rawOutcomes.length; i++) {
             const outcome = this.safeDict (rawOutcomes, i, {});
@@ -1199,10 +1400,10 @@ export default class myriad extends Exchange {
             'id': networkId + ':' + marketId,
             'symbol': marketSymbol,
             'base': slug,
-            'quote': 'USDC',
+            'quote': quoteCurrency,
             'settle': undefined,
             'baseId': networkId + ':' + marketId,
-            'quoteId': 'USDC',
+            'quoteId': quoteCurrency,
             'settleId': undefined,
             'type': 'prediction',
             'spot': false,
@@ -1220,8 +1421,8 @@ export default class myriad extends Exchange {
             'expiryDatetime': endDate,
             'strike': undefined,
             'optionType': undefined,
-            'taker': 0.02,
-            'maker': 0.02,
+            'taker': takerFee,
+            'maker': makerFee,
             'percentage': true,
             'tierBased': false,
             'feeSide': 'get',
@@ -2165,6 +2366,10 @@ export default class myriad extends Exchange {
     }
 
     marketOutcomeToSymbol (networkId: Str, marketId: Str, outcomeId: Str): Str {
+        // guard the ids before concatenating: a missing id would crash on string + None in Python/PHP
+        if ((networkId === undefined) || (marketId === undefined) || (outcomeId === undefined)) {
+            return undefined;
+        }
         const ocId = networkId + ':' + marketId + '/' + outcomeId;
         const outcomeObj = this.safeDict (this.outcomes_by_id, ocId);
         return this.safeString (outcomeObj, 'symbol');
@@ -2283,10 +2488,24 @@ export default class myriad extends Exchange {
         const sym = this.safeOutcomeSymbol (symbol, outcomeObj);
         const channel = 'orderbook:' + networkId + ':' + marketId;
         const messageHash = 'orderbook::' + sym;
-        if (this.safeValue (this.orderbooks, sym) === undefined) {
+        const url = this.safeString (this.urls['api'] as Dict, 'ws');
+        // finish the connect handshake first so the client exists and the subscribe follows the connect reply
+        await this.connectCentrifugo (url);
+        const client = this.client (url);
+        const isNewSubscription = this.safeValue (client.subscriptions, channel) === undefined;
+        if (isNewSubscription) {
+            // the channel only streams deltas, so (re)seed the live book from the REST snapshot on a
+            // fresh subscription (first call or after a reconnect that cleared client.subscriptions)
             await this.seedOrderBook (symbol, sym, limit);
         }
-        const orderbook = await this.subscribeMyriadChannel (messageHash, channel, params);
+        const requestId = this.requestId (url);
+        const subscribeMsg: Dict = { 'subscribe': { 'channel': channel }, 'id': requestId };
+        const future = this.watch (url, messageHash, subscribeMsg, channel);
+        if (isNewSubscription) {
+            // return the freshly-seeded book immediately instead of blocking until the next delta
+            client.resolve (this.orderbooks[sym], messageHash);
+        }
+        const orderbook = await future;
         return orderbook.limit ();
     }
 
@@ -2612,6 +2831,21 @@ export default class myriad extends Exchange {
             address = this.ethGetAddressFromPrivateKey (this.privateKey);
         }
         return address.toLowerCase ();
+    }
+
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+        // Myriad error responses are { "error": "<message>", "details": [...] } with a 4xx status
+        if (response === undefined) {
+            return undefined;
+        }
+        const error = this.safeString (response, 'error');
+        if ((error === undefined) || (error === '')) {
+            return undefined;
+        }
+        const feedback = this.id + ' ' + body;
+        this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
+        this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
+        throw new ExchangeError (feedback);
     }
 
     /**

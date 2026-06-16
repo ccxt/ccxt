@@ -36,12 +36,14 @@ class myriad extends Exchange {
                 'option' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'cancelOrders' => true,
                 'createOrder' => true,
-                'fetchBalance' => false,
+                'fetchBalance' => true,
                 'fetchCurrencies' => false,
                 'fetchEvent' => true,
                 'fetchEvents' => true,
                 'fetchMarkets' => true,
+                'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
@@ -140,8 +142,28 @@ class myriad extends Exchange {
                 'trading' => array(
                     'tierBased' => false,
                     'percentage' => true,
-                    'maker' => 0.02,
-                    'taker' => 0.02,
+                    'maker' => 0.01,
+                    'taker' => 0.01,
+                ),
+            ),
+            'exceptions' => array(
+                'exact' => array(
+                    'Order not found' => '\\ccxt\\OrderNotFound',
+                    'Market not found' => '\\ccxt\\BadSymbol',
+                    'Invalid order payload' => '\\ccxt\\InvalidOrder',
+                ),
+                'broad' => array(
+                    'Insufficient' => '\\ccxt\\InsufficientFunds',
+                    'allowance' => '\\ccxt\\InsufficientFunds',
+                    'not found' => '\\ccxt\\OrderNotFound',
+                    'Unauthorized' => '\\ccxt\\AuthenticationError',
+                    'Forbidden' => '\\ccxt\\AuthenticationError',
+                    'rate limit' => '\\ccxt\\RateLimitExceeded',
+                    'Too many requests' => '\\ccxt\\RateLimitExceeded',
+                    'expired' => '\\ccxt\\InvalidOrder',
+                    'closed' => '\\ccxt\\InvalidOrder',
+                    'resolved' => '\\ccxt\\InvalidOrder',
+                    'Invalid' => '\\ccxt\\InvalidOrder',
                 ),
             ),
             'options' => array(
@@ -163,7 +185,7 @@ class myriad extends Exchange {
                 // obExchangeAddress is the EIP-712 verifyingContract for the gasless order book.
                 // rpcUrl can be overridden via params.rpcUrl or options.chains[networkId].rpcUrl
                 'chains' => array(
-                    '56' => array( 'rpcUrl' => 'https://bsc-dataseed.binance.org/', 'predictionMarket' => '0x39E66eE6b2ddaf4DEfDEd3038E0162180dbeF340', 'obExchangeAddress' => '0xa0b6f8ef8EdB64f395018D1933f2273Ce9f0f16A', 'obConditionalTokens' => '0x6413734f92248D4B29ae35883290BD93212654Dc' ),
+                    '56' => array( 'rpcUrl' => 'https://bsc-dataseed.binance.org/', 'predictionMarket' => '0x39E66eE6b2ddaf4DEfDEd3038E0162180dbeF340', 'obExchangeAddress' => '0xa0b6f8ef8EdB64f395018D1933f2273Ce9f0f16A', 'obConditionalTokens' => '0x6413734f92248D4B29ae35883290BD93212654Dc', 'collateralToken' => '0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d', 'collateralCurrency' => 'USD1', 'collateralDecimals' => 18 ),
                     '2741' => array( 'rpcUrl' => 'https://api.mainnet.abs.xyz', 'predictionMarket' => '0x3e0F5F8F5Fb043aBFA475C0308417Bf72c463289' ),
                     '59144' => array( 'rpcUrl' => 'https://rpc.linea.build', 'predictionMarket' => '0x39e66ee6b2ddaf4defded3038e0162180dbef340' ),
                 ),
@@ -668,7 +690,13 @@ class myriad extends Exchange {
             if ($tradingModel === 'ob') {
                 return Async\await($this->create_orderbook_order($symbol, $type, $side, $amount, $price, $rest));
             }
-            return Async\await($this->create_amm_order($symbol, $type, $side, $amount, $price, $rest));
+            // the on-chain AMM path requires native gas and has not been verified end to end; keep it behind
+            // an explicit opt-in so callers do not silently hit an untested signing/broadcast path
+            $enableAmm = $this->safe_bool_2($params, 'enableAmm', 'enableAmmOrders', $this->safe_bool($this->options, 'enableAmmOrders', false));
+            if (!$enableAmm) {
+                throw new NotSupported($this->id . ' createOrder() only supports the gasless order book; this market uses the on-chain AMM (needs native gas and is unverified) — pass $params->enableAmm=true to opt in');
+            }
+            return Async\await($this->create_amm_order($symbol, $type, $side, $amount, $price, $this->omit($rest, array( 'enableAmm', 'enableAmmOrders' ))));
         }) ();
     }
 
@@ -902,7 +930,15 @@ class myriad extends Exchange {
         $timestamp = $this->parse8601($this->safe_string($order, 'createdAt'));
         $tif = $this->safe_string_upper($order, 'timeInForce');
         $isMarketTif = ($tif === 'FOK') || ($tif === 'FAK');
+        // resolve the outcome $symbol from market/outcome ids when no $market was passed (e.g. fetchOrders without a $symbol)
         $symbol = ($market === null) ? null : $this->safe_string($market, 'symbol');
+        if ($symbol === null) {
+            // the REST $order has no top-level $networkId; $order book lives on the default network
+            $networkId = $this->safe_string_2($order, 'networkId', 'network_id', $this->safe_string($this->options, 'defaultNetworkId', '56'));
+            $marketId = $this->safe_string($inner, 'marketId');
+            $outcomeId = $this->safe_string($inner, 'outcomeId');
+            $symbol = $this->market_outcome_to_symbol($networkId, $marketId, $outcomeId);
+        }
         return $this->safe_order(array(
             'id' => $orderHash,
             'clientOrderId' => null,
@@ -992,7 +1028,8 @@ class myriad extends Exchange {
                 $marketId = $this->safe_string($info, 'marketId', $marketId);
                 $networkId = $this->safe_string($info, 'networkId', $networkId);
             }
-            $timestamp = $this->number_to_string($this->seconds());
+            // $timestamp defaults to now (unix seconds) but can be pinned via $params for idempotent retries
+            $timestamp = $this->safe_string($params, 'timestamp', $this->number_to_string($this->seconds()));
             $message = array(
                 'trader' => $trader,
                 'marketId' => $marketId,
@@ -1007,6 +1044,45 @@ class myriad extends Exchange {
                 'network_id' => $this->parse_to_int($networkId),
             );
             return Async\await($this->myriadPublicPostOrdersCancelAll ($request));
+        }) ();
+    }
+
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($ids, $symbol, $params) {
+            /**
+             * cancels multiple open order book orders by hash in one $request (gasless)
+             *
+             * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828177961fd94a6055966f
+             *
+             * @param {string[]} $ids the order hashes to cancel
+             * @param {string} [$symbol] not used by myriad cancelOrders
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?$id=order-structure)
+             */
+            if ($this->privateKey === null) {
+                throw new ArgumentsRequired($this->id . ' cancelOrders() requires a privateKey to sign the cancellations');
+            }
+            Async\await($this->load_markets());
+            $idsLength = count($ids);
+            $signedOrders = array();
+            $wrappers = array();
+            $networkId = $this->safe_string($this->options, 'defaultNetworkId', '56');
+            for ($i = 0; $i < $idsLength; $i++) {
+                $id = $ids[$i];
+                $fetched = Async\await($this->myriadPublicGetOrdersHash (array( 'hash' => $id )));
+                $rawOrder = $this->safe_dict($fetched, 'order', array());
+                $networkId = $this->safe_string_2($fetched, 'networkId', 'network_id', $networkId);
+                $message = $this->clob_order_message($rawOrder);
+                $signature = $this->sign_clob_order($message, $networkId);
+                $signedOrders[] = array( 'order' => $message, 'signature' => $signature );
+                $wrappers[] = $this->extend($fetched, array( 'status' => 'canceled', 'networkId' => $networkId ));
+            }
+            $request = array(
+                'orders' => $signedOrders,
+                'network_id' => $this->parse_to_int($networkId),
+            );
+            Async\await($this->myriadPublicPostOrdersCancelBatch ($this->extend($request, $params)));
+            return $this->parse_orders($wrappers, null, null, null);
         }) ();
     }
 
@@ -1094,6 +1170,130 @@ class myriad extends Exchange {
         }) ();
     }
 
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches the wallet's filled $order book $orders-> Note => Myriad's REST exposes the order's
+             * $limit price, not the per-fill execution price, so the price reflects the order's $limit (exact for resting/limit
+             * fills, an upper/lower bound for market $orders) — use watchTrades for live execution prices
+             *
+             * @see https://docs.myriad.markets/builders/myriad-$order-book/order-book-api#37dc9e49da828171a003cf996487d008
+             *
+             * @param {string} [$symbol] unified outcome $symbol to filter by
+             * @param {int} [$since] timestamp in ms of the earliest trade
+             * @param {int} [$limit] the maximum number of $trades to return
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+             */
+            $request = array(
+                'status' => 'filled',
+            );
+            $orders = Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
+            $trades = array();
+            $ordersLength = count($orders);
+            for ($i = 0; $i < $ordersLength; $i++) {
+                $order = $orders[$i];
+                $trades[] = $this->order_to_trade($order);
+            }
+            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+        }) ();
+    }
+
+    public function order_to_trade(array $order): array {
+        $timestamp = $this->safe_integer($order, 'timestamp');
+        $orderType = $this->safe_string($order, 'type');
+        // the REST filled-$order response carries the order's limit $price (= the fill $price for limit
+        // orders, but only the protective bound for market orders), so omit the $price for market orders
+        $price = null;
+        if ($orderType !== 'market') {
+            $price = $this->safe_number($order, 'price');
+        }
+        return $this->safe_trade(array(
+            'id' => $this->safe_string($order, 'id'),
+            'order' => $this->safe_string($order, 'id'),
+            'info' => $this->safe_dict($order, 'info', array()),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'symbol' => $this->safe_string($order, 'symbol'),
+            'type' => $orderType,
+            'side' => $this->safe_string($order, 'side'),
+            'takerOrMaker' => null,
+            'price' => $price,
+            'amount' => $this->safe_number($order, 'filled'),
+            'cost' => null,
+            'fee' => null,
+        ));
+    }
+
+    public function fetch_balance($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
+            /**
+             * fetches the wallet's on-chain collateral balance for the order-book network (USD1 on BNB Chain)
+             *
+             * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api
+             *
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->network_id] the network id (defaults to options.defaultNetworkId, '56')
+             * @return {array} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+             */
+            $networkId = $this->safe_string($params, 'network_id', $this->safe_string($this->options, 'defaultNetworkId', '56'));
+            $chains = $this->safe_dict($this->options, 'chains', array());
+            $chainConfig = $this->safe_dict($chains, $networkId, array());
+            $rpcUrl = $this->safe_string_2($params, 'rpcUrl', 'rpc', $this->safe_string($chainConfig, 'rpcUrl'));
+            $token = $this->safe_string_2($params, 'token', 'tokenAddress', $this->safe_string($chainConfig, 'collateralToken'));
+            if ($token === null) {
+                throw new NotSupported($this->id . ' fetchBalance() has no collateral $token configured for network ' . $networkId);
+            }
+            $currency = $this->safe_string($chainConfig, 'collateralCurrency', 'USD1');
+            $decimals = $this->safe_integer($chainConfig, 'collateralDecimals', 18);
+            $owner = $this->wallet_address_from_keys();
+            // ERC20 balanceOf($owner) = selector 0x70a08231 . the 32-byte left-padded $owner address
+            $callData = '0x70a08231' . $this->pad_hex_address($owner);
+            $callParams = array( array( 'to' => $token, 'data' => $callData ), 'latest' );
+            $raw = Async\await($this->eth_rpc($rpcUrl, 'eth_call', $callParams));
+            $balanceString = $this->from_wei_with_decimals($raw, $decimals);
+            $result = array(
+                'info' => array( 'balanceHex' => $raw, 'token' => $token, 'networkId' => $networkId ),
+            );
+            $account = $this->account();
+            $account['free'] = $balanceString;
+            $account['total'] = $balanceString;
+            $result[$currency] = $account;
+            return $this->safe_balance($result);
+        }) ();
+    }
+
+    public function hex_to_decimal_string(string $hexValue): ?string {
+        // portable hex -> decimal string (avoids convertToBigInt, which is not uniform across languages)
+        $stripped = $this->remove0x_prefix($hexValue);
+        if (($stripped === null) || ($stripped === '')) {
+            return null;
+        }
+        $chars = $this->string_to_chars_array(strtolower($stripped));
+        $n = count($chars);
+        $digits = '0123456789abcdef';
+        $result = '0';
+        for ($i = 0; $i < $n; $i++) {
+            $v = mb_strpos($digits, $chars[$i]);
+            if ($v > -1) {
+                $result = Precise::string_add(Precise::string_mul($result, '16'), $this->number_to_string($v));
+            }
+        }
+        return $result;
+    }
+
+    public function from_wei_with_decimals(string $hexValue, ?int $decimals): ?string {
+        $decimalString = $this->hex_to_decimal_string($hexValue);
+        if ($decimalString === null) {
+            return null;
+        }
+        $scale = '1';
+        for ($i = 0; $i < $decimals; $i++) {
+            $scale = $scale . '0';
+        }
+        return Precise::string_div($decimalString, $scale);
+    }
+
     public function parse_trade_tx(string $txHash, array $quote, mixed $market, string $side): array {
         return $this->safe_order(array(
             'id' => $txHash,
@@ -1162,10 +1362,17 @@ class myriad extends Exchange {
         $volume24h = $this->safe_number($raw, 'volume24h');
         $slugBase = ($eventSlug !== null) ? $eventSlug : $networkId;
         $marketSymbol = $this->slugToMarketSymbol ($slugBase, $slug);
-        // the collateral token (address . decimals) is per-market; carry it for on-chain trading
+        // the collateral token (symbol . address . decimals) is per-market; carry it for on-chain trading
         $tokenObj = $this->safe_dict($raw, 'token', array());
         $tokenAddress = $this->safe_string($tokenObj, 'address');
         $tokenDecimals = $this->safe_integer($tokenObj, 'decimals', 18);
+        $quoteCurrency = $this->safe_string($tokenObj, 'symbol', 'USDC');
+        // per-side fees => buys are charged the taker fee, sells the maker fee (mirrors fetchTradingFee)
+        $feesObj = $this->safe_dict($raw, 'fees', array());
+        $buyFees = $this->safe_dict($feesObj, 'buy', array());
+        $sellFees = $this->safe_dict($feesObj, 'sell', array());
+        $takerFee = $this->safe_number($buyFees, 'fee', 0.01);
+        $makerFee = $this->safe_number($sellFees, 'fee', 0);
         $outcomes = array();
         for ($i = 0; $i < count($rawOutcomes); $i++) {
             $outcome = $this->safe_dict($rawOutcomes, $i, array());
@@ -1197,10 +1404,10 @@ class myriad extends Exchange {
             'id' => $networkId . ':' . $marketId,
             'symbol' => $marketSymbol,
             'base' => $slug,
-            'quote' => 'USDC',
+            'quote' => $quoteCurrency,
             'settle' => null,
             'baseId' => $networkId . ':' . $marketId,
-            'quoteId' => 'USDC',
+            'quoteId' => $quoteCurrency,
             'settleId' => null,
             'type' => 'prediction',
             'spot' => false,
@@ -1218,8 +1425,8 @@ class myriad extends Exchange {
             'expiryDatetime' => $endDate,
             'strike' => null,
             'optionType' => null,
-            'taker' => 0.02,
-            'maker' => 0.02,
+            'taker' => $takerFee,
+            'maker' => $makerFee,
             'percentage' => true,
             'tierBased' => false,
             'feeSide' => 'get',
@@ -2163,6 +2370,10 @@ class myriad extends Exchange {
     }
 
     public function market_outcome_to_symbol(?string $networkId, ?string $marketId, ?string $outcomeId): ?string {
+        // guard the ids before concatenating => a missing id would crash on string . None in Python/PHP
+        if (($networkId === null) || ($marketId === null) || ($outcomeId === null)) {
+            return null;
+        }
         $ocId = $networkId . ':' . $marketId . '/' . $outcomeId;
         $outcomeObj = $this->safe_dict($this->outcomes_by_id, $ocId);
         return $this->safe_string($outcomeObj, 'symbol');
@@ -2288,10 +2499,24 @@ class myriad extends Exchange {
             $sym = $this->safeOutcomeSymbol ($symbol, $outcomeObj);
             $channel = 'orderbook:' . $networkId . ':' . $marketId;
             $messageHash = 'orderbook::' . $sym;
-            if ($this->safe_value($this->orderbooks, $sym) === null) {
+            $url = $this->safe_string($this->urls['api'], 'ws');
+            // finish the connect handshake first so the $client exists and the subscribe follows the connect reply
+            Async\await($this->connect_centrifugo($url));
+            $client = $this->client($url);
+            $isNewSubscription = $this->safe_value($client->subscriptions, $channel) === null;
+            if ($isNewSubscription) {
+                // the $channel only streams deltas, so (re)seed the live book from the REST snapshot on a
+                // fresh subscription (first call or after a reconnect that cleared $client->subscriptions)
                 Async\await($this->seed_order_book($symbol, $sym, $limit));
             }
-            $orderbook = Async\await($this->subscribe_myriad_channel($messageHash, $channel, $params));
+            $requestId = $this->request_id($url);
+            $subscribeMsg = array( 'subscribe' => array( 'channel' => $channel ), 'id' => $requestId );
+            $future = $this->watch($url, $messageHash, $subscribeMsg, $channel);
+            if ($isNewSubscription) {
+                // return the freshly-seeded book immediately instead of blocking until the next delta
+                $client->resolve ($this->orderbooks[$sym], $messageHash);
+            }
+            $orderbook = Async\await($future);
             return $orderbook->limit ();
         }) ();
     }
@@ -2628,6 +2853,21 @@ class myriad extends Exchange {
             $address = $this->eth_get_address_from_private_key($this->privateKey);
         }
         return strtolower($address);
+    }
+
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+        // Myriad $error responses are array( "error" => "<message>", "details" => [...] ) with a 4xx status
+        if ($response === null) {
+            return null;
+        }
+        $error = $this->safe_string($response, 'error');
+        if (($error === null) || ($error === '')) {
+            return null;
+        }
+        $feedback = $this->id . ' ' . $body;
+        $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $feedback);
+        $this->throw_broadly_matched_exception($this->exceptions['broad'], $error, $feedback);
+        throw new ExchangeError($feedback);
     }
 
     public function sign(mixed $path, mixed $api = 'myriad', $method = 'GET', $params = array (), mixed $headers = null, mixed $body = null) {

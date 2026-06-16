@@ -77,6 +77,32 @@
                 ],
                 "output": "{\"order\":{\"trader\":\"0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf\",\"marketId\":\"730\",\"outcomeId\":0,\"side\":0,\"amount\":\"2000000000000000000\",\"price\":\"500000000000000000\",\"minFillAmount\":\"0\",\"nonce\":\"1700000000000\",\"expiration\":\"0\"},\"signature\":\"0xdb503f38a9ea6b940e59f95bc8255057cd1788bf47fb7021f3c5d982d456e36b48e8165867f1e4ccb0f1d09d6852700bc1a26a5973a35bffde5e3142fc586baa1c\",\"network_id\":56,\"time_in_force\":\"GTC\"}"
             }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "cancelAllOrders signs an EIP-712 CancelAll struct scoped to one market (gasless)",
+                "method": "cancelAllOrders",
+                "url": "https://api-v2.myriadprotocol.com/orders/cancel-all",
+                "input": [
+                    "WORLDCUP_GROUP_D_OB:YES",
+                    {
+                        "timestamp": "1700000000"
+                    }
+                ],
+                "output": "{\"trader\":\"0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf\",\"market_id\":730,\"timestamp\":\"1700000000\",\"signature\":\"0x00fe5baed61bbf8ba65f58d06121152ed5c22c2432f4fe57f44dbf860d11e2163845bd0a46442f82965f5bb0712d7cc84c652b34cf32338bc92decfa9ebeb7451b\",\"network_id\":56}"
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "fetchOrders for a wallet scoped to one market",
+                "method": "fetchOrders",
+                "url": "https://api-v2.myriadprotocol.com/orders?trader=0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf&market_id=730&limit=10",
+                "input": [
+                    "WORLDCUP_GROUP_D_OB:YES",
+                    null,
+                    10
+                ]
+            }
         ]
     }
 }
