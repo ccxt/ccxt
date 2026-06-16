@@ -5,6 +5,7 @@ import { basename, resolve } from 'path';
 import { createFolderRecursively, overwriteFile, checkCreateFolder } from './fsLocal.js';
 // import { writeFile } from 'fs/promises';
 import { platform } from 'process';
+import { cpus } from 'os';
 import fs from 'fs';
 import log from 'ololog';
 import ansi from 'ansicolor';
@@ -462,6 +463,7 @@ class NewTranspiler {
     pythonStandardLibraries;
     oldTranspiler = new OldTranspiler();
     private _extendedExchanges: { [key: string]: string } | null = null;
+    private _piscinaPool: Piscina | null = null;
     futuresExchanges = new Set<string>([  // futures exchanges that extend a spot exchange class
         // 'kucoinfutures'
     ]);
@@ -1899,6 +1901,7 @@ ${caseStatements.join('\n')}
         this.createDynamicInstanceFile(true);
         this.transpileProTypes();
         this.createWsTypedInterfaceFile();
+        await this.destroyPiscinaPool();
 
     }
 
@@ -1943,17 +1946,32 @@ ${caseStatements.join('\n')}
 
         this.transpileErrorHierarchy ();
 
+        await this.destroyPiscinaPool();
+
         log.bright.green ('Transpiled successfully.');
+    }
+
+    getPiscinaPool(): Piscina {
+        if (!this._piscinaPool) {
+            this._piscinaPool = new Piscina({
+                filename: resolve(__dirname, 'go-worker.js'),
+                maxThreads: cpus().length,
+            });
+        }
+        return this._piscinaPool;
+    }
+
+    async destroyPiscinaPool() {
+        if (this._piscinaPool) {
+            this._piscinaPool = null;
+        }
     }
 
     async webworkerTranspile (allFiles: any[], parserConfig: any) {
 
-        // create worker
-        const piscina = new Piscina({
-            filename: resolve(__dirname, 'go-worker.js')
-        });
+        const piscina = this.getPiscinaPool();
 
-        const chunkSize = 20;
+        const chunkSize = Math.max(1, Math.ceil(allFiles.length / cpus().length));
         const promises: any = [];
         const now = Date.now();
         for (let i = 0; i < allFiles.length; i += chunkSize) {
@@ -1963,7 +1981,23 @@ ${caseStatements.join('\n')}
         const workerResult = await Promise.all(promises);
         const elapsed = Date.now() - now;
         log.green ('[ast-transpiler] Transpiled', allFiles.length, 'files in', elapsed, 'ms');
-        const flatResult = workerResult.flat();
+
+        let flatResult: any[] = [];
+        for (const chunkResponse of workerResult) {
+            if (chunkResponse && chunkResponse.result) {
+                flatResult = flatResult.concat(chunkResponse.result);
+                if (chunkResponse.goComments) {
+                    for (const exchangeName in chunkResponse.goComments) {
+                        if (!goComments[exchangeName]) {
+                            goComments[exchangeName] = {};
+                        }
+                        Object.assign(goComments[exchangeName], chunkResponse.goComments[exchangeName]);
+                    }
+                }
+            } else {
+                flatResult = flatResult.concat(chunkResponse);
+            }
+        }
         return flatResult;
     }
 
@@ -2024,9 +2058,8 @@ ${caseStatements.join('\n')}
         // exchanges = ['bitmart.ts']
         // transpile using webworker
         const allFilesPath = exchanges.map ((file: string) => `${jsFolder}/${file}` );
-        // const transpiledFiles =  await this.webworkerTranspile(allFilesPath, this.getTranspilerConfig());
         log.blue('[go] Transpiling [', exchanges.join(', '), ']');
-        const transpiledFiles =  allFilesPath.map((file: string) => this.transpiler.transpileGoByPath(file));
+        const transpiledFiles =  await this.webworkerTranspile(allFilesPath, this.getTranspilerConfig());
 
         for (let i = 0; i < transpiledFiles.length; i++) {
             const transpiled = transpiledFiles[i];
