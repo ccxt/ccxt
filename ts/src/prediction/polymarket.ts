@@ -283,6 +283,13 @@ export default class polymarket extends Exchange {
                 'defaultFetchEventsLimit': 100,
                 'maxFetchEventsLimit': 500,
                 'defaultEventStatus': 'active',  // 'active' | 'closed' | 'all'
+                // CTF Exchange V2 signing constants (Polygon); the V2 contracts are the same on
+                // mainnet (137) and Amoy (80002), see @polymarket/clob-client config.ts
+                'chainId': 137,
+                'ctfExchangeName': 'Polymarket CTF Exchange',
+                'ctfExchangeVersion': '2',
+                'exchangeAddress': '0xE111180000d2663C0091e4f400237545B87B996B',
+                'negRiskExchangeAddress': '0xe2222d279d744050d28e00520010520000310F59',
             },
         });
     }
@@ -1698,10 +1705,11 @@ export default class polymarket extends Exchange {
             'metadata': bytes32Zero,
             'builder': bytes32Zero,
         };
-        const exchangeV2 = '0xE111180000d2663C0091e4f400237545B87B996B';
-        const negRiskExchangeV2 = '0xe2222d279d744050d28e00520010520000310F59';
+        const exchangeV2 = this.safeString (this.options, 'exchangeAddress', '0xE111180000d2663C0091e4f400237545B87B996B');
+        const negRiskExchangeV2 = this.safeString (this.options, 'negRiskExchangeAddress', '0xe2222d279d744050d28e00520010520000310F59');
         const exchangeAddress = negRisk ? negRiskExchangeV2 : exchangeV2;
-        const signature = this.signClobOrder (message, exchangeAddress, '2', signatureType);
+        const domainVersion = this.safeString (this.options, 'ctfExchangeVersion', '2');
+        const signature = this.signClobOrder (message, exchangeAddress, domainVersion, signatureType);
         const owner = this.safeString (this.options, 'l2ApiKey', this.apiKey);
         const orderBody: Dict = {
             'deferExec': false,
@@ -1787,8 +1795,8 @@ export default class polymarket extends Exchange {
     }
 
     signClobOrder (message: Dict, exchangeAddress: string, domainVersion: string, signatureType: number): string {
-        const chainId = 137;
-        const domainName = 'Polymarket CTF Exchange';
+        const chainId = this.safeInteger (this.options, 'chainId', 137);
+        const domainName = this.safeString (this.options, 'ctfExchangeName', 'Polymarket CTF Exchange');
         const orderTypeString = 'Order(uint256 salt,address maker,address signer,uint256 tokenId,uint256 makerAmount,uint256 takerAmount,uint8 side,uint8 signatureType,uint256 timestamp,bytes32 metadata,bytes32 builder)';
         const orderStruct = [
             { 'name': 'salt', 'type': 'uint256' },
