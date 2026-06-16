@@ -918,6 +918,7 @@ public class HibachiCore extends HibachiApi
             Object priceInternal = Precise.stringDiv(Precise.stringDiv(Precise.stringMul(Precise.stringMul(priceStr, priceFactor), settlement), underlying), one, 0);
             Object price16 = this.intToBase16(this.parseToInt(priceInternal));
             Object pricePadded = Helpers.padStart((String)price16, ((Number)16).intValue(), ((String)"0").charAt(0));
+            // @ts-expect-error
             encodedPrice = this.base16ToBinary(pricePadded);
         }
         Object message = this.binaryConcat(encodedNonce, encodedMarketId, encodedQuantity, encodedSide, encodedPrice, encodedFeeRate);
