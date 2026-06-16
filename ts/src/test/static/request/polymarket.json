@@ -83,6 +83,20 @@
                 "output": "{\"orderID\":\"0xabc123\"}"
             }
         ],
+        "cancelOrders": [
+            {
+                "description": "cancelOrders sends the bare array of order ids to DELETE /orders",
+                "method": "cancelOrders",
+                "url": "https://clob.polymarket.com/orders",
+                "input": [
+                    [
+                        "0xaaa",
+                        "0xbbb"
+                    ]
+                ],
+                "output": "[\"0xaaa\",\"0xbbb\"]"
+            }
+        ],
         "cancelAllOrders": [
             {
                 "description": "cancelAllOrders with no symbol hits DELETE /cancel-all with no body",
@@ -112,6 +126,33 @@
                     }
                 ],
                 "output": "{\"deferExec\":false,\"postOnly\":false,\"order\":{\"salt\":1700000000000,\"maker\":\"0xcdcE79F820BE9d6C5033db5c31d1AE3A8c2399bB\",\"signer\":\"0xcdcE79F820BE9d6C5033db5c31d1AE3A8c2399bB\",\"taker\":\"0x0000000000000000000000000000000000000000\",\"tokenId\":\"16040015440196279900485035793550429453516625694844857319147506590755961451627\",\"makerAmount\":\"2500000\",\"takerAmount\":\"5000000\",\"side\":\"BUY\",\"signatureType\":3,\"timestamp\":\"1700000000000\",\"expiration\":\"0\",\"metadata\":\"0x0000000000000000000000000000000000000000000000000000000000000000\",\"builder\":\"0x0000000000000000000000000000000000000000000000000000000000000000\",\"signature\":\"0x9670f962d8b0ec00df13475a30f90c8b934822b5768060d3005246ff5ae33abc5125dce72f48eb87e4a90c19a8a26b29c9356701e8f376e88c227685fb8960151b3264e159346253e26a64e00b69032db0e7d32f94628de3e6eecb50304d7af3d277482bb1c562bc643e7ad92f879dac1c41dff3ccb89395b995d8da8e7bcc92304f726465722875696e743235362073616c742c61646472657373206d616b65722c61646472657373207369676e65722c75696e7432353620746f6b656e49642c75696e74323536206d616b6572416d6f756e742c75696e743235362074616b6572416d6f756e742c75696e743820736964652c75696e7438207369676e6174757265547970652c75696e743235362074696d657374616d702c62797465733332206d657461646174612c62797465733332206275696c6465722900ba\"},\"owner\":\"key\",\"orderType\":\"GTC\"}"
+            }
+        ],
+        "createOrders": [
+            {
+                "description": "createOrders batches signed order bodies into POST /orders (array)",
+                "method": "createOrders",
+                "url": "https://clob.polymarket.com/orders",
+                "input": [
+                    [
+                        {
+                            "symbol": "JD_VANCE_WIN_2028_US_PRESIDENTIAL_ELECTION:YES",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 5,
+                            "price": 0.5,
+                            "params": {
+                                "signatureType": 3,
+                                "funder": "0xcdcE79F820BE9d6C5033db5c31d1AE3A8c2399bB",
+                                "tickSize": "0.01",
+                                "negRisk": false,
+                                "salt": "1700000000000",
+                                "timestamp": "1700000000000"
+                            }
+                        }
+                    ]
+                ],
+                "output": "[{\"deferExec\":false,\"postOnly\":false,\"order\":{\"salt\":1700000000000,\"maker\":\"0xcdcE79F820BE9d6C5033db5c31d1AE3A8c2399bB\",\"signer\":\"0xcdcE79F820BE9d6C5033db5c31d1AE3A8c2399bB\",\"taker\":\"0x0000000000000000000000000000000000000000\",\"tokenId\":\"16040015440196279900485035793550429453516625694844857319147506590755961451627\",\"makerAmount\":\"2500000\",\"takerAmount\":\"5000000\",\"side\":\"BUY\",\"signatureType\":3,\"timestamp\":\"1700000000000\",\"expiration\":\"0\",\"metadata\":\"0x0000000000000000000000000000000000000000000000000000000000000000\",\"builder\":\"0x0000000000000000000000000000000000000000000000000000000000000000\",\"signature\":\"0x9670f962d8b0ec00df13475a30f90c8b934822b5768060d3005246ff5ae33abc5125dce72f48eb87e4a90c19a8a26b29c9356701e8f376e88c227685fb8960151b3264e159346253e26a64e00b69032db0e7d32f94628de3e6eecb50304d7af3d277482bb1c562bc643e7ad92f879dac1c41dff3ccb89395b995d8da8e7bcc92304f726465722875696e743235362073616c742c61646472657373206d616b65722c61646472657373207369676e65722c75696e7432353620746f6b656e49642c75696e74323536206d616b6572416d6f756e742c75696e743235362074616b6572416d6f756e742c75696e743820736964652c75696e7438207369676e6174757265547970652c75696e743235362074696d657374616d702c62797465733332206d657461646174612c62797465733332206275696c6465722900ba\"},\"owner\":\"key\",\"orderType\":\"GTC\"}]"
             }
         ]
     }
