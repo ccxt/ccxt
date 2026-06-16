@@ -36,8 +36,10 @@ export default class PredictionExchange extends Exchange {
     }
 
     async checkEventsAndMarkets (outcome: Str = undefined) {
-        if (!this.events || this.isEmpty (this.events)) {
-            throw new ArgumentsRequired ('Events are required to be loaded, please fetch them first using fetchEvents');
+        // outcomes are the real dependency for resolving a symbol; they are populated by
+        // fetchEvents and also rebuilt from cached markets (loadMarkets), so accept either
+        if (!this.outcomes || this.isEmpty (this.outcomes)) {
+            throw new ArgumentsRequired ('Outcomes are required to be loaded, please fetch them first using fetchEvents (or loadMarkets)');
         }
         if (outcome !== undefined) {
             if (!(outcome in this.outcomes) && !(outcome in this.outcomes_by_id)) {

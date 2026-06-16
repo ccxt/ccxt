@@ -1465,12 +1465,16 @@ export default class polymarket extends Exchange {
      * @param {string} [params.orderType] time-in-force override: 'GTC' (default for limit), 'FOK' (default for market), 'GTD' or 'FAK'
      * @param {int} [params.signatureType] 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271 (deposit wallet); defaults to options.signatureType
      * @param {string} [params.funder] the wallet that holds the USDC collateral; defaults to options.funder or the signing address
+     * @param {string} [params.tickSize] the market tick size ('0.1'/'0.01'/'0.001'/'0.0001'); fetched from the exchange when omitted
+     * @param {bool} [params.negRisk] whether the market is a neg-risk market; fetched from the exchange when omitted
+     * @param {string} [params.salt] order salt; defaults to the current time in ms (pin it for idempotent retries)
+     * @param {string} [params.timestamp] order timestamp; defaults to the current time in ms
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     async createOrder (symbol: string, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Promise<Order> {
         await this.loadApiCredentials ();
         const outcome = symbol;
-        this.checkEventsAndMarkets (outcome);
+        // outcome () validates the symbol against the loaded outcomes (built from events or markets)
         const outcomeObj = this.outcome (outcome);
         const tokenId = outcomeObj['id'] as string;
         const sideStr = (side as string).toUpperCase ();
@@ -1494,21 +1498,27 @@ export default class polymarket extends Exchange {
             }
             price = this.safeNumber (best, 0);
         }
-        // tick size + neg-risk flag drive the rounding and the verifying contract
-        const clobMarket = await this.clobPublicGetMarketsByTokenTokenId ({ 'token_id': tokenId });
-        const tickSize = this.safeString (clobMarket, 'minimum_tick_size', '0.01');
-        const negRisk = this.safeBool (clobMarket, 'neg_risk', false);
+        // tick size + neg-risk flag drive the rounding and the verifying contract; both can be
+        // supplied via params to skip the extra market lookup (and to keep requests deterministic)
+        let tickSize = this.safeString (params, 'tickSize');
+        let negRisk = this.safeBool (params, 'negRisk');
+        if ((tickSize === undefined) || (negRisk === undefined)) {
+            const clobMarket = await this.clobPublicGetMarketsByTokenTokenId ({ 'token_id': tokenId });
+            tickSize = this.safeString (clobMarket, 'minimum_tick_size', '0.01');
+            negRisk = this.safeBool (clobMarket, 'neg_risk', false);
+        }
         // 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271 (deposit wallet); funder holds the USDC
         const signatureType = this.safeInteger2 (params, 'signatureType', 'signature_type', this.safeInteger (this.options, 'signatureType', 0));
         const eoa = (this.walletAddress !== undefined) ? this.walletAddress : this.ethGetAddressFromPrivateKey (this.privateKey);
         const funder = this.safeString2 (params, 'funder', 'maker', this.safeString (this.options, 'funder', eoa));
-        const rest = this.omit (params, [ 'signatureType', 'signature_type', 'funder', 'maker', 'orderType' ]);
+        // salt and timestamp default to the current time but can be pinned via params for idempotency
+        const salt = this.safeString (params, 'salt', this.numberToString (this.milliseconds ()));
+        const timestamp = this.safeString (params, 'timestamp', this.numberToString (this.milliseconds ()));
+        const rest = this.omit (params, [ 'signatureType', 'signature_type', 'funder', 'maker', 'orderType', 'tickSize', 'negRisk', 'salt', 'timestamp' ]);
         const amounts = this.polymarketOrderRawAmounts (sideStr, amount, price, tickSize);
         const makerAmount = this.safeString (amounts, 'makerAmount');
         const takerAmount = this.safeString (amounts, 'takerAmount');
         const sideInt = (sideStr === 'BUY') ? 0 : 1;
-        const salt = this.numberToString (this.milliseconds ());
-        const timestamp = this.numberToString (this.milliseconds ());
         const bytes32Zero = '0x0000000000000000000000000000000000000000000000000000000000000000';
         // POLY_1271: maker and signer are both the deposit-wallet (validated on-chain via ERC-1271)
         const maker = funder;
@@ -1667,8 +1677,7 @@ export default class polymarket extends Exchange {
      */
     async cancelOrder (id: Str, symbol: Str = undefined, params = {}): Promise<Order> {
         await this.loadApiCredentials ();
-        const outcome = symbol;
-        this.checkEventsAndMarkets (outcome);
+        // cancelling by id needs no market data, so events do not have to be loaded first
         const request: Dict = { 'orderID': id };
         const response = await this.clobPrivateDeleteOrder (this.extend (request, params));
         return this.parseOrder (response);
@@ -1687,15 +1696,15 @@ export default class polymarket extends Exchange {
     async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
         await this.loadApiCredentials ();
         const outcome = symbol;
-        this.checkEventsAndMarkets (outcome);
         let response = undefined;
         if (outcome !== undefined) {
             // scope to a single outcome token via DELETE /cancel-market-orders { asset_id }
+            this.checkEventsAndMarkets (outcome);
             const outcomeObj = this.outcome (outcome);
             const request: Dict = { 'asset_id': outcomeObj['id'] };
             response = await this.clobPrivateDeleteCancelMarketOrders (this.extend (request, params));
         } else {
-            // cancel every open order via DELETE /cancel-all (no body)
+            // cancel every open order via DELETE /cancel-all (no body, no market data needed)
             response = await this.clobPrivateDeleteCancelAll (params);
         }
         const canceled = this.safeList (response, 'canceled', []);
