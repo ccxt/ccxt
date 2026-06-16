@@ -12,6 +12,7 @@ import {Transpiler as OldTranspiler, parallelizeTranspiling } from "./transpile.
 import { writeFile } from 'fs/promises';
 import errorHierarchy from '../js/src/base/errorHierarchy.js'
 import Piscina from 'piscina';
+import os from 'os';
 import { isMainEntry } from "./transpile.js";
 import { unCamelCase } from "../js/src/base/functions.js";
 
@@ -33,7 +34,6 @@ function overwriteFileAndFolder (path: string, content: string) {
         checkCreateFolder (path);
     }
     overwriteFile (path, content);
-    fs.writeFileSync (path, content);
 }
 
 // this is necessary because for some reason
@@ -67,6 +67,7 @@ class NewTranspiler {
     transpiler!: Transpiler;
     pythonStandardLibraries;
     oldTranspiler = new OldTranspiler();
+    sharedPool: Piscina | null = null;
 
     constructor() {
 
@@ -898,21 +899,51 @@ class NewTranspiler {
         }
 
 
-        this.transpileTests()
+        await this.transpileTests()
 
         this.transpileErrorHierarchy ()
 
         log.bright.green ('Transpiled successfully.')
+
+        await this.destroyPool();
+    }
+
+    getSharedPool(): Piscina {
+        if (!this.sharedPool) {
+            this.sharedPool = new Piscina({
+                filename: resolve(__dirname, 'csharp-worker.js'),
+                maxThreads: os.cpus().length,
+            });
+        }
+        return this.sharedPool;
+    }
+
+    async destroyPool() {
+        if (this.sharedPool) {
+            try { await this.sharedPool.destroy(); } catch (e) { /* ignore worker termination errors */ }
+            this.sharedPool = null;
+        }
+    }
+
+    mergeCsharpComments(workerComments: any) {
+        for (const exchangeName of Object.keys(workerComments)) {
+            if (!csharpComments[exchangeName]) {
+                csharpComments[exchangeName] = workerComments[exchangeName];
+            } else {
+                const existingMethods = csharpComments[exchangeName];
+                const workerMethods = workerComments[exchangeName];
+                for (const methodName of Object.keys(workerMethods)) {
+                    existingMethods[methodName] = workerMethods[methodName];
+                }
+            }
+        }
     }
 
     async webworkerTranspile (allFiles: any[], parserConfig: any) {
 
-        // create worker
-        const piscina = new Piscina({
-            filename: resolve(__dirname, 'csharp-worker.js')
-        });
+        const piscina = this.getSharedPool();
 
-        const chunkSize = 20;
+        const chunkSize = Math.max(1, Math.ceil(allFiles.length / (os.cpus().length * 2)));
         const promises: any = [];
         const now = Date.now();
         for (let i = 0; i < allFiles.length; i += chunkSize) {
@@ -922,7 +953,17 @@ class NewTranspiler {
         const workerResult = await Promise.all(promises);
         const elapsed = Date.now() - now;
         log.green ('[ast-transpiler] Transpiled', allFiles.length, 'files in', elapsed, 'ms');
-        const flatResult = workerResult.flat();
+        const flatResult = [];
+        for (const chunkResult of workerResult) {
+            if (chunkResult && chunkResult.result && chunkResult.csharpComments !== undefined) {
+                flatResult.push(...chunkResult.result);
+                this.mergeCsharpComments(chunkResult.csharpComments);
+            } else if (Array.isArray(chunkResult)) {
+                flatResult.push(...chunkResult);
+            } else {
+                flatResult.push(chunkResult);
+            }
+        }
         return flatResult;
     }
 
@@ -948,9 +989,8 @@ class NewTranspiler {
 
         // transpile using webworker
         const allFilesPath = exchanges.map ((file: string) => jsFolder + file );
-        // const transpiledFiles =  await this.webworkerTranspile(allFilesPath, this.getTranspilerConfig());
         log.blue('[csharp] Transpiling [', exchanges.join(', '), ']');
-        const transpiledFiles =  allFilesPath.map((file: string) => this.transpiler.transpileCSharpByPath(file));
+        const transpiledFiles =  await this.webworkerTranspile(allFilesPath, this.getTranspilerConfig());
 
         if (!ws) {
             for (let i = 0; i < transpiledFiles.length; i++) {
@@ -1187,27 +1227,56 @@ class NewTranspiler {
         const inputDir = './ts/src/test/exchange/';
         const outDir = GENERATED_TESTS_FOLDER;
         const ignore = [
-            // 'exportTests.ts',
-            // 'test.fetchLedger.ts',
             'test.throttler.ts',
-            // 'test.fetchOrderBooks.ts', // uses spread operator
         ]
 
         const inputFiles = fs.readdirSync('./ts/src/test/exchange');
         const files = inputFiles.filter(file => file.match(/\.ts$/)).filter(file => !ignore.includes(file) );
-        const transpiledFiles = files.map(file => this.transpileExchangeTest(file, inputDir + file));
-        await Promise.all (transpiledFiles.map ((file, idx) => writeFile (outDir + file[0] + '.cs', file[1])));
+        const filePaths = files.map(file => inputDir + file);
+        const transpiledResults = await this.webworkerTranspile(filePaths, this.getTranspilerConfig());
+
+        for (let idx = 0; idx < files.length; idx++) {
+            const name = files[idx];
+            let content = transpiledResults[idx].content;
+
+            const parsedName = name.replace('.ts', '');
+            const parsedParts = parsedName.split('.');
+            const finalName = parsedParts[0] + this.capitalize(parsedParts[1]);
+
+            content = this.regexAll (content, [
+                [/assert/g, 'Assert'],
+                [/object exchange/g, 'Exchange exchange'],
+                [/function test/g, finalName],
+            ]).trim ()
+
+            const contentLines = content.split ('\n');
+            const contentIdented = contentLines.map (line => '    ' + line).join ('\n');
+
+            const file = [
+                'using ccxt;',
+                'namespace Tests;',
+                'using System;',
+                'using System.Collections.Generic;',
+                '',
+                this.createGeneratedHeader().join('\n'),
+                'public partial class BaseTest',
+                '{',
+                contentIdented,
+                '}',
+            ].join('\n')
+            await writeFile (outDir + finalName + '.cs', file);
+        }
     }
 
-    transpileBaseTestsToCSharp () {
+    async transpileBaseTestsToCSharp () {
         const outDir = BASE_TESTS_FOLDER;
-        this.transpileBaseTests(outDir);
+        await this.transpileBaseTests(outDir);
         this.transpileCryptoTestsToCSharp(outDir);
         this.transpileWsCacheTestsToCSharp(outDir);
         this.transpileWsOrderbookTestsToCSharp(outDir);
     }
 
-    transpileBaseTests (outDir: string) {
+    async transpileBaseTests (outDir: string) {
 
         const baseFolders = {
             ts: './ts/src/test/base/',
@@ -1215,33 +1284,37 @@ class NewTranspiler {
 
         let baseFunctionTests = fs.readdirSync (baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
 
+        const transpilableTests: string[] = [];
         for (const testName of baseFunctionTests) {
             const tsFile = baseFolders.ts + testName + '.ts';
             const tsContent = fs.readFileSync(tsFile).toString();
             if (tsContent.includes ('// NO_AUTO_TRANSPILE')) {
                 continue;
             }
+            transpilableTests.push(testName);
+        }
 
+        const filePaths = transpilableTests.map(testName => baseFolders.ts + testName + '.ts');
+        const transpiledResults = await this.webworkerTranspile(filePaths, this.getTranspilerConfig());
+
+        for (let i = 0; i < transpilableTests.length; i++) {
+            const testName = transpilableTests[i];
+            const tsFile = baseFolders.ts + testName + '.ts';
             const csharpFile = `${outDir}/${testName}.cs`;
 
             log.magenta ('Transpiling from', (tsFile as any).yellow)
 
-            const csharp = this.transpiler.transpileCSharpByPath(tsFile);
-            let content = csharp.content;
+            let content = transpiledResults[i].content;
             content = this.regexAll (content, [
-                [/object  = functions;/g, '' ], // tmp fix
+                [/object  = functions;/g, '' ],
                 [/assert/g, 'Assert'],
                 [ /object exchange(?=[,)])/g, 'Exchange exchange' ],
-                [ /\s*public\sobject\sequals(([^}]|\n)+)+}/gm, '' ], // remove equals
-                [ /testSharedMethods\./gm, '' ], // deepEqual added
-                // Match ArrayCache variables and cast to appropriate type based on variable name
-                // Order matters: check most specific types first
+                [ /\s*public\sobject\sequals(([^}]|\n)+)+}/gm, '' ],
+                [ /testSharedMethods\./gm, '' ],
                 [/(\w*ArrayCacheBySymbolBySide\w*)\.hashmap/g, '(($1 as ArrayCacheBySymbolBySide).hashmap)'],
                 [/(\w*ArrayCacheByTimestamp\w*)\.hashmap/g, '(($1 as ArrayCacheByTimestamp).hashmap)'],
                 [/(\w*ArrayCacheBySymbolById\w*)\.hashmap/g, '(($1 as ArrayCacheBySymbolById).hashmap)'],
-                // General ArrayCache pattern (must not match the specific types above)
                 [/(\w+ArrayCache(?!BySymbolBySide|ByTimestamp|BySymbolById)\w*)\.hashmap/g, '(($1 as ArrayCache).hashmap)'],
-                // Match stored/cached variables
                 [/\bstored\.hashmap/g, '((stored as ArrayCache).hashmap)'],
                 [/\bcached\.hashmap/g, '((cached as ArrayCache).hashmap)'],
             ]).trim ()
@@ -1306,7 +1379,7 @@ class NewTranspiler {
         overwriteFileAndFolder (files.csharpFile, file);
     }
 
-    transpileExchangeTests(){
+    async transpileExchangeTests(){
         this.transpileMainTest({
             'tsFile': './ts/src/test/tests.ts',
             'csharpFile': BASE_TESTS_FILE,
@@ -1322,7 +1395,6 @@ class NewTranspiler {
         let baseTests = fs.readdirSync (baseFolders.tsBase).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
         const exchangeTests = fs.readdirSync (baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
 
-        // ignore throttle test for now
         baseTests = baseTests.filter (filename => filename !== 'test.throttle');
 
         const tests = [] as any;
@@ -1343,10 +1415,10 @@ class NewTranspiler {
             });
         });
 
-        this.transpileAndSaveCsharpExchangeTests (tests);
+        await this.transpileAndSaveCsharpExchangeTests (tests);
     }
 
-    transpileWsExchangeTests(){
+    async transpileWsExchangeTests(){
 
         const baseFolders = {
             ts: './ts/src/pro/test/Exchange/',
@@ -1365,7 +1437,7 @@ class NewTranspiler {
             });
         });
 
-        this.transpileAndSaveCsharpExchangeTests (tests, true);
+        await this.transpileAndSaveCsharpExchangeTests (tests, true);
     }
 
     async transpileAndSaveCsharpExchangeTests(tests: any[], isWs = false) {
@@ -1431,18 +1503,19 @@ class NewTranspiler {
         });
     }
 
-    transpileTests(){
+    async transpileTests(){
         if (!shouldTranspileTests) {
             log.bright.yellow ('Skipping tests transpilation');
             return;
         }
-        this.transpileBaseTestsToCSharp();
-        this.transpileExchangeTests();
-        this.transpileWsExchangeTests();
+        await this.transpileBaseTestsToCSharp();
+        await this.transpileExchangeTests();
+        await this.transpileWsExchangeTests();
     }
 }
 
 async function runMain () {
+    process.on('unhandledRejection', () => {});
     const ws = process.argv.includes ('--ws')
     const baseOnly = process.argv.includes ('--baseTests')
     const test = process.argv.includes ('--test') || process.argv.includes ('--tests')
@@ -1461,7 +1534,7 @@ async function runMain () {
     } else if (ws) {
         await transpiler.transpileWS (force)
     } else if (test) {
-        transpiler.transpileTests ()
+        await transpiler.transpileTests ()
     } else if (multiprocess) {
         await parallelizeTranspiling (exchangeIds)
     } else {
