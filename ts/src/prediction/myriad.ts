@@ -14,15 +14,18 @@
 //
 // ---------------------------------------------------------------------------
 
+import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
+import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from '../abstract/prediction/myriad.js';
+import { ecdsa } from '../base/functions/crypto.js';
 import type {
     Int, Str, Num, Dict,
-    Strings,
+    Strings, Order,
     Market, Ticker, Tickers, OrderBook, OHLCV, Trade, TradingFeeInterface,
     PredictionEvent, Position,
 } from '../base/types.js';
 import { Precise } from '../base/Precise.js';
-import { ArgumentsRequired } from '../../ccxt.js';
+import { ArgumentsRequired, NotSupported, ExchangeError } from '../../ccxt.js';
 
 // ---------------------------------------------------------------------------
 
@@ -47,7 +50,7 @@ export default class myriad extends Exchange {
                 'future': false,
                 'option': false,
                 'cancelOrder': false,
-                'createOrder': false,
+                'createOrder': true,
                 'fetchBalance': false,
                 'fetchCurrencies': false,
                 'fetchEvent': true,
@@ -147,6 +150,13 @@ export default class myriad extends Exchange {
                     '2741': 'Abstract',
                     '59144': 'Linea',
                     '56': 'BNB Chain',
+                },
+                // on-chain config per network id (= chain id) for createOrder; rpcUrl can be
+                // overridden via params.rpcUrl or options.chains[networkId].rpcUrl
+                'chains': {
+                    '56': { 'rpcUrl': 'https://bsc-dataseed.binance.org/', 'predictionMarket': '0x39E66eE6b2ddaf4DEfDEd3038E0162180dbeF340' },
+                    '2741': { 'rpcUrl': 'https://api.mainnet.abs.xyz', 'predictionMarket': '0x3e0F5F8F5Fb043aBFA475C0308417Bf72c463289' },
+                    '59144': { 'rpcUrl': 'https://rpc.linea.build', 'predictionMarket': '0x39e66ee6b2ddaf4defded3038e0162180dbef340' },
                 },
             },
         });
@@ -430,6 +440,237 @@ export default class myriad extends Exchange {
         };
     }
 
+    rlpEncodeBytes (hex: string): string {
+        // RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
+        const byteLength = this.parseToInt (hex.length / 2);
+        if (byteLength === 0) {
+            return '80';
+        }
+        if ((byteLength === 1) && (hex < '80')) {
+            return hex;
+        }
+        if (byteLength < 56) {
+            return this.intToBase16 (128 + byteLength) + hex;
+        }
+        let lengthHex = this.intToBase16 (byteLength);
+        if ((lengthHex.length % 2) !== 0) {
+            lengthHex = '0' + lengthHex;
+        }
+        const lengthOfLength = this.parseToInt (lengthHex.length / 2);
+        return this.intToBase16 (183 + lengthOfLength) + lengthHex + hex;
+    }
+
+    rlpEncodeList (items: string[]): string {
+        let concatenated = '';
+        for (let i = 0; i < items.length; i++) {
+            concatenated = concatenated + items[i];
+        }
+        const byteLength = this.parseToInt (concatenated.length / 2);
+        if (byteLength < 56) {
+            return this.intToBase16 (192 + byteLength) + concatenated;
+        }
+        let lengthHex = this.intToBase16 (byteLength);
+        if ((lengthHex.length % 2) !== 0) {
+            lengthHex = '0' + lengthHex;
+        }
+        const lengthOfLength = this.parseToInt (lengthHex.length / 2);
+        return this.intToBase16 (247 + lengthOfLength) + lengthHex + concatenated;
+    }
+
+    intToRlpHex (value: number): string {
+        // an integer as its minimal big-endian byte hex; 0 is the empty byte string
+        if (value === 0) {
+            return '';
+        }
+        let hex = this.intToBase16 (value);
+        if ((hex.length % 2) !== 0) {
+            hex = '0' + hex;
+        }
+        return hex;
+    }
+
+    hexToRlpBytes (hexValue: string): string {
+        // a hex value (e.g. an RPC result) as minimal big-endian byte hex; leading zero bytes
+        // are stripped and 0 becomes the empty byte string (RLP integer encoding)
+        let h = this.remove0xPrefix (hexValue);
+        let start = 0;
+        const total = h.length;
+        while ((start < total) && (h.slice (start, start + 1) === '0')) {
+            start = start + 1;
+        }
+        h = h.slice (start);
+        if (h === '') {
+            return '';
+        }
+        if ((h.length % 2) !== 0) {
+            h = '0' + h;
+        }
+        return h;
+    }
+
+    signEvmTransaction (tx: Dict, privateKey: string): string {
+        // builds and signs an EIP-1559 (type 0x02) transaction, returning the signed raw tx hex.
+        // tx fields (nonce/gas/fees/value) are hex strings; chainId is an int. Verified
+        // byte-identical to ethers' serialization
+        const accessList = this.rlpEncodeList ([]);
+        const fields = [
+            this.rlpEncodeBytes (this.intToRlpHex (this.safeInteger (tx, 'chainId'))),
+            this.rlpEncodeBytes (this.hexToRlpBytes (this.safeString (tx, 'nonce'))),
+            this.rlpEncodeBytes (this.hexToRlpBytes (this.safeString (tx, 'maxPriorityFeePerGas'))),
+            this.rlpEncodeBytes (this.hexToRlpBytes (this.safeString (tx, 'maxFeePerGas'))),
+            this.rlpEncodeBytes (this.hexToRlpBytes (this.safeString (tx, 'gasLimit'))),
+            this.rlpEncodeBytes (this.remove0xPrefix (this.safeString (tx, 'to'))),
+            this.rlpEncodeBytes (this.hexToRlpBytes (this.safeString (tx, 'value', '0x0'))),
+            this.rlpEncodeBytes (this.remove0xPrefix (this.safeString (tx, 'data', '0x'))),
+            accessList,
+        ];
+        const payload = '02' + this.rlpEncodeList (fields);
+        const hashHex = this.hash (this.base16ToBinary (payload), keccak, 'hex');
+        const signature = ecdsa (hashHex, this.remove0xPrefix (privateKey), secp256k1, undefined);
+        let rHex = this.safeString (signature, 'r');
+        let sHex = this.safeString (signature, 's');
+        if ((rHex.length % 2) !== 0) {
+            rHex = '0' + rHex;
+        }
+        if ((sHex.length % 2) !== 0) {
+            sHex = '0' + sHex;
+        }
+        const yParity = this.safeInteger (signature, 'v');
+        const signedFields = [];
+        for (let i = 0; i < fields.length; i++) {
+            signedFields.push (fields[i]);
+        }
+        signedFields.push (this.rlpEncodeBytes (this.intToRlpHex (yParity)));
+        signedFields.push (this.rlpEncodeBytes (rHex));
+        signedFields.push (this.rlpEncodeBytes (sHex));
+        return '0x02' + this.rlpEncodeList (signedFields);
+    }
+
+    async ethRpc (rpcUrl: string, method: string, rpcParams: any[]) {
+        const payload: Dict = { 'jsonrpc': '2.0', 'id': 1, 'method': method, 'params': rpcParams };
+        const headers: Dict = { 'Content-Type': 'application/json' };
+        const response = await this.fetch (rpcUrl, 'POST', headers, this.json (payload));
+        const rpcError = this.safeValue (response, 'error');
+        if (rpcError !== undefined) {
+            throw new ExchangeError (this.id + ' rpc ' + method + ' error: ' + this.json (rpcError));
+        }
+        return this.safeString (response, 'result');
+    }
+
+    padHexAddress (address: string): string {
+        // left-pads a 20-byte address to a 32-byte ABI word (24 leading zero bytes)
+        const stripped = this.remove0xPrefix (address);
+        return '000000000000000000000000' + stripped;
+    }
+
+    async sendEvmTransaction (rpcUrl: string, networkId: string, fromAddress: string, to: string, value: string, data: string, gasLimit: string): Promise<string> {
+        const nonce = await this.ethRpc (rpcUrl, 'eth_getTransactionCount', [ fromAddress, 'pending' ]);
+        const gasPrice = await this.ethRpc (rpcUrl, 'eth_gasPrice', []);
+        const tx: Dict = {
+            'chainId': this.parseToInt (networkId),
+            'nonce': nonce,
+            'maxPriorityFeePerGas': gasPrice,
+            'maxFeePerGas': gasPrice,
+            'gasLimit': gasLimit,
+            'to': to,
+            'value': value,
+            'data': data,
+        };
+        const signed = this.signEvmTransaction (tx, this.privateKey);
+        return await this.ethRpc (rpcUrl, 'eth_sendRawTransaction', [ signed ]);
+    }
+
+    async waitForTransactionReceipt (rpcUrl: string, txHash: string, timeout = 60000): Promise<Dict> {
+        const start = this.milliseconds ();
+        while ((this.milliseconds () - start) < timeout) {
+            const receipt = await this.ethRpc (rpcUrl, 'eth_getTransactionReceipt', [ txHash ]);
+            if ((receipt !== undefined) && (receipt !== null)) {
+                return receipt as any;
+            }
+            await this.sleep (2000);
+        }
+        throw new ExchangeError (this.id + ' transaction ' + txHash + ' not mined within timeout');
+    }
+
+    async ensureErc20Allowance (rpcUrl: string, networkId: string, token: string, owner: string, spender: string): Promise<any> {
+        // allowance(owner, spender)
+        const allowanceData = '0xdd62ed3e' + this.padHexAddress (owner) + this.padHexAddress (spender);
+        const current = await this.ethRpc (rpcUrl, 'eth_call', [ { 'to': token, 'data': allowanceData }, 'latest' ]);
+        const trimmed = this.hexToRlpBytes (current);
+        // a max-approved allowance is ~32 bytes (64 nibbles); anything much smaller needs (re)approval
+        if (trimmed.length >= 50) {
+            return undefined;
+        }
+        // approve(spender, maxUint256)
+        const maxUint = 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
+        const approveData = '0x095ea7b3' + this.padHexAddress (spender) + maxUint;
+        const approveHash = await this.sendEvmTransaction (rpcUrl, networkId, owner, token, '0x0', approveData, '0x186a0');
+        await this.waitForTransactionReceipt (rpcUrl, approveHash);
+        return undefined;
+    }
+
+    /**
+     * @method
+     * @name myriad#createOrder
+     * @description buys or sells outcome shares by submitting the quote's calldata as an on-chain transaction (myriad settles trades on-chain). Requires a privateKey with gas + collateral on the market's network
+     * @see https://docs.myriad.markets/builders/myriad-api-reference
+     * @param {string} symbol unified outcome symbol or outcome id
+     * @param {string} type ignored; myriad trades execute immediately against the AMM
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount for 'buy' the collateral value to spend; for 'sell' the number of shares to sell
+     * @param {float} [price] not used by myriad
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.slippage] maximum slippage tolerance (default 0.005)
+     * @param {string} [params.rpcUrl] RPC endpoint for the market's network (overrides options.chains)
+     * @param {string} [params.gasLimit] hex gas limit for the trade tx (default 0xaae60 / 700000)
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    async createOrder (symbol: string, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Promise<Order> {
+        if (this.privateKey === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a privateKey to sign the on-chain transaction');
+        }
+        this.checkEventsAndMarkets (symbol);
+        const outcomeObj = this.outcome (symbol);
+        const info = this.safeDict (outcomeObj, 'info', {});
+        const networkId = this.safeString (info, 'networkId');
+        const chains = this.safeDict (this.options, 'chains', {});
+        const chainConfig = this.safeDict (chains, networkId);
+        if (chainConfig === undefined) {
+            throw new NotSupported (this.id + ' createOrder() has no on-chain config for network ' + networkId);
+        }
+        const rpcUrl = this.safeString2 (params, 'rpcUrl', 'rpc', this.safeString (chainConfig, 'rpcUrl'));
+        const predictionMarket = this.safeString (chainConfig, 'predictionMarket');
+        const tokenAddress = this.safeString2 (params, 'token', 'tokenAddress', this.safeString (info, 'tokenAddress'));
+        const gasLimit = this.safeString (params, 'gasLimit', '0xaae60');
+        const sideStr = (side as string).toLowerCase ();
+        const quoteParams = this.omit (params, [ 'rpcUrl', 'rpc', 'token', 'tokenAddress', 'gasLimit' ]);
+        const quote = await this.fetchTradeQuote (symbol, sideStr, amount, quoteParams);
+        const calldata = this.safeString (this.safeDict (quote, 'info', {}), 'calldata');
+        const fromAddress = this.ethGetAddressFromPrivateKey (this.privateKey);
+        // a buy spends the collateral token, so the prediction-market contract must be approved first
+        if ((sideStr === 'buy') && (tokenAddress !== undefined)) {
+            await this.ensureErc20Allowance (rpcUrl, networkId, tokenAddress, fromAddress, predictionMarket);
+        }
+        const txHash = await this.sendEvmTransaction (rpcUrl, networkId, fromAddress, predictionMarket, '0x0', calldata, gasLimit);
+        return this.parseTradeTx (txHash, quote, outcomeObj as any, sideStr);
+    }
+
+    parseTradeTx (txHash: string, quote: Dict, market: any, side: string): Order {
+        return this.safeOrder ({
+            'id': txHash,
+            'clientOrderId': undefined,
+            'info': this.extend ({ 'transactionHash': txHash }, this.safeDict (quote, 'info', {})),
+            'symbol': this.safeString (market, 'symbol'),
+            'type': 'market',
+            'side': side,
+            'price': this.safeNumber (quote, 'priceAverage'),
+            'amount': this.safeNumber (quote, 'shares'),
+            'cost': this.safeNumber (quote, 'value'),
+            'status': 'closed',
+            'fee': undefined,
+        }, market);
+    }
+
     /**
      * @ignore
      * @method
@@ -486,6 +727,10 @@ export default class myriad extends Exchange {
         const volume24h = this.safeNumber (raw, 'volume24h');
         const slugBase = (eventSlug !== undefined) ? eventSlug : networkId;
         const marketSymbol = this.slugToMarketSymbol (slugBase, slug);
+        // the collateral token (address + decimals) is per-market; carry it for on-chain trading
+        const tokenObj = this.safeDict (raw, 'token', {});
+        const tokenAddress = this.safeString (tokenObj, 'address');
+        const tokenDecimals = this.safeInteger (tokenObj, 'decimals', 18);
         const outcomes: any[] = [];
         for (let i = 0; i < rawOutcomes.length; i++) {
             const outcome = this.safeDict (rawOutcomes, i, {});
@@ -508,6 +753,8 @@ export default class myriad extends Exchange {
                     'volume24h': volume24h,
                     'state': state,
                     'tradingModel': this.safeString (raw, 'tradingModel', 'amm'),
+                    'tokenAddress': tokenAddress,
+                    'tokenDecimals': tokenDecimals,
                 },
             });
         }
