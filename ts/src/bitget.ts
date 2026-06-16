@@ -2,6 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import { sha256 } from '@noble/hashes/sha2.js';
+import { truncate } from 'node:fs/promises';
 import Exchange from './abstract/bitget.js';
 import { ExchangeError, ExchangeNotAvailable, NotSupported, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, DDoSProtection, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, RestrictedLocation } from './base/errors.js';
 import { Precise } from './base/Precise.js';
@@ -11144,13 +11145,16 @@ export default class bitget extends Exchange {
                 auth += body;
             } else {
                 if (Object.keys (params).length) {
-                    let queryInner = '?' + this.urlencode (this.keysort (params));
+                    const sortedParams = this.keysort (params);
+                    let queryInner = '?' + this.urlencode (sortedParams, true);
                     // check #21169 pr
                     if (queryInner.indexOf ('%24') > -1) {
                         queryInner = queryInner.replace ('%24', '$');
                     }
                     url += queryInner;
-                    auth += queryInner;
+                    // bitget signs the raw (non-percent-encoded) query string, so the
+                    // signature must use the decoded values (e.g. non-ascii market ids)
+                    auth += '?' + this.rawencode (sortedParams);
                 }
             }
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256, 'base64');
