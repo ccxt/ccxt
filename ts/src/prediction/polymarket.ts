@@ -1307,7 +1307,7 @@ export default class polymarket extends Exchange {
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadApiCredentials ();
         // the collateral balance is tied to the signature type / funder that holds the USDC
-        const signatureType = this.safeInteger2 (params, 'signatureType', 'signature_type', this.safeInteger (this.options, 'signatureType', 0));
+        const signatureType = this.safeInteger2 (params, 'signatureType', 'signature_type', this.safeInteger (this.options, 'signatureType', 3));
         const rest = this.omit (params, [ 'signatureType', 'signature_type' ]);
         const request: Dict = {
             'asset_type': 'COLLATERAL',
@@ -1688,10 +1688,11 @@ export default class polymarket extends Exchange {
             tickSize = this.safeString (clobMarket, 'minimum_tick_size', '0.01');
             negRisk = this.safeBool (clobMarket, 'neg_risk', false);
         }
-        // 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271 (deposit wallet); funder holds the USDC
-        const signatureType = this.safeInteger2 (params, 'signatureType', 'signature_type', this.safeInteger (this.options, 'signatureType', 0));
-        const eoa = (this.walletAddress !== undefined) ? this.walletAddress : this.ethGetAddressFromPrivateKey (this.privateKey);
-        const funder = this.safeString2 (params, 'funder', 'maker', this.safeString (this.options, 'funder', eoa));
+        // 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271 (deposit wallet, default); funder/maker holds the USDC
+        const signatureType = this.safeInteger2 (params, 'signatureType', 'signature_type', this.safeInteger (this.options, 'signatureType', 3));
+        // the signer/owner is the EOA behind the privateKey; the funder/maker is the proxy or deposit wallet (walletAddress)
+        const eoa = this.ethChecksumAddress (this.ethGetAddressFromPrivateKey (this.privateKey));
+        const funder = this.ethChecksumAddress (this.safeString2 (params, 'funder', 'maker', this.safeString (this.options, 'funder', this.walletAddress)));
         // salt and timestamp default to the current time but can be pinned via params for idempotency
         const salt = this.safeString (params, 'salt', this.numberToString (this.milliseconds ()));
         const timestamp = this.safeString (params, 'timestamp', this.numberToString (this.milliseconds ()));
@@ -1705,7 +1706,9 @@ export default class polymarket extends Exchange {
         const takerAmount = this.safeString (amounts, 'takerAmount');
         const sideInt = (sideStr === 'BUY') ? 0 : 1;
         const bytes32Zero = '0x0000000000000000000000000000000000000000000000000000000000000000';
-        // POLY_1271: maker and signer are both the deposit-wallet (validated on-chain via ERC-1271)
+        // POLY_1271 (type 3): the order signer is the deposit wallet itself — the exchange calls
+        // wallet.isValidSignature and the inner ERC-7739 domain's verifyingContract is the wallet (the EOA
+        // still produces the signature and is checked on-chain as the wallet owner). Otherwise signer = EOA.
         const maker = funder;
         const signer = (signatureType === 3) ? funder : eoa;
         const message: Dict = {
@@ -2215,7 +2218,8 @@ export default class polymarket extends Exchange {
                 if (this.privateKey === undefined) {
                     throw new ArgumentsRequired (this.id + ' ' + path + ' requires a privateKey');
                 }
-                const address = (this.walletAddress !== undefined) ? this.walletAddress : this.ethGetAddressFromPrivateKey (this.privateKey);
+                // the L1 signer/owner is the EOA behind the privateKey (walletAddress is the proxy/deposit wallet, not the signer)
+                const address = this.ethChecksumAddress (this.ethGetAddressFromPrivateKey (this.privateKey));
                 const timestamp = this.seconds ().toString ();
                 const nonce = this.safeInteger (params, 'nonce', 0);
                 const l1signature = this.signClobAuth (address, timestamp, nonce);
@@ -2228,10 +2232,12 @@ export default class polymarket extends Exchange {
             } else {
                 // L2 credentials: provided directly (apiKey/secret/password) or derived from
                 // the privateKey and cached in options (see setApiCredentials/loadApiCredentials)
-                const apiKey = (this.apiKey !== undefined) ? this.apiKey : this.safeString (this.options, 'l2ApiKey');
-                const secret = (this.secret !== undefined) ? this.secret : this.safeString (this.options, 'l2Secret');
-                const passphrase = (this.password !== undefined) ? this.password : this.safeString (this.options, 'l2Passphrase');
-                const address = (this.walletAddress !== undefined) ? this.walletAddress : this.ethGetAddressFromPrivateKey (this.privateKey);
+                // prefer the derived creds (owned by the privateKey's EOA) over any externally supplied ones
+                const apiKey = this.safeString (this.options, 'l2ApiKey', this.apiKey);
+                const secret = this.safeString (this.options, 'l2Secret', this.secret);
+                const passphrase = this.safeString (this.options, 'l2Passphrase', this.password);
+                // POLY_ADDRESS is the api-key owner = the signer EOA (derived from the privateKey when present)
+                const address = (this.privateKey !== undefined) ? this.ethChecksumAddress (this.ethGetAddressFromPrivateKey (this.privateKey)) : this.walletAddress;
                 const timestamp = this.seconds ().toString ();
                 // the L2 HMAC signs only the request path (no query string), matching
                 // @polymarket/clob-client — query params are sent separately, not signed
@@ -2259,6 +2265,26 @@ export default class polymarket extends Exchange {
 
     hashMessage (message: any): string {
         return '0x' + this.hash (message, keccak, 'hex');
+    }
+
+    ethChecksumAddress (address: string): string {
+        // EIP-55 mixed-case checksum; the CLOB compares the order signer to the api-key owner
+        // case-sensitively and stores addresses checksummed, so every address we send must be checksummed
+        const cleaned = this.remove0xPrefix (address).toLowerCase ();
+        const hashHex = this.hash (this.encode (cleaned), keccak, 'hex');
+        const addrChars = this.stringToCharsArray (cleaned);
+        const hashChars = this.stringToCharsArray (hashHex);
+        const upperNibbles = '89abcdef';
+        let result = '';
+        for (let i = 0; i < addrChars.length; i++) {
+            const ch = addrChars[i];
+            if (upperNibbles.indexOf (hashChars[i]) >= 0) {
+                result = result + ch.toUpperCase ();
+            } else {
+                result = result + ch;
+            }
+        }
+        return '0x' + result;
     }
 
     signHash (hash: string, privateKey: string): Dict {
@@ -2375,15 +2401,21 @@ export default class polymarket extends Exchange {
      * @description ensures L2 api credentials are available for private requests — uses the provided apiKey/secret/password when present, otherwise derives them from the privateKey
      */
     async loadApiCredentials () {
+        // the order signer / L2 POLY_ADDRESS is always the EOA behind the privateKey, so the L2 api key MUST
+        // belong to that same EOA — derive it from the privateKey rather than trusting externally supplied
+        // creds that may have been issued to a different wallet
+        if (this.privateKey !== undefined) {
+            const alreadyDerived = this.safeString (this.options, 'l2ApiKey');
+            if (alreadyDerived === undefined) {
+                await this.createOrDeriveApiKey ();
+            }
+            return;
+        }
         const apiKey = (this.apiKey !== undefined) ? this.apiKey : this.safeString (this.options, 'l2ApiKey');
         const secret = (this.secret !== undefined) ? this.secret : this.safeString (this.options, 'l2Secret');
         const passphrase = (this.password !== undefined) ? this.password : this.safeString (this.options, 'l2Passphrase');
         const hasL2 = (apiKey !== undefined) && (secret !== undefined) && (passphrase !== undefined);
         if (hasL2) {
-            return;
-        }
-        if (this.privateKey !== undefined) {
-            await this.createOrDeriveApiKey ();
             return;
         }
         throw new AuthenticationError (this.id + ' requires L2 api credentials (apiKey, secret, password) or a privateKey to derive them');
