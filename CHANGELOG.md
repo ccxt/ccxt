@@ -1,3 +1,53 @@
+<a id="v4.5.59"></a>
+# [v4.5.59](https://github.com/ccxt/ccxt/releases/tag/v4.5.59) - 2026-06-16
+
+## What's Changed
+* feat(rspack): use rspack instead of webpack for bundling by [@frosty00](https://github.com/frosty00) in [#28851](https://github.com/ccxt/ccxt/pull/28851)
+* fix(docs): repair broken internal doc links at their source by [@pcriadoperez](https://github.com/pcriadoperez) in [#28848](https://github.com/ccxt/ccxt/pull/28848)
+* feat(docs): add status/ table by [@carlosmiei](https://github.com/carlosmiei) in [#28858](https://github.com/ccxt/ccxt/pull/28858)
+* fix(docs): exchange-status import by [@carlosmiei](https://github.com/carlosmiei) in [#28859](https://github.com/ccxt/ccxt/pull/28859)
+* fix(docs): keep translated exchanges tables in sync, drop dead link by [@pcriadoperez](https://github.com/pcriadoperez) in [#28856](https://github.com/ccxt/ccxt/pull/28856)
+* docs: generalizing instead of binance by [@ttodua](https://github.com/ttodua) in [#28864](https://github.com/ccxt/ccxt/pull/28864)
+* docs: remove extra example by [@ttodua](https://github.com/ttodua) in [#28860](https://github.com/ccxt/ccxt/pull/28860)
+* docs: eslint `no-named-as-default-member` by [@ttodua](https://github.com/ttodua) in [#28867](https://github.com/ccxt/ccxt/pull/28867)
+* docs: apex remove & add faq by [@ttodua](https://github.com/ttodua) in [#28863](https://github.com/ccxt/ccxt/pull/28863)
+* build(deps): update @rspack/cli and @rspack/core to 2.0.8 by [@frosty00](https://github.com/frosty00) in [#28869](https://github.com/ccxt/ccxt/pull/28869)
+* chore(deps): bump esbuild from 0.28.0 to 0.28.1 in /website by [@dependabot](https://github.com/dependabot)[bot] in [#28866](https://github.com/ccxt/ccxt/pull/28866)
+* fix(precise)!: strict bools by [@ttodua](https://github.com/ttodua) in [#28854](https://github.com/ccxt/ccxt/pull/28854)
+* chore(deps): bump uuid and @rspack/cli by [@dependabot](https://github.com/dependabot)[bot] in [#28853](https://github.com/ccxt/ccxt/pull/28853)
+* chore(deps): bump webpack-dev-server and @rspack/cli by [@dependabot](https://github.com/dependabot)[bot] in [#28852](https://github.com/ccxt/ccxt/pull/28852)
+* chore(huobi): remove alias by [@ttodua](https://github.com/ttodua) in [#28788](https://github.com/ccxt/ccxt/pull/28788)
+* move some static dependencies into package.json by [@frosty00](https://github.com/frosty00) in [#28850](https://github.com/ccxt/ccxt/pull/28850)
+* refactor(safeDict): use isDictionary by [@ttodua](https://github.com/ttodua) in [#28862](https://github.com/ccxt/ccxt/pull/28862)
+* fix: use isDictionary instead of `object` type comparison by [@ttodua](https://github.com/ttodua) in [#28861](https://github.com/ccxt/ccxt/pull/28861)
+* docs: normalize legacy docs.ccxt.com/#/?id= structure links to the redirecting form by [@pcriadoperez](https://github.com/pcriadoperez) in [#28879](https://github.com/ccxt/ccxt/pull/28879)
+* fix(php): is_json_encoded_object by [@ttodua](https://github.com/ttodua) in [#28880](https://github.com/ccxt/ccxt/pull/28880)
+* chore(playground): patch postcss & dompurify security alerts by [@pcriadoperez](https://github.com/pcriadoperez) in [#28871](https://github.com/ccxt/ccxt/pull/28871)
+* chore(website): patch postcss security alert by [@pcriadoperez](https://github.com/pcriadoperez) in [#28873](https://github.com/ccxt/ccxt/pull/28873)
+* chore(examples): patch postcss alert in nextjs-page-router example by [@pcriadoperez](https://github.com/pcriadoperez) in [#28874](https://github.com/ccxt/ccxt/pull/28874)
+* docs: watch symbols example by [@ttodua](https://github.com/ttodua) in [#28868](https://github.com/ccxt/ccxt/pull/28868)
+* chore(coinbaseadvanced): remove alias by [@ttodua](https://github.com/ttodua) in [#28787](https://github.com/ccxt/ccxt/pull/28787)
+* fix(playground): route AI assistant through the egress proxy by [@pcriadoperez](https://github.com/pcriadoperez) in [#28876](https://github.com/ccxt/ccxt/pull/28876)
+* ci(playground): fix deploy smoke test + bump actions to Node 24 by [@pcriadoperez](https://github.com/pcriadoperez) in [#28872](https://github.com/ccxt/ccxt/pull/28872)
+* fix(cs): getProperty for fields too by [@ttodua](https://github.com/ttodua) in [#28881](https://github.com/ccxt/ccxt/pull/28881)
+* migrate to typescript 5 by [@frosty00](https://github.com/frosty00) in [#28870](https://github.com/ccxt/ccxt/pull/28870)
+* feat(docs): make /docs/examples a hub — citations + Awesome showcases by [@pcriadoperez](https://github.com/pcriadoperez) in [#28875](https://github.com/ccxt/ccxt/pull/28875)
+* test: add `.has` tests by [@ttodua](https://github.com/ttodua) in [#28885](https://github.com/ccxt/ccxt/pull/28885)
+* fix(binance): ws .has inheritance fixes by [@ttodua](https://github.com/ttodua) in [#28886](https://github.com/ccxt/ccxt/pull/28886)
+* chore: hibachi skip ts warning by [@ttodua](https://github.com/ttodua) in [#28887](https://github.com/ccxt/ccxt/pull/28887)
+* fix(aster): fetchTicker(): 'percentage' is off by factor of 100 by [@Shiven0504](https://github.com/Shiven0504) in [#28889](https://github.com/ccxt/ccxt/pull/28889)
+* chore: try to update package-lock by [@carlosmiei](https://github.com/carlosmiei) in [#28891](https://github.com/ccxt/ccxt/pull/28891)
+* fix(bitget): handle non ascii symbols by [@carlosmiei](https://github.com/carlosmiei) in [#28890](https://github.com/ccxt/ccxt/pull/28890)
+* fix(bybit): watchOrderBook in go by [@carlosmiei](https://github.com/carlosmiei) in [#28893](https://github.com/ccxt/ccxt/pull/28893)
+* chore(deps): bump js-yaml from 4.1.1 to 4.2.0 in /website by [@dependabot](https://github.com/dependabot)[bot] in [#28892](https://github.com/ccxt/ccxt/pull/28892)
+* feat(htx): V5 linear swap order support by [@Dan-krm](https://github.com/Dan-krm) in [#28792](https://github.com/ccxt/ccxt/pull/28792)
+
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.58...v4.5.59
+
+[Changes][v4.5.59]
+
+
 <a id="v4.5.58"></a>
 # [v4.5.58](https://github.com/ccxt/ccxt/releases/tag/v4.5.58) - 2026-06-11
 
@@ -13330,6 +13380,7 @@ We highly recommend downloading and installing the most recent release of CCXT v
 [Changes][4.0.3]
 
 
+[v4.5.59]: https://github.com/ccxt/ccxt/compare/v4.5.58...v4.5.59
 [v4.5.58]: https://github.com/ccxt/ccxt/compare/v4.5.57...v4.5.58
 [v4.5.57]: https://github.com/ccxt/ccxt/compare/v4.5.56...v4.5.57
 [v4.5.56]: https://github.com/ccxt/ccxt/compare/v4.5.55...v4.5.56
