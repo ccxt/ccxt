@@ -742,6 +742,9 @@ export default class lighter extends Exchange {
         const orderSide = side.toUpperCase ();
         const request: Dict = {
             'market_index': this.parseToInt (market['id']),
+            'integrator_account_index': 0,
+            'integrator_taker_fee': 0,
+            'integrator_maker_fee': 0,
         };
         let nonce = undefined;
         let apiKeyIndex = undefined;
@@ -802,7 +805,9 @@ export default class lighter extends Exchange {
         let triggerPriceStr = '0'; // default is 0
         const defaultClientOrderId = this.randNumber (9); // c# only support int32 2147483647.
         const clientOrderId = this.safeInteger2 (params, 'client_order_index', 'clientOrderId', defaultClientOrderId);
-        params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'timeInForce', 'postOnly', 'nonce', 'apiKeyIndex', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'client_order_index', 'clientOrderId' ]);
+        const selfTradeBehavior = this.safeInteger2 (params, 'selfTradeBehavior', 'self_trade_behavior', 0);
+        const selfTradeEquality = this.safeInteger2 (params, 'selfTradeEquality', 'self_trade_equality', 0);
+        params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'timeInForce', 'postOnly', 'nonce', 'apiKeyIndex', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'client_order_index', 'clientOrderId', 'selfTradeBehavior', 'self_trade_behavior', 'selfTradeEquality', 'self_trade_equality' ]);
         if (isConditional) {
             amountStr = this.numberToString (amount);
             if (stopLossPrice !== undefined) {
@@ -831,6 +836,8 @@ export default class lighter extends Exchange {
         request['base_amount'] = this.parseToInt (Precise.stringMul (amountStr, amountScale));
         request['avg_execution_price'] = this.parseToInt (Precise.stringMul (priceStr, priceScale));
         request['trigger_price'] = this.parseToInt (Precise.stringMul (triggerPriceStr, priceScale));
+        request['self_trade_behavior'] = selfTradeBehavior;
+        request['self_trade_equality'] = selfTradeEquality;
         if (this.safeBool (this.options, 'builderFee', true)) {
             request['integrator_account_index'] = this.options['integratorAccountIndex'];
             request['integrator_taker_fee'] = this.options['integratorTakerFee'];
@@ -913,6 +920,8 @@ export default class lighter extends Exchange {
      * @param {int} [params.apiKeyIndex] apiKeyIndex
      * @param {int} [params.accountIndex] accountIndex
      * @param {int} [params.orderExpiry] orderExpiry
+     * @param {int} [params.selfTradeBehavior] SelfTradeBehavior [SelfTradeBehaviorExpireMaker=0, SelfTradeBehaviorExpireTaker=1, SelfTradeBehaviorCancelBoth=2, SelfTradeBehaviorReduce=3], default is SelfTradeBehaviorExpireMaker
+     * @param {int} [params.selfTradeEquality] SelfTradeEquality [SelfTradeEqualityAccountIndex=0, SelfTradeEqualityMasterAccountIndex=1], default is SelfTradeEqualityAccountIndex
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -956,6 +965,8 @@ export default class lighter extends Exchange {
                 signingPayload['integrator_taker_fee'] = order['integrator_taker_fee'];
                 signingPayload['integrator_maker_fee'] = order['integrator_maker_fee'];
             }
+            signingPayload['self_trade_behavior'] = order['self_trade_behavior'];
+            signingPayload['self_trade_equality'] = order['self_trade_equality'];
             [ txType, txInfo ] = this.lighterSignCreateGroupedOrders (signer, signingPayload);
         }
         const request = {
@@ -987,6 +998,8 @@ export default class lighter extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.accountIndex] account index
      * @param {string} [params.apiKeyIndex] api key index
+     * @param {int} [params.selfTradeBehavior] SelfTradeBehavior [SelfTradeBehaviorExpireMaker=0, SelfTradeBehaviorExpireTaker=1, SelfTradeBehaviorCancelBoth=2, SelfTradeBehaviorReduce=3], default is SelfTradeBehaviorExpireMaker
+     * @param {int} [params.selfTradeEquality] SelfTradeEquality [SelfTradeEqualityAccountIndex=0, SelfTradeEqualityMasterAccountIndex=1], default is SelfTradeEqualityAccountIndex
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
@@ -1003,7 +1016,9 @@ export default class lighter extends Exchange {
         const amountScale = this.pow ('10', marketInfo['size_decimals']);
         const priceScale = this.pow ('10', marketInfo['price_decimals']);
         const triggerPrice = this.safeStringN (params, [ 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
-        params = this.omit (params, [ 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        const selfTradeBehavior = this.safeInteger2 (params, 'selfTradeBehavior', 'self_trade_behavior', 0);
+        const selfTradeEquality = this.safeInteger2 (params, 'selfTradeEquality', 'self_trade_equality', 0);
+        params = this.omit (params, [ 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'selfTradeBehavior', 'self_trade_behavior', 'selfTradeEquality', 'self_trade_equality' ]);
         let amountStr = undefined;
         const priceStr = this.priceToPrecision (symbol, price);
         let triggerPriceStr = '0'; // default is 0
@@ -1023,10 +1038,17 @@ export default class lighter extends Exchange {
             'nonce': nonce,
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
-            'integrator_account_index': this.options['integratorAccountIndex'],
-            'integrator_taker_fee': this.options['integratorTakerFee'],
-            'integrator_maker_fee': this.options['integratorMakerFee'],
+            'integrator_account_index': 0,
+            'integrator_taker_fee': 0,
+            'integrator_maker_fee': 0,
+            'self_trade_behavior': selfTradeBehavior,
+            'self_trade_equality': selfTradeEquality,
         };
+        if (this.safeBool (this.options, 'builderFee', true)) {
+            signRaw['integrator_account_index'] = this.options['integratorAccountIndex'];
+            signRaw['integrator_taker_fee'] = this.options['integratorTakerFee'];
+            signRaw['integrator_maker_fee'] = this.options['integratorMakerFee'];
+        }
         const [ txType, txInfo ] = this.lighterSignModifyOrder (signer, this.extend (signRaw, params));
         const request: Dict = {
             'tx_type': txType,
