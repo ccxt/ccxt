@@ -1397,8 +1397,7 @@ export default class aster extends Exchange {
         const timestamp = this.safeInteger (ticker, 'closeTime');
         const last = this.safeString (ticker, 'lastPrice');
         const open = this.safeString (ticker, 'openPrice');
-        let percentage = this.safeString (ticker, 'priceChangePercent');
-        percentage = Precise.stringMul (percentage, '100');
+        const percentage = this.safeString (ticker, 'priceChangePercent');
         const quoteVolume = this.safeString (ticker, 'quoteVolume');
         const baseVolume = this.safeString (ticker, 'volume');
         const high = this.safeString (ticker, 'highPrice');
