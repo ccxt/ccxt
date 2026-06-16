@@ -10,6 +10,7 @@ var crypto = require('./crypto.js');
 var nist_js = require('@noble/curves/nist.js');
 var ed25519_js = require('@noble/curves/ed25519.js');
 
+// ----------------------------------------------------------------------------
 function rsa(request, secret, hash) {
     const RSA = new JSEncrypt.JSEncrypt();
     const digester = (input) => base.hex.encode(hash((typeof input === 'string') ? utils_js.utf8ToBytes(input) : input));

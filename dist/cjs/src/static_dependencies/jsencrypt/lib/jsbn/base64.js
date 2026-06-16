@@ -4,6 +4,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var base = require('@scure/base');
 
+// ----------------------------------------------------------------------------
 function hex2b64(h) {
     return base.base64.encode(base.hex.decode(h));
 }

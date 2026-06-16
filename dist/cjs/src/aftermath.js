@@ -8,6 +8,7 @@ var number = require('./base/functions/number.js');
 var crypto = require('./base/functions/crypto.js');
 var errors = require('./base/errors.js');
 
+// ----------------------------------------------------------------------------
 class aftermath extends aftermath$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {

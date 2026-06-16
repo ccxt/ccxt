@@ -82,6 +82,8 @@ php -f path/to/example.php # substitute for actual filename here
 
 - [Exchange Rate Limiter RollingWindow](./examples/php/exchange-rate-limiter-rollingWindow.md)
 
+- [Fetch Balance Snapshot Watch Balance Updates](./examples/php/fetch-balance-snapshot-watch-balance-updates.md)
+
 - [Fetch Balance](./examples/php/fetch-balance.md)
 
 - [Fetch First Ohlcv Timestamp](./examples/php/fetch-first-ohlcv-timestamp.md)

@@ -5,7 +5,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var num = require('../num.js');
 var shortString = require('../shortString.js');
 
-// TODO Convert to CairoFelt base on CairoUint256 and implement it in the codebase in the backward compatible manner
+// ----------------------------------------------------------------------------
 /**
  * Create felt Cairo type (cairo type helper)
  * @returns format: felt-string
