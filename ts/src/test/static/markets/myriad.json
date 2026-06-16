@@ -375,5 +375,89 @@
                 }
             }
         ]
+    },
+    "WORLDCUP_GROUP_D_OB": {
+        "id": "56:730",
+        "symbol": "WORLDCUP_GROUP_D_OB",
+        "base": "will-trkiye-win-group-d",
+        "quote": "USDC",
+        "baseId": "56:730",
+        "quoteId": "USDC",
+        "type": "prediction",
+        "spot": false,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "prediction": true,
+        "taker": 0.02,
+        "maker": 0.02,
+        "percentage": true,
+        "tierBased": false,
+        "feeSide": "get",
+        "precision": {
+            "amount": 0.01,
+            "price": 0.001
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 1
+            },
+            "amount": {
+                "min": 0
+            },
+            "price": {
+                "min": 0.001,
+                "max": 0.999
+            },
+            "cost": {}
+        },
+        "info": {
+            "networkId": "56",
+            "marketId": "730",
+            "slug": "will-trkiye-win-group-d",
+            "state": "open"
+        },
+        "outcomes": [
+            {
+                "id": "56:730/0",
+                "symbol": "WORLDCUP_GROUP_D_OB:YES",
+                "marketSymbol": "WORLDCUP_GROUP_D_OB",
+                "label": "Yes",
+                "active": true,
+                "info": {
+                    "networkId": "56",
+                    "marketId": "730",
+                    "slug": "will-trkiye-win-group-d",
+                    "outcomeId": "0",
+                    "outcomeLabel": "Yes",
+                    "state": "open",
+                    "tradingModel": "ob",
+                    "tokenAddress": "0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d",
+                    "tokenDecimals": 18
+                }
+            },
+            {
+                "id": "56:730/1",
+                "symbol": "WORLDCUP_GROUP_D_OB:NO",
+                "marketSymbol": "WORLDCUP_GROUP_D_OB",
+                "label": "No",
+                "active": true,
+                "info": {
+                    "networkId": "56",
+                    "marketId": "730",
+                    "slug": "will-trkiye-win-group-d",
+                    "outcomeId": "1",
+                    "outcomeLabel": "No",
+                    "state": "open",
+                    "tradingModel": "ob",
+                    "tokenAddress": "0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d",
+                    "tokenDecimals": 18
+                }
+            }
+        ]
     }
 }

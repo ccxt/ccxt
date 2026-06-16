@@ -6,7 +6,7 @@
 // -------------------------------------------------------------------------------
 
 import { implicitReturnType } from '../../base/types.js';
-import { Exchange as _Exchange } from '../../base/Exchange.js';
+import { default as _Exchange } from '../../base/PredictionExchange.js';
 
 interface Exchange {
     myriadPublicGetQuestions (params?: {}): Promise<implicitReturnType>;
@@ -20,6 +20,7 @@ interface Exchange {
     myriadPublicGetMarketsIdHolders (params?: {}): Promise<implicitReturnType>;
     myriadPublicGetMarketsIdReferrals (params?: {}): Promise<implicitReturnType>;
     myriadPublicGetEvents (params?: {}): Promise<implicitReturnType>;
+    myriadPublicGetOrders (params?: {}): Promise<implicitReturnType>;
     myriadPublicGetOrdersHash (params?: {}): Promise<implicitReturnType>;
     myriadPublicGetUsersAddressEvents (params?: {}): Promise<implicitReturnType>;
     myriadPublicGetUsersAddressReferrals (params?: {}): Promise<implicitReturnType>;
@@ -30,6 +31,8 @@ interface Exchange {
     myriadPublicPostMarketsQuote (params?: {}): Promise<implicitReturnType>;
     myriadPublicPostMarketsClaim (params?: {}): Promise<implicitReturnType>;
     myriadPublicPostOrders (params?: {}): Promise<implicitReturnType>;
+    myriadPublicPostOrdersCancelBatch (params?: {}): Promise<implicitReturnType>;
+    myriadPublicPostOrdersCancelAll (params?: {}): Promise<implicitReturnType>;
     myriadPublicPostPositionsSplit (params?: {}): Promise<implicitReturnType>;
     myriadPublicPostPositionsMerge (params?: {}): Promise<implicitReturnType>;
     myriadPublicPostPositionsRedeem (params?: {}): Promise<implicitReturnType>;
