@@ -9,6 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\prediction\myriad as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
+use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\Precise;
 use \React\Async;
@@ -734,7 +735,15 @@ class myriad extends Exchange {
             if (Precise::string_lt($priceWei, '1')) {
                 $priceWei = '1';
             }
+            // $price is a fraction in (0, 1] encoded..1e18 wei (tick is 1 wei); reject out-of-range early
+            if (Precise::string_gt($priceWei, '1000000000000000000')) {
+                throw new InvalidOrder($this->id . ' createOrder() $price must be a fraction between 0 and 1');
+            }
             $amountWei = $this->to_orderbook_wei($amount);
+            // shares are integer wei (1e18 = 1 share); a sub-wei $amount that rounds to zero is invalid
+            if (Precise::string_lt($amountWei, '1')) {
+                throw new InvalidOrder($this->id . ' createOrder() $amount is too small (rounds to zero shares)');
+            }
             $nonce = $this->safe_string($params, 'nonce', $this->number_to_string($this->milliseconds()));
             $expiration = $this->safe_string($params, 'expiration', '0');
             $minFillAmount = $this->safe_string($params, 'minFillAmount', '0');
@@ -2800,11 +2809,38 @@ class myriad extends Exchange {
             $networkId = $this->safe_string($this->options, 'defaultNetworkId', '56');
             $channel = 'positions:' . $networkId . ':' . $trader;
             $messageHash = 'positions';
-            $positions = Async\await($this->subscribe_myriad_channel($messageHash, $channel, $params));
+            $url = $this->safe_string($this->urls['api'], 'ws');
+            Async\await($this->connect_centrifugo($url));
+            $client = $this->client($url);
+            $isNewSubscription = $this->safe_value($client->subscriptions, $channel) === null;
+            if ($isNewSubscription) {
+                // the $channel pushes only signed deltas; seed absolute share balances from REST so
+                // handlePosition can maintain a running contracts figure
+                Async\await($this->seed_position_balances($trader));
+            }
+            $requestId = $this->request_id($url);
+            $subscribeMsg = array( 'subscribe' => array( 'channel' => $channel ), 'id' => $requestId );
+            $positions = Async\await($this->watch($url, $messageHash, $subscribeMsg, $channel));
             if ($this->newUpdates) {
                 return $positions;
             }
             return $this->filter_by_symbols_since_limit($positions, $symbols, $since, $limit, true);
+        }) ();
+    }
+
+    public function seed_position_balances(string $trader) {
+        return Async\async(function () use ($trader) {
+            $positions = Async\await($this->fetch_positions(null, array( 'address' => $trader )));
+            $balances = array();
+            $positionsLength = count($positions);
+            for ($i = 0; $i < $positionsLength; $i++) {
+                $p = $positions[$i];
+                $id = $this->safe_string($p, 'id');
+                if ($id !== null) {
+                    $balances[$id] = $this->number_to_string($this->safe_number($p, 'contracts', 0));
+                }
+            }
+            $this->options['positionBalances'] = $balances;
         }) ();
     }
 
@@ -2818,17 +2854,33 @@ class myriad extends Exchange {
         $outcomeId = $this->safe_string($data, 'outcome');
         $sym = $this->market_outcome_to_symbol($networkId, $marketId, $outcomeId);
         $ts = $this->safe_integer($data, 'ts');
-        // the positions channel emits a signed share delta per fill/redeem/split/merge; the absolute
-        // $balance and entry price are not pushed (refetch via fetchPositions when the full state is needed)
-        $balance = $this->from_wei($this->safe_string($data, 'balance'));
+        // the channel pushes a signed share delta per fill/redeem/split/merge (no absolute balance);
+        // apply it to the REST-seeded balance keyed by outcome id to maintain a running $contracts figure
+        $deltaStr = $this->safe_string($data, 'delta', '0');
+        $firstChar = mb_substr($deltaStr, 0, 1 - 0);
+        if ($firstChar === '+') {
+            $deltaStr = mb_substr($deltaStr, 1);
+        }
+        $deltaShares = Precise::string_div($deltaStr, '1000000000000000000');
+        $contracts = null;
+        $posId = null;
+        if (($networkId !== null) && ($marketId !== null) && ($outcomeId !== null)) {
+            $posId = $networkId . ':' . $marketId . '/' . $outcomeId;
+            $balances = $this->safe_dict($this->options, 'positionBalances', array());
+            $prior = $this->safe_string($balances, $posId, '0');
+            $updated = Precise::string_add($prior, $deltaShares);
+            $balances[$posId] = $updated;
+            $this->options['positionBalances'] = $balances;
+            $contracts = $this->parse_number($updated);
+        }
         $parsed = $this->safe_position(array(
             'info' => $data,
-            'id' => $this->safe_string($data, 'txHash'),
+            'id' => $posId,
             'symbol' => $sym,
             'timestamp' => $ts,
             'datetime' => $this->iso8601($ts),
             'side' => 'long',
-            'contracts' => $balance,
+            'contracts' => $contracts,
             'entryPrice' => null,
             'markPrice' => null,
             'notional' => null,

@@ -788,7 +788,17 @@ public partial class myriad : PredictionExchange
         {
             priceWei = "1";
         }
+        // price is a fraction in (0, 1] encoded as 1..1e18 wei (tick is 1 wei); reject out-of-range early
+        if (isTrue(Precise.stringGt(priceWei, "1000000000000000000")))
+        {
+            throw new InvalidOrder ((string)add(this.id, " createOrder() price must be a fraction between 0 and 1")) ;
+        }
         object amountWei = this.toOrderbookWei(amount);
+        // shares are integer wei (1e18 = 1 share); a sub-wei amount that rounds to zero is invalid
+        if (isTrue(Precise.stringLt(amountWei, "1")))
+        {
+            throw new InvalidOrder ((string)add(this.id, " createOrder() amount is too small (rounds to zero shares)")) ;
+        }
         object nonce = this.safeString(parameters, "nonce", this.numberToString(this.milliseconds()));
         object expiration = this.safeString(parameters, "expiration", "0");
         object minFillAmount = this.safeString(parameters, "minFillAmount", "0");
@@ -3092,12 +3102,48 @@ public partial class myriad : PredictionExchange
         object networkId = this.safeString(this.options, "defaultNetworkId", "56");
         object channel = add(add(add("positions:", networkId), ":"), trader);
         object messageHash = "positions";
-        object positions = await this.subscribeMyriadChannel(messageHash, channel, parameters);
+        object url = this.safeString(getValue(this.urls, "api"), "ws");
+        await this.connectCentrifugo(url);
+        var client = this.client(url);
+        object isNewSubscription = isEqual(this.safeValue(((WebSocketClient)client).subscriptions, channel), null);
+        if (isTrue(isNewSubscription))
+        {
+            // the channel pushes only signed deltas; seed absolute share balances from REST so
+            // handlePosition can maintain a running contracts figure
+            await this.seedPositionBalances(trader);
+        }
+        object requestId = this.requestId(url);
+        object subscribeMsg = new Dictionary<string, object>() {
+            { "subscribe", new Dictionary<string, object>() {
+                { "channel", channel },
+            } },
+            { "id", requestId },
+        };
+        object positions = await this.watch(url, messageHash, subscribeMsg, channel);
         if (isTrue(this.newUpdates))
         {
             return positions;
         }
         return this.filterBySymbolsSinceLimit(positions, symbols, since, limit, true);
+    }
+
+    public async virtual Task seedPositionBalances(object trader)
+    {
+        object positions = await this.fetchPositions(null, new Dictionary<string, object>() {
+            { "address", trader },
+        });
+        object balances = new Dictionary<string, object>() {};
+        object positionsLength = getArrayLength(positions);
+        for (object i = 0; isLessThan(i, positionsLength); postFixIncrement(ref i))
+        {
+            object p = getValue(positions, i);
+            object id = this.safeString(p, "id");
+            if (isTrue(!isEqual(id, null)))
+            {
+                ((IDictionary<string,object>)balances)[(string)id] = this.numberToString(this.safeNumber(p, "contracts", 0));
+            }
+        }
+        ((IDictionary<string,object>)this.options)["positionBalances"] = balances;
     }
 
     public virtual void handlePosition(WebSocketClient client, object data)
@@ -3112,17 +3158,35 @@ public partial class myriad : PredictionExchange
         object outcomeId = this.safeString(data, "outcome");
         object sym = this.marketOutcomeToSymbol(networkId, marketId, outcomeId);
         object ts = this.safeInteger(data, "ts");
-        // the positions channel emits a signed share delta per fill/redeem/split/merge; the absolute
-        // balance and entry price are not pushed (refetch via fetchPositions when the full state is needed)
-        object balance = this.fromWei(this.safeString(data, "balance"));
+        // the channel pushes a signed share delta per fill/redeem/split/merge (no absolute balance);
+        // apply it to the REST-seeded balance keyed by outcome id to maintain a running contracts figure
+        object deltaStr = this.safeString(data, "delta", "0");
+        object firstChar = slice(deltaStr, 0, 1);
+        if (isTrue(isEqual(firstChar, "+")))
+        {
+            deltaStr = slice(deltaStr, 1, null);
+        }
+        object deltaShares = Precise.stringDiv(deltaStr, "1000000000000000000");
+        object contracts = null;
+        object posId = null;
+        if (isTrue(isTrue(isTrue((!isEqual(networkId, null))) && isTrue((!isEqual(marketId, null)))) && isTrue((!isEqual(outcomeId, null)))))
+        {
+            posId = add(add(add(add(networkId, ":"), marketId), "/"), outcomeId);
+            object balances = this.safeDict(this.options, "positionBalances", new Dictionary<string, object>() {});
+            object prior = this.safeString(balances, posId, "0");
+            object updated = Precise.stringAdd(prior, deltaShares);
+            ((IDictionary<string,object>)balances)[(string)posId] = updated;
+            ((IDictionary<string,object>)this.options)["positionBalances"] = balances;
+            contracts = this.parseNumber(updated);
+        }
         object parsed = this.safePosition(new Dictionary<string, object>() {
             { "info", data },
-            { "id", this.safeString(data, "txHash") },
+            { "id", posId },
             { "symbol", sym },
             { "timestamp", ts },
             { "datetime", this.iso8601(ts) },
             { "side", "long" },
-            { "contracts", balance },
+            { "contracts", contracts },
             { "entryPrice", null },
             { "markPrice", null },
             { "notional", null },

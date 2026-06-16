@@ -514,6 +514,7 @@ export default class myriad extends Exchange {
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
+    seedPositionBalances(trader: string): Promise<void>;
     handlePosition(client: any, data: any): void;
     walletAddressFromKeys(): string;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;

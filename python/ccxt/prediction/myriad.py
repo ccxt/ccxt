@@ -655,7 +655,13 @@ class myriad(PredictionExchange, ImplicitAPI):
         priceWei = self.to_orderbook_wei(priceValue)
         if Precise.string_lt(priceWei, '1'):
             priceWei = '1'
+        # price is a fraction in(0, 1] encoded..1e18 wei(tick is 1 wei); reject out-of-range early
+        if Precise.string_gt(priceWei, '1000000000000000000'):
+            raise InvalidOrder(self.id + ' createOrder() price must be a fraction between 0 and 1')
         amountWei = self.to_orderbook_wei(amount)
+        # shares are integer wei(1e18 = 1 share); a sub-wei amount that rounds to zero is invalid
+        if Precise.string_lt(amountWei, '1'):
+            raise InvalidOrder(self.id + ' createOrder() amount is too small(rounds to zero shares)')
         nonce = self.safe_string(params, 'nonce', self.number_to_string(self.milliseconds()))
         expiration = self.safe_string(params, 'expiration', '0')
         minFillAmount = self.safe_string(params, 'minFillAmount', '0')
@@ -2516,10 +2522,31 @@ class myriad(PredictionExchange, ImplicitAPI):
         networkId = self.safe_string(self.options, 'defaultNetworkId', '56')
         channel = 'positions:' + networkId + ':' + trader
         messageHash = 'positions'
-        positions = await self.subscribe_myriad_channel(messageHash, channel, params)
+        url = self.safe_string(self.urls['api'], 'ws')
+        await self.connect_centrifugo(url)
+        client = self.client(url)
+        isNewSubscription = self.safe_value(client.subscriptions, channel) is None
+        if isNewSubscription:
+            # the channel pushes only signed deltas; seed absolute share balances from REST so
+            # handlePosition can maintain a running contracts figure
+            await self.seed_position_balances(trader)
+        requestId = self.request_id(url)
+        subscribeMsg: dict = {'subscribe': {'channel': channel}, 'id': requestId}
+        positions = await self.watch(url, messageHash, subscribeMsg, channel)
         if self.newUpdates:
             return positions
         return self.filter_by_symbols_since_limit(positions, symbols, since, limit, True)
+
+    async def seed_position_balances(self, trader: str):
+        positions = await self.fetch_positions(None, {'address': trader})
+        balances: dict = {}
+        positionsLength = len(positions)
+        for i in range(0, positionsLength):
+            p = positions[i]
+            id = self.safe_string(p, 'id')
+            if id is not None:
+                balances[id] = self.number_to_string(self.safe_number(p, 'contracts', 0))
+        self.options['positionBalances'] = balances
 
     def handle_position(self, client, data):
         if self.positions is None:
@@ -2530,17 +2557,31 @@ class myriad(PredictionExchange, ImplicitAPI):
         outcomeId = self.safe_string(data, 'outcome')
         sym = self.market_outcome_to_symbol(networkId, marketId, outcomeId)
         ts = self.safe_integer(data, 'ts')
-        # the positions channel emits a signed share delta per fill/redeem/split/merge; the absolute
-        # balance and entry price are not pushed(refetch via fetchPositions when the full state is needed)
-        balance = self.from_wei(self.safe_string(data, 'balance'))
+        # the channel pushes a signed share delta per fill/redeem/split/merge(no absolute balance)
+        # apply it to the REST-seeded balance keyed by outcome id to maintain a running contracts figure
+        deltaStr = self.safe_string(data, 'delta', '0')
+        firstChar = deltaStr[0:1]
+        if firstChar == '+':
+            deltaStr = deltaStr[1:]
+        deltaShares = Precise.string_div(deltaStr, '1000000000000000000')
+        contracts = None
+        posId = None
+        if (networkId is not None) and (marketId is not None) and (outcomeId is not None):
+            posId = networkId + ':' + marketId + '/' + outcomeId
+            balances = self.safe_dict(self.options, 'positionBalances', {})
+            prior = self.safe_string(balances, posId, '0')
+            updated = Precise.string_add(prior, deltaShares)
+            balances[posId] = updated
+            self.options['positionBalances'] = balances
+            contracts = self.parse_number(updated)
         parsed = self.safe_position({
             'info': data,
-            'id': self.safe_string(data, 'txHash'),
+            'id': posId,
             'symbol': sym,
             'timestamp': ts,
             'datetime': self.iso8601(ts),
             'side': 'long',
-            'contracts': balance,
+            'contracts': contracts,
             'entryPrice': None,
             'markPrice': None,
             'notional': None,

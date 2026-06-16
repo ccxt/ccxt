@@ -868,7 +868,17 @@ public class MyriadCore extends MyriadApi
             {
                 priceWei = "1";
             }
+            // price is a fraction in (0, 1] encoded as 1..1e18 wei (tick is 1 wei); reject out-of-range early
+            if (Helpers.isTrue(Precise.stringGt(priceWei, "1000000000000000000")))
+            {
+                throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() price must be a fraction between 0 and 1")) ;
+            }
             Object amountWei = this.toOrderbookWei(amount);
+            // shares are integer wei (1e18 = 1 share); a sub-wei amount that rounds to zero is invalid
+            if (Helpers.isTrue(Precise.stringLt(amountWei, "1")))
+            {
+                throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() amount is too small (rounds to zero shares)")) ;
+            }
             Object nonce = this.safeString(parameters, "nonce", this.numberToString(this.milliseconds()));
             Object expiration = this.safeString(parameters, "expiration", "0");
             Object minFillAmount = this.safeString(parameters, "minFillAmount", "0");
@@ -3362,12 +3372,54 @@ final Object finalNetworkId = networkId;
             Object networkId = this.safeString(this.options, "defaultNetworkId", "56");
             Object channel = Helpers.add(Helpers.add(Helpers.add("positions:", networkId), ":"), trader);
             Object messageHash = "positions";
-            Object positions = (this.subscribeMyriadChannel(messageHash, channel, parameters)).join();
+            Object url = this.safeString(Helpers.GetValue(this.urls, "api"), "ws");
+            (this.connectCentrifugo(url)).join();
+            Client client = this.client(url);
+            Object isNewSubscription = Helpers.isEqual(this.safeValue(client.subscriptions, channel), null);
+            if (Helpers.isTrue(isNewSubscription))
+            {
+                // the channel pushes only signed deltas; seed absolute share balances from REST so
+                // handlePosition can maintain a running contracts figure
+                (this.seedPositionBalances(trader)).join();
+            }
+            Object requestId = this.requestId(url);
+            Object subscribeMsg = new java.util.HashMap<String, Object>() {{
+                put( "subscribe", new java.util.HashMap<String, Object>() {{
+                    put( "channel", channel );
+                }} );
+                put( "id", requestId );
+            }};
+            Object positions = (this.watch(url, messageHash, subscribeMsg, channel, null)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
                 return positions;
             }
             return this.filterBySymbolsSinceLimit(positions, symbols, since, limit, true);
+        });
+
+    }
+
+    public java.util.concurrent.CompletableFuture<Object> seedPositionBalances(Object trader)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object positions = (this.fetchPositions(null, (Object) new java.util.HashMap<String, Object>() {{
+                put( "address", trader );
+            }})).join();
+            Object balances = new java.util.HashMap<String, Object>() {{}};
+            Object positionsLength = Helpers.getArrayLength(positions);
+            for (var i = 0; Helpers.isLessThan(i, positionsLength); i++)
+            {
+                Object p = Helpers.GetValue(positions, i);
+                Object id = this.safeString(p, "id");
+                if (Helpers.isTrue(!Helpers.isEqual(id, null)))
+                {
+                    Helpers.addElementToObject(balances, id, this.numberToString(this.safeNumber(p, "contracts", 0)));
+                }
+            }
+            Helpers.addElementToObject(this.options, "positionBalances", balances);
+            return null;
         });
 
     }
@@ -3384,17 +3436,37 @@ final Object finalNetworkId = networkId;
         Object outcomeId = this.safeString(data, "outcome");
         Object sym = this.marketOutcomeToSymbol(networkId, marketId, outcomeId);
         Object ts = this.safeInteger(data, "ts");
-        // the positions channel emits a signed share delta per fill/redeem/split/merge; the absolute
-        // balance and entry price are not pushed (refetch via fetchPositions when the full state is needed)
-        Object balance = this.fromWei(this.safeString(data, "balance"));
+        // the channel pushes a signed share delta per fill/redeem/split/merge (no absolute balance);
+        // apply it to the REST-seeded balance keyed by outcome id to maintain a running contracts figure
+        Object deltaStr = this.safeString(data, "delta", "0");
+        Object firstChar = Helpers.slice(deltaStr, 0, 1);
+        if (Helpers.isTrue(Helpers.isEqual(firstChar, "+")))
+        {
+            deltaStr = Helpers.slice(deltaStr, 1, null);
+        }
+        Object deltaShares = Precise.stringDiv(deltaStr, "1000000000000000000");
+        Object contracts = null;
+        Object posId = null;
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(networkId, null))) && Helpers.isTrue((!Helpers.isEqual(marketId, null)))) && Helpers.isTrue((!Helpers.isEqual(outcomeId, null)))))
+        {
+            posId = Helpers.add(Helpers.add(Helpers.add(Helpers.add(networkId, ":"), marketId), "/"), outcomeId);
+            Object balances = this.safeDict(this.options, "positionBalances", new java.util.HashMap<String, Object>() {{}});
+            Object prior = this.safeString(balances, posId, "0");
+            Object updated = Precise.stringAdd(prior, deltaShares);
+            Helpers.addElementToObject(balances, posId, updated);
+            Helpers.addElementToObject(this.options, "positionBalances", balances);
+            contracts = this.parseNumber(updated);
+        }
+        final Object finalPosId = posId;
+        final Object finalContracts = contracts;
         Object parsed = this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", data );
-            put( "id", MyriadCore.this.safeString(data, "txHash") );
+            put( "id", finalPosId );
             put( "symbol", sym );
             put( "timestamp", ts );
             put( "datetime", MyriadCore.this.iso8601(ts) );
             put( "side", "long" );
-            put( "contracts", balance );
+            put( "contracts", finalContracts );
             put( "entryPrice", null );
             put( "markPrice", null );
             put( "notional", null );

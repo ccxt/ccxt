@@ -714,7 +714,15 @@ export default class myriad extends Exchange {
         if (Precise.stringLt(priceWei, '1')) {
             priceWei = '1';
         }
+        // price is a fraction in (0, 1] encoded as 1..1e18 wei (tick is 1 wei); reject out-of-range early
+        if (Precise.stringGt(priceWei, '1000000000000000000')) {
+            throw new InvalidOrder(this.id + ' createOrder() price must be a fraction between 0 and 1');
+        }
         const amountWei = this.toOrderbookWei(amount);
+        // shares are integer wei (1e18 = 1 share); a sub-wei amount that rounds to zero is invalid
+        if (Precise.stringLt(amountWei, '1')) {
+            throw new InvalidOrder(this.id + ' createOrder() amount is too small (rounds to zero shares)');
+        }
         const nonce = this.safeString(params, 'nonce', this.numberToString(this.milliseconds()));
         const expiration = this.safeString(params, 'expiration', '0');
         const minFillAmount = this.safeString(params, 'minFillAmount', '0');
@@ -2712,11 +2720,35 @@ export default class myriad extends Exchange {
         const networkId = this.safeString(this.options, 'defaultNetworkId', '56');
         const channel = 'positions:' + networkId + ':' + trader;
         const messageHash = 'positions';
-        const positions = await this.subscribeMyriadChannel(messageHash, channel, params);
+        const url = this.safeString(this.urls['api'], 'ws');
+        await this.connectCentrifugo(url);
+        const client = this.client(url);
+        const isNewSubscription = this.safeValue(client.subscriptions, channel) === undefined;
+        if (isNewSubscription) {
+            // the channel pushes only signed deltas; seed absolute share balances from REST so
+            // handlePosition can maintain a running contracts figure
+            await this.seedPositionBalances(trader);
+        }
+        const requestId = this.requestId(url);
+        const subscribeMsg = { 'subscribe': { 'channel': channel }, 'id': requestId };
+        const positions = await this.watch(url, messageHash, subscribeMsg, channel);
         if (this.newUpdates) {
             return positions;
         }
         return this.filterBySymbolsSinceLimit(positions, symbols, since, limit, true);
+    }
+    async seedPositionBalances(trader) {
+        const positions = await this.fetchPositions(undefined, { 'address': trader });
+        const balances = {};
+        const positionsLength = positions.length;
+        for (let i = 0; i < positionsLength; i++) {
+            const p = positions[i];
+            const id = this.safeString(p, 'id');
+            if (id !== undefined) {
+                balances[id] = this.numberToString(this.safeNumber(p, 'contracts', 0));
+            }
+        }
+        this.options['positionBalances'] = balances;
     }
     handlePosition(client, data) {
         if (this.positions === undefined) {
@@ -2728,17 +2760,33 @@ export default class myriad extends Exchange {
         const outcomeId = this.safeString(data, 'outcome');
         const sym = this.marketOutcomeToSymbol(networkId, marketId, outcomeId);
         const ts = this.safeInteger(data, 'ts');
-        // the positions channel emits a signed share delta per fill/redeem/split/merge; the absolute
-        // balance and entry price are not pushed (refetch via fetchPositions when the full state is needed)
-        const balance = this.fromWei(this.safeString(data, 'balance'));
+        // the channel pushes a signed share delta per fill/redeem/split/merge (no absolute balance);
+        // apply it to the REST-seeded balance keyed by outcome id to maintain a running contracts figure
+        let deltaStr = this.safeString(data, 'delta', '0');
+        const firstChar = deltaStr.slice(0, 1);
+        if (firstChar === '+') {
+            deltaStr = deltaStr.slice(1);
+        }
+        const deltaShares = Precise.stringDiv(deltaStr, '1000000000000000000');
+        let contracts = undefined;
+        let posId = undefined;
+        if ((networkId !== undefined) && (marketId !== undefined) && (outcomeId !== undefined)) {
+            posId = networkId + ':' + marketId + '/' + outcomeId;
+            const balances = this.safeDict(this.options, 'positionBalances', {});
+            const prior = this.safeString(balances, posId, '0');
+            const updated = Precise.stringAdd(prior, deltaShares);
+            balances[posId] = updated;
+            this.options['positionBalances'] = balances;
+            contracts = this.parseNumber(updated);
+        }
         const parsed = this.safePosition({
             'info': data,
-            'id': this.safeString(data, 'txHash'),
+            'id': posId,
             'symbol': sym,
             'timestamp': ts,
             'datetime': this.iso8601(ts),
             'side': 'long',
-            'contracts': balance,
+            'contracts': contracts,
             'entryPrice': undefined,
             'markPrice': undefined,
             'notional': undefined,
