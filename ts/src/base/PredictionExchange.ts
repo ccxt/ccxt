@@ -2,7 +2,7 @@
 
 import { Exchange } from './Exchange.js';
 import { ExchangeError, BadSymbol, NotSupported, ArgumentsRequired } from './errors.js';
-import type { Str, Strings, Num, Int, Bool, Dictionary, Ticker, OrderBook, OHLCV, Trade, Order, OrderType, OrderSide } from './types.js';
+import type { Str, Strings, Num, Int, Bool, Dictionary, Ticker, OrderBook, OHLCV, Trade, Order, OrderType, OrderSide, Dict } from './types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -268,5 +268,15 @@ export default class PredictionExchange extends Exchange {
 
     async watchTrades (outcome: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         return await super.watchTrades (outcome, since, limit, params);
+    }
+
+    safePredictionOrder (order: Dict, market = undefined): Order {
+        // call base method
+        const parsed = super.safeOrder (order, market);
+        // rename symbol to outcome
+        const outcomeSymbol = this.safeString (order, 'symbol');
+        parsed['outcome'] = outcomeSymbol;
+        delete parsed['symbol'];
+        return parsed;
     }
 }

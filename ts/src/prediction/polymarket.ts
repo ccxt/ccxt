@@ -1542,7 +1542,7 @@ export default class polymarket extends Exchange {
         const amount = this.safeNumber (order, 'original_size');
         const filled = this.safeNumber (order, 'size_matched', 0);
         const ts = this.safeIntegerProduct (order, 'created_at', 1000);
-        return this.safeOrder ({
+        return this.safePredictionOrder ({
             'id': id,
             'clientOrderId': undefined,
             'info': order,
@@ -1934,7 +1934,7 @@ export default class polymarket extends Exchange {
         const canceled = this.safeList (response, 'canceled', []);
         const orders = [];
         for (let i = 0; i < canceled.length; i++) {
-            orders.push (this.safeOrder ({ 'id': this.safeString (canceled, i), 'status': 'canceled', 'info': response }));
+            orders.push (this.safePredictionOrder ({ 'id': this.safeString (canceled, i), 'status': 'canceled', 'info': response }));
         }
         return orders as Order[];
     }
@@ -1966,7 +1966,7 @@ export default class polymarket extends Exchange {
         const canceled = this.safeList (response, 'canceled', []);
         const orders = [];
         for (let i = 0; i < canceled.length; i++) {
-            orders.push (this.safeOrder ({ 'id': this.safeString (canceled, i), 'status': 'canceled', 'info': response }));
+            orders.push (this.safePredictionOrder ({ 'id': this.safeString (canceled, i), 'status': 'canceled', 'info': response }));
         }
         return orders as Order[];
     }
