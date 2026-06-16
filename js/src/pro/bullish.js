@@ -278,7 +278,7 @@ export default class bullish extends bullishRest {
         const url = '/trading-api/v1/market-data/orderbook';
         const messageHash = 'orderbook::' + market['symbol'];
         const request = {
-            'topic': 'l2Orderbook',
+            'topic': 'l2Orderbook', // 'l2Orderbook' returns only snapshots while 'l1Orderbook' returns only updates
             'symbol': market['id'],
         };
         const orderbook = await this.watchPublic(url, messageHash, request, params);

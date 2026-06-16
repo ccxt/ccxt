@@ -51,9 +51,9 @@ class whitebit extends whitebit$1["default"] {
             'exceptions': {
                 'ws': {
                     'exact': {
-                        '1': errors.BadRequest,
-                        '2': errors.BadRequest,
-                        '4': errors.BadRequest,
+                        '1': errors.BadRequest, // { error: { code: 1, message: 'invalid argument' }, result: null, id: 1656404342 }
+                        '2': errors.BadRequest, // { error: { code: 2, message: 'internal error' }, result: null, id: 1656404075 }
+                        '4': errors.BadRequest, // { error: { code: 4, message: 'method not found' }, result: null, id: 1656404250 }
                         '6': errors.AuthenticationError, // { error: { code: 6, message: 'require authentication' }, result: null, id: 1656404076 }
                     },
                 },

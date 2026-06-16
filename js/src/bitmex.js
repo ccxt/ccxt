@@ -21,7 +21,7 @@ export default class bitmex extends Exchange {
         return this.deepExtend(super.describe(), {
             'id': 'bitmex',
             'name': 'BitMEX',
-            'countries': ['SC'],
+            'countries': ['SC'], // Seychelles
             'version': 'v1',
             'userAgent': undefined,
             // cheapest endpoints are 10 requests per second (trading)
@@ -73,7 +73,7 @@ export default class bitmex extends Exchange {
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
-                'fetchFundingRate': 'emulated',
+                'fetchFundingRate': 'emulated', // emulated in exchange
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchGreeks': false,
@@ -279,8 +279,8 @@ export default class bitmex extends Exchange {
                     'Signature not valid': AuthenticationError,
                     'overloaded': ExchangeNotAvailable,
                     'Account has insufficient Available Balance': InsufficientFunds,
-                    'Service unavailable': ExchangeNotAvailable,
-                    'Server Error': ExchangeError,
+                    'Service unavailable': ExchangeNotAvailable, // {"error":{"message":"Service unavailable","name":"HTTPError"}}
+                    'Server Error': ExchangeError, // {"error":{"message":"Server Error","name":"HTTPError"}}
                     'Unable to cancel order due to existing state': InvalidOrder,
                     'We require all new traders to verify': PermissionDenied, // {"message":"We require all new traders to verify their identity before their first deposit. Please visit bitmex.com/verify to complete the process.","name":"HTTPError"}
                 },
@@ -289,7 +289,7 @@ export default class bitmex extends Exchange {
             'options': {
                 // https://blog.bitmex.com/api_announcement/deprecation-of-api-nonce-header/
                 // https://github.com/ccxt/ccxt/issues/4789
-                'api-expires': 5,
+                'api-expires': 5, // in seconds
                 'fetchOHLCVOpenTimestamp': true,
                 'oldPrecision': false,
                 'networks': {
@@ -853,7 +853,7 @@ export default class bitmex extends Exchange {
                     'max': positionIsQuote ? maxOrderQty : undefined,
                 },
             },
-            'created': undefined,
+            'created': undefined, // 'listing' field is buggy, e.g. 2200-02-01T00:00:00.000Z
             'info': market,
         };
     }
@@ -2043,7 +2043,7 @@ export default class bitmex extends Exchange {
         const request = {
             'symbol': market['id'],
             'side': this.capitalize(side),
-            'orderQty': qty,
+            'orderQty': qty, // lot size multiplied by the number of contracts
             'ordType': capitalizeOrderType,
             'text': brokerId,
         };
@@ -2878,7 +2878,7 @@ export default class bitmex extends Exchange {
             'info': response,
             'currency': code,
             'network': networkCode,
-            'address': response.replace('"', '').replace('"', ''),
+            'address': response.replace('"', '').replace('"', ''), // Done twice because some languages only replace the first instance
             'tag': undefined,
         };
     }
@@ -3044,8 +3044,8 @@ export default class bitmex extends Exchange {
         return this.safeOpenInterest({
             'info': interest,
             'symbol': symbol,
-            'baseVolume': openInterest,
-            'quoteVolume': openValue,
+            'baseVolume': openInterest, // deprecated
+            'quoteVolume': openValue, // deprecated
             'openInterestAmount': openInterest,
             'openInterestValue': openValue,
             'timestamp': undefined,

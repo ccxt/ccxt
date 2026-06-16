@@ -524,16 +524,16 @@ class bitstamp extends bitstamp$1["default"] {
                     'Your account is frozen': errors.PermissionDenied,
                     'Please update your profile with your FATCA information, before using API.': errors.PermissionDenied,
                     'Order not found.': errors.OrderNotFound,
-                    "Bitstamp.net is under scheduled maintenance. We'll be back soon.": errors.OnMaintenance,
-                    'Order could not be placed.': errors.ExchangeNotAvailable,
+                    "Bitstamp.net is under scheduled maintenance. We'll be back soon.": errors.OnMaintenance, // { "error": "Bitstamp.net is under scheduled maintenance. We'll be back soon." }
+                    'Order could not be placed.': errors.ExchangeNotAvailable, // Order could not be placed (perhaps due to internal error or trade halt). Please retry placing order.
                     'Invalid offset.': errors.BadRequest,
                     'Trading is currently unavailable for your account.': errors.AccountSuspended, // {"status": "error", "reason": {"__all__": ["Trading is currently unavailable for your account."]}, "response_code": "403.004"}
                 },
                 'broad': {
-                    'Minimum order size is': errors.InvalidOrder,
+                    'Minimum order size is': errors.InvalidOrder, // Minimum order size is 5.0 EUR.
                     'Price is more than': errors.InvalidOrder,
-                    'Check your account balance for details.': errors.InsufficientFunds,
-                    'Ensure this value has at least': errors.InvalidAddress,
+                    'Check your account balance for details.': errors.InsufficientFunds, // You have only 0.00100000 BTC available. Check your account balance for details.
+                    'Ensure this value has at least': errors.InvalidAddress, // Ensure this value has at least 25 characters (it has 4).
                     'Ensure that there are no more than': errors.InvalidOrder, // {"status": "error", "reason": {"amount": ["Ensure that there are no more than 0 decimal places."], "__all__": [""]}}
                 },
             },
@@ -746,7 +746,7 @@ class bitstamp extends bitstamp$1["default"] {
         return {
             'id': id,
             'code': code,
-            'info': originalPayload,
+            'info': originalPayload, // the original payload
             'type': currencyType,
             'name': name,
             'active': true,
@@ -2119,10 +2119,10 @@ class bitstamp extends bitstamp$1["default"] {
         //   0 (open), 1 (in process), 2 (finished), 3 (canceled) or 4 (failed).
         //
         const statuses = {
-            '0': 'pending',
-            '1': 'pending',
-            '2': 'ok',
-            '3': 'canceled',
+            '0': 'pending', // Open
+            '1': 'pending', // In process
+            '2': 'ok', // Finished
+            '3': 'canceled', // Canceled
             '4': 'failed', // Failed
         };
         return this.safeString(statuses, status, status);

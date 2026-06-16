@@ -15,7 +15,8 @@ class bequant(hitbtc):
         # eslint-disable-next-line new-cap
         restInstance = bequantRest()
         restDescribe = restInstance.describe()
-        extended = self.deep_extend(super(bequant, self).describe(), restDescribe)
+        parentWsDescribe = super(bequant, self).describe_data()
+        extended = self.deep_extend(restDescribe, parentWsDescribe)
         return self.deep_extend(extended, {
             'id': 'bequant',
             'name': 'Bequant',

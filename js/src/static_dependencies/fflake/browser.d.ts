@@ -5,7 +5,7 @@ export function deflate(data: any, opts: any, cb: any): () => void;
  * @param opts The compression options
  * @returns The deflated version of the data
  */
-export function deflateSync(data: any, opts: any): Uint8Array | Uint16Array | Uint32Array;
+export function deflateSync(data: any, opts: any): Uint8Array<ArrayBuffer> | Uint16Array<ArrayBuffer> | Uint32Array<ArrayBuffer>;
 export function inflate(data: any, opts: any, cb: any): () => void;
 /**
  * Expands DEFLATE data with no wrapper
@@ -21,7 +21,7 @@ export function gzip(data: any, opts: any, cb: any): () => void;
  * @param opts The compression options
  * @returns The gzipped version of the data
  */
-export function gzipSync(data: any, opts: any): Uint8Array | Uint16Array | Uint32Array;
+export function gzipSync(data: any, opts: any): Uint8Array<ArrayBuffer> | Uint16Array<ArrayBuffer> | Uint32Array<ArrayBuffer>;
 export function gunzip(data: any, opts: any, cb: any): () => void;
 /**
  * Expands GZIP data
@@ -37,7 +37,7 @@ export function zlib(data: any, opts: any, cb: any): () => void;
  * @param opts The compression options
  * @returns The zlib-compressed version of the data
  */
-export function zlibSync(data: any, opts: any): Uint8Array | Uint16Array | Uint32Array;
+export function zlibSync(data: any, opts: any): Uint8Array<ArrayBuffer> | Uint16Array<ArrayBuffer> | Uint32Array<ArrayBuffer>;
 export function unzlib(data: any, opts: any, cb: any): () => void;
 /**
  * Expands Zlib data
@@ -61,7 +61,7 @@ export function decompressSync(data: any, out: any): any;
  *               not need to be true unless decoding a binary string.
  * @returns The string encoded in UTF-8/Latin-1 binary
  */
-export function strToU8(str: any, latin1: any): Uint8Array | Uint16Array | Uint32Array;
+export function strToU8(str: any, latin1: any): Uint16Array<ArrayBuffer> | Uint32Array<ArrayBuffer> | Uint8Array<any>;
 /**
  * Converts a Uint8Array to a string
  * @param dat The data to decode to string
@@ -69,7 +69,7 @@ export function strToU8(str: any, latin1: any): Uint8Array | Uint16Array | Uint3
  *               not need to be true unless encoding to binary string.
  * @returns The original UTF-8/Latin-1 string
  */
-export function strFromU8(dat: any, latin1: any): string | Uint8Array | Uint16Array | Uint32Array;
+export function strFromU8(dat: any, latin1: any): string | Uint8Array<ArrayBuffer> | Uint16Array<ArrayBuffer> | Uint32Array<ArrayBuffer>;
 export function zip(data: any, opts: any, cb: any): () => void;
 /**
  * Synchronously creates a ZIP file. Prefer using `zip` for better performance
@@ -78,7 +78,7 @@ export function zip(data: any, opts: any, cb: any): () => void;
  * @param opts The main options, merged with per-file options
  * @returns The generated ZIP archive
  */
-export function zipSync(data: any, opts: any): Uint8Array;
+export function zipSync(data: any, opts: any): Uint8Array<ArrayBuffer>;
 export function unzip(data: any, opts: any, cb: any): () => void;
 /**
  * Synchronously decompresses a ZIP archive. Prefer using `unzip` for better
@@ -89,21 +89,21 @@ export function unzip(data: any, opts: any, cb: any): () => void;
  */
 export function unzipSync(data: any, opts: any): {};
 export namespace FlateErrorCode {
-    const UnexpectedEOF: number;
-    const InvalidBlockType: number;
-    const InvalidLengthLiteral: number;
-    const InvalidDistance: number;
-    const StreamFinished: number;
-    const NoStreamHandler: number;
-    const InvalidHeader: number;
-    const NoCallback: number;
-    const InvalidUTF8: number;
-    const ExtraFieldTooLong: number;
-    const InvalidDate: number;
-    const FilenameTooLong: number;
-    const StreamFinishing: number;
-    const InvalidZipData: number;
-    const UnknownCompressionMethod: number;
+    let UnexpectedEOF: number;
+    let InvalidBlockType: number;
+    let InvalidLengthLiteral: number;
+    let InvalidDistance: number;
+    let StreamFinished: number;
+    let NoStreamHandler: number;
+    let InvalidHeader: number;
+    let NoCallback: number;
+    let InvalidUTF8: number;
+    let ExtraFieldTooLong: number;
+    let InvalidDate: number;
+    let FilenameTooLong: number;
+    let StreamFinishing: number;
+    let InvalidZipData: number;
+    let UnknownCompressionMethod: number;
 }
 /**
  * Streaming DEFLATE compression

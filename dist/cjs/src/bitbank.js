@@ -20,7 +20,7 @@ class bitbank extends bitbank$1["default"] {
             'name': 'bitbank',
             'countries': ['JP'],
             'version': 'v1',
-            'rateLimit': 100,
+            'rateLimit': 100, // https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -170,9 +170,9 @@ class bitbank extends bitbank$1["default"] {
                         'user/spot/order': 1.66,
                         'user/spot/cancel_order': 1.66,
                         'user/spot/cancel_orders': 1.66,
-                        'user/spot/orders_info': 1.66,
-                        'user/confirm_deposits': 1.66,
-                        'user/confirm_deposits_all': 1.66,
+                        'user/spot/orders_info': 1.66, // might be 10/s, based on docs at https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
+                        'user/confirm_deposits': 1.66, // might be 10/s, based on docs at https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
+                        'user/confirm_deposits_all': 1.66, // might be 10/s, based on docs at https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
                         'user/request_withdrawal': 1.66,
                     },
                 },
@@ -187,7 +187,7 @@ class bitbank extends bitbank$1["default"] {
                     'sandbox': false,
                     'createOrder': {
                         'marginMode': false,
-                        'triggerPrice': true,
+                        'triggerPrice': true, // todo implement
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
                         'stopLossPrice': false,
@@ -196,7 +196,7 @@ class bitbank extends bitbank$1["default"] {
                         'timeInForce': {
                             'IOC': false,
                             'FOK': false,
-                            'PO': true,
+                            'PO': true, // todo: implement
                             'GTD': false,
                         },
                         'hedged': false,

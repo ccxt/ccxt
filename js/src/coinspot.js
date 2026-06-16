@@ -20,7 +20,7 @@ export default class coinspot extends Exchange {
         return this.deepExtend(super.describe(), {
             'id': 'coinspot',
             'name': 'CoinSpot',
-            'countries': ['AU'],
+            'countries': ['AU'], // Australia
             'rateLimit': 1000,
             'pro': false,
             'has': {
@@ -278,13 +278,13 @@ export default class coinspot extends Exchange {
                         'marginMode': false,
                         'limit': undefined,
                         'daysBack': 100000,
-                        'untilDays': 100000,
+                        'untilDays': 100000, // todo implement
                         'symbolRequired': false,
                     },
                     'fetchOrder': undefined,
-                    'fetchOpenOrders': undefined,
+                    'fetchOpenOrders': undefined, // todo implement
                     'fetchOrders': undefined,
-                    'fetchClosedOrders': undefined,
+                    'fetchClosedOrders': undefined, // todo implement
                     'fetchOHLCV': undefined,
                 },
                 'swap': {

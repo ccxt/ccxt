@@ -15,7 +15,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _FixedNumber_instances, _FixedNumber_format, _FixedNumber_val, _FixedNumber_tens, _FixedNumber_checkFormat, _FixedNumber_checkValue, _FixedNumber_add, _FixedNumber_sub, _FixedNumber_mul, _FixedNumber_div;
+var _FixedNumber_instances, _a, _FixedNumber_format, _FixedNumber_val, _FixedNumber_tens, _FixedNumber_checkFormat, _FixedNumber_checkValue, _FixedNumber_add, _FixedNumber_sub, _FixedNumber_mul, _FixedNumber_div;
 /**
  *  The **FixedNumber** class permits using values with decimal places,
  *  using fixed-pont math.
@@ -381,7 +381,7 @@ export class FixedNumber {
         const tens = getTens(delta);
         value = (value / tens) * tens;
         checkValue(value, __classPrivateFieldGet(this, _FixedNumber_format, "f"), "round");
-        return new FixedNumber(_guard, value, __classPrivateFieldGet(this, _FixedNumber_format, "f"));
+        return new _a(_guard, value, __classPrivateFieldGet(this, _FixedNumber_format, "f"));
     }
     /**
      *  Returns true if %%this%% is equal to ``0``.
@@ -410,7 +410,7 @@ export class FixedNumber {
      *  This will throw if the value cannot fit into %%format%%.
      */
     toFormat(format) {
-        return FixedNumber.fromString(this.toString(), format);
+        return _a.fromString(this.toString(), format);
     }
     /**
      *  Creates a new [[FixedNumber]] for %%value%% divided by
@@ -436,7 +436,7 @@ export class FixedNumber {
             value *= getTens(-delta);
         }
         checkValue(value, format, "fromValue");
-        return new FixedNumber(_guard, value, format);
+        return new _a(_guard, value, format);
     }
     /**
      *  Creates a new [[FixedNumber]] for %%value%% with %%format%%.
@@ -461,7 +461,7 @@ export class FixedNumber {
         decimal = decimal.substring(0, format.decimals);
         const value = BigInt(match[1] + whole + decimal);
         checkValue(value, format, "fromString");
-        return new FixedNumber(_guard, value, format);
+        return new _a(_guard, value, format);
     }
     /**
      *  Creates a new [[FixedNumber]] with the big-endian representation
@@ -477,10 +477,10 @@ export class FixedNumber {
             value = fromTwos(value, format.width);
         }
         checkValue(value, format, "fromBytes");
-        return new FixedNumber(_guard, value, format);
+        return new _a(_guard, value, format);
     }
 }
-_FixedNumber_format = new WeakMap(), _FixedNumber_val = new WeakMap(), _FixedNumber_tens = new WeakMap(), _FixedNumber_instances = new WeakSet(), _FixedNumber_checkFormat = function _FixedNumber_checkFormat(other) {
+_a = FixedNumber, _FixedNumber_format = new WeakMap(), _FixedNumber_val = new WeakMap(), _FixedNumber_tens = new WeakMap(), _FixedNumber_instances = new WeakSet(), _FixedNumber_checkFormat = function _FixedNumber_checkFormat(other) {
     assertArgument(this.format === other.format, "incompatible format; use fixedNumber.toFormat", "other", other);
 }, _FixedNumber_checkValue = function _FixedNumber_checkValue(val, safeOp) {
     /*
@@ -506,7 +506,7 @@ _FixedNumber_format = new WeakMap(), _FixedNumber_val = new WeakMap(), _FixedNum
             }
     */
     val = checkValue(val, __classPrivateFieldGet(this, _FixedNumber_format, "f"), safeOp);
-    return new FixedNumber(_guard, val, __classPrivateFieldGet(this, _FixedNumber_format, "f"));
+    return new _a(_guard, val, __classPrivateFieldGet(this, _FixedNumber_format, "f"));
 }, _FixedNumber_add = function _FixedNumber_add(o, safeOp) {
     __classPrivateFieldGet(this, _FixedNumber_instances, "m", _FixedNumber_checkFormat).call(this, o);
     return __classPrivateFieldGet(this, _FixedNumber_instances, "m", _FixedNumber_checkValue).call(this, __classPrivateFieldGet(this, _FixedNumber_val, "f") + __classPrivateFieldGet(o, _FixedNumber_val, "f"), safeOp);

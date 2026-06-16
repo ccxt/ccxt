@@ -133,7 +133,8 @@ class testMainClass {
             exitScript (0);
         }
         await this.importFiles (exchange);
-        assert (Object.keys (this.testFiles).length > 0, 'Test files were not loaded'); // ensure test files are found & filled
+        // ensure test files are found & filled
+        assert (Object.keys (this.testFiles).length > 0, 'Test files were not loaded');
         this.expandSettings (exchange);
         this.checkIfSpecificTestIsChosen (methodArgv);
         await this.startTest (exchange, symbolArgv);
@@ -945,6 +946,7 @@ class testMainClass {
         if (this.sandbox || getExchangeProp (exchange, 'sandbox')) {
             exchange.setSandboxMode (true);
         }
+        this.testHasProps (exchange);
         // because of python-async, we need proper `.close()` handling
         try {
             const result = await this.loadExchange (exchange);
@@ -969,6 +971,19 @@ class testMainClass {
             throw e;
         }
         return true; // required in c#
+    }
+
+    testHasProps (exchange: Exchange) {
+        const watchOrderBookSkips = this.getSkips (exchange, 'watchOrderBook');
+        const fetchOrderBookSkips = this.getSkips (exchange, 'fetchOrderBook');
+        // ensure with hardcoded list of required methods
+        if (this.wsTests && !exchange.safeBool (exchange.has, 'watchOrderBook', false) && typeof watchOrderBookSkips !== 'string') {
+            dump ('[TEST_FAILURE] Method "watchOrderBook" is not set in "has", please check the "has" property of exchange');
+            exitScript (1);
+        } else if (!this.wsTests && !exchange.safeBool (exchange.has, 'fetchOrderBook', false) && typeof fetchOrderBookSkips !== 'string') {
+            dump ('[TEST_FAILURE] Method "fetchOrderBook" is not set in "has", please check the "has" property of exchange');
+            exitScript (1);
+        }
     }
 
     assertStaticError (cond:boolean, message: string, calculatedOutput, storedOutput, key = undefined) {

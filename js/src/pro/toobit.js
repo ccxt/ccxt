@@ -59,7 +59,7 @@ export default class toobit extends toobitRest {
                 },
             },
             'streaming': {
-                'keepAlive': (60 - 1) * 5 * 1000,
+                'keepAlive': (60 - 1) * 5 * 1000, // every 5 minutes
                 'ping': this.ping,
             },
             'exceptions': {

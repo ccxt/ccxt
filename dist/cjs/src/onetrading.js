@@ -18,7 +18,7 @@ class onetrading extends onetrading$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'onetrading',
             'name': 'One Trading',
-            'countries': ['AT'],
+            'countries': ['AT'], // Austria
             'rateLimit': 300,
             'version': 'v1',
             'pro': true,
@@ -353,8 +353,8 @@ class onetrading extends onetrading$1["default"] {
                     'fetchMyTrades': {
                         'marginMode': false,
                         'limit': 100,
-                        'daysBack': 100000,
-                        'untilDays': 100000,
+                        'daysBack': 100000, // todo
+                        'untilDays': 100000, // todo
                         'symbolRequired': false,
                     },
                     'fetchOrder': {
@@ -370,13 +370,13 @@ class onetrading extends onetrading$1["default"] {
                         'trailing': false,
                         'symbolRequired': false,
                     },
-                    'fetchOrders': undefined,
+                    'fetchOrders': undefined, // todo
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 100,
-                        'daysBack': 100000,
-                        'daysBackCanceled': 1 / 12,
-                        'untilDays': 100000,
+                        'daysBack': 100000, // todo
+                        'daysBackCanceled': 1 / 12, // todo
+                        'untilDays': 100000, // todo
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
@@ -1351,8 +1351,8 @@ class onetrading extends onetrading$1["default"] {
         const uppercaseType = type.toUpperCase();
         const request = {
             'instrument_code': market['id'],
-            'type': uppercaseType,
-            'side': side.toUpperCase(),
+            'type': uppercaseType, // LIMIT, MARKET, STOP
+            'side': side.toUpperCase(), // or SELL
             'amount': this.amountToPrecision(symbol, amount),
             // "price": "1234.5678", // required for LIMIT and STOP orders
             // "client_id": "d75fb03b-b599-49e9-b926-3f0b6d103206", // optional

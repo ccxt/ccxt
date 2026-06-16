@@ -12343,14 +12343,17 @@ final Object finalMinNotional = minNotional;
             {
                 if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
                 {
-                    Object queryInner = Helpers.add("?", this.urlencode(this.keysort(parameters)));
+                    Object sortedParams = this.keysort(parameters);
+                    Object queryInner = Helpers.add("?", this.urlencode(sortedParams, true));
                     // check #21169 pr
                     if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(queryInner, "%24"), Helpers.opNeg(1))))
                     {
                         queryInner = Helpers.replace((String)queryInner, (String)"%24", (String)"$");
                     }
                     url = Helpers.add(url, queryInner);
-                    auth = Helpers.add(auth, queryInner);
+                    // bitget signs the raw (non-percent-encoded) query string, so the
+                    // signature must use the decoded values (e.g. non-ascii market ids)
+                    auth = Helpers.add(auth, Helpers.add("?", this.rawencode(sortedParams)));
                 }
             }
             Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "base64");

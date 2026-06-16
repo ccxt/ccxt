@@ -402,9 +402,7 @@ class Exchange {
         const nameBytes = new TextEncoder().encode(name);
         const data = new Uint8Array([...nsBytes, ...nameBytes]);
         const nsHash = legacy_js.sha1(data);
-        // eslint-disable-next-line
         nsHash[6] = (nsHash[6] & 0x0f) | 0x50;
-        // eslint-disable-next-line
         nsHash[8] = (nsHash[8] & 0x3f) | 0x80;
         const hex = [...nsHash.slice(0, 16)]
             .map((b) => b.toString(16).padStart(2, '0'))
@@ -512,7 +510,6 @@ class Exchange {
         }
     }
     log(...args) {
-        // eslint-disable-next-line no-console
         console.log(...args);
     }
     async loadProxyModules() {
@@ -533,7 +530,7 @@ class Exchange {
                         // @ts-ignore
                         this.httpProxyAgentModule = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'http-proxy-agent')); });
                         // @ts-ignore
-                        this.httpsProxyAgentModule = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'https-proxy-agent')); }); // eslint-disable-line
+                        this.httpsProxyAgentModule = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'https-proxy-agent')); });
                     }
                     catch (err) {
                         // TODO: handle error
@@ -742,7 +739,7 @@ class Exchange {
                     // some users having issues with dynamic imports (https://github.com/ccxt/ccxt/pull/20687)
                     // so let them to fallback to node's native fetch
                     if (typeof fetch === 'function') {
-                        this.fetchImplementation = fetch; // eslint-disable-line
+                        this.fetchImplementation = fetch;
                         // as it's browser-compatible implementation ( https://nodejs.org/dist/latest-v20.x/docs/api/globals.html#fetch )
                         // it throws same error types
                         this.AbortError = DOMException;
@@ -1642,7 +1639,6 @@ class Exchange {
         this.checkLighterSignedError(res);
         return signer;
     }
-    // eslint-disable-next-line no-unused-vars
     lighterSignCreateGroupedOrders(signer, request) {
         const orders = request['orders'];
         const ordersArr = [];
@@ -1666,7 +1662,6 @@ class Exchange {
         this.checkLighterSignedError(res);
         return [res.txType, res.txInfo];
     }
-    // eslint-disable-next-line no-unused-vars
     lighterSignCreateOrder(signer, request) {
         const res = (globalThis.SignCreateOrder(parseInt(request['market_index']), request['client_order_index'], request['base_amount'], request['avg_execution_price'], request['is_ask'], request['order_type'], request['time_in_force'], request['reduce_only'], request['trigger_price'], request['order_expiry'], request['integrator_account_index'], request['integrator_taker_fee'], request['integrator_maker_fee'], 1, // skip nonce
         request['nonce'], request['api_key_index'], request['account_index']));
@@ -1690,7 +1685,6 @@ class Exchange {
         this.checkLighterSignedError(res);
         return [res.txType, res.txInfo];
     }
-    // eslint-disable-next-line no-unused-vars
     lighterSignCreateSubAccount(signer, request) {
         const res = (globalThis.SignCreateSubAccount(1, // skip nonce
         request['nonce'], request['api_key_index'], request['account_index']));
@@ -1732,7 +1726,6 @@ class Exchange {
         this.checkLighterSignedError(res);
         return [res.txType, res.txInfo];
     }
-    // eslint-disable-next-line no-unused-vars
     lighterSignApproveIntegrator(signer, request) {
         const res = globalThis.SignApproveIntegrator(request['integrator_account_index'], request['integrator_taker_fee'], request['integrator_maker_fee'], request['integrator_taker_fee'], request['integrator_maker_fee'], request['approval_expiry'], 1, // skip nonce
         request['nonce'], request['api_key_index'], request['account_index']);
@@ -1745,14 +1738,12 @@ class Exchange {
         this.checkLighterSignedError(res);
         return [res.privateKey, res.publicKey];
     }
-    // eslint-disable-next-line no-unused-vars
     lighterSignChangePubkey(signer, request) {
         const res = globalThis.SignChangePubKey(Buffer.from(request['pubkey']).toString(), 1, // skip nonce
         request['nonce'], request['api_key_index'], request['account_index']);
         this.checkLighterSignedError(res);
         return [res.txType, res.txInfo, res.messageToSign];
     }
-    /* eslint-enable */
     // ------------------------------------------------------------------------
     // ########################################################################
     // ########################################################################
@@ -1798,12 +1789,12 @@ class Exchange {
             'name': this.name,
             'countries': this.countries,
             'enableRateLimit': this.enableRateLimit,
-            'rateLimit': this.rateLimit,
+            'rateLimit': this.rateLimit, // milliseconds = seconds * 1000
             'rateLimiterAlgorithm': this.rateLimiterAlgorithm,
-            'timeout': this.timeout,
-            'certified': this.certified,
-            'pro': this.pro,
-            'alias': this.alias,
+            'timeout': this.timeout, // milliseconds = seconds * 1000
+            'certified': this.certified, // if certified by the CCXT dev team
+            'pro': this.pro, // if it is integrated with CCXT Pro for WebSocket support
+            'alias': this.alias, // whether this exchange is an alias to another exchange
             'dex': false,
             'has': {
                 'publicAPI': true,
@@ -2064,14 +2055,14 @@ class Exchange {
                 'accountId': false,
                 'login': false,
                 'password': false,
-                'twofa': false,
-                'privateKey': false,
-                'walletAddress': false,
+                'twofa': false, // 2-factor authentication (one-time password key)
+                'privateKey': false, // a "0x"-prefixed hexstring private key for a wallet
+                'walletAddress': false, // the wallet address "0x"-prefixed hexstring
                 'token': false, // reserved for HTTP auth in some cases
             },
-            'markets': undefined,
-            'currencies': {},
-            'timeframes': undefined,
+            'markets': undefined, // to be filled manually or by fetchMarkets
+            'currencies': {}, // to be filled manually or by fetchMarkets
+            'timeframes': undefined, // redefine if the exchange has.fetchOHLCV
             'fees': {
                 'trading': {
                     'tierBased': undefined,
@@ -3888,7 +3879,7 @@ class Exchange {
             'postOnly': postOnly,
             'trades': trades,
             'reduceOnly': this.safeValue(order, 'reduceOnly'),
-            'stopPrice': triggerPrice,
+            'stopPrice': triggerPrice, // ! deprecated, use triggerPrice instead
             'triggerPrice': triggerPrice,
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': stopLossPrice,
@@ -4596,11 +4587,11 @@ class Exchange {
     parseOHLCV(ohlcv, market = undefined) {
         if (Array.isArray(ohlcv)) {
             return [
-                this.safeInteger(ohlcv, 0),
-                this.safeNumber(ohlcv, 1),
-                this.safeNumber(ohlcv, 2),
-                this.safeNumber(ohlcv, 3),
-                this.safeNumber(ohlcv, 4),
+                this.safeInteger(ohlcv, 0), // timestamp
+                this.safeNumber(ohlcv, 1), // open
+                this.safeNumber(ohlcv, 2), // high
+                this.safeNumber(ohlcv, 3), // low
+                this.safeNumber(ohlcv, 4), // close
                 this.safeNumber(ohlcv, 5), // volume
             ];
         }
@@ -5275,12 +5266,12 @@ class Exchange {
             if (isFirstCandle || openingTime >= this.sum(ohlcvs[candle][i_timestamp], ms)) {
                 // moved to a new timeframe -> create a new candle from opening trade
                 ohlcvs.push([
-                    openingTime,
-                    price,
-                    price,
-                    price,
-                    price,
-                    trade['amount'],
+                    openingTime, // timestamp
+                    price, // O
+                    price, // H
+                    price, // L
+                    price, // C
+                    trade['amount'], // V
                     1, // count
                 ]);
             }
@@ -6584,8 +6575,8 @@ class Exchange {
     }
     isLeveragedCurrency(currencyCode, checkBaseCoin = false, existingCurrencies = undefined) {
         const leverageSuffixes = [
-            '2L', '2S', '3L', '3S', '4L', '4S', '5L', '5S',
-            'UP', 'DOWN',
+            '2L', '2S', '3L', '3S', '4L', '4S', '5L', '5S', // Leveraged Tokens (LT)
+            'UP', 'DOWN', // exchange-specific (e.g. BLVT)
             'BULL', 'BEAR', // similar
         ];
         for (let i = 0; i < leverageSuffixes.length; i++) {
@@ -7929,8 +7920,8 @@ class Exchange {
         }
         return this.extend(interest, {
             'symbol': symbol,
-            'baseVolume': this.safeNumber(interest, 'baseVolume'),
-            'quoteVolume': this.safeNumber(interest, 'quoteVolume'),
+            'baseVolume': this.safeNumber(interest, 'baseVolume'), // deprecated
+            'quoteVolume': this.safeNumber(interest, 'quoteVolume'), // deprecated
             'openInterestAmount': this.safeNumber(interest, 'openInterestAmount'),
             'openInterestValue': this.safeNumber(interest, 'openInterestValue'),
             'timestamp': this.safeInteger(interest, 'timestamp'),

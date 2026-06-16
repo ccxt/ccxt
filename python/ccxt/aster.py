@@ -1381,7 +1381,6 @@ class aster(Exchange, ImplicitAPI):
         last = self.safe_string(ticker, 'lastPrice')
         open = self.safe_string(ticker, 'openPrice')
         percentage = self.safe_string(ticker, 'priceChangePercent')
-        percentage = Precise.string_mul(percentage, '100')
         quoteVolume = self.safe_string(ticker, 'quoteVolume')
         baseVolume = self.safe_string(ticker, 'volume')
         high = self.safe_string(ticker, 'highPrice')

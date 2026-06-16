@@ -3,7 +3,7 @@ import { Abi } from './abi.js';
 /**
  * format produced after compressing 'program' property
  */
-export declare type LegacyContractClass = {
+export type LegacyContractClass = {
     program: CompressedProgram;
     entry_points_by_type: EntryPointsByType;
     abi: Abi;
@@ -11,18 +11,18 @@ export declare type LegacyContractClass = {
 /**
  * format produced after compiling .cairo to .json
  */
-export declare type LegacyCompiledContract = Omit<LegacyContractClass, 'program'> & {
+export type LegacyCompiledContract = Omit<LegacyContractClass, 'program'> & {
     program: Program;
 };
 /** SUBTYPES */
-export declare type Builtins = string[];
-export declare type CompressedProgram = string;
-export declare type EntryPointsByType = {
+export type Builtins = string[];
+export type CompressedProgram = string;
+export type EntryPointsByType = {
     CONSTRUCTOR: ContractEntryPointFields[];
     EXTERNAL: ContractEntryPointFields[];
     L1_HANDLER: ContractEntryPointFields[];
 };
-export declare type ContractEntryPointFields = {
+export type ContractEntryPointFields = {
     selector: string;
     offset: string | number;
     builtins?: Builtins;

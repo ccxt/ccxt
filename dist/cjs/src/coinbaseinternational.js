@@ -22,7 +22,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             'countries': ['US'],
             'certified': false,
             'pro': true,
-            'rateLimit': 100,
+            'rateLimit': 100, // 10 requests per second
             'version': 'v1',
             'userAgent': this.userAgents['chrome'],
             'headers': {
@@ -244,7 +244,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             },
             'options': {
                 'brokerId': 'nfqkvdjp',
-                'portfolio': '',
+                'portfolio': '', // default portfolio id
                 'withdraw': {
                     'method': 'v1PrivatePostTransfersWithdraw', // use v1PrivatePostTransfersWithdrawCounterparty for counterparty withdrawals
                 },
@@ -266,8 +266,8 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': true,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo implementation
+                        'takeProfitPrice': false, // todo implementation
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -281,7 +281,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
                         'leverage': false,
                         'marketBuyByCost': false,
                         'marketBuyRequiresPrice': true,
-                        'selfTradePrevention': true,
+                        'selfTradePrevention': true, // todo: implement
                         'iceberg': false,
                     },
                     'createOrders': undefined,
@@ -1197,7 +1197,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             'timestamp': this.parse8601(datetime),
             'datetime': datetime,
             'network': this.networkIdToCode(this.safeString(transaction, 'network_name'), code),
-            'address': undefined,
+            'address': undefined, // TODO check if withdraw or deposit and populate
             'addressTo': addressTo,
             'addressFrom': addressFrom,
             'tag': undefined,

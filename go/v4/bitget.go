@@ -12496,13 +12496,16 @@ func (this *BitgetCore) Sign(path any, optionalArgs ...any) any {
 			auth = Add(auth, body)
 		} else {
 			if IsTrue(GetArrayLength(ObjectKeys(params))) {
-				var queryInner any = Add("?", this.Urlencode(this.Keysort(params)))
+				var sortedParams any = this.Keysort(params)
+				var queryInner any = Add("?", this.Urlencode(sortedParams, true))
 				// check #21169 pr
 				if IsTrue(IsGreaterThan(GetIndexOf(queryInner, "%24"), OpNeg(1))) {
 					queryInner = Replace(queryInner, "%24", "$")
 				}
 				url = Add(url, queryInner)
-				auth = Add(auth, queryInner)
+				// bitget signs the raw (non-percent-encoded) query string, so the
+				// signature must use the decoded values (e.g. non-ascii market ids)
+				auth = Add(auth, Add("?", this.Rawencode(sortedParams)))
 			}
 		}
 		var signature any = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256, "base64")

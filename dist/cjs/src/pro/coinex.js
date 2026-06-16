@@ -65,21 +65,21 @@ class coinex extends coinex$1["default"] {
             'streaming': {},
             'exceptions': {
                 'exact': {
-                    '20001': errors.BadRequest,
-                    '20002': errors.NotSupported,
-                    '21001': errors.AuthenticationError,
-                    '21002': errors.AuthenticationError,
-                    '23001': errors.RequestTimeout,
-                    '23002': errors.RateLimitExceeded,
-                    '24001': errors.ExchangeError,
-                    '24002': errors.ExchangeNotAvailable,
-                    '30001': errors.BadRequest,
-                    '30002': errors.NotSupported,
-                    '31001': errors.AuthenticationError,
-                    '31002': errors.AuthenticationError,
-                    '33001': errors.RequestTimeout,
-                    '33002': errors.RateLimitExceeded,
-                    '34001': errors.ExchangeError,
+                    '20001': errors.BadRequest, // Invalid argument
+                    '20002': errors.NotSupported, // Method unavailable
+                    '21001': errors.AuthenticationError, // Authentication required
+                    '21002': errors.AuthenticationError, // Incorrect signature
+                    '23001': errors.RequestTimeout, // Request service timeout
+                    '23002': errors.RateLimitExceeded, // Requests too frequently
+                    '24001': errors.ExchangeError, // Internal error
+                    '24002': errors.ExchangeNotAvailable, // Service unavailable temporarily
+                    '30001': errors.BadRequest, // Invalid argument
+                    '30002': errors.NotSupported, // Method unavailable
+                    '31001': errors.AuthenticationError, // Authentication required
+                    '31002': errors.AuthenticationError, // Incorrect signature
+                    '33001': errors.RequestTimeout, // Request service timeout
+                    '33002': errors.RateLimitExceeded, // Requests too frequently
+                    '34001': errors.ExchangeError, // Internal error
                     '34002': errors.ExchangeNotAvailable, // Service unavailable temporarily
                 },
                 'broad': {},

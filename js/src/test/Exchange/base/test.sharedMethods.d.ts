@@ -1,5 +1,5 @@
-import { Exchange } from "../../../../ccxt";
-import { Str } from '../../../base/types';
+import { Exchange } from "../../../../ccxt.js";
+import { Str } from '../../../base/types.js';
 declare function logTemplate(exchange: Exchange, method: string, entry: object): string;
 declare function isTemporaryFailure(e: any): boolean;
 declare function assertType(exchange: Exchange, skippedProperties: object, entry: object, key: string | number, format: object): boolean;

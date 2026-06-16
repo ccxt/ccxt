@@ -347,6 +347,8 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 
 - [Fetch Balance Asset Valuation](./examples/py/fetch-balance-asset-valuation.md)
 
+- [Fetch Balance Snapshot Watch Balance Updates](./examples/py/fetch-balance-snapshot-watch-balance-updates.md)
+
 - [Fetch Bitfinex Ohlcv History](./examples/py/fetch-bitfinex-ohlcv-history.md)
 
 - [Fetch Coinbasepro Ohlcv Sequentially](./examples/py/fetch-coinbasepro-ohlcv-sequentially.md)

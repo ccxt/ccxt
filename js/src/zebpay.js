@@ -195,13 +195,13 @@ export default class zebpay extends Exchange {
             'exceptions': {
                 'exact': {
                     '77': InvalidOrder,
-                    '400': BadRequest,
-                    '401': AuthenticationError,
-                    '403': NotSupported,
-                    '404': NotSupported,
-                    '429': RateLimitExceeded,
-                    '500': ExchangeNotAvailable,
-                    '503': ExchangeNotAvailable,
+                    '400': BadRequest, // Bad Request -- Invalid request format
+                    '401': AuthenticationError, // Unauthorized -- Invalid API Key
+                    '403': NotSupported, // Forbidden -- The request is forbidden
+                    '404': NotSupported, // Not Found -- The specified resource could not be found
+                    '429': RateLimitExceeded, // Too Many Requests -- Access limit breached
+                    '500': ExchangeNotAvailable, // Internal Server Error -- We had a problem with our server. Try again later.
+                    '503': ExchangeNotAvailable, // Service Unavailable -- We're temporarily offline for maintenance. Please try again later.
                     '3013': OrderNotFound,
                     'Order quantity is out of range': InvalidOrder,
                     'Invalid trade order type': InvalidOrder,

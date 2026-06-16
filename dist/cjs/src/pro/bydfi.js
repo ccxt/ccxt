@@ -49,11 +49,11 @@ class bydfi extends bydfi$1["default"] {
             },
             'options': {
                 'watchOrderBookForSymbols': {
-                    'depth': '100',
+                    'depth': '100', // 10, 50, 100
                     'frequency': '1000ms', // 100ms, 1000ms
                 },
                 'watchBalance': {
-                    'fetchBalanceSnapshot': false,
+                    'fetchBalanceSnapshot': false, // or true
                     'awaitBalanceSnapshot': true, // whether to wait for the balance snapshot before providing updates
                 },
                 'timeframes': {

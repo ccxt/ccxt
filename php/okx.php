@@ -7782,7 +7782,7 @@ class okx extends Exchange {
         return $this->parse_open_interest($data[0], $market);
     }
 
-    public function fetch_open_interests(?array $symbols = null, $params = array ()): OpenInterests {
+    public function fetch_open_interests(?array $symbols = null, $params = array ()): array {
         /**
          * Retrieves the open interests of some currencies
          *

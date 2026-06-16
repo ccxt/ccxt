@@ -15,11 +15,11 @@ export default class bittrade extends bittradeRest {
             'has': {
                 'ws': true,
                 'watchOrderBook': true,
-                'watchTickers': false,
+                'watchTickers': false, // for now
                 'watchTicker': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
-                'watchBalance': false,
+                'watchBalance': false, // for now
                 'watchOHLCV': true,
             },
             'urls': {
@@ -35,7 +35,7 @@ export default class bittrade extends bittradeRest {
             'options': {
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
-                'api': 'api',
+                'api': 'api', // or api-aws for clients hosted on AWS
                 'ws': {
                     'gunzip': true,
                 },
