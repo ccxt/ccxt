@@ -836,11 +836,15 @@ public class MyriadCore extends MyriadApi
      * @description signs an EIP-712 order and posts it to the gasless order book; the operator settles the match on-chain
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrderbookOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createOrderbookOrder(Object symbol, Object type2, Object side2, Object amount2, Object... optionalArgs)
     {
-
+        final Object type3 = type2;
+        final Object side3 = side2;
+        final Object amount3 = amount2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
+            Object type = type3;
+            Object side = side3;
+            Object amount = amount3;
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object built = this.buildOrderbookOrder(symbol, type, side, amount, price, parameters);
@@ -860,7 +864,42 @@ public class MyriadCore extends MyriadApi
                 put( "timeInForce", timeInForce );
             }});
             Object outcomeObj = this.outcome(symbol);
-            return this.parseOrder(wrapper, ((Object)outcomeObj));
+            Object parsed = this.parseOrder(wrapper, ((Object)outcomeObj));
+            // the POST /orders response is minimal (hash + status), so backfill the known request values
+            // (side/type/price/amount/timeInForce and a creation timestamp) when parseOrder left them empty
+            Object sideStr = ((Helpers.isTrue((Helpers.isEqual(side, null))))) ? null : ((String)((String)side)).toLowerCase();
+            Object typeStr = ((Helpers.isTrue((Helpers.isEqual(type, null))))) ? "limit" : ((String)((String)type)).toLowerCase();
+            if (Helpers.isTrue(Helpers.isEqual(this.safeString(parsed, "side"), null)))
+            {
+                Helpers.addElementToObject(parsed, "side", sideStr);
+            }
+            if (Helpers.isTrue(Helpers.isEqual(this.safeString(parsed, "type"), null)))
+            {
+                Helpers.addElementToObject(parsed, "type", typeStr);
+            }
+            if (Helpers.isTrue(Helpers.isEqual(this.safeString(parsed, "timeInForce"), null)))
+            {
+                Helpers.addElementToObject(parsed, "timeInForce", timeInForce);
+            }
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(this.safeNumber(parsed, "price"), null))) && Helpers.isTrue((!Helpers.isEqual(price, null)))))
+            {
+                Helpers.addElementToObject(parsed, "price", price);
+            }
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(this.safeNumber(parsed, "amount"), null))) && Helpers.isTrue((!Helpers.isEqual(amount, null)))))
+            {
+                Helpers.addElementToObject(parsed, "amount", amount);
+            }
+            if (Helpers.isTrue(Helpers.isEqual(this.safeInteger(parsed, "timestamp"), null)))
+            {
+                Object now = this.milliseconds();
+                Helpers.addElementToObject(parsed, "timestamp", now);
+                Helpers.addElementToObject(parsed, "datetime", this.iso8601(now));
+            }
+            if (Helpers.isTrue(Helpers.isEqual(this.safeString(parsed, "status"), null)))
+            {
+                Helpers.addElementToObject(parsed, "status", "open");
+            }
+            return parsed;
         });
 
     }

@@ -726,7 +726,35 @@ export default class myriad extends Exchange {
         const response = await this.myriadPublicPostOrders (request);
         const wrapper = this.extend (response, { 'order': order, 'networkId': networkId, 'timeInForce': timeInForce });
         const outcomeObj = this.outcome (symbol);
-        return this.parseOrder (wrapper, outcomeObj as any);
+        const parsed = this.parseOrder (wrapper, outcomeObj as any);
+        // the POST /orders response is minimal (hash + status), so backfill the known request values
+        // (side/type/price/amount/timeInForce and a creation timestamp) when parseOrder left them empty
+        const sideStr = (side === undefined) ? undefined : (side as string).toLowerCase ();
+        const typeStr = (type === undefined) ? 'limit' : (type as string).toLowerCase ();
+        if (this.safeString (parsed, 'side') === undefined) {
+            parsed['side'] = sideStr;
+        }
+        if (this.safeString (parsed, 'type') === undefined) {
+            parsed['type'] = typeStr;
+        }
+        if (this.safeString (parsed, 'timeInForce') === undefined) {
+            parsed['timeInForce'] = timeInForce;
+        }
+        if ((this.safeNumber (parsed, 'price') === undefined) && (price !== undefined)) {
+            parsed['price'] = price;
+        }
+        if ((this.safeNumber (parsed, 'amount') === undefined) && (amount !== undefined)) {
+            parsed['amount'] = amount;
+        }
+        if (this.safeInteger (parsed, 'timestamp') === undefined) {
+            const now = this.milliseconds ();
+            parsed['timestamp'] = now;
+            parsed['datetime'] = this.iso8601 (now);
+        }
+        if (this.safeString (parsed, 'status') === undefined) {
+            parsed['status'] = 'open';
+        }
+        return parsed;
     }
 
     /**

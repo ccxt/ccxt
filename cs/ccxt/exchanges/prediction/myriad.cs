@@ -780,7 +780,42 @@ public partial class myriad : PredictionExchange
             { "timeInForce", timeInForce },
         });
         object outcomeObj = this.outcome(symbol);
-        return this.parseOrder(wrapper, ((object)outcomeObj));
+        object parsed = this.parseOrder(wrapper, ((object)outcomeObj));
+        // the POST /orders response is minimal (hash + status), so backfill the known request values
+        // (side/type/price/amount/timeInForce and a creation timestamp) when parseOrder left them empty
+        object sideStr = ((bool) isTrue((isEqual(side, null)))) ? null : ((string)((string)side)).ToLower();
+        object typeStr = ((bool) isTrue((isEqual(type, null)))) ? "limit" : ((string)((string)type)).ToLower();
+        if (isTrue(isEqual(this.safeString(parsed, "side"), null)))
+        {
+            ((IDictionary<string,object>)parsed)["side"] = sideStr;
+        }
+        if (isTrue(isEqual(this.safeString(parsed, "type"), null)))
+        {
+            ((IDictionary<string,object>)parsed)["type"] = typeStr;
+        }
+        if (isTrue(isEqual(this.safeString(parsed, "timeInForce"), null)))
+        {
+            ((IDictionary<string,object>)parsed)["timeInForce"] = timeInForce;
+        }
+        if (isTrue(isTrue((isEqual(this.safeNumber(parsed, "price"), null))) && isTrue((!isEqual(price, null)))))
+        {
+            ((IDictionary<string,object>)parsed)["price"] = price;
+        }
+        if (isTrue(isTrue((isEqual(this.safeNumber(parsed, "amount"), null))) && isTrue((!isEqual(amount, null)))))
+        {
+            ((IDictionary<string,object>)parsed)["amount"] = amount;
+        }
+        if (isTrue(isEqual(this.safeInteger(parsed, "timestamp"), null)))
+        {
+            object now = this.milliseconds();
+            ((IDictionary<string,object>)parsed)["timestamp"] = now;
+            ((IDictionary<string,object>)parsed)["datetime"] = this.iso8601(now);
+        }
+        if (isTrue(isEqual(this.safeString(parsed, "status"), null)))
+        {
+            ((IDictionary<string,object>)parsed)["status"] = "open";
+        }
+        return parsed;
     }
 
     /**

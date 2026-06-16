@@ -652,7 +652,28 @@ class myriad(PredictionExchange, ImplicitAPI):
         response = await self.myriadPublicPostOrders(request)
         wrapper = self.extend(response, {'order': order, 'networkId': networkId, 'timeInForce': timeInForce})
         outcomeObj = self.outcome(symbol)
-        return self.parse_order(wrapper, outcomeObj)
+        parsed = self.parse_order(wrapper, outcomeObj)
+        # the POST /orders response is minimal(hash + status), so backfill the known request values
+        #(side/type/price/amount/timeInForce and a creation timestamp) when parseOrder left them empty
+        sideStr = None if (side is None) else side.lower()
+        typeStr = 'limit' if (type is None) else type.lower()
+        if self.safe_string(parsed, 'side') is None:
+            parsed['side'] = sideStr
+        if self.safe_string(parsed, 'type') is None:
+            parsed['type'] = typeStr
+        if self.safe_string(parsed, 'timeInForce') is None:
+            parsed['timeInForce'] = timeInForce
+        if (self.safe_number(parsed, 'price') is None) and (price is not None):
+            parsed['price'] = price
+        if (self.safe_number(parsed, 'amount') is None) and (amount is not None):
+            parsed['amount'] = amount
+        if self.safe_integer(parsed, 'timestamp') is None:
+            now = self.milliseconds()
+            parsed['timestamp'] = now
+            parsed['datetime'] = self.iso8601(now)
+        if self.safe_string(parsed, 'status') is None:
+            parsed['status'] = 'open'
+        return parsed
 
     def build_orderbook_order(self, symbol: str, type: Str, side: Str, amount: Num, price: Num = None, params={}) -> dict:
         """

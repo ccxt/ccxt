@@ -728,7 +728,35 @@ class myriad extends Exchange {
             $response = Async\await($this->myriadPublicPostOrders ($request));
             $wrapper = $this->extend($response, array( 'order' => $order, 'networkId' => $networkId, 'timeInForce' => $timeInForce ));
             $outcomeObj = $this->outcome ($symbol);
-            return $this->parse_order($wrapper, $outcomeObj);
+            $parsed = $this->parse_order($wrapper, $outcomeObj);
+            // the POST /orders $response is minimal (hash . status), so backfill the known $request values
+            // (side/type/price/amount/timeInForce and a creation timestamp) when parseOrder left them empty
+            $sideStr = ($side === null) ? null : strtolower($side);
+            $typeStr = ($type === null) ? 'limit' : strtolower($type);
+            if ($this->safe_string($parsed, 'side') === null) {
+                $parsed['side'] = $sideStr;
+            }
+            if ($this->safe_string($parsed, 'type') === null) {
+                $parsed['type'] = $typeStr;
+            }
+            if ($this->safe_string($parsed, 'timeInForce') === null) {
+                $parsed['timeInForce'] = $timeInForce;
+            }
+            if (($this->safe_number($parsed, 'price') === null) && ($price !== null)) {
+                $parsed['price'] = $price;
+            }
+            if (($this->safe_number($parsed, 'amount') === null) && ($amount !== null)) {
+                $parsed['amount'] = $amount;
+            }
+            if ($this->safe_integer($parsed, 'timestamp') === null) {
+                $now = $this->milliseconds();
+                $parsed['timestamp'] = $now;
+                $parsed['datetime'] = $this->iso8601($now);
+            }
+            if ($this->safe_string($parsed, 'status') === null) {
+                $parsed['status'] = 'open';
+            }
+            return $parsed;
         }) ();
     }
 
