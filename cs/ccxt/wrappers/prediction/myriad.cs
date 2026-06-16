@@ -234,6 +234,54 @@ public partial class myriad
         return new Order(res);
     }
     /// <summary>
+    /// places multiple order book orders. Myriad's batch endpoint is not reliable, so the
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da8281e2bc49cf4914b07528"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [order structures](https://docs.ccxt.com/#/?id=order-structure).</returns>
+    public async Task<List<Order>> CreateOrders(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createOrders(orders, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
+    /// edits an open order by cancelling it and placing a replacement (gasless). Myriad's
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da8281b58c5adb2f5998eec8"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>price</term>
+    /// <description>
+    /// float : price per share as a fraction in [0, 1]
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [order structure](https://docs.ccxt.com/#/?id=order-structure).</returns>
+    public async Task<Order> EditOrder(string id, string symbol, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var amount = amount2 == 0 ? null : (object)amount2;
+        var price = price2 == 0 ? null : (object)price2;
+        var res = await this.editOrder(id, symbol, type, side, amount, price, parameters);
+        return new Order(res);
+    }
+    /// <summary>
     /// buys or sells outcome shares by submitting the quote's calldata as an on-chain AMM transaction. Requires a privateKey with gas + collateral on the market's network
     /// </summary>
     /// <remarks>
@@ -441,6 +489,86 @@ public partial class myriad
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOpenOrders(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
+    /// fetches the wallet's filled order book orders
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828171a003cf996487d008"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified outcome symbol to filter by
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of orders to return
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [order structures](https://docs.ccxt.com/#/?id=order-structure).</returns>
+    public async Task<List<Order>> FetchClosedOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchClosedOrders(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
+    /// fetches the wallet's cancelled order book orders
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828171a003cf996487d008"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified outcome symbol to filter by
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of orders to return
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [order structures](https://docs.ccxt.com/#/?id=order-structure).</returns>
+    public async Task<List<Order>> FetchCanceledOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchCanceledOrders(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
@@ -764,6 +892,40 @@ public partial class myriad
         return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
     /// <summary>
+    /// streams the wallet's own fills for a market over the Centrifugo trades channel (real
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest trade
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of trades to return
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure).</returns>
+    public async Task<List<Trade>> WatchMyTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.watchMyTrades(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
+    }
+    /// <summary>
     /// streams best bid/ask/last for an outcome over the Centrifugo prices channel
     /// </summary>
     /// <remarks>
@@ -782,6 +944,60 @@ public partial class myriad
     {
         var res = await this.watchTicker(symbol, parameters);
         return new Ticker(res);
+    }
+    /// <summary>
+    /// streams best bid/ask/last for several outcomes over the Centrifugo prices channels
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dict of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by symbol.</returns>
+    public async Task<Tickers> WatchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchTickers(symbols, parameters);
+        return new Tickers(res);
+    }
+    /// <summary>
+    /// streams OHLCV candles for an outcome, synthesised from the live trades channel
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest candle
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of candles to return
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>int[][]</term> a list of [timestamp, open, high, low, close, volume] candles.</returns>
+    public async Task<List<OHLCV>> WatchOHLCV(string symbol, string timeframe = "1m", Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.watchOHLCV(symbol, timeframe, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
     }
     /// <summary>
     /// streams the wallet's order lifecycle updates over the Centrifugo orders channel

@@ -51,7 +51,11 @@ export default class myriad extends Exchange {
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createOrder': true,
+                'createOrders': true,
+                'editOrder': true,
                 'fetchBalance': true,
+                'fetchCanceledOrders': true,
+                'fetchClosedOrders': true,
                 'fetchCurrencies': false,
                 'fetchEvent': true,
                 'fetchEvents': true,
@@ -68,10 +72,13 @@ export default class myriad extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'prediction': true,
+                'watchMyTrades': true,
+                'watchOHLCV': true,
                 'watchOrderBook': true,
                 'watchOrders': true,
                 'watchPositions': true,
                 'watchTicker': true,
+                'watchTickers': true,
                 'watchTrades': true,
             },
             'timeframes': {
@@ -686,6 +693,29 @@ export default class myriad extends Exchange {
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     async createOrderbookOrder(symbol, type, side, amount, price = undefined, params = {}) {
+        const built = this.buildOrderbookOrder(symbol, type, side, amount, price, params);
+        const order = this.safeDict(built, 'order');
+        const networkId = this.safeString(built, 'networkId');
+        const timeInForce = this.safeString(built, 'timeInForce');
+        const request = {
+            'order': order,
+            'signature': this.safeString(built, 'signature'),
+            'network_id': this.parseToInt(networkId),
+            'time_in_force': timeInForce,
+        };
+        const response = await this.myriadPublicPostOrders(request);
+        const wrapper = this.extend(response, { 'order': order, 'networkId': networkId, 'timeInForce': timeInForce });
+        const outcomeObj = this.outcome(symbol);
+        return this.parseOrder(wrapper, outcomeObj);
+    }
+    /**
+     * @ignore
+     * @method
+     * @name myriad#buildOrderbookOrder
+     * @description builds and EIP-712 signs a single order-book order; shared by createOrder and createOrders
+     * @returns {object} a dict with the signed order, signature, timeInForce and networkId
+     */
+    buildOrderbookOrder(symbol, type, side, amount, price = undefined, params = {}) {
         if (this.privateKey === undefined) {
             throw new ArgumentsRequired(this.id + ' createOrder() requires a privateKey to sign the order');
         }
@@ -738,15 +768,61 @@ export default class myriad extends Exchange {
             'expiration': expiration,
         };
         const signature = this.signClobOrder(order, networkId);
-        const request = {
+        return {
             'order': order,
             'signature': signature,
-            'network_id': this.parseToInt(networkId),
-            'time_in_force': timeInForce,
+            'timeInForce': timeInForce,
+            'networkId': networkId,
         };
-        const response = await this.myriadPublicPostOrders(request);
-        const wrapper = this.extend(response, { 'order': order, 'networkId': networkId, 'timeInForce': timeInForce });
-        return this.parseOrder(wrapper, outcomeObj);
+    }
+    /**
+     * @method
+     * @name myriad#createOrders
+     * @description places multiple order book orders. Myriad's batch endpoint is not reliable, so the
+     * orders are signed and submitted sequentially (not atomically)
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da8281e2bc49cf4914b07528
+     * @param {object[]} orders a list of order requests, each with symbol, type, side, amount, price and params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    async createOrders(orders, params = {}) {
+        await this.loadMarkets();
+        this.ensureOutcomesLoaded();
+        const ordersLength = orders.length;
+        const result = [];
+        for (let i = 0; i < ordersLength; i++) {
+            const o = orders[i];
+            const symbol = this.safeString(o, 'symbol');
+            const type = this.safeString(o, 'type');
+            const side = this.safeString(o, 'side');
+            const amount = this.safeNumber(o, 'amount');
+            const price = this.safeNumber(o, 'price');
+            const orderParams = this.safeDict(o, 'params', {});
+            const placed = await this.createOrderbookOrder(symbol, type, side, amount, price, this.extend(orderParams, params));
+            result.push(placed);
+        }
+        return result;
+    }
+    /**
+     * @method
+     * @name myriad#editOrder
+     * @description edits an open order by cancelling it and placing a replacement (gasless). Myriad's
+     * batch-modify endpoint is not reliable, so the cancel and replace are submitted sequentially
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da8281b58c5adb2f5998eec8
+     * @param {string} id the hash of the order to replace
+     * @param {string} symbol unified outcome symbol of the new order
+     * @param {string} type 'limit' or 'market'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount number of outcome shares for the new order
+     * @param {float} [price] price per share as a fraction in [0, 1]
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        await this.loadMarkets();
+        this.ensureOutcomesLoaded();
+        await this.cancelOrder(id, symbol);
+        return await this.createOrderbookOrder(symbol, type, side, amount, price, params);
     }
     /**
      * @ignore
@@ -1138,6 +1214,40 @@ export default class myriad extends Exchange {
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const request = {
             'status': 'open',
+        };
+        return await this.fetchOrders(symbol, since, limit, this.extend(request, params));
+    }
+    /**
+     * @method
+     * @name myriad#fetchClosedOrders
+     * @description fetches the wallet's filled order book orders
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828171a003cf996487d008
+     * @param {string} [symbol] unified outcome symbol to filter by
+     * @param {int} [since] timestamp in ms of the earliest order
+     * @param {int} [limit] the maximum number of orders to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'status': 'filled',
+        };
+        return await this.fetchOrders(symbol, since, limit, this.extend(request, params));
+    }
+    /**
+     * @method
+     * @name myriad#fetchCanceledOrders
+     * @description fetches the wallet's cancelled order book orders
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828171a003cf996487d008
+     * @param {string} [symbol] unified outcome symbol to filter by
+     * @param {int} [since] timestamp in ms of the earliest order
+     * @param {int} [limit] the maximum number of orders to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'status': 'cancelled',
         };
         return await this.fetchOrders(symbol, since, limit, this.extend(request, params));
     }
@@ -2523,6 +2633,44 @@ export default class myriad extends Exchange {
         const trades = await this.subscribeMyriadChannel(messageHash, channel, params);
         return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
+    /**
+     * @method
+     * @name myriad#watchMyTrades
+     * @description streams the wallet's own fills for a market over the Centrifugo trades channel (real
+     * execution prices, unlike the REST fetchMyTrades); requires a market symbol since the channel is per-market
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
+     * @param {string} symbol unified outcome symbol whose market to watch
+     * @param {int} [since] timestamp in ms of the earliest trade
+     * @param {int} [limit] the maximum number of trades to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     */
+    async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired(this.id + ' watchMyTrades() requires a symbol (the trades channel is per-market)');
+        }
+        await this.loadMarkets();
+        this.ensureOutcomesLoaded();
+        const outcomeObj = this.outcome(symbol);
+        const info = this.safeDict(outcomeObj, 'info', {});
+        const networkId = this.safeString(info, 'networkId');
+        const marketId = this.safeString(info, 'marketId');
+        const sym = this.safeOutcomeSymbol(symbol, outcomeObj);
+        const channel = 'trades:' + networkId + ':' + marketId;
+        const messageHash = 'myTrades';
+        const trades = await this.subscribeMyriadChannel(messageHash, channel, params);
+        return this.filterBySymbolSinceLimit(trades, sym, since, limit, true);
+    }
+    walletAddressOrUndefined() {
+        // like walletAddressFromKeys but returns undefined instead of throwing when no wallet is configured
+        if ((this.walletAddress !== undefined) && (this.walletAddress.length > 0)) {
+            return this.walletAddress.toLowerCase();
+        }
+        if (this.privateKey !== undefined) {
+            return this.ethGetAddressFromPrivateKey(this.privateKey).toLowerCase();
+        }
+        return undefined;
+    }
     handleTrades(client, data) {
         const networkId = this.safeString(data, 'networkId');
         const marketId = this.safeString(data, 'marketId');
@@ -2566,6 +2714,57 @@ export default class myriad extends Exchange {
         const stored = this.trades[sym];
         stored.append(trade);
         client.resolve(stored, 'trades::' + sym);
+        // also surface the wallet's own fills (taker or maker leg) with their real execution prices
+        const myWallet = this.walletAddressOrUndefined();
+        if (myWallet !== undefined) {
+            const myLegs = [];
+            const takerTrader = this.safeStringLower(taker, 'trader');
+            if (takerTrader === myWallet) {
+                myLegs.push(trade);
+            }
+            const makers = this.safeList(data, 'makers', []);
+            const makersLength = makers.length;
+            for (let i = 0; i < makersLength; i++) {
+                const maker = makers[i];
+                const makerTrader = this.safeStringLower(maker, 'trader');
+                if (makerTrader === myWallet) {
+                    const makerSym = this.marketOutcomeToSymbol(networkId, marketId, this.safeString(maker, 'outcome'));
+                    const makerMarket = this.safeMarket(makerSym);
+                    const makerFees = this.safeDict(maker, 'fees', {});
+                    const makerTrade = this.safeTrade({
+                        'id': txHash,
+                        'info': maker,
+                        'timestamp': ts,
+                        'datetime': this.iso8601(ts),
+                        'symbol': makerSym,
+                        'order': this.safeString(maker, 'orderHash'),
+                        'type': undefined,
+                        'side': this.safeStringLower(maker, 'side'),
+                        'takerOrMaker': 'maker',
+                        'price': this.safeNumber(maker, 'price'),
+                        'amount': this.safeNumber(maker, 'amount'),
+                        'cost': undefined,
+                        'fee': {
+                            'cost': this.safeNumber(makerFees, 'total'),
+                            'currency': this.safeString(makerMarket, 'quote'),
+                        },
+                    }, makerMarket);
+                    myLegs.push(makerTrade);
+                }
+            }
+            const myLegsLength = myLegs.length;
+            if (myLegsLength > 0) {
+                if (this.myTrades === undefined) {
+                    const myTradesLimit = this.safeInteger(this.options, 'myTradesLimit', 1000);
+                    this.myTrades = new ArrayCacheBySymbolById(myTradesLimit);
+                }
+                const myStored = this.myTrades;
+                for (let k = 0; k < myLegsLength; k++) {
+                    myStored.append(myLegs[k]);
+                }
+                client.resolve(myStored, 'myTrades');
+            }
+        }
     }
     /**
      * @method
@@ -2587,6 +2786,68 @@ export default class myriad extends Exchange {
         const channel = 'prices:' + networkId + ':' + marketId;
         const messageHash = 'ticker::' + sym;
         return await this.subscribeMyriadChannel(messageHash, channel, params);
+    }
+    /**
+     * @method
+     * @name myriad#watchTickers
+     * @description streams best bid/ask/last for several outcomes over the Centrifugo prices channels
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
+     * @param {string[]} symbols unified outcome symbols to watch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dict of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by symbol
+     */
+    async watchTickers(symbols = undefined, params = {}) {
+        await this.loadMarkets();
+        this.ensureOutcomesLoaded();
+        if (symbols === undefined) {
+            throw new ArgumentsRequired(this.id + ' watchTickers() requires a list of symbols (the prices channel is per-market)');
+        }
+        const symbolsLength = symbols.length;
+        const url = this.safeString(this.urls['api'], 'ws');
+        await this.connectCentrifugo(url);
+        const client = this.client(url);
+        const seenChannels = {};
+        const resolvedSymbols = [];
+        for (let i = 0; i < symbolsLength; i++) {
+            const outcomeObj = this.outcome(symbols[i]);
+            const info = this.safeDict(outcomeObj, 'info', {});
+            const networkId = this.safeString(info, 'networkId');
+            const marketId = this.safeString(info, 'marketId');
+            const channel = 'prices:' + networkId + ':' + marketId;
+            resolvedSymbols.push(this.safeOutcomeSymbol(symbols[i], outcomeObj));
+            if (this.safeValue(seenChannels, channel) === undefined) {
+                seenChannels[channel] = true;
+                const requestId = this.requestId(url);
+                const subscribeMsg = { 'subscribe': { 'channel': channel }, 'id': requestId };
+                this.watch(url, 'tickers', subscribeMsg, channel);
+            }
+        }
+        const tickers = await client.future('tickers');
+        return this.filterByArray(tickers, 'symbol', resolvedSymbols, true);
+    }
+    /**
+     * @method
+     * @name myriad#watchOHLCV
+     * @description streams OHLCV candles for an outcome, synthesised from the live trades channel
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
+     * @param {string} symbol unified outcome symbol
+     * @param {string} timeframe the length of each candle (e.g. '1m', '1h', '1d')
+     * @param {int} [since] timestamp in ms of the earliest candle
+     * @param {int} [limit] the maximum number of candles to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} a list of [timestamp, open, high, low, close, volume] candles
+     */
+    async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        // Myriad has no OHLCV websocket channel, so build candles from the live trade stream
+        const trades = await this.watchTrades(symbol, since, limit, params);
+        const ohlcvc = this.buildOHLCVC(trades, timeframe, 0, 2147483647);
+        const result = [];
+        const ohlcvcLength = ohlcvc.length;
+        for (let i = 0; i < ohlcvcLength; i++) {
+            const candle = ohlcvc[i];
+            result.push([candle[0], candle[1], candle[2], candle[3], candle[4], candle[5]]);
+        }
+        return this.filterBySinceLimit(result, since, limit, 0, true);
     }
     handleTicker(client, data) {
         const networkId = this.safeString(data, 'networkId');
@@ -2631,6 +2892,7 @@ export default class myriad extends Exchange {
             this.tickers[sym] = ticker;
             client.resolve(ticker, 'ticker::' + sym);
         }
+        client.resolve(this.tickers, 'tickers');
     }
     /**
      * @method

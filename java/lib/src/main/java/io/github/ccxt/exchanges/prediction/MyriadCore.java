@@ -39,7 +39,11 @@ public class MyriadCore extends MyriadApi
                 put( "cancelOrder", true );
                 put( "cancelOrders", true );
                 put( "createOrder", true );
+                put( "createOrders", true );
+                put( "editOrder", true );
                 put( "fetchBalance", true );
+                put( "fetchCanceledOrders", true );
+                put( "fetchClosedOrders", true );
                 put( "fetchCurrencies", false );
                 put( "fetchEvent", true );
                 put( "fetchEvents", true );
@@ -56,10 +60,13 @@ public class MyriadCore extends MyriadApi
                 put( "fetchTrades", true );
                 put( "fetchTradingFee", true );
                 put( "prediction", true );
+                put( "watchMyTrades", true );
+                put( "watchOHLCV", true );
                 put( "watchOrderBook", true );
                 put( "watchOrders", true );
                 put( "watchPositions", true );
                 put( "watchTicker", true );
+                put( "watchTickers", true );
                 put( "watchTrades", true );
             }} );
             put( "timeframes", new java.util.HashMap<String, Object>() {{
@@ -829,76 +836,20 @@ public class MyriadCore extends MyriadApi
      * @description signs an EIP-712 order and posts it to the gasless order book; the operator settles the match on-chain
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrderbookOrder(Object symbol, Object type2, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createOrderbookOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
-        final Object type3 = type2;
+
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-            Object type = type3;
+
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.privateKey, null)))
-            {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a privateKey to sign the order")) ;
-            }
-            Object outcomeObj = this.outcome(symbol);
-            Object info = this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}});
-            Object networkId = this.safeString(info, "networkId", this.safeString(this.options, "defaultNetworkId", "56"));
-            Object marketId = this.safeString(info, "marketId");
-            Object outcomeId = this.safeInteger(info, "outcomeId", 0);
-            Object trader = this.ethGetAddressFromPrivateKey(this.privateKey);
-            Object typeStr = ((Helpers.isTrue((Helpers.isEqual(type, null))))) ? "limit" : ((String)((String)type)).toLowerCase();
-            Object sideStr = ((String)((String)side)).toLowerCase();
-            Object sideInt = ((Helpers.isTrue((Helpers.isEqual(sideStr, "buy"))))) ? 0 : 1;
-            Object isMarket = (Helpers.isEqual(typeStr, "market"));
-            Object defaultTif = ((Helpers.isTrue(isMarket))) ? "FOK" : "GTC";
-            Object timeInForce = this.safeStringUpper(parameters, "timeInForce", defaultTif);
-            Object priceValue = price;
-            if (Helpers.isTrue(Helpers.isEqual(priceValue, null)))
-            {
-                if (Helpers.isTrue(isMarket))
-                {
-                    priceValue = ((Helpers.isTrue((Helpers.isEqual(sideInt, 0))))) ? 1 : 0;
-                } else
-                {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a price for limit orders")) ;
-                }
-            }
-            Object priceWei = this.toOrderbookWei(priceValue);
-            if (Helpers.isTrue(Precise.stringLt(priceWei, "1")))
-            {
-                priceWei = "1";
-            }
-            // price is a fraction in (0, 1] encoded as 1..1e18 wei (tick is 1 wei); reject out-of-range early
-            if (Helpers.isTrue(Precise.stringGt(priceWei, "1000000000000000000")))
-            {
-                throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() price must be a fraction between 0 and 1")) ;
-            }
-            Object amountWei = this.toOrderbookWei(amount);
-            // shares are integer wei (1e18 = 1 share); a sub-wei amount that rounds to zero is invalid
-            if (Helpers.isTrue(Precise.stringLt(amountWei, "1")))
-            {
-                throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() amount is too small (rounds to zero shares)")) ;
-            }
-            Object nonce = this.safeString(parameters, "nonce", this.numberToString(this.milliseconds()));
-            Object expiration = this.safeString(parameters, "expiration", "0");
-            Object minFillAmount = this.safeString(parameters, "minFillAmount", "0");
-            final Object finalSideInt = sideInt;
-            final Object finalPriceWei = priceWei;
-            Object order = new java.util.HashMap<String, Object>() {{
-                put( "trader", trader );
-                put( "marketId", marketId );
-                put( "outcomeId", outcomeId );
-                put( "side", finalSideInt );
-                put( "amount", amountWei );
-                put( "price", finalPriceWei );
-                put( "minFillAmount", minFillAmount );
-                put( "nonce", nonce );
-                put( "expiration", expiration );
-            }};
-            Object signature = this.signClobOrder(order, networkId);
+            Object built = this.buildOrderbookOrder(symbol, type, side, amount, price, parameters);
+            Object order = this.safeDict(built, "order");
+            Object networkId = this.safeString(built, "networkId");
+            Object timeInForce = this.safeString(built, "timeInForce");
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "order", order );
-                put( "signature", signature );
+                put( "signature", MyriadCore.this.safeString(built, "signature") );
                 put( "network_id", MyriadCore.this.parseToInt(networkId) );
                 put( "time_in_force", timeInForce );
             }};
@@ -908,7 +859,155 @@ public class MyriadCore extends MyriadApi
                 put( "networkId", networkId );
                 put( "timeInForce", timeInForce );
             }});
+            Object outcomeObj = this.outcome(symbol);
             return this.parseOrder(wrapper, ((Object)outcomeObj));
+        });
+
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name myriad#buildOrderbookOrder
+     * @description builds and EIP-712 signs a single order-book order; shared by createOrder and createOrders
+     * @returns {object} a dict with the signed order, signature, timeInForce and networkId
+     */
+    public Object buildOrderbookOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    {
+        Object price = Helpers.getArg(optionalArgs, 0, null);
+        Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+        if (Helpers.isTrue(Helpers.isEqual(this.privateKey, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a privateKey to sign the order")) ;
+        }
+        Object outcomeObj = this.outcome(symbol);
+        Object info = this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}});
+        Object networkId = this.safeString(info, "networkId", this.safeString(this.options, "defaultNetworkId", "56"));
+        Object marketId = this.safeString(info, "marketId");
+        Object outcomeId = this.safeInteger(info, "outcomeId", 0);
+        Object trader = this.ethGetAddressFromPrivateKey(this.privateKey);
+        Object typeStr = ((Helpers.isTrue((Helpers.isEqual(type, null))))) ? "limit" : ((String)((String)type)).toLowerCase();
+        Object sideStr = ((String)((String)side)).toLowerCase();
+        Object sideInt = ((Helpers.isTrue((Helpers.isEqual(sideStr, "buy"))))) ? 0 : 1;
+        Object isMarket = (Helpers.isEqual(typeStr, "market"));
+        Object defaultTif = ((Helpers.isTrue(isMarket))) ? "FOK" : "GTC";
+        Object timeInForce = this.safeStringUpper(parameters, "timeInForce", defaultTif);
+        Object priceValue = price;
+        if (Helpers.isTrue(Helpers.isEqual(priceValue, null)))
+        {
+            if (Helpers.isTrue(isMarket))
+            {
+                priceValue = ((Helpers.isTrue((Helpers.isEqual(sideInt, 0))))) ? 1 : 0;
+            } else
+            {
+                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a price for limit orders")) ;
+            }
+        }
+        Object priceWei = this.toOrderbookWei(priceValue);
+        if (Helpers.isTrue(Precise.stringLt(priceWei, "1")))
+        {
+            priceWei = "1";
+        }
+        // price is a fraction in (0, 1] encoded as 1..1e18 wei (tick is 1 wei); reject out-of-range early
+        if (Helpers.isTrue(Precise.stringGt(priceWei, "1000000000000000000")))
+        {
+            throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() price must be a fraction between 0 and 1")) ;
+        }
+        Object amountWei = this.toOrderbookWei(amount);
+        // shares are integer wei (1e18 = 1 share); a sub-wei amount that rounds to zero is invalid
+        if (Helpers.isTrue(Precise.stringLt(amountWei, "1")))
+        {
+            throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() amount is too small (rounds to zero shares)")) ;
+        }
+        Object nonce = this.safeString(parameters, "nonce", this.numberToString(this.milliseconds()));
+        Object expiration = this.safeString(parameters, "expiration", "0");
+        Object minFillAmount = this.safeString(parameters, "minFillAmount", "0");
+        final Object finalSideInt = sideInt;
+        final Object finalPriceWei = priceWei;
+        Object order = new java.util.HashMap<String, Object>() {{
+            put( "trader", trader );
+            put( "marketId", marketId );
+            put( "outcomeId", outcomeId );
+            put( "side", finalSideInt );
+            put( "amount", amountWei );
+            put( "price", finalPriceWei );
+            put( "minFillAmount", minFillAmount );
+            put( "nonce", nonce );
+            put( "expiration", expiration );
+        }};
+        Object signature = this.signClobOrder(order, networkId);
+        return new java.util.HashMap<String, Object>() {{
+            put( "order", order );
+            put( "signature", signature );
+            put( "timeInForce", timeInForce );
+            put( "networkId", networkId );
+        }};
+    }
+
+    /**
+     * @method
+     * @name myriad#createOrders
+     * @description places multiple order book orders. Myriad's batch endpoint is not reliable, so the
+     * orders are signed and submitted sequentially (not atomically)
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da8281e2bc49cf4914b07528
+     * @param {object[]} orders a list of order requests, each with symbol, type, side, amount, price and params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    public java.util.concurrent.CompletableFuture<Object> createOrders(Object orders, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            (this.loadMarkets()).join();
+            this.ensureOutcomesLoaded();
+            Object ordersLength = Helpers.getArrayLength(orders);
+            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            for (var i = 0; Helpers.isLessThan(i, ordersLength); i++)
+            {
+                Object o = Helpers.GetValue(orders, i);
+                Object symbol = this.safeString(o, "symbol");
+                Object type = this.safeString(o, "type");
+                Object side = this.safeString(o, "side");
+                Object amount = this.safeNumber(o, "amount");
+                Object price = this.safeNumber(o, "price");
+                Object orderParams = this.safeDict(o, "params", new java.util.HashMap<String, Object>() {{}});
+                Object placed = (this.createOrderbookOrder(symbol, type, side, amount, price, this.extend(orderParams, parameters))).join();
+                ((java.util.List<Object>)result).add(placed);
+            }
+            return result;
+        });
+
+    }
+
+    /**
+     * @method
+     * @name myriad#editOrder
+     * @description edits an open order by cancelling it and placing a replacement (gasless). Myriad's
+     * batch-modify endpoint is not reliable, so the cancel and replace are submitted sequentially
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da8281b58c5adb2f5998eec8
+     * @param {string} id the hash of the order to replace
+     * @param {string} symbol unified outcome symbol of the new order
+     * @param {string} type 'limit' or 'market'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount number of outcome shares for the new order
+     * @param {float} [price] price per share as a fraction in [0, 1]
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol, Object type, Object side, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object amount = Helpers.getArg(optionalArgs, 0, null);
+            Object price = Helpers.getArg(optionalArgs, 1, null);
+            Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+            (this.loadMarkets()).join();
+            this.ensureOutcomesLoaded();
+            (this.cancelOrder(id, symbol)).join();
+            return (this.createOrderbookOrder(symbol, type, side, amount, price, parameters)).join();
         });
 
     }
@@ -1447,6 +1546,62 @@ public class MyriadCore extends MyriadApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "status", "open" );
+            }};
+            return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
+        });
+
+    }
+
+    /**
+     * @method
+     * @name myriad#fetchClosedOrders
+     * @description fetches the wallet's filled order book orders
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828171a003cf996487d008
+     * @param {string} [symbol] unified outcome symbol to filter by
+     * @param {int} [since] timestamp in ms of the earliest order
+     * @param {int} [limit] the maximum number of orders to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchClosedOrders(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object request = new java.util.HashMap<String, Object>() {{
+                put( "status", "filled" );
+            }};
+            return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
+        });
+
+    }
+
+    /**
+     * @method
+     * @name myriad#fetchCanceledOrders
+     * @description fetches the wallet's cancelled order book orders
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828171a003cf996487d008
+     * @param {string} [symbol] unified outcome symbol to filter by
+     * @param {int} [since] timestamp in ms of the earliest order
+     * @param {int} [limit] the maximum number of orders to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchCanceledOrders(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object request = new java.util.HashMap<String, Object>() {{
+                put( "status", "cancelled" );
             }};
             return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
         });
@@ -3129,6 +3284,60 @@ final Object finalNetworkId = networkId;
 
     }
 
+    /**
+     * @method
+     * @name myriad#watchMyTrades
+     * @description streams the wallet's own fills for a market over the Centrifugo trades channel (real
+     * execution prices, unlike the REST fetchMyTrades); requires a market symbol since the channel is per-market
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
+     * @param {string} symbol unified outcome symbol whose market to watch
+     * @param {int} [since] timestamp in ms of the earliest trade
+     * @param {int} [limit] the maximum number of trades to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     */
+    public java.util.concurrent.CompletableFuture<Object> watchMyTrades(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+            {
+                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchMyTrades() requires a symbol (the trades channel is per-market)")) ;
+            }
+            (this.loadMarkets()).join();
+            this.ensureOutcomesLoaded();
+            Object outcomeObj = this.outcome(symbol);
+            Object info = this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}});
+            Object networkId = this.safeString(info, "networkId");
+            Object marketId = this.safeString(info, "marketId");
+            Object sym = this.safeOutcomeSymbol(symbol, outcomeObj);
+            Object channel = Helpers.add(Helpers.add(Helpers.add("trades:", networkId), ":"), marketId);
+            Object messageHash = "myTrades";
+            Object trades = (this.subscribeMyriadChannel(messageHash, channel, parameters)).join();
+            return this.filterBySymbolSinceLimit(trades, sym, since, limit, true);
+        });
+
+    }
+
+    public Object walletAddressOrUndefined()
+    {
+        // like walletAddressFromKeys but returns undefined instead of throwing when no wallet is configured
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(this.walletAddress, null))) && Helpers.isTrue((Helpers.isGreaterThan(((String)this.walletAddress).length(), 0)))))
+        {
+            return ((String)this.walletAddress).toLowerCase();
+        }
+        if (Helpers.isTrue(!Helpers.isEqual(this.privateKey, null)))
+        {
+            return ((String)this.ethGetAddressFromPrivateKey(this.privateKey)).toLowerCase();
+        }
+        return null;
+    }
+
     public void handleTrades(Client client, Object data)
     {
         Object networkId = this.safeString(data, "networkId");
@@ -3177,6 +3386,64 @@ final Object finalNetworkId = networkId;
         Object stored = Helpers.GetValue(this.trades, sym);
         Helpers.callDynamically(stored, "append", new Object[]{trade});
         client.resolve(stored, Helpers.add("trades::", sym));
+        // also surface the wallet's own fills (taker or maker leg) with their real execution prices
+        Object myWallet = this.walletAddressOrUndefined();
+        if (Helpers.isTrue(!Helpers.isEqual(myWallet, null)))
+        {
+            Object myLegs = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object takerTrader = this.safeStringLower(taker, "trader");
+            if (Helpers.isTrue(Helpers.isEqual(takerTrader, myWallet)))
+            {
+                ((java.util.List<Object>)myLegs).add(trade);
+            }
+            Object makers = this.safeList(data, "makers", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object makersLength = Helpers.getArrayLength(makers);
+            for (var i = 0; Helpers.isLessThan(i, makersLength); i++)
+            {
+                Object maker = Helpers.GetValue(makers, i);
+                Object makerTrader = this.safeStringLower(maker, "trader");
+                if (Helpers.isTrue(Helpers.isEqual(makerTrader, myWallet)))
+                {
+                    Object makerSym = this.marketOutcomeToSymbol(networkId, marketId, this.safeString(maker, "outcome"));
+                    Object makerMarket = this.safeMarket(makerSym);
+                    Object makerFees = this.safeDict(maker, "fees", new java.util.HashMap<String, Object>() {{}});
+                    Object makerTrade = this.safeTrade(new java.util.HashMap<String, Object>() {{
+                        put( "id", txHash );
+                        put( "info", maker );
+                        put( "timestamp", ts );
+                        put( "datetime", MyriadCore.this.iso8601(ts) );
+                        put( "symbol", makerSym );
+                        put( "order", MyriadCore.this.safeString(maker, "orderHash") );
+                        put( "type", null );
+                        put( "side", MyriadCore.this.safeStringLower(maker, "side") );
+                        put( "takerOrMaker", "maker" );
+                        put( "price", MyriadCore.this.safeNumber(maker, "price") );
+                        put( "amount", MyriadCore.this.safeNumber(maker, "amount") );
+                        put( "cost", null );
+                        put( "fee", new java.util.HashMap<String, Object>() {{
+                            put( "cost", MyriadCore.this.safeNumber(makerFees, "total") );
+                            put( "currency", MyriadCore.this.safeString(makerMarket, "quote") );
+                        }} );
+                    }}, makerMarket);
+                    ((java.util.List<Object>)myLegs).add(makerTrade);
+                }
+            }
+            Object myLegsLength = Helpers.getArrayLength(myLegs);
+            if (Helpers.isTrue(Helpers.isGreaterThan(myLegsLength, 0)))
+            {
+                if (Helpers.isTrue(Helpers.isEqual(this.myTrades, null)))
+                {
+                    Object myTradesLimit = this.safeInteger(this.options, "myTradesLimit", 1000);
+                    this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)myTradesLimit).intValue());
+                }
+                Object myStored = this.myTrades;
+                for (var k = 0; Helpers.isLessThan(k, myLegsLength); k++)
+                {
+                    Helpers.callDynamically(myStored, "append", new Object[]{Helpers.GetValue(myLegs, k)});
+                }
+                client.resolve(myStored, "myTrades");
+            }
+        }
     }
 
     /**
@@ -3204,6 +3471,97 @@ final Object finalNetworkId = networkId;
             Object channel = Helpers.add(Helpers.add(Helpers.add("prices:", networkId), ":"), marketId);
             Object messageHash = Helpers.add("ticker::", sym);
             return (this.subscribeMyriadChannel(messageHash, channel, parameters)).join();
+        });
+
+    }
+
+    /**
+     * @method
+     * @name myriad#watchTickers
+     * @description streams best bid/ask/last for several outcomes over the Centrifugo prices channels
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
+     * @param {string[]} symbols unified outcome symbols to watch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dict of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by symbol
+     */
+    public java.util.concurrent.CompletableFuture<Object> watchTickers(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object symbols = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            (this.loadMarkets()).join();
+            this.ensureOutcomesLoaded();
+            if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
+            {
+                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchTickers() requires a list of symbols (the prices channel is per-market)")) ;
+            }
+            Object symbolsLength = Helpers.getArrayLength(symbols);
+            Object url = this.safeString(Helpers.GetValue(this.urls, "api"), "ws");
+            (this.connectCentrifugo(url)).join();
+            Client client = this.client(url);
+            Object seenChannels = new java.util.HashMap<String, Object>() {{}};
+            Object resolvedSymbols = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            for (var i = 0; Helpers.isLessThan(i, symbolsLength); i++)
+            {
+                Object outcomeObj = this.outcome(Helpers.GetValue(symbols, i));
+                Object info = this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}});
+                Object networkId = this.safeString(info, "networkId");
+                Object marketId = this.safeString(info, "marketId");
+                Object channel = Helpers.add(Helpers.add(Helpers.add("prices:", networkId), ":"), marketId);
+                ((java.util.List<Object>)resolvedSymbols).add(this.safeOutcomeSymbol(Helpers.GetValue(symbols, i), outcomeObj));
+                if (Helpers.isTrue(Helpers.isEqual(this.safeValue(seenChannels, channel), null)))
+                {
+                    Helpers.addElementToObject(seenChannels, channel, true);
+                    Object requestId = this.requestId(url);
+                    Object subscribeMsg = new java.util.HashMap<String, Object>() {{
+                        put( "subscribe", new java.util.HashMap<String, Object>() {{
+                            put( "channel", channel );
+                        }} );
+                        put( "id", requestId );
+                    }};
+                    this.watch(url, "tickers", subscribeMsg, channel, null);
+                }
+            }
+            Object tickers = client.future("tickers").getFuture().join();
+            return this.filterByArray(tickers, "symbol", resolvedSymbols, true);
+        });
+
+    }
+
+    /**
+     * @method
+     * @name myriad#watchOHLCV
+     * @description streams OHLCV candles for an outcome, synthesised from the live trades channel
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
+     * @param {string} symbol unified outcome symbol
+     * @param {string} timeframe the length of each candle (e.g. '1m', '1h', '1d')
+     * @param {int} [since] timestamp in ms of the earliest candle
+     * @param {int} [limit] the maximum number of candles to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} a list of [timestamp, open, high, low, close, volume] candles
+     */
+    public java.util.concurrent.CompletableFuture<Object> watchOHLCV(Object symbol, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            // Myriad has no OHLCV websocket channel, so build candles from the live trade stream
+            Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            Object trades = (this.watchTrades(symbol, since, limit, parameters)).join();
+            Object ohlcvc = this.buildOHLCVC(trades, timeframe, 0, 2147483647);
+            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object ohlcvcLength = Helpers.getArrayLength(ohlcvc);
+            for (var i = 0; Helpers.isLessThan(i, ohlcvcLength); i++)
+            {
+                Object candle = Helpers.GetValue(ohlcvc, i);
+                ((java.util.List<Object>)result).add(new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(candle, 0), Helpers.GetValue(candle, 1), Helpers.GetValue(candle, 2), Helpers.GetValue(candle, 3), Helpers.GetValue(candle, 4), Helpers.GetValue(candle, 5))));
+            }
+            return this.filterBySinceLimit(result, since, limit, 0, true);
         });
 
     }
@@ -3256,6 +3614,7 @@ final Object finalNetworkId = networkId;
             Helpers.addElementToObject(this.tickers, sym, ticker);
             client.resolve(ticker, Helpers.add("ticker::", sym));
         }
+        client.resolve(this.tickers, "tickers");
     }
 
     /**

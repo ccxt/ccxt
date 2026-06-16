@@ -1,6 +1,6 @@
 /// <reference lib="es2015" />
 import Exchange from '../abstract/prediction/myriad.js';
-import type { Int, Str, Num, Dict, int, Strings, Order, Market, Ticker, Tickers, OrderBook, OHLCV, Trade, TradingFeeInterface, PredictionEvent, Position, Balances } from '../base/types.js';
+import type { Int, Str, Num, Dict, int, Strings, Order, OrderRequest, Market, Ticker, Tickers, OrderBook, OHLCV, Trade, TradingFeeInterface, PredictionEvent, Position, Balances } from '../base/types.js';
 /**
  * @class myriad
  * @augments Exchange
@@ -136,6 +136,41 @@ export default class myriad extends Exchange {
     /**
      * @ignore
      * @method
+     * @name myriad#buildOrderbookOrder
+     * @description builds and EIP-712 signs a single order-book order; shared by createOrder and createOrders
+     * @returns {object} a dict with the signed order, signature, timeInForce and networkId
+     */
+    buildOrderbookOrder(symbol: string, type: Str, side: Str, amount: Num, price?: Num, params?: {}): Dict;
+    /**
+     * @method
+     * @name myriad#createOrders
+     * @description places multiple order book orders. Myriad's batch endpoint is not reliable, so the
+     * orders are signed and submitted sequentially (not atomically)
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da8281e2bc49cf4914b07528
+     * @param {object[]} orders a list of order requests, each with symbol, type, side, amount, price and params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
+    /**
+     * @method
+     * @name myriad#editOrder
+     * @description edits an open order by cancelling it and placing a replacement (gasless). Myriad's
+     * batch-modify endpoint is not reliable, so the cancel and replace are submitted sequentially
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da8281b58c5adb2f5998eec8
+     * @param {string} id the hash of the order to replace
+     * @param {string} symbol unified outcome symbol of the new order
+     * @param {string} type 'limit' or 'market'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount number of outcome shares for the new order
+     * @param {float} [price] price per share as a fraction in [0, 1]
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    editOrder(id: string, symbol: string, type: Str, side: Str, amount?: Num, price?: Num, params?: {}): Promise<Order>;
+    /**
+     * @ignore
+     * @method
      * @name myriad#createAmmOrder
      * @description buys or sells outcome shares by submitting the quote's calldata as an on-chain AMM transaction. Requires a privateKey with gas + collateral on the market's network
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
@@ -252,6 +287,30 @@ export default class myriad extends Exchange {
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    /**
+     * @method
+     * @name myriad#fetchClosedOrders
+     * @description fetches the wallet's filled order book orders
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828171a003cf996487d008
+     * @param {string} [symbol] unified outcome symbol to filter by
+     * @param {int} [since] timestamp in ms of the earliest order
+     * @param {int} [limit] the maximum number of orders to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    /**
+     * @method
+     * @name myriad#fetchCanceledOrders
+     * @description fetches the wallet's cancelled order book orders
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828171a003cf996487d008
+     * @param {string} [symbol] unified outcome symbol to filter by
+     * @param {int} [since] timestamp in ms of the earliest order
+     * @param {int} [limit] the maximum number of orders to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    fetchCanceledOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     /**
      * @method
      * @name myriad#fetchMyTrades
@@ -477,6 +536,20 @@ export default class myriad extends Exchange {
      * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
      */
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    /**
+     * @method
+     * @name myriad#watchMyTrades
+     * @description streams the wallet's own fills for a market over the Centrifugo trades channel (real
+     * execution prices, unlike the REST fetchMyTrades); requires a market symbol since the channel is per-market
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
+     * @param {string} symbol unified outcome symbol whose market to watch
+     * @param {int} [since] timestamp in ms of the earliest trade
+     * @param {int} [limit] the maximum number of trades to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     */
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    walletAddressOrUndefined(): Str;
     handleTrades(client: any, data: any): void;
     /**
      * @method
@@ -488,6 +561,29 @@ export default class myriad extends Exchange {
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    /**
+     * @method
+     * @name myriad#watchTickers
+     * @description streams best bid/ask/last for several outcomes over the Centrifugo prices channels
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
+     * @param {string[]} symbols unified outcome symbols to watch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dict of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by symbol
+     */
+    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    /**
+     * @method
+     * @name myriad#watchOHLCV
+     * @description streams OHLCV candles for an outcome, synthesised from the live trades channel
+     * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
+     * @param {string} symbol unified outcome symbol
+     * @param {string} timeframe the length of each candle (e.g. '1m', '1h', '1d')
+     * @param {int} [since] timestamp in ms of the earliest candle
+     * @param {int} [limit] the maximum number of candles to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} a list of [timestamp, open, high, low, close, volume] candles
+     */
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     handleTicker(client: any, data: any): void;
     /**
      * @method

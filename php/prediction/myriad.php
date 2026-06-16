@@ -39,7 +39,11 @@ class myriad extends Exchange {
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'createOrder' => true,
+                'createOrders' => true,
+                'editOrder' => true,
                 'fetchBalance' => true,
+                'fetchCanceledOrders' => true,
+                'fetchClosedOrders' => true,
                 'fetchCurrencies' => false,
                 'fetchEvent' => true,
                 'fetchEvents' => true,
@@ -56,10 +60,13 @@ class myriad extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'prediction' => true,
+                'watchMyTrades' => true,
+                'watchOHLCV' => true,
                 'watchOrderBook' => true,
                 'watchOrders' => true,
                 'watchPositions' => true,
                 'watchTicker' => true,
+                'watchTickers' => true,
                 'watchTrades' => true,
             ),
             'timeframes' => array(
@@ -708,66 +715,140 @@ class myriad extends Exchange {
              * signs an EIP-712 $order and posts it to the gasless $order book; the operator settles the match on-chain
              * @return {array} an [$order structure](https://docs.ccxt.com/#/?id=$order-structure)
              */
-            if ($this->privateKey === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a privateKey to sign the order');
-            }
-            $outcomeObj = $this->outcome ($symbol);
-            $info = $this->safe_dict($outcomeObj, 'info', array());
-            $networkId = $this->safe_string($info, 'networkId', $this->safe_string($this->options, 'defaultNetworkId', '56'));
-            $marketId = $this->safe_string($info, 'marketId');
-            $outcomeId = $this->safe_integer($info, 'outcomeId', 0);
-            $trader = $this->eth_get_address_from_private_key($this->privateKey);
-            $typeStr = ($type === null) ? 'limit' : strtolower($type);
-            $sideStr = strtolower($side);
-            $sideInt = ($sideStr === 'buy') ? 0 : 1;
-            $isMarket = ($typeStr === 'market');
-            $defaultTif = $isMarket ? 'FOK' : 'GTC';
-            $timeInForce = $this->safe_string_upper($params, 'timeInForce', $defaultTif);
-            $priceValue = $price;
-            if ($priceValue === null) {
-                if ($isMarket) {
-                    $priceValue = ($sideInt === 0) ? 1 : 0;
-                } else {
-                    throw new ArgumentsRequired($this->id . ' createOrder() requires a $price for limit orders');
-                }
-            }
-            $priceWei = $this->to_orderbook_wei($priceValue);
-            if (Precise::string_lt($priceWei, '1')) {
-                $priceWei = '1';
-            }
-            // $price is a fraction in (0, 1] encoded..1e18 wei (tick is 1 wei); reject out-of-range early
-            if (Precise::string_gt($priceWei, '1000000000000000000')) {
-                throw new InvalidOrder($this->id . ' createOrder() $price must be a fraction between 0 and 1');
-            }
-            $amountWei = $this->to_orderbook_wei($amount);
-            // shares are integer wei (1e18 = 1 share); a sub-wei $amount that rounds to zero is invalid
-            if (Precise::string_lt($amountWei, '1')) {
-                throw new InvalidOrder($this->id . ' createOrder() $amount is too small (rounds to zero shares)');
-            }
-            $nonce = $this->safe_string($params, 'nonce', $this->number_to_string($this->milliseconds()));
-            $expiration = $this->safe_string($params, 'expiration', '0');
-            $minFillAmount = $this->safe_string($params, 'minFillAmount', '0');
-            $order = array(
-                'trader' => $trader,
-                'marketId' => $marketId,
-                'outcomeId' => $outcomeId,
-                'side' => $sideInt,
-                'amount' => $amountWei,
-                'price' => $priceWei,
-                'minFillAmount' => $minFillAmount,
-                'nonce' => $nonce,
-                'expiration' => $expiration,
-            );
-            $signature = $this->sign_clob_order($order, $networkId);
+            $built = $this->build_orderbook_order($symbol, $type, $side, $amount, $price, $params);
+            $order = $this->safe_dict($built, 'order');
+            $networkId = $this->safe_string($built, 'networkId');
+            $timeInForce = $this->safe_string($built, 'timeInForce');
             $request = array(
                 'order' => $order,
-                'signature' => $signature,
+                'signature' => $this->safe_string($built, 'signature'),
                 'network_id' => $this->parse_to_int($networkId),
                 'time_in_force' => $timeInForce,
             );
             $response = Async\await($this->myriadPublicPostOrders ($request));
             $wrapper = $this->extend($response, array( 'order' => $order, 'networkId' => $networkId, 'timeInForce' => $timeInForce ));
+            $outcomeObj = $this->outcome ($symbol);
             return $this->parse_order($wrapper, $outcomeObj);
+        }) ();
+    }
+
+    public function build_orderbook_order(string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array ()): array {
+        /**
+         * @ignore
+         * builds and EIP-712 signs a single $order-book $order; shared by createOrder and createOrders
+         * @return {array} a dict with the signed $order, $signature, $timeInForce and $networkId
+         */
+        if ($this->privateKey === null) {
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a privateKey to sign the order');
+        }
+        $outcomeObj = $this->outcome ($symbol);
+        $info = $this->safe_dict($outcomeObj, 'info', array());
+        $networkId = $this->safe_string($info, 'networkId', $this->safe_string($this->options, 'defaultNetworkId', '56'));
+        $marketId = $this->safe_string($info, 'marketId');
+        $outcomeId = $this->safe_integer($info, 'outcomeId', 0);
+        $trader = $this->eth_get_address_from_private_key($this->privateKey);
+        $typeStr = ($type === null) ? 'limit' : strtolower($type);
+        $sideStr = strtolower($side);
+        $sideInt = ($sideStr === 'buy') ? 0 : 1;
+        $isMarket = ($typeStr === 'market');
+        $defaultTif = $isMarket ? 'FOK' : 'GTC';
+        $timeInForce = $this->safe_string_upper($params, 'timeInForce', $defaultTif);
+        $priceValue = $price;
+        if ($priceValue === null) {
+            if ($isMarket) {
+                $priceValue = ($sideInt === 0) ? 1 : 0;
+            } else {
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a $price for limit orders');
+            }
+        }
+        $priceWei = $this->to_orderbook_wei($priceValue);
+        if (Precise::string_lt($priceWei, '1')) {
+            $priceWei = '1';
+        }
+        // $price is a fraction in (0, 1] encoded..1e18 wei (tick is 1 wei); reject out-of-range early
+        if (Precise::string_gt($priceWei, '1000000000000000000')) {
+            throw new InvalidOrder($this->id . ' createOrder() $price must be a fraction between 0 and 1');
+        }
+        $amountWei = $this->to_orderbook_wei($amount);
+        // shares are integer wei (1e18 = 1 share); a sub-wei $amount that rounds to zero is invalid
+        if (Precise::string_lt($amountWei, '1')) {
+            throw new InvalidOrder($this->id . ' createOrder() $amount is too small (rounds to zero shares)');
+        }
+        $nonce = $this->safe_string($params, 'nonce', $this->number_to_string($this->milliseconds()));
+        $expiration = $this->safe_string($params, 'expiration', '0');
+        $minFillAmount = $this->safe_string($params, 'minFillAmount', '0');
+        $order = array(
+            'trader' => $trader,
+            'marketId' => $marketId,
+            'outcomeId' => $outcomeId,
+            'side' => $sideInt,
+            'amount' => $amountWei,
+            'price' => $priceWei,
+            'minFillAmount' => $minFillAmount,
+            'nonce' => $nonce,
+            'expiration' => $expiration,
+        );
+        $signature = $this->sign_clob_order($order, $networkId);
+        return array(
+            'order' => $order,
+            'signature' => $signature,
+            'timeInForce' => $timeInForce,
+            'networkId' => $networkId,
+        );
+    }
+
+    public function create_orders(array $orders, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($orders, $params) {
+            /**
+             * places multiple order book $orders-> Myriad's batch endpoint is not reliable, so the
+             * $orders are signed and submitted sequentially (not atomically)
+             *
+             * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da8281e2bc49cf4914b07528
+             *
+             * @param {array[]} $orders a list of order requests, each with $symbol, $type, $side, $amount, $price and $params
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+             */
+            Async\await($this->load_markets());
+            $this->ensure_outcomes_loaded();
+            $ordersLength = count($orders);
+            $result = array();
+            for ($i = 0; $i < $ordersLength; $i++) {
+                $o = $orders[$i];
+                $symbol = $this->safe_string($o, 'symbol');
+                $type = $this->safe_string($o, 'type');
+                $side = $this->safe_string($o, 'side');
+                $amount = $this->safe_number($o, 'amount');
+                $price = $this->safe_number($o, 'price');
+                $orderParams = $this->safe_dict($o, 'params', array());
+                $placed = Async\await($this->create_orderbook_order($symbol, $type, $side, $amount, $price, $this->extend($orderParams, $params)));
+                $result[] = $placed;
+            }
+            return $result;
+        }) ();
+    }
+
+    public function edit_order(string $id, string $symbol, ?string $type, ?string $side, ?float $amount = null, ?float $price = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * edits an open order by cancelling it and placing a replacement (gasless). Myriad's
+             * batch-modify endpoint is not reliable, so the cancel and replace are submitted sequentially
+             *
+             * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da8281b58c5adb2f5998eec8
+             *
+             * @param {string} $id the hash of the order to replace
+             * @param {string} $symbol unified outcome $symbol of the new order
+             * @param {string} $type 'limit' or 'market'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount number of outcome shares for the new order
+             * @param {float} [$price] $price per share fraction in [0, 1]
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an [order structure](https://docs.ccxt.com/#/?$id=order-structure)
+             */
+            Async\await($this->load_markets());
+            $this->ensure_outcomes_loaded();
+            Async\await($this->cancel_order($id, $symbol));
+            return Async\await($this->create_orderbook_order($symbol, $type, $side, $amount, $price, $params));
         }) ();
     }
 
@@ -1174,6 +1255,46 @@ class myriad extends Exchange {
              */
             $request = array(
                 'status' => 'open',
+            );
+            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
+        }) ();
+    }
+
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches the wallet's filled order book orders
+             *
+             * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828171a003cf996487d008
+             *
+             * @param {string} [$symbol] unified outcome $symbol to filter by
+             * @param {int} [$since] timestamp in ms of the earliest order
+             * @param {int} [$limit] the maximum number of orders to return
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+             */
+            $request = array(
+                'status' => 'filled',
+            );
+            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
+        }) ();
+    }
+
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches the wallet's cancelled order book orders
+             *
+             * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828171a003cf996487d008
+             *
+             * @param {string} [$symbol] unified outcome $symbol to filter by
+             * @param {int} [$since] timestamp in ms of the earliest order
+             * @param {int} [$limit] the maximum number of orders to return
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+             */
+            $request = array(
+                'status' => 'cancelled',
             );
             return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
         }) ();
@@ -2602,6 +2723,48 @@ class myriad extends Exchange {
         }) ();
     }
 
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * streams the wallet's own fills for a market over the Centrifugo $trades $channel (real
+             * execution prices, unlike the REST fetchMyTrades); requires a market $symbol $since the $channel is per-market
+             *
+             * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
+             *
+             * @param {string} $symbol unified outcome $symbol whose market to watch
+             * @param {int} [$since] timestamp in ms of the earliest trade
+             * @param {int} [$limit] the maximum number of $trades to return
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' watchMyTrades() requires a $symbol (the $trades $channel is per-market)');
+            }
+            Async\await($this->load_markets());
+            $this->ensure_outcomes_loaded();
+            $outcomeObj = $this->outcome ($symbol);
+            $info = $this->safe_dict($outcomeObj, 'info', array());
+            $networkId = $this->safe_string($info, 'networkId');
+            $marketId = $this->safe_string($info, 'marketId');
+            $sym = $this->safeOutcomeSymbol ($symbol, $outcomeObj);
+            $channel = 'trades:' . $networkId . ':' . $marketId;
+            $messageHash = 'myTrades';
+            $trades = Async\await($this->subscribe_myriad_channel($messageHash, $channel, $params));
+            return $this->filter_by_symbol_since_limit($trades, $sym, $since, $limit, true);
+        }) ();
+    }
+
+    public function wallet_address_or_undefined(): ?string {
+        // like walletAddressFromKeys but returns null instead of throwing when no wallet is configured
+        if (($this->walletAddress !== null) && (strlen($this->walletAddress) > 0)) {
+            return strtolower($this->walletAddress);
+        }
+        if ($this->privateKey !== null) {
+            return strtolower($this->eth_get_address_from_private_key($this->privateKey));
+        }
+        return null;
+    }
+
     public function handle_trades($client, $data) {
         $networkId = $this->safe_string($data, 'networkId');
         $marketId = $this->safe_string($data, 'marketId');
@@ -2645,6 +2808,57 @@ class myriad extends Exchange {
         $stored = $this->trades[$sym];
         $stored->append ($trade);
         $client->resolve ($stored, 'trades::' . $sym);
+        // also surface the wallet's own fills ($taker or $maker leg) with their real execution prices
+        $myWallet = $this->wallet_address_or_undefined();
+        if ($myWallet !== null) {
+            $myLegs = array();
+            $takerTrader = $this->safe_string_lower($taker, 'trader');
+            if ($takerTrader === $myWallet) {
+                $myLegs[] = $trade;
+            }
+            $makers = $this->safe_list($data, 'makers', array());
+            $makersLength = count($makers);
+            for ($i = 0; $i < $makersLength; $i++) {
+                $maker = $makers[$i];
+                $makerTrader = $this->safe_string_lower($maker, 'trader');
+                if ($makerTrader === $myWallet) {
+                    $makerSym = $this->market_outcome_to_symbol($networkId, $marketId, $this->safe_string($maker, 'outcome'));
+                    $makerMarket = $this->safe_market($makerSym);
+                    $makerFees = $this->safe_dict($maker, 'fees', array());
+                    $makerTrade = $this->safe_trade(array(
+                        'id' => $txHash,
+                        'info' => $maker,
+                        'timestamp' => $ts,
+                        'datetime' => $this->iso8601($ts),
+                        'symbol' => $makerSym,
+                        'order' => $this->safe_string($maker, 'orderHash'),
+                        'type' => null,
+                        'side' => $this->safe_string_lower($maker, 'side'),
+                        'takerOrMaker' => 'maker',
+                        'price' => $this->safe_number($maker, 'price'),
+                        'amount' => $this->safe_number($maker, 'amount'),
+                        'cost' => null,
+                        'fee' => array(
+                            'cost' => $this->safe_number($makerFees, 'total'),
+                            'currency' => $this->safe_string($makerMarket, 'quote'),
+                        ),
+                    ), $makerMarket);
+                    $myLegs[] = $makerTrade;
+                }
+            }
+            $myLegsLength = count($myLegs);
+            if ($myLegsLength > 0) {
+                if ($this->myTrades === null) {
+                    $myTradesLimit = $this->safe_integer($this->options, 'myTradesLimit', 1000);
+                    $this->myTrades = new ArrayCacheBySymbolById ($myTradesLimit);
+                }
+                $myStored = $this->myTrades;
+                for ($k = 0; $k < $myLegsLength; $k++) {
+                    $myStored->append ($myLegs[$k]);
+                }
+                $client->resolve ($myStored, 'myTrades');
+            }
+        }
     }
 
     public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
@@ -2668,6 +2882,74 @@ class myriad extends Exchange {
             $channel = 'prices:' . $networkId . ':' . $marketId;
             $messageHash = 'ticker::' . $sym;
             return Async\await($this->subscribe_myriad_channel($messageHash, $channel, $params));
+        }) ();
+    }
+
+    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * streams best bid/ask/last for several outcomes over the Centrifugo prices channels
+             *
+             * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
+             *
+             * @param {string[]} $symbols unified outcome $symbols to watch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a dict of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by symbol
+             */
+            Async\await($this->load_markets());
+            $this->ensure_outcomes_loaded();
+            if ($symbols === null) {
+                throw new ArgumentsRequired($this->id . ' watchTickers() requires a list of $symbols (the prices $channel is per-market)');
+            }
+            $symbolsLength = count($symbols);
+            $url = $this->safe_string($this->urls['api'], 'ws');
+            Async\await($this->connect_centrifugo($url));
+            $client = $this->client($url);
+            $seenChannels = array();
+            $resolvedSymbols = array();
+            for ($i = 0; $i < $symbolsLength; $i++) {
+                $outcomeObj = $this->outcome ($symbols[$i]);
+                $info = $this->safe_dict($outcomeObj, 'info', array());
+                $networkId = $this->safe_string($info, 'networkId');
+                $marketId = $this->safe_string($info, 'marketId');
+                $channel = 'prices:' . $networkId . ':' . $marketId;
+                $resolvedSymbols[] = $this->safeOutcomeSymbol ($symbols[$i], $outcomeObj);
+                if ($this->safe_value($seenChannels, $channel) === null) {
+                    $seenChannels[$channel] = true;
+                    $requestId = $this->request_id($url);
+                    $subscribeMsg = array( 'subscribe' => array( 'channel' => $channel ), 'id' => $requestId );
+                    $this->watch($url, 'tickers', $subscribeMsg, $channel);
+                }
+            }
+            $tickers = Async\await($client->future ('tickers'));
+            return $this->filter_by_array($tickers, 'symbol', $resolvedSymbols, true);
+        }) ();
+    }
+
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            /**
+             * streams OHLCV candles for an outcome, synthesised from the live $trades channel
+             *
+             * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
+             *
+             * @param {string} $symbol unified outcome $symbol
+             * @param {string} $timeframe the length of each $candle (e.g. '1m', '1h', '1d')
+             * @param {int} [$since] timestamp in ms of the earliest $candle
+             * @param {int} [$limit] the maximum number of candles to return
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {int[][]} a list of [timestamp, open, high, low, close, volume] candles
+             */
+            // Myriad has no OHLCV websocket channel, so build candles from the live trade stream
+            $trades = Async\await($this->watch_trades($symbol, $since, $limit, $params));
+            $ohlcvc = $this->build_ohlcv ($trades, $timeframe, 0, 2147483647);
+            $result = array();
+            $ohlcvcLength = count($ohlcvc);
+            for ($i = 0; $i < $ohlcvcLength; $i++) {
+                $candle = $ohlcvc[$i];
+                $result[] = [ $candle[0], $candle[1], $candle[2], $candle[3], $candle[4], $candle[5] ];
+            }
+            return $this->filter_by_since_limit($result, $since, $limit, 0, true);
         }) ();
     }
 
@@ -2714,6 +2996,7 @@ class myriad extends Exchange {
             $this->tickers[$sym] = $ticker;
             $client->resolve ($ticker, 'ticker::' . $sym);
         }
+        $client->resolve ($this->tickers, 'tickers');
     }
 
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
