@@ -1393,7 +1393,6 @@ class aster extends Exchange {
         $last = $this->safe_string($ticker, 'lastPrice');
         $open = $this->safe_string($ticker, 'openPrice');
         $percentage = $this->safe_string($ticker, 'priceChangePercent');
-        $percentage = Precise::string_mul($percentage, '100');
         $quoteVolume = $this->safe_string($ticker, 'quoteVolume');
         $baseVolume = $this->safe_string($ticker, 'volume');
         $high = $this->safe_string($ticker, 'highPrice');
