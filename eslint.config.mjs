@@ -79,7 +79,9 @@ const mainRules = {
     'quotes': ['error', 'single', { 'avoidEscape': true }],
     'no-unused-vars': ['error', { 'argsIgnorePattern': '^(exchange|headers|body|account|info|symbol|price|tag|side|since|name|limit|params|market|timeframe|api|path|code|currency|statusCode|statusText|url|method|response|requestHeaders|requestBody|bidsKey|asksKey|context|config|type|priceKey|amountKey|networkCode|marginMode|subscription|message|client|nonce|orderbook|bookside|deltas|delta|countOrIdKey|amount|fromCurrency|toCurrency|rawCurrency|error|reject)', 'caughtErrors': 'none' }],
     'new-parens': 'error',
-    'new-cap': ['error'],
+    'new-cap': ['error', {
+        'capIsNewExceptionPattern': '^Future$|^globalThis\\.',
+    }],
     'no-var': 'error',
     'prefer-const': ['error', {
         'destructuring': 'any',
