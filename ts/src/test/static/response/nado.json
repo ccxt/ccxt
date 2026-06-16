@@ -789,6 +789,211 @@
                 ]
             }
         ],
+        "fetchClosedOrders": [
+            {
+                "description": "fetchClosedOrders",
+                "method": "fetchClosedOrders",
+                "input": [
+                    "BTC/USDT0:USDT0",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "orders": [
+                        {
+                            "digest": "0x1111111111111111111111111111111111111111111111111111111111111111",
+                            "subaccount": "0x123000000000000000000000000000000000012364656661756c740000000000",
+                            "product_id": 2,
+                            "submission_idx": "563024",
+                            "last_fill_submission_idx": "563024",
+                            "amount": "100000000000000000",
+                            "price_x18": "25000000000000000000000",
+                            "base_filled": "100000000000000000",
+                            "quote_filled": "-2500000000000000000000",
+                            "fee": "500000000000000000",
+                            "builder_fee": "0",
+                            "closed_amount": "0",
+                            "realized_pnl": "0",
+                            "closed_net_entry": "0",
+                            "closed_margin": null,
+                            "first_fill_timestamp": "1680000000",
+                            "last_fill_timestamp": "1680000000",
+                            "expiration": "4294967295",
+                            "appendix": "1537",
+                            "nonce": "1761323164913106944",
+                            "isolated": false,
+                            "pre_balance": {},
+                            "post_balance": {}
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "status": "closed",
+                            "digest": "0x1111111111111111111111111111111111111111111111111111111111111111",
+                            "subaccount": "0x123000000000000000000000000000000000012364656661756c740000000000",
+                            "product_id": 2,
+                            "submission_idx": "563024",
+                            "last_fill_submission_idx": "563024",
+                            "amount": "100000000000000000",
+                            "price_x18": "25000000000000000000000",
+                            "base_filled": "100000000000000000",
+                            "quote_filled": "-2500000000000000000000",
+                            "fee": "500000000000000000",
+                            "builder_fee": "0",
+                            "closed_amount": "0",
+                            "realized_pnl": "0",
+                            "closed_net_entry": "0",
+                            "closed_margin": null,
+                            "first_fill_timestamp": "1680000000",
+                            "last_fill_timestamp": "1680000000",
+                            "expiration": "4294967295",
+                            "appendix": "1537",
+                            "nonce": "1761323164913106944",
+                            "isolated": false,
+                            "pre_balance": {},
+                            "post_balance": {}
+                        },
+                        "id": "0x1111111111111111111111111111111111111111111111111111111111111111",
+                        "clientOrderId": null,
+                        "timestamp": 1680000000000,
+                        "datetime": "2023-03-28T10:40:00.000Z",
+                        "lastTradeTimestamp": 1680000000000,
+                        "lastUpdateTimestamp": null,
+                        "symbol": "BTC/USDT0:USDT0",
+                        "type": "limit",
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "side": "buy",
+                        "price": 25000,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "amount": 0.1,
+                        "cost": 2500,
+                        "average": 25000,
+                        "filled": 0.1,
+                        "remaining": 0,
+                        "status": "closed",
+                        "fee": {
+                            "currency": "USDT0",
+                            "cost": 0.5
+                        },
+                        "trades": [],
+                        "fees": [
+                            {
+                                "currency": "USDT0",
+                                "cost": 0.5
+                            }
+                        ],
+                        "reduceOnly": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetchMyTrades",
+                "method": "fetchMyTrades",
+                "input": [
+                    "BTC/USDT0:USDT0",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "matches": [
+                        {
+                            "digest": "0x2222222222222222222222222222222222222222222222222222222222222222",
+                            "order": {
+                                "sender": "0x123000000000000000000000000000000000012364656661756c740000000000",
+                                "priceX18": "25000000000000000000000",
+                                "amount": "100000000000000000",
+                                "expiration": "4294967295",
+                                "nonce": "1761323164913106944",
+                                "appendix": "1537"
+                            },
+                            "base_filled": "10000000000000000",
+                            "quote_filled": "-250000000000000000000",
+                            "fee": "50000000000000000",
+                            "builder_fee": "0",
+                            "sequencer_fee": "0",
+                            "cumulative_fee": "50000000000000000",
+                            "cumulative_base_filled": "10000000000000000",
+                            "cumulative_quote_filled": "-250000000000000000000",
+                            "closed_amount": "0",
+                            "realized_pnl": "0",
+                            "closed_net_entry": "0",
+                            "margin": null,
+                            "submission_idx": "563012",
+                            "isolated": false,
+                            "is_taker": true
+                        }
+                    ],
+                    "txs": [
+                        {
+                            "submission_idx": "563012",
+                            "product_id": 2,
+                            "timestamp": "1680000001"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "submission_idx": "563012",
+                            "product_id": 2,
+                            "timestamp": "1680000001",
+                            "digest": "0x2222222222222222222222222222222222222222222222222222222222222222",
+                            "order": {
+                                "sender": "0x123000000000000000000000000000000000012364656661756c740000000000",
+                                "priceX18": "25000000000000000000000",
+                                "amount": "100000000000000000",
+                                "expiration": "4294967295",
+                                "nonce": "1761323164913106944",
+                                "appendix": "1537"
+                            },
+                            "base_filled": "10000000000000000",
+                            "quote_filled": "-250000000000000000000",
+                            "fee": "50000000000000000",
+                            "builder_fee": "0",
+                            "sequencer_fee": "0",
+                            "cumulative_fee": "50000000000000000",
+                            "cumulative_base_filled": "10000000000000000",
+                            "cumulative_quote_filled": "-250000000000000000000",
+                            "closed_amount": "0",
+                            "realized_pnl": "0",
+                            "closed_net_entry": "0",
+                            "margin": null,
+                            "isolated": false,
+                            "is_taker": true
+                        },
+                        "timestamp": 1680000001000,
+                        "datetime": "2023-03-28T10:40:01.000Z",
+                        "symbol": "BTC/USDT0:USDT0",
+                        "id": "563012",
+                        "order": "0x2222222222222222222222222222222222222222222222222222222222222222",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 25000,
+                        "amount": 0.01,
+                        "cost": 250,
+                        "fee": {
+                            "currency": "USDT0",
+                            "cost": 0.05
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDT0",
+                                "cost": 0.05
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
         "fetchOHLCV": [
             {
                 "description": "fetchOHLCV",

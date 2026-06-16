@@ -40,10 +40,12 @@ export default class nado extends Exchange {
                 'createOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
+                'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchFundingRate': true,
                 'fetchFundingRates': true,
                 'fetchMarkets': true,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
                 'fetchOpenInterests': true,
@@ -834,6 +836,157 @@ export default class nado extends Exchange {
 
     /**
      * @method
+     * @name nado#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://docs.nado.xyz/developer-resources/api/archive-indexer/orders
+     * @param {string} [symbol] unified market symbol of the market orders were made in
+     * @param {int} [since] timestamp in ms of the earliest order
+     * @param {int} [limit] the maximum number of orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subaccount] the 12-byte subaccount identifier, defaults to 'default'
+     * @param {int} [params.until] timestamp in ms of the latest order to fetch
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        if (this.walletAddress === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires walletAddress');
+        }
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let subaccount = undefined;
+        [ subaccount, params ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'subaccount', 'default');
+        let ordersRequest: Dict = {
+            'subaccounts': [
+                this.createSubaccount (this.walletAddress, subaccount),
+            ],
+        };
+        if (market !== undefined) {
+            ordersRequest['product_ids'] = [ this.parseToInt (market['id']) ];
+        }
+        [ ordersRequest, params ] = this.handleUntilOption ('max_time', ordersRequest, params, 0.001);
+        if (limit !== undefined) {
+            ordersRequest['limit'] = Math.min (limit, 500);
+        }
+        const request: Dict = {
+            'orders': ordersRequest,
+        };
+        const response = await this.archivePost (this.deepExtend (request, params));
+        //
+        //     {
+        //         "orders": [
+        //             {
+        //                 "digest": "0xf4f7a8767faf0c7f72251a1f9e5da590f708fd9842bf8fcdeacbaa0237958fff",
+        //                 "subaccount": "0x12a0b4888021576eb10a67616dd3dd3d9ce206b664656661756c740000000000",
+        //                 "product_id": 1,
+        //                 "submission_idx": "563024",
+        //                 "amount": "20000000000000000000",
+        //                 "price_x18": "1751900000000000000000",
+        //                 "base_filled": "20000000000000000000",
+        //                 "quote_filled": "-35038000000000000000000",
+        //                 "fee": "7007600000000000000",
+        //                 "first_fill_timestamp": "1679728133",
+        //                 "last_fill_timestamp": "1679728133"
+        //             }
+        //         ]
+        //     }
+        //
+        const orders = this.safeList (response, 'orders', []);
+        const closedOrders = [];
+        for (let i = 0; i < orders.length; i++) {
+            const order = orders[i];
+            if (this.isArchiveOrderClosed (order)) {
+                closedOrders.push (this.extend ({ 'status': 'closed' }, order));
+            }
+        }
+        return this.parseOrders (closedOrders, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name nado#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://docs.nado.xyz/developer-resources/api/archive-indexer/matches
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] timestamp in ms of the earliest trade
+     * @param {int} [limit] the maximum number of trades to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subaccount] the 12-byte subaccount identifier, defaults to 'default'
+     * @param {int} [params.until] timestamp in ms of the latest trade to fetch
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        if (this.walletAddress === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires walletAddress');
+        }
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let subaccount = undefined;
+        [ subaccount, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'subaccount', 'default');
+        let matchesRequest: Dict = {
+            'subaccounts': [
+                this.createSubaccount (this.walletAddress, subaccount),
+            ],
+        };
+        if (market !== undefined) {
+            matchesRequest['product_ids'] = [ this.parseToInt (market['id']) ];
+        }
+        [ matchesRequest, params ] = this.handleUntilOption ('max_time', matchesRequest, params, 0.001);
+        if (limit !== undefined) {
+            matchesRequest['limit'] = Math.min (limit, 500);
+        }
+        const request: Dict = {
+            'matches': matchesRequest,
+        };
+        const response = await this.archivePost (this.deepExtend (request, params));
+        //
+        //     {
+        //         "matches": [
+        //             {
+        //                 "digest": "0x80ce789702b670b7d33f2aa67e12c85f124395c3f9acdb422dde3b4973ccd50c",
+        //                 "order": {
+        //                     "sender": "0x12a0b4888021576eb10a67616dd3dd3d9ce206b664656661756c740000000000",
+        //                     "priceX18": "27544000000000000000000",
+        //                     "amount": "2000000000000000000",
+        //                     "expiration": "4611686020107119633",
+        //                     "nonce": "1761322608857448448"
+        //                 },
+        //                 "base_filled": "736000000000000000",
+        //                 "quote_filled": "-20276464287857571514302",
+        //                 "fee": "4055287857571514302",
+        //                 "submission_idx": "563012",
+        //                 "is_taker": true
+        //             }
+        //         ],
+        //         "txs": [
+        //             {
+        //                 "submission_idx": "563012",
+        //                 "product_id": 2,
+        //                 "timestamp": "1679728133"
+        //             }
+        //         ]
+        //     }
+        //
+        const matches = this.safeList (response, 'matches', []);
+        const txs = this.safeList (response, 'txs', []);
+        const txsBySubmission = this.indexBy (txs, 'submission_idx');
+        const trades = [];
+        for (let i = 0; i < matches.length; i++) {
+            const match = matches[i];
+            const submissionIdx = this.safeString (match, 'submission_idx');
+            const tx = this.safeDict (txsBySubmission, submissionIdx, {});
+            trades.push (this.extend (tx, match));
+        }
+        return this.parseTrades (trades, market, since, limit);
+    }
+
+    /**
+     * @method
      * @name nado#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://docs.nado.xyz/developer-resources/api/gateway/queries/subaccount-info
@@ -1459,25 +1612,99 @@ export default class nado extends Exchange {
         //         "trade_type": "sell"
         //     }
         //
+        // archive match
+        //
+        //     {
+        //         "submission_idx": "563012",
+        //         "product_id": 2,
+        //         "timestamp": "1679728133",
+        //         "digest": "0x80ce789702b670b7d33f2aa67e12c85f124395c3f9acdb422dde3b4973ccd50c",
+        //         "order": {
+        //             "priceX18": "27544000000000000000000",
+        //             "amount": "2000000000000000000"
+        //         },
+        //         "base_filled": "736000000000000000",
+        //         "quote_filled": "-20276464287857571514302",
+        //         "fee": "4055287857571514302",
+        //         "is_taker": true
+        //     }
+        //
         const marketId = this.safeString (trade, 'product_id');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeTimestamp (trade, 'timestamp');
+        const rawOrder = this.safeValue (trade, 'order');
+        const isArchiveMatch = rawOrder !== undefined;
+        const order = this.safeDict (trade, 'order', {});
         const amountString = this.safeString (trade, 'base_filled');
         const costString = this.safeString (trade, 'quote_filled');
+        const rawOrderAmount = this.safeString (order, 'amount');
+        let side = this.safeString (trade, 'trade_type');
+        if ((side === undefined) && (rawOrderAmount !== undefined)) {
+            if (Precise.stringLt (rawOrderAmount, '0')) {
+                side = 'sell';
+            } else {
+                side = 'buy';
+            }
+        }
+        let price = this.safeValue (trade, 'price');
+        if (price === undefined) {
+            price = this.parseX18 (this.safeString (order, 'priceX18'));
+        }
+        let takerOrMaker = undefined;
+        const isTaker = this.safeBool (trade, 'is_taker');
+        if (isTaker !== undefined) {
+            if (isTaker) {
+                takerOrMaker = 'taker';
+            } else {
+                takerOrMaker = 'maker';
+            }
+        }
+        const feeString = this.safeString (trade, 'fee');
+        let feeCost = undefined;
+        if (isArchiveMatch) {
+            feeCost = this.parseX18 (feeString);
+        } else {
+            feeCost = this.parseNumber (feeString);
+        }
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': market['quote'],
+            };
+        }
+        let parsedAmount = undefined;
+        if (amountString !== undefined) {
+            const absoluteAmount = Precise.stringAbs (amountString);
+            if (isArchiveMatch) {
+                parsedAmount = this.parseX18 (absoluteAmount);
+            } else {
+                parsedAmount = absoluteAmount;
+            }
+        }
+        let parsedCost = undefined;
+        if (costString !== undefined) {
+            const absoluteCost = Precise.stringAbs (costString);
+            if (isArchiveMatch) {
+                parsedCost = this.parseX18 (absoluteCost);
+            } else {
+                parsedCost = absoluteCost;
+            }
+        }
         return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
-            'id': this.safeString (trade, 'trade_id'),
-            'order': undefined,
+            'id': this.safeString2 (trade, 'trade_id', 'submission_idx'),
+            'order': this.safeString (trade, 'digest'),
             'type': undefined,
-            'side': this.safeString (trade, 'trade_type'),
-            'takerOrMaker': undefined,
-            'price': this.safeString (trade, 'price'),
-            'amount': (amountString === undefined) ? undefined : Precise.stringAbs (amountString),
-            'cost': (costString === undefined) ? undefined : Precise.stringAbs (costString),
-            'fee': undefined,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
+            'price': price,
+            'amount': parsedAmount,
+            'cost': parsedCost,
+            'fee': fee,
         }, market);
     }
 
@@ -1663,6 +1890,15 @@ export default class nado extends Exchange {
         return this.safeBalance (result);
     }
 
+    isArchiveOrderClosed (order: Dict): boolean {
+        const amount = this.safeString (order, 'amount');
+        const filled = this.safeString (order, 'base_filled');
+        if ((amount === undefined) || (filled === undefined)) {
+            return false;
+        }
+        return Precise.stringGe (Precise.stringAbs (filled), Precise.stringAbs (amount));
+    }
+
     parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // create order
@@ -1712,10 +1948,50 @@ export default class nado extends Exchange {
         let side = undefined;
         let price = undefined;
         let amount = undefined;
+        let filled = undefined;
         let remaining = undefined;
+        let cost = undefined;
+        let average = undefined;
+        let fee = undefined;
+        let lastTradeTimestamp = undefined;
         let status = undefined;
         const cancelOrderDigest = this.safeString (order, 'digest');
-        if (cancelOrderDigest !== undefined) {
+        const archiveFilled = this.safeString (order, 'base_filled');
+        if (archiveFilled !== undefined) {
+            id = cancelOrderDigest;
+            const marketId = this.safeString (order, 'product_id');
+            market = this.safeMarket (marketId, market);
+            const amountString = this.safeString (order, 'amount');
+            if (amountString !== undefined) {
+                side = Precise.stringLt (amountString, '0') ? 'sell' : 'buy';
+                amount = this.parseX18 (Precise.stringAbs (amountString));
+            }
+            filled = this.parseX18 (Precise.stringAbs (archiveFilled));
+            const costString = this.safeString (order, 'quote_filled');
+            cost = (costString === undefined) ? undefined : this.parseX18 (Precise.stringAbs (costString));
+            if ((filled !== undefined) && (cost !== undefined)) {
+                average = Precise.stringDiv (this.numberToString (cost), this.numberToString (filled));
+            }
+            if ((amountString !== undefined) && (archiveFilled !== undefined)) {
+                remaining = this.parseX18 (Precise.stringMax (Precise.stringSub (Precise.stringAbs (amountString), Precise.stringAbs (archiveFilled)), '0'));
+            }
+            timestamp = this.safeTimestamp (order, 'first_fill_timestamp');
+            lastTradeTimestamp = this.safeTimestamp (order, 'last_fill_timestamp');
+            price = this.parseX18 (this.safeString (order, 'price_x18'));
+            status = this.safeString (order, 'status');
+            if (status === undefined) {
+                if (this.isArchiveOrderClosed (order)) {
+                    status = 'closed';
+                }
+            }
+            const feeCost = this.parseX18 (this.safeString (order, 'fee'));
+            if (feeCost !== undefined) {
+                fee = {
+                    'cost': feeCost,
+                    'currency': market['quote'],
+                };
+            }
+        } else if (cancelOrderDigest !== undefined) {
             id = cancelOrderDigest;
             const marketId = this.safeString (order, 'product_id');
             market = this.safeMarket (marketId, market);
@@ -1759,7 +2035,7 @@ export default class nado extends Exchange {
             'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
+            'lastTradeTimestamp': lastTradeTimestamp,
             'lastUpdateTimestamp': undefined,
             'symbol': market['symbol'],
             'type': 'limit',
@@ -1770,12 +2046,12 @@ export default class nado extends Exchange {
             'stopPrice': undefined,
             'triggerPrice': undefined,
             'amount': amount,
-            'cost': undefined,
-            'average': undefined,
-            'filled': undefined,
+            'cost': cost,
+            'average': average,
+            'filled': filled,
             'remaining': remaining,
             'status': status,
-            'fee': undefined,
+            'fee': fee,
             'trades': undefined,
         }, market);
     }
