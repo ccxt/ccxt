@@ -5,7 +5,7 @@ import Exchange from '../abstract/prediction/polymarket.js';
 import { ecdsa } from '../base/functions/crypto.js';
 import { TRUNCATE, ROUND, DECIMAL_PLACES } from '../base/functions/number.js';
 import { Precise } from '../base/Precise.js';
-import { ArrayCache } from '../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import type {
     Int, Str, Num, Dict,
     Market, Ticker, Tickers, OrderBook, Trade, OHLCV,
@@ -67,7 +67,9 @@ export default class polymarket extends Exchange {
                 'fetchTradingFee': true,
                 'fetchWithdrawals': false,
                 'prediction': true,         // Prediction market support
+                'watchMyTrades': true,
                 'watchOrderBook': true,
+                'watchOrders': true,
                 'watchTicker': true,
                 'watchTrades': true,
             },
@@ -85,6 +87,7 @@ export default class polymarket extends Exchange {
                     'clob': 'https://clob.polymarket.com',
                     'data': 'https://data-api.polymarket.com',
                     'ws': 'wss://ws-subscriptions-clob.polymarket.com/ws/market',
+                    'wsUser': 'wss://ws-subscriptions-clob.polymarket.com/ws/user',
                 },
                 'www': 'https://polymarket.com',
                 'doc': [ 'https://docs.polymarket.com' ],
@@ -1523,7 +1526,8 @@ export default class polymarket extends Exchange {
         const id = this.safeString2 (order, 'id', 'orderID');
         const tokenId = this.safeString (order, 'asset_id');
         const mkt = this.safeOutcome (tokenId, market as any);
-        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        // REST returns 'status'; the user-websocket order event carries lifecycle in 'type'
+        const status = this.parseOrderStatus (this.safeString2 (order, 'status', 'type'));
         const side = this.safeStringLower (order, 'side');
         const price = this.safeNumber (order, 'price');
         const amount = this.safeNumber (order, 'original_size');
@@ -1538,7 +1542,7 @@ export default class polymarket extends Exchange {
             'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': mkt['symbol'],
-            'type': this.safeStringLower (order, 'type', 'limit'),
+            'type': 'limit', // polymarket CLOB orders are limit orders (the user-ws 'type' field is the lifecycle, used for status)
             'timeInForce': this.safeString (order, 'time_in_force', 'GTC'),
             'postOnly': undefined,
             'side': side,
@@ -1569,6 +1573,10 @@ export default class polymarket extends Exchange {
             'MATCHED': 'closed',
             'CANCELLED': 'canceled',
             'DELAYED': 'open',
+            // user-websocket order lifecycle ('type' field)
+            'PLACEMENT': 'open',
+            'UPDATE': 'open',
+            'CANCELLATION': 'canceled',
         };
         return this.safeString (statuses, status, status);
     }
@@ -2399,6 +2407,10 @@ export default class polymarket extends Exchange {
                 this.handleOrderBookDelta (client, event);
             } else if (eventType === 'last_trade_price') {
                 this.handleTrade (client, event);
+            } else if (eventType === 'order') {
+                this.handleOrder (client, event);
+            } else if (eventType === 'trade') {
+                this.handleMyTrade (client, event);
             }
             // tick_size_change events are silently ignored for now
         }
@@ -2525,7 +2537,7 @@ export default class polymarket extends Exchange {
         symbol = this.safeString (outcomeObj, 'symbol');
         const messageHash = 'orderbook::' + symbol;
         const subscribeHash = 'subscribe::' + tokenId;
-        const subscribeMsg = { 'operation': 'subscribe', 'assets_ids': [ tokenId ] };
+        const subscribeMsg = { 'assets_ids': [ tokenId ], 'type': 'market' };
         const url = this.urls['api']['ws'];
         const orderbook = await this.watch (url, messageHash, subscribeMsg, subscribeHash);
         return orderbook.limit ();
@@ -2549,7 +2561,7 @@ export default class polymarket extends Exchange {
         symbol = this.safeString (outcomeObj, 'symbol');
         const messageHash = 'trades::' + symbol;
         const subscribeHash = 'subscribe::' + tokenId;
-        const subscribeMsg = { 'operation': 'subscribe', 'assets_ids': [ tokenId ] };
+        const subscribeMsg = { 'assets_ids': [ tokenId ], 'type': 'market' };
         const url = this.urls['api']['ws'];
         const trades = await this.watch (url, messageHash, subscribeMsg, subscribeHash);
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -2571,7 +2583,7 @@ export default class polymarket extends Exchange {
         symbol = this.safeString (outcomeObj, 'symbol');
         const messageHash = 'ticker::' + symbol;
         const subscribeHash = 'subscribe::' + tokenId;
-        const subscribeMsg = { 'operation': 'subscribe', 'assets_ids': [ tokenId ] };
+        const subscribeMsg = { 'assets_ids': [ tokenId ], 'type': 'market' };
         if (this.orderbooks[symbol] === undefined) {
             this.orderbooks[symbol] = this.orderBook ([]);
         }
@@ -2633,9 +2645,112 @@ export default class polymarket extends Exchange {
         }, market);
     }
 
+    /**
+     * @method
+     * @name polymarket#watchOrders
+     * @description watches the authenticated user's order updates over the CLOB user websocket channel
+     * @see https://docs.polymarket.com/developers/CLOB/websocket/user-channel
+     * @param {string} [symbol] unified outcome symbol to filter the stream to one market
+     * @param {int} [since] the earliest time in ms to return orders for
+     * @param {int} [limit] the maximum number of orders to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        await this.loadApiCredentials ();
+        let messageHash = 'orders';
+        if (symbol !== undefined) {
+            const outcomeObj = this.outcome (symbol);
+            symbol = this.safeString (outcomeObj, 'symbol');
+            messageHash = 'orders::' + symbol;
+        }
+        const orders = await this.subscribeUserChannel (messageHash, params);
+        if (this.newUpdates) {
+            limit = orders.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+    }
+
+    /**
+     * @method
+     * @name polymarket#watchMyTrades
+     * @description watches the authenticated user's trade fills over the CLOB user websocket channel
+     * @see https://docs.polymarket.com/developers/CLOB/websocket/user-channel
+     * @param {string} [symbol] unified outcome symbol to filter the stream to one market
+     * @param {int} [since] the earliest time in ms to return trades for
+     * @param {int} [limit] the maximum number of trades to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     */
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        await this.loadApiCredentials ();
+        let messageHash = 'myTrades';
+        if (symbol !== undefined) {
+            const outcomeObj = this.outcome (symbol);
+            symbol = this.safeString (outcomeObj, 'symbol');
+            messageHash = 'myTrades::' + symbol;
+        }
+        const trades = await this.subscribeUserChannel (messageHash, params);
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+    }
+
+    async subscribeUserChannel (messageHash: string, params = {}) {
+        // the user channel authenticates inside the subscribe frame, not via HMAC headers
+        const apiKey = (this.apiKey !== undefined) ? this.apiKey : this.safeString (this.options, 'l2ApiKey');
+        const secret = (this.secret !== undefined) ? this.secret : this.safeString (this.options, 'l2Secret');
+        const passphrase = (this.password !== undefined) ? this.password : this.safeString (this.options, 'l2Passphrase');
+        const auth: Dict = { 'apiKey': apiKey, 'secret': secret, 'passphrase': passphrase };
+        // an empty markets list subscribes to every market the user is active in
+        const subscribeMsg: Dict = { 'auth': auth, 'markets': [], 'type': 'user' };
+        const url = this.urls['api']['wsUser'];
+        const subscribeHash = 'user';
+        return await this.watch (url, messageHash, this.extend (subscribeMsg, params), subscribeHash);
+    }
+
+    handleOrder (client: any, event: any) {
+        if (this.orders === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheBySymbolById (limit);
+        }
+        const stored = this.orders;
+        const parsed = this.parseOrder (event);
+        stored.append (parsed);
+        client.resolve (stored, 'orders');
+        const symbol = this.safeString (parsed, 'symbol');
+        if (symbol !== undefined) {
+            client.resolve (stored, 'orders::' + symbol);
+        }
+    }
+
+    handleMyTrade (client: any, event: any) {
+        if (this.myTrades === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            this.myTrades = new ArrayCacheBySymbolById (limit);
+        }
+        const stored = this.myTrades;
+        const parsed = this.parseTrade (event);
+        stored.append (parsed);
+        client.resolve (stored, 'myTrades');
+        const symbol = this.safeString (parsed, 'symbol');
+        if (symbol !== undefined) {
+            client.resolve (stored, 'myTrades::' + symbol);
+        }
+    }
+
     tokenIdToSymbol (tokenId: string): Str {
         if (!tokenId) {
             return undefined;
+        }
+        // outcome tokens are keyed in outcomes_by_id (populated by fetchEvents/loadMarkets);
+        // fall back to markets_by_id for the standard market lookup
+        const outcomeObj = this.safeDict (this.outcomes_by_id, tokenId);
+        if (outcomeObj !== undefined) {
+            return this.safeString (outcomeObj, 'symbol');
         }
         const marketsById = this.markets_by_id as any;
         const market = (marketsById !== undefined) ? marketsById[tokenId] : undefined;
