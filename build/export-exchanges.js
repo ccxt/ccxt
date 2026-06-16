@@ -228,8 +228,7 @@ function extendedExchangesById (exchanges){
 
 // ----------------------------------------------------------------------------
 
-async function createExchanges (ids) {
-    const pathToSrcDirectory = './ts/src/'
+async function createExchanges (ids, pathToSrcDirectory = './ts/src/') {
 
     // readd all files simultaneously
     const promiseReadFile = promisify (fs.readFile);
@@ -335,6 +334,15 @@ function createMarkdownListOfCertifiedExchanges (exchanges) {
     return exchanges.map ((exchange) => {
         const discount = getReferralDiscountBadgeLink (exchange)
         return { ... createMarkdownExchange (exchange), discount }
+    })
+}
+
+// ----------------------------------------------------------------------------
+
+function createMarkdownListOfPredictionExchanges (exchanges) {
+    return exchanges.map ((exchange) => {
+        const { logo, id, name, ver } = createMarkdownExchange (exchange)
+        return { logo, id, name, ver }
     })
 }
 
@@ -541,6 +549,24 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
     }
 
     exportBuilderCodeExchanges(allExchangesPaths[0], arrayOfExchanges)
+}
+
+
+function exportPredictionExchanges (exchangePaths, exchanges) {
+    const arrayOfExchanges = values (exchanges).filter (exchange => !exchange.alias)
+    const numExchanges = arrayOfExchanges.length
+    if (!numExchanges) {
+        return
+    }
+    const predictionExchangesMarkdownTable = createMarkdownTable (arrayOfExchanges, createMarkdownListOfPredictionExchanges, [ 3 ])
+        , beginning = "<!--- init prediction list -->The CCXT library currently supports the following "
+        , ending = " prediction market exchanges and trading APIs:\n\n"
+        , totalString = beginning + numExchanges + ending
+        , predictionExchangesReplacement = totalString + predictionExchangesMarkdownTable + "\n<!--- end prediction list -->"
+        , predictionExchangesRegex = new RegExp (/<!--- init prediction list -->([\s\S]*?)<!--- end prediction list -->/)
+    for (const exchangePath of exchangePaths) {
+        logExportExchanges (exchangePath, predictionExchangesRegex, predictionExchangesReplacement)
+    }
 }
 
 
@@ -889,6 +915,9 @@ async function exportEverything () {
             wikiPath + '/ccxt.pro.manual.md',
         ],
     }, unlimitedLog)
+
+    const predictionExchanges = await createExchanges (predictionIds, './ts/src/prediction/')
+    exportPredictionExchanges ([ 'README.md' ], predictionExchanges)
 
     exportExchangeIdsToExchangesJson (keys(exchanges), wsIds, predictionIds, predictionWsIds)
     exportWikiToGitHub (wikiPath, gitWikiPath)
