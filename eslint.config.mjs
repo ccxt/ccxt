@@ -1,16 +1,10 @@
 import js from '@eslint/js';
-import { FlatCompat } from '@eslint/eslintrc';
 import tsParser from '@typescript-eslint/parser';
 import tsPlugin from '@typescript-eslint/eslint-plugin';
 import jsdocPlugin from 'eslint-plugin-jsdoc';
 import unusedImportsPlugin from 'eslint-plugin-unused-imports';
 import importPlugin from 'eslint-plugin-import';
 import globals from 'globals';
-
-const compat = new FlatCompat({
-    baseDirectory: import.meta.dirname,
-    resolvePluginsRelativeTo: import.meta.dirname,
-});
 
 const sharedPlugins = {
     '@typescript-eslint': tsPlugin,
@@ -237,19 +231,6 @@ export default [
         ...js.configs.recommended,
         ignores: ['ts/src/base/ws/**'],
     },
-    ...compat.config({ extends: ['airbnb-base'] }).map(c => ({
-        ...c,
-        files: [
-            ...mainSourceFiles,
-            'cli/ts/**/*.ts',
-            'examples/ts/**/*.ts',
-        ],
-        ignores: [
-            ...mainSourceIgnores,
-            'ts/src/test/**',
-            'ts/src/pro/test/**',
-        ],
-    })),
     {
         ...jsdocPlugin.configs['flat/recommended-typescript-error'],
         files: mainSourceFiles,
