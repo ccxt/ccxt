@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { Exchange, Ticker } from "../../../../ccxt";
+import { Exchange, Ticker } from "../../../../ccxt.js";
 import Precise from '../../../base/Precise.js';
 import testSharedMethods from './test.sharedMethods.js';
 

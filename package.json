@@ -232,9 +232,9 @@
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rspack/cli": "^2.0.8",
     "@rspack/core": "^2.0.8",
-    "@types/node": "^18.15.11",
-    "@typescript-eslint/eslint-plugin": "^5.30.5",
-    "@typescript-eslint/parser": "^5.30.5",
+    "@types/node": "^25.9.3",
+    "@typescript-eslint/eslint-plugin": "^8.61.0",
+    "@typescript-eslint/parser": "^8.61.0",
     "ansicolor": "^2.0.0",
     "as-table": "^1.0.55",
     "asciichart": "^1.5.25",
@@ -244,7 +244,7 @@
     "clipboardy": "^5.0.0",
     "commander": "^14.0.1",
     "docsify": "^4.13.1",
-    "eslint": "8.22.0",
+    "eslint": "^8.57.0",
     "eslint-config-airbnb-base": "15.0.0",
     "eslint-plugin-import": "2.25.4",
     "eslint-plugin-jsdoc": "^46.9.0",
@@ -258,8 +258,8 @@
     "replace-in-file": "^6.3.5",
     "rollup": "^2.70.1",
     "rollup-plugin-execute": "1.1.1",
-    "tsx": "^4.7.2",
-    "typescript": "4.7.4"
+    "tsx": "^4.22.4",
+    "typescript": "5.9.3"
   },
   "author": {
     "name": "Igor Kroitor",

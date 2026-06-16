@@ -36,7 +36,7 @@ add margin
 * [weex](/exchanges/weex.md#addmargin)
 * [woo](/exchanges/woo.md#addmargin)
 * [xt](/exchanges/xt.md#addmargin)
-* [zebpayfutures](/exchanges/zebpayfutures.md#addmargin)
+* [zebpay](/exchanges/zebpay.md#addmargin)
 
 ---
 
@@ -3080,7 +3080,7 @@ fetch history of deposits and withdrawals
 * [cex](/exchanges/cex.md#fetchdepositswithdrawals)
 * [coinbase](/exchanges/coinbase.md#fetchdepositswithdrawals)
 * [coinbaseexchange](/exchanges/coinbaseexchange.md#fetchdepositswithdrawals)
-* [exchange](/exchanges/exchange.md#fetchdepositswithdrawals)
+* [coinbaseinternational](/exchanges/coinbaseinternational.md#fetchdepositswithdrawals)
 * [coinmate](/exchanges/coinmate.md#fetchdepositswithdrawals)
 * [dydx](/exchanges/dydx.md#fetchdepositswithdrawals)
 * [exmo](/exchanges/exmo.md#fetchdepositswithdrawals)
@@ -4391,7 +4391,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 * [exmo](/exchanges/exmo.md#fetchohlcv)
 * [extended](/exchanges/extended.md#fetchohlcv)
 * [foxbit](/exchanges/foxbit.md#fetchohlcv)
-* [gateio](/exchanges/gateio.md#fetchohlcv)
+* [gate](/exchanges/gate.md#fetchohlcv)
 * [gemini](/exchanges/gemini.md#fetchohlcv)
 * [grvt](/exchanges/grvt.md#fetchohlcv)
 * [hashkey](/exchanges/hashkey.md#fetchohlcv)
@@ -5590,7 +5590,7 @@ fetches the auto deleveraging rank and risk percentage for a list of symbols tha
 * [bybit](/exchanges/bybit.md#fetchpositionsadlrank)
 * [delta](/exchanges/delta.md#fetchpositionsadlrank)
 * [htx](/exchanges/htx.md#fetchpositionsadlrank)
-* [kucoinfutures](/exchanges/kucoinfutures.md#fetchpositionsadlrank)
+* [kucoin](/exchanges/kucoin.md#fetchpositionsadlrank)
 * [woo](/exchanges/woo.md#fetchpositionsadlrank)
 
 ---
@@ -6140,7 +6140,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 * [woo](/exchanges/woo.md#fetchtime)
 * [woofipro](/exchanges/woofipro.md#fetchtime)
 * [xt](/exchanges/xt.md#fetchtime)
-* [zebpayfutures](/exchanges/zebpayfutures.md#fetchtime)
+* [zebpay](/exchanges/zebpay.md#fetchtime)
 
 ---
 
@@ -6387,7 +6387,7 @@ fetch the trading fees for multiple markets
 * [whitebit](/exchanges/whitebit.md#fetchtradingfees)
 * [woo](/exchanges/woo.md#fetchtradingfees)
 * [woofipro](/exchanges/woofipro.md#fetchtradingfees)
-* [zebpay(futures)](/exchanges/zebpay(futures).md#fetchtradingfees)
+* [zebpay](/exchanges/zebpay.md#fetchtradingfees)
 
 ---
 
@@ -6482,7 +6482,7 @@ please use fetchDepositWithdrawFees instead
 fetch history of deposits, withdrawals, and transfers
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;Transaction&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;Transaction&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 
 | Param | Type | Required | Description |
@@ -6507,7 +6507,7 @@ fetch history of deposits, withdrawals, and transfers
 fetches a transfer
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 
 | Param | Type | Required | Description |
@@ -6760,7 +6760,7 @@ fetch all withdrawals made from an account
 * [extended](/exchanges/extended.md#fetchwithdrawals)
 * [foxbit](/exchanges/foxbit.md#fetchwithdrawals)
 * [gate](/exchanges/gate.md#fetchwithdrawals)
-* [grvrt](/exchanges/grvrt.md#fetchwithdrawals)
+* [grvt](/exchanges/grvt.md#fetchwithdrawals)
 * [hashkey](/exchanges/hashkey.md#fetchwithdrawals)
 * [hibachi](/exchanges/hibachi.md#fetchwithdrawals)
 * [hitbtc](/exchanges/hitbtc.md#fetchwithdrawals)
@@ -6980,7 +6980,7 @@ remove margin from a position
 * [weex](/exchanges/weex.md#reducemargin)
 * [woo](/exchanges/woo.md#reducemargin)
 * [xt](/exchanges/xt.md#reducemargin)
-* [zebpayfutures](/exchanges/zebpayfutures.md#reducemargin)
+* [zebpay](/exchanges/zebpay.md#reducemargin)
 
 ---
 
@@ -8942,7 +8942,7 @@ get the list of most recent trades for a list of symbols
 * [bitmex](/exchanges/bitmex.md#watchtradesforsymbols)
 * [blofin](/exchanges/blofin.md#watchtradesforsymbols)
 * [bybit](/exchanges/bybit.md#watchtradesforsymbols)
-* [coinbase](/exchanges/coinbase.md#watchtradesforsymbols)
+* [coinbaseexchange](/exchanges/coinbaseexchange.md#watchtradesforsymbols)
 * [coinex](/exchanges/coinex.md#watchtradesforsymbols)
 * [cryptocom](/exchanges/cryptocom.md#watchtradesforsymbols)
 * [deribit](/exchanges/deribit.md#watchtradesforsymbols)

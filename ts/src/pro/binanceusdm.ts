@@ -12,7 +12,8 @@ export default class binanceusdm extends binance {
         // eslint-disable-next-line new-cap
         const restInstance = new binanceusdmRest ();
         const restDescribe = restInstance.describe ();
-        const extended = this.deepExtend (super.describe (), restDescribe);
+        const parentWsDescribe = super.describeData ();
+        const extended = this.deepExtend (restDescribe, parentWsDescribe);
         return this.deepExtend (extended, {
             'id': 'binanceusdm',
             'name': 'Binance USDⓈ-M',

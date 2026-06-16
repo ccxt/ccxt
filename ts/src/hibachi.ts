@@ -833,6 +833,7 @@ export default class hibachi extends Exchange {
             const priceInternal = Precise.stringDiv (Precise.stringDiv (Precise.stringMul (Precise.stringMul (priceStr, priceFactor), settlement), underlying), one, 0);
             const price16 = this.intToBase16 (this.parseToInt (priceInternal));
             const pricePadded = price16.padStart (16, '0');
+            // @ts-expect-error
             encodedPrice = this.base16ToBinary (pricePadded);
         }
         const message = this.binaryConcat (encodedNonce, encodedMarketId, encodedQuantity, encodedSide, encodedPrice, encodedFeeRate);

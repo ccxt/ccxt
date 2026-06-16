@@ -43,17 +43,17 @@ jobs:
       CANARY_IP: 172.31.0.11
       BASE_PATH: /playground
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Log in to GHCR
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build & push image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: playground
           platforms: linux/arm64
@@ -70,7 +70,7 @@ jobs:
             ${{ env.IMAGE }}:${{ github.sha }}
 
       - name: Build & push egress proxy image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: playground/proxy
           platforms: linux/arm64
@@ -178,10 +178,12 @@ jobs:
           # Install-only languages return a "runs locally" rejection → counted as skip.
           smoke_lang() { # json-payload
             local out
-            out=$(curl -fsS --max-time 60 -X POST "${SMOKE_BASE}/api/run" -H 'Content-Type: application/json' -d "$1") \
+            # no -f: install-only languages reply HTTP 400 with a "runs locally" body we must read
+            out=$(curl -sS --max-time 60 -X POST "${SMOKE_BASE}/api/run" -H 'Content-Type: application/json' -d "$1") \
               || { echo "smoke[$1]: request failed"; return 1; }
             echo "$out" | grep -q "runs locally, not in the browser" && { echo "smoke: skip (install-only) $1"; return 0; }
-            echo "$out" | grep -q '"stdout":"42' || { echo "smoke FAIL: $1 -> $out"; return 1; }
+            # /api/run streams chunks like {"type":"chunk","stream":"stdout","data":"42\n"}
+            echo "$out" | grep -q '"stream":"stdout","data":"42' || { echo "smoke FAIL: $1 -> $out"; return 1; }
             echo "smoke OK: $1"
           }
           smoke() {

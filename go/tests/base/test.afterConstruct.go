@@ -29,13 +29,13 @@ func TestOptionsNetworks(exchange ccxt.ICoreExchange, skippedProperties any) {
 			return
 		}
 		// 1) ensure 'networks' dictionary exists in options
-		Assert(exchange.IsDictionary(networks), "exchange.options[\"networks\"] is not an object")
+		Assert(exchange.IsDictionary(networks), "exchange.options[\"networks\"] is not a dict")
 		if IsTrue(IsEqual(GetArrayLength(ObjectKeys(networks)), 0)) {
 			return
 		}
 		// 2) ensure 'networksById' dictionary exists in options
 		Assert(InOp(exchange.GetOptions(), "networksById"), "exchange.options[\"networksById\"] is not set")
-		Assert(exchange.IsDictionary(GetValue(exchange.GetOptions(), "networksById")), "exchange.options[\"networksById\"] is not an object")
+		Assert(exchange.IsDictionary(GetValue(exchange.GetOptions(), "networksById")), "exchange.options[\"networksById\"] is not a dict")
 		//
 		var networkCodes any = ObjectKeys(GetValue(exchange.GetOptions(), "networks"))
 		// 3) ensure that the same network-id is not assigned to multiple networkCodes

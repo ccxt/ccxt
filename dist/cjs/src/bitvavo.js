@@ -1183,7 +1183,7 @@ class bitvavo extends bitvavo$1["default"] {
      * @see https://docs.bitvavo.com/docs/institutional-api/get-subaccounts/
      * @description fetch all the accounts associated with a profile
      * @param {object} [params] extra parameters specific to the bitvavo api endpoint
-     * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure}
+     * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/?id=account-structure}
      */
     async fetchAccounts(params = {}) {
         await this.loadMarkets();
@@ -1226,7 +1226,7 @@ class bitvavo extends bitvavo$1["default"] {
      * @param {object} [params] extra parameters specific to the bitvavo api endpoint
      * @param {string} [params.subaccountId] the unique identifier for the subaccount
      * @param {string} [params.clientRequestId] client defined unique id
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
         await this.loadMarkets();
@@ -1287,7 +1287,7 @@ class bitvavo extends bitvavo$1["default"] {
      * @param {object} [params] extra parameters specific to the bitvavo api endpoint
      * @param {string} [params.subaccountId] the unique identifier for the subaccount
      * @param {int} [params.until] the latest time in ms to fetch transfers for
-     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async fetchTransfers(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1339,7 +1339,7 @@ class bitvavo extends bitvavo$1["default"] {
      * @param {string} id transfer id
      * @param {string} [code] unified currency code of the currency transferred
      * @param {object} [params] extra parameters specific to the bitvavo api endpoint
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async fetchTransfer(id, code = undefined, params = {}) {
         await this.loadMarkets();

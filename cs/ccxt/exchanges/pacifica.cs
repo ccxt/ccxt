@@ -3548,7 +3548,7 @@ public partial class pacifica : Exchange
 
     public virtual object sortJsonKeys(object value)
     {
-        if (isTrue((value is IDictionary<string, object>)))
+        if (isTrue(this.isDictionary(value)))
         {
             object result = new Dictionary<string, object>() {};
             object keys = new List<object>(((IDictionary<string,object>)value).Keys);

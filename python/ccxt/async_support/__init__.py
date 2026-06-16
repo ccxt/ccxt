@@ -104,7 +104,6 @@ from ccxt.async_support.bybiteu import bybiteu                                  
 from ccxt.async_support.bydfi import bydfi                                      # noqa: F401
 from ccxt.async_support.cex import cex                                          # noqa: F401
 from ccxt.async_support.coinbase import coinbase                                # noqa: F401
-from ccxt.async_support.coinbaseadvanced import coinbaseadvanced                # noqa: F401
 from ccxt.async_support.coinbaseexchange import coinbaseexchange                # noqa: F401
 from ccxt.async_support.coinbaseinternational import coinbaseinternational      # noqa: F401
 from ccxt.async_support.coincheck import coincheck                              # noqa: F401
@@ -134,7 +133,6 @@ from ccxt.async_support.hibachi import hibachi                                  
 from ccxt.async_support.hitbtc import hitbtc                                    # noqa: F401
 from ccxt.async_support.hollaex import hollaex                                  # noqa: F401
 from ccxt.async_support.htx import htx                                          # noqa: F401
-from ccxt.async_support.huobi import huobi                                      # noqa: F401
 from ccxt.async_support.hyperliquid import hyperliquid                          # noqa: F401
 from ccxt.async_support.independentreserve import independentreserve            # noqa: F401
 from ccxt.async_support.indodax import indodax                                  # noqa: F401
@@ -213,7 +211,6 @@ exchanges = [
     'bydfi',
     'cex',
     'coinbase',
-    'coinbaseadvanced',
     'coinbaseexchange',
     'coinbaseinternational',
     'coincheck',
@@ -243,7 +240,6 @@ exchanges = [
     'hitbtc',
     'hollaex',
     'htx',
-    'huobi',
     'hyperliquid',
     'independentreserve',
     'indodax',

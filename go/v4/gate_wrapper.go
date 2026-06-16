@@ -535,6 +535,25 @@ func (this *Gate) FetchBalance(params ...any) (Balances, error) {
 	}
 	return NewBalances(res), nil
 }
+
+/**
+ * @method
+ * @name gate#fetchOHLCV
+ * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+ * @see https://www.gate.com/docs/developers/apiv4/en/#market-k-line-chart                       // spot
+ * @see https://www.gate.com/docs/developers/apiv4/en/#futures-market-k-line-chart               // swap
+ * @see https://www.gate.com/docs/developers/apiv4/en/#futures-market-k-line-chart-2             // future
+ * @see https://www.gate.com/docs/developers/apiv4/en/#options-contract-market-candlestick-chart // option
+ * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+ * @param {string} timeframe the length of time each candle represents
+ * @param {int} [since] timestamp in ms of the earliest candle to fetch
+ * @param {int} [limit] the maximum amount of candles to fetch, limit is conflicted with since and params["until"], If either since and params["until"] is specified, request will be rejected
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.price] "mark" or "index" for mark price and index price candles
+ * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume (units in quote currency)
+ */
 func (this *Gate) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OHLCV, error) {
 
 	opts := FetchOHLCVOptionsStruct{}

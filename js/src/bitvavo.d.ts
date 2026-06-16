@@ -136,7 +136,7 @@ export default class bitvavo extends Exchange {
      * @see https://docs.bitvavo.com/docs/institutional-api/get-subaccounts/
      * @description fetch all the accounts associated with a profile
      * @param {object} [params] extra parameters specific to the bitvavo api endpoint
-     * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure}
+     * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/?id=account-structure}
      */
     fetchAccounts(params?: {}): Promise<Account[]>;
     parseAccount(account: Dict): Account;
@@ -152,7 +152,7 @@ export default class bitvavo extends Exchange {
      * @param {object} [params] extra parameters specific to the bitvavo api endpoint
      * @param {string} [params.subaccountId] the unique identifier for the subaccount
      * @param {string} [params.clientRequestId] client defined unique id
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     /**
@@ -166,7 +166,7 @@ export default class bitvavo extends Exchange {
      * @param {object} [params] extra parameters specific to the bitvavo api endpoint
      * @param {string} [params.subaccountId] the unique identifier for the subaccount
      * @param {int} [params.until] the latest time in ms to fetch transfers for
-     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<TransferEntry[]>;
     /**
@@ -177,7 +177,7 @@ export default class bitvavo extends Exchange {
      * @param {string} id transfer id
      * @param {string} [code] unified currency code of the currency transferred
      * @param {object} [params] extra parameters specific to the bitvavo api endpoint
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     fetchTransfer(id: string, code?: Str, params?: {}): Promise<TransferEntry>;
     parseTransferStatus(status: Str): Str;

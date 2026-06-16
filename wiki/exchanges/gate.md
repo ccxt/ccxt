@@ -22,6 +22,7 @@
 * [fetchTicker](#fetchticker)
 * [fetchTickers](#fetchtickers)
 * [fetchBalance](#fetchbalance)
+* [fetchOHLCV](#fetchohlcv)
 * [fetchFundingRateHistory](#fetchfundingratehistory)
 * [fetchTrades](#fetchtrades)
 * [fetchOrderTrades](#fetchordertrades)
@@ -489,6 +490,39 @@ gate.fetchTickers (symbols, params?)
 
 ```javascript
 gate.fetchBalance (params?)
+```
+
+
+<a name="fetchOHLCV" id="fetchohlcv"></a>
+
+### fetchOHLCV{docsify-ignore}
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+**Kind**: instance method of [<code>gate</code>](#gate)  
+**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume (units in quote currency)
+
+**See**
+
+- https://www.gate.com/docs/developers/apiv4/en/#market-k-line-chart                       // spot
+- https://www.gate.com/docs/developers/apiv4/en/#futures-market-k-line-chart               // swap
+- https://www.gate.com/docs/developers/apiv4/en/#futures-market-k-line-chart-2             // future
+- https://www.gate.com/docs/developers/apiv4/en/#options-contract-market-candlestick-chart // option
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
+| timeframe | <code>string</code> | Yes | the length of time each candle represents |
+| since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
+| limit | <code>int</code> | No | the maximum amount of candles to fetch, limit is conflicted with since and params["until"], If either since and params["until"] is specified, request will be rejected |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.price | <code>string</code> | No | "mark" or "index" for mark price and index price candles |
+| params.until | <code>int</code> | No | timestamp in ms of the latest candle to fetch |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+
+
+```javascript
+gate.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 

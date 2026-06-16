@@ -3330,7 +3330,7 @@ class gate extends gate$1["default"] {
     }
     /**
      * @method
-     * @name gateio#fetchOHLCV
+     * @name gate#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @see https://www.gate.com/docs/developers/apiv4/en/#market-k-line-chart                       // spot
      * @see https://www.gate.com/docs/developers/apiv4/en/#futures-market-k-line-chart               // swap

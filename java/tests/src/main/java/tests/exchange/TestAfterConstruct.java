@@ -35,14 +35,14 @@ public class TestAfterConstruct extends BaseTest {
                 return;
             }
             // 1) ensure 'networks' dictionary exists in options
-            Assert(exchange.isDictionary(networks), "exchange.options[\"networks\"] is not an object");
+            Assert(exchange.isDictionary(networks), "exchange.options[\"networks\"] is not a dict");
             if (Helpers.isTrue(Helpers.isEqual(Helpers.getArrayLength(Helpers.objectKeys(networks)), 0)))
             {
                 return;
             }
             // 2) ensure 'networksById' dictionary exists in options
             Assert(Helpers.inOp(exchange.options, "networksById"), "exchange.options[\"networksById\"] is not set");
-            Assert(exchange.isDictionary(Helpers.GetValue(exchange.options, "networksById")), "exchange.options[\"networksById\"] is not an object");
+            Assert(exchange.isDictionary(Helpers.GetValue(exchange.options, "networksById")), "exchange.options[\"networksById\"] is not a dict");
             //
             Object networkCodes = Helpers.objectKeys(Helpers.GetValue(exchange.options, "networks"));
             // 3) ensure that the same network-id is not assigned to multiple networkCodes

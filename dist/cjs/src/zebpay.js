@@ -260,7 +260,7 @@ class zebpay extends zebpay$1["default"] {
     }
     /**
      * @method
-     * @name zebpayfutures#fetchTime
+     * @name zebpay#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the poloniexfutures server
      * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-server-time
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/system.md#get-system-time
@@ -509,7 +509,7 @@ class zebpay extends zebpay$1["default"] {
     }
     /**
      * @method
-     * @name zebpay(futures)#fetchTradingFees
+     * @name zebpay#fetchTradingFees
      * @description fetch the trading fees for multiple markets
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/exchange.md#get-trade-fees-all-symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1460,7 +1460,7 @@ class zebpay extends zebpay$1["default"] {
     }
     /**
      * @method
-     * @name zebpayfutures#addMargin
+     * @name zebpay#addMargin
      * @description add margin
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-add-margin-to-position
      * @param {string} symbol unified market symbol
@@ -1504,7 +1504,7 @@ class zebpay extends zebpay$1["default"] {
     }
     /**
      * @method
-     * @name zebpayfutures#reduceMargin
+     * @name zebpay#reduceMargin
      * @description add margin
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-reduce-margin-from-position
      * @param {string} symbol unified market symbol.

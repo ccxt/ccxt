@@ -6,14 +6,18 @@ import hitbtcRest from '../hitbtc.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Tickers, Int, OHLCV, OrderSide, OrderType, Strings, Num, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import { Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types';
+import { Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types.js';
 import { AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
 
 //  ---------------------------------------------------------------------------
 
 export default class hitbtc extends hitbtcRest {
     describe (): any {
-        return this.deepExtend (super.describe (), {
+        return this.deepExtend (super.describe (), this.describeData ());
+    }
+
+    describeData (): any {
+        return {
             'has': {
                 'ws': true,
                 'watchTicker': true,
@@ -75,7 +79,7 @@ export default class hitbtc extends hitbtcRest {
             'streaming': {
                 'keepAlive': 4000,
             },
-        });
+        };
     }
 
     /**
