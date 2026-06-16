@@ -53,7 +53,7 @@ class kucoin extends kucoin$1["default"] {
             'options': {
                 'utaToken': undefined,
                 'utaTokenLastUpdate': 0,
-                'utaTokenRefreshInterval': 1000 * 60 * 60 * 24,
+                'utaTokenRefreshInterval': 1000 * 60 * 60 * 24, // 24 hours
                 'tradesLimit': 1000,
                 'watchTicker': {
                     'spotMethod': '/market/snapshot', // '/market/ticker'
@@ -61,23 +61,23 @@ class kucoin extends kucoin$1["default"] {
                 'watchOrderBook': {
                     'snapshotDelay': 5,
                     'snapshotMaxRetries': 3,
-                    'utaDepth': 'increment',
-                    'spotMethod': '/market/level2',
+                    'utaDepth': 'increment', // '1', '5', '50' or 'increment'
+                    'spotMethod': '/market/level2', // '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50'
                     'contractMethod': '/contractMarket/level2', // '/contractMarket/level2Depth5' or '/contractMarket/level2Depth20'
                 },
                 'watchMyTrades': {
                     'spotMethod': '/spotMarket/tradeOrders', // or '/spot/tradeFills'
                 },
                 'watchBalance': {
-                    'fetchBalanceSnapshot': true,
+                    'fetchBalanceSnapshot': true, // or false
                     'awaitBalanceSnapshot': true, // whether to wait for the balance snapshot before providing updates
                 },
                 'watchPosition': {
-                    'fetchPositionSnapshot': true,
+                    'fetchPositionSnapshot': true, // or false
                     'awaitPositionSnapshot': true, // whether to wait for the position snapshot before providing updates
                 },
                 'watchPositions': {
-                    'fetchPositionsSnapshot': true,
+                    'fetchPositionsSnapshot': true, // or false
                     'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
                 },
             },

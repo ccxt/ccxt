@@ -21,13 +21,13 @@ export default class blockchaincom extends Exchange {
             'secret': undefined,
             'name': 'Blockchain.com',
             'countries': ['LX'],
-            'rateLimit': 500,
+            'rateLimit': 500, // prev 1000
             'version': 'v3',
             'pro': true,
             'has': {
                 'CORS': false,
                 'spot': true,
-                'margin': undefined,
+                'margin': undefined, // on exchange but not implemented in CCXT
                 'swap': false,
                 'future': false,
                 'option': false,
@@ -74,7 +74,7 @@ export default class blockchaincom extends Exchange {
                 'fetchTransfers': false,
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
-                'fetchWithdrawalWhitelist': true,
+                'fetchWithdrawalWhitelist': true, // fetches exchange specific benficiary-ids needed for withdrawals
                 'transfer': false,
                 'withdraw': true,
             },
@@ -98,37 +98,37 @@ export default class blockchaincom extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'tickers': 1,
-                        'tickers/{symbol}': 1,
-                        'symbols': 1,
-                        'symbols/{symbol}': 1,
-                        'l2/{symbol}': 1,
+                        'tickers': 1, // fetchTickers
+                        'tickers/{symbol}': 1, // fetchTicker
+                        'symbols': 1, // fetchMarkets
+                        'symbols/{symbol}': 1, // fetchMarket
+                        'l2/{symbol}': 1, // fetchL2OrderBook
                         'l3/{symbol}': 1, // fetchL3OrderBook
                     },
                 },
                 'private': {
                     'get': {
-                        'fees': 1,
-                        'orders': 1,
-                        'orders/{orderId}': 1,
+                        'fees': 1, // fetchFees
+                        'orders': 1, // fetchOpenOrders, fetchClosedOrders
+                        'orders/{orderId}': 1, // fetchOrder(id)
                         'trades': 1,
-                        'fills': 1,
-                        'deposits': 1,
-                        'deposits/{depositId}': 1,
-                        'accounts': 1,
+                        'fills': 1, // fetchMyTrades
+                        'deposits': 1, // fetchDeposits
+                        'deposits/{depositId}': 1, // fetchDeposit
+                        'accounts': 1, // fetchBalance
                         'accounts/{account}/{currency}': 1,
-                        'whitelist': 1,
-                        'whitelist/{currency}': 1,
-                        'withdrawals': 1,
+                        'whitelist': 1, // fetchWithdrawalWhitelist
+                        'whitelist/{currency}': 1, // fetchWithdrawalWhitelistByCurrency
+                        'withdrawals': 1, // fetchWithdrawalWhitelist
                         'withdrawals/{withdrawalId}': 1, // fetchWithdrawalById
                     },
                     'post': {
-                        'orders': 1,
-                        'deposits/{currency}': 1,
+                        'orders': 1, // createOrder
+                        'deposits/{currency}': 1, // fetchDepositAddress by currency (only crypto supported)
                         'withdrawals': 1, // withdraw
                     },
                     'delete': {
-                        'orders': 1,
+                        'orders': 1, // cancelOrders
                         'orders/{orderId}': 1, // cancelOrder
                     },
                 },
@@ -225,8 +225,8 @@ export default class blockchaincom extends Exchange {
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -246,8 +246,8 @@ export default class blockchaincom extends Exchange {
                     'fetchMyTrades': {
                         'marginMode': false,
                         'limit': 1000,
-                        'daysBack': 100000,
-                        'untilDays': 100000,
+                        'daysBack': 100000, // todo implementation
+                        'untilDays': 100000, // todo implementation
                         'symbolRequired': false,
                     },
                     'fetchOrder': {
@@ -263,7 +263,7 @@ export default class blockchaincom extends Exchange {
                         'trailing': false,
                         'symbolRequired': false,
                     },
-                    'fetchOrders': undefined,
+                    'fetchOrders': undefined, // todo implement
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 1000,
@@ -921,7 +921,7 @@ export default class blockchaincom extends Exchange {
     }
     parseTransactionState(state) {
         const states = {
-            'COMPLETED': 'ok',
+            'COMPLETED': 'ok', //
             'REJECTED': 'failed',
             'PENDING': 'pending',
             'FAILED': 'failed',
@@ -993,7 +993,7 @@ export default class blockchaincom extends Exchange {
             'type': type,
             'amount': amount,
             'currency': code,
-            'status': this.parseTransactionState(state),
+            'status': this.parseTransactionState(state), // 'status':   'pending',   // 'ok', 'failed', 'canceled', string
             'updated': undefined,
             'comment': undefined,
             'internal': undefined,

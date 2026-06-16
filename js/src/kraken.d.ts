@@ -212,7 +212,7 @@ export default class kraken extends Exchange {
     parseOrderStatus(status: Str): string;
     parseOrderType(status: any): string;
     parseOrder(order: Dict, market?: Market): Order;
-    orderRequest(method: string, symbol: string, type: string, request: Dict, amount: Num, price?: Num, params?: {}): Dict[];
+    orderRequest(method: string, symbol: string, type: string, request: Dict, amount: Num, price?: Num, params?: {}): {}[];
     /**
      * @method
      * @name kraken#editOrder

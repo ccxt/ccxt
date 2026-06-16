@@ -627,7 +627,7 @@ class bitfinex extends bitfinex$1["default"] {
         const prec = this.safeString(options, 'prec', 'P0');
         const freq = this.safeString(options, 'freq', 'F0');
         const request = {
-            'prec': prec,
+            'prec': prec, // string, level of price aggregation, 'P0', 'P1', 'P2', 'P3', 'P4', default P0
             'freq': freq, // string, frequency of updates 'F0' = realtime, 'F1' = 2 seconds, default is 'F0'
         };
         if (limit !== undefined) {

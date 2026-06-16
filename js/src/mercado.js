@@ -20,7 +20,7 @@ export default class mercado extends Exchange {
         return this.deepExtend(super.describe(), {
             'id': 'mercado',
             'name': 'Mercado Bitcoin',
-            'countries': ['BR'],
+            'countries': ['BR'], // Brazil
             'rateLimit': 1000,
             'version': 'v3',
             'has': {
@@ -146,7 +146,7 @@ export default class mercado extends Exchange {
                 'public': {
                     'get': [
                         'coins',
-                        '{coin}/orderbook/',
+                        '{coin}/orderbook/', // last slash critical
                         '{coin}/ticker/',
                         '{coin}/trades/',
                         '{coin}/trades/{from}/',
@@ -210,13 +210,13 @@ export default class mercado extends Exchange {
                         'timeInForce': {
                             'IOC': false,
                             'FOK': false,
-                            'PO': true,
+                            'PO': true, // todo
                             'GTD': false,
                         },
                         'hedged': false,
                         'trailing': false,
                         'leverage': false,
-                        'marketBuyByCost': true,
+                        'marketBuyByCost': true, // todo
                         'marketBuyRequiresPrice': true,
                         'selfTradePrevention': false,
                         'iceberg': false,
@@ -224,9 +224,9 @@ export default class mercado extends Exchange {
                     'createOrders': undefined,
                     'fetchMyTrades': {
                         'marginMode': false,
-                        'limit': undefined,
-                        'daysBack': 100000,
-                        'untilDays': 100000,
+                        'limit': undefined, // todo
+                        'daysBack': 100000, // todo
+                        'untilDays': 100000, // todo
                         'symbolRequired': true,
                     },
                     'fetchOrder': {

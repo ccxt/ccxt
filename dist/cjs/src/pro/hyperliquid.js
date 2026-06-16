@@ -348,7 +348,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const request = {
             'method': 'subscribe',
             'subscription': {
-                'type': channel,
+                'type': channel, // webData2 or allMids
                 'user': '0x0000000000000000000000000000000000000000',
             },
         };
@@ -394,7 +394,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const request = {
             'method': 'unsubscribe',
             'subscription': {
-                'type': channel,
+                'type': channel, // allMids
                 'user': '0x0000000000000000000000000000000000000000',
             },
         };

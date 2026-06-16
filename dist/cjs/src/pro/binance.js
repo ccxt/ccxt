@@ -126,9 +126,9 @@ class binance extends binance$1["default"] {
             'options': {
                 'returnRateLimits': false,
                 'streamLimits': {
-                    'spot': 50,
-                    'margin': 50,
-                    'future': 50,
+                    'spot': 50, // max 1024
+                    'margin': 50, // max 1024
+                    'future': 50, // max 200
                     'delivery': 50, // max 200
                 },
                 'subscriptionLimitByStream': {
@@ -148,7 +148,7 @@ class binance extends binance$1["default"] {
                 'ordersLimit': 1000,
                 'OHLCVLimit': 1000,
                 'requestId': this.createSafeDictionary(),
-                'watchOrderBookLimit': 1000,
+                'watchOrderBookLimit': 1000, // default limit
                 'watchTrades': {
                     'name': 'trade', // 'trade' or 'aggTrade'
                 },
@@ -166,18 +166,18 @@ class binance extends binance$1["default"] {
                     'checksum': true,
                 },
                 'watchBalance': {
-                    'fetchBalanceSnapshot': false,
+                    'fetchBalanceSnapshot': false, // or true
                     'awaitBalanceSnapshot': true, // whether to wait for the balance snapshot before providing updates
                 },
                 'watchLiquidationsForSymbols': {
                     'defaultType': 'swap',
                 },
                 'watchPositions': {
-                    'fetchPositionsSnapshot': true,
+                    'fetchPositionsSnapshot': true, // or false
                     'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
                 },
-                'wallet': 'wb',
-                'listenKeyRefreshRate': 1200000,
+                'wallet': 'wb', // wb = wallet balance, cw = cross balance
+                'listenKeyRefreshRate': 1200000, // 20 mins
                 'ws': {
                     'cost': 5,
                 },
@@ -2227,7 +2227,7 @@ class binance extends binance$1["default"] {
             'open': this.safeString(message, 'o'),
             'close': last,
             'last': last,
-            'previousClose': this.safeString(message, 'x'),
+            'previousClose': this.safeString(message, 'x'), // previous day close
             'change': this.safeString(message, 'p'),
             'percentage': this.safeString(message, 'P'),
             'average': undefined,
@@ -4712,7 +4712,7 @@ class binance extends binance$1["default"] {
             '24hrMiniTicker': this.handleTickers,
             'markPriceUpdate': this.handleMarkPrices,
             'markPriceUpdate@arr': this.handleMarkPrices,
-            'bookTicker': this.handleBidsAsks,
+            'bookTicker': this.handleBidsAsks, // there is no "bookTicker@arr" endpoint
             'outboundAccountPosition': this.handleBalance,
             'balanceUpdate': this.handleBalance,
             'ACCOUNT_UPDATE': this.handleAcountUpdate,

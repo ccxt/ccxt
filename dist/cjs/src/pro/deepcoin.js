@@ -115,7 +115,7 @@ class deepcoin extends deepcoin$1["default"] {
                 'Action': action,
                 'FilterValue': 'DeepCoin_' + marketId + suffix,
                 'LocalNo': requestId,
-                'ResumeNo': -1,
+                'ResumeNo': -1, // -1 from the end, 0 from the beginning
                 'TopicID': topicID,
             },
         };

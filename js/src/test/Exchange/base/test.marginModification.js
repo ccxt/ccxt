@@ -7,7 +7,7 @@
 import testSharedMethods from './test.sharedMethods.js';
 function testMarginModification(exchange, skippedProperties, method, entry) {
     const format = {
-        'info': {},
+        'info': {}, // or []
         'type': 'add',
         'amount': exchange.parseNumber('0.1'),
         'total': exchange.parseNumber('0.29934828'),

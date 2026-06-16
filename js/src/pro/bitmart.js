@@ -37,7 +37,7 @@ export default class bitmart extends bitmartRest {
                 'watchOHLCV': true,
                 'watchPosition': 'emulated',
                 'watchPositions': true,
-                'unWatchBidsAsks': false,
+                'unWatchBidsAsks': false, // the same channel as watchTickers
                 'unWatchOHLCV': true,
                 'unWatchOrderBook': true,
                 'unWatchOrderBookForSymbols': true,
@@ -65,7 +65,7 @@ export default class bitmart extends bitmartRest {
             'options': {
                 'defaultType': 'spot',
                 'watchBalance': {
-                    'fetchBalanceSnapshot': true,
+                    'fetchBalanceSnapshot': true, // or false
                     'awaitBalanceSnapshot': false, // whether to wait for the balance snapshot before providing updates
                 },
                 //
@@ -870,23 +870,23 @@ export default class bitmart extends bitmartRest {
     }
     parseWsOrderStatus(statusId) {
         const statuses = {
-            '1': 'closed',
-            '2': 'open',
-            '3': 'canceled',
-            '4': 'closed',
-            '5': 'canceled',
-            '6': 'open',
-            '7': 'open',
-            '8': 'closed',
+            '1': 'closed', // match deal
+            '2': 'open', // submit order
+            '3': 'canceled', // cancel order
+            '4': 'closed', // liquidate cancel order
+            '5': 'canceled', // adl cancel order
+            '6': 'open', // part liquidate
+            '7': 'open', // bankrupty order
+            '8': 'closed', // passive adl match deal
             '9': 'closed', // active adl match deal
         };
         return this.safeString(statuses, statusId, statusId);
     }
     parseWsOrderSide(sideId) {
         const sides = {
-            '1': 'buy',
-            '2': 'buy',
-            '3': 'sell',
+            '1': 'buy', // buy_open_long
+            '2': 'buy', // buy_close_short
+            '3': 'sell', // sell_close_long
             '4': 'sell', // sell_open_short
         };
         return this.safeString(sides, sideId, sideId);

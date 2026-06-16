@@ -1,7 +1,7 @@
 import { Abi } from './abi.js';
 import { EntryPointsByType } from './legacy.js';
 /** SYSTEM TYPES */
-export declare type CairoAssembly = {
+export type CairoAssembly = {
     prime: string;
     compiler_version: string;
     bytecode: ByteCode;
@@ -16,7 +16,7 @@ export declare type CairoAssembly = {
  *
  * sierra_program is hex array
  */
-export declare type CompiledSierra = {
+export type CompiledSierra = {
     sierra_program: ByteCode;
     sierra_program_debug_info?: SierraProgramDebugInfo;
     contract_class_version: string;
@@ -28,25 +28,25 @@ export declare type CompiledSierra = {
  *
  * CompressedCompiledSierra
  */
-export declare type SierraContractClass = Omit<CompiledSierra, 'abi' | 'sierra_program_debug_info'> & {
+export type SierraContractClass = Omit<CompiledSierra, 'abi' | 'sierra_program_debug_info'> & {
     sierra_program: string;
     abi: string;
 };
-export declare type CompiledSierraCasm = CairoAssembly;
+export type CompiledSierraCasm = CairoAssembly;
 /** SUBTYPES */
-export declare type ByteCode = string[];
-export declare type PythonicHints = [number, string[]][];
-export declare type SierraProgramDebugInfo = {
+export type ByteCode = string[];
+export type PythonicHints = [number, string[]][];
+export type SierraProgramDebugInfo = {
     type_names: [number, string][];
     libfunc_names: [number, string][];
     user_func_names: [number, string][];
 };
-export declare type SierraEntryPointsByType = {
+export type SierraEntryPointsByType = {
     CONSTRUCTOR: SierraContractEntryPointFields[];
     EXTERNAL: SierraContractEntryPointFields[];
     L1_HANDLER: SierraContractEntryPointFields[];
 };
-export declare type SierraContractEntryPointFields = {
+export type SierraContractEntryPointFields = {
     selector: string;
     function_idx: number;
 };

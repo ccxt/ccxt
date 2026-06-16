@@ -20,7 +20,7 @@ class novadax extends novadax$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'novadax',
             'name': 'NovaDAX',
-            'countries': ['BR'],
+            'countries': ['BR'], // Brazil
             // 6000 weight per min => 100 weight per second => min weight = 1
             // 100 requests per second => ( 1000ms / 100 ) = 10 ms between requests on average
             'rateLimit': 10,
@@ -174,7 +174,7 @@ class novadax extends novadax$1["default"] {
                     'get': {
                         'orders/get': 1,
                         'orders/list': 10,
-                        'orders/fill': 3,
+                        'orders/fill': 3, // not found in doc
                         'orders/fills': 10,
                         'account/getBalance': 1,
                         'account/subs': 1,
@@ -209,30 +209,30 @@ class novadax extends novadax$1["default"] {
             'precisionMode': number.TICK_SIZE,
             'exceptions': {
                 'exact': {
-                    'A99999': errors.ExchangeError,
+                    'A99999': errors.ExchangeError, // 500 Failed Internal error
                     // 'A10000': ExchangeError, // 200 Success Successful request
-                    'A10001': errors.BadRequest,
-                    'A10002': errors.ExchangeError,
-                    'A10003': errors.AuthenticationError,
-                    'A10004': errors.RateLimitExceeded,
-                    'A10005': errors.PermissionDenied,
-                    'A10006': errors.AccountSuspended,
-                    'A10007': errors.AccountNotEnabled,
-                    'A10011': errors.BadSymbol,
-                    'A10012': errors.BadSymbol,
-                    'A10013': errors.OnMaintenance,
-                    'A30001': errors.OrderNotFound,
-                    'A30002': errors.InvalidOrder,
-                    'A30003': errors.InvalidOrder,
-                    'A30004': errors.InvalidOrder,
-                    'A30005': errors.InvalidOrder,
-                    'A30006': errors.InvalidOrder,
-                    'A30007': errors.InsufficientFunds,
-                    'A30008': errors.InvalidOrder,
-                    'A30009': errors.InvalidOrder,
-                    'A30010': errors.CancelPending,
-                    'A30011': errors.InvalidOrder,
-                    'A30012': errors.InvalidOrder,
+                    'A10001': errors.BadRequest, // 400 Params error Parameter is invalid
+                    'A10002': errors.ExchangeError, // 404 Api not found API used is irrelevant
+                    'A10003': errors.AuthenticationError, // 403 Authentication failed Authentication is failed
+                    'A10004': errors.RateLimitExceeded, // 429 Too many requests Too many requests are made
+                    'A10005': errors.PermissionDenied, // 403 Kyc required Need to complete KYC firstly
+                    'A10006': errors.AccountSuspended, // 403 Customer canceled Account is canceled
+                    'A10007': errors.AccountNotEnabled, // 400 Account not exist Sub account does not exist
+                    'A10011': errors.BadSymbol, // 400 Symbol not exist Trading symbol does not exist
+                    'A10012': errors.BadSymbol, // 400 Symbol not trading Trading symbol is temporarily not available
+                    'A10013': errors.OnMaintenance, // 503 Symbol maintain Trading symbol is in maintain
+                    'A30001': errors.OrderNotFound, // 400 Order not found Queried order is not found
+                    'A30002': errors.InvalidOrder, // 400 Order amount is too small Order amount is too small
+                    'A30003': errors.InvalidOrder, // 400 Order amount is invalid Order amount is invalid
+                    'A30004': errors.InvalidOrder, // 400 Order value is too small Order value is too small
+                    'A30005': errors.InvalidOrder, // 400 Order value is invalid Order value is invalid
+                    'A30006': errors.InvalidOrder, // 400 Order price is invalid Order price is invalid
+                    'A30007': errors.InsufficientFunds, // 400 Insufficient balance The balance is insufficient
+                    'A30008': errors.InvalidOrder, // 400 Order was closed The order has been executed
+                    'A30009': errors.InvalidOrder, // 400 Order canceled The order has been cancelled
+                    'A30010': errors.CancelPending, // 400 Order cancelling The order is being cancelled
+                    'A30011': errors.InvalidOrder, // 400 Order price too high The order price is too high
+                    'A30012': errors.InvalidOrder, // 400 Order price too low The order price is too low
                     'A40004': errors.InsufficientFunds, // {"code":"A40004","data":[],"message":"sub account balance Insufficient"}
                 },
                 'broad': {},
@@ -251,10 +251,10 @@ class novadax extends novadax$1["default"] {
                     'createOrder': {
                         'marginMode': false,
                         'triggerPrice': true,
-                        'triggerDirection': true,
+                        'triggerDirection': true, // todo
                         'triggerPriceType': undefined,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         // todo
                         'timeInForce': {
@@ -271,12 +271,12 @@ class novadax extends novadax$1["default"] {
                         'selfTradePrevention': false,
                         'iceberg': true, // todo
                     },
-                    'createOrders': undefined,
+                    'createOrders': undefined, // todo: add implementation
                     'fetchMyTrades': {
                         'marginMode': false,
                         'limit': 100,
-                        'daysBack': 100000,
-                        'untilDays': 100000,
+                        'daysBack': 100000, // todo
+                        'untilDays': 100000, // todo
                         'symbolRequired': false,
                     },
                     'fetchOrder': {
@@ -295,8 +295,8 @@ class novadax extends novadax$1["default"] {
                     'fetchOrders': {
                         'marginMode': false,
                         'limit': 100,
-                        'daysBack': 100000,
-                        'untilDays': 100000,
+                        'daysBack': 100000, // todo
+                        'untilDays': 100000, // todo
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
@@ -304,9 +304,9 @@ class novadax extends novadax$1["default"] {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 100,
-                        'daysBack': 100000,
-                        'daysBackCanceled': 1,
-                        'untilDays': 100000,
+                        'daysBack': 100000, // todo
+                        'daysBackCanceled': 1, // todo
+                        'untilDays': 100000, // todo
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,

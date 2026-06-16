@@ -16,7 +16,7 @@ export default class aftermath extends Exchange {
             'name': 'AftermathFinance',
             'countries': [],
             'version': 'v1',
-            'rateLimit': 50,
+            'rateLimit': 50, // 1200 requests per minute, 20 request per second
             'certified': false,
             'pro': true,
             'dex': true,

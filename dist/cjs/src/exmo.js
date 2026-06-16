@@ -19,8 +19,8 @@ class exmo extends exmo$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'exmo',
             'name': 'EXMO',
-            'countries': ['LT'],
-            'rateLimit': 100,
+            'countries': ['LT'], // Lithuania
+            'rateLimit': 100, // 10 requests per 1 second
             'version': 'v1.1',
             'has': {
                 'CORS': undefined,
@@ -40,7 +40,7 @@ class exmo extends exmo$1["default"] {
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
-                'editOrder': true,
+                'editOrder': true, // margin only
                 'fetchAccounts': false,
                 'fetchBalance': true,
                 'fetchCanceledOrders': true,
@@ -214,8 +214,8 @@ class exmo extends exmo$1["default"] {
                 'spot': {
                     'sandbox': false,
                     'createOrder': {
-                        'marginMode': true,
-                        'triggerPrice': true,
+                        'marginMode': true, // todo revise
+                        'triggerPrice': true, // todo: endpoint lacks other features
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
                         'stopLossPrice': false,
@@ -277,23 +277,23 @@ class exmo extends exmo$1["default"] {
             'precisionMode': number.TICK_SIZE,
             'exceptions': {
                 'exact': {
-                    '140333': errors.InvalidOrder,
+                    '140333': errors.InvalidOrder, // {"error":{"code":140333,"msg":"The number of characters after the point in the price exceeds the maximum number '8\u003e6'"}}
                     '140434': errors.BadRequest,
-                    '40005': errors.AuthenticationError,
-                    '40009': errors.InvalidNonce,
-                    '40015': errors.ExchangeError,
-                    '40016': errors.OnMaintenance,
-                    '40017': errors.AuthenticationError,
-                    '40032': errors.PermissionDenied,
-                    '40033': errors.PermissionDenied,
-                    '40034': errors.RateLimitExceeded,
+                    '40005': errors.AuthenticationError, // Authorization error, incorrect signature
+                    '40009': errors.InvalidNonce, //
+                    '40015': errors.ExchangeError, // API function do not exist
+                    '40016': errors.OnMaintenance, // {"result":false,"error":"Error 40016: Maintenance work in progress"}
+                    '40017': errors.AuthenticationError, // Wrong API Key
+                    '40032': errors.PermissionDenied, // {"result":false,"error":"Error 40032: Access is denied for this API key"}
+                    '40033': errors.PermissionDenied, // {"result":false,"error":"Error 40033: Access is denied, this resources are temporarily blocked to user"}
+                    '40034': errors.RateLimitExceeded, // {"result":false,"error":"Error 40034: Access is denied, rate limit is exceeded"}
                     '50052': errors.InsufficientFunds,
                     '50054': errors.InsufficientFunds,
-                    '50304': errors.OrderNotFound,
-                    '50173': errors.OrderNotFound,
+                    '50304': errors.OrderNotFound, // "Order was not found '123456789'" (fetching order trades for an order that does not have trades yet)
+                    '50173': errors.OrderNotFound, // "Order with id X was not found." (cancelling non-existent, closed and cancelled order)
                     '50277': errors.InvalidOrder,
-                    '50319': errors.InvalidOrder,
-                    '50321': errors.InvalidOrder,
+                    '50319': errors.InvalidOrder, // Price by order is less than permissible minimum for this pair
+                    '50321': errors.InvalidOrder, // Price by order is more than permissible maximum for this pair
                     '50381': errors.InvalidOrder, // {"result":false,"error":"Error 50381: More than 2 decimal places are not permitted for pair BTC_USD"}
                 },
                 'broad': {

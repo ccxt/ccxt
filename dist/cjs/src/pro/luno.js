@@ -17,7 +17,7 @@ class luno extends luno$1["default"] {
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
                 'watchMyTrades': false,
-                'watchOrders': undefined,
+                'watchOrders': undefined, // is in beta
                 'watchOrderBook': true,
                 'watchOHLCV': false,
             },

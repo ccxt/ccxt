@@ -1,12 +1,7 @@
-/// <reference types="node" />
-/// <reference types="node" />
-/// <reference types="node" />
-/// <reference types="node" />
-/// <reference types="node" />
 import * as http from 'http';
 import * as https from 'https';
 import type { Readable } from 'stream';
-export declare type ThenableRequest = http.ClientRequest & {
+export type ThenableRequest = http.ClientRequest & {
     then: Promise<http.IncomingMessage>['then'];
 };
 export declare function toBuffer(stream: Readable): Promise<Buffer>;

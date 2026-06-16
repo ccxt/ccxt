@@ -26,4 +26,4 @@ export type SystemError = {
     port?: number;
     syscall: string;
 };
-import { FetchBaseError } from "./base.js";
+import { FetchBaseError } from './base.js';

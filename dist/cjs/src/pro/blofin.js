@@ -737,7 +737,7 @@ class blofin extends blofin$1["default"] {
             'trades': this.handleTrades,
             'books': this.handleOrderBook,
             'tickers': this.handleTicker,
-            'candle': this.handleOHLCV,
+            'candle': this.handleOHLCV, // candle1m, candle5m, etc
             // private
             'account': this.handleBalance,
             'orders': this.handleOrders,

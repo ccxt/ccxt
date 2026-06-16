@@ -141,8 +141,8 @@ export default class aftermath extends Exchange {
     parsePosition(position: Dict, market?: Market): Position;
     parseCreateEditOrderArgs(id: Str, symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): {
         symbol: string;
-        type: string;
-        side: string;
+        type: OrderType;
+        side: OrderSide;
         amount: number;
         price: number;
         params: {};

@@ -27,8 +27,8 @@ export default class bithumb extends bithumbRest {
             'urls': {
                 'api': {
                     'ws': {
-                        'public': 'wss://pubwss.bithumb.com/pub/ws',
-                        'publicV2': 'wss://ws-api.bithumb.com/websocket/v1',
+                        'public': 'wss://pubwss.bithumb.com/pub/ws', // v1.2.0
+                        'publicV2': 'wss://ws-api.bithumb.com/websocket/v1', // v2.1.5
                         'privateV2': 'wss://ws-api.bithumb.com/websocket/v1/private', // v2.1.5
                     },
                 },

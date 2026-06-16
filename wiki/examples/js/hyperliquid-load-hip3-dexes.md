@@ -6,7 +6,7 @@ async function example() {
         'options': {
             'fetchMarkets': {
                 'hip3': {
-                    'dexes': ['flx', 'xyz'],
+                    'dexes': ['flx', 'xyz'], // optionally specify dexes to load here,
                     'limit': 10, // otherwise limit how many dexes to load, won't be used if dexes are specified
                 },
             },

@@ -20,7 +20,7 @@ class bitmex extends bitmex$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'bitmex',
             'name': 'BitMEX',
-            'countries': ['SC'],
+            'countries': ['SC'], // Seychelles
             'version': 'v1',
             'userAgent': undefined,
             // cheapest endpoints are 10 requests per second (trading)
@@ -72,7 +72,7 @@ class bitmex extends bitmex$1["default"] {
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
-                'fetchFundingRate': 'emulated',
+                'fetchFundingRate': 'emulated', // emulated in exchange
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchGreeks': false,
@@ -278,8 +278,8 @@ class bitmex extends bitmex$1["default"] {
                     'Signature not valid': errors.AuthenticationError,
                     'overloaded': errors.ExchangeNotAvailable,
                     'Account has insufficient Available Balance': errors.InsufficientFunds,
-                    'Service unavailable': errors.ExchangeNotAvailable,
-                    'Server Error': errors.ExchangeError,
+                    'Service unavailable': errors.ExchangeNotAvailable, // {"error":{"message":"Service unavailable","name":"HTTPError"}}
+                    'Server Error': errors.ExchangeError, // {"error":{"message":"Server Error","name":"HTTPError"}}
                     'Unable to cancel order due to existing state': errors.InvalidOrder,
                     'We require all new traders to verify': errors.PermissionDenied, // {"message":"We require all new traders to verify their identity before their first deposit. Please visit bitmex.com/verify to complete the process.","name":"HTTPError"}
                 },
@@ -288,7 +288,7 @@ class bitmex extends bitmex$1["default"] {
             'options': {
                 // https://blog.bitmex.com/api_announcement/deprecation-of-api-nonce-header/
                 // https://github.com/ccxt/ccxt/issues/4789
-                'api-expires': 5,
+                'api-expires': 5, // in seconds
                 'fetchOHLCVOpenTimestamp': true,
                 'oldPrecision': false,
                 'networks': {
@@ -852,7 +852,7 @@ class bitmex extends bitmex$1["default"] {
                     'max': positionIsQuote ? maxOrderQty : undefined,
                 },
             },
-            'created': undefined,
+            'created': undefined, // 'listing' field is buggy, e.g. 2200-02-01T00:00:00.000Z
             'info': market,
         };
     }
@@ -2042,7 +2042,7 @@ class bitmex extends bitmex$1["default"] {
         const request = {
             'symbol': market['id'],
             'side': this.capitalize(side),
-            'orderQty': qty,
+            'orderQty': qty, // lot size multiplied by the number of contracts
             'ordType': capitalizeOrderType,
             'text': brokerId,
         };
@@ -2877,7 +2877,7 @@ class bitmex extends bitmex$1["default"] {
             'info': response,
             'currency': code,
             'network': networkCode,
-            'address': response.replace('"', '').replace('"', ''),
+            'address': response.replace('"', '').replace('"', ''), // Done twice because some languages only replace the first instance
             'tag': undefined,
         };
     }
@@ -3043,8 +3043,8 @@ class bitmex extends bitmex$1["default"] {
         return this.safeOpenInterest({
             'info': interest,
             'symbol': symbol,
-            'baseVolume': openInterest,
-            'quoteVolume': openValue,
+            'baseVolume': openInterest, // deprecated
+            'quoteVolume': openValue, // deprecated
             'openInterestAmount': openInterest,
             'openInterestValue': openValue,
             'timestamp': undefined,

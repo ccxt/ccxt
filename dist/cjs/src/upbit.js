@@ -93,7 +93,7 @@ class upbit extends upbit$1["default"] {
                 '1M': 'months',
                 '1y': 'years',
             },
-            'hostname': 'api.upbit.com',
+            'hostname': 'api.upbit.com', // 'api.upbit.com' for KR, '{countryCode}-api.upbit.com' for ID, SG, TH
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/49245610-eeaabe00-f423-11e8-9cba-4b0aed794799.jpg',
                 'api': {
@@ -109,7 +109,7 @@ class upbit extends upbit$1["default"] {
                 // cost = 1000 / (rateLimit * RPS)
                 'public': {
                     'get': {
-                        'market/all': 2,
+                        'market/all': 2, // RPS: 10
                         'candles/{timeframe}': 2,
                         'candles/{timeframe}/{unit}': 2,
                         'candles/seconds': 2,
@@ -135,7 +135,7 @@ class upbit extends upbit$1["default"] {
                 },
                 'private': {
                     'get': {
-                        'accounts': 0.67,
+                        'accounts': 0.67, // RPS: 30
                         'orders/chance': 0.67,
                         'order': 0.67,
                         'orders/closed': 0.67,
@@ -155,19 +155,19 @@ class upbit extends upbit$1["default"] {
                         'api_keys': 0.67, // Upbit KR only
                     },
                     'post': {
-                        'orders': 2.5,
-                        'orders/test': 2.5,
-                        'orders/cancel_and_new': 2.5,
+                        'orders': 2.5, // RPS: 8
+                        'orders/test': 2.5, // RPS: 8
+                        'orders/cancel_and_new': 2.5, // RPS: 8
                         'withdraws/coin': 0.67,
-                        'withdraws/krw': 0.67,
-                        'deposits/krw': 0.67,
+                        'withdraws/krw': 0.67, // Upbit KR only.
+                        'deposits/krw': 0.67, // Upbit KR only.
                         'deposits/generate_coin_address': 0.67,
-                        'travel_rule/deposit/uuid': 0.67,
+                        'travel_rule/deposit/uuid': 0.67, // RPS: 30, but each deposit can only be queried once every 10 minutes
                         'travel_rule/deposit/txid': 0.67, // RPS: 30, but each deposit can only be queried once every 10 minutes
                     },
                     'delete': {
                         'order': 0.67,
-                        'orders/open': 40,
+                        'orders/open': 40, // RPS: 0.5
                         'orders/uuids': 0.67,
                         'withdraws/coin': 0.67,
                     },
@@ -227,7 +227,7 @@ class upbit extends upbit$1["default"] {
                         'trailing': false,
                         'symbolRequired': false,
                     },
-                    'fetchOrders': undefined,
+                    'fetchOrders': undefined, // todo
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 1000,
@@ -1648,13 +1648,13 @@ class upbit extends upbit$1["default"] {
     }
     parseTransactionStatus(status) {
         const statuses = {
-            'submitting': 'pending',
-            'submitted': 'pending',
-            'almost_accepted': 'pending',
-            'rejected': 'failed',
-            'accepted': 'ok',
-            'processing': 'pending',
-            'done': 'ok',
+            'submitting': 'pending', // 처리 중
+            'submitted': 'pending', // 처리 완료
+            'almost_accepted': 'pending', // 출금대기중
+            'rejected': 'failed', // 거부
+            'accepted': 'ok', // 승인됨
+            'processing': 'pending', // 처리 중
+            'done': 'ok', // 완료
             'canceled': 'canceled', // 취소됨
         };
         return this.safeString(statuses, status, status);

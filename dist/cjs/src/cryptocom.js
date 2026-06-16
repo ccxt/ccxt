@@ -20,7 +20,7 @@ class cryptocom extends cryptocom$1["default"] {
             'name': 'Crypto.com',
             'countries': ['MT'],
             'version': 'v2',
-            'rateLimit': 10,
+            'rateLimit': 10, // 100 requests per second
             'certified': true,
             'pro': true,
             'has': {
@@ -189,7 +189,7 @@ class cryptocom extends cryptocom$1["default"] {
                             'private/user-balance-history': 10 / 3,
                             'private/get-positions': 10 / 3,
                             'private/create-order': 2 / 3,
-                            'private/amend-order': 4 / 3,
+                            'private/amend-order': 4 / 3, // no description of rate limit
                             'private/create-order-list': 10 / 3,
                             'private/cancel-order': 2 / 3,
                             'private/cancel-order-list': 10 / 3,
@@ -397,7 +397,7 @@ class cryptocom extends cryptocom$1["default"] {
                             'GTD': false,
                         },
                         'hedged': false,
-                        'selfTradePrevention': true,
+                        'selfTradePrevention': true, // todo: implement
                         'trailing': false,
                         'iceberg': false,
                         'leverage': false,
@@ -480,13 +480,13 @@ class cryptocom extends cryptocom$1["default"] {
             'precisionMode': number.TICK_SIZE,
             'exceptions': {
                 'exact': {
-                    '213': errors.InvalidOrder,
+                    '213': errors.InvalidOrder, // { "id" : 1778510838168, "method" : "private/create-order", "code" : 213, "message" : "Invalid quantity format" }
                     '219': errors.InvalidOrder,
-                    '306': errors.InsufficientFunds,
-                    '314': errors.InvalidOrder,
-                    '315': errors.InvalidOrder,
-                    '325': errors.InvalidOrder,
-                    '415': errors.InvalidOrder,
+                    '306': errors.InsufficientFunds, // { "id" : 1753xxx, "method" : "private/amend-order", "code" : 306, "message" : "INSUFFICIENT_AVAILABLE_BALANCE", "result" : { "client_oid" : "1753xxx", "order_id" : "6530xxx" } }
+                    '314': errors.InvalidOrder, // { "id" : 1700xxx, "method" : "private/create-order", "code" : 314, "message" : "EXCEEDS_MAX_ORDER_SIZE", "result" : { "client_oid" : "1700xxx", "order_id" : "6530xxx" } }
+                    '315': errors.InvalidOrder, // { "id" : 1769xxx, "method" : "private/create-order", "code" : 315, "message" : "FAR_AWAY_LIMIT_PRICE", "result" : { "client_oid" : "1769xxx", "order_id" : "6530xxx" } }
+                    '325': errors.InvalidOrder, // { "id" : 1741xxx, "method" : "private/create-order", "code" : 325, "message" : "EXCEED_DAILY_VOL_LIMIT", "result" : { "client_oid" : "1741xxx", "order_id" : "6530xxx" } }
+                    '415': errors.InvalidOrder, // { "id" : 1741xxx, "method" : "private/create-order", "code" : 415, "message" : "BELOW_MIN_ORDER_SIZE", "result" : { "client_oid" : "1741xxx", "order_id" : "6530xxx" } }
                     '10001': errors.ExchangeError,
                     '10002': errors.PermissionDenied,
                     '10003': errors.PermissionDenied,
@@ -498,7 +498,7 @@ class cryptocom extends cryptocom$1["default"] {
                     '10009': errors.BadRequest,
                     '20001': errors.BadRequest,
                     '20002': errors.InsufficientFunds,
-                    '20005': errors.AccountNotEnabled,
+                    '20005': errors.AccountNotEnabled, // {"id":"123xxx","method":"private/margin/xxx","code":"20005","message":"ACCOUNT_NOT_FOUND"}
                     '30003': errors.BadSymbol,
                     '30004': errors.BadRequest,
                     '30005': errors.BadRequest,
@@ -522,17 +522,17 @@ class cryptocom extends cryptocom$1["default"] {
                     '40006': errors.BadRequest,
                     '40007': errors.BadRequest,
                     '40101': errors.AuthenticationError,
-                    '40102': errors.InvalidNonce,
-                    '40103': errors.AuthenticationError,
-                    '40104': errors.AuthenticationError,
-                    '40107': errors.BadRequest,
+                    '40102': errors.InvalidNonce, // Nonce value differs by more than 60 seconds from server
+                    '40103': errors.AuthenticationError, // IP address not whitelisted
+                    '40104': errors.AuthenticationError, // Disallowed based on user tier
+                    '40107': errors.BadRequest, // Session subscription limit has been exceeded
                     '40401': errors.OrderNotFound,
                     '40801': errors.RequestTimeout,
                     '42901': errors.RateLimitExceeded,
-                    '43005': errors.InvalidOrder,
-                    '43003': errors.InvalidOrder,
-                    '43004': errors.InvalidOrder,
-                    '43012': errors.BadRequest,
+                    '43005': errors.InvalidOrder, // Rejected POST_ONLY create-order request (normally happened when exec_inst contains POST_ONLY but time_in_force is NOT GOOD_TILL_CANCEL)
+                    '43003': errors.InvalidOrder, // FOK order has not been filled and cancelled
+                    '43004': errors.InvalidOrder, // IOC order has not been filled and cancelled
+                    '43012': errors.BadRequest, // Canceled due to Self Trade Prevention
                     '50001': errors.ExchangeError,
                     '9010001': errors.OnMaintenance, // {"code":9010001,"message":"SYSTEM_MAINTENANCE","details":"Crypto.com Exchange is currently under maintenance. Please refer to https://status.crypto.com for more details."}
                 },
@@ -663,7 +663,7 @@ class cryptocom extends cryptocom$1["default"] {
                     'max': undefined,
                 },
             },
-            'type': 'crypto',
+            'type': 'crypto', // only crypto now
             'networks': networks,
         });
     }
@@ -1499,7 +1499,7 @@ class cryptocom extends cryptocom$1["default"] {
         }
         const contigency = this.safeString(params, 'contingency_type', 'LIST');
         const request = {
-            'contingency_type': contigency,
+            'contingency_type': contigency, // or OCO
             'order_list': ordersRequests,
         };
         const response = await this.v1PrivatePostPrivateCreateOrderList(this.extend(request, params));

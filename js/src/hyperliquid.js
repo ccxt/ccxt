@@ -24,7 +24,7 @@ export default class hyperliquid extends Exchange {
             'name': 'Hyperliquid',
             'countries': [],
             'version': 'v1',
-            'rateLimit': 50,
+            'rateLimit': 50, // 1200 requests per minute, 20 request per second
             'certified': true,
             'pro': true,
             'dex': true,
@@ -244,7 +244,7 @@ export default class hyperliquid extends Exchange {
                     'UXPL': 'XPL',
                 },
                 'fetchMarkets': {
-                    'types': ['spot', 'swap', 'hip3'],
+                    'types': ['spot', 'swap', 'hip3'], // 'spot', 'swap', 'hip3'
                     'hip3': {
                         'limit': 10,
                         'dexes': [], // list of dexes eg flx, xyz, etc
@@ -4109,7 +4109,7 @@ export default class hyperliquid extends Exchange {
             sig = this.buildWithdrawSig(payload);
             action = {
                 'hyperliquidChain': payload['hyperliquidChain'],
-                'signatureChainId': '0x66eee',
+                'signatureChainId': '0x66eee', // check this out
                 'destination': address,
                 'amount': amount.toString(),
                 'time': nonce,

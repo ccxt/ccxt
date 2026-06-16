@@ -21,7 +21,7 @@ class apex extends apex$1["default"] {
             'name': 'Apex',
             'countries': [],
             'version': 'v3',
-            'rateLimit': 20,
+            'rateLimit': 20, // 600 requests per minute, 10 request per second
             'certified': false,
             'pro': true,
             'dex': true,
@@ -207,8 +207,8 @@ class apex extends apex$1["default"] {
                 // - ob: order balance - the total cost of current open orders
                 // - ab: available balance
                 'exact': {
-                    '20006': 'apikey sign error',
-                    '20016': 'request para error',
+                    '20006': 'apikey sign error', // apikey sign error
+                    '20016': 'request para error', // apikey sign error
                     '10001': errors.BadRequest,
                 },
                 'broad': {
@@ -245,8 +245,8 @@ class apex extends apex$1["default"] {
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -256,7 +256,7 @@ class apex extends apex$1["default"] {
                         },
                         'hedged': false,
                         'selfTradePrevention': false,
-                        'trailing': true,
+                        'trailing': true, // todo unify
                         'leverage': false,
                         'marketBuyByCost': false,
                         'marketBuyRequiresPrice': false,
@@ -1382,7 +1382,7 @@ class apex extends apex$1["default"] {
         const request = {
             'symbol': market['id'],
             'side': orderSide,
-            'type': orderType,
+            'type': orderType, // LIMIT/MARKET/STOP_LIMIT/STOP_MARKET
             'size': orderSize,
             'price': finalOrderPrice,
             'limitFee': limitFee,

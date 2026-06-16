@@ -77,7 +77,7 @@ class okx extends okx$1["default"] {
                     //
                     'depth': 'books',
                 },
-                'watchBalance': 'spot',
+                'watchBalance': 'spot', // margin, futures, swap
                 'watchTicker': {
                     'channel': 'tickers', // tickers, sprd-tickers, index-tickers, block-tickers
                 },
@@ -2459,11 +2459,11 @@ class okx extends okx$1["default"] {
             const arg = this.safeValue(message, 'arg', {});
             const channel = this.safeString(arg, 'channel');
             const methods = {
-                'bbo-tbt': this.handleOrderBook,
-                'books': this.handleOrderBook,
-                'books5': this.handleOrderBook,
-                'books50-l2-tbt': this.handleOrderBook,
-                'books-l2-tbt': this.handleOrderBook,
+                'bbo-tbt': this.handleOrderBook, // newly added channel that sends tick-by-tick Level 1 data, all API users can subscribe, public depth channel, verification not required
+                'books': this.handleOrderBook, // all API users can subscribe, public depth channel, verification not required
+                'books5': this.handleOrderBook, // all API users can subscribe, public depth channel, verification not required, data feeds will be delivered every 100ms (vs. every 200ms now)
+                'books50-l2-tbt': this.handleOrderBook, // only users who're VIP4 and above can subscribe, identity verification required before subscription
+                'books-l2-tbt': this.handleOrderBook, // only users who're VIP5 and above can subscribe, identity verification required before subscription
                 'tickers': this.handleTicker,
                 'mark-price': this.handleTicker,
                 'positions': this.handlePositions,

@@ -19,8 +19,8 @@ class btcmarkets extends btcmarkets$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'btcmarkets',
             'name': 'BTC Markets',
-            'countries': ['AU'],
-            'rateLimit': 1000,
+            'countries': ['AU'], // Australia
+            'rateLimit': 1000, // market data cached for 1 second (trades cached for 2 seconds)
             'version': 'v3',
             'has': {
                 'CORS': undefined,
@@ -195,7 +195,7 @@ class btcmarkets extends btcmarkets$1["default"] {
                     'sandbox': false,
                     'createOrder': {
                         'marginMode': false,
-                        'triggerPrice': true,
+                        'triggerPrice': true, // todo: check
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
                         'stopLossPrice': false,
@@ -211,7 +211,7 @@ class btcmarkets extends btcmarkets$1["default"] {
                         'leverage': false,
                         'marketBuyRequiresPrice': false,
                         'marketBuyByCost': false,
-                        'selfTradePrevention': true,
+                        'selfTradePrevention': true, // todo: check
                         'trailing': false,
                         'iceberg': false,
                     },
@@ -626,10 +626,10 @@ class btcmarkets extends btcmarkets$1["default"] {
         //
         return [
             this.parse8601(this.safeString(ohlcv, 0)),
-            this.safeNumber(ohlcv, 1),
-            this.safeNumber(ohlcv, 2),
-            this.safeNumber(ohlcv, 3),
-            this.safeNumber(ohlcv, 4),
+            this.safeNumber(ohlcv, 1), // open
+            this.safeNumber(ohlcv, 2), // high
+            this.safeNumber(ohlcv, 3), // low
+            this.safeNumber(ohlcv, 4), // close
             this.safeNumber(ohlcv, 5), // volume
         ];
     }

@@ -116,7 +116,7 @@ export default class deepcoin extends deepcoinRest {
                 'Action': action,
                 'FilterValue': 'DeepCoin_' + marketId + suffix,
                 'LocalNo': requestId,
-                'ResumeNo': -1,
+                'ResumeNo': -1, // -1 from the end, 0 from the beginning
                 'TopicID': topicID,
             },
         };

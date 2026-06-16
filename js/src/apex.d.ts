@@ -1,5 +1,5 @@
 import Exchange from './abstract/apex.js';
-import { MarketInterface, Account, Balances, Currencies, Currency, Dict, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry, Position, int } from './base/types';
+import { MarketInterface, Account, Balances, Currencies, Currency, Dict, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry, Position, int } from './base/types.js';
 /**
  * @class apex
  * @augments Exchange
@@ -126,8 +126,8 @@ export default class apex extends Exchange {
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    fetchOpenInterest(symbol: string, params?: {}): Promise<import("./base/types").OpenInterest>;
-    parseOpenInterest(interest: any, market?: Market): import("./base/types").OpenInterest;
+    fetchOpenInterest(symbol: string, params?: {}): Promise<import("./base/types.js").OpenInterest>;
+    parseOpenInterest(interest: any, market?: Market): import("./base/types.js").OpenInterest;
     /**
      * @method
      * @name apex#fetchFundingRateHistory
@@ -293,7 +293,7 @@ export default class apex extends Exchange {
      * @param {boolean} [params.page] Page numbers start from 0
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
-    fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types").FundingHistory[]>;
+    fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").FundingHistory[]>;
     parseIncome(income: any, market?: Market): {
         info: any;
         symbol: string;
@@ -314,7 +314,7 @@ export default class apex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<import("./base/types").Dictionary<any>>;
+    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<import("./base/types.js").Dictionary<any>>;
     /**
      * @method
      * @name apex#fetchPositions

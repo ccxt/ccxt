@@ -25,7 +25,7 @@ export default class htx extends Exchange {
             'userAgent': this.userAgents['chrome100'],
             'certified': true,
             'version': 'v1',
-            'hostname': 'api.huobi.pro',
+            'hostname': 'api.huobi.pro', // api.testnet.huobi.pro
             'pro': true,
             'has': {
                 'CORS': undefined,
@@ -116,7 +116,7 @@ export default class htx extends Exchange {
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': true,
                 'fetchSettlementHistory': true,
-                'fetchStatus': false,
+                'fetchStatus': false, // none of `summary.json` endpoint work atm. revise in near future
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -162,7 +162,7 @@ export default class htx extends Exchange {
                 // },
                 'logo': 'https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg',
                 'hostnames': {
-                    'contract': 'api.hbdm.vn',
+                    'contract': 'api.hbdm.vn', // alternatively use api.hbdm.com
                     'spot': 'api.huobi.pro',
                     'status': {
                         'spot': 'status.huobigroup.com',
@@ -207,7 +207,7 @@ export default class htx extends Exchange {
                 // old api definitions
                 'v2Public': {
                     'get': {
-                        'reference/currencies': 1,
+                        'reference/currencies': 1, // 币链参考信息
                         'market-status': 1, // 获取当前市场状态
                     },
                 },
@@ -215,91 +215,91 @@ export default class htx extends Exchange {
                     'get': {
                         'account/ledger': 1,
                         'account/withdraw/quota': 1,
-                        'account/withdraw/address': 1,
+                        'account/withdraw/address': 1, // 提币地址查询(限母用户可用)
                         'account/deposit/address': 1,
-                        'account/repayment': 5,
+                        'account/repayment': 5, // 还币交易记录查询
                         'reference/transact-fee-rate': 1,
-                        'account/asset-valuation': 0.2,
-                        'point/account': 5,
-                        'sub-user/user-list': 1,
-                        'sub-user/user-state': 1,
-                        'sub-user/account-list': 1,
-                        'sub-user/deposit-address': 1,
-                        'sub-user/query-deposit': 1,
-                        'user/api-key': 1,
-                        'user/uid': 1,
-                        'algo-orders/opening': 1,
-                        'algo-orders/history': 1,
-                        'algo-orders/specific': 1,
-                        'c2c/offers': 1,
-                        'c2c/offer': 1,
-                        'c2c/transactions': 1,
-                        'c2c/repayment': 1,
-                        'c2c/account': 1,
-                        'etp/reference': 1,
-                        'etp/transactions': 5,
-                        'etp/transaction': 5,
-                        'etp/rebalance': 1,
+                        'account/asset-valuation': 0.2, // 获取账户资产估值
+                        'point/account': 5, // 点卡余额查询
+                        'sub-user/user-list': 1, // 获取子用户列表
+                        'sub-user/user-state': 1, // 获取特定子用户的用户状态
+                        'sub-user/account-list': 1, // 获取特定子用户的账户列表
+                        'sub-user/deposit-address': 1, // 子用户充币地址查询
+                        'sub-user/query-deposit': 1, // 子用户充币记录查询
+                        'user/api-key': 1, // 母子用户API key信息查询
+                        'user/uid': 1, // 母子用户获取用户UID
+                        'algo-orders/opening': 1, // 查询未触发OPEN策略委托
+                        'algo-orders/history': 1, // 查询策略委托历史
+                        'algo-orders/specific': 1, // 查询特定策略委托
+                        'c2c/offers': 1, // 查询借入借出订单
+                        'c2c/offer': 1, // 查询特定借入借出订单及其交易记录
+                        'c2c/transactions': 1, // 查询借入借出交易记录
+                        'c2c/repayment': 1, // 查询还币交易记录
+                        'c2c/account': 1, // 查询账户余额
+                        'etp/reference': 1, // 基础参考信息
+                        'etp/transactions': 5, // 获取杠杆ETP申赎记录
+                        'etp/transaction': 5, // 获取特定杠杆ETP申赎记录
+                        'etp/rebalance': 1, // 获取杠杆ETP调仓记录
                         'etp/limit': 1, // 获取ETP持仓限额
                     },
                     'post': {
                         'account/transfer': 1,
-                        'account/repayment': 5,
-                        'point/transfer': 5,
-                        'sub-user/management': 1,
-                        'sub-user/creation': 1,
-                        'sub-user/tradable-market': 1,
-                        'sub-user/transferability': 1,
-                        'sub-user/api-key-generation': 1,
-                        'sub-user/api-key-modification': 1,
-                        'sub-user/api-key-deletion': 1,
-                        'sub-user/deduct-mode': 1,
-                        'algo-orders': 1,
-                        'algo-orders/cancel-all-after': 1,
-                        'algo-orders/cancellation': 1,
-                        'c2c/offer': 1,
-                        'c2c/cancellation': 1,
-                        'c2c/cancel-all': 1,
-                        'c2c/repayment': 1,
-                        'c2c/transfer': 1,
-                        'etp/creation': 5,
-                        'etp/redemption': 5,
-                        'etp/{transactId}/cancel': 10,
+                        'account/repayment': 5, // 归还借币（全仓逐仓通用）
+                        'point/transfer': 5, // 点卡划转
+                        'sub-user/management': 1, // 冻结/解冻子用户
+                        'sub-user/creation': 1, // 子用户创建
+                        'sub-user/tradable-market': 1, // 设置子用户交易权限
+                        'sub-user/transferability': 1, // 设置子用户资产转出权限
+                        'sub-user/api-key-generation': 1, // 子用户API key创建
+                        'sub-user/api-key-modification': 1, // 修改子用户API key
+                        'sub-user/api-key-deletion': 1, // 删除子用户API key
+                        'sub-user/deduct-mode': 1, // 设置子用户手续费抵扣模式
+                        'algo-orders': 1, // 策略委托下单
+                        'algo-orders/cancel-all-after': 1, // 自动撤销订单
+                        'algo-orders/cancellation': 1, // 策略委托（触发前）撤单
+                        'c2c/offer': 1, // 借入借出下单
+                        'c2c/cancellation': 1, // 借入借出撤单
+                        'c2c/cancel-all': 1, // 撤销所有借入借出订单
+                        'c2c/repayment': 1, // 还币
+                        'c2c/transfer': 1, // 资产划转
+                        'etp/creation': 5, // 杠杆ETP换入
+                        'etp/redemption': 5, // 杠杆ETP换出
+                        'etp/{transactId}/cancel': 10, // 杠杆ETP单个撤单
                         'etp/batch-cancel': 50, // 杠杆ETP批量撤单
                     },
                 },
                 'public': {
                     'get': {
-                        'common/symbols': 1,
-                        'common/currencys': 1,
-                        'common/timestamp': 1,
-                        'common/exchange': 1,
+                        'common/symbols': 1, // 查询系统支持的所有交易对
+                        'common/currencys': 1, // 查询系统支持的所有币种
+                        'common/timestamp': 1, // 查询系统当前时间
+                        'common/exchange': 1, // order limits
                         'settings/currencys': 1, // ?language=en-US
                     },
                 },
                 'private': {
                     'get': {
-                        'account/accounts': 0.2,
-                        'account/accounts/{id}/balance': 0.2,
+                        'account/accounts': 0.2, // 查询当前用户的所有账户(即account-id)
+                        'account/accounts/{id}/balance': 0.2, // 查询指定账户的余额
                         'account/accounts/{sub-uid}': 1,
                         'account/history': 4,
                         'cross-margin/loan-info': 1,
-                        'margin/loan-info': 1,
+                        'margin/loan-info': 1, // 查询借币币息率及额度
                         'fee/fee-rate/get': 1,
                         'order/openOrders': 0.4,
                         'order/orders': 0.4,
-                        'order/orders/{id}': 0.4,
-                        'order/orders/{id}/matchresults': 0.4,
+                        'order/orders/{id}': 0.4, // 查询某个订单详情
+                        'order/orders/{id}/matchresults': 0.4, // 查询某个订单的成交明细
                         'order/orders/getClientOrder': 0.4,
-                        'order/history': 1,
-                        'order/matchresults': 1,
+                        'order/history': 1, // 查询当前委托、历史委托
+                        'order/matchresults': 1, // 查询当前成交、历史成交
                         // 'dw/withdraw-virtual/addresses', // 查询虚拟币提现地址（Deprecated）
                         'query/deposit-withdraw': 1,
                         // 'margin/loan-info', // duplicate
-                        'margin/loan-orders': 0.2,
-                        'margin/accounts/balance': 0.2,
-                        'cross-margin/loan-orders': 1,
-                        'cross-margin/accounts/balance': 1,
+                        'margin/loan-orders': 0.2, // 借贷订单
+                        'margin/accounts/balance': 0.2, // 借贷账户详情
+                        'cross-margin/loan-orders': 1, // 查询借币订单
+                        'cross-margin/accounts/balance': 1, // 借币账户详情
                         'points/actions': 1,
                         'points/orders': 1,
                         'subuser/aggregate-balance': 10,
@@ -307,29 +307,29 @@ export default class htx extends Exchange {
                         'stable-coin/quote': 1,
                     },
                     'post': {
-                        'account/transfer': 1,
+                        'account/transfer': 1, // 资产划转(该节点为母用户和子用户进行资产划转的通用接口。)
                         'futures/transfer': 1,
                         'order/batch-orders': 0.4,
-                        'order/orders/place': 0.2,
+                        'order/orders/place': 0.2, // 创建并执行一个新订单 (一步下单， 推荐使用)
                         'order/orders/submitCancelClientOrder': 0.2,
                         'order/orders/batchCancelOpenOrders': 0.4,
                         // 'order/orders', // 创建一个新的订单请求 （仅创建订单，不执行下单）
                         // 'order/orders/{id}/place', // 执行一个订单 （仅执行已创建的订单）
-                        'order/orders/{id}/submitcancel': 0.2,
-                        'order/orders/batchcancel': 0.4,
+                        'order/orders/{id}/submitcancel': 0.2, // 申请撤销一个订单请求
+                        'order/orders/batchcancel': 0.4, // 批量撤销订单
                         // 'dw/balance/transfer', // 资产划转
-                        'dw/withdraw/api/create': 1,
+                        'dw/withdraw/api/create': 1, // 申请提现虚拟币
                         // 'dw/withdraw-virtual/create', // 申请提现虚拟币
                         // 'dw/withdraw-virtual/{id}/place', // 确认申请虚拟币提现（Deprecated）
-                        'dw/withdraw-virtual/{id}/cancel': 1,
-                        'dw/transfer-in/margin': 10,
-                        'dw/transfer-out/margin': 10,
-                        'margin/orders': 10,
-                        'margin/orders/{id}/repay': 10,
-                        'cross-margin/transfer-in': 1,
-                        'cross-margin/transfer-out': 1,
-                        'cross-margin/orders': 1,
-                        'cross-margin/orders/{id}/repay': 1,
+                        'dw/withdraw-virtual/{id}/cancel': 1, // 申请取消提现虚拟币
+                        'dw/transfer-in/margin': 10, // 现货账户划入至借贷账户
+                        'dw/transfer-out/margin': 10, // 借贷账户划出至现货账户
+                        'margin/orders': 10, // 申请借贷
+                        'margin/orders/{id}/repay': 10, // 归还借贷
+                        'cross-margin/transfer-in': 1, // 资产划转
+                        'cross-margin/transfer-out': 1, // 资产划转
+                        'cross-margin/orders': 1, // 申请借币
+                        'cross-margin/orders/{id}/repay': 1, // 归还借币
                         'stable-coin/exchange': 1,
                         'subuser/transfer': 10,
                     },
@@ -382,7 +382,7 @@ export default class htx extends Exchange {
                             'v2/settings/common/currencies': 1,
                             'v2/reference/currencies': 1,
                             'v1/common/timestamp': 1,
-                            'v1/common/exchange': 1,
+                            'v1/common/exchange': 1, // order limits
                             'v1/settings/common/chains': 1,
                             'v1/settings/common/currencys': 1,
                             'v1/settings/common/symbols': 1,
@@ -397,7 +397,7 @@ export default class htx extends Exchange {
                             'market/depth': 1,
                             'market/trade': 1,
                             'market/history/trade': 1,
-                            'market/etp': 1,
+                            'market/etp': 1, // Get real-time equity of leveraged ETP
                             // ETP
                             'v2/etp/reference': 1,
                             'v2/etp/rebalance': 1,
@@ -463,9 +463,9 @@ export default class htx extends Exchange {
                         'post': {
                             // Account
                             'v1/account/transfer': 1,
-                            'v1/futures/transfer': 1,
+                            'v1/futures/transfer': 1, // future transfers
                             'v2/point/transfer': 5,
-                            'v2/account/transfer': 1,
+                            'v2/account/transfer': 1, // swap transfers
                             // Wallet (Deposit and Withdraw)
                             'v1/dw/withdraw/api/create': 1,
                             'v1/dw/withdraw-virtual/{withdraw-id}/cancel': 1,
@@ -516,7 +516,7 @@ export default class htx extends Exchange {
                     'public': {
                         'get': {
                             'api/v1/timestamp': 1,
-                            'heartbeat/': 1,
+                            'heartbeat/': 1, // backslash is not a typo
                             // Future Market Data interface
                             'api/v1/contract_contract_info': 1,
                             'api/v1/contract_index': 1,
@@ -910,76 +910,76 @@ export default class htx extends Exchange {
                 },
                 'exact': {
                     // err-code
-                    '403': AuthenticationError,
-                    '1010': AccountNotEnabled,
-                    '1003': AuthenticationError,
-                    '1013': BadSymbol,
-                    '1017': OrderNotFound,
-                    '1034': InvalidOrder,
-                    '1036': InvalidOrder,
-                    '1039': InvalidOrder,
-                    '1041': InvalidOrder,
-                    '1047': InsufficientFunds,
-                    '1048': InsufficientFunds,
-                    '1061': OrderNotFound,
-                    '1051': InvalidOrder,
-                    '1066': BadSymbol,
-                    '1067': InvalidOrder,
-                    '1094': InvalidOrder,
-                    '1220': AccountNotEnabled,
-                    '1303': BadRequest,
-                    '1461': InvalidOrder,
-                    '4007': BadRequest,
+                    '403': AuthenticationError, // {"status":"error","err_code":403,"err_msg":"Incorrect Access key [Access key错误]","ts":1652774224344}
+                    '1010': AccountNotEnabled, // {"status":"error","err_code":1010,"err_msg":"Account doesnt exist.","ts":1648137970490}
+                    '1003': AuthenticationError, // {code: '1003', message: 'invalid signature'}
+                    '1013': BadSymbol, // {"status":"error","err_code":1013,"err_msg":"This contract symbol doesnt exist.","ts":1640550459583}
+                    '1017': OrderNotFound, // {"status":"error","err_code":1017,"err_msg":"Order doesnt exist.","ts":1640550859242}
+                    '1034': InvalidOrder, // {"status":"error","err_code":1034,"err_msg":"Incorrect field of order price type.","ts":1643802870182}
+                    '1036': InvalidOrder, // {"status":"error","err_code":1036,"err_msg":"Incorrect field of open long form.","ts":1643802518986}
+                    '1039': InvalidOrder, // {"status":"error","err_code":1039,"err_msg":"Buy price must be lower than 39270.9USDT. Sell price must exceed 37731USDT.","ts":1643802374403}
+                    '1041': InvalidOrder, // {"status":"error","err_code":1041,"err_msg":"The order amount exceeds the limit (170000Cont), please modify and order again.","ts":1643802784940}
+                    '1047': InsufficientFunds, // {"status":"error","err_code":1047,"err_msg":"Insufficient margin available.","ts":1643802672652}
+                    '1048': InsufficientFunds, // {"status":"error","err_code":1048,"err_msg":"Insufficient close amount available.","ts":1652772408864}
+                    '1061': OrderNotFound, // {"status":"ok","data":{"errors":[{"order_id":"1349442392365359104","err_code":1061,"err_msg":"The order does not exist."}],"successes":""},"ts":1741773744526}
+                    '1051': InvalidOrder, // {"status":"error","err_code":1051,"err_msg":"No orders to cancel.","ts":1652552125876}
+                    '1066': BadSymbol, // {"status":"error","err_code":1066,"err_msg":"The symbol field cannot be empty. Please re-enter.","ts":1640550819147}
+                    '1067': InvalidOrder, // {"status":"error","err_code":1067,"err_msg":"The client_order_id field is invalid. Please re-enter.","ts":1643802119413}
+                    '1094': InvalidOrder, // {"status":"error","err_code":1094,"err_msg":"The leverage cannot be empty, please switch the leverage or contact customer service","ts":1640496946243}
+                    '1220': AccountNotEnabled, // {"status":"error","err_code":1220,"err_msg":"You don’t have access permission as you have not opened contracts trading.","ts":1645096660718}
+                    '1303': BadRequest, // {"code":1303,"data":null,"message":"Each transfer-out cannot be less than 5USDT.","success":false,"print-log":true}
+                    '1461': InvalidOrder, // {"status":"error","err_code":1461,"err_msg":"Current positions have triggered position limits (5000USDT). Please modify.","ts":1652554651234}
+                    '4007': BadRequest, // {"code":"4007","msg":"Unified account special interface, non - one account is not available","data":null,"ts":"1698413427651"}'
                     'bad-request': BadRequest,
-                    'validation-format-error': BadRequest,
-                    'validation-constraints-required': BadRequest,
-                    'base-date-limit-error': BadRequest,
-                    'api-not-support-temp-addr': PermissionDenied,
-                    'timeout': RequestTimeout,
-                    'gateway-internal-error': ExchangeNotAvailable,
-                    'account-frozen-balance-insufficient-error': InsufficientFunds,
-                    'invalid-amount': InvalidOrder,
-                    'order-limitorder-amount-min-error': InvalidOrder,
-                    'order-limitorder-amount-max-error': InvalidOrder,
-                    'order-marketorder-amount-min-error': InvalidOrder,
-                    'order-limitorder-price-min-error': InvalidOrder,
-                    'order-limitorder-price-max-error': InvalidOrder,
-                    'order-limitorder-price-buy-min-error': InvalidOrder,
-                    'order-limitorder-price-buy-max-error': InvalidOrder,
-                    'order-limitorder-price-sell-min-error': InvalidOrder,
-                    'order-limitorder-price-sell-max-error': InvalidOrder,
-                    'order-stop-order-hit-trigger': InvalidOrder,
-                    'order-value-min-error': InvalidOrder,
-                    'order-invalid-price': InvalidOrder,
-                    'order-holding-limit-failed': InvalidOrder,
-                    'order-orderprice-precision-error': InvalidOrder,
-                    'order-etp-nav-price-max-error': InvalidOrder,
-                    'order-orderstate-error': OrderNotFound,
-                    'order-queryorder-invalid': OrderNotFound,
-                    'order-update-error': ExchangeNotAvailable,
+                    'validation-format-error': BadRequest, // {"status":"error","err-code":"validation-format-error","err-msg":"Format Error: order-id.","data":null}
+                    'validation-constraints-required': BadRequest, // {"status":"error","err-code":"validation-constraints-required","err-msg":"Field is missing: client-order-id.","data":null}
+                    'base-date-limit-error': BadRequest, // {"status":"error","err-code":"base-date-limit-error","err-msg":"date less than system limit","data":null}
+                    'api-not-support-temp-addr': PermissionDenied, // {"status":"error","err-code":"api-not-support-temp-addr","err-msg":"API withdrawal does not support temporary addresses","data":null}
+                    'timeout': RequestTimeout, // {"ts":1571653730865,"status":"error","err-code":"timeout","err-msg":"Request Timeout"}
+                    'gateway-internal-error': ExchangeNotAvailable, // {"status":"error","err-code":"gateway-internal-error","err-msg":"Failed to load data. Try again later.","data":null}
+                    'account-frozen-balance-insufficient-error': InsufficientFunds, // {"status":"error","err-code":"account-frozen-balance-insufficient-error","err-msg":"trade account balance is not enough, left: `0.0027`","data":null}
+                    'invalid-amount': InvalidOrder, // eg "Paramemter `amount` is invalid."
+                    'order-limitorder-amount-min-error': InvalidOrder, // limit order amount error, min: `0.001`
+                    'order-limitorder-amount-max-error': InvalidOrder, // market order amount error, max: `1000000`
+                    'order-marketorder-amount-min-error': InvalidOrder, // market order amount error, min: `0.01`
+                    'order-limitorder-price-min-error': InvalidOrder, // limit order price error
+                    'order-limitorder-price-max-error': InvalidOrder, // limit order price error
+                    'order-limitorder-price-buy-min-error': InvalidOrder, // {"status":"error","err-code":"order-limitorder-price-buy-min-error","err-msg":"The price cannot be lower than 0.0006 USDT","data":null}
+                    'order-limitorder-price-buy-max-error': InvalidOrder, // limit order price error
+                    'order-limitorder-price-sell-min-error': InvalidOrder, // limit order price error
+                    'order-limitorder-price-sell-max-error': InvalidOrder, // limit order price error
+                    'order-stop-order-hit-trigger': InvalidOrder, // {"status":"error","err-code":"order-stop-order-hit-trigger","err-msg":"Orders that are triggered immediately are not supported.","data":null}
+                    'order-value-min-error': InvalidOrder, // {"status":"error","err-code":"order-value-min-error","err-msg":"Order total cannot be lower than: 1 USDT","data":null}
+                    'order-invalid-price': InvalidOrder, // {"status":"error","err-code":"order-invalid-price","err-msg":"invalid price","data":null}
+                    'order-holding-limit-failed': InvalidOrder, // {"status":"error","err-code":"order-holding-limit-failed","err-msg":"Order failed, exceeded the holding limit of this currency","data":null}
+                    'order-orderprice-precision-error': InvalidOrder, // {"status":"error","err-code":"order-orderprice-precision-error","err-msg":"order price precision error, scale: `4`","data":null}
+                    'order-etp-nav-price-max-error': InvalidOrder, // {"status":"error","err-code":"order-etp-nav-price-max-error","err-msg":"Order price cannot be higher than 5% of NAV","data":null}
+                    'order-orderstate-error': OrderNotFound, // canceling an already canceled order
+                    'order-queryorder-invalid': OrderNotFound, // querying a non-existent order
+                    'order-update-error': ExchangeNotAvailable, // undocumented error
                     'api-signature-check-failed': AuthenticationError,
-                    'api-signature-not-valid': AuthenticationError,
-                    'base-record-invalid': OrderNotFound,
-                    'base-symbol-trade-disabled': BadSymbol,
-                    'base-symbol-error': BadSymbol,
-                    'system-maintenance': OnMaintenance,
-                    'base-request-exceed-frequency-limit': RateLimitExceeded,
-                    'rate-too-many-requests': RateLimitExceeded,
+                    'api-signature-not-valid': AuthenticationError, // {"status":"error","err-code":"api-signature-not-valid","err-msg":"Signature not valid: Incorrect Access key [Access key错误]","data":null}
+                    'base-record-invalid': OrderNotFound, // https://github.com/ccxt/ccxt/issues/5750
+                    'base-symbol-trade-disabled': BadSymbol, // {"status":"error","err-code":"base-symbol-trade-disabled","err-msg":"Trading is disabled for this symbol","data":null}
+                    'base-symbol-error': BadSymbol, // {"status":"error","err-code":"base-symbol-error","err-msg":"The symbol is invalid","data":null}
+                    'system-maintenance': OnMaintenance, // {"status": "error", "err-code": "system-maintenance", "err-msg": "System is in maintenance!", "data": null}
+                    'base-request-exceed-frequency-limit': RateLimitExceeded, // {"status":"error","err-code":"base-request-exceed-frequency-limit","err-msg":"Frequency of requests has exceeded the limit, please try again later","data":null}
+                    'rate-too-many-requests': RateLimitExceeded, // {"status":"error","err-code":"rate-too-many-requests","err-msg":"exceeded rate limit","data":null}
                     // err-msg
-                    'invalid symbol': BadSymbol,
-                    'symbol trade not open now': BadSymbol,
-                    'require-symbol': BadSymbol,
-                    'invalid-address': BadRequest,
-                    'base-currency-chain-error': BadRequest,
-                    'dw-insufficient-balance': InsufficientFunds,
-                    'base-withdraw-fee-error': BadRequest,
-                    'dw-withdraw-min-limit': BadRequest,
+                    'invalid symbol': BadSymbol, // {"ts":1568813334794,"status":"error","err-code":"invalid-parameter","err-msg":"invalid symbol"}
+                    'symbol trade not open now': BadSymbol, // {"ts":1576210479343,"status":"error","err-code":"invalid-parameter","err-msg":"symbol trade not open now"}
+                    'require-symbol': BadSymbol, // {"status":"error","err-code":"require-symbol","err-msg":"Parameter `symbol` is required.","data":null},
+                    'invalid-address': BadRequest, // {"status":"error","err-code":"invalid-address","err-msg":"Invalid address.","data":null},
+                    'base-currency-chain-error': BadRequest, // {"status":"error","err-code":"base-currency-chain-error","err-msg":"The current currency chain does not exist","data":null},
+                    'dw-insufficient-balance': InsufficientFunds, // {"status":"error","err-code":"dw-insufficient-balance","err-msg":"Insufficient balance. You can only transfer `12.3456` at most.","data":null}
+                    'base-withdraw-fee-error': BadRequest, // {"status":"error","err-code":"base-withdraw-fee-error","err-msg":"withdrawal fee is not within limits","data":null}
+                    'dw-withdraw-min-limit': BadRequest, // {"status":"error","err-code":"dw-withdraw-min-limit","err-msg":"The withdrawal amount is less than the minimum limit.","data":null}
                     'request limit': RateLimitExceeded, // {"ts":1687004814731,"status":"error","err-code":"invalid-parameter","err-msg":"request limit"}
                 },
             },
             'precisionMode': TICK_SIZE,
             'options': {
-                'include_OS_certificates': false,
+                'include_OS_certificates': false, // temporarily leave this, remove in future
                 'fetchMarkets': {
                     'types': {
                         'spot': true,
@@ -987,16 +987,16 @@ export default class htx extends Exchange {
                         'inverse': true,
                     },
                 },
-                'timeDifference': 0,
-                'adjustForTimeDifference': false,
+                'timeDifference': 0, // the difference between system clock and exchange clock
+                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'fetchOHLCV': {
                     'useHistoricalEndpointForSpot': true,
                 },
                 'withdraw': {
                     'includeFee': false,
                 },
-                'defaultType': 'spot',
-                'defaultSubType': 'linear',
+                'defaultType': 'spot', // spot, future, swap
+                'defaultSubType': 'linear', // inverse, linear
                 'defaultNetwork': 'ERC20',
                 'defaultNetworks': {
                     'ETH': 'ERC20',
@@ -1005,9 +1005,9 @@ export default class htx extends Exchange {
                 },
                 'networks': {
                     // by displaynames
-                    'TRC20': 'TRX',
+                    'TRC20': 'TRX', // TRON for mainnet
                     'BTC': 'BTC',
-                    'ERC20': 'ETH',
+                    'ERC20': 'ETH', // ETH for mainnet
                     'SOL': 'SOLANA',
                     'HRC20': 'HECO',
                     'BEP20': 'BSC',
@@ -1199,7 +1199,7 @@ export default class htx extends Exchange {
                     'MATIC': 'MATIC',
                 },
                 // https://github.com/ccxt/ccxt/issues/5376
-                'fetchOrdersByStatesMethod': 'spot_private_get_v1_order_orders',
+                'fetchOrdersByStatesMethod': 'spot_private_get_v1_order_orders', // 'spot_private_get_v1_order_history' // https://github.com/ccxt/ccxt/pull/5392
                 'createMarketBuyOrderRequiresPrice': true,
                 'language': 'en-US',
                 'broker': {
@@ -1262,8 +1262,8 @@ export default class htx extends Exchange {
                 // https://github.com/ccxt/ccxt/issues/3365
                 // https://github.com/ccxt/ccxt/issues/2873
                 'NGL': 'GFNGL',
-                'GET': 'THEMIS',
-                'GTC': 'GAMECOM',
+                'GET': 'THEMIS', // conflict with GET (Guaranteed Entrance Token, GET Protocol)
+                'GTC': 'GAMECOM', // conflict with Gitcoin and Gastrocoin
                 'HIT': 'HITCHAIN',
                 // https://github.com/ccxt/ccxt/issues/7399
                 // https://coinmarketcap.com/currencies/pnetwork/
@@ -1272,7 +1272,7 @@ export default class htx extends Exchange {
                 'PNT': 'PENTA',
                 'SBTC': 'SUPERBITCOIN',
                 'SOUL': 'SOULSAVER',
-                'BIFI': 'BITCOINFILE',
+                'BIFI': 'BITCOINFILE', // conflict with Beefy.Finance https://github.com/ccxt/ccxt/issues/8706
                 'FUD': 'FTX Users Debt',
             },
             'features': {
@@ -1283,7 +1283,7 @@ export default class htx extends Exchange {
                         'triggerPrice': true,
                         'triggerDirection': true,
                         'triggerPriceType': undefined,
-                        'stopLossPrice': false,
+                        'stopLossPrice': false, // todo: add support by triggerprice
                         'takeProfitPrice': false,
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
@@ -1295,8 +1295,8 @@ export default class htx extends Exchange {
                         'hedged': false,
                         'trailing': false,
                         'iceberg': false,
-                        'selfTradePrevention': true,
-                        'leverage': true,
+                        'selfTradePrevention': true, // todo implement
+                        'leverage': true, // todo implement
                         'marketBuyByCost': true,
                         'marketBuyRequiresPrice': true,
                     },
@@ -4305,7 +4305,7 @@ export default class htx extends Exchange {
             // POST /swap-api/v3/swap_hisorders inverse swap ------------------
             // POST /linear-swap-api/v3/swap_hisorders linear isolated --------
             // POST /linear-swap-api/v3/swap_cross_hisorders linear cross -----
-            'trade_type': 0,
+            'trade_type': 0, // 0:All; 1: Open long; 2: Open short; 3: Close short; 4: Close long; 5: Liquidate long positions; 6: Liquidate short positions, 17:buy(one-way mode), 18:sell(one-way mode)
             'status': '0', // support multiple query separated by ',',such as '3,4,5', 0: all. 3. Have submitted the orders; 4. Orders partially matched; 5. Orders cancelled with partially matched; 6. Orders fully matched; 7. Orders cancelled;
         };
         let response = undefined;
@@ -4953,13 +4953,13 @@ export default class htx extends Exchange {
             'filled': 'closed',
             'canceled': 'canceled',
             'submitted': 'open',
-            'created': 'open',
+            'created': 'open', // For stop orders
             // contract
             '1': 'open',
             '2': 'open',
             '3': 'open',
             '4': 'open',
-            '5': 'canceled',
+            '5': 'canceled', // partially matched
             '6': 'closed',
             '7': 'canceled',
             '11': 'canceling',
@@ -6951,7 +6951,7 @@ export default class htx extends Exchange {
         this.checkAddress(address);
         const currency = this.currency(code);
         const request = {
-            'address': address,
+            'address': address, // only supports existing addresses in your withdraw address list
             'currency': currency['id'].toLowerCase(),
         };
         if (tag !== undefined) {
@@ -7562,7 +7562,7 @@ export default class htx extends Exchange {
             'interestRate': this.safeNumber(info, 'interest-rate'),
             'amountBorrowed': this.safeNumber(info, 'loan-amount'),
             'marginMode': marginMode,
-            'timestamp': timestamp,
+            'timestamp': timestamp, // Interest accrued time
             'datetime': this.iso8601(timestamp),
         };
     }
@@ -9043,8 +9043,8 @@ export default class htx extends Exchange {
         const marketId = this.safeString(interest, 'contract_code');
         return this.safeOpenInterest({
             'symbol': this.safeSymbol(marketId, market),
-            'baseVolume': amount,
-            'quoteVolume': value,
+            'baseVolume': amount, // deprecated
+            'quoteVolume': value, // deprecated
             'openInterestAmount': amount,
             'openInterestValue': value,
             'timestamp': timestamp,

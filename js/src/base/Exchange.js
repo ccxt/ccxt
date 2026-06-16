@@ -1785,12 +1785,12 @@ export default class Exchange {
             'name': this.name,
             'countries': this.countries,
             'enableRateLimit': this.enableRateLimit,
-            'rateLimit': this.rateLimit,
+            'rateLimit': this.rateLimit, // milliseconds = seconds * 1000
             'rateLimiterAlgorithm': this.rateLimiterAlgorithm,
-            'timeout': this.timeout,
-            'certified': this.certified,
-            'pro': this.pro,
-            'alias': this.alias,
+            'timeout': this.timeout, // milliseconds = seconds * 1000
+            'certified': this.certified, // if certified by the CCXT dev team
+            'pro': this.pro, // if it is integrated with CCXT Pro for WebSocket support
+            'alias': this.alias, // whether this exchange is an alias to another exchange
             'dex': false,
             'has': {
                 'publicAPI': true,
@@ -2051,14 +2051,14 @@ export default class Exchange {
                 'accountId': false,
                 'login': false,
                 'password': false,
-                'twofa': false,
-                'privateKey': false,
-                'walletAddress': false,
+                'twofa': false, // 2-factor authentication (one-time password key)
+                'privateKey': false, // a "0x"-prefixed hexstring private key for a wallet
+                'walletAddress': false, // the wallet address "0x"-prefixed hexstring
                 'token': false, // reserved for HTTP auth in some cases
             },
-            'markets': undefined,
-            'currencies': {},
-            'timeframes': undefined,
+            'markets': undefined, // to be filled manually or by fetchMarkets
+            'currencies': {}, // to be filled manually or by fetchMarkets
+            'timeframes': undefined, // redefine if the exchange has.fetchOHLCV
             'fees': {
                 'trading': {
                     'tierBased': undefined,
@@ -3875,7 +3875,7 @@ export default class Exchange {
             'postOnly': postOnly,
             'trades': trades,
             'reduceOnly': this.safeValue(order, 'reduceOnly'),
-            'stopPrice': triggerPrice,
+            'stopPrice': triggerPrice, // ! deprecated, use triggerPrice instead
             'triggerPrice': triggerPrice,
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': stopLossPrice,
@@ -4583,11 +4583,11 @@ export default class Exchange {
     parseOHLCV(ohlcv, market = undefined) {
         if (Array.isArray(ohlcv)) {
             return [
-                this.safeInteger(ohlcv, 0),
-                this.safeNumber(ohlcv, 1),
-                this.safeNumber(ohlcv, 2),
-                this.safeNumber(ohlcv, 3),
-                this.safeNumber(ohlcv, 4),
+                this.safeInteger(ohlcv, 0), // timestamp
+                this.safeNumber(ohlcv, 1), // open
+                this.safeNumber(ohlcv, 2), // high
+                this.safeNumber(ohlcv, 3), // low
+                this.safeNumber(ohlcv, 4), // close
                 this.safeNumber(ohlcv, 5), // volume
             ];
         }
@@ -5262,12 +5262,12 @@ export default class Exchange {
             if (isFirstCandle || openingTime >= this.sum(ohlcvs[candle][i_timestamp], ms)) {
                 // moved to a new timeframe -> create a new candle from opening trade
                 ohlcvs.push([
-                    openingTime,
-                    price,
-                    price,
-                    price,
-                    price,
-                    trade['amount'],
+                    openingTime, // timestamp
+                    price, // O
+                    price, // H
+                    price, // L
+                    price, // C
+                    trade['amount'], // V
                     1, // count
                 ]);
             }
@@ -6571,8 +6571,8 @@ export default class Exchange {
     }
     isLeveragedCurrency(currencyCode, checkBaseCoin = false, existingCurrencies = undefined) {
         const leverageSuffixes = [
-            '2L', '2S', '3L', '3S', '4L', '4S', '5L', '5S',
-            'UP', 'DOWN',
+            '2L', '2S', '3L', '3S', '4L', '4S', '5L', '5S', // Leveraged Tokens (LT)
+            'UP', 'DOWN', // exchange-specific (e.g. BLVT)
             'BULL', 'BEAR', // similar
         ];
         for (let i = 0; i < leverageSuffixes.length; i++) {
@@ -7916,8 +7916,8 @@ export default class Exchange {
         }
         return this.extend(interest, {
             'symbol': symbol,
-            'baseVolume': this.safeNumber(interest, 'baseVolume'),
-            'quoteVolume': this.safeNumber(interest, 'quoteVolume'),
+            'baseVolume': this.safeNumber(interest, 'baseVolume'), // deprecated
+            'quoteVolume': this.safeNumber(interest, 'quoteVolume'), // deprecated
             'openInterestAmount': this.safeNumber(interest, 'openInterestAmount'),
             'openInterestValue': this.safeNumber(interest, 'openInterestValue'),
             'timestamp': this.safeInteger(interest, 'timestamp'),

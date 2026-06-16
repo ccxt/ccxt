@@ -22,7 +22,7 @@ export default class apex extends Exchange {
             'name': 'Apex',
             'countries': [],
             'version': 'v3',
-            'rateLimit': 20,
+            'rateLimit': 20, // 600 requests per minute, 10 request per second
             'certified': false,
             'pro': true,
             'dex': true,
@@ -208,8 +208,8 @@ export default class apex extends Exchange {
                 // - ob: order balance - the total cost of current open orders
                 // - ab: available balance
                 'exact': {
-                    '20006': 'apikey sign error',
-                    '20016': 'request para error',
+                    '20006': 'apikey sign error', // apikey sign error
+                    '20016': 'request para error', // apikey sign error
                     '10001': BadRequest,
                 },
                 'broad': {
@@ -246,8 +246,8 @@ export default class apex extends Exchange {
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -257,7 +257,7 @@ export default class apex extends Exchange {
                         },
                         'hedged': false,
                         'selfTradePrevention': false,
-                        'trailing': true,
+                        'trailing': true, // todo unify
                         'leverage': false,
                         'marketBuyByCost': false,
                         'marketBuyRequiresPrice': false,
@@ -1384,7 +1384,7 @@ export default class apex extends Exchange {
         const request = {
             'symbol': market['id'],
             'side': orderSide,
-            'type': orderType,
+            'type': orderType, // LIMIT/MARKET/STOP_LIMIT/STOP_MARKET
             'size': orderSize,
             'price': finalOrderPrice,
             'limitFee': limitFee,

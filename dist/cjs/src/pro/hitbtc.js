@@ -11,7 +11,10 @@ var errors = require('../base/errors.js');
 //  ---------------------------------------------------------------------------
 class hitbtc extends hitbtc$1["default"] {
     describe() {
-        return this.deepExtend(super.describe(), {
+        return this.deepExtend(super.describe(), this.describeData());
+    }
+    describeData() {
+        return {
             'has': {
                 'ws': true,
                 'watchTicker': true,
@@ -73,7 +76,7 @@ class hitbtc extends hitbtc$1["default"] {
             'streaming': {
                 'keepAlive': 4000,
             },
-        });
+        };
     }
     /**
      * @ignore

@@ -349,7 +349,7 @@ export default class hyperliquid extends hyperliquidRest {
         const request = {
             'method': 'subscribe',
             'subscription': {
-                'type': channel,
+                'type': channel, // webData2 or allMids
                 'user': '0x0000000000000000000000000000000000000000',
             },
         };
@@ -395,7 +395,7 @@ export default class hyperliquid extends hyperliquidRest {
         const request = {
             'method': 'unsubscribe',
             'subscription': {
-                'type': channel,
+                'type': channel, // allMids
                 'user': '0x0000000000000000000000000000000000000000',
             },
         };
