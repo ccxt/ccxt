@@ -18,8 +18,7 @@ import * as functions from './functions.js';
 //     // vwap as vwapFunc,
 // } from './functions.js';
 // import exceptions from "./errors.js"
-import { // eslint-disable-line object-curly-newline
-ExchangeError, BadSymbol, NullResponse, InvalidAddress, InvalidOrder, NotSupported, OperationFailed, BadResponse, AuthenticationError, DDoSProtection, RequestTimeout, NetworkError, InvalidProxySettings, ExchangeNotAvailable, ArgumentsRequired, RateLimitExceeded, BadRequest, UnsubscribeError, ExchangeClosedByUser, } from './errors.js';
+import { ExchangeError, BadSymbol, NullResponse, InvalidAddress, InvalidOrder, NotSupported, OperationFailed, BadResponse, AuthenticationError, DDoSProtection, RequestTimeout, NetworkError, InvalidProxySettings, ExchangeNotAvailable, ArgumentsRequired, RateLimitExceeded, BadRequest, UnsubscribeError, ExchangeClosedByUser, } from './errors.js';
 import { Precise } from './Precise.js';
 //-----------------------------------------------------------------------------
 import WsClient from './ws/WsClient.js';
@@ -387,9 +386,7 @@ export default class Exchange {
         const nameBytes = new TextEncoder().encode(name);
         const data = new Uint8Array([...nsBytes, ...nameBytes]);
         const nsHash = sha1(data);
-        // eslint-disable-next-line
         nsHash[6] = (nsHash[6] & 0x0f) | 0x50;
-        // eslint-disable-next-line
         nsHash[8] = (nsHash[8] & 0x3f) | 0x80;
         const hex = [...nsHash.slice(0, 16)]
             .map((b) => b.toString(16).padStart(2, '0'))
@@ -497,7 +494,6 @@ export default class Exchange {
         }
     }
     log(...args) {
-        // eslint-disable-next-line no-console
         console.log(...args);
     }
     async loadProxyModules() {
@@ -518,7 +514,7 @@ export default class Exchange {
                         // @ts-ignore
                         this.httpProxyAgentModule = await import(/* webpackIgnore: true */ 'http-proxy-agent');
                         // @ts-ignore
-                        this.httpsProxyAgentModule = await import(/* webpackIgnore: true */ 'https-proxy-agent'); // eslint-disable-line
+                        this.httpsProxyAgentModule = await import(/* webpackIgnore: true */ 'https-proxy-agent');
                     }
                     catch (err) {
                         // TODO: handle error
@@ -727,7 +723,7 @@ export default class Exchange {
                     // some users having issues with dynamic imports (https://github.com/ccxt/ccxt/pull/20687)
                     // so let them to fallback to node's native fetch
                     if (typeof fetch === 'function') {
-                        this.fetchImplementation = fetch; // eslint-disable-line
+                        this.fetchImplementation = fetch;
                         // as it's browser-compatible implementation ( https://nodejs.org/dist/latest-v20.x/docs/api/globals.html#fetch )
                         // it throws same error types
                         this.AbortError = DOMException;
@@ -1629,7 +1625,6 @@ export default class Exchange {
         this.checkLighterSignedError(res);
         return signer;
     }
-    // eslint-disable-next-line no-unused-vars
     lighterSignCreateGroupedOrders(signer, request) {
         const orders = request['orders'];
         const ordersArr = [];
@@ -1653,7 +1648,6 @@ export default class Exchange {
         this.checkLighterSignedError(res);
         return [res.txType, res.txInfo];
     }
-    // eslint-disable-next-line no-unused-vars
     lighterSignCreateOrder(signer, request) {
         const res = (globalThis.SignCreateOrder(parseInt(request['market_index']), request['client_order_index'], request['base_amount'], request['avg_execution_price'], request['is_ask'], request['order_type'], request['time_in_force'], request['reduce_only'], request['trigger_price'], request['order_expiry'], request['integrator_account_index'], request['integrator_taker_fee'], request['integrator_maker_fee'], 1, // skip nonce
         request['nonce'], request['api_key_index'], request['account_index']));
@@ -1677,7 +1671,6 @@ export default class Exchange {
         this.checkLighterSignedError(res);
         return [res.txType, res.txInfo];
     }
-    // eslint-disable-next-line no-unused-vars
     lighterSignCreateSubAccount(signer, request) {
         const res = (globalThis.SignCreateSubAccount(1, // skip nonce
         request['nonce'], request['api_key_index'], request['account_index']));
@@ -1719,7 +1712,6 @@ export default class Exchange {
         this.checkLighterSignedError(res);
         return [res.txType, res.txInfo];
     }
-    // eslint-disable-next-line no-unused-vars
     lighterSignApproveIntegrator(signer, request) {
         const res = globalThis.SignApproveIntegrator(request['integrator_account_index'], request['integrator_taker_fee'], request['integrator_maker_fee'], request['integrator_taker_fee'], request['integrator_maker_fee'], request['approval_expiry'], 1, // skip nonce
         request['nonce'], request['api_key_index'], request['account_index']);
@@ -1732,14 +1724,12 @@ export default class Exchange {
         this.checkLighterSignedError(res);
         return [res.privateKey, res.publicKey];
     }
-    // eslint-disable-next-line no-unused-vars
     lighterSignChangePubkey(signer, request) {
         const res = globalThis.SignChangePubKey(Buffer.from(request['pubkey']).toString(), 1, // skip nonce
         request['nonce'], request['api_key_index'], request['account_index']);
         this.checkLighterSignedError(res);
         return [res.txType, res.txInfo, res.messageToSign];
     }
-    /* eslint-enable */
     // ------------------------------------------------------------------------
     // ########################################################################
     // ########################################################################
