@@ -1465,7 +1465,6 @@ public class AsterCore extends AsterApi
         Object last = this.safeString(ticker, "lastPrice");
         Object open = this.safeString(ticker, "openPrice");
         Object percentage = this.safeString(ticker, "priceChangePercent");
-        percentage = Precise.stringMul(percentage, "100");
         Object quoteVolume = this.safeString(ticker, "quoteVolume");
         Object baseVolume = this.safeString(ticker, "volume");
         Object high = this.safeString(ticker, "highPrice");
@@ -1482,7 +1481,6 @@ public class AsterCore extends AsterApi
         Object marketId = this.safeString(ticker, "symbol");
         market = this.safeMarket(marketId, market, null, marketType);
         final Object finalMarket = market;
-        final Object finalPercentage = percentage;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "timestamp", timestamp );
@@ -1499,7 +1497,7 @@ public class AsterCore extends AsterApi
             put( "last", last );
             put( "previousClose", null );
             put( "change", null );
-            put( "percentage", finalPercentage );
+            put( "percentage", percentage );
             put( "average", null );
             put( "baseVolume", baseVolume );
             put( "quoteVolume", quoteVolume );
