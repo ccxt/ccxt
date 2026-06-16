@@ -13,7 +13,11 @@ import { AuthenticationError, ExchangeError, NotSupported } from '../base/errors
 
 export default class hitbtc extends hitbtcRest {
     describe (): any {
-        return this.deepExtend (super.describe (), {
+        return this.deepExtend (super.describe (), this.describeData ());
+    }
+
+    describeData (): any {
+        return {
             'has': {
                 'ws': true,
                 'watchTicker': true,
@@ -75,7 +79,7 @@ export default class hitbtc extends hitbtcRest {
             'streaming': {
                 'keepAlive': 4000,
             },
-        });
+        };
     }
 
     /**
