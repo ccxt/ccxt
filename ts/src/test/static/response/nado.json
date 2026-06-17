@@ -126,6 +126,322 @@
                 }
             }
         ],
+        "fetchPositions": [
+            {
+                "description": "fetchPositions",
+                "method": "fetchPositions",
+                "input": [
+                    [
+                        "BTC/USDT0:USDT0"
+                    ]
+                ],
+                "httpResponse": {
+                    "status": "success",
+                    "data": {
+                        "subaccount": "0x123000000000000000000000000000000000012364656661756c740000000000",
+                        "exists": true,
+                        "healths": [],
+                        "health_contributions": [],
+                        "spot_count": 0,
+                        "perp_count": 1,
+                        "spot_balances": [],
+                        "perp_balances": [
+                            {
+                                "product_id": 2,
+                                "balance": {
+                                    "amount": "100000000000000000",
+                                    "v_quote_balance": "-2400000000000000000000",
+                                    "last_cumulative_funding_x18": "-394223711772447555304"
+                                }
+                            }
+                        ],
+                        "spot_products": [],
+                        "perp_products": [
+                            {
+                                "product_id": 2,
+                                "oracle_price_x18": "25000000000000000000000",
+                                "risk": {
+                                    "long_weight_initial_x18": "950000000000000000",
+                                    "short_weight_initial_x18": "1050000000000000000",
+                                    "long_weight_maintenance_x18": "970000000000000000",
+                                    "short_weight_maintenance_x18": "1030000000000000000",
+                                    "price_x18": "25000000000000000000000"
+                                },
+                                "state": {
+                                    "cumulative_funding_long_x18": "-394223711772447555304",
+                                    "cumulative_funding_short_x18": "-394223711772447555304",
+                                    "available_settle": "20092193239667417956947",
+                                    "open_interest": "113605000000000000000"
+                                }
+                            }
+                        ]
+                    },
+                    "request_type": "query_subaccount_info"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "product": {
+                                "product_id": 2,
+                                "oracle_price_x18": "25000000000000000000000",
+                                "risk": {
+                                    "long_weight_initial_x18": "950000000000000000",
+                                    "short_weight_initial_x18": "1050000000000000000",
+                                    "long_weight_maintenance_x18": "970000000000000000",
+                                    "short_weight_maintenance_x18": "1030000000000000000",
+                                    "price_x18": "25000000000000000000000"
+                                },
+                                "state": {
+                                    "cumulative_funding_long_x18": "-394223711772447555304",
+                                    "cumulative_funding_short_x18": "-394223711772447555304",
+                                    "available_settle": "20092193239667417956947",
+                                    "open_interest": "113605000000000000000"
+                                }
+                            },
+                            "product_id": 2,
+                            "balance": {
+                                "amount": "100000000000000000",
+                                "v_quote_balance": "-2400000000000000000000",
+                                "last_cumulative_funding_x18": "-394223711772447555304"
+                            }
+                        },
+                        "id": null,
+                        "symbol": "BTC/USDT0:USDT0",
+                        "timestamp": null,
+                        "datetime": null,
+                        "isolated": null,
+                        "hedged": false,
+                        "side": "long",
+                        "contracts": 0.1,
+                        "contractSize": 1,
+                        "entryPrice": 24000,
+                        "markPrice": 25000,
+                        "notional": 2500,
+                        "leverage": null,
+                        "collateral": null,
+                        "initialMargin": null,
+                        "initialMarginPercentage": null,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "unrealizedPnl": null,
+                        "liquidationPrice": null,
+                        "marginMode": null,
+                        "marginRatio": null,
+                        "percentage": null
+                    }
+                ]
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "fetchDeposits",
+                "method": "fetchDeposits",
+                "input": [
+                    "USDC",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "events": [
+                        {
+                            "subaccount": "0x123000000000000000000000000000000000012364656661756c740000000000",
+                            "product_id": 5,
+                            "submission_idx": "563011",
+                            "event_type": "deposit_collateral",
+                            "isolated": false,
+                            "isolated_product_id": null,
+                            "pre_balance": {
+                                "spot": {
+                                    "product_id": 5,
+                                    "balance": {
+                                        "amount": "1000000000000000000"
+                                    }
+                                }
+                            },
+                            "post_balance": {
+                                "spot": {
+                                    "product_id": 5,
+                                    "balance": {
+                                        "amount": "11000000000000000000"
+                                    }
+                                }
+                            }
+                        }
+                    ],
+                    "txs": [
+                        {
+                            "submission_idx": "563011",
+                            "product_id": 5,
+                            "timestamp": "1680000000",
+                            "tx": {
+                                "deposit_collateral": {
+                                    "sender": "0x1230000000000000000000000000000000000123"
+                                }
+                            }
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "submission_idx": "563011",
+                            "product_id": 5,
+                            "timestamp": "1680000000",
+                            "tx": {
+                                "deposit_collateral": {
+                                    "sender": "0x1230000000000000000000000000000000000123"
+                                }
+                            },
+                            "subaccount": "0x123000000000000000000000000000000000012364656661756c740000000000",
+                            "event_type": "deposit_collateral",
+                            "isolated": false,
+                            "isolated_product_id": null,
+                            "pre_balance": {
+                                "spot": {
+                                    "product_id": 5,
+                                    "balance": {
+                                        "amount": "1000000000000000000"
+                                    }
+                                }
+                            },
+                            "post_balance": {
+                                "spot": {
+                                    "product_id": 5,
+                                    "balance": {
+                                        "amount": "11000000000000000000"
+                                    }
+                                }
+                            },
+                            "transaction_type": "deposit"
+                        },
+                        "id": "563011",
+                        "txid": null,
+                        "timestamp": 1680000000000,
+                        "datetime": "2023-03-28T10:40:00.000Z",
+                        "address": null,
+                        "addressFrom": null,
+                        "addressTo": null,
+                        "tag": null,
+                        "tagFrom": null,
+                        "tagTo": null,
+                        "type": "deposit",
+                        "amount": 10,
+                        "currency": "USDC",
+                        "status": "ok",
+                        "updated": null,
+                        "fee": null,
+                        "network": null,
+                        "comment": null,
+                        "internal": null
+                    }
+                ]
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "fetchWithdrawals",
+                "method": "fetchWithdrawals",
+                "input": [
+                    "USDC",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "events": [
+                        {
+                            "subaccount": "0x123000000000000000000000000000000000012364656661756c740000000000",
+                            "product_id": 5,
+                            "submission_idx": "563012",
+                            "event_type": "withdraw_collateral",
+                            "isolated": false,
+                            "isolated_product_id": null,
+                            "pre_balance": {
+                                "spot": {
+                                    "product_id": 5,
+                                    "balance": {
+                                        "amount": "11000000000000000000"
+                                    }
+                                }
+                            },
+                            "post_balance": {
+                                "spot": {
+                                    "product_id": 5,
+                                    "balance": {
+                                        "amount": "7000000000000000000"
+                                    }
+                                }
+                            }
+                        }
+                    ],
+                    "txs": [
+                        {
+                            "submission_idx": "563012",
+                            "product_id": 5,
+                            "timestamp": "1680000001",
+                            "tx": {
+                                "withdraw_collateral": {
+                                    "sender": "0x1230000000000000000000000000000000000123"
+                                }
+                            }
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "submission_idx": "563012",
+                            "product_id": 5,
+                            "timestamp": "1680000001",
+                            "tx": {
+                                "withdraw_collateral": {
+                                    "sender": "0x1230000000000000000000000000000000000123"
+                                }
+                            },
+                            "subaccount": "0x123000000000000000000000000000000000012364656661756c740000000000",
+                            "event_type": "withdraw_collateral",
+                            "isolated": false,
+                            "isolated_product_id": null,
+                            "pre_balance": {
+                                "spot": {
+                                    "product_id": 5,
+                                    "balance": {
+                                        "amount": "11000000000000000000"
+                                    }
+                                }
+                            },
+                            "post_balance": {
+                                "spot": {
+                                    "product_id": 5,
+                                    "balance": {
+                                        "amount": "7000000000000000000"
+                                    }
+                                }
+                            },
+                            "transaction_type": "withdrawal"
+                        },
+                        "id": "563012",
+                        "txid": null,
+                        "timestamp": 1680000001000,
+                        "datetime": "2023-03-28T10:40:01.000Z",
+                        "address": null,
+                        "addressFrom": null,
+                        "addressTo": null,
+                        "tag": null,
+                        "tagFrom": null,
+                        "tagTo": null,
+                        "type": "withdrawal",
+                        "amount": 4,
+                        "currency": "USDC",
+                        "status": "ok",
+                        "updated": null,
+                        "fee": null,
+                        "network": null,
+                        "comment": null,
+                        "internal": null
+                    }
+                ]
+            }
+        ],
         "fetchTicker": [
             {
                 "description": "fetchTicker",
@@ -300,6 +616,51 @@
                     "previousFundingDatetime": null,
                     "interval": "24h"
                 }
+            }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "fetchFundingHistory",
+                "method": "fetchFundingHistory",
+                "input": [
+                    "BTC/USDT0:USDT0",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "interest_payments": [],
+                    "funding_payments": [
+                        {
+                            "product_id": 2,
+                            "idx": "5968022",
+                            "timestamp": "1701698400",
+                            "amount": "-12273223338657163",
+                            "balance_amount": "1000000000000000000",
+                            "rate_x18": "47928279191008320",
+                            "oracle_price_x18": "2243215034242228224820"
+                        }
+                    ],
+                    "next_idx": "1314805"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "product_id": 2,
+                            "idx": "5968022",
+                            "timestamp": "1701698400",
+                            "amount": "-12273223338657163",
+                            "balance_amount": "1000000000000000000",
+                            "rate_x18": "47928279191008320",
+                            "oracle_price_x18": "2243215034242228224820"
+                        },
+                        "symbol": "BTC/USDT0:USDT0",
+                        "code": "USDT0",
+                        "timestamp": 1701698400000,
+                        "datetime": "2023-12-04T14:00:00.000Z",
+                        "id": "5968022",
+                        "amount": -0.012273223338657163
+                    }
+                ]
             }
         ],
         "fetchFundingRates": [

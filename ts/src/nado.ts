@@ -7,7 +7,7 @@ import { ecdsa } from './base/functions/crypto.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSymbol, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidAddress, InvalidNonce, InvalidOrder, NotSupported, OnMaintenance, OperationFailed, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RestrictedLocation } from './base/errors.js';
-import type { Balances, Currencies, Currency, Dict, FundingRate, FundingRates, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, FundingHistory, FundingRate, FundingRates, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -42,6 +42,8 @@ export default class nado extends Exchange {
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
+                'fetchDeposits': true,
+                'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRates': true,
                 'fetchMarkets': true,
@@ -53,12 +55,13 @@ export default class nado extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
-                'fetchPositions': false,
+                'fetchPositions': true,
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchWithdrawals': true,
                 'withdraw': false,
             },
             'urls': {
@@ -1031,6 +1034,195 @@ export default class nado extends Exchange {
 
     /**
      * @method
+     * @name nado#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://docs.nado.xyz/developer-resources/api/archive-indexer/events
+     * @param {string} [code] unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subaccount] the 12-byte subaccount identifier, defaults to 'default'
+     * @param {int} [params.until] timestamp in ms of the latest deposit to fetch
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        return await this.fetchTransactionsByEventType ('deposit_collateral', 'deposit', 'fetchDeposits', code, since, limit, params);
+    }
+
+    /**
+     * @method
+     * @name nado#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://docs.nado.xyz/developer-resources/api/archive-indexer/events
+     * @param {string} [code] unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subaccount] the 12-byte subaccount identifier, defaults to 'default'
+     * @param {int} [params.until] timestamp in ms of the latest withdrawal to fetch
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        return await this.fetchTransactionsByEventType ('withdraw_collateral', 'withdrawal', 'fetchWithdrawals', code, since, limit, params);
+    }
+
+    async fetchTransactionsByEventType (eventType: string, transactionType: string, methodName: string, code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        if (this.walletAddress === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTransactionsByEventType() requires walletAddress');
+        }
+        await this.loadMarkets ();
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        let subaccount = undefined;
+        [ subaccount, params ] = this.handleOptionAndParams (params, methodName, 'subaccount', 'default');
+        let eventsRequest: Dict = {
+            'subaccounts': [
+                this.createSubaccount (this.walletAddress, subaccount),
+            ],
+            'event_types': [
+                eventType,
+            ],
+            'limit': {
+                'raw': (limit === undefined) ? 100 : Math.min (limit, 500),
+            },
+        };
+        if (currency !== undefined) {
+            eventsRequest['product_ids'] = [
+                this.parseToInt (currency['id']),
+            ];
+        }
+        [ eventsRequest, params ] = this.handleUntilOption ('max_time', eventsRequest, params, 0.001);
+        const request: Dict = {
+            'events': eventsRequest,
+        };
+        const response = await this.archivePost (this.deepExtend (request, params));
+        //
+        //     {
+        //         "events": [
+        //             {
+        //                 "subaccount": "0x...",
+        //                 "product_id": 5,
+        //                 "submission_idx": "563011",
+        //                 "event_type": "deposit_collateral",
+        //                 "pre_balance": {
+        //                     "spot": {
+        //                         "balance": {
+        //                             "amount": "1000000000000000000"
+        //                         }
+        //                     }
+        //                 },
+        //                 "post_balance": {
+        //                     "spot": {
+        //                         "balance": {
+        //                             "amount": "2000000000000000000"
+        //                         }
+        //                     }
+        //                 }
+        //             }
+        //         ],
+        //         "txs": [
+        //             {
+        //                 "submission_idx": "563011",
+        //                 "timestamp": "1679728127"
+        //             }
+        //         ]
+        //     }
+        //
+        const events = this.safeList (response, 'events', []);
+        const txs = this.safeList (response, 'txs', []);
+        const transactions = [];
+        for (let i = 0; i < events.length; i++) {
+            const event = events[i];
+            const submissionIdx = this.safeString (event, 'submission_idx');
+            let tx = {};
+            for (let j = 0; j < txs.length; j++) {
+                const rawTx = txs[j];
+                const txSubmissionIdx = this.safeString (rawTx, 'submission_idx');
+                if (txSubmissionIdx === submissionIdx) {
+                    tx = rawTx;
+                    break;
+                }
+            }
+            transactions.push (this.parseTransaction (this.extend (tx, event, { 'transaction_type': transactionType }), currency));
+        }
+        return this.filterByCurrencySinceLimit (transactions, code, since, limit);
+    }
+
+    /**
+     * @method
+     * @name nado#fetchPositions
+     * @description fetch all open positions
+     * @see https://docs.nado.xyz/developer-resources/api/gateway/queries/subaccount-info
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subaccount] the 12-byte subaccount identifier, defaults to 'default'
+     * @returns {Position[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+        if (this.walletAddress === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchPositions() requires walletAddress');
+        }
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        let subaccount = undefined;
+        [ subaccount, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'subaccount', 'default');
+        const request: Dict = {
+            'type': 'subaccount_info',
+            'subaccount': this.createSubaccount (this.walletAddress, subaccount),
+        };
+        const response = await this.gatewayPublicGetQuery (this.extend (request, params));
+        //
+        //     {
+        //         "status": "success",
+        //         "data": {
+        //             "perp_balances": [
+        //                 {
+        //                     "product_id": 2,
+        //                     "balance": {
+        //                         "amount": "100000000000000000",
+        //                         "v_quote_balance": "3033500000000000000000",
+        //                         "last_cumulative_funding_x18": "-394223711772447555304"
+        //                     }
+        //                 }
+        //             ],
+        //             "perp_products": [
+        //                 {
+        //                     "product_id": 2,
+        //                     "oracle_price_x18": "115596528090565357611177",
+        //                     "risk": {
+        //                         "price_x18": "115596528090565357611177"
+        //                     }
+        //                 }
+        //             ]
+        //         },
+        //         "request_type": "query_subaccount_info"
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const positions = this.safeList (data, 'perp_balances', []);
+        const products = this.safeList (data, 'perp_products', []);
+        const result = [];
+        for (let i = 0; i < positions.length; i++) {
+            const position = positions[i];
+            const productId = this.safeString (position, 'product_id');
+            let product = {};
+            for (let j = 0; j < products.length; j++) {
+                const rawProduct = products[j];
+                const rawProductId = this.safeString (rawProduct, 'product_id');
+                if (rawProductId === productId) {
+                    product = rawProduct;
+                    break;
+                }
+            }
+            result.push (this.parsePosition (this.extend ({ 'product': product }, position)));
+        }
+        return this.filterByArrayPositions (result, 'symbol', symbols, false);
+    }
+
+    /**
+     * @method
      * @name nado#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
      * @see https://docs.nado.xyz/developer-resources/api/gateway/edge#control-messages
@@ -1306,6 +1498,68 @@ export default class nado extends Exchange {
         //
         const data = this.safeDict (response, tickerId, {});
         return this.parseFundingRate (data, market);
+    }
+
+    /**
+     * @method
+     * @name nado#fetchFundingHistory
+     * @description fetch the history of funding payments paid and received on this account
+     * @see https://docs.nado.xyz/developer-resources/api/archive-indexer/interest-and-funding-payments
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch funding history for
+     * @param {int} [limit] the maximum number of funding history structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subaccount] the 12-byte subaccount identifier, defaults to 'default'
+     * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
+     */
+    async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<FundingHistory[]> {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires a symbol argument');
+        }
+        if (this.walletAddress === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires walletAddress');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadSymbol (this.id + ' fetchFundingHistory() supports swap contracts only');
+        }
+        let subaccount = undefined;
+        [ subaccount, params ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'subaccount', 'default');
+        const request: Dict = {
+            'interest_and_funding': {
+                'subaccount': this.createSubaccount (this.walletAddress, subaccount),
+                'product_ids': [
+                    this.parseToInt (market['id']),
+                ],
+                'limit': (limit === undefined) ? 100 : Math.min (limit, 100),
+            },
+        };
+        const response = await this.archivePost (this.deepExtend (request, params));
+        //
+        //     {
+        //         "interest_payments": [],
+        //         "funding_payments": [
+        //             {
+        //                 "product_id": 2,
+        //                 "idx": "5968022",
+        //                 "timestamp": "1701698400",
+        //                 "amount": "-12273223338657163",
+        //                 "balance_amount": "1000000000000000000",
+        //                 "rate_x18": "47928279191008320",
+        //                 "oracle_price_x18": "2243215034242228224820"
+        //             }
+        //         ],
+        //         "next_idx": "1314805"
+        //     }
+        //
+        const fundingPayments = this.safeList (response, 'funding_payments', []);
+        const result = [];
+        for (let i = 0; i < fundingPayments.length; i++) {
+            result.push (this.parseFundingHistory (fundingPayments[i], market));
+        }
+        const sorted = this.sortBy (result, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingHistory[];
     }
 
     /**
@@ -1755,6 +2009,32 @@ export default class nado extends Exchange {
         };
     }
 
+    parseFundingHistory (funding: Dict, market: Market = undefined) {
+        //
+        //     {
+        //         "product_id": 2,
+        //         "idx": "5968022",
+        //         "timestamp": "1701698400",
+        //         "amount": "-12273223338657163",
+        //         "balance_amount": "1000000000000000000",
+        //         "rate_x18": "47928279191008320",
+        //         "oracle_price_x18": "2243215034242228224820"
+        //     }
+        //
+        const marketId = this.safeString (funding, 'product_id');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeTimestamp (funding, 'timestamp');
+        return {
+            'info': funding,
+            'symbol': market['symbol'],
+            'code': this.safeString (market, 'settle'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'id': this.safeString (funding, 'idx'),
+            'amount': this.parseX18 (this.safeString (funding, 'amount')),
+        };
+    }
+
     parseOpenInterest (interest, market: Market = undefined) {
         //
         //     {
@@ -1888,6 +2168,143 @@ export default class nado extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+        //
+        //     {
+        //         "submission_idx": "563011",
+        //         "timestamp": "1679728127",
+        //         "subaccount": "0x...",
+        //         "product_id": 5,
+        //         "event_type": "deposit_collateral",
+        //         "transaction_type": "deposit",
+        //         "pre_balance": {
+        //             "spot": {
+        //                 "balance": {
+        //                     "amount": "1000000000000000000"
+        //                 }
+        //             }
+        //         },
+        //         "post_balance": {
+        //             "spot": {
+        //                 "balance": {
+        //                     "amount": "2000000000000000000"
+        //                 }
+        //             }
+        //         }
+        //     }
+        //
+        const currencyId = this.safeString (transaction, 'product_id');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const timestamp = this.safeTimestamp (transaction, 'timestamp');
+        const preBalance = this.safeDict (transaction, 'pre_balance', {});
+        const postBalance = this.safeDict (transaction, 'post_balance', {});
+        const preSpot = this.safeDict (preBalance, 'spot', {});
+        const postSpot = this.safeDict (postBalance, 'spot', {});
+        const preSpotBalance = this.safeDict (preSpot, 'balance', {});
+        const postSpotBalance = this.safeDict (postSpot, 'balance', {});
+        const preAmount = this.safeString (preSpotBalance, 'amount', '0');
+        const postAmount = this.safeString (postSpotBalance, 'amount', '0');
+        const amount = this.parseX18 (Precise.stringAbs (Precise.stringSub (postAmount, preAmount)));
+        return {
+            'info': transaction,
+            'id': this.safeString (transaction, 'submission_idx'),
+            'txid': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'address': undefined,
+            'addressFrom': undefined,
+            'addressTo': undefined,
+            'tag': undefined,
+            'tagFrom': undefined,
+            'tagTo': undefined,
+            'type': this.safeString (transaction, 'transaction_type'),
+            'amount': amount,
+            'currency': code,
+            'status': 'ok',
+            'updated': undefined,
+            'fee': undefined,
+            'network': undefined,
+            'comment': undefined,
+            'internal': undefined,
+        };
+    }
+
+    parsePosition (position: Dict, market: Market = undefined): Position {
+        //
+        //     {
+        //         "product_id": 2,
+        //         "balance": {
+        //             "amount": "100000000000000000",
+        //             "v_quote_balance": "3033500000000000000000",
+        //             "last_cumulative_funding_x18": "-394223711772447555304"
+        //         },
+        //         "product": {
+        //             "product_id": 2,
+        //             "oracle_price_x18": "115596528090565357611177",
+        //             "risk": {
+        //                 "price_x18": "115596528090565357611177"
+        //             }
+        //         }
+        //     }
+        //
+        const marketId = this.safeString (position, 'product_id');
+        market = this.safeMarket (marketId, market);
+        const balance = this.safeDict (position, 'balance', {});
+        const amountString = this.safeString (balance, 'amount');
+        const product = this.safeDict (position, 'product', {});
+        const risk = this.safeDict (product, 'risk', {});
+        const markPriceX18 = this.safeString2 (risk, 'price_x18', 'oracle_price_x18');
+        const vQuoteBalance = this.safeString (balance, 'v_quote_balance');
+        let side = undefined;
+        let contracts = undefined;
+        let entryPrice = undefined;
+        let markPrice = undefined;
+        let notional = undefined;
+        if (amountString !== undefined) {
+            if (Precise.stringGt (amountString, '0')) {
+                side = 'long';
+            } else if (Precise.stringLt (amountString, '0')) {
+                side = 'short';
+            }
+            const absoluteAmount = Precise.stringAbs (amountString);
+            contracts = this.parseX18 (absoluteAmount);
+            if ((vQuoteBalance !== undefined) && !Precise.stringEquals (absoluteAmount, '0')) {
+                entryPrice = this.parseNumber (Precise.stringDiv (Precise.stringAbs (vQuoteBalance), absoluteAmount));
+            }
+            if (markPriceX18 !== undefined) {
+                markPrice = this.parseX18 (markPriceX18);
+                const notionalX36 = Precise.stringMul (absoluteAmount, markPriceX18);
+                notional = this.parseNumber (Precise.stringDiv (notionalX36, '1000000000000000000000000000000000000'));
+            }
+        }
+        return this.safePosition ({
+            'info': position,
+            'id': undefined,
+            'symbol': market['symbol'],
+            'timestamp': undefined,
+            'datetime': undefined,
+            'isolated': undefined,
+            'hedged': false,
+            'side': side,
+            'contracts': contracts,
+            'contractSize': this.safeNumber (market, 'contractSize'),
+            'entryPrice': entryPrice,
+            'markPrice': markPrice,
+            'notional': notional,
+            'leverage': undefined,
+            'collateral': undefined,
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'unrealizedPnl': undefined,
+            'liquidationPrice': undefined,
+            'marginMode': undefined,
+            'marginRatio': undefined,
+            'percentage': undefined,
+        });
     }
 
     isArchiveOrderClosed (order: Dict): boolean {

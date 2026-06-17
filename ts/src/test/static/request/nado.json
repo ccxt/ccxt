@@ -29,6 +29,44 @@
                 "input": []
             }
         ],
+        "fetchPositions": [
+            {
+                "description": "fetchPositions",
+                "method": "fetchPositions",
+                "url": "https://gateway.test.nado.xyz/v1/query?type=subaccount_info&subaccount=0x123000000000000000000000000000000000012364656661756c740000000000",
+                "input": [
+                    [
+                        "BTC/USDT0:USDT0"
+                    ]
+                ]
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "fetchDeposits",
+                "method": "fetchDeposits",
+                "url": "https://archive.test.nado.xyz/v1",
+                "input": [
+                    "USDC",
+                    null,
+                    2
+                ],
+                "output": "{\"events\":{\"subaccounts\":[\"0x123000000000000000000000000000000000012364656661756c740000000000\"],\"event_types\":[\"deposit_collateral\"],\"limit\":{\"raw\":2},\"product_ids\":[5]}}"
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "fetchWithdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://archive.test.nado.xyz/v1",
+                "input": [
+                    "USDC",
+                    null,
+                    2
+                ],
+                "output": "{\"events\":{\"subaccounts\":[\"0x123000000000000000000000000000000000012364656661756c740000000000\"],\"event_types\":[\"withdraw_collateral\"],\"limit\":{\"raw\":2},\"product_ids\":[5]}}"
+            }
+        ],
         "fetchTicker": [
             {
                 "description": "fetchTicker",
@@ -55,6 +93,19 @@
                 "input": [
                     "BTC/USDT0:USDT0"
                 ]
+            }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "fetchFundingHistory",
+                "method": "fetchFundingHistory",
+                "url": "https://archive.test.nado.xyz/v1",
+                "input": [
+                    "BTC/USDT0:USDT0",
+                    null,
+                    2
+                ],
+                "output": "{\"interest_and_funding\":{\"subaccount\":\"0x123000000000000000000000000000000000012364656661756c740000000000\",\"product_ids\":[2],\"limit\":2}}"
             }
         ],
         "fetchFundingRates": [
