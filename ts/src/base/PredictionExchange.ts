@@ -2,7 +2,7 @@
 
 import { Exchange } from './Exchange.js';
 import { ExchangeError, BadSymbol, NotSupported, ArgumentsRequired } from './errors.js';
-import type { Str, Strings, Num, Int, Bool, Dictionary, Ticker, OrderBook, OHLCV, Trade, Order, OrderType, OrderSide, Dict } from './types.js';
+import type { Str, Strings, Num, Int, Bool, Dictionary, Ticker, OrderBook, OHLCV, Trade, Order, OrderType, OrderSide, Dict, Position } from './types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -119,12 +119,12 @@ export default class PredictionExchange extends Exchange {
         if (outcomeObj !== undefined) {
             return outcomeObj;
         }
-        return { 'id': outcomeIdOrSymbol, 'symbol': outcomeIdOrSymbol, 'marketSymbol': undefined, 'label': undefined, 'info': {}};
+        return { 'outcome': outcomeIdOrSymbol, 'outcomeId': outcomeIdOrSymbol, 'market': undefined, 'label': undefined, 'info': {}};
     }
 
     safeOutcomeSymbol (outcomeIdOrSymbol: Str, outcomeObj: any = undefined): Str {
         outcomeObj = this.safeOutcome (outcomeIdOrSymbol, outcomeObj);
-        return outcomeObj['symbol'];
+        return outcomeObj['outcome'];
     }
 
     shortenSlug (slug: string): string {
@@ -222,11 +222,11 @@ export default class PredictionExchange extends Exchange {
             const outcomesList = this.safeList (market, 'outcomes', []);
             for (let j = 0; j < outcomesList.length; j++) {
                 const oc = outcomesList[j];
-                const ocSymbol = this.safeString (oc, 'symbol');
+                const ocSymbol = this.safeString (oc, 'outcome');
                 if (ocSymbol !== undefined) {
                     this.outcomes[ocSymbol] = oc;
                 }
-                const ocId = this.safeString (oc, 'id');
+                const ocId = this.safeString (oc, 'outcomeId');
                 if (ocId !== undefined) {
                     this.outcomes_by_id[ocId] = oc;
                 }
@@ -271,12 +271,63 @@ export default class PredictionExchange extends Exchange {
     }
 
     safePredictionOrder (order: Dict, market = undefined): Order {
-        // call base method
         const parsed = super.safeOrder (order, market);
-        // rename symbol to outcome
-        const outcomeSymbol = this.safeString (order, 'symbol');
+        return this.toPredictionStructure (parsed, order);
+    }
+
+    safePredictionTrade (trade: Dict, market = undefined): Trade {
+        const parsed = super.safeTrade (trade, market);
+        return this.toPredictionStructure (parsed, trade);
+    }
+
+    safePredictionTicker (ticker: Dict, market = undefined): Ticker {
+        const parsed = super.safeTicker (ticker, market);
+        return this.toPredictionStructure (parsed, ticker);
+    }
+
+    safePredictionPosition (position: Dict): Position {
+        const parsed = super.safePosition (position);
+        return this.toPredictionStructure (parsed, position);
+    }
+
+    toPredictionStructure (parsed: Dict, raw: Dict): any {
+        // rename the unified `symbol` to the prediction `outcome` handle and attach the
+        // prediction identity fields (raw exchange id, label, parent market/event) that the
+        // base safe* helpers drop. the exchange parser passes them on the raw input dict.
+        const outcomeSymbol = this.safeString2 (raw, 'outcome', 'symbol');
         parsed['outcome'] = outcomeSymbol;
+        parsed['outcomeId'] = this.safeString (raw, 'outcomeId');
+        parsed['label'] = this.safeString (raw, 'label');
+        parsed['market'] = this.safeString (raw, 'market');
+        parsed['event'] = this.safeString (raw, 'event');
         delete parsed['symbol'];
         return parsed;
+    }
+
+    filterByOutcomeSinceLimit (array, outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
+        return this.filterByValueSinceLimit (array, 'outcome', outcome, since, limit, 'timestamp', tail);
+    }
+
+    filterByOutcomesSinceLimit (array, outcomes: string[] = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
+        const result = this.filterByArray (array, 'outcome', outcomes, false);
+        return this.filterBySinceLimit (result, since, limit, 'timestamp', tail);
+    }
+
+    amountToPredictionPrecision (outcome: string, amount): string {
+        const outcomeObj = this.outcome (outcome);
+        const marketSymbol = this.safeString (outcomeObj, 'market');
+        return this.amountToPrecision (marketSymbol, amount);
+    }
+
+    priceToPredictionPrecision (outcome: string, price): string {
+        const outcomeObj = this.outcome (outcome);
+        const marketSymbol = this.safeString (outcomeObj, 'market');
+        return this.priceToPrecision (marketSymbol, price);
+    }
+
+    costToPredictionPrecision (outcome: string, cost): string {
+        const outcomeObj = this.outcome (outcome);
+        const marketSymbol = this.safeString (outcomeObj, 'market');
+        return this.costToPrecision (marketSymbol, cost);
     }
 }
