@@ -785,14 +785,15 @@ export default class binance extends Exchange {
                         'order': 1,
                         'openOrder': 1,
                         'openOrders': { 'cost': 1, 'noSymbol': 5 },
-                        'allOrders': { 'cost': 20, 'noSymbol': 40 },
+                        'openAlgoOrders': { 'cost': 1, 'noSymbol': 40 }, // todo check weight
+                        'allOrders': 5,
                         'balance': 1,
                         'account': 5,
                         'positionMargin/history': 1,
                         'positionRisk': 1,
-                        'userTrades': { 'cost': 20, 'noSymbol': 40 },
+                        'userTrades': 5,
                         'income': 20,
-                        'leverageBracket': 1,
+                        'leverageBracket': { 'cost': 2, 'noSymbol': 2 },
                         'forceOrders': { 'cost': 20, 'noSymbol': 50 },
                         'adlQuantile': 5,
                         'commissionRate': 20,
@@ -808,6 +809,7 @@ export default class binance extends Exchange {
                     'post': {
                         'positionSide/dual': 1,
                         'order': 4,
+                        'algoOrder': 1, // todo check weight
                         'batchOrders': 5,
                         'countdownCancelAll': 10,
                         'leverage': 1,
@@ -822,6 +824,7 @@ export default class binance extends Exchange {
                     },
                     'delete': {
                         'order': 1,
+                        'algoOrder': 1, // todo check weight
                         'allOpenOrders': 1,
                         'batchOrders': 5,
                         'listenKey': 1,
@@ -1336,7 +1339,7 @@ export default class binance extends Exchange {
                 'defaultType': 'spot', // 'spot', 'future', 'margin', 'delivery', 'option'
                 'defaultSubType': undefined, // 'linear', 'inverse'
                 'hasAlreadyAuthenticatedSuccessfully': false,
-                'warnOnFetchOpenOrdersWithoutSymbol': true,
+                'warnOnFetchOpenOrdersWithoutSymbol': false,
                 'currencyToPrecisionRoundingMode': TRUNCATE,
                 // not an error
                 // https://github.com/ccxt/ccxt/issues/11268
@@ -5465,6 +5468,8 @@ export default class binance extends Exchange {
         const clientOrderId = this.safeStringN (params, [ 'newClientOrderId', 'clientOrderId', 'origClientOrderId' ]);
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
+        } else if (market['inverse']) {
+            throw new ArgumentsRequired (this.id + ' editContractOrder() requires both amount and price arguments for inverse contract orders');
         }
         if (clientOrderId !== undefined) {
             request['origClientOrderId'] = clientOrderId;
@@ -6480,7 +6485,12 @@ export default class binance extends Exchange {
                     response = await this.papiPostCmOrder (request);
                 }
             } else {
-                response = await this.dapiPrivatePostOrder (request);
+                if (isConditional) {
+                    request['algoType'] = 'CONDITIONAL'; // todo check
+                    response = await this.dapiPrivatePostAlgoOrder (request);
+                } else {
+                    response = await this.dapiPrivatePostOrder (request);
+                }
             }
         } else if (marketType === 'margin' || marginMode !== undefined || isPortfolioMargin) {
             if (isPortfolioMargin) {
@@ -7055,7 +7065,11 @@ export default class binance extends Exchange {
                     response = await this.papiGetCmAllOrders (this.extend (request, params));
                 }
             } else {
-                response = await this.dapiPrivateGetAllOrders (this.extend (request, params));
+                if (isConditional) {
+                    response = await this.dapiPrivateGetOpenAlgoOrders (this.extend (request, params));
+                } else {
+                    response = await this.dapiPrivateGetAllOrders (this.extend (request, params));
+                }
             }
         } else {
             if (isPortfolioMargin) {
@@ -7746,7 +7760,11 @@ export default class binance extends Exchange {
                     response = await this.papiDeleteCmOrder (this.extend (request, params));
                 }
             } else {
-                response = await this.dapiPrivateDeleteOrder (this.extend (request, params));
+                if (isConditional) {
+                    response = await this.dapiPrivateDeleteAlgoOrder (this.extend (request, params));
+                } else {
+                    response = await this.dapiPrivateDeleteOrder (this.extend (request, params));
+                }
             }
         } else if ((type === 'margin') || (marginMode !== undefined) || isPortfolioMargin) {
             if (isPortfolioMargin) {
