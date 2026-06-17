@@ -371,9 +371,9 @@ class limitless(PredictionExchange, ImplicitAPI):
             tokenData = tokens[outcomeLabel]
             tokenId = tokenData
             outcomes.append({
-                'id': tokenId,
-                'symbol': self.slugToOutcomeSymbol(groupId, slug, outcomeLabel),
-                'marketSymbol': marketSymbol,
+                'outcome': self.slugToOutcomeSymbol(groupId, slug, outcomeLabel),
+                'outcomeId': tokenId,
+                'market': marketSymbol,
                 'label': outcomeLabel,
                 'active': active,
                 'info': {
@@ -384,9 +384,14 @@ class limitless(PredictionExchange, ImplicitAPI):
                     'volume24h': volume24h,
                 },
             })
+        outcomesLength = len(outcomes)
         return {
             'id': slug,
             'symbol': marketSymbol,
+            'market': marketSymbol,
+            'marketType': 'categorical' if (outcomesLength > 2) else 'binary',
+            'executionModel': 'clob',
+            'collateral': 'USDC',
             'base': slug,
             'quote': 'USDC',
             'settle': None,
@@ -930,8 +935,12 @@ class limitless(PredictionExchange, ImplicitAPI):
         if askSizeStr is not None:
             askSizeStr = Precise.string_div(askSizeStr, '1000000')
         now = self.milliseconds()
-        return self.safe_ticker({
-            'symbol': self.safe_symbol(None, market),
+        outcomeSymbol = self.safeOutcomeSymbol(None, market)
+        return self.safePredictionTicker({
+            'symbol': outcomeSymbol,
+            'outcomeId': self.safe_string(market, 'outcomeId'),
+            'label': self.safe_string(market, 'label'),
+            'market': self.safe_string(market, 'market'),
             'timestamp': now,
             'datetime': self.iso8601(now),
             'high': None,
@@ -951,7 +960,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             'baseVolume': None,
             'quoteVolume': self.parse_number(volumeStr),
             'info': ticker,
-        }, market)
+        })
 
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
@@ -1029,7 +1038,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         self.checkEventsAndMarkets(symbol)
         outcomeObj = self.outcome(symbol)
         slug = self.safe_string(outcomeObj['info'], 'slug')
-        tokenId = self.safe_string(outcomeObj, 'id')
+        tokenId = self.safe_string(outcomeObj, 'outcomeId')
         request: dict = {
             'slug': slug,
         }
@@ -1066,7 +1075,9 @@ class limitless(PredictionExchange, ImplicitAPI):
             if (tokenId is not None) and (rowTokenId is not None) and (rowTokenId != tokenId):
                 continue
             filtered.append(row)
-        return self.parse_trades(filtered, outcomeObj, since, limit)
+        # parse without a market(parsed trades carry `outcome`, not `symbol`) then filter by outcome
+        parsedTrades = self.parse_trades(filtered, None)
+        return self.filterByOutcomeSinceLimit(parsedTrades, symbol, since, limit)
 
     async def fetch_order_book(self, symbol: Str, limit: Int = None, params={}) -> OrderBook:
         """
@@ -1138,7 +1149,7 @@ class limitless(PredictionExchange, ImplicitAPI):
                 sizeStr = Precise.string_div(sizeStr, scaleStr)
             asks.append([self.parse_number(priceStr), self.parse_number(sizeStr)])
         return {
-            'symbol': self.safe_string(outcomeObj, 'symbol', outcome),
+            'symbol': self.safeOutcomeSymbol(outcome, outcomeObj),
             'bids': self.sort_by(bids, 0, True),
             'asks': self.sort_by(asks, 0),
             'timestamp': timestamp,
@@ -1633,7 +1644,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         id = self.safe_string(rawOrder, 'id')
         tokenId = self.safe_string_2(rawOrder, 'token', 'tokenId')
         mkt = self.safeOutcome(tokenId, market)
-        symbol = self.safe_string(mkt, 'symbol')
+        outcomeSymbol = self.safe_string(mkt, 'outcome')
         rawSide = self.safe_string(rawOrder, 'side')
         side = self.parse_order_side(rawSide)
         price = self.safe_string(rawOrder, 'price')
@@ -1661,13 +1672,13 @@ class limitless(PredictionExchange, ImplicitAPI):
             feeCurrency = 'USDC'
             feeCost = self.safe_string(totals, 'usdFee')
             if side == 'buy':
-                feeCurrency = symbol
+                feeCurrency = outcomeSymbol
                 feeCost = self.safe_string(totals, 'contractsFee')
             fee = {
                 'cost': self.apply_scale(feeCost),
                 'currency': feeCurrency,
             }
-        return self.safe_order({
+        return self.safePredictionOrder({
             'id': id,
             'clientOrderId': None,
             'info': order,
@@ -1675,8 +1686,11 @@ class limitless(PredictionExchange, ImplicitAPI):
             'datetime': datetime,
             'lastTradeTimestamp': None,
             'status': self.parse_order_status(rawStatus),
-            'symbol': mkt['marketSymbol'],
-            'outcome': symbol,
+            'symbol': outcomeSymbol,
+            'outcome': outcomeSymbol,
+            'outcomeId': self.safe_string(mkt, 'outcomeId'),
+            'label': self.safe_string(mkt, 'label'),
+            'market': self.safe_string(mkt, 'market'),
             'type': type,
             'timeInForce': self.parse_order_time_in_force(timeInForce),
             'postOnly': None,
@@ -1691,7 +1705,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             'remaining': self.apply_scale(remaining),
             'fee': fee,
             'trades': [],
-        }, mkt)
+        })
 
     def parse_order_status(self, status: Str) -> Str:
         """
@@ -1832,7 +1846,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             'maker': maker,
             'signer': signer,
             'taker': taker,
-            'tokenId': outcomeObj['id'],
+            'tokenId': outcomeObj['outcomeId'],
             'nonce': 0,
             'feeRateBps': self.safe_integer(rank, 'feeRateBps'),
             'side': sideValue,
@@ -1856,7 +1870,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         params = self.omit(params, 'timeInForce')
         if timeInForce is None:
             timeInForce = 'FOK' if isMarket else 'GTC'
-        marketSymbol = self.safe_string(outcomeObj, 'marketSymbol')
+        marketSymbol = self.safe_string(outcomeObj, 'market')
         if isMarket and (side == 'buy'):
             createMarketBuyOrderRequiresPrice = True
             createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
@@ -1868,19 +1882,19 @@ class limitless(PredictionExchange, ImplicitAPI):
                 else:
                     quoteAmount = self.parse_to_numeric(Precise.string_mul(amountString, priceString))
                     costRequest = cost if (cost is not None) else quoteAmount
-                    makerAmount = self.cost_to_precision(marketSymbol, costRequest)
+                    makerAmount = self.costToPredictionPrecision(outcome, costRequest)
             else:
-                makerAmount = self.cost_to_precision(marketSymbol, amount)
+                makerAmount = self.costToPredictionPrecision(outcome, amount)
         elif isMarket:
-            makerAmount = self.amount_to_precision(marketSymbol, amount)
+            makerAmount = self.amountToPredictionPrecision(outcome, amount)
         else:
             calculatedCost = Precise.string_mul(amountString, priceString)
             if side == 'buy':
-                makerAmount = self.cost_to_precision(marketSymbol, calculatedCost)
-                takerAmount = self.amount_to_precision(marketSymbol, amount)
+                makerAmount = self.costToPredictionPrecision(outcome, calculatedCost)
+                takerAmount = self.amountToPredictionPrecision(outcome, amount)
             else:
-                makerAmount = self.amount_to_precision(marketSymbol, amount)
-                takerAmount = self.cost_to_precision(marketSymbol, calculatedCost)
+                makerAmount = self.amountToPredictionPrecision(outcome, amount)
+                takerAmount = self.costToPredictionPrecision(outcome, calculatedCost)
         # amounts must be integers(uint256): parseNumber yields a float that the Python EIP-712 encoder rejects
         signRequest['makerAmount'] = self.parse_to_int(self.apply_scale(makerAmount, True))
         signRequest['takerAmount'] = 1 if isMarket else self.parse_to_int(self.apply_scale(takerAmount, True))
@@ -2031,7 +2045,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         #         "message": "Orders canceled successfully"
         #     }
         #
-        return [self.safe_order({'info': response})]
+        return [self.safePredictionOrder({'info': response})]
 
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
@@ -2057,9 +2071,6 @@ class limitless(PredictionExchange, ImplicitAPI):
         request: dict = {}
         if limit is not None:
             request['limit'] = min(limit, maxLimit)
-        outcomeObj = None
-        if outcome is not None:
-            outcomeObj = self.outcome(outcome)
         response = await self.limitlessPrivateGetPortfolioHistory(self.extend(request, params))
         #
         #     {
@@ -2135,7 +2146,8 @@ class limitless(PredictionExchange, ImplicitAPI):
                 sellIndex = strategy.find('sell')
                 if (buyIndex >= 0) or (sellIndex >= 0):
                     trades.append(item)
-        return self.parse_trades(trades, outcomeObj, since, limit)
+        parsedTrades = self.parse_trades(trades, None)
+        return self.filterByOutcomeSinceLimit(parsedTrades, outcome, since, limit)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         """
@@ -2160,12 +2172,17 @@ class limitless(PredictionExchange, ImplicitAPI):
             costStr = None
             if priceStr is not None:
                 costStr = Precise.string_mul(priceStr, amountStr)
-            return self.safe_trade({
+            feedOutcome = self.safeOutcomeSymbol(None, market)
+            return self.safePredictionTrade({
                 'id': self.safe_string(trade, 'txHash'),
                 'info': trade,
                 'timestamp': ts,
                 'datetime': self.iso8601(ts),
-                'symbol': self.safe_symbol(None, market),
+                'symbol': feedOutcome,
+                'outcome': feedOutcome,
+                'outcomeId': self.safe_string(market, 'outcomeId'),
+                'label': self.safe_string(market, 'label'),
+                'market': self.safe_string(market, 'market'),
                 'order': None,
                 'type': None,
                 'side': feedSide,
@@ -2174,7 +2191,7 @@ class limitless(PredictionExchange, ImplicitAPI):
                 'amount': self.parse_number(amountStr),
                 'cost': self.parse_number(costStr),
                 'fee': None,
-            }, market)
+            })
         #
         #     {
         #         "blockTimestamp": 1778144137,
@@ -2227,13 +2244,17 @@ class limitless(PredictionExchange, ImplicitAPI):
         outcomeIndex = self.safe_integer(trade, 'outcomeIndex')
         label = 'yes' if (outcomeIndex == 0) else 'no'
         outcome = self.get_outcome_by_slug_and_label(slug, label, market)
-        return self.safe_trade({
+        tradeOutcome = self.safe_string(outcome, 'outcome')
+        return self.safePredictionTrade({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'outcome': self.safe_string(outcome, 'symbol'),
+            'symbol': tradeOutcome,
+            'outcome': tradeOutcome,
             'outcomeId': self.safe_string(trade, 'asset'),
+            'label': self.safe_string(outcome, 'label'),
+            'market': self.safe_string(outcome, 'market'),
             'order': None,
             'type': type,
             'side': side,
@@ -2242,7 +2263,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             'amount': amount,
             'cost': cost,
             'fee': None,
-        }, market)
+        })
 
     def get_outcome_by_slug_and_label(self, slug: Str, label: Str, market: Market = None) -> Any:
         mkt = self.safe_market(slug, market)
@@ -2385,7 +2406,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             key = 'latestNoPrice'
         parsed['markPrice'] = self.safe_number(latestTrade, key)
         parsed['info'] = entry
-        return self.safe_position(parsed)
+        return self.safePredictionPosition(parsed)
 
     def parse_position(self, position: dict, market: Market = None) -> Position:
         """
@@ -2404,7 +2425,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         #         "unrealizedPnl": "0"
         #     }
         #
-        symbol = self.safe_string(market, 'symbol')
+        outcomeSymbol = self.safe_string(market, 'outcome')
         notional = self.apply_scale(self.safe_string(position, 'marketValue'))
         unrealizedPnl = self.apply_scale(self.safe_string(position, 'unrealizedPnl'))
         realizedPnl = self.apply_scale(self.safe_string(position, 'realisedPnl'))
@@ -2412,8 +2433,11 @@ class limitless(PredictionExchange, ImplicitAPI):
         entryPrice = self.apply_scale(self.safe_string(position, 'fillPrice'))
         return {
             'id': None,
-            'symbol': symbol,
-            'outcome': symbol,
+            'symbol': outcomeSymbol,
+            'outcome': outcomeSymbol,
+            'outcomeId': self.safe_string(market, 'outcomeId'),
+            'label': self.safe_string(market, 'label'),
+            'market': self.safe_string(market, 'market'),
             'timestamp': None,
             'datetime': None,
             'contracts': None,
