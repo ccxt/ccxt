@@ -14,7 +14,7 @@ import { ExamplesGrid } from '@/components/examples-grid';
 import { InstallCommands } from '@/components/install-commands';
 import type { Metadata } from 'next';
 import { createRelativeLink } from 'fumadocs-ui/mdx';
-import { gitConfig } from '@/lib/shared';
+import { appName, gitConfig } from '@/lib/shared';
 import { i18n } from '@/lib/i18n';
 import { Sparkles, GraduationCap } from 'lucide-react';
 
@@ -164,6 +164,8 @@ export async function generateMetadata(props: PageProps<'/[lang]/docs/[[...slug]
     title: page.data.title,
     description: page.data.description,
     openGraph: {
+      type: 'website',
+      siteName: appName,
       images: getPageImage(page).url,
     },
   };
