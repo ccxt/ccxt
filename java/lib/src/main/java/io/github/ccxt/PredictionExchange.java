@@ -56,10 +56,12 @@ public Object isPrediction()
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
+            // outcomes are the real dependency for resolving a symbol; they are populated by
+            // fetchEvents and also rebuilt from cached markets (loadMarkets), so accept either
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
-            if (Helpers.isTrue(!Helpers.isTrue(this.events) || Helpers.isTrue(this.isEmpty(this.events))))
+            if (Helpers.isTrue(!Helpers.isTrue(this.outcomes) || Helpers.isTrue(this.isEmpty(this.outcomes))))
             {
-                throw new ArgumentsRequired((String)"Events are required to be loaded, please fetch them first using fetchEvents") ;
+                throw new ArgumentsRequired((String)"Outcomes are required to be loaded, please fetch them first using fetchEvents (or loadMarkets)") ;
             }
             if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
             {
@@ -73,14 +75,36 @@ public Object isPrediction()
 
     }
 
+    public Object parseSearchQueries(Object... optionalArgs)
+    {
+        // accepts either `query` (a single search string) or `queries` (a list of strings)
+        Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+        Object singleQuery = this.safeString(parameters, "query");
+        if (Helpers.isTrue(!Helpers.isEqual(singleQuery, null)))
+        {
+            return new java.util.ArrayList<Object>(java.util.Arrays.asList(singleQuery));
+        }
+        return this.safeList(parameters, "queries", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+    }
+
     public java.util.concurrent.CompletableFuture<Object> fetchEvents(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-            Object queries = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported((String)Helpers.add(this.id, " fetchEvents() is not supported yet")) ;
+        });
+
+    }
+
+    public java.util.concurrent.CompletableFuture<Object> fetchEvent(Object id, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            throw new NotSupported((String)Helpers.add(this.id, " fetchEvent() is not supported yet")) ;
         });
 
     }
@@ -117,7 +141,7 @@ public Object isPrediction()
             {
                 return this.events;
             }
-            Object events = (this.fetchEvents(null, parameters)).join();
+            Object events = (this.fetchEvents(parameters)).join();
             return this.setEvents(events);
         });
 
@@ -172,9 +196,9 @@ public Object isPrediction()
         }
         final Object finalOutcomeIdOrSymbol = outcomeIdOrSymbol;
         return new java.util.HashMap<String, Object>() {{
-            put( "id", finalOutcomeIdOrSymbol );
-            put( "symbol", finalOutcomeIdOrSymbol );
-            put( "marketSymbol", null );
+            put( "outcome", finalOutcomeIdOrSymbol );
+            put( "outcomeId", finalOutcomeIdOrSymbol );
+            put( "market", null );
             put( "label", null );
             put( "info", new java.util.HashMap<String, Object>() {{}} );
         }};
@@ -184,7 +208,7 @@ public Object isPrediction()
     {
         Object outcomeObj = Helpers.getArg(optionalArgs, 0, null);
         outcomeObj = this.safeOutcome(outcomeIdOrSymbol, outcomeObj);
-        return Helpers.GetValue(outcomeObj, "symbol");
+        return Helpers.GetValue(outcomeObj, "outcome");
     }
 
     public Object shortenSlug(Object slug)
@@ -293,12 +317,12 @@ public Object isPrediction()
             for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(outcomesList)); j++)
             {
                 Object oc = Helpers.GetValue(outcomesList, j);
-                Object ocSymbol = this.safeString(oc, "symbol");
+                Object ocSymbol = this.safeString(oc, "outcome");
                 if (Helpers.isTrue(!Helpers.isEqual(ocSymbol, null)))
                 {
                     Helpers.addElementToObject(this.outcomes, ocSymbol, oc);
                 }
-                Object ocId = this.safeString(oc, "id");
+                Object ocId = this.safeString(oc, "outcomeId");
                 if (Helpers.isTrue(!Helpers.isEqual(ocId, null)))
                 {
                     Helpers.addElementToObject(this.outcomes_by_id, ocId, oc);
@@ -415,5 +439,87 @@ public Object isPrediction()
             return (super.watchTrades(outcome, since, limit, parameters)).join();
         });
 
+    }
+
+    public Object safePredictionOrder(Object order, Object... optionalArgs)
+    {
+        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object parsed = super.safeOrder(order, market);
+        return this.toPredictionStructure(parsed, order);
+    }
+
+    public Object safePredictionTrade(Object trade, Object... optionalArgs)
+    {
+        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object parsed = super.safeTrade(trade, market);
+        return this.toPredictionStructure(parsed, trade);
+    }
+
+    public Object safePredictionTicker(Object ticker, Object... optionalArgs)
+    {
+        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object parsed = super.safeTicker(ticker, market);
+        return this.toPredictionStructure(parsed, ticker);
+    }
+
+    public Object safePredictionPosition(Object position)
+    {
+        Object parsed = super.safePosition(position);
+        return this.toPredictionStructure(parsed, position);
+    }
+
+    public Object toPredictionStructure(Object parsed, Object raw)
+    {
+        // rename the unified `symbol` to the prediction `outcome` handle and attach the
+        // prediction identity fields (raw exchange id, label, parent market/event) that the
+        // base safe* helpers drop. the exchange parser passes them on the raw input dict.
+        Object outcomeSymbol = this.safeString2(raw, "outcome", "symbol");
+        Helpers.addElementToObject(parsed, "outcome", outcomeSymbol);
+        Helpers.addElementToObject(parsed, "outcomeId", this.safeString(raw, "outcomeId"));
+        Helpers.addElementToObject(parsed, "label", this.safeString(raw, "label"));
+        Helpers.addElementToObject(parsed, "market", this.safeString(raw, "market"));
+        Helpers.addElementToObject(parsed, "event", this.safeString(raw, "event"));
+        ((java.util.Map<String,Object>)parsed).remove((String)"symbol");
+        return parsed;
+    }
+
+    public Object filterByOutcomeSinceLimit(Object array, Object... optionalArgs)
+    {
+        Object outcome = Helpers.getArg(optionalArgs, 0, null);
+        Object since = Helpers.getArg(optionalArgs, 1, null);
+        Object limit = Helpers.getArg(optionalArgs, 2, null);
+        Object tail = Helpers.getArg(optionalArgs, 3, false);
+        return this.filterByValueSinceLimit(array, "outcome", outcome, since, limit, "timestamp", tail);
+    }
+
+    public Object filterByOutcomesSinceLimit(Object array, Object... optionalArgs)
+    {
+        Object outcomes = Helpers.getArg(optionalArgs, 0, null);
+        Object since = Helpers.getArg(optionalArgs, 1, null);
+        Object limit = Helpers.getArg(optionalArgs, 2, null);
+        Object tail = Helpers.getArg(optionalArgs, 3, false);
+        Object result = this.filterByArray(array, "outcome", outcomes, false);
+        return this.filterBySinceLimit(result, since, limit, "timestamp", tail);
+    }
+
+    public Object amountToPredictionPrecision(Object outcome, Object amount)
+    {
+        Object outcomeObj = this.outcome(outcome);
+        Object marketSymbol = this.safeString(outcomeObj, "market");
+        return this.amountToPrecision(marketSymbol, amount);
+    }
+
+    public Object priceToPredictionPrecision(Object outcome, Object price)
+    {
+        Object outcomeObj = this.outcome(outcome);
+        Object marketSymbol = this.safeString(outcomeObj, "market");
+        return this.priceToPrecision(marketSymbol, price);
+    }
+
+    public Object costToPredictionPrecision(Object outcome, Object cost)
+    {
+        Object outcomeObj = this.outcome(outcome);
+        Object marketSymbol = this.safeString(outcomeObj, "market");
+        return this.costToPrecision(marketSymbol, cost);
     }
 }

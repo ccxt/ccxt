@@ -32,9 +32,11 @@ public partial class PredictionExchange : Exchange
 
     public async virtual Task checkEventsAndMarkets(object outcome = null)
     {
-        if (isTrue(!isTrue(this.events) || isTrue(this.isEmpty(this.events))))
+        // outcomes are the real dependency for resolving a symbol; they are populated by
+        // fetchEvents and also rebuilt from cached markets (loadMarkets), so accept either
+        if (isTrue(!isTrue(this.outcomes) || isTrue(this.isEmpty(this.outcomes))))
         {
-            throw new ArgumentsRequired ((string)"Events are required to be loaded, please fetch them first using fetchEvents") ;
+            throw new ArgumentsRequired ((string)"Outcomes are required to be loaded, please fetch them first using fetchEvents (or loadMarkets)") ;
         }
         if (isTrue(!isEqual(outcome, null)))
         {
@@ -45,10 +47,28 @@ public partial class PredictionExchange : Exchange
         }
     }
 
-    public async virtual Task<object> fetchEvents(object queries = null, object parameters = null)
+    public virtual object parseSearchQueries(object parameters = null)
+    {
+        // accepts either `query` (a single search string) or `queries` (a list of strings)
+        parameters ??= new Dictionary<string, object>();
+        object singleQuery = this.safeString(parameters, "query");
+        if (isTrue(!isEqual(singleQuery, null)))
+        {
+            return new List<object>() {singleQuery};
+        }
+        return this.safeList(parameters, "queries", new List<object>() {});
+    }
+
+    public async virtual Task<object> fetchEvents(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchEvents() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchEvent(object id, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchEvent() is not supported yet")) ;
     }
 
     public virtual object setEvents(object events)
@@ -80,7 +100,7 @@ public partial class PredictionExchange : Exchange
         {
             return this.events;
         }
-        object events = await this.fetchEvents(null, parameters);
+        object events = await this.fetchEvents(parameters);
         return this.setEvents(events);
     }
 
@@ -126,9 +146,9 @@ public partial class PredictionExchange : Exchange
             return outcomeObj;
         }
         return new Dictionary<string, object>() {
-            { "id", outcomeIdOrSymbol },
-            { "symbol", outcomeIdOrSymbol },
-            { "marketSymbol", null },
+            { "outcome", outcomeIdOrSymbol },
+            { "outcomeId", outcomeIdOrSymbol },
+            { "market", null },
             { "label", null },
             { "info", new Dictionary<string, object>() {} },
         };
@@ -137,7 +157,7 @@ public partial class PredictionExchange : Exchange
     public virtual object safeOutcomeSymbol(object outcomeIdOrSymbol, object outcomeObj = null)
     {
         outcomeObj = this.safeOutcome(outcomeIdOrSymbol, outcomeObj);
-        return getValue(outcomeObj, "symbol");
+        return getValue(outcomeObj, "outcome");
     }
 
     public virtual object shortenSlug(object slug)
@@ -224,6 +244,41 @@ public partial class PredictionExchange : Exchange
         return this.slugToOutcomeSymbol(eventSlug, marketSlug, outcome);
     }
 
+    public override object setMarkets(object markets, object currencies = null)
+    {
+        object result = base.setMarkets(markets, currencies);
+        this.setOutcomesFromMarkets();
+        return result;
+    }
+
+    public virtual void setOutcomesFromMarkets()
+    {
+        // prediction markets carry their outcome tokens under the outcomes key,
+        // rebuild the outcome lookup caches so cached market data works offline
+        this.outcomes = new Dictionary<string, object>() {};
+        this.outcomes_by_id = new Dictionary<string, object>() {};
+        object marketKeys = new List<object>(((IDictionary<string,object>)this.markets).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(marketKeys)); postFixIncrement(ref i))
+        {
+            object market = getValue(this.markets, getValue(marketKeys, i));
+            object outcomesList = this.safeList(market, "outcomes", new List<object>() {});
+            for (object j = 0; isLessThan(j, getArrayLength(outcomesList)); postFixIncrement(ref j))
+            {
+                object oc = getValue(outcomesList, j);
+                object ocSymbol = this.safeString(oc, "outcome");
+                if (isTrue(!isEqual(ocSymbol, null)))
+                {
+                    ((IDictionary<string,object>)this.outcomes)[(string)ocSymbol] = oc;
+                }
+                object ocId = this.safeString(oc, "outcomeId");
+                if (isTrue(!isEqual(ocId, null)))
+                {
+                    ((IDictionary<string,object>)this.outcomes_by_id)[(string)ocId] = oc;
+                }
+            }
+        }
+    }
+
     public async override Task<object> fetchTicker(object outcome, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -277,6 +332,79 @@ public partial class PredictionExchange : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         return await base.watchTrades(outcome, since, limit, parameters);
+    }
+
+    public virtual object safePredictionOrder(object order, object market = null)
+    {
+        object parsed = base.safeOrder(order, market);
+        return this.toPredictionStructure(parsed, order);
+    }
+
+    public virtual object safePredictionTrade(object trade, object market = null)
+    {
+        object parsed = base.safeTrade(trade, market);
+        return this.toPredictionStructure(parsed, trade);
+    }
+
+    public virtual object safePredictionTicker(object ticker, object market = null)
+    {
+        object parsed = base.safeTicker(ticker, market);
+        return this.toPredictionStructure(parsed, ticker);
+    }
+
+    public virtual object safePredictionPosition(object position)
+    {
+        object parsed = base.safePosition(position);
+        return this.toPredictionStructure(parsed, position);
+    }
+
+    public virtual object toPredictionStructure(object parsed, object raw)
+    {
+        // rename the unified `symbol` to the prediction `outcome` handle and attach the
+        // prediction identity fields (raw exchange id, label, parent market/event) that the
+        // base safe* helpers drop. the exchange parser passes them on the raw input dict.
+        object outcomeSymbol = this.safeString2(raw, "outcome", "symbol");
+        ((IDictionary<string,object>)parsed)["outcome"] = outcomeSymbol;
+        ((IDictionary<string,object>)parsed)["outcomeId"] = this.safeString(raw, "outcomeId");
+        ((IDictionary<string,object>)parsed)["label"] = this.safeString(raw, "label");
+        ((IDictionary<string,object>)parsed)["market"] = this.safeString(raw, "market");
+        ((IDictionary<string,object>)parsed)["event"] = this.safeString(raw, "event");
+        ((IDictionary<string,object>)parsed).Remove((string)"symbol");
+        return parsed;
+    }
+
+    public virtual object filterByOutcomeSinceLimit(object array, object outcome = null, object since = null, object limit = null, object tail = null)
+    {
+        tail ??= false;
+        return this.filterByValueSinceLimit(array, "outcome", outcome, since, limit, "timestamp", tail);
+    }
+
+    public virtual object filterByOutcomesSinceLimit(object array, object outcomes = null, object since = null, object limit = null, object tail = null)
+    {
+        tail ??= false;
+        object result = this.filterByArray(array, "outcome", outcomes, false);
+        return this.filterBySinceLimit(result, since, limit, "timestamp", tail);
+    }
+
+    public virtual object amountToPredictionPrecision(object outcome, object amount)
+    {
+        object outcomeObj = this.outcome(outcome);
+        object marketSymbol = this.safeString(outcomeObj, "market");
+        return this.amountToPrecision(marketSymbol, amount);
+    }
+
+    public virtual object priceToPredictionPrecision(object outcome, object price)
+    {
+        object outcomeObj = this.outcome(outcome);
+        object marketSymbol = this.safeString(outcomeObj, "market");
+        return this.priceToPrecision(marketSymbol, price);
+    }
+
+    public virtual object costToPredictionPrecision(object outcome, object cost)
+    {
+        object outcomeObj = this.outcome(outcome);
+        object marketSymbol = this.safeString(outcomeObj, "market");
+        return this.costToPrecision(marketSymbol, cost);
     }
 }
 

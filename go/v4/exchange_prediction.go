@@ -43,10 +43,12 @@ func  (this *PredictionExchange) CheckEventsAndMarkets(optionalArgs ...any) <- c
             go func() any {
                 defer close(ch)
                 defer ReturnPanicError(ch)
-                    outcome := GetArg(optionalArgs, 0, nil)
+                    // outcomes are the real dependency for resolving a symbol; they are populated by
+            // fetchEvents and also rebuilt from cached markets (loadMarkets), so accept either
+            outcome := GetArg(optionalArgs, 0, nil)
             _ = outcome
-            if IsTrue(!IsTrue(this.Events) || IsTrue(this.IsEmpty(this.Events))) {
-                panic(ArgumentsRequired("Events are required to be loaded, please fetch them first using fetchEvents"))
+            if IsTrue(!IsTrue(this.Outcomes) || IsTrue(this.IsEmpty(this.Outcomes))) {
+                panic(ArgumentsRequired("Outcomes are required to be loaded, please fetch them first using fetchEvents (or loadMarkets)"))
             }
             if IsTrue(!IsEqual(outcome, nil)) {
                 if IsTrue(!IsTrue((InOp(this.Outcomes, outcome))) && !IsTrue((InOp(this.Outcomes_by_id, outcome)))) {
@@ -57,16 +59,36 @@ func  (this *PredictionExchange) CheckEventsAndMarkets(optionalArgs ...any) <- c
             }()
             return ch
         }
+func  (this *PredictionExchange) ParseSearchQueries(optionalArgs ...any) any  {
+    // accepts either `query` (a single search string) or `queries` (a list of strings)
+    params := GetArg(optionalArgs, 0, map[string]any {})
+    _ = params
+    var singleQuery any = this.SafeString(params, "query")
+    if IsTrue(!IsEqual(singleQuery, nil)) {
+        return []any{singleQuery}
+    }
+    return this.SafeList(params, "queries", []any{})
+}
 func  (this *PredictionExchange) FetchEvents(optionalArgs ...any) <- chan any {
             ch := make(chan any)
             go func() any {
                 defer close(ch)
                 defer ReturnPanicError(ch)
-                    queries := GetArg(optionalArgs, 0, nil)
-            _ = queries
-            params := GetArg(optionalArgs, 1, map[string]any {})
+                    params := GetArg(optionalArgs, 0, map[string]any {})
             _ = params
             panic(NotSupported(Add(this.Id, " fetchEvents() is not supported yet")))
+        
+            }()
+            return ch
+        }
+func  (this *PredictionExchange) FetchEvent(id any, optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]any {})
+            _ = params
+            panic(NotSupported(Add(this.Id, " fetchEvent() is not supported yet")))
         
             }()
             return ch
@@ -102,7 +124,7 @@ func  (this *PredictionExchange) LoadEventsHelper(optionalArgs ...any) <- chan a
                 return nil
             }
         
-            events:= (<-this.FetchEvents(nil, params))
+            events:= (<-this.FetchEvents(params))
             PanicOnError(events)
         
             ch <- this.SetEvents(events)
@@ -121,9 +143,9 @@ func  (this *PredictionExchange) LoadEvents(optionalArgs ...any) <- chan any {
             params := GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-                retRes7815 :=  (<-this.LoadEventsHelper(reload, params))
-                PanicOnError(retRes7815)
-                ch <- retRes7815
+                retRes9315 :=  (<-this.LoadEventsHelper(reload, params))
+                PanicOnError(retRes9315)
+                ch <- retRes9315
                 return nil
         
             }()
@@ -156,9 +178,9 @@ func  (this *PredictionExchange) SafeOutcome(outcomeIdOrSymbol any, optionalArgs
         return outcomeObj
     }
     return map[string]any {
-        "id": outcomeIdOrSymbol,
-        "symbol": outcomeIdOrSymbol,
-        "marketSymbol": nil,
+        "outcome": outcomeIdOrSymbol,
+        "outcomeId": outcomeIdOrSymbol,
+        "market": nil,
         "label": nil,
         "info": map[string]any {},
     }
@@ -167,7 +189,7 @@ func  (this *PredictionExchange) SafeOutcomeSymbol(outcomeIdOrSymbol any, option
     outcomeObj := GetArg(optionalArgs, 0, nil)
     _ = outcomeObj
     outcomeObj = this.SafeOutcome(outcomeIdOrSymbol, outcomeObj)
-    return GetValue(outcomeObj, "symbol")
+    return GetValue(outcomeObj, "outcome")
 }
 func  (this *PredictionExchange) ShortenSlug(slug any) any  {
     var replacements any = map[string]any {
@@ -239,6 +261,35 @@ func  (this *PredictionExchange) SlugToOutcomeSymbol(eventSlug any, marketSlug a
 func  (this *PredictionExchange) SlugToMarketId(eventSlug any, marketSlug any, outcome any) any  {
     return this.SlugToOutcomeSymbol(eventSlug, marketSlug, outcome)
 }
+func  (this *PredictionExchange) SetMarkets(markets any, optionalArgs ...any) any  {
+    currencies := GetArg(optionalArgs, 0, nil)
+    _ = currencies
+    var result any = this.Exchange.SetMarkets(markets, currencies)
+    this.SetOutcomesFromMarkets()
+    return result
+}
+func  (this *PredictionExchange) SetOutcomesFromMarkets()  {
+    // prediction markets carry their outcome tokens under the outcomes key,
+    // rebuild the outcome lookup caches so cached market data works offline
+    this.Outcomes = map[string]any {}
+    this.Outcomes_by_id = map[string]any {}
+    var marketKeys any = ObjectKeys(this.Markets)
+    for i := 0; IsLessThan(i, GetArrayLength(marketKeys)); i++ {
+        var market any = GetValue(this.Markets, GetValue(marketKeys, i))
+        var outcomesList any = this.SafeList(market, "outcomes", []any{})
+        for j := 0; IsLessThan(j, GetArrayLength(outcomesList)); j++ {
+            var oc any = GetValue(outcomesList, j)
+            var ocSymbol any = this.SafeString(oc, "outcome")
+            if IsTrue(!IsEqual(ocSymbol, nil)) {
+                AddElementToObject(this.Outcomes, ocSymbol, oc)
+            }
+            var ocId any = this.SafeString(oc, "outcomeId")
+            if IsTrue(!IsEqual(ocId, nil)) {
+                AddElementToObject(this.Outcomes_by_id, ocId, oc)
+            }
+        }
+    }
+}
 func  (this *PredictionExchange) FetchTicker(outcome any, optionalArgs ...any) <- chan any {
             ch := make(chan any)
             go func() any {
@@ -247,9 +298,9 @@ func  (this *PredictionExchange) FetchTicker(outcome any, optionalArgs ...any) <
                     params := GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
-                retRes19315 :=  (<-this.Exchange.FetchTicker(outcome, params))
-                PanicOnError(retRes19315)
-                ch <- retRes19315
+                retRes23715 :=  (<-this.Exchange.FetchTicker(outcome, params))
+                PanicOnError(retRes23715)
+                ch <- retRes23715
                 return nil
         
             }()
@@ -265,9 +316,9 @@ func  (this *PredictionExchange) FetchOrderBook(outcome any, optionalArgs ...any
             params := GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-                retRes19715 :=  (<-this.Exchange.FetchOrderBook(outcome, limit, params))
-                PanicOnError(retRes19715)
-                ch <- retRes19715
+                retRes24115 :=  (<-this.Exchange.FetchOrderBook(outcome, limit, params))
+                PanicOnError(retRes24115)
+                ch <- retRes24115
                 return nil
         
             }()
@@ -287,9 +338,9 @@ func  (this *PredictionExchange) FetchOHLCV(outcome any, optionalArgs ...any) <-
             params := GetArg(optionalArgs, 3, map[string]any {})
             _ = params
         
-                retRes20115 :=  (<-this.Exchange.FetchOHLCV(outcome, timeframe, since, limit, params))
-                PanicOnError(retRes20115)
-                ch <- retRes20115
+                retRes24515 :=  (<-this.Exchange.FetchOHLCV(outcome, timeframe, since, limit, params))
+                PanicOnError(retRes24515)
+                ch <- retRes24515
                 return nil
         
             }()
@@ -307,9 +358,9 @@ func  (this *PredictionExchange) FetchTrades(outcome any, optionalArgs ...any) <
             params := GetArg(optionalArgs, 2, map[string]any {})
             _ = params
         
-                retRes20515 :=  (<-this.Exchange.FetchTrades(outcome, since, limit, params))
-                PanicOnError(retRes20515)
-                ch <- retRes20515
+                retRes24915 :=  (<-this.Exchange.FetchTrades(outcome, since, limit, params))
+                PanicOnError(retRes24915)
+                ch <- retRes24915
                 return nil
         
             }()
@@ -325,9 +376,9 @@ func  (this *PredictionExchange) CreateOrder(outcome any, typeVar any, side any,
             params := GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-                retRes20915 :=  (<-this.Exchange.CreateOrder(outcome, typeVar, side, amount, price, params))
-                PanicOnError(retRes20915)
-                ch <- retRes20915
+                retRes25315 :=  (<-this.Exchange.CreateOrder(outcome, typeVar, side, amount, price, params))
+                PanicOnError(retRes25315)
+                ch <- retRes25315
                 return nil
         
             }()
@@ -343,9 +394,9 @@ func  (this *PredictionExchange) CancelOrder(id any, optionalArgs ...any) <- cha
             params := GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-                retRes21315 :=  (<-this.Exchange.CancelOrder(id, outcome, params))
-                PanicOnError(retRes21315)
-                ch <- retRes21315
+                retRes25715 :=  (<-this.Exchange.CancelOrder(id, outcome, params))
+                PanicOnError(retRes25715)
+                ch <- retRes25715
                 return nil
         
             }()
@@ -359,9 +410,9 @@ func  (this *PredictionExchange) WatchTicker(outcome any, optionalArgs ...any) <
                     params := GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
-                retRes21715 :=  (<-this.Exchange.WatchTicker(outcome, params))
-                PanicOnError(retRes21715)
-                ch <- retRes21715
+                retRes26115 :=  (<-this.Exchange.WatchTicker(outcome, params))
+                PanicOnError(retRes26115)
+                ch <- retRes26115
                 return nil
         
             }()
@@ -377,9 +428,9 @@ func  (this *PredictionExchange) WatchOrderBook(outcome any, optionalArgs ...any
             params := GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-                retRes22115 :=  (<-this.Exchange.WatchOrderBook(outcome, limit, params))
-                PanicOnError(retRes22115)
-                ch <- retRes22115
+                retRes26515 :=  (<-this.Exchange.WatchOrderBook(outcome, limit, params))
+                PanicOnError(retRes26515)
+                ch <- retRes26515
                 return nil
         
             }()
@@ -397,14 +448,87 @@ func  (this *PredictionExchange) WatchTrades(outcome any, optionalArgs ...any) <
             params := GetArg(optionalArgs, 2, map[string]any {})
             _ = params
         
-                retRes22515 :=  (<-this.Exchange.WatchTrades(outcome, since, limit, params))
-                PanicOnError(retRes22515)
-                ch <- retRes22515
+                retRes26915 :=  (<-this.Exchange.WatchTrades(outcome, since, limit, params))
+                PanicOnError(retRes26915)
+                ch <- retRes26915
                 return nil
         
             }()
             return ch
         }
+func  (this *PredictionExchange) SafePredictionOrder(order any, optionalArgs ...any) any  {
+    market := GetArg(optionalArgs, 0, nil)
+    _ = market
+    var parsed any = this.Exchange.SafeOrder(order, market)
+    return this.ToPredictionStructure(parsed, order)
+}
+func  (this *PredictionExchange) SafePredictionTrade(trade any, optionalArgs ...any) any  {
+    market := GetArg(optionalArgs, 0, nil)
+    _ = market
+    var parsed any = this.Exchange.SafeTrade(trade, market)
+    return this.ToPredictionStructure(parsed, trade)
+}
+func  (this *PredictionExchange) SafePredictionTicker(ticker any, optionalArgs ...any) any  {
+    market := GetArg(optionalArgs, 0, nil)
+    _ = market
+    var parsed any = this.Exchange.SafeTicker(ticker, market)
+    return this.ToPredictionStructure(parsed, ticker)
+}
+func  (this *PredictionExchange) SafePredictionPosition(position any) any  {
+    var parsed any = this.Exchange.SafePosition(position)
+    return this.ToPredictionStructure(parsed, position)
+}
+func  (this *PredictionExchange) ToPredictionStructure(parsed any, raw any) any  {
+    // rename the unified `symbol` to the prediction `outcome` handle and attach the
+    // prediction identity fields (raw exchange id, label, parent market/event) that the
+    // base safe* helpers drop. the exchange parser passes them on the raw input dict.
+    var outcomeSymbol any = this.SafeString2(raw, "outcome", "symbol")
+    AddElementToObject(parsed, "outcome", outcomeSymbol)
+    AddElementToObject(parsed, "outcomeId", this.SafeString(raw, "outcomeId"))
+    AddElementToObject(parsed, "label", this.SafeString(raw, "label"))
+    AddElementToObject(parsed, "market", this.SafeString(raw, "market"))
+    AddElementToObject(parsed, "event", this.SafeString(raw, "event"))
+    Remove(parsed, "symbol")
+    return parsed
+}
+func  (this *PredictionExchange) FilterByOutcomeSinceLimit(array any, optionalArgs ...any) any  {
+    outcome := GetArg(optionalArgs, 0, nil)
+    _ = outcome
+    since := GetArg(optionalArgs, 1, nil)
+    _ = since
+    limit := GetArg(optionalArgs, 2, nil)
+    _ = limit
+    tail := GetArg(optionalArgs, 3, false)
+    _ = tail
+    return this.FilterByValueSinceLimit(array, "outcome", outcome, since, limit, "timestamp", tail)
+}
+func  (this *PredictionExchange) FilterByOutcomesSinceLimit(array any, optionalArgs ...any) any  {
+    outcomes := GetArg(optionalArgs, 0, nil)
+    _ = outcomes
+    since := GetArg(optionalArgs, 1, nil)
+    _ = since
+    limit := GetArg(optionalArgs, 2, nil)
+    _ = limit
+    tail := GetArg(optionalArgs, 3, false)
+    _ = tail
+    var result any = this.FilterByArray(array, "outcome", outcomes, false)
+    return this.FilterBySinceLimit(result, since, limit, "timestamp", tail)
+}
+func  (this *PredictionExchange) AmountToPredictionPrecision(outcome any, amount any) any  {
+    var outcomeObj any = this.Outcome(outcome)
+    var marketSymbol any = this.SafeString(outcomeObj, "market")
+    return this.AmountToPrecision(marketSymbol, amount)
+}
+func  (this *PredictionExchange) PriceToPredictionPrecision(outcome any, price any) any  {
+    var outcomeObj any = this.Outcome(outcome)
+    var marketSymbol any = this.SafeString(outcomeObj, "market")
+    return this.PriceToPrecision(marketSymbol, price)
+}
+func  (this *PredictionExchange) CostToPredictionPrecision(outcome any, cost any) any  {
+    var outcomeObj any = this.Outcome(outcome)
+    var marketSymbol any = this.SafeString(outcomeObj, "market")
+    return this.CostToPrecision(marketSymbol, cost)
+}
 
 func (this *PredictionExchange) CallEndpointAsync(endpointName string, args ...any) <-chan any {
    return this.callEndpointAsync(endpointName, args...)

@@ -30,21 +30,33 @@ class PredictionExchange(Exchange):
         return self.safe_bool(self.has, 'prediction', False)
 
     async def load_markets_and_events(self, reload=False, params={}):
-        res = await asyncio.gather(*[self.load_markets(reload, params), self.loadEvents(reload, params)])
+        res = await asyncio.gather(*[self.load_markets(reload, params), self.load_events(reload, params)])
         return {
             'markets': res[0],
             'events': res[1],
         }
 
     async def check_events_and_markets(self, outcome: Str = None):
-        if not self.events or self.is_empty(self.events):
-            raise ArgumentsRequired('Events are required to be loaded, please fetch them first using fetchEvents')
+        # outcomes are the real dependency for resolving a symbol; they are populated by
+        # fetchEvents and also rebuilt from cached markets(loadMarkets), so accept either
+        if not self.outcomes or self.is_empty(self.outcomes):
+            raise ArgumentsRequired('Outcomes are required to be loaded, please fetch them first using fetchEvents(or loadMarkets)')
         if outcome is not None:
             if not (outcome in self.outcomes) and not (outcome in self.outcomes_by_id):
                 raise ArgumentsRequired('The specified outcome is not valid/available, please fetch events and outcomes first using fetchEvents')
 
-    async def fetch_events(self, queries: Strings = None, params={}):
+    def parse_search_queries(self, params={}):
+        # accepts either `query`(a single search string) or `queries`(a list of strings)
+        singleQuery = self.safe_string(params, 'query')
+        if singleQuery is not None:
+            return [singleQuery]
+        return self.safe_list(params, 'queries', [])
+
+    async def fetch_events(self, params={}):
         raise NotSupported(self.id + ' fetchEvents() is not supported yet')
+
+    async def fetch_event(self, id: str, params={}):
+        raise NotSupported(self.id + ' fetchEvent() is not supported yet')
 
     def set_events(self, events: List[Any]):
         self.events = {}
@@ -62,11 +74,11 @@ class PredictionExchange(Exchange):
     async def load_events_helper(self, reload=False, params={}):
         if not reload and self.events:
             return self.events
-        events = await self.fetchEvents(None, params)
-        return self.setEvents(events)
+        events = await self.fetch_events(params)
+        return self.set_events(events)
 
     async def load_events(self, reload=False, params={}):
-        return await self.loadEventsHelper(reload, params)
+        return await self.load_events_helper(reload, params)
 
     def outcome(self, outcomeSymbol: str):
         if self.outcomes is None:
@@ -85,11 +97,11 @@ class PredictionExchange(Exchange):
                 return self.outcomes_by_id[outcomeIdOrSymbol]
         if outcomeObj is not None:
             return outcomeObj
-        return {'id': outcomeIdOrSymbol, 'symbol': outcomeIdOrSymbol, 'marketSymbol': None, 'label': None, 'info': {}}
+        return {'outcome': outcomeIdOrSymbol, 'outcomeId': outcomeIdOrSymbol, 'market': None, 'label': None, 'info': {}}
 
     def safe_outcome_symbol(self, outcomeIdOrSymbol: Str, outcomeObj: Any = None):
-        outcomeObj = self.safeOutcome(outcomeIdOrSymbol, outcomeObj)
-        return outcomeObj['symbol']
+        outcomeObj = self.safe_outcome(outcomeIdOrSymbol, outcomeObj)
+        return outcomeObj['outcome']
 
     def shorten_slug(self, slug: str):
         replacements = {
@@ -152,37 +164,111 @@ class PredictionExchange(Exchange):
         return joined.upper()
 
     def slug_to_market_symbol(self, eventSlug: str, marketSlug: str):
-        return self.shortenSlug(marketSlug)
+        return self.shorten_slug(marketSlug)
 
     def slug_to_outcome_symbol(self, eventSlug: str, marketSlug: str, outcome: str):
-        return self.shortenSlug(marketSlug) + ':' + outcome.upper()
+        return self.shorten_slug(marketSlug) + ':' + outcome.upper()
 
     def slug_to_market_id(self, eventSlug: str, marketSlug: str, outcome: str):
-        return self.slugToOutcomeSymbol(eventSlug, marketSlug, outcome)
+        return self.slug_to_outcome_symbol(eventSlug, marketSlug, outcome)
+
+    def set_markets(self, markets, currencies=None):
+        result = super(PredictionExchange, self).set_markets(markets, currencies)
+        self.set_outcomes_from_markets()
+        return result
+
+    def set_outcomes_from_markets(self):
+        # prediction markets carry their outcome tokens under the outcomes key,
+        # rebuild the outcome lookup caches so cached market data works offline
+        self.outcomes = {}
+        self.outcomes_by_id = {}
+        marketKeys = list(self.markets.keys())
+        for i in range(0, len(marketKeys)):
+            market = self.markets[marketKeys[i]]
+            outcomesList = self.safe_list(market, 'outcomes', [])
+            for j in range(0, len(outcomesList)):
+                oc = outcomesList[j]
+                ocSymbol = self.safe_string(oc, 'outcome')
+                if ocSymbol is not None:
+                    self.outcomes[ocSymbol] = oc
+                ocId = self.safe_string(oc, 'outcomeId')
+                if ocId is not None:
+                    self.outcomes_by_id[ocId] = oc
 
     async def fetch_ticker(self, outcome: str, params={}):
-        return await super(PredictionExchange, self).fetchTicker(outcome, params)
+        return await super(PredictionExchange, self).fetch_ticker(outcome, params)
 
     async def fetch_order_book(self, outcome: str, limit: Int = None, params={}):
-        return await super(PredictionExchange, self).fetchOrderBook(outcome, limit, params)
+        return await super(PredictionExchange, self).fetch_order_book(outcome, limit, params)
 
     async def fetch_ohlcv(self, outcome: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}):
-        return await super(PredictionExchange, self).fetchOHLCV(outcome, timeframe, since, limit, params)
+        return await super(PredictionExchange, self).fetch_ohlcv(outcome, timeframe, since, limit, params)
 
     async def fetch_trades(self, outcome: str, since: Int = None, limit: Int = None, params={}):
-        return await super(PredictionExchange, self).fetchTrades(outcome, since, limit, params)
+        return await super(PredictionExchange, self).fetch_trades(outcome, since, limit, params)
 
     async def create_order(self, outcome: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
-        return await super(PredictionExchange, self).createOrder(outcome, type, side, amount, price, params)
+        return await super(PredictionExchange, self).create_order(outcome, type, side, amount, price, params)
 
     async def cancel_order(self, id: str, outcome: Str = None, params={}):
-        return await super(PredictionExchange, self).cancelOrder(id, outcome, params)
+        return await super(PredictionExchange, self).cancel_order(id, outcome, params)
 
     async def watch_ticker(self, outcome: str, params={}):
-        return await super(PredictionExchange, self).watchTicker(outcome, params)
+        return await super(PredictionExchange, self).watch_ticker(outcome, params)
 
     async def watch_order_book(self, outcome: str, limit: Int = None, params={}):
-        return await super(PredictionExchange, self).watchOrderBook(outcome, limit, params)
+        return await super(PredictionExchange, self).watch_order_book(outcome, limit, params)
 
     async def watch_trades(self, outcome: str, since: Int = None, limit: Int = None, params={}):
-        return await super(PredictionExchange, self).watchTrades(outcome, since, limit, params)
+        return await super(PredictionExchange, self).watch_trades(outcome, since, limit, params)
+
+    def safe_prediction_order(self, order: dict, market=None):
+        parsed = super(PredictionExchange, self).safe_order(order, market)
+        return self.to_prediction_structure(parsed, order)
+
+    def safe_prediction_trade(self, trade: dict, market=None):
+        parsed = super(PredictionExchange, self).safe_trade(trade, market)
+        return self.to_prediction_structure(parsed, trade)
+
+    def safe_prediction_ticker(self, ticker: dict, market=None):
+        parsed = super(PredictionExchange, self).safe_ticker(ticker, market)
+        return self.to_prediction_structure(parsed, ticker)
+
+    def safe_prediction_position(self, position: dict):
+        parsed = super(PredictionExchange, self).safe_position(position)
+        return self.to_prediction_structure(parsed, position)
+
+    def to_prediction_structure(self, parsed: dict, raw: dict):
+        # rename the unified `symbol` to the prediction `outcome` handle and attach the
+        # prediction identity fields(raw exchange id, label, parent market/event) that the
+        # base safe* helpers drop. the exchange parser passes them on the raw input dict.
+        outcomeSymbol = self.safe_string_2(raw, 'outcome', 'symbol')
+        parsed['outcome'] = outcomeSymbol
+        parsed['outcomeId'] = self.safe_string(raw, 'outcomeId')
+        parsed['label'] = self.safe_string(raw, 'label')
+        parsed['market'] = self.safe_string(raw, 'market')
+        parsed['event'] = self.safe_string(raw, 'event')
+        del parsed['symbol']
+        return parsed
+
+    def filter_by_outcome_since_limit(self, array, outcome: Str = None, since: Int = None, limit: Int = None, tail=False):
+        return self.filter_by_value_since_limit(array, 'outcome', outcome, since, limit, 'timestamp', tail)
+
+    def filter_by_outcomes_since_limit(self, array, outcomes: List[str] = None, since: Int = None, limit: Int = None, tail=False):
+        result = self.filter_by_array(array, 'outcome', outcomes, False)
+        return self.filter_by_since_limit(result, since, limit, 'timestamp', tail)
+
+    def amount_to_prediction_precision(self, outcome: str, amount):
+        outcomeObj = self.outcome(outcome)
+        marketSymbol = self.safe_string(outcomeObj, 'market')
+        return self.amount_to_precision(marketSymbol, amount)
+
+    def price_to_prediction_precision(self, outcome: str, price):
+        outcomeObj = self.outcome(outcome)
+        marketSymbol = self.safe_string(outcomeObj, 'market')
+        return self.price_to_precision(marketSymbol, price)
+
+    def cost_to_prediction_precision(self, outcome: str, cost):
+        outcomeObj = self.outcome(outcome)
+        marketSymbol = self.safe_string(outcomeObj, 'market')
+        return self.cost_to_precision(marketSymbol, cost)
