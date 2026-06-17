@@ -1,7 +1,8 @@
 // ----------------------------------------------------------------------------
 
 import { Exchange } from './Exchange.js';
-import { ExchangeError, BadSymbol, NotSupported, ArgumentsRequired } from './errors.js';
+import { ExchangeError, BadSymbol, NotSupported, ArgumentsRequired, InvalidOrder } from './errors.js';
+import { TRUNCATE } from './functions.js';
 import type { Str, Strings, Num, Int, Bool, Dictionary, Ticker, OrderBook, OHLCV, Trade, Order, OrderType, OrderSide, Dict } from './types.js';
 
 // ----------------------------------------------------------------------------
@@ -278,5 +279,26 @@ export default class PredictionExchange extends Exchange {
         parsed['outcome'] = outcomeSymbol;
         delete parsed['symbol'];
         return parsed;
+    }
+
+    filterByOutcomeSinceLimit (array, outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
+        return this.filterByValueSinceLimit (array, 'outcome', outcome, since, limit, 'timestamp', tail);
+    }
+
+    filterByOutcomesSinceLimit (array, outcomes: string[] = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
+        const result = this.filterByArray (array, 'outcome', outcomes, false);
+        return this.filterBySinceLimit (result, since, limit, 'timestamp', tail);
+    }
+
+    amountToPrecision (outcome: string, amount) {
+        if (amount === undefined) {
+            return undefined;
+        }
+        const outcomeObj = this.market (outcome);
+        const result = this.decimalToPrecision (amount, TRUNCATE, outcomeObj['precision']['amount'], this.precisionMode, this.paddingMode);
+        if (result === '0') {
+            throw new InvalidOrder (this.id + ' amount of ' + outcomeObj['symbol'] + ' must be greater than minimum amount precision of ' + this.numberToString (outcomeObj['precision']['amount']));
+        }
+        return result;
     }
 }
