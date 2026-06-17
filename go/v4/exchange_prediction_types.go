@@ -146,3 +146,25 @@ func NewPredictionPositionArray(data any) []PredictionPosition {
 	}
 	return result
 }
+
+type PredictionTickers struct {
+	Info    map[string]any
+	Tickers map[string]PredictionTicker
+}
+
+func NewPredictionTickers(tickersData2 any) PredictionTickers {
+	tickersData := tickersData2.(map[string]any)
+	info := GetInfo(tickersData)
+	tickersMap := make(map[string]PredictionTicker)
+	for key, value := range tickersData {
+		if key != "info" {
+			if tickerData, ok := value.(map[string]any); ok {
+				tickersMap[key] = NewPredictionTicker(tickerData)
+			}
+		}
+	}
+	return PredictionTickers{
+		Info:    info,
+		Tickers: tickersMap,
+	}
+}

@@ -8,7 +8,7 @@ import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByOutcomeById } from '../base/ws/Cache.js';
 import type {
     Int, Str, Num, Dict,
-    Market, Tickers, OrderBook, OHLCV,
+    Market, PredictionTickers, OrderBook, OHLCV,
     OrderRequest, Balances,
     Strings, OpenInterest, TradingFeeInterface,
     PredictionEvent, PredictionTicker, PredictionOrder, PredictionTrade, PredictionPosition,
@@ -742,7 +742,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome symbol
      */
-    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<PredictionTickers> {
         const outcomes = symbols;
         let outcomesLength = 0;
         if (outcomes !== undefined) {
@@ -778,7 +778,7 @@ export default class polymarket extends Exchange {
             }
         }
         const chunkSize = this.safeInteger (this.options, 'fetchTickersBatchSize', 200);
-        const result: Tickers = {};
+        const result: PredictionTickers = {};
         const tokenIdsLength = tokenIds.length;
         let startIndex = 0;
         while (startIndex < tokenIdsLength) {

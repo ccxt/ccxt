@@ -1,5 +1,5 @@
 import Exchange from '../abstract/prediction/polymarket.js';
-import type { Int, Str, Num, Dict, Market, Tickers, OrderBook, OHLCV, OrderRequest, Balances, Strings, OpenInterest, TradingFeeInterface, PredictionEvent, PredictionTicker, PredictionOrder, PredictionTrade, PredictionPosition } from '../base/types.js';
+import type { Int, Str, Num, Dict, Market, PredictionTickers, OrderBook, OHLCV, OrderRequest, Balances, Strings, OpenInterest, TradingFeeInterface, PredictionEvent, PredictionTicker, PredictionOrder, PredictionTrade, PredictionPosition } from '../base/types.js';
 /**
  * @class polymarket
  * @augments Exchange
@@ -66,7 +66,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome symbol
      */
-    fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    fetchTickers(symbols?: Strings, params?: {}): Promise<PredictionTickers>;
     /**
      * @ignore
      * @method

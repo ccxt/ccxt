@@ -38,7 +38,7 @@ const KNOWN_TYPES = new Set([
     'FundingHistory', 'DepositWithdrawFee',
     'OrderRequest', 'CancellationRequest', 'WithdrawalResponse',
     // native dedicated prediction-market types (io.github.ccxt.types.Prediction*)
-    'PredictionTicker', 'PredictionOrder', 'PredictionTrade', 'PredictionPosition', 'PredictionOrderBook',
+    'PredictionTicker', 'PredictionTickers', 'PredictionOrder', 'PredictionTrade', 'PredictionPosition', 'PredictionOrderBook',
 ]);
 
 // --- Type helpers ---
@@ -581,6 +581,7 @@ const restMethods = methods.filter(m => !m.isWatch && !isWsApi(m));
 // trading return types to their prediction equivalents for the prediction package.
 const PREDICTION_TYPE_MAP: Record<string, string> = {
     'Ticker': 'PredictionTicker',
+    'Tickers': 'PredictionTickers',
     'Order': 'PredictionOrder',
     'Trade': 'PredictionTrade',
     'Position': 'PredictionPosition',

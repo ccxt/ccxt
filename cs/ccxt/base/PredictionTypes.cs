@@ -269,3 +269,36 @@ public struct PredictionPosition
         payout = Exchange.SafeFloat(position, "payout");
     }
 }
+
+public struct PredictionTickers
+{
+    public Dictionary<string, object> info;
+    public Dictionary<string, PredictionTicker> tickers;
+
+    public PredictionTickers(object tickers2)
+    {
+        var tickers = (Dictionary<string, object>)tickers2;
+        info = Helper.GetInfo(tickers);
+        this.tickers = new Dictionary<string, PredictionTicker>();
+        foreach (var ticker in tickers)
+        {
+            if (ticker.Key != "info")
+                this.tickers.Add(ticker.Key, new PredictionTicker(ticker.Value));
+        }
+    }
+
+    public PredictionTicker this[string key]
+    {
+        get
+        {
+            if (tickers.ContainsKey(key))
+            {
+                return tickers[key];
+            }
+            else
+            {
+                throw new KeyNotFoundException($"The key '{key}' was not found in the tickers.");
+            }
+        }
+    }
+}

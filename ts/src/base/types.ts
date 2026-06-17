@@ -241,6 +241,9 @@ export interface PredictionOrderBook extends OrderBook {
     market?: Str;
 }
 
+export interface PredictionTickers extends Dictionary<PredictionTicker> {
+}
+
 export interface Trade {
     info: any;                        // the original decoded JSON as is
     amount: Num;                  // amount of base currency

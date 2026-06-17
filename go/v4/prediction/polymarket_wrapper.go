@@ -132,7 +132,7 @@ func (this *Polymarket) FetchTicker(symbol string, options ...ccxt.FetchTickerOp
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome symbol
  */
-func (this *Polymarket) FetchTickers(options ...ccxt.FetchTickersOptions) (ccxt.Tickers, error) {
+func (this *Polymarket) FetchTickers(options ...ccxt.FetchTickersOptions) (ccxt.PredictionTickers, error) {
 
     opts := ccxt.FetchTickersOptionsStruct{}
 
@@ -151,9 +151,9 @@ func (this *Polymarket) FetchTickers(options ...ccxt.FetchTickersOptions) (ccxt.
     }
     res := <- this.Core.FetchTickers(symbols, params)
     if ccxt.IsError(res) {
-        return ccxt.Tickers{}, ccxt.CreateReturnError(res)
+        return ccxt.PredictionTickers{}, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewTickers(res), nil
+    return ccxt.NewPredictionTickers(res), nil
 }
 /**
  * @method

@@ -689,6 +689,9 @@ class PredictionPosition(Position):
     payout: Num
 
 
+PredictionTickers = Dict[str, PredictionTicker]
+
+
 Market = Optional[MarketInterface]
 Currency = Optional[CurrencyInterface]
 

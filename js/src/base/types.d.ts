@@ -208,6 +208,8 @@ export interface PredictionOrderBook extends OrderBook {
     outcomeId?: Str;
     market?: Str;
 }
+export interface PredictionTickers extends Dictionary<PredictionTicker> {
+}
 export interface Trade {
     info: any;
     amount: Num;

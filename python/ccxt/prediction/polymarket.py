@@ -9,7 +9,7 @@ import asyncio
 import hashlib
 import math
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByOutcomeById
-from ccxt.base.types import Any, Balances, Int, Market, Num, OrderBook, OrderRequest, Str, Strings, Tickers, OpenInterest, TradingFeeInterface, PredictionEvent, PredictionTicker, PredictionOrder, PredictionTrade, PredictionPosition
+from ccxt.base.types import Any, Balances, Int, Market, Num, OrderBook, OrderRequest, Str, Strings, OpenInterest, TradingFeeInterface, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition
 from typing import List
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -689,7 +689,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             outcomeObj
         )
 
-    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def fetch_tickers(self, symbols: Strings = None, params={}) -> PredictionTickers:
         """
         fetches tickers for multiple outcome tokens at once using the batched CLOB book and midpoint endpoints
 
@@ -727,7 +727,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 outcomesByTokenId[tokenId] = outcomeObj
                 tokenIds.append(tokenId)
         chunkSize = self.safe_integer(self.options, 'fetchTickersBatchSize', 200)
-        result: Tickers = {}
+        result: PredictionTickers = {}
         tokenIdsLength = len(tokenIds)
         startIndex = 0
         while(startIndex < tokenIdsLength):
