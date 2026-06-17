@@ -19,7 +19,10 @@ func TestTrade(exchange ccxt.ICoreExchange, skippedProperties any, method any, e
 		"amount":       exchange.ParseNumber("1.5"),
 		"cost":         exchange.ParseNumber("0.10376526"),
 		"fees":         []any{},
-		"fee":          map[string]any{},
+		"fee": map[string]any{
+			"cost":     exchange.ParseNumber("0.001"),
+			"currency": "USDT",
+		},
 	}
 	// todo: add takeOrMaker as mandatory (atm, many exchanges fail)
 	// removed side because some public endpoints return trades without side
