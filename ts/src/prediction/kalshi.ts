@@ -355,6 +355,10 @@ export default class kalshi extends Exchange {
                 'marketSymbol': marketSymbol,
                 'label': label,
                 'active': active,
+                'precision': {
+                    'amount': 1,
+                    'price': 0.01,
+                },
                 'info': {
                     'ticker': ticker,
                     'eventTicker': eventTicker,

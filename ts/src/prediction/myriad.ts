@@ -1532,6 +1532,10 @@ export default class myriad extends Exchange {
                 'marketSymbol': marketSymbol,
                 'label': outcomeLabel,
                 'active': active,
+                'precision': {
+                    'amount': 0.01,
+                    'price': 0.001,
+                },
                 'info': {
                     'networkId': networkId,
                     'marketId': marketId,

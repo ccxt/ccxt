@@ -51,6 +51,12 @@ export interface MarketMarginModes {
     cross: boolean;
 }
 
+export interface Precision {
+    amount: Num
+    price: Num
+    cost?: Num
+}
+
 export interface MarketInterface {
     id: Str;
     numericId?: Num;
@@ -86,11 +92,7 @@ export interface MarketInterface {
     percentage?: Bool;
     tierBased?: Bool;
     feeSide?: Str;
-    precision: {
-        amount: Num
-        price: Num
-        cost?: Num
-    };
+    precision: Precision;
     marginModes?: MarketMarginModes;
     limits: {
         amount?: MinMax,
@@ -134,6 +136,7 @@ export interface PredictionOutcome {
     label: string;
     price?: number;
     active?: boolean;
+    precision?: Precision;
     info?: any;
 }
 

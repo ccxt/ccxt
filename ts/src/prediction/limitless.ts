@@ -409,6 +409,10 @@ export default class limitless extends Exchange {
                 'marketSymbol': marketSymbol,
                 'label': outcomeLabel,
                 'active': active,
+                'precision': {
+                    'amount': 0.000001,
+                    'price': 0.001,
+                },
                 'info': {
                     'slug': slug,
                     'address': address,

@@ -520,6 +520,10 @@ export default class hyperliquid extends Exchange {
         const quoteCurrency = this.safeString (this.options, 'outcomeQuoteCurrency', 'USDH');
         const szDecimals = 4;  // outcomes use 4 decimal places
         const active = true;
+        const outcomePrecision = {
+            'amount': this.parseNumber (this.parsePrecision (szDecimals.toString ())),
+            'price': 0.0001,
+        };
         const outcomes = [
             {
                 'id': this.outcomeCoin (yesEncoding),
@@ -527,6 +531,7 @@ export default class hyperliquid extends Exchange {
                 'marketSymbol': parentSymbol,
                 'label': yesLabel,
                 'active': active,
+                'precision': outcomePrecision,
                 'info': {
                     'encoding': yesEncoding,
                     'assetId': this.outcomeAssetId (yesEncoding),
@@ -545,6 +550,7 @@ export default class hyperliquid extends Exchange {
                 'marketSymbol': parentSymbol,
                 'label': noLabel,
                 'active': active,
+                'precision': outcomePrecision,
                 'info': {
                     'encoding': noEncoding,
                     'assetId': this.outcomeAssetId (noEncoding),
@@ -588,10 +594,7 @@ export default class hyperliquid extends Exchange {
             'percentage': true,
             'tierBased': false,
             'feeSide': 'get',
-            'precision': {
-                'amount': this.parseNumber (this.parsePrecision (szDecimals.toString ())),
-                'price': 0.0001,
-            },
+            'precision': outcomePrecision,
             'limits': {
                 'leverage': { 'min': undefined, 'max': undefined },
                 'amount': { 'min': undefined, 'max': undefined },
