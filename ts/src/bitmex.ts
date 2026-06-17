@@ -747,7 +747,7 @@ export default class bitmex extends Exchange {
         } else if (typ === 'IFXXXP') {
             type = 'spot';
             spot = true;
-        } else if (typ === 'FFCCSX') {
+        } else if (typ === 'FFCCSX' || typ === 'FFMCSX') {
             type = 'future';
             future = true;
         } else if (typ === 'FFICSX') {
@@ -783,7 +783,7 @@ export default class bitmex extends Exchange {
                 const multiplierString = Precise.stringAbs (this.safeString (market, 'multiplier'));
                 contractSize = this.parseNumber (multiplierString);
             }
-            expiryDatetime = this.safeString (market, 'expiry');
+            expiryDatetime = this.safeString2 (market, 'expiry', 'closingTimestamp');
             expiry = this.parse8601 (expiryDatetime);
             if (expiry !== undefined) {
                 symbol = symbol + '-' + this.yymmdd (expiry);
