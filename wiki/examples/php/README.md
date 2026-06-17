@@ -36,11 +36,11 @@ php -f path/to/example.php # substitute for actual filename here
 
 - [Binance Spot Trailing](./examples/php/binance-spot-trailing.md)
 
-- [Bitfinex2 Fetch Ohlcv Since Limit](./examples/php/bitfinex2-fetch-ohlcv-since-limit.md)
+- [Bitfinex Fetch Ohlcv Since Limit](./examples/php/bitfinex-fetch-ohlcv-since-limit.md)
 
-- [Bitfinex2 Fetch Ohlcv](./examples/php/bitfinex2-fetch-ohlcv.md)
+- [Bitfinex Fetch Ohlcv](./examples/php/bitfinex-fetch-ohlcv.md)
 
-- [Bitfinex2 Fetch Trades Since](./examples/php/bitfinex2-fetch-trades-since.md)
+- [Bitfinex Fetch Trades Since](./examples/php/bitfinex-fetch-trades-since.md)
 
 - [Bitmex Create Order](./examples/php/bitmex-create-order.md)
 

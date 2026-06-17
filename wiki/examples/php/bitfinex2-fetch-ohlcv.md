@@ -5,12 +5,12 @@ include './ccxt.php';
 
 date_default_timezone_set('UTC');
 
-$exchange = '\\ccxt\\bitfinex2';
+$exchange = '\\ccxt\\bitfinex';
 $exchange = new $exchange(array(
     'rateLimit' => 12000,
 ));
 
-// bitfinex2 breaks occasionally
+// bitfinex breaks occasionally
 
 for ($i = 0; $i < 1000; $i++) {
     $ohlcv = $exchange->fetch_ohlcv('BTC/USD', '1m');
