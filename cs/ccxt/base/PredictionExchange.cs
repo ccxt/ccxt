@@ -262,7 +262,10 @@ public partial class PredictionExchange : Exchange
     public virtual void setOutcomesFromMarkets()
     {
         // prediction markets carry their outcome tokens under the outcomes key,
-        // rebuild the outcome lookup caches so cached market data works offline
+        // rebuild the outcome lookup caches so cached market data works offline.
+        // normalize each outcome object to the canonical identity keys (outcome /
+        // outcomeId / market) so consumers and the safe* helpers are uniform even when
+        // an exchange's parseMarket still emits the legacy symbol / id / marketSymbol keys.
         this.outcomes = new Dictionary<string, object>() {};
         this.outcomes_by_id = new Dictionary<string, object>() {};
         object marketKeys = new List<object>(((IDictionary<string,object>)this.markets).Keys);
@@ -273,12 +276,18 @@ public partial class PredictionExchange : Exchange
             for (object j = 0; isLessThan(j, getArrayLength(outcomesList)); postFixIncrement(ref j))
             {
                 object oc = getValue(outcomesList, j);
-                object ocSymbol = this.safeString(oc, "outcome");
+                object ocSymbol = this.safeString2(oc, "outcome", "symbol");
+                object ocId = this.safeString2(oc, "outcomeId", "id");
+                // assign unconditionally — safeString2 keeps the canonical key when present
+                // and falls back to the legacy one, so this never clobbers and avoids a
+                // missing-key access (which throws in Python/PHP, unlike TS undefined)
+                ((IDictionary<string,object>)oc)["outcome"] = ocSymbol;
+                ((IDictionary<string,object>)oc)["outcomeId"] = ocId;
+                ((IDictionary<string,object>)oc)["market"] = this.safeString2(oc, "market", "marketSymbol");
                 if (isTrue(!isEqual(ocSymbol, null)))
                 {
                     ((IDictionary<string,object>)this.outcomes)[(string)ocSymbol] = oc;
                 }
-                object ocId = this.safeString(oc, "outcomeId");
                 if (isTrue(!isEqual(ocId, null)))
                 {
                     ((IDictionary<string,object>)this.outcomes_by_id)[(string)ocId] = oc;

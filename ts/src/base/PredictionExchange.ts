@@ -220,7 +220,10 @@ export default class PredictionExchange extends Exchange {
 
     setOutcomesFromMarkets () {
         // prediction markets carry their outcome tokens under the outcomes key,
-        // rebuild the outcome lookup caches so cached market data works offline
+        // rebuild the outcome lookup caches so cached market data works offline.
+        // normalize each outcome object to the canonical identity keys (outcome /
+        // outcomeId / market) so consumers and the safe* helpers are uniform even when
+        // an exchange's parseMarket still emits the legacy symbol / id / marketSymbol keys.
         this.outcomes = {};
         this.outcomes_by_id = {};
         const marketKeys = Object.keys (this.markets);
@@ -229,11 +232,17 @@ export default class PredictionExchange extends Exchange {
             const outcomesList = this.safeList (market, 'outcomes', []);
             for (let j = 0; j < outcomesList.length; j++) {
                 const oc = outcomesList[j];
-                const ocSymbol = this.safeString (oc, 'outcome');
+                const ocSymbol = this.safeString2 (oc, 'outcome', 'symbol');
+                const ocId = this.safeString2 (oc, 'outcomeId', 'id');
+                // assign unconditionally — safeString2 keeps the canonical key when present
+                // and falls back to the legacy one, so this never clobbers and avoids a
+                // missing-key access (which throws in Python/PHP, unlike TS undefined)
+                oc['outcome'] = ocSymbol;
+                oc['outcomeId'] = ocId;
+                oc['market'] = this.safeString2 (oc, 'market', 'marketSymbol');
                 if (ocSymbol !== undefined) {
                     this.outcomes[ocSymbol] = oc;
                 }
-                const ocId = this.safeString (oc, 'outcomeId');
                 if (ocId !== undefined) {
                     this.outcomes_by_id[ocId] = oc;
                 }

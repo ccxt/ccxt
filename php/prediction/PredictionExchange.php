@@ -229,7 +229,10 @@ class PredictionExchange extends \ccxt\async\Exchange {
 
     public function set_outcomes_from_markets() {
         // prediction markets carry their outcome tokens under the outcomes key,
-        // rebuild the outcome lookup caches so cached $market data works offline
+        // rebuild the outcome lookup caches so cached $market data works offline.
+        // normalize each outcome object to the canonical identity keys (outcome /
+        // outcomeId / $market) so consumers and the safe* helpers are uniform even when
+        // an exchange's parseMarket still emits the legacy symbol / id / marketSymbol keys.
         $this->outcomes = array();
         $this->outcomes_by_id = array();
         $marketKeys = is_array($this->markets) ? array_keys($this->markets) : array();
@@ -238,11 +241,17 @@ class PredictionExchange extends \ccxt\async\Exchange {
             $outcomesList = $this->safe_list($market, 'outcomes', array());
             for ($j = 0; $j < count($outcomesList); $j++) {
                 $oc = $outcomesList[$j];
-                $ocSymbol = $this->safe_string($oc, 'outcome');
+                $ocSymbol = $this->safe_string_2($oc, 'outcome', 'symbol');
+                $ocId = $this->safe_string_2($oc, 'outcomeId', 'id');
+                // assign unconditionally — safeString2 keeps the canonical key when present
+                // and falls back to the legacy one, so this never clobbers and avoids a
+                // missing-key access (which throws in Python/PHP, unlike TS null)
+                $oc['outcome'] = $ocSymbol;
+                $oc['outcomeId'] = $ocId;
+                $oc['market'] = $this->safe_string_2($oc, 'market', 'marketSymbol');
                 if ($ocSymbol !== null) {
                     $this->outcomes[$ocSymbol] = $oc;
                 }
-                $ocId = $this->safe_string($oc, 'outcomeId');
                 if ($ocId !== null) {
                     $this->outcomes_by_id[$ocId] = $oc;
                 }

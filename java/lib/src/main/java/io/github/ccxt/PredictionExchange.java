@@ -308,7 +308,10 @@ public Object isPrediction()
     public void setOutcomesFromMarkets()
     {
         // prediction markets carry their outcome tokens under the outcomes key,
-        // rebuild the outcome lookup caches so cached market data works offline
+        // rebuild the outcome lookup caches so cached market data works offline.
+        // normalize each outcome object to the canonical identity keys (outcome /
+        // outcomeId / market) so consumers and the safe* helpers are uniform even when
+        // an exchange's parseMarket still emits the legacy symbol / id / marketSymbol keys.
         this.outcomes = new java.util.HashMap<String, Object>() {{}};
         this.outcomes_by_id = new java.util.HashMap<String, Object>() {{}};
         Object marketKeys = Helpers.objectKeys(this.markets);
@@ -319,12 +322,18 @@ public Object isPrediction()
             for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(outcomesList)); j++)
             {
                 Object oc = Helpers.GetValue(outcomesList, j);
-                Object ocSymbol = this.safeString(oc, "outcome");
+                Object ocSymbol = this.safeString2(oc, "outcome", "symbol");
+                Object ocId = this.safeString2(oc, "outcomeId", "id");
+                // assign unconditionally — safeString2 keeps the canonical key when present
+                // and falls back to the legacy one, so this never clobbers and avoids a
+                // missing-key access (which throws in Python/PHP, unlike TS undefined)
+                Helpers.addElementToObject(oc, "outcome", ocSymbol);
+                Helpers.addElementToObject(oc, "outcomeId", ocId);
+                Helpers.addElementToObject(oc, "market", this.safeString2(oc, "market", "marketSymbol"));
                 if (Helpers.isTrue(!Helpers.isEqual(ocSymbol, null)))
                 {
                     Helpers.addElementToObject(this.outcomes, ocSymbol, oc);
                 }
-                Object ocId = this.safeString(oc, "outcomeId");
                 if (Helpers.isTrue(!Helpers.isEqual(ocId, null)))
                 {
                     Helpers.addElementToObject(this.outcomes_by_id, ocId, oc);

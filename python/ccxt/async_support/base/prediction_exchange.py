@@ -185,7 +185,10 @@ class PredictionExchange(Exchange):
 
     def set_outcomes_from_markets(self):
         # prediction markets carry their outcome tokens under the outcomes key,
-        # rebuild the outcome lookup caches so cached market data works offline
+        # rebuild the outcome lookup caches so cached market data works offline.
+        # normalize each outcome object to the canonical identity keys(outcome /
+        # outcomeId / market) so consumers and the safe* helpers are uniform even when
+        # an exchange's parseMarket still emits the legacy symbol / id / marketSymbol keys.
         self.outcomes = {}
         self.outcomes_by_id = {}
         marketKeys = list(self.markets.keys())
@@ -194,10 +197,16 @@ class PredictionExchange(Exchange):
             outcomesList = self.safe_list(market, 'outcomes', [])
             for j in range(0, len(outcomesList)):
                 oc = outcomesList[j]
-                ocSymbol = self.safe_string(oc, 'outcome')
+                ocSymbol = self.safe_string_2(oc, 'outcome', 'symbol')
+                ocId = self.safe_string_2(oc, 'outcomeId', 'id')
+                # assign unconditionally — safeString2 keeps the canonical key when present
+                # and falls back to the legacy one, so self never clobbers and avoids a
+                # missing-key access(which throws in Python/PHP, unlike TS None)
+                oc['outcome'] = ocSymbol
+                oc['outcomeId'] = ocId
+                oc['market'] = self.safe_string_2(oc, 'market', 'marketSymbol')
                 if ocSymbol is not None:
                     self.outcomes[ocSymbol] = oc
-                ocId = self.safe_string(oc, 'outcomeId')
                 if ocId is not None:
                     self.outcomes_by_id[ocId] = oc
 
