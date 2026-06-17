@@ -515,7 +515,9 @@ export default class Exchange {
     getTempDir = getTempDir;
 
     constructor (userConfig: ConstructorArgs = {}) {
+        const isDictMethod = this.isDictionary;
         Object.assign (this, functions);
+        this.isDictionary = isDictMethod;
         //
         //     if (isNode) {
         //         this.nodeVersion = process.version.match (/\d+\.\d+\.\d+/)[0]
