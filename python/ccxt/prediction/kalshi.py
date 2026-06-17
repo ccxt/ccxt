@@ -327,10 +327,14 @@ class kalshi(PredictionExchange, ImplicitAPI):
         outcomes: List[Any] = []
         for oi in range(0, len(outcomeLabels)):
             label = outcomeLabels[oi]
+            outcomeHandle = marketSymbol + ':' + label
             outcomes.append({
                 'id': outcomeIds[oi],
-                'symbol': marketSymbol + ':' + label,
+                'outcomeId': outcomeIds[oi],
+                'symbol': outcomeHandle,
+                'outcome': outcomeHandle,
                 'marketSymbol': marketSymbol,
+                'market': marketSymbol,
                 'label': label,
                 'active': active,
                 'info': {

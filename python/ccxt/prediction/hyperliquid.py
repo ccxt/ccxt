@@ -453,8 +453,11 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         outcomes = [
             {
                 'id': self.outcome_coin(yesEncoding),
+                'outcomeId': self.outcome_coin(yesEncoding),
                 'symbol': yesOutcomeSymbol,
+                'outcome': yesOutcomeSymbol,
                 'marketSymbol': parentSymbol,
+                'market': parentSymbol,
                 'label': yesLabel,
                 'active': active,
                 'info': {
@@ -471,8 +474,11 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             },
             {
                 'id': self.outcome_coin(noEncoding),
+                'outcomeId': self.outcome_coin(noEncoding),
                 'symbol': noOutcomeSymbol,
+                'outcome': noOutcomeSymbol,
                 'marketSymbol': parentSymbol,
+                'market': parentSymbol,
                 'label': noLabel,
                 'active': active,
                 'info': {

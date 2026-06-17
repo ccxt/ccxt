@@ -1733,10 +1733,15 @@ public partial class myriad : PredictionExchange
             object outcomeId = this.safeString(outcome, "outcomeId", this.safeString(outcome, "id", ((object)i).ToString()));
             object outcomeLabel = this.safeString(outcome, "label", this.safeString(outcome, "title", outcomeId));
             object price = this.safeNumber(outcome, "price");
+            object outcomeHandle = this.slugToOutcomeSymbol(slugBase, slug, outcomeLabel);
+            object outcomeCompositeId = add(add(add(add(networkId, ":"), marketId), "/"), outcomeId);
             ((IList<object>)outcomes).Add(new Dictionary<string, object>() {
-                { "id", add(add(add(add(networkId, ":"), marketId), "/"), outcomeId) },
-                { "symbol", this.slugToOutcomeSymbol(slugBase, slug, outcomeLabel) },
+                { "id", outcomeCompositeId },
+                { "outcomeId", outcomeCompositeId },
+                { "symbol", outcomeHandle },
+                { "outcome", outcomeHandle },
                 { "marketSymbol", marketSymbol },
+                { "market", marketSymbol },
                 { "label", outcomeLabel },
                 { "active", active },
                 { "info", new Dictionary<string, object>() {

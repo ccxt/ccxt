@@ -381,6 +381,7 @@ public class KalshiCore extends KalshiApi
         for (var oi = 0; Helpers.isLessThan(oi, Helpers.getArrayLength(outcomeLabels)); oi++)
         {
             Object label = Helpers.GetValue(outcomeLabels, oi);
+            Object outcomeHandle = Helpers.add(Helpers.add(marketSymbol, ":"), label);
 final Object finalOi = oi;
             final Object finalMarketSymbol = marketSymbol;
             final Object finalTicker = ticker;
@@ -388,8 +389,11 @@ final Object finalOi = oi;
             final Object finalSubtitle = subtitle;
                         ((java.util.List<Object>)outcomes).add(new java.util.HashMap<String, Object>() {{
                 put( "id", Helpers.GetValue(outcomeIds, finalOi) );
-                put( "symbol", Helpers.add(Helpers.add(finalMarketSymbol, ":"), label) );
+                put( "outcomeId", Helpers.GetValue(outcomeIds, finalOi) );
+                put( "symbol", outcomeHandle );
+                put( "outcome", outcomeHandle );
                 put( "marketSymbol", finalMarketSymbol );
+                put( "market", finalMarketSymbol );
                 put( "label", label );
                 put( "active", active );
                 put( "info", new java.util.HashMap<String, Object>() {{

@@ -356,10 +356,14 @@ export default class kalshi extends Exchange {
         const outcomes: any[] = [];
         for (let oi = 0; oi < outcomeLabels.length; oi++) {
             const label = outcomeLabels[oi];
+            const outcomeHandle = marketSymbol + ':' + label;
             outcomes.push ({
                 'id': outcomeIds[oi],
-                'symbol': marketSymbol + ':' + label,
+                'outcomeId': outcomeIds[oi],
+                'symbol': outcomeHandle,
+                'outcome': outcomeHandle,
                 'marketSymbol': marketSymbol,
+                'market': marketSymbol,
                 'label': label,
                 'active': active,
                 'precision': precision,

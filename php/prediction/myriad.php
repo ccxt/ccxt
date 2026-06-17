@@ -1556,10 +1556,15 @@ class myriad extends Exchange {
             $outcomeId = $this->safe_string($outcome, 'outcomeId', $this->safe_string($outcome, 'id', (string) $i));
             $outcomeLabel = $this->safe_string($outcome, 'label', $this->safe_string($outcome, 'title', $outcomeId));
             $price = $this->safe_number($outcome, 'price');
+            $outcomeHandle = $this->slugToOutcomeSymbol ($slugBase, $slug, $outcomeLabel);
+            $outcomeCompositeId = $networkId . ':' . $marketId . '/' . $outcomeId;
             $outcomes[] = array(
-                'id' => $networkId . ':' . $marketId . '/' . $outcomeId,
-                'symbol' => $this->slugToOutcomeSymbol ($slugBase, $slug, $outcomeLabel),
+                'id' => $outcomeCompositeId,
+                'outcomeId' => $outcomeCompositeId,
+                'symbol' => $outcomeHandle,
+                'outcome' => $outcomeHandle,
                 'marketSymbol' => $marketSymbol,
+                'market' => $marketSymbol,
                 'label' => $outcomeLabel,
                 'active' => $active,
                 'info' => array(

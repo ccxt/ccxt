@@ -1386,10 +1386,15 @@ class myriad(PredictionExchange, ImplicitAPI):
             outcomeId = self.safe_string(outcome, 'outcomeId', self.safe_string(outcome, 'id', str(i)))
             outcomeLabel = self.safe_string(outcome, 'label', self.safe_string(outcome, 'title', outcomeId))
             price = self.safe_number(outcome, 'price')
+            outcomeHandle = self.slugToOutcomeSymbol(slugBase, slug, outcomeLabel)
+            outcomeCompositeId = networkId + ':' + marketId + '/' + outcomeId
             outcomes.append({
-                'id': networkId + ':' + marketId + '/' + outcomeId,
-                'symbol': self.slugToOutcomeSymbol(slugBase, slug, outcomeLabel),
+                'id': outcomeCompositeId,
+                'outcomeId': outcomeCompositeId,
+                'symbol': outcomeHandle,
+                'outcome': outcomeHandle,
                 'marketSymbol': marketSymbol,
+                'market': marketSymbol,
                 'label': outcomeLabel,
                 'active': active,
                 'info': {

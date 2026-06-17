@@ -529,8 +529,11 @@ func  (this *HyperliquidCore) ParseOutcomeMarket(outcomeInfo any, outcomeId any,
     var active any = true
     var outcomes any = []any{map[string]any {
     "id": this.OutcomeCoin(yesEncoding),
+    "outcomeId": this.OutcomeCoin(yesEncoding),
     "symbol": yesOutcomeSymbol,
+    "outcome": yesOutcomeSymbol,
     "marketSymbol": parentSymbol,
+    "market": parentSymbol,
     "label": yesLabel,
     "active": active,
     "info": map[string]any {
@@ -546,8 +549,11 @@ func  (this *HyperliquidCore) ParseOutcomeMarket(outcomeInfo any, outcomeId any,
     },
 }, map[string]any {
     "id": this.OutcomeCoin(noEncoding),
+    "outcomeId": this.OutcomeCoin(noEncoding),
     "symbol": noOutcomeSymbol,
+    "outcome": noOutcomeSymbol,
     "marketSymbol": parentSymbol,
+    "market": parentSymbol,
     "label": noLabel,
     "active": active,
     "info": map[string]any {
@@ -668,8 +674,8 @@ func  (this *HyperliquidCore) FetchTicker(symbol any, optionalArgs ...any) <- ch
             _ = params
             var outcome any = symbol
         
-            retRes6498 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes6498)
+            retRes6558 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes6558)
             this.CheckEventsAndMarkets(outcome)
             var outcomeObj any = this.Outcome(outcome)
             var info any = this.SafeDict(outcomeObj, "info", map[string]any {})
@@ -722,8 +728,8 @@ func  (this *HyperliquidCore) FetchTickers(optionalArgs ...any) <- chan any {
             _ = params
             var outcomes any = symbols
         
-            retRes6858 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes6858)
+            retRes6918 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes6918)
             var requestedOutcomeSymbols any = map[string]any {}
             if ccxt.IsTrue(!ccxt.IsEqual(outcomes, nil)) {
                 for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(outcomes)); i++ {
@@ -866,8 +872,8 @@ func  (this *HyperliquidCore) FetchOrderBook(symbol any, optionalArgs ...any) <-
             _ = params
             var outcome any = symbol
         
-            retRes8068 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes8068)
+            retRes8128 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes8128)
             this.CheckEventsAndMarkets(outcome)
             var outcomeObj any = this.Outcome(outcome)
             var info any = this.SafeDict(outcomeObj, "info", map[string]any {})
@@ -940,8 +946,8 @@ func  (this *HyperliquidCore) FetchOHLCV(symbol any, optionalArgs ...any) <- cha
             _ = params
             var outcome any = symbol
         
-            retRes8578 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes8578)
+            retRes8638 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes8638)
             this.CheckEventsAndMarkets(outcome)
             var outcomeObj any = this.Outcome(outcome)
             var market any = this.Market(this.SafeString(outcomeObj, "marketSymbol"))
@@ -1098,8 +1104,8 @@ func  (this *HyperliquidCore) FetchPositions(optionalArgs ...any) <- chan any {
             _ = params
             var outcomes any = symbols
         
-            retRes9918 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes9918)
+            retRes9978 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes9978)
             var requestedOutcomeSymbols any = map[string]any {}
             if ccxt.IsTrue(!ccxt.IsEqual(outcomes, nil)) {
                 for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(outcomes)); i++ {
@@ -1330,11 +1336,11 @@ func  (this *HyperliquidCore) CreateOrder(symbol any, typeVar any, side any, amo
             _ = params
             var outcome any = symbol
         
-            retRes12058 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes12058)
+            retRes12118 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes12118)
         
-            retRes12068 := (<-this.InitializeClient())
-            ccxt.PanicOnError(retRes12068)
+            retRes12128 := (<-this.InitializeClient())
+            ccxt.PanicOnError(retRes12128)
             this.CheckEventsAndMarkets(outcome)
             var outcomeObj any = this.Outcome(outcome)
             var market any = this.Market(this.SafeString(outcomeObj, "marketSymbol"))
@@ -1511,11 +1517,11 @@ func  (this *HyperliquidCore) CancelOrders(ids any, optionalArgs ...any) <- chan
                 panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " cancelOrders() requires an outcome argument")))
             }
         
-            retRes13508 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes13508)
+            retRes13568 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes13568)
         
-            retRes13518 := (<-this.InitializeClient())
-            ccxt.PanicOnError(retRes13518)
+            retRes13578 := (<-this.InitializeClient())
+            ccxt.PanicOnError(retRes13578)
             this.CheckEventsAndMarkets(outcome)
             var outcomeObj any = this.Outcome(outcome)
             var outcomeInfo any = this.SafeDict(outcomeObj, "info", map[string]any {})
@@ -1638,8 +1644,8 @@ func  (this *HyperliquidCore) FetchOpenOrders(optionalArgs ...any) <- chan any {
             _ = params
             var outcome any = symbol
         
-            retRes14448 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes14448)
+            retRes14508 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes14508)
             var userAddress any = nil
             userAddressparamsVariable := this.HandlePublicAddress("fetchOpenOrders", params)
             userAddress = ccxt.GetValue(userAddressparamsVariable,0)
@@ -1703,8 +1709,8 @@ func  (this *HyperliquidCore) FetchOrders(optionalArgs ...any) <- chan any {
             _ = params
             var outcome any = symbol
         
-            retRes14808 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes14808)
+            retRes14868 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes14868)
             var userAddress any = nil
             userAddressparamsVariable := this.HandlePublicAddress("fetchOrders", params)
             userAddress = ccxt.GetValue(userAddressparamsVariable,0)
@@ -1775,8 +1781,8 @@ func  (this *HyperliquidCore) FetchOrder(id any, optionalArgs ...any) <- chan an
             _ = params
             var outcome any = symbol
         
-            retRes15318 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes15318)
+            retRes15378 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes15378)
             var userAddress any = nil
             userAddressparamsVariable := this.HandlePublicAddress("fetchOrder", params)
             userAddress = ccxt.GetValue(userAddressparamsVariable,0)
@@ -1956,8 +1962,8 @@ func  (this *HyperliquidCore) FetchMyTrades(optionalArgs ...any) <- chan any {
             _ = params
             var outcome any = symbol
         
-            retRes16898 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes16898)
+            retRes16958 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes16958)
             var userAddress any = nil
             userAddressparamsVariable := this.HandlePublicAddress("fetchMyTrades", params)
             userAddress = ccxt.GetValue(userAddressparamsVariable,0)
@@ -2085,8 +2091,8 @@ func  (this *HyperliquidCore) FetchEvents(optionalArgs ...any) <- chan any {
             _ = params
             var queries any = this.ParseSearchQueries(params)
         
-            retRes17968 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes17968)
+            retRes18028 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes18028)
             var marketValues any = ccxt.ObjectValues(this.Markets)
             // Group markets by parentSymbol
             var groupMap any = map[string]any {}
@@ -2122,8 +2128,8 @@ func  (this *HyperliquidCore) FetchEvents(optionalArgs ...any) <- chan any {
                 if !ccxt.IsTrue((ccxt.InOp(groupMap, parentSymbol))) {
                     ccxt.AddElementToObject(groupMap, parentSymbol, []any{})
                 }
-                retRes183212 := ccxt.GetValue(groupMap, parentSymbol)
-                ccxt.AppendToArray(&retRes183212, mkt)
+                retRes183812 := ccxt.GetValue(groupMap, parentSymbol)
+                ccxt.AppendToArray(&retRes183812, mkt)
             }
             var events any = []any{}
             var groupKeys any = ccxt.ObjectKeys(groupMap)

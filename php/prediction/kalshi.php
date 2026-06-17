@@ -348,10 +348,14 @@ class kalshi extends Exchange {
         $outcomes = array();
         for ($oi = 0; $oi < count($outcomeLabels); $oi++) {
             $label = $outcomeLabels[$oi];
+            $outcomeHandle = $marketSymbol . ':' . $label;
             $outcomes[] = array(
                 'id' => $outcomeIds[$oi],
-                'symbol' => $marketSymbol . ':' . $label,
+                'outcomeId' => $outcomeIds[$oi],
+                'symbol' => $outcomeHandle,
+                'outcome' => $outcomeHandle,
                 'marketSymbol' => $marketSymbol,
+                'market' => $marketSymbol,
                 'label' => $label,
                 'active' => $active,
                 'info' => array(

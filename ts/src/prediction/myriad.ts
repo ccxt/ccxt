@@ -1546,10 +1546,15 @@ export default class myriad extends Exchange {
             const outcomeId = this.safeString (outcome, 'outcomeId', this.safeString (outcome, 'id', i.toString ()));
             const outcomeLabel = this.safeString (outcome, 'label', this.safeString (outcome, 'title', outcomeId));
             const price = this.safeNumber (outcome, 'price');
+            const outcomeHandle = this.slugToOutcomeSymbol (slugBase, slug, outcomeLabel);
+            const outcomeCompositeId = networkId + ':' + marketId + '/' + outcomeId;
             outcomes.push ({
-                'id': networkId + ':' + marketId + '/' + outcomeId,
-                'symbol': this.slugToOutcomeSymbol (slugBase, slug, outcomeLabel),
+                'id': outcomeCompositeId,
+                'outcomeId': outcomeCompositeId,
+                'symbol': outcomeHandle,
+                'outcome': outcomeHandle,
                 'marketSymbol': marketSymbol,
+                'market': marketSymbol,
                 'label': outcomeLabel,
                 'active': active,
                 'precision': {

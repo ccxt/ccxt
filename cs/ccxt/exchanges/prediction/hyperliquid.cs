@@ -571,8 +571,11 @@ public partial class hyperliquid : PredictionExchange
         object active = true;
         object outcomes = new List<object>() {new Dictionary<string, object>() {
     { "id", this.outcomeCoin(yesEncoding) },
+    { "outcomeId", this.outcomeCoin(yesEncoding) },
     { "symbol", yesOutcomeSymbol },
+    { "outcome", yesOutcomeSymbol },
     { "marketSymbol", parentSymbol },
+    { "market", parentSymbol },
     { "label", yesLabel },
     { "active", active },
     { "info", new Dictionary<string, object>() {
@@ -588,8 +591,11 @@ public partial class hyperliquid : PredictionExchange
     } },
 }, new Dictionary<string, object>() {
     { "id", this.outcomeCoin(noEncoding) },
+    { "outcomeId", this.outcomeCoin(noEncoding) },
     { "symbol", noOutcomeSymbol },
+    { "outcome", noOutcomeSymbol },
     { "marketSymbol", parentSymbol },
+    { "market", parentSymbol },
     { "label", noLabel },
     { "active", active },
     { "info", new Dictionary<string, object>() {

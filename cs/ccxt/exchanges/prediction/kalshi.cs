@@ -362,10 +362,14 @@ public partial class kalshi : PredictionExchange
         for (object oi = 0; isLessThan(oi, getArrayLength(outcomeLabels)); postFixIncrement(ref oi))
         {
             object label = getValue(outcomeLabels, oi);
+            object outcomeHandle = add(add(marketSymbol, ":"), label);
             ((IList<object>)outcomes).Add(new Dictionary<string, object>() {
                 { "id", getValue(outcomeIds, oi) },
-                { "symbol", add(add(marketSymbol, ":"), label) },
+                { "outcomeId", getValue(outcomeIds, oi) },
+                { "symbol", outcomeHandle },
+                { "outcome", outcomeHandle },
                 { "marketSymbol", marketSymbol },
+                { "market", marketSymbol },
                 { "label", label },
                 { "active", active },
                 { "info", new Dictionary<string, object>() {

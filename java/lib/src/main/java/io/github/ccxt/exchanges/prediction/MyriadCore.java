@@ -1924,12 +1924,17 @@ public class MyriadCore extends MyriadApi
             Object outcomeId = this.safeString(outcome, "outcomeId", this.safeString(outcome, "id", String.valueOf(i)));
             Object outcomeLabel = this.safeString(outcome, "label", this.safeString(outcome, "title", outcomeId));
             Object price = this.safeNumber(outcome, "price");
+            Object outcomeHandle = this.slugToOutcomeSymbol(slugBase, slug, outcomeLabel);
+            Object outcomeCompositeId = Helpers.add(Helpers.add(Helpers.add(Helpers.add(networkId, ":"), marketId), "/"), outcomeId);
 final Object finalNetworkId = networkId;
             final Object finalState = state;
                         ((java.util.List<Object>)outcomes).add(new java.util.HashMap<String, Object>() {{
-                put( "id", Helpers.add(Helpers.add(Helpers.add(Helpers.add(finalNetworkId, ":"), marketId), "/"), outcomeId) );
-                put( "symbol", MyriadCore.this.slugToOutcomeSymbol(slugBase, slug, outcomeLabel) );
+                put( "id", outcomeCompositeId );
+                put( "outcomeId", outcomeCompositeId );
+                put( "symbol", outcomeHandle );
+                put( "outcome", outcomeHandle );
                 put( "marketSymbol", marketSymbol );
+                put( "market", marketSymbol );
                 put( "label", outcomeLabel );
                 put( "active", active );
                 put( "info", new java.util.HashMap<String, Object>() {{

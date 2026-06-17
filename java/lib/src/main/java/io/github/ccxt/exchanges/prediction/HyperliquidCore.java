@@ -590,8 +590,11 @@ public class HyperliquidCore extends HyperliquidApi
         final Object finalParentSymbol = parentSymbol;
         Object outcomes = new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
     put( "id", HyperliquidCore.this.outcomeCoin(yesEncoding) );
+    put( "outcomeId", HyperliquidCore.this.outcomeCoin(yesEncoding) );
     put( "symbol", yesOutcomeSymbol );
+    put( "outcome", yesOutcomeSymbol );
     put( "marketSymbol", finalParentSymbol );
+    put( "market", finalParentSymbol );
     put( "label", yesLabel );
     put( "active", active );
     put( "info", new java.util.HashMap<String, Object>() {{
@@ -607,8 +610,11 @@ public class HyperliquidCore extends HyperliquidApi
     }} );
 }}, new java.util.HashMap<String, Object>() {{
     put( "id", HyperliquidCore.this.outcomeCoin(noEncoding) );
+    put( "outcomeId", HyperliquidCore.this.outcomeCoin(noEncoding) );
     put( "symbol", noOutcomeSymbol );
+    put( "outcome", noOutcomeSymbol );
     put( "marketSymbol", finalParentSymbol );
+    put( "market", finalParentSymbol );
     put( "label", noLabel );
     put( "active", active );
     put( "info", new java.util.HashMap<String, Object>() {{

@@ -503,8 +503,11 @@ class hyperliquid extends Exchange {
         $outcomes = array(
             array(
                 'id' => $this->outcome_coin($yesEncoding),
+                'outcomeId' => $this->outcome_coin($yesEncoding),
                 'symbol' => $yesOutcomeSymbol,
+                'outcome' => $yesOutcomeSymbol,
                 'marketSymbol' => $parentSymbol,
+                'market' => $parentSymbol,
                 'label' => $yesLabel,
                 'active' => $active,
                 'info' => array(
@@ -521,8 +524,11 @@ class hyperliquid extends Exchange {
             ),
             array(
                 'id' => $this->outcome_coin($noEncoding),
+                'outcomeId' => $this->outcome_coin($noEncoding),
                 'symbol' => $noOutcomeSymbol,
+                'outcome' => $noOutcomeSymbol,
                 'marketSymbol' => $parentSymbol,
+                'market' => $parentSymbol,
                 'label' => $noLabel,
                 'active' => $active,
                 'info' => array(
