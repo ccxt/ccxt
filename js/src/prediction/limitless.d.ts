@@ -299,7 +299,7 @@ export default class limitless extends Exchange {
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
     fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
-    getPositionFromClobEntry(label: string, entry?: Dict): Position;
+    getPositionFromClobEntry(label: string, entry?: Dict): import("../base/types.js").PredictionPosition;
     /**
      * @ignore
      * @method

@@ -1369,11 +1369,6 @@ public partial class Exchange
         var res = await this.fetchOrdersByStatusWs(status, symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
-    public async Task<List<Dictionary<string, object>>> FetchEvents(List<String> queries = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchEvents(queries, parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
-    }
 }
 // class wrappers
 public class  Aftermath: aftermath { public Aftermath(object args = null) : base(args) { } }

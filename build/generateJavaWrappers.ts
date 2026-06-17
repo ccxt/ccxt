@@ -37,6 +37,8 @@ const KNOWN_TYPES = new Set([
     'IsolatedBorrowRate', 'IsolatedBorrowRates',
     'FundingHistory', 'DepositWithdrawFee',
     'OrderRequest', 'CancellationRequest', 'WithdrawalResponse',
+    // native dedicated prediction-market types (io.github.ccxt.types.Prediction*)
+    'PredictionTicker', 'PredictionOrder', 'PredictionTrade', 'PredictionPosition', 'PredictionOrderBook',
 ]);
 
 // --- Type helpers ---
@@ -573,6 +575,29 @@ let generated = 0;
 // Exchange.createOrderWs which throws NotSupported.
 const isWsApi = (m: MethodInfo) => m.name.endsWith('Ws');
 const restMethods = methods.filter(m => !m.isWatch && !isWsApi(m));
+
+// Prediction exchanges return the native dedicated Prediction* types. The shared
+// restMethods list is parsed from base Exchange.ts (base return types), so remap the
+// trading return types to their prediction equivalents for the prediction package.
+const PREDICTION_TYPE_MAP: Record<string, string> = {
+    'Ticker': 'PredictionTicker',
+    'Order': 'PredictionOrder',
+    'Trade': 'PredictionTrade',
+    'Position': 'PredictionPosition',
+};
+function toPredictionMethods(rest: MethodInfo[]): MethodInfo[] {
+    return rest.map((m) => {
+        if (m.isArray && m.elementType && PREDICTION_TYPE_MAP[m.elementType]) {
+            const elem = PREDICTION_TYPE_MAP[m.elementType];
+            return { ...m, elementType: elem, javaReturnType: `List<${elem}>` };
+        }
+        if (!m.isArray && PREDICTION_TYPE_MAP[m.javaReturnType]) {
+            return { ...m, javaReturnType: PREDICTION_TYPE_MAP[m.javaReturnType] };
+        }
+        return m;
+    });
+}
+const predictionRestMethods = toPredictionMethods(restMethods);
 for (const coreFile of coreFiles) {
     const exchangeId = coreFile.replace('Core.java', '').toLowerCase();
     const className = capitalize(exchangeId);
@@ -614,7 +639,7 @@ if (fs.existsSync(PREDICTION_EXCHANGES_FOLDER)) {
         const exchangeId = coreFile.replace('Core.java', '').toLowerCase();
         const className = capitalize(exchangeId);
         const outputPath = `${PREDICTION_EXCHANGES_FOLDER}${className}.java`;
-        const content = generateTypedExchangeClass(exchangeId, restMethods, 'io.github.ccxt.exchanges.prediction');
+        const content = generateTypedExchangeClass(exchangeId, predictionRestMethods, 'io.github.ccxt.exchanges.prediction');
         fs.writeFileSync(outputPath, content, 'utf-8');
         predGenerated++;
     }

@@ -30,10 +30,18 @@ public partial class PredictionExchange : Exchange
         };
     }
 
-    public async virtual Task checkEventsAndMarkets(object outcome = null)
+    public virtual void checkEventsAndMarkets(object outcome = null)
     {
+        // pure synchronous guard (no I/O) — callers invoke it without await, so leaving it
+        // async would make the coroutine never run in Python/PHP and silently skip validation.
         // outcomes are the real dependency for resolving a symbol; they are populated by
-        // fetchEvents and also rebuilt from cached markets (loadMarkets), so accept either
+        // fetchEvents and also rebuilt from cached markets (loadMarkets), so accept either.
+        // rebuild lazily from cached markets here because the setMarkets override that
+        // normally does it is not dispatched by the base loadMarkets under the AST languages.
+        if (isTrue(isTrue((!isTrue(this.outcomes) || isTrue(this.isEmpty(this.outcomes)))) && !isTrue(this.isEmpty(this.markets))))
+        {
+            this.setOutcomesFromMarkets();
+        }
         if (isTrue(!isTrue(this.outcomes) || isTrue(this.isEmpty(this.outcomes))))
         {
             throw new ArgumentsRequired ((string)"Outcomes are required to be loaded, please fetch them first using fetchEvents (or loadMarkets)") ;

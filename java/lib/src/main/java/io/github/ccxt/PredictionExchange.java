@@ -51,28 +51,30 @@ public Object isPrediction()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> checkEventsAndMarkets(Object... optionalArgs)
+    public void checkEventsAndMarkets(Object... optionalArgs)
     {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            // outcomes are the real dependency for resolving a symbol; they are populated by
-            // fetchEvents and also rebuilt from cached markets (loadMarkets), so accept either
-            Object outcome = Helpers.getArg(optionalArgs, 0, null);
-            if (Helpers.isTrue(!Helpers.isTrue(this.outcomes) || Helpers.isTrue(this.isEmpty(this.outcomes))))
+        // pure synchronous guard (no I/O) — callers invoke it without await, so leaving it
+        // async would make the coroutine never run in Python/PHP and silently skip validation.
+        // outcomes are the real dependency for resolving a symbol; they are populated by
+        // fetchEvents and also rebuilt from cached markets (loadMarkets), so accept either.
+        // rebuild lazily from cached markets here because the setMarkets override that
+        // normally does it is not dispatched by the base loadMarkets under the AST languages.
+        Object outcome = Helpers.getArg(optionalArgs, 0, null);
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isTrue(this.outcomes) || Helpers.isTrue(this.isEmpty(this.outcomes)))) && !Helpers.isTrue(this.isEmpty(this.markets))))
+        {
+            this.setOutcomesFromMarkets();
+        }
+        if (Helpers.isTrue(!Helpers.isTrue(this.outcomes) || Helpers.isTrue(this.isEmpty(this.outcomes))))
+        {
+            throw new ArgumentsRequired((String)"Outcomes are required to be loaded, please fetch them first using fetchEvents (or loadMarkets)") ;
+        }
+        if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
+        {
+            if (Helpers.isTrue(!Helpers.isTrue((Helpers.inOp(this.outcomes, outcome))) && !Helpers.isTrue((Helpers.inOp(this.outcomes_by_id, outcome)))))
             {
-                throw new ArgumentsRequired((String)"Outcomes are required to be loaded, please fetch them first using fetchEvents (or loadMarkets)") ;
+                throw new ArgumentsRequired((String)"The specified outcome is not valid/available, please fetch events and outcomes first using fetchEvents") ;
             }
-            if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
-            {
-                if (Helpers.isTrue(!Helpers.isTrue((Helpers.inOp(this.outcomes, outcome))) && !Helpers.isTrue((Helpers.inOp(this.outcomes_by_id, outcome)))))
-                {
-                    throw new ArgumentsRequired((String)"The specified outcome is not valid/available, please fetch events and outcomes first using fetchEvents") ;
-                }
-            }
-            return null;
-        });
-
+        }
     }
 
     public Object parseSearchQueries(Object... optionalArgs)

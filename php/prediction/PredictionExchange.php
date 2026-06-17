@@ -41,8 +41,15 @@ class PredictionExchange extends \ccxt\async\Exchange {
     }
 
     public function check_events_and_markets(?string $outcome = null) {
+        // pure synchronous guard (no I/O) — callers invoke it without await, so leaving it
+        // async would make the coroutine never run in Python/PHP and silently skip validation.
         // outcomes are the real dependency for resolving a symbol; they are populated by
-        // fetchEvents and also rebuilt from cached markets (loadMarkets), so accept either
+        // fetchEvents and also rebuilt from cached markets (loadMarkets), so accept either.
+        // rebuild lazily from cached markets here because the setMarkets override that
+        // normally does it is not dispatched by the base loadMarkets under the AST languages.
+        if ((!$this->outcomes || $this->is_empty($this->outcomes)) && !$this->is_empty($this->markets)) {
+            $this->set_outcomes_from_markets();
+        }
         if (!$this->outcomes || $this->is_empty($this->outcomes)) {
             throw new ArgumentsRequired('Outcomes are required to be loaded, please fetch them first using fetchEvents (or loadMarkets)');
         }

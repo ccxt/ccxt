@@ -646,6 +646,49 @@ class PredictionEvent(TypedDict):
     info: Any
 
 
+# Native dedicated prediction-market trading types. They inherit their base unified
+# TypedDict (so all base keys are valid) and add the prediction identity fields. The
+# inherited `symbol` is left unpopulated — `outcome` (the "MARKET:LABEL" handle) is the
+# canonical identity. Mirrors the `Prediction* extends <Base>` interfaces in
+# ts/src/base/types.ts and the native structs in Go/C#/Java.
+class PredictionTicker(Ticker):
+    outcome: str
+    outcomeId: Str
+    label: Str
+    market: Str
+    event: Str
+    openInterest: Num
+
+
+class PredictionOrder(Order):
+    outcome: str
+    outcomeId: Str
+    label: Str
+    market: Str
+    event: Str
+
+
+class PredictionTrade(Trade):
+    outcome: str
+    outcomeId: Str
+    label: Str
+    market: Str
+    realizedPnl: Num
+
+
+class PredictionPosition(Position):
+    outcome: str
+    outcomeId: Str
+    label: Str
+    market: Str
+    event: Str
+    oppositeOutcome: Str
+    resolved: Bool
+    won: Bool
+    settleFraction: Num
+    payout: Num
+
+
 Market = Optional[MarketInterface]
 Currency = Optional[CurrencyInterface]
 

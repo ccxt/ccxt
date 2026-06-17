@@ -1367,6 +1367,11 @@ class testMainClass {
         }
         const exchange = initExchange(exchangeName, options);
         exchange.currencies = currencies;
+        // prediction exchanges build their outcome lookup from markets via setMarkets;
+        // the offline config injects markets directly (bypassing setMarkets), so run it here
+        if (exchange.safeBool(exchange.has, 'prediction', false)) {
+            exchange.setMarkets(markets);
+        }
         // not working in python if assigned  in the config dict
         return exchange;
     }

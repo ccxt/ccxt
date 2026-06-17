@@ -36,9 +36,15 @@ class PredictionExchange(Exchange):
             'events': res[1],
         }
 
-    async def check_events_and_markets(self, outcome: Str = None):
+    def check_events_and_markets(self, outcome: Str = None):
+        # pure synchronous guard(no I/O) — callers invoke it without await, so leaving it
+        # async would make the coroutine never run in Python/PHP and silently skip validation.
         # outcomes are the real dependency for resolving a symbol; they are populated by
-        # fetchEvents and also rebuilt from cached markets(loadMarkets), so accept either
+        # fetchEvents and also rebuilt from cached markets(loadMarkets), so accept either.
+        # rebuild lazily from cached markets here because the setMarkets override that
+        # normally does it is not dispatched by the base loadMarkets under the AST languages.
+        if (not self.outcomes or self.is_empty(self.outcomes)) and not self.is_empty(self.markets):
+            self.set_outcomes_from_markets()
         if not self.outcomes or self.is_empty(self.outcomes):
             raise ArgumentsRequired('Outcomes are required to be loaded, please fetch them first using fetchEvents(or loadMarkets)')
         if outcome is not None:

@@ -250,6 +250,8 @@ class NewTranspiler {
             [/new ArrayCacheByTimestamp\(\)/gm, 'new ArrayCache.ArrayCacheByTimestamp()'],
             [/new ArrayCacheBySymbolById\((\w+)\)/gm, 'new ArrayCache.ArrayCacheBySymbolById(((Number)$1).intValue())'],
             [/new ArrayCacheBySymbolById\(\)/gm, 'new ArrayCache.ArrayCacheBySymbolById()'],
+            [/new ArrayCacheByOutcomeById\((\w+)\)/gm, 'new ArrayCache.ArrayCacheByOutcomeById(((Number)$1).intValue())'],
+            [/new ArrayCacheByOutcomeById\(\)/gm, 'new ArrayCache.ArrayCacheByOutcomeById()'],
             [/new ArrayCacheBySymbolBySide\((\w+)\)/gm, 'new ArrayCache.ArrayCacheBySymbolBySide(((Number)$1).intValue())'],
             [/new ArrayCacheBySymbolBySide\(\)/gm, 'new ArrayCache.ArrayCacheBySymbolBySide()'],
         ]

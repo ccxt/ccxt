@@ -190,112 +190,55 @@ export interface PredictionOutcome {
     precision?: Precision;       // outcome-level price/amount precision
 }
 
-export interface PredictionOrder {
-    info: any;
-    id: string;
-    clientOrderId?: Str;
-    timestamp: Int;
-    datetime: Str;
-    status: 'open' | 'closed' | 'canceled' | 'expired' | Str;
+// Prediction trading structures extend their base unified types so they stay
+// covariantly assignable (parse/fetch overrides type-check without casts) and map
+// 1:1 onto the native structs in Go/C#/Java (embed/inherit the base struct, add the
+// prediction fields). The inherited `symbol` is left unpopulated — `outcome` (the
+// "MARKET:LABEL" handle) is the canonical identity; price = probability 0..1,
+// amount = shares, cost = collateral.
+export interface PredictionOrder extends Order {
     outcome: string;             // handle "TRUMP_WIN_2024:YES"
     outcomeId?: Str;
     label?: Str;
     market?: Str;
     event?: Str;
-    side: 'buy' | 'sell' | Str;
-    type?: Str;
-    timeInForce?: Str;
-    price: Num;                  // probability 0..1
-    amount: Num;                 // shares
-    filled: Num;
-    remaining: Num;
-    average?: Num;
-    cost: Num;                   // collateral
-    currency?: Str;              // collateral currency
-    fee?: Fee;
-    trades?: PredictionTrade[];
+    trades: PredictionTrade[];
 }
 
-export interface PredictionTrade {
-    info: any;
-    id: Str;
-    order?: Str;
-    timestamp: Int;
-    datetime: Str;
+export interface PredictionTrade extends Trade {
     outcome: string;
     outcomeId?: Str;
     label?: Str;
     market?: Str;
-    side: 'buy' | 'sell' | Str;
-    takerOrMaker?: 'taker' | 'maker' | Str;
-    price: Num;                  // probability 0..1
-    amount: Num;                 // shares
-    cost: Num;                   // collateral
-    currency?: Str;
-    fee?: Fee;
     realizedPnl?: Num;
 }
 
-export interface PredictionPosition {
-    info: any;
-    id?: Str;
+export interface PredictionPosition extends Position {
     outcome: string;
     outcomeId?: Str;
     label?: Str;
     market?: Str;
     event?: Str;
     oppositeOutcome?: Str;       // complementary leg (NO when you hold YES)
-    timestamp?: Int;
-    datetime?: Str;
-    side: 'long' | Str;          // you hold shares; "short YES" = "long NO" (a different outcome)
-    contracts: Num;              // shares held
-    entryPrice?: Num;
-    markPrice?: Num;
-    notional?: Num;
-    cost?: Num;
-    currency?: Str;              // collateral currency (for cross-market P&L)
-    unrealizedPnl?: Num;
-    realizedPnl?: Num;
-    percentage?: Num;
     resolved?: Bool;
     won?: Bool;
     settleFraction?: Num;
     payout?: Num;                // claimable collateral after resolution
 }
 
-export interface PredictionTicker {
-    info: any;
+export interface PredictionTicker extends Ticker {
     outcome: string;
     outcomeId?: Str;
     label?: Str;
     market?: Str;
     event?: Str;
-    timestamp: Int;
-    datetime: Str;
-    bid?: Num;
-    bidVolume?: Num;
-    ask?: Num;
-    askVolume?: Num;
-    last?: Num;                  // probability 0..1
-    close?: Num;                 // mid
-    average?: Num;
-    previousClose?: Num;
-    change?: Num;
-    percentage?: Num;
-    baseVolume?: Num;            // shares traded
-    quoteVolume?: Num;           // collateral volume
     openInterest?: Num;
 }
 
-export interface PredictionOrderBook {
+export interface PredictionOrderBook extends OrderBook {
     outcome: string;             // required — books are per-outcome
     outcomeId?: Str;
     market?: Str;
-    bids: [Num, Num][];          // [probability 0..1, shares]
-    asks: [Num, Num][];
-    timestamp: Int;
-    datetime: Str;
-    nonce?: Int;
 }
 
 export interface Trade {

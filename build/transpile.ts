@@ -892,6 +892,10 @@ class Transpiler {
             'TransferEntry': /-> TransferEntry:/,
             'PredictionEvent': /-> (?:List\[)?PredictionEvent/,
             'PredictionOutcome': /: (?:List\[)?PredictionOutcome/,
+            'PredictionTicker': /-> (?:List\[)?PredictionTicker/,
+            'PredictionOrder': /-> (?:List\[)?PredictionOrder/,
+            'PredictionTrade': /-> (?:List\[)?PredictionTrade/,
+            'PredictionPosition': /-> (?:List\[)?PredictionPosition/,
         }
         const matches: string[] = []
         let match
@@ -1079,7 +1083,7 @@ class Transpiler {
         // WS infrastructure classes live in the ccxt\pro namespace; exchanges that reference
         // them from another namespace (e.g. prediction REST+WS) need explicit use imports
         const proInfraClasses = [
-            'ArrayCache', 'ArrayCacheBySymbolById', 'ArrayCacheBySymbolBySide', 'ArrayCacheByTimestamp',
+            'ArrayCache', 'ArrayCacheBySymbolById', 'ArrayCacheByOutcomeById', 'ArrayCacheBySymbolBySide', 'ArrayCacheByTimestamp',
             'OrderBook', 'IndexedOrderBook', 'CountedOrderBook',
             'Asks', 'Bids', 'CountedAsks', 'CountedBids', 'IndexedAsks', 'IndexedBids',
         ]
@@ -1730,7 +1734,7 @@ class Transpiler {
                     'Dictionary<any>': 'array',
                     'Dict': 'array',
                 }
-                const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|ADL|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRate|IsolatedBorrowRate|FundingRates|FundingRate|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|LongShortRatio|Position|BorrowInterest)( \| undefined)?$|\w+\[\]/
+                const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|ADL|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRate|IsolatedBorrowRate|FundingRates|FundingRate|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|LongShortRatio|Position|BorrowInterest|PredictionTicker|PredictionOrder|PredictionTrade|PredictionPosition|PredictionOrderBook|PredictionEvent|PredictionMarket|PredictionOutcome)( \| undefined)?$|\w+\[\]/
 
                 phpArgs = argsArray.map (x => {
                     const parts = x.split (':')

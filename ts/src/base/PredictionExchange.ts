@@ -2,7 +2,7 @@
 
 import { Exchange } from './Exchange.js';
 import { ExchangeError, BadSymbol, NotSupported, ArgumentsRequired } from './errors.js';
-import type { Str, Strings, Num, Int, Bool, Dictionary, Ticker, OrderBook, OHLCV, Trade, Order, OrderType, OrderSide, Dict, Position } from './types.js';
+import type { Str, Strings, Num, Int, Bool, Dictionary, Ticker, OrderBook, OHLCV, Trade, Order, OrderType, OrderSide, Dict, PredictionTicker, PredictionOrder, PredictionTrade, PredictionPosition } from './types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -35,9 +35,16 @@ export default class PredictionExchange extends Exchange {
         };
     }
 
-    async checkEventsAndMarkets (outcome: Str = undefined) {
+    checkEventsAndMarkets (outcome: Str = undefined) {
+        // pure synchronous guard (no I/O) — callers invoke it without await, so leaving it
+        // async would make the coroutine never run in Python/PHP and silently skip validation.
         // outcomes are the real dependency for resolving a symbol; they are populated by
-        // fetchEvents and also rebuilt from cached markets (loadMarkets), so accept either
+        // fetchEvents and also rebuilt from cached markets (loadMarkets), so accept either.
+        // rebuild lazily from cached markets here because the setMarkets override that
+        // normally does it is not dispatched by the base loadMarkets under the AST languages.
+        if ((!this.outcomes || this.isEmpty (this.outcomes)) && !this.isEmpty (this.markets)) {
+            this.setOutcomesFromMarkets ();
+        }
         if (!this.outcomes || this.isEmpty (this.outcomes)) {
             throw new ArgumentsRequired ('Outcomes are required to be loaded, please fetch them first using fetchEvents (or loadMarkets)');
         }
@@ -270,22 +277,22 @@ export default class PredictionExchange extends Exchange {
         return await super.watchTrades (outcome, since, limit, params);
     }
 
-    safePredictionOrder (order: Dict, market = undefined): Order {
+    safePredictionOrder (order: Dict, market = undefined): PredictionOrder {
         const parsed = super.safeOrder (order, market);
         return this.toPredictionStructure (parsed, order);
     }
 
-    safePredictionTrade (trade: Dict, market = undefined): Trade {
+    safePredictionTrade (trade: Dict, market = undefined): PredictionTrade {
         const parsed = super.safeTrade (trade, market);
         return this.toPredictionStructure (parsed, trade);
     }
 
-    safePredictionTicker (ticker: Dict, market = undefined): Ticker {
+    safePredictionTicker (ticker: Dict, market = undefined): PredictionTicker {
         const parsed = super.safeTicker (ticker, market);
         return this.toPredictionStructure (parsed, ticker);
     }
 
-    safePredictionPosition (position: Dict): Position {
+    safePredictionPosition (position: Dict): PredictionPosition {
         const parsed = super.safePosition (position);
         return this.toPredictionStructure (parsed, position);
     }

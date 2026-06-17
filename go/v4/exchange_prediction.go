@@ -38,27 +38,27 @@ func  (this *PredictionExchange) LoadMarketsAndEvents(optionalArgs ...any) <- ch
             }()
             return ch
         }
-func  (this *PredictionExchange) CheckEventsAndMarkets(optionalArgs ...any) <- chan any {
-            ch := make(chan any)
-            go func() any {
-                defer close(ch)
-                defer ReturnPanicError(ch)
-                    // outcomes are the real dependency for resolving a symbol; they are populated by
-            // fetchEvents and also rebuilt from cached markets (loadMarkets), so accept either
-            outcome := GetArg(optionalArgs, 0, nil)
-            _ = outcome
-            if IsTrue(!IsTrue(this.Outcomes) || IsTrue(this.IsEmpty(this.Outcomes))) {
-                panic(ArgumentsRequired("Outcomes are required to be loaded, please fetch them first using fetchEvents (or loadMarkets)"))
-            }
-            if IsTrue(!IsEqual(outcome, nil)) {
-                if IsTrue(!IsTrue((InOp(this.Outcomes, outcome))) && !IsTrue((InOp(this.Outcomes_by_id, outcome)))) {
-                    panic(ArgumentsRequired("The specified outcome is not valid/available, please fetch events and outcomes first using fetchEvents"))
-                }
-            }
-                return nil
-            }()
-            return ch
+func  (this *PredictionExchange) CheckEventsAndMarkets(optionalArgs ...any)  {
+    // pure synchronous guard (no I/O) — callers invoke it without await, so leaving it
+    // async would make the coroutine never run in Python/PHP and silently skip validation.
+    // outcomes are the real dependency for resolving a symbol; they are populated by
+    // fetchEvents and also rebuilt from cached markets (loadMarkets), so accept either.
+    // rebuild lazily from cached markets here because the setMarkets override that
+    // normally does it is not dispatched by the base loadMarkets under the AST languages.
+    outcome := GetArg(optionalArgs, 0, nil)
+    _ = outcome
+    if IsTrue(IsTrue((!IsTrue(this.Outcomes) || IsTrue(this.IsEmpty(this.Outcomes)))) && !IsTrue(this.IsEmpty(this.Markets))) {
+        this.SetOutcomesFromMarkets()
+    }
+    if IsTrue(!IsTrue(this.Outcomes) || IsTrue(this.IsEmpty(this.Outcomes))) {
+        panic(ArgumentsRequired("Outcomes are required to be loaded, please fetch them first using fetchEvents (or loadMarkets)"))
+    }
+    if IsTrue(!IsEqual(outcome, nil)) {
+        if IsTrue(!IsTrue((InOp(this.Outcomes, outcome))) && !IsTrue((InOp(this.Outcomes_by_id, outcome)))) {
+            panic(ArgumentsRequired("The specified outcome is not valid/available, please fetch events and outcomes first using fetchEvents"))
         }
+    }
+}
 func  (this *PredictionExchange) ParseSearchQueries(optionalArgs ...any) any  {
     // accepts either `query` (a single search string) or `queries` (a list of strings)
     params := GetArg(optionalArgs, 0, map[string]any {})
@@ -143,9 +143,9 @@ func  (this *PredictionExchange) LoadEvents(optionalArgs ...any) <- chan any {
             params := GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-                retRes9315 :=  (<-this.LoadEventsHelper(reload, params))
-                PanicOnError(retRes9315)
-                ch <- retRes9315
+                retRes10015 :=  (<-this.LoadEventsHelper(reload, params))
+                PanicOnError(retRes10015)
+                ch <- retRes10015
                 return nil
         
             }()
@@ -298,9 +298,9 @@ func  (this *PredictionExchange) FetchTicker(outcome any, optionalArgs ...any) <
                     params := GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
-                retRes23715 :=  (<-this.Exchange.FetchTicker(outcome, params))
-                PanicOnError(retRes23715)
-                ch <- retRes23715
+                retRes24415 :=  (<-this.Exchange.FetchTicker(outcome, params))
+                PanicOnError(retRes24415)
+                ch <- retRes24415
                 return nil
         
             }()
@@ -316,9 +316,9 @@ func  (this *PredictionExchange) FetchOrderBook(outcome any, optionalArgs ...any
             params := GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-                retRes24115 :=  (<-this.Exchange.FetchOrderBook(outcome, limit, params))
-                PanicOnError(retRes24115)
-                ch <- retRes24115
+                retRes24815 :=  (<-this.Exchange.FetchOrderBook(outcome, limit, params))
+                PanicOnError(retRes24815)
+                ch <- retRes24815
                 return nil
         
             }()
@@ -338,9 +338,9 @@ func  (this *PredictionExchange) FetchOHLCV(outcome any, optionalArgs ...any) <-
             params := GetArg(optionalArgs, 3, map[string]any {})
             _ = params
         
-                retRes24515 :=  (<-this.Exchange.FetchOHLCV(outcome, timeframe, since, limit, params))
-                PanicOnError(retRes24515)
-                ch <- retRes24515
+                retRes25215 :=  (<-this.Exchange.FetchOHLCV(outcome, timeframe, since, limit, params))
+                PanicOnError(retRes25215)
+                ch <- retRes25215
                 return nil
         
             }()
@@ -358,9 +358,9 @@ func  (this *PredictionExchange) FetchTrades(outcome any, optionalArgs ...any) <
             params := GetArg(optionalArgs, 2, map[string]any {})
             _ = params
         
-                retRes24915 :=  (<-this.Exchange.FetchTrades(outcome, since, limit, params))
-                PanicOnError(retRes24915)
-                ch <- retRes24915
+                retRes25615 :=  (<-this.Exchange.FetchTrades(outcome, since, limit, params))
+                PanicOnError(retRes25615)
+                ch <- retRes25615
                 return nil
         
             }()
@@ -376,9 +376,9 @@ func  (this *PredictionExchange) CreateOrder(outcome any, typeVar any, side any,
             params := GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-                retRes25315 :=  (<-this.Exchange.CreateOrder(outcome, typeVar, side, amount, price, params))
-                PanicOnError(retRes25315)
-                ch <- retRes25315
+                retRes26015 :=  (<-this.Exchange.CreateOrder(outcome, typeVar, side, amount, price, params))
+                PanicOnError(retRes26015)
+                ch <- retRes26015
                 return nil
         
             }()
@@ -394,9 +394,9 @@ func  (this *PredictionExchange) CancelOrder(id any, optionalArgs ...any) <- cha
             params := GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-                retRes25715 :=  (<-this.Exchange.CancelOrder(id, outcome, params))
-                PanicOnError(retRes25715)
-                ch <- retRes25715
+                retRes26415 :=  (<-this.Exchange.CancelOrder(id, outcome, params))
+                PanicOnError(retRes26415)
+                ch <- retRes26415
                 return nil
         
             }()
@@ -410,9 +410,9 @@ func  (this *PredictionExchange) WatchTicker(outcome any, optionalArgs ...any) <
                     params := GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
-                retRes26115 :=  (<-this.Exchange.WatchTicker(outcome, params))
-                PanicOnError(retRes26115)
-                ch <- retRes26115
+                retRes26815 :=  (<-this.Exchange.WatchTicker(outcome, params))
+                PanicOnError(retRes26815)
+                ch <- retRes26815
                 return nil
         
             }()
@@ -428,9 +428,9 @@ func  (this *PredictionExchange) WatchOrderBook(outcome any, optionalArgs ...any
             params := GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-                retRes26515 :=  (<-this.Exchange.WatchOrderBook(outcome, limit, params))
-                PanicOnError(retRes26515)
-                ch <- retRes26515
+                retRes27215 :=  (<-this.Exchange.WatchOrderBook(outcome, limit, params))
+                PanicOnError(retRes27215)
+                ch <- retRes27215
                 return nil
         
             }()
@@ -448,9 +448,9 @@ func  (this *PredictionExchange) WatchTrades(outcome any, optionalArgs ...any) <
             params := GetArg(optionalArgs, 2, map[string]any {})
             _ = params
         
-                retRes26915 :=  (<-this.Exchange.WatchTrades(outcome, since, limit, params))
-                PanicOnError(retRes26915)
-                ch <- retRes26915
+                retRes27615 :=  (<-this.Exchange.WatchTrades(outcome, since, limit, params))
+                PanicOnError(retRes27615)
+                ch <- retRes27615
                 return nil
         
             }()
