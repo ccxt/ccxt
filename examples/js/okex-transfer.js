@@ -7,7 +7,7 @@ console.log ('This example requires CCXT version 1.54.92 or higher')
 
 async function main () {
 
-    const exchange = new ccxt.okex ({
+    const exchange = new ccxt.okx ({
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_SECRET',
         'password': 'YOUR_API_KEY_PASSWORD',
@@ -24,7 +24,7 @@ async function main () {
     const oldVerboseMode = exchange.verbose
     exchange.verbose = process.argv.includes ('--verbose') || process.argv.includes ('-v')
 
-    // https://www.okex.com/docs-v5/en/#rest-api-funding-funds-transfer
+    // https://www.okx.com/docs-v5/en/#rest-api-funding-funds-transfer
     //
     //     'spot' == '1'
     //     'futures' == '3',

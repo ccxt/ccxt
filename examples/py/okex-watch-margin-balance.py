@@ -6,10 +6,10 @@ from pprint import pprint
 
 
 async def main():
-    exchange = ccxt.pro.okex({
+    exchange = ccxt.pro.okx({
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_SECRET',
-        # okex requires this: https://github.com/ccxt/ccxt/wiki/Manual#authentication
+        # okx requires this: https://github.com/ccxt/ccxt/wiki/Manual#authentication
         'password': 'YOUR_API_PASSWORD',
         'options': {
             'watchBalance': 'margin',
@@ -21,7 +21,7 @@ async def main():
     while True:
         try:
             balance = await exchange.watch_balance({
-                # okex watch_balance requires a symbol or an instrument_id
+                # okx watch_balance requires a symbol or an instrument_id
                 'symbol': 'BTC/USDT',
             })
             # it will print the balance update when the balance changes

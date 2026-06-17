@@ -26,7 +26,6 @@ async function main () {
         'upbit': 'BTC/USDT',
         'coinbasepro': 'BTC/USD',
         'okx': 'BTC/USDT',
-        'okex': 'BTC/USDT',
         'gate': 'BTC/USDT',
     };
 
