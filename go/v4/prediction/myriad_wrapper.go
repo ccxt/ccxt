@@ -130,7 +130,7 @@ func (this *Myriad) FetchEvent(id string, options ...FetchEventOptions) (map[str
  * @param {string} [params.address] the wallet address to query, defaults to this.walletAddress
  * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
  */
-func (this *Myriad) FetchPositions(options ...ccxt.FetchPositionsOptions) ([]ccxt.Position, error) {
+func (this *Myriad) FetchPositions(options ...ccxt.FetchPositionsOptions) ([]ccxt.PredictionPosition, error) {
 
     opts := ccxt.FetchPositionsOptionsStruct{}
 
@@ -151,7 +151,7 @@ func (this *Myriad) FetchPositions(options ...ccxt.FetchPositionsOptions) ([]ccx
     if ccxt.IsError(res) {
         return nil, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewPositionArray(res), nil
+    return ccxt.NewPredictionPositionArray(res), nil
 }
 /**
  * @method
@@ -199,7 +199,7 @@ func (this *Myriad) FetchTradeQuote(symbol string, side string, amount float64, 
  * @param {string} [params.expiration] unix-seconds expiration for a GTD order
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Myriad) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...ccxt.CreateOrderOptions) (ccxt.Order, error) {
+func (this *Myriad) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...ccxt.CreateOrderOptions) (ccxt.PredictionOrder, error) {
 
     opts := ccxt.CreateOrderOptionsStruct{}
 
@@ -218,9 +218,9 @@ func (this *Myriad) CreateOrder(symbol string, typeVar string, side string, amou
     }
     res := <- this.Core.CreateOrder(symbol, typeVar, side, amount, price, params)
     if ccxt.IsError(res) {
-        return ccxt.Order{}, ccxt.CreateReturnError(res)
+        return ccxt.PredictionOrder{}, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewOrder(res), nil
+    return ccxt.NewPredictionOrder(res), nil
 }
 /**
  * @ignore
@@ -229,7 +229,7 @@ func (this *Myriad) CreateOrder(symbol string, typeVar string, side string, amou
  * @description signs an EIP-712 order and posts it to the gasless order book; the operator settles the match on-chain
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Myriad) CreateOrderbookOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderbookOrderOptions) (ccxt.Order, error) {
+func (this *Myriad) CreateOrderbookOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderbookOrderOptions) (ccxt.PredictionOrder, error) {
 
     opts := CreateOrderbookOrderOptionsStruct{}
 
@@ -248,9 +248,9 @@ func (this *Myriad) CreateOrderbookOrder(symbol string, typeVar string, side str
     }
     res := <- this.Core.CreateOrderbookOrder(symbol, typeVar, side, amount, price, params)
     if ccxt.IsError(res) {
-        return ccxt.Order{}, ccxt.CreateReturnError(res)
+        return ccxt.PredictionOrder{}, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewOrder(res), nil
+    return ccxt.NewPredictionOrder(res), nil
 }
 /**
  * @method
@@ -262,7 +262,7 @@ func (this *Myriad) CreateOrderbookOrder(symbol string, typeVar string, side str
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Myriad) CreateOrders(orders []ccxt.OrderRequest, options ...ccxt.CreateOrdersOptions) ([]ccxt.Order, error) {
+func (this *Myriad) CreateOrders(orders []ccxt.OrderRequest, options ...ccxt.CreateOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
     opts := ccxt.CreateOrdersOptionsStruct{}
 
@@ -278,7 +278,7 @@ func (this *Myriad) CreateOrders(orders []ccxt.OrderRequest, options ...ccxt.Cre
     if ccxt.IsError(res) {
         return nil, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewOrderArray(res), nil
+    return ccxt.NewPredictionOrderArray(res), nil
 }
 /**
  * @method
@@ -295,7 +295,7 @@ func (this *Myriad) CreateOrders(orders []ccxt.OrderRequest, options ...ccxt.Cre
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Myriad) EditOrder(id string, symbol string, typeVar string, side string, options ...ccxt.EditOrderOptions) (ccxt.Order, error) {
+func (this *Myriad) EditOrder(id string, symbol string, typeVar string, side string, options ...ccxt.EditOrderOptions) (ccxt.PredictionOrder, error) {
 
     opts := ccxt.EditOrderOptionsStruct{}
 
@@ -319,9 +319,9 @@ func (this *Myriad) EditOrder(id string, symbol string, typeVar string, side str
     }
     res := <- this.Core.EditOrder(id, symbol, typeVar, side, amount, price, params)
     if ccxt.IsError(res) {
-        return ccxt.Order{}, ccxt.CreateReturnError(res)
+        return ccxt.PredictionOrder{}, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewOrder(res), nil
+    return ccxt.NewPredictionOrder(res), nil
 }
 /**
  * @ignore
@@ -330,7 +330,7 @@ func (this *Myriad) EditOrder(id string, symbol string, typeVar string, side str
  * @description buys or sells outcome shares by submitting the quote's calldata as an on-chain AMM transaction. Requires a privateKey with gas + collateral on the market's network
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Myriad) CreateAmmOrder(symbol string, typeVar string, side string, amount float64, options ...CreateAmmOrderOptions) (ccxt.Order, error) {
+func (this *Myriad) CreateAmmOrder(symbol string, typeVar string, side string, amount float64, options ...CreateAmmOrderOptions) (ccxt.PredictionOrder, error) {
 
     opts := CreateAmmOrderOptionsStruct{}
 
@@ -349,9 +349,9 @@ func (this *Myriad) CreateAmmOrder(symbol string, typeVar string, side string, a
     }
     res := <- this.Core.CreateAmmOrder(symbol, typeVar, side, amount, price, params)
     if ccxt.IsError(res) {
-        return ccxt.Order{}, ccxt.CreateReturnError(res)
+        return ccxt.PredictionOrder{}, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewOrder(res), nil
+    return ccxt.NewPredictionOrder(res), nil
 }
 /**
  * @method
@@ -363,7 +363,7 @@ func (this *Myriad) CreateAmmOrder(symbol string, typeVar string, side string, a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Myriad) CancelOrder(id string, options ...ccxt.CancelOrderOptions) (ccxt.Order, error) {
+func (this *Myriad) CancelOrder(id string, options ...ccxt.CancelOrderOptions) (ccxt.PredictionOrder, error) {
 
     opts := ccxt.CancelOrderOptionsStruct{}
 
@@ -382,9 +382,9 @@ func (this *Myriad) CancelOrder(id string, options ...ccxt.CancelOrderOptions) (
     }
     res := <- this.Core.CancelOrder(id, symbol, params)
     if ccxt.IsError(res) {
-        return ccxt.Order{}, ccxt.CreateReturnError(res)
+        return ccxt.PredictionOrder{}, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewOrder(res), nil
+    return ccxt.NewPredictionOrder(res), nil
 }
 /**
  * @method
@@ -428,7 +428,7 @@ func (this *Myriad) CancelAllOrders(options ...ccxt.CancelAllOrdersOptions) (map
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Myriad) CancelOrders(ids []string, options ...ccxt.CancelOrdersOptions) ([]ccxt.Order, error) {
+func (this *Myriad) CancelOrders(ids []string, options ...ccxt.CancelOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
     opts := ccxt.CancelOrdersOptionsStruct{}
 
@@ -449,7 +449,7 @@ func (this *Myriad) CancelOrders(ids []string, options ...ccxt.CancelOrdersOptio
     if ccxt.IsError(res) {
         return nil, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewOrderArray(res), nil
+    return ccxt.NewPredictionOrderArray(res), nil
 }
 /**
  * @method
@@ -461,7 +461,7 @@ func (this *Myriad) CancelOrders(ids []string, options ...ccxt.CancelOrdersOptio
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Myriad) FetchOrder(id string, options ...ccxt.FetchOrderOptions) (ccxt.Order, error) {
+func (this *Myriad) FetchOrder(id string, options ...ccxt.FetchOrderOptions) (ccxt.PredictionOrder, error) {
 
     opts := ccxt.FetchOrderOptionsStruct{}
 
@@ -480,9 +480,9 @@ func (this *Myriad) FetchOrder(id string, options ...ccxt.FetchOrderOptions) (cc
     }
     res := <- this.Core.FetchOrder(id, symbol, params)
     if ccxt.IsError(res) {
-        return ccxt.Order{}, ccxt.CreateReturnError(res)
+        return ccxt.PredictionOrder{}, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewOrder(res), nil
+    return ccxt.NewPredictionOrder(res), nil
 }
 /**
  * @method
@@ -497,7 +497,7 @@ func (this *Myriad) FetchOrder(id string, options ...ccxt.FetchOrderOptions) (cc
  * @param {string} [params.status] 'open', 'filled', 'cancelled' or 'expired'
  * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Myriad) FetchOrders(options ...ccxt.FetchOrdersOptions) ([]ccxt.Order, error) {
+func (this *Myriad) FetchOrders(options ...ccxt.FetchOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
     opts := ccxt.FetchOrdersOptionsStruct{}
 
@@ -528,7 +528,7 @@ func (this *Myriad) FetchOrders(options ...ccxt.FetchOrdersOptions) ([]ccxt.Orde
     if ccxt.IsError(res) {
         return nil, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewOrderArray(res), nil
+    return ccxt.NewPredictionOrderArray(res), nil
 }
 /**
  * @method
@@ -541,7 +541,7 @@ func (this *Myriad) FetchOrders(options ...ccxt.FetchOrdersOptions) ([]ccxt.Orde
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Myriad) FetchOpenOrders(options ...ccxt.FetchOpenOrdersOptions) ([]ccxt.Order, error) {
+func (this *Myriad) FetchOpenOrders(options ...ccxt.FetchOpenOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
     opts := ccxt.FetchOpenOrdersOptionsStruct{}
 
@@ -572,7 +572,7 @@ func (this *Myriad) FetchOpenOrders(options ...ccxt.FetchOpenOrdersOptions) ([]c
     if ccxt.IsError(res) {
         return nil, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewOrderArray(res), nil
+    return ccxt.NewPredictionOrderArray(res), nil
 }
 /**
  * @method
@@ -585,7 +585,7 @@ func (this *Myriad) FetchOpenOrders(options ...ccxt.FetchOpenOrdersOptions) ([]c
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Myriad) FetchClosedOrders(options ...ccxt.FetchClosedOrdersOptions) ([]ccxt.Order, error) {
+func (this *Myriad) FetchClosedOrders(options ...ccxt.FetchClosedOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
     opts := ccxt.FetchClosedOrdersOptionsStruct{}
 
@@ -616,7 +616,7 @@ func (this *Myriad) FetchClosedOrders(options ...ccxt.FetchClosedOrdersOptions) 
     if ccxt.IsError(res) {
         return nil, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewOrderArray(res), nil
+    return ccxt.NewPredictionOrderArray(res), nil
 }
 /**
  * @method
@@ -629,7 +629,7 @@ func (this *Myriad) FetchClosedOrders(options ...ccxt.FetchClosedOrdersOptions) 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Myriad) FetchCanceledOrders(options ...ccxt.FetchCanceledOrdersOptions) ([]ccxt.Order, error) {
+func (this *Myriad) FetchCanceledOrders(options ...ccxt.FetchCanceledOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
     opts := ccxt.FetchCanceledOrdersOptionsStruct{}
 
@@ -660,7 +660,7 @@ func (this *Myriad) FetchCanceledOrders(options ...ccxt.FetchCanceledOrdersOptio
     if ccxt.IsError(res) {
         return nil, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewOrderArray(res), nil
+    return ccxt.NewPredictionOrderArray(res), nil
 }
 /**
  * @method
@@ -675,7 +675,7 @@ func (this *Myriad) FetchCanceledOrders(options ...ccxt.FetchCanceledOrdersOptio
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
  */
-func (this *Myriad) FetchMyTrades(options ...ccxt.FetchMyTradesOptions) ([]ccxt.Trade, error) {
+func (this *Myriad) FetchMyTrades(options ...ccxt.FetchMyTradesOptions) ([]ccxt.PredictionTrade, error) {
 
     opts := ccxt.FetchMyTradesOptionsStruct{}
 
@@ -706,7 +706,7 @@ func (this *Myriad) FetchMyTrades(options ...ccxt.FetchMyTradesOptions) ([]ccxt.
     if ccxt.IsError(res) {
         return nil, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewTradeArray(res), nil
+    return ccxt.NewPredictionTradeArray(res), nil
 }
 /**
  * @method
@@ -733,7 +733,7 @@ func (this *Myriad) FetchBalance(params ...any) (ccxt.Balances, error) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
  */
-func (this *Myriad) FetchTicker(symbol string, options ...ccxt.FetchTickerOptions) (ccxt.Ticker, error) {
+func (this *Myriad) FetchTicker(symbol string, options ...ccxt.FetchTickerOptions) (ccxt.PredictionTicker, error) {
 
     opts := ccxt.FetchTickerOptionsStruct{}
 
@@ -747,9 +747,9 @@ func (this *Myriad) FetchTicker(symbol string, options ...ccxt.FetchTickerOption
     }
     res := <- this.Core.FetchTicker(symbol, params)
     if ccxt.IsError(res) {
-        return ccxt.Ticker{}, ccxt.CreateReturnError(res)
+        return ccxt.PredictionTicker{}, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewTicker(res), nil
+    return ccxt.NewPredictionTicker(res), nil
 }
 /**
  * @method
@@ -865,7 +865,7 @@ func (this *Myriad) FetchOHLCV(symbol string, options ...ccxt.FetchOHLCVOptions)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome symbol
  */
-func (this *Myriad) FetchTickers(options ...ccxt.FetchTickersOptions) (ccxt.Tickers, error) {
+func (this *Myriad) FetchTickers(options ...ccxt.FetchTickersOptions) (ccxt.PredictionTickers, error) {
 
     opts := ccxt.FetchTickersOptionsStruct{}
 
@@ -884,9 +884,9 @@ func (this *Myriad) FetchTickers(options ...ccxt.FetchTickersOptions) (ccxt.Tick
     }
     res := <- this.Core.FetchTickers(symbols, params)
     if ccxt.IsError(res) {
-        return ccxt.Tickers{}, ccxt.CreateReturnError(res)
+        return ccxt.PredictionTickers{}, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewTickers(res), nil
+    return ccxt.NewPredictionTickers(res), nil
 }
 /**
  * @method
@@ -899,7 +899,7 @@ func (this *Myriad) FetchTickers(options ...ccxt.FetchTickersOptions) (ccxt.Tick
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
  */
-func (this *Myriad) FetchTrades(symbol string, options ...ccxt.FetchTradesOptions) ([]ccxt.Trade, error) {
+func (this *Myriad) FetchTrades(symbol string, options ...ccxt.FetchTradesOptions) ([]ccxt.PredictionTrade, error) {
 
     opts := ccxt.FetchTradesOptionsStruct{}
 
@@ -925,7 +925,7 @@ func (this *Myriad) FetchTrades(symbol string, options ...ccxt.FetchTradesOption
     if ccxt.IsError(res) {
         return nil, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewTradeArray(res), nil
+    return ccxt.NewPredictionTradeArray(res), nil
 }
 /**
  * @method
@@ -990,7 +990,7 @@ func (this *Myriad) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBook
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
  */
-func (this *Myriad) WatchTrades(symbol string, options ...ccxt.WatchTradesOptions) ([]ccxt.Trade, error) {
+func (this *Myriad) WatchTrades(symbol string, options ...ccxt.WatchTradesOptions) ([]ccxt.PredictionTrade, error) {
 
     opts := ccxt.WatchTradesOptionsStruct{}
 
@@ -1016,7 +1016,7 @@ func (this *Myriad) WatchTrades(symbol string, options ...ccxt.WatchTradesOption
     if ccxt.IsError(res) {
         return nil, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewTradeArray(res), nil
+    return ccxt.NewPredictionTradeArray(res), nil
 }
 /**
  * @method
@@ -1030,7 +1030,7 @@ func (this *Myriad) WatchTrades(symbol string, options ...ccxt.WatchTradesOption
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
  */
-func (this *Myriad) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccxt.Trade, error) {
+func (this *Myriad) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccxt.PredictionTrade, error) {
 
     opts := ccxt.WatchMyTradesOptionsStruct{}
 
@@ -1061,7 +1061,7 @@ func (this *Myriad) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccxt.
     if ccxt.IsError(res) {
         return nil, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewTradeArray(res), nil
+    return ccxt.NewPredictionTradeArray(res), nil
 }
 /**
  * @method
@@ -1072,7 +1072,7 @@ func (this *Myriad) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccxt.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
  */
-func (this *Myriad) WatchTicker(symbol string, options ...ccxt.WatchTickerOptions) (ccxt.Ticker, error) {
+func (this *Myriad) WatchTicker(symbol string, options ...ccxt.WatchTickerOptions) (ccxt.PredictionTicker, error) {
 
     opts := ccxt.WatchTickerOptionsStruct{}
 
@@ -1086,9 +1086,9 @@ func (this *Myriad) WatchTicker(symbol string, options ...ccxt.WatchTickerOption
     }
     res := <- this.Core.WatchTicker(symbol, params)
     if ccxt.IsError(res) {
-        return ccxt.Ticker{}, ccxt.CreateReturnError(res)
+        return ccxt.PredictionTicker{}, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewTicker(res), nil
+    return ccxt.NewPredictionTicker(res), nil
 }
 /**
  * @method
@@ -1099,7 +1099,7 @@ func (this *Myriad) WatchTicker(symbol string, options ...ccxt.WatchTickerOption
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dict of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by symbol
  */
-func (this *Myriad) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Tickers, error) {
+func (this *Myriad) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.PredictionTickers, error) {
 
     opts := ccxt.WatchTickersOptionsStruct{}
 
@@ -1118,9 +1118,9 @@ func (this *Myriad) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Tick
     }
     res := <- this.Core.WatchTickers(symbols, params)
     if ccxt.IsError(res) {
-        return ccxt.Tickers{}, ccxt.CreateReturnError(res)
+        return ccxt.PredictionTickers{}, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewTickers(res), nil
+    return ccxt.NewPredictionTickers(res), nil
 }
 /**
  * @method
@@ -1178,7 +1178,7 @@ func (this *Myriad) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Myriad) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Order, error) {
+func (this *Myriad) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
     opts := ccxt.WatchOrdersOptionsStruct{}
 
@@ -1209,7 +1209,7 @@ func (this *Myriad) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Orde
     if ccxt.IsError(res) {
         return nil, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewOrderArray(res), nil
+    return ccxt.NewPredictionOrderArray(res), nil
 }
 /**
  * @method
@@ -1222,7 +1222,7 @@ func (this *Myriad) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Orde
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
  */
-func (this *Myriad) WatchPositions(options ...ccxt.WatchPositionsOptions) ([]ccxt.Position, error) {
+func (this *Myriad) WatchPositions(options ...ccxt.WatchPositionsOptions) ([]ccxt.PredictionPosition, error) {
 
     opts := ccxt.WatchPositionsOptionsStruct{}
 
@@ -1253,7 +1253,7 @@ func (this *Myriad) WatchPositions(options ...ccxt.WatchPositionsOptions) ([]ccx
     if ccxt.IsError(res) {
         return nil, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewPositionArray(res), nil
+    return ccxt.NewPredictionPositionArray(res), nil
 }
 // missing typed methods from base
 //nolint

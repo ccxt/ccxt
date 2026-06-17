@@ -16,7 +16,7 @@ use \React\Async;
 use \React\Promise;
 use \React\Promise\PromiseInterface;
 use ccxt\pro\ArrayCache;
-use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheByOutcomeById;
 
 class myriad extends Exchange {
 
@@ -388,7 +388,7 @@ class myriad extends Exchange {
             for ($i = 0; $i < count($data); $i++) {
                 $result[] = $this->parse_position($data[$i]);
             }
-            return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
+            return $this->filter_by_array_positions($result, 'outcome', $symbols, false);
         }) ();
     }
 
@@ -403,6 +403,7 @@ class myriad extends Exchange {
         $marketSlug = $this->safe_string($position, 'marketSlug', '');
         $outcomeTitle = $this->safe_string($position, 'outcomeTitle', '');
         $symbol = $this->slugToOutcomeSymbol ($marketSlug, $marketSlug, $outcomeTitle);
+        $marketSymbol = $this->slugToMarketSymbol ($marketSlug, $marketSlug);
         $networkId = $this->safe_string($position, 'networkId');
         $marketId = $this->safe_string($position, 'marketId');
         $outcomeId = $this->safe_string($position, 'outcomeId');
@@ -415,10 +416,13 @@ class myriad extends Exchange {
         if ($roi !== null) {
             $percentage = $roi * 100;
         }
-        return $this->safe_position(array(
+        return $this->safePredictionPosition (array(
             'info' => $position,
             'id' => $id,
             'symbol' => $symbol,
+            'outcomeId' => $outcomeId,
+            'label' => $outcomeTitle,
+            'market' => $marketSymbol,
             'contracts' => $shares,
             'side' => 'long',
             'notional' => $value,
@@ -1050,14 +1054,20 @@ class myriad extends Exchange {
         $isMarketTif = ($tif === 'FOK') || ($tif === 'FAK');
         // resolve the outcome $symbol from market/outcome ids when no $market was passed (e.g. fetchOrders without a $symbol)
         $symbol = ($market === null) ? null : $this->safe_string($market, 'symbol');
+        $outcomeObj = $market;
         if ($symbol === null) {
             // the REST $order has no top-level $networkId; $order book lives on the default network
             $networkId = $this->safe_string_2($order, 'networkId', 'network_id', $this->safe_string($this->options, 'defaultNetworkId', '56'));
             $marketId = $this->safe_string($inner, 'marketId');
             $outcomeId = $this->safe_string($inner, 'outcomeId');
-            $symbol = $this->market_outcome_to_symbol($networkId, $marketId, $outcomeId);
+            $composite = null;
+            if (($networkId !== null) && ($marketId !== null) && ($outcomeId !== null)) {
+                $composite = $networkId . ':' . $marketId . '/' . $outcomeId;
+            }
+            $outcomeObj = $this->safeOutcome ($composite, $market);
+            $symbol = $this->safe_string($outcomeObj, 'symbol');
         }
-        return $this->safe_order(array(
+        return $this->safePredictionOrder (array(
             'id' => $orderHash,
             'clientOrderId' => null,
             'info' => $order,
@@ -1065,6 +1075,9 @@ class myriad extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
+            'outcomeId' => $this->safe_string($outcomeObj, 'id'),
+            'label' => $this->safe_string($outcomeObj, 'label'),
+            'market' => $this->safe_string($outcomeObj, 'marketSymbol'),
             'type' => $isMarketTif ? 'market' : 'limit',
             'timeInForce' => $tif,
             'postOnly' => ($tif === 'PO'),
@@ -1353,7 +1366,7 @@ class myriad extends Exchange {
                 $order = $orders[$i];
                 $trades[] = $this->order_to_trade($order);
             }
-            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+            return $this->filter_by_value_since_limit($trades, 'outcome', $symbol, $since, $limit, 'timestamp', true);
         }) ();
     }
 
@@ -1366,13 +1379,16 @@ class myriad extends Exchange {
         if ($orderType !== 'market') {
             $price = $this->safe_number($order, 'price');
         }
-        return $this->safe_trade(array(
+        return $this->safePredictionTrade (array(
             'id' => $this->safe_string($order, 'id'),
             'order' => $this->safe_string($order, 'id'),
             'info' => $this->safe_dict($order, 'info', array()),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $this->safe_string($order, 'symbol'),
+            'symbol' => $this->safe_string($order, 'outcome'),
+            'outcomeId' => $this->safe_string($order, 'outcomeId'),
+            'label' => $this->safe_string($order, 'label'),
+            'market' => $this->safe_string($order, 'market'),
             'type' => $orderType,
             'side' => $this->safe_string($order, 'side'),
             'takerOrMaker' => null,
@@ -1453,11 +1469,14 @@ class myriad extends Exchange {
     }
 
     public function parse_trade_tx(string $txHash, array $quote, mixed $market, string $side): array {
-        return $this->safe_order(array(
+        return $this->safePredictionOrder (array(
             'id' => $txHash,
             'clientOrderId' => null,
             'info' => $this->extend(array( 'transactionHash' => $txHash ), $this->safe_dict($quote, 'info', array())),
             'symbol' => $this->safe_string($market, 'symbol'),
+            'outcomeId' => $this->safe_string($market, 'id'),
+            'label' => $this->safe_string($market, 'label'),
+            'market' => $this->safe_string($market, 'marketSymbol'),
             'type' => 'market',
             'side' => $side,
             'price' => $this->safe_number($quote, 'priceAverage'),
@@ -1846,8 +1865,11 @@ class myriad extends Exchange {
             }
         }
         $now = $this->milliseconds();
-        return $this->safe_ticker(array(
-            'symbol' => $this->safe_symbol(null, $market),
+        return $this->safePredictionTicker (array(
+            'symbol' => $this->safe_string($market, 'symbol'),
+            'outcomeId' => $this->safe_string($market, 'id'),
+            'label' => $this->safe_string($market, 'label'),
+            'market' => $this->safe_string($market, 'marketSymbol'),
             'timestamp' => $now,
             'datetime' => $this->iso8601($now),
             'high' => null,
@@ -2231,7 +2253,7 @@ class myriad extends Exchange {
                     $outcomesList = $this->safe_list($m, 'outcomes', array());
                     for ($j = 0; $j < count($outcomesList); $j++) {
                         $ticker = $this->parse_ticker($raw, $outcomesList[$j]);
-                        $symbolKey = $this->safe_string($ticker, 'symbol');
+                        $symbolKey = $this->safe_string($ticker, 'outcome');
                         if ($symbolKey !== null) {
                             $result[$symbolKey] = $ticker;
                         }
@@ -2276,7 +2298,7 @@ class myriad extends Exchange {
                 for ($j = 0; $j < count($grouped); $j++) {
                     $outcomeObj = $grouped[$j];
                     $ticker = $this->parse_ticker($response, $outcomeObj);
-                    $symbolKey = $this->safe_string($ticker, 'symbol');
+                    $symbolKey = $this->safe_string($ticker, 'outcome');
                     if ($symbolKey !== null) {
                         $result[$symbolKey] = $ticker;
                     }
@@ -2370,12 +2392,15 @@ class myriad extends Exchange {
         if (($amountStr !== null) && ($costStr !== null) && !Precise::string_eq($amountStr, '0')) {
             $priceStr = Precise::string_div($costStr, $amountStr);
         }
-        return $this->safe_trade(array(
+        return $this->safePredictionTrade (array(
             'id' => $this->safe_string($trade, 'txId'),
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $this->safe_symbol(null, $market),
+            'symbol' => $this->safe_string($market, 'symbol'),
+            'outcomeId' => $this->safe_string($market, 'id'),
+            'label' => $this->safe_string($market, 'label'),
+            'market' => $this->safe_string($market, 'marketSymbol'),
             'order' => null,
             'type' => null,
             'side' => $this->safe_string($trade, 'action'),
@@ -2778,7 +2803,7 @@ class myriad extends Exchange {
             $channel = 'trades:' . $networkId . ':' . $marketId;
             $messageHash = 'myTrades';
             $trades = Async\await($this->subscribe_myriad_channel($messageHash, $channel, $params));
-            return $this->filter_by_symbol_since_limit($trades, $sym, $since, $limit, true);
+            return $this->filter_by_value_since_limit($trades, 'outcome', $sym, $since, $limit, 'timestamp', true);
         }) ();
     }
 
@@ -2805,15 +2830,19 @@ class myriad extends Exchange {
             return;
         }
         $market = $this->safe_market($sym);
+        $outcomeObj = $this->safeOutcome ($sym);
         // the trades channel reports human-decimal values (averagePrice "0.14", totalAmount "1"),
         // unlike the orders channel which is 1e18-scaled — so read them directly without fromWei
         $fees = $this->safe_dict($taker, 'totalFees', array());
-        $trade = $this->safe_trade(array(
+        $trade = $this->safePredictionTrade (array(
             'id' => $txHash,
             'info' => $data,
             'timestamp' => $ts,
             'datetime' => $this->iso8601($ts),
             'symbol' => $sym,
+            'outcomeId' => $this->safe_string($outcomeObj, 'id'),
+            'label' => $this->safe_string($outcomeObj, 'label'),
+            'market' => $this->safe_string($outcomeObj, 'marketSymbol'),
             'order' => $this->safe_string($taker, 'orderHash'),
             'type' => null,
             'side' => $this->safe_string_lower($taker, 'side'),
@@ -2852,13 +2881,17 @@ class myriad extends Exchange {
                 if ($makerTrader === $myWallet) {
                     $makerSym = $this->market_outcome_to_symbol($networkId, $marketId, $this->safe_string($maker, 'outcome'));
                     $makerMarket = $this->safe_market($makerSym);
+                    $makerOutcomeObj = $this->safeOutcome ($makerSym);
                     $makerFees = $this->safe_dict($maker, 'fees', array());
-                    $makerTrade = $this->safe_trade(array(
+                    $makerTrade = $this->safePredictionTrade (array(
                         'id' => $txHash,
                         'info' => $maker,
                         'timestamp' => $ts,
                         'datetime' => $this->iso8601($ts),
                         'symbol' => $makerSym,
+                        'outcomeId' => $this->safe_string($makerOutcomeObj, 'id'),
+                        'label' => $this->safe_string($makerOutcomeObj, 'label'),
+                        'market' => $this->safe_string($makerOutcomeObj, 'marketSymbol'),
                         'order' => $this->safe_string($maker, 'orderHash'),
                         'type' => null,
                         'side' => $this->safe_string_lower($maker, 'side'),
@@ -2878,7 +2911,7 @@ class myriad extends Exchange {
             if ($myLegsLength > 0) {
                 if ($this->myTrades === null) {
                     $myTradesLimit = $this->safe_integer($this->options, 'myTradesLimit', 1000);
-                    $this->myTrades = new ArrayCacheBySymbolById ($myTradesLimit);
+                    $this->myTrades = new ArrayCacheByOutcomeById ($myTradesLimit);
                 }
                 $myStored = $this->myTrades;
                 for ($k = 0; $k < $myLegsLength; $k++) {
@@ -2950,7 +2983,7 @@ class myriad extends Exchange {
                 }
             }
             $tickers = Async\await($client->future ('tickers'));
-            return $this->filter_by_array($tickers, 'symbol', $resolvedSymbols, true);
+            return $this->filter_by_array($tickers, 'outcome', $resolvedSymbols, true);
         }) ();
     }
 
@@ -2998,9 +3031,13 @@ class myriad extends Exchange {
                 continue;
             }
             $market = $this->safe_market($sym);
+            $outcomeObj = $this->safeOutcome ($sym);
             $last = $this->from_wei($this->safe_string($oc, 'last'));
-            $ticker = $this->safe_ticker(array(
+            $ticker = $this->safePredictionTicker (array(
                 'symbol' => $sym,
+                'outcomeId' => $this->safe_string($outcomeObj, 'id'),
+                'label' => $this->safe_string($outcomeObj, 'label'),
+                'market' => $this->safe_string($outcomeObj, 'marketSymbol'),
                 'timestamp' => $ts,
                 'datetime' => $this->iso8601($ts),
                 'high' => null,
@@ -3053,19 +3090,20 @@ class myriad extends Exchange {
             $channel = 'orders:' . $networkId . ':' . $trader;
             $messageHash = 'orders';
             $orders = Async\await($this->subscribe_myriad_channel($messageHash, $channel, $params));
-            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+            return $this->filter_by_value_since_limit($orders, 'outcome', $symbol, $since, $limit, 'timestamp', true);
         }) ();
     }
 
     public function handle_order($client, $data) {
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
-            $this->orders = new ArrayCacheBySymbolById ($limit);
+            $this->orders = new ArrayCacheByOutcomeById ($limit);
         }
         $networkId = $this->safe_string($data, 'networkId');
         $marketId = $this->safe_string($data, 'marketId');
         $outcomeId = $this->safe_string($data, 'outcome');
         $sym = $this->market_outcome_to_symbol($networkId, $marketId, $outcomeId);
+        $outcomeObj = $this->safeOutcome ($sym);
         $price = $this->from_wei($this->safe_string($data, 'price'));
         $amount = $this->from_wei($this->safe_string($data, 'amount'));
         $filled = $this->from_wei($this->safe_string($data, 'filledAmount'));
@@ -3073,13 +3111,16 @@ class myriad extends Exchange {
         $tif = $this->safe_string_upper($data, 'timeInForce');
         $isMarketTif = ($tif === 'FOK') || ($tif === 'FAK');
         $timestamp = $this->parse8601($this->safe_string_2($data, 'updatedAt', 'createdAt'));
-        $parsed = $this->safe_order(array(
+        $parsed = $this->safePredictionOrder (array(
             'id' => $this->safe_string($data, 'orderHash'),
             'clientOrderId' => null,
             'info' => $data,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'symbol' => $sym,
+            'outcomeId' => $this->safe_string($outcomeObj, 'id'),
+            'label' => $this->safe_string($outcomeObj, 'label'),
+            'market' => $this->safe_string($outcomeObj, 'marketSymbol'),
             'type' => $isMarketTif ? 'market' : 'limit',
             'timeInForce' => $tif,
             'side' => $this->safe_string_lower($data, 'side'),
@@ -3135,7 +3176,7 @@ class myriad extends Exchange {
             if ($this->newUpdates) {
                 return $positions;
             }
-            return $this->filter_by_symbols_since_limit($positions, $symbols, $since, $limit, true);
+            return $this->filterByOutcomesSinceLimit ($positions, $symbols, $since, $limit, true);
         }) ();
     }
 
@@ -3158,12 +3199,13 @@ class myriad extends Exchange {
     public function handle_position($client, $data) {
         if ($this->positions === null) {
             $limit = $this->safe_integer($this->options, 'positionsLimit', 1000);
-            $this->positions = new ArrayCacheBySymbolById ($limit);
+            $this->positions = new ArrayCacheByOutcomeById ($limit);
         }
         $networkId = $this->safe_string($data, 'networkId');
         $marketId = $this->safe_string($data, 'marketId');
         $outcomeId = $this->safe_string($data, 'outcome');
         $sym = $this->market_outcome_to_symbol($networkId, $marketId, $outcomeId);
+        $outcomeObj = $this->safeOutcome ($sym);
         $ts = $this->safe_integer($data, 'ts');
         // the channel pushes a signed share delta per fill/redeem/split/merge (no absolute balance);
         // apply it to the REST-seeded balance keyed by outcome id to maintain a running $contracts figure
@@ -3184,10 +3226,13 @@ class myriad extends Exchange {
             $this->options['positionBalances'] = $balances;
             $contracts = $this->parse_number($updated);
         }
-        $parsed = $this->safe_position(array(
+        $parsed = $this->safePredictionPosition (array(
             'info' => $data,
             'id' => $posId,
             'symbol' => $sym,
+            'outcomeId' => $posId,
+            'label' => $this->safe_string($outcomeObj, 'label'),
+            'market' => $this->safe_string($outcomeObj, 'marketSymbol'),
             'timestamp' => $ts,
             'datetime' => $this->iso8601($ts),
             'side' => 'long',

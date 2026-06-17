@@ -53,10 +53,10 @@ public partial class kalshi
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure).</returns>
-    public async Task<Ticker> FetchTicker(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<PredictionTicker> FetchTicker(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTicker(symbol, parameters);
-        return new Ticker(res);
+        return new PredictionTicker(res);
     }
     /// <summary>
     /// fetches the kalshi exchange status
@@ -113,10 +113,10 @@ public partial class kalshi
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome symbol.</returns>
-    public async Task<Tickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<PredictionTickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTickers(symbols, parameters);
-        return new Tickers(res);
+        return new PredictionTickers(res);
     }
     /// <summary>
     /// fetches the order book for a single kalshi outcome
@@ -206,12 +206,12 @@ public partial class kalshi
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades).</returns>
-    public async Task<List<Trade>> FetchTrades(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<PredictionTrade>> FetchTrades(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchTrades(symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
+        return ((IList<object>)res).Select(item => new PredictionTrade(item)).ToList<PredictionTrade>();
     }
     /// <summary>
     /// fetches the authenticated user's USD portfolio balance from kalshi
@@ -248,10 +248,10 @@ public partial class kalshi
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [position structures](https://docs.ccxt.com/#/?id=position-structure).</returns>
-    public async Task<List<Position>> FetchPositions(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<List<PredictionPosition>> FetchPositions(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPositions(symbols, parameters);
-        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
+        return ((IList<object>)res).Select(item => new PredictionPosition(item)).ToList<PredictionPosition>();
     }
     /// <summary>
     /// fetches resting (open) orders for the authenticated kalshi user, optionally filtered by ticker
@@ -286,12 +286,12 @@ public partial class kalshi
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [order structures](https://docs.ccxt.com/#/?id=order-structure).</returns>
-    public async Task<List<Order>> FetchOpenOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<PredictionOrder>> FetchOpenOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOpenOrders(symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+        return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
     }
     /// <summary>
     /// fetches a single order by id from the kalshi portfolio endpoint
@@ -314,10 +314,10 @@ public partial class kalshi
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure](https://docs.ccxt.com/#/?id=order-structure).</returns>
-    public async Task<Order> FetchOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<PredictionOrder> FetchOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOrder(id, symbol, parameters);
-        return new Order(res);
+        return new PredictionOrder(res);
     }
     /// <summary>
     /// places a limit or market order on kalshi for the given outcome token
@@ -340,11 +340,11 @@ public partial class kalshi
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure](https://docs.ccxt.com/#/?id=order-structure).</returns>
-    public async Task<Order> CreateOrder(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<PredictionOrder> CreateOrder(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
         var res = await this.createOrder(symbol, type, side, amount, price, parameters);
-        return new Order(res);
+        return new PredictionOrder(res);
     }
     /// <summary>
     /// cancels a single open order by id on kalshi
@@ -367,10 +367,10 @@ public partial class kalshi
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure](https://docs.ccxt.com/#/?id=order-structure).</returns>
-    public async Task<Order> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<PredictionOrder> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrder(id, symbol, parameters);
-        return new Order(res);
+        return new PredictionOrder(res);
     }
     /// <summary>
     /// cancels all open orders on kalshi, optionally scoped to one outcome ticker
@@ -393,10 +393,10 @@ public partial class kalshi
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [order structures](https://docs.ccxt.com/#/?id=order-structure).</returns>
-    public async Task<List<Order>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<List<PredictionOrder>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllOrders(symbol, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+        return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
     }
     /// <summary>
     /// fetches kalshi events via cursor-paginated /events, filters client-side by query strings, then fetches full event details with nested markets in parallel and caches in this.events

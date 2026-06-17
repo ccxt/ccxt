@@ -615,10 +615,12 @@ export default class kalshi extends Exchange {
         //         }
         //     }
         //
+        const marketAny = market;
+        const outcomeObj = this.safeOutcome(this.safeString(marketAny, 'symbol'), marketAny);
         const outcomeLabel = market ? this.safeString(market, 'label', this.safeString(market['info'], 'outcomeLabel', 'YES')) : 'YES';
         const isNo = outcomeLabel.toUpperCase() === 'NO';
         const now = this.milliseconds();
-        const symbol = this.safeSymbol(undefined, market);
+        const symbol = this.safeString(outcomeObj, 'symbol');
         const yesAsk = this.safeNumber(raw, 'yes_ask_dollars');
         const yesBid = this.safeNumber(raw, 'yes_bid_dollars');
         const noAsk = this.safeNumber(raw, 'no_ask_dollars');
@@ -644,8 +646,11 @@ export default class kalshi extends Exchange {
         if ((bid !== undefined) && (ask !== undefined)) {
             average = this.parseNumber(Precise.stringDiv(Precise.stringAdd(this.numberToString(bid), this.numberToString(ask)), '2'));
         }
-        return this.safeTicker({
+        return this.safePredictionTicker({
             'symbol': symbol,
+            'outcomeId': this.safeString2(outcomeObj, 'outcomeId', 'id'),
+            'label': this.safeString(outcomeObj, 'label'),
+            'market': this.safeString2(outcomeObj, 'market', 'marketSymbol'),
             'timestamp': now,
             'datetime': this.iso8601(now),
             'high': undefined,
@@ -1037,10 +1042,11 @@ export default class kalshi extends Exchange {
         const amount = this.safeNumber(trade, 'count', amountFp);
         const rawSide = this.safeStringLower(trade, 'taker_side');
         const marketAny = market;
-        const marketInfo = this.safeDict(marketAny, 'info', {});
-        const requestedOutcomeLabel = this.safeStringLower(marketAny, 'label', this.safeStringLower(marketInfo, 'outcomeLabel'));
-        const outcomeSymbol = this.safeString(marketAny, 'symbol', this.safeSymbol(undefined, market));
-        const outcomeId = this.safeString(marketAny, 'id');
+        const outcomeObj = this.safeOutcome(this.safeString(marketAny, 'symbol'), marketAny);
+        const marketInfo = this.safeDict(outcomeObj, 'info', {});
+        const requestedOutcomeLabel = this.safeStringLower(outcomeObj, 'label', this.safeStringLower(marketInfo, 'outcomeLabel'));
+        const outcomeSymbol = this.safeString(outcomeObj, 'symbol');
+        const outcomeId = this.safeString2(outcomeObj, 'outcomeId', 'id');
         let side;
         if (rawSide === 'yes' || rawSide === 'no') {
             if (requestedOutcomeLabel === 'yes' || requestedOutcomeLabel === 'no') {
@@ -1054,14 +1060,16 @@ export default class kalshi extends Exchange {
         if ((price !== undefined) && (amount !== undefined)) {
             cost = price * amount;
         }
-        return this.safeTrade({
+        return this.safePredictionTrade({
             'id': id,
             'info': trade,
             'timestamp': ts,
             'datetime': this.iso8601(ts),
-            'symbol': this.safeSymbol(undefined, market),
+            'symbol': outcomeSymbol,
             'outcome': outcomeSymbol,
             'outcomeId': outcomeId,
+            'label': this.safeString(outcomeObj, 'label'),
+            'market': this.safeString2(outcomeObj, 'market', 'marketSymbol'),
             'order': undefined,
             'type': undefined,
             'side': side,
@@ -1150,9 +1158,12 @@ export default class kalshi extends Exchange {
             positionSide = (yesContracts >= 0) ? 'long' : 'short';
             contractsValue = this.parseNumber(Precise.stringAbs(this.numberToString(yesContracts)));
         }
-        return {
+        return this.safePredictionPosition({
             'id': undefined,
             'symbol': this.safeString(outcomeObj, 'symbol', ticker),
+            'outcomeId': this.safeString2(outcomeObj, 'outcomeId', 'id'),
+            'label': this.safeString(outcomeObj, 'label'),
+            'market': this.safeString2(outcomeObj, 'market', 'marketSymbol'),
             'timestamp': undefined,
             'datetime': undefined,
             'contracts': contractsValue,
@@ -1176,7 +1187,7 @@ export default class kalshi extends Exchange {
             'marginType': 'cross',
             'percentage': undefined,
             'info': position,
-        };
+        });
     }
     /**
      * @method
@@ -1255,7 +1266,7 @@ export default class kalshi extends Exchange {
             remaining = amount - filled;
         }
         const ts = this.parse8601(this.safeString(order, 'created_time'));
-        return this.safeOrder({
+        return this.safePredictionOrder({
             'id': id,
             'clientOrderId': this.safeString(order, 'client_order_id'),
             'info': order,
@@ -1263,7 +1274,10 @@ export default class kalshi extends Exchange {
             'datetime': this.iso8601(ts),
             'lastTradeTimestamp': undefined,
             'status': status,
-            'symbol': mkt['symbol'],
+            'symbol': this.safeString(mkt, 'symbol'),
+            'outcomeId': this.safeString2(mkt, 'outcomeId', 'id'),
+            'label': this.safeString(mkt, 'label'),
+            'market': this.safeString2(mkt, 'market', 'marketSymbol'),
             'type': this.safeStringLower(order, 'type', 'limit'),
             'timeInForce': 'GTC',
             'postOnly': undefined,

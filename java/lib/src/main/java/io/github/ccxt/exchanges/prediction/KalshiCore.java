@@ -705,10 +705,12 @@ final Object finalOi = oi;
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object marketAny = ((Object)market);
+        Object outcomeObj = this.safeOutcome(this.safeString(marketAny, "symbol"), marketAny);
         Object outcomeLabel = ((Helpers.isTrue(market))) ? this.safeString(market, "label", this.safeString(Helpers.GetValue(market, "info"), "outcomeLabel", "YES")) : "YES";
         Object isNo = Helpers.isEqual(((String)outcomeLabel).toUpperCase(), "NO");
         Object now = this.milliseconds();
-        Object symbol = this.safeSymbol(null, market);
+        Object symbol = this.safeString(outcomeObj, "symbol");
         Object yesAsk = this.safeNumber(raw, "yes_ask_dollars");
         Object yesBid = this.safeNumber(raw, "yes_bid_dollars");
         Object noAsk = this.safeNumber(raw, "no_ask_dollars");
@@ -740,8 +742,11 @@ final Object finalOi = oi;
         final Object finalAsk = ask;
         final Object finalClose = close;
         final Object finalAverage = average;
-        return this.safeTicker(new java.util.HashMap<String, Object>() {{
+        return this.safePredictionTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
+            put( "outcomeId", KalshiCore.this.safeString2(outcomeObj, "outcomeId", "id") );
+            put( "label", KalshiCore.this.safeString(outcomeObj, "label") );
+            put( "market", KalshiCore.this.safeString2(outcomeObj, "market", "marketSymbol") );
             put( "timestamp", now );
             put( "datetime", KalshiCore.this.iso8601(now) );
             put( "high", null );
@@ -1203,10 +1208,11 @@ final Object finalOi = oi;
         Object amount = this.safeNumber(trade, "count", amountFp);
         Object rawSide = this.safeStringLower(trade, "taker_side");
         Object marketAny = ((Object)market);
-        Object marketInfo = this.safeDict(marketAny, "info", new java.util.HashMap<String, Object>() {{}});
-        Object requestedOutcomeLabel = this.safeStringLower(marketAny, "label", this.safeStringLower(marketInfo, "outcomeLabel"));
-        Object outcomeSymbol = this.safeString(marketAny, "symbol", this.safeSymbol(null, market));
-        Object outcomeId = this.safeString(marketAny, "id");
+        Object outcomeObj = this.safeOutcome(this.safeString(marketAny, "symbol"), marketAny);
+        Object marketInfo = this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}});
+        Object requestedOutcomeLabel = this.safeStringLower(outcomeObj, "label", this.safeStringLower(marketInfo, "outcomeLabel"));
+        Object outcomeSymbol = this.safeString(outcomeObj, "symbol");
+        Object outcomeId = this.safeString2(outcomeObj, "outcomeId", "id");
         Object side = null;
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(rawSide, "yes")) || Helpers.isTrue(Helpers.isEqual(rawSide, "no"))))
         {
@@ -1227,14 +1233,16 @@ final Object finalOi = oi;
         final Object finalPrice = price;
         final Object finalAmount = amount;
         final Object finalCost = cost;
-        return this.safeTrade(new java.util.HashMap<String, Object>() {{
+        return this.safePredictionTrade(new java.util.HashMap<String, Object>() {{
             put( "id", id );
             put( "info", trade );
             put( "timestamp", ts );
             put( "datetime", KalshiCore.this.iso8601(ts) );
-            put( "symbol", KalshiCore.this.safeSymbol(null, market) );
+            put( "symbol", outcomeSymbol );
             put( "outcome", outcomeSymbol );
             put( "outcomeId", outcomeId );
+            put( "label", KalshiCore.this.safeString(outcomeObj, "label") );
+            put( "market", KalshiCore.this.safeString2(outcomeObj, "market", "marketSymbol") );
             put( "order", null );
             put( "type", null );
             put( "side", finalSide );
@@ -1359,9 +1367,12 @@ final Object finalOi = oi;
         }
         final Object finalContractsValue = contractsValue;
         final Object finalPositionSide = positionSide;
-        return new java.util.HashMap<String, Object>() {{
+        return this.safePredictionPosition(new java.util.HashMap<String, Object>() {{
             put( "id", null );
             put( "symbol", KalshiCore.this.safeString(outcomeObj, "symbol", ticker) );
+            put( "outcomeId", KalshiCore.this.safeString2(outcomeObj, "outcomeId", "id") );
+            put( "label", KalshiCore.this.safeString(outcomeObj, "label") );
+            put( "market", KalshiCore.this.safeString2(outcomeObj, "market", "marketSymbol") );
             put( "timestamp", null );
             put( "datetime", null );
             put( "contracts", finalContractsValue );
@@ -1385,7 +1396,7 @@ final Object finalOi = oi;
             put( "marginType", "cross" );
             put( "percentage", null );
             put( "info", position );
-        }};
+        }});
     }
 
     /**
@@ -1500,7 +1511,7 @@ final Object finalOi = oi;
         final Object finalAmount = amount;
         final Object finalFilled = filled;
         final Object finalRemaining = remaining;
-        return this.safeOrder(new java.util.HashMap<String, Object>() {{
+        return this.safePredictionOrder(new java.util.HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", KalshiCore.this.safeString(order, "client_order_id") );
             put( "info", order );
@@ -1508,7 +1519,10 @@ final Object finalOi = oi;
             put( "datetime", KalshiCore.this.iso8601(ts) );
             put( "lastTradeTimestamp", null );
             put( "status", status );
-            put( "symbol", Helpers.GetValue(mkt, "symbol") );
+            put( "symbol", KalshiCore.this.safeString(mkt, "symbol") );
+            put( "outcomeId", KalshiCore.this.safeString2(mkt, "outcomeId", "id") );
+            put( "label", KalshiCore.this.safeString(mkt, "label") );
+            put( "market", KalshiCore.this.safeString2(mkt, "market", "marketSymbol") );
             put( "type", KalshiCore.this.safeStringLower(order, "type", "limit") );
             put( "timeInForce", "GTC" );
             put( "postOnly", null );

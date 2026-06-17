@@ -638,7 +638,6 @@ export default class hyperliquid extends Exchange {
         await this.loadMarkets();
         this.checkEventsAndMarkets(outcome);
         const outcomeObj = this.outcome(outcome);
-        const market = this.market(this.safeString(outcomeObj, 'marketSymbol'));
         const info = this.safeDict(outcomeObj, 'info', {});
         const coin = this.safeString(info, 'coinName');
         const request = {
@@ -658,9 +657,7 @@ export default class hyperliquid extends Exchange {
         //
         // l2Book returns null for coins without an order book; coerce to an empty dict
         const tickerData = this.safeDict({ 'book': response }, 'book', {});
-        const ticker = this.parseTicker(tickerData, market);
-        ticker['symbol'] = this.safeString(outcomeObj, 'symbol', outcome);
-        return ticker;
+        return this.parseTicker(tickerData, outcomeObj);
     }
     /**
      * @method
@@ -704,11 +701,8 @@ export default class hyperliquid extends Exchange {
             if (mid === undefined) {
                 continue;
             }
-            const marketSymbol = this.safeString(outcomeObj, 'marketSymbol');
-            const market = this.market(marketSymbol);
             // Build minimal ticker from mid price
-            const ticker = this.parseTicker({ 'levels': [[], []], 'mid': mid, 'time': this.milliseconds() }, market);
-            ticker['symbol'] = outcomeSymbol;
+            const ticker = this.parseTicker({ 'levels': [[], []], 'mid': mid, 'time': this.milliseconds() }, outcomeObj);
             tickers[outcomeSymbol] = ticker;
         }
         return tickers;
@@ -735,7 +729,9 @@ export default class hyperliquid extends Exchange {
         //
         const now = this.milliseconds();
         const timestamp = this.safeInteger(raw, 'time', now);
-        const symbol = this.safeSymbol(undefined, market);
+        // the 2nd arg carries the outcome object (callers pass the resolved outcome)
+        const mkt = this.safeOutcome(undefined, market);
+        const symbol = this.safeString(mkt, 'symbol');
         const levels = this.safeList(raw, 'levels', []);
         const rawBids = this.safeList(levels, 0, []);
         const rawAsks = this.safeList(levels, 1, []);
@@ -750,11 +746,16 @@ export default class hyperliquid extends Exchange {
         if (mid === undefined && bid !== undefined && ask !== undefined) {
             mid = this.sum(bid, ask) / 2;
         }
-        // For prediction market context from info (if available)
-        const ctx = market ? this.safeDict(this.safeDict(market, 'info', {}), 'ctx', {}) : {};
+        // day volume lives on the parent market's ctx; resolve it from the outcome's marketSymbol
+        const parentSymbol = this.safeString(mkt, 'marketSymbol');
+        const parentMarket = (parentSymbol !== undefined) ? this.safeMarket(parentSymbol) : undefined;
+        const ctx = (parentMarket !== undefined) ? this.safeDict(this.safeDict(parentMarket, 'info', {}), 'ctx', {}) : {};
         const dayVolume = this.safeNumber(ctx, 'dayNtlVlm');
-        return this.safeTicker({
+        return this.safePredictionTicker({
             'symbol': symbol,
+            'outcomeId': this.safeString(mkt, 'id'),
+            'label': this.safeString(mkt, 'label'),
+            'market': this.safeString(mkt, 'marketSymbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'high': undefined,
@@ -1019,10 +1020,11 @@ export default class hyperliquid extends Exchange {
      * @name hyperliquid#parsePosition
      * @description parses a spot balance entry for an outcome token into a unified position object
      * @param {object} position the raw balance entry
-     * @param {object} [outcomeObj] the outcome object the position belongs to
+     * @param {object} [market] the outcome object the position belongs to
      * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
      */
-    parsePosition(position, outcomeObj = undefined) {
+    parsePosition(position, market = undefined) {
+        const outcomeObj = this.safeOutcome(undefined, market);
         const totalStr = this.safeString(position, 'total');
         const total = this.parseNumber(totalStr);
         const holdStr = this.safeString(position, 'hold');
@@ -1033,9 +1035,12 @@ export default class hyperliquid extends Exchange {
         if (entryNotional !== undefined && total !== undefined && total > 0) {
             entryPrice = entryNotional / total;
         }
-        return {
+        return this.safePredictionPosition({
             'id': undefined,
             'symbol': this.safeString(outcomeObj, 'symbol'),
+            'outcomeId': this.safeString(outcomeObj, 'id'),
+            'label': this.safeString(outcomeObj, 'label'),
+            'market': this.safeString(outcomeObj, 'marketSymbol'),
             'timestamp': undefined,
             'datetime': undefined,
             'isolated': false,
@@ -1060,7 +1065,7 @@ export default class hyperliquid extends Exchange {
             'marginType': 'cross',
             'percentage': undefined,
             'info': position,
-        };
+        });
     }
     findOutcomeInMarket(market, sideHint = undefined) {
         const outcomesList = this.safeList(market, 'outcomes', []);
@@ -1263,7 +1268,7 @@ export default class hyperliquid extends Exchange {
         if (restingOid !== undefined) {
             orderStatus = 'open';
         }
-        return this.safeOrder({
+        return this.safePredictionOrder({
             'id': oid,
             'clientOrderId': clientOrderId,
             'info': response,
@@ -1271,6 +1276,9 @@ export default class hyperliquid extends Exchange {
             'datetime': this.iso8601(nonce),
             'status': orderStatus,
             'symbol': this.safeString(outcomeObj, 'symbol', outcome),
+            'outcomeId': this.safeString(outcomeObj, 'id'),
+            'label': this.safeString(outcomeObj, 'label'),
+            'market': this.safeString(outcomeObj, 'marketSymbol'),
             'type': type,
             'side': side,
             'price': price,
@@ -1386,10 +1394,12 @@ export default class hyperliquid extends Exchange {
                 'symbol': outcomeSymbol,
                 'outcome': outcomeSymbol,
                 'outcomeId': this.safeString(outcomeObj, 'id'),
+                'label': this.safeString(outcomeObj, 'label'),
+                'market': this.safeString(outcomeObj, 'marketSymbol'),
                 'timestamp': this.milliseconds(),
                 'datetime': this.iso8601(this.milliseconds()),
             };
-            orders.push(this.safeOrder(order));
+            orders.push(this.safePredictionOrder(order));
         }
         return orders;
     }
@@ -1421,13 +1431,13 @@ export default class hyperliquid extends Exchange {
             ordersWithStatus.push(this.extend(order, { 'ccxtStatus': 'open' }));
         }
         const parsed = this.parseOrders(ordersWithStatus, undefined, since, undefined);
-        symbol = undefined;
+        let outcomeHandle = undefined;
         if (outcome !== undefined) {
             this.checkEventsAndMarkets(outcome);
             const outcomeObj = this.outcome(outcome);
-            symbol = this.safeString(outcomeObj, 'symbol');
+            outcomeHandle = this.safeString(outcomeObj, 'symbol');
         }
-        return this.filterBySymbolSinceLimit(parsed, symbol, since, limit);
+        return this.filterByOutcomeSinceLimit(parsed, outcomeHandle, since, limit);
     }
     /**
      * @method
@@ -1472,13 +1482,13 @@ export default class hyperliquid extends Exchange {
         }
         const dedupedValues = Object.values(deduped);
         const parsed = this.parseOrders(dedupedValues, undefined, since, undefined);
-        symbol = undefined;
+        let outcomeHandle = undefined;
         if (outcome !== undefined) {
             this.checkEventsAndMarkets(outcome);
             const outcomeObj = this.outcome(outcome);
-            symbol = this.safeString(outcomeObj, 'symbol');
+            outcomeHandle = this.safeString(outcomeObj, 'symbol');
         }
-        return this.filterBySymbolSinceLimit(parsed, symbol, since, limit);
+        return this.filterByOutcomeSinceLimit(parsed, outcomeHandle, since, limit);
     }
     /**
      * @method
@@ -1514,7 +1524,7 @@ export default class hyperliquid extends Exchange {
             this.checkEventsAndMarkets(outcome);
             const outcomeObj = this.outcome(outcome);
             const expected = this.safeString(outcomeObj, 'symbol');
-            if (this.safeString(parsed, 'symbol') !== expected) {
+            if (this.safeString(parsed, 'outcome') !== expected) {
                 throw new OrderNotFound(this.id + ' fetchOrder() order ' + id + ' is not in outcome ' + expected);
             }
         }
@@ -1567,7 +1577,7 @@ export default class hyperliquid extends Exchange {
         const tifRaw = this.safeString(entry, 'tif');
         const tif = this.parseTimeInForce(tifRaw);
         const postOnly = (tif === 'PO');
-        return this.safeOrder({
+        return this.safePredictionOrder({
             'id': this.safeString(entry, 'oid'),
             'clientOrderId': this.safeString(entry, 'cloid'),
             'info': order,
@@ -1576,6 +1586,9 @@ export default class hyperliquid extends Exchange {
             'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': this.safeString(outcomeObj, 'symbol'),
+            'outcomeId': this.safeString(outcomeObj, 'id'),
+            'label': this.safeString(outcomeObj, 'label'),
+            'market': this.safeString(outcomeObj, 'marketSymbol'),
             'type': this.parseOrderType(this.safeString(entry, 'orderType', 'limit')),
             'timeInForce': tif,
             'postOnly': postOnly,
@@ -1663,13 +1676,13 @@ export default class hyperliquid extends Exchange {
         }
         const response = await this.publicPostInfo(this.extend(request, params));
         const parsed = this.parseTrades(response, undefined, since, undefined);
-        symbol = undefined;
+        let outcomeHandle = undefined;
         if (outcome !== undefined) {
             this.checkEventsAndMarkets(outcome);
             const outcomeObj = this.outcome(outcome);
-            symbol = this.safeString(outcomeObj, 'symbol');
+            outcomeHandle = this.safeString(outcomeObj, 'symbol');
         }
-        return this.filterBySymbolSinceLimit(parsed, symbol, since, limit);
+        return this.filterByOutcomeSinceLimit(parsed, outcomeHandle, since, limit);
     }
     /**
      * @ignore
@@ -1720,7 +1733,7 @@ export default class hyperliquid extends Exchange {
         if ((price !== undefined) && (amount !== undefined)) {
             cost = this.parseNumber(Precise.stringMul(price, amount));
         }
-        return this.safeTrade({
+        return this.safePredictionTrade({
             'id': this.safeString(trade, 'tid'),
             'info': trade,
             'timestamp': timestamp,
@@ -1728,6 +1741,8 @@ export default class hyperliquid extends Exchange {
             'symbol': outcomeSymbol,
             'outcome': outcomeSymbol,
             'outcomeId': this.safeString(outcomeObj, 'id'),
+            'label': this.safeString(outcomeObj, 'label'),
+            'market': this.safeString(outcomeObj, 'marketSymbol'),
             'order': this.safeString(trade, 'oid'),
             'type': 'limit',
             'side': side,

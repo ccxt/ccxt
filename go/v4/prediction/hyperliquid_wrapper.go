@@ -52,7 +52,7 @@ func (this *Hyperliquid) FetchMarkets(params ...any) ([]ccxt.MarketInterface, er
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
  */
-func (this *Hyperliquid) FetchTicker(symbol string, options ...ccxt.FetchTickerOptions) (ccxt.Ticker, error) {
+func (this *Hyperliquid) FetchTicker(symbol string, options ...ccxt.FetchTickerOptions) (ccxt.PredictionTicker, error) {
 
     opts := ccxt.FetchTickerOptionsStruct{}
 
@@ -66,9 +66,9 @@ func (this *Hyperliquid) FetchTicker(symbol string, options ...ccxt.FetchTickerO
     }
     res := <- this.Core.FetchTicker(symbol, params)
     if ccxt.IsError(res) {
-        return ccxt.Ticker{}, ccxt.CreateReturnError(res)
+        return ccxt.PredictionTicker{}, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewTicker(res), nil
+    return ccxt.NewPredictionTicker(res), nil
 }
 /**
  * @method
@@ -79,7 +79,7 @@ func (this *Hyperliquid) FetchTicker(symbol string, options ...ccxt.FetchTickerO
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
  */
-func (this *Hyperliquid) FetchTickers(options ...ccxt.FetchTickersOptions) (ccxt.Tickers, error) {
+func (this *Hyperliquid) FetchTickers(options ...ccxt.FetchTickersOptions) (ccxt.PredictionTickers, error) {
 
     opts := ccxt.FetchTickersOptionsStruct{}
 
@@ -98,9 +98,9 @@ func (this *Hyperliquid) FetchTickers(options ...ccxt.FetchTickersOptions) (ccxt
     }
     res := <- this.Core.FetchTickers(symbols, params)
     if ccxt.IsError(res) {
-        return ccxt.Tickers{}, ccxt.CreateReturnError(res)
+        return ccxt.PredictionTickers{}, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewTickers(res), nil
+    return ccxt.NewPredictionTickers(res), nil
 }
 /**
  * @method
@@ -206,7 +206,7 @@ func (this *Hyperliquid) FetchBalance(params ...any) (ccxt.Balances, error) {
  * @param {string} [params.user] wallet address
  * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
  */
-func (this *Hyperliquid) FetchPositions(options ...ccxt.FetchPositionsOptions) ([]ccxt.Position, error) {
+func (this *Hyperliquid) FetchPositions(options ...ccxt.FetchPositionsOptions) ([]ccxt.PredictionPosition, error) {
 
     opts := ccxt.FetchPositionsOptionsStruct{}
 
@@ -227,7 +227,7 @@ func (this *Hyperliquid) FetchPositions(options ...ccxt.FetchPositionsOptions) (
     if ccxt.IsError(res) {
         return nil, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewPositionArray(res), nil
+    return ccxt.NewPredictionPositionArray(res), nil
 }
 /**
  * @method
@@ -248,7 +248,7 @@ func (this *Hyperliquid) FetchPositions(options ...ccxt.FetchPositionsOptions) (
  * @param {string} [params.vaultAddress] optional subaccount/vault address to trade on behalf of (master signer must be authorized)
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Hyperliquid) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...ccxt.CreateOrderOptions) (ccxt.Order, error) {
+func (this *Hyperliquid) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...ccxt.CreateOrderOptions) (ccxt.PredictionOrder, error) {
 
     opts := ccxt.CreateOrderOptionsStruct{}
 
@@ -267,9 +267,9 @@ func (this *Hyperliquid) CreateOrder(symbol string, typeVar string, side string,
     }
     res := <- this.Core.CreateOrder(symbol, typeVar, side, amount, price, params)
     if ccxt.IsError(res) {
-        return ccxt.Order{}, ccxt.CreateReturnError(res)
+        return ccxt.PredictionOrder{}, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewOrder(res), nil
+    return ccxt.NewPredictionOrder(res), nil
 }
 /**
  * @method
@@ -283,7 +283,7 @@ func (this *Hyperliquid) CreateOrder(symbol string, typeVar string, side string,
  * @param {string} [params.vaultAddress] optional subaccount/vault address to cancel on behalf of
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Hyperliquid) CancelOrder(id string, options ...ccxt.CancelOrderOptions) (ccxt.Order, error) {
+func (this *Hyperliquid) CancelOrder(id string, options ...ccxt.CancelOrderOptions) (ccxt.PredictionOrder, error) {
 
     opts := ccxt.CancelOrderOptionsStruct{}
 
@@ -302,9 +302,9 @@ func (this *Hyperliquid) CancelOrder(id string, options ...ccxt.CancelOrderOptio
     }
     res := <- this.Core.CancelOrder(id, symbol, params)
     if ccxt.IsError(res) {
-        return ccxt.Order{}, ccxt.CreateReturnError(res)
+        return ccxt.PredictionOrder{}, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewOrder(res), nil
+    return ccxt.NewPredictionOrder(res), nil
 }
 /**
  * @method
@@ -316,7 +316,7 @@ func (this *Hyperliquid) CancelOrder(id string, options ...ccxt.CancelOrderOptio
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Hyperliquid) CancelOrders(ids []string, options ...ccxt.CancelOrdersOptions) ([]ccxt.Order, error) {
+func (this *Hyperliquid) CancelOrders(ids []string, options ...ccxt.CancelOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
     opts := ccxt.CancelOrdersOptionsStruct{}
 
@@ -337,7 +337,7 @@ func (this *Hyperliquid) CancelOrders(ids []string, options ...ccxt.CancelOrders
     if ccxt.IsError(res) {
         return nil, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewOrderArray(res), nil
+    return ccxt.NewPredictionOrderArray(res), nil
 }
 /**
  * @method
@@ -352,7 +352,7 @@ func (this *Hyperliquid) CancelOrders(ids []string, options ...ccxt.CancelOrders
  * @param {string} [params.method] 'openOrders' | 'frontendOpenOrders' (default)
  * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Hyperliquid) FetchOpenOrders(options ...ccxt.FetchOpenOrdersOptions) ([]ccxt.Order, error) {
+func (this *Hyperliquid) FetchOpenOrders(options ...ccxt.FetchOpenOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
     opts := ccxt.FetchOpenOrdersOptionsStruct{}
 
@@ -383,7 +383,7 @@ func (this *Hyperliquid) FetchOpenOrders(options ...ccxt.FetchOpenOrdersOptions)
     if ccxt.IsError(res) {
         return nil, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewOrderArray(res), nil
+    return ccxt.NewPredictionOrderArray(res), nil
 }
 /**
  * @method
@@ -397,7 +397,7 @@ func (this *Hyperliquid) FetchOpenOrders(options ...ccxt.FetchOpenOrdersOptions)
  * @param {string} [params.user] wallet address
  * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Hyperliquid) FetchOrders(options ...ccxt.FetchOrdersOptions) ([]ccxt.Order, error) {
+func (this *Hyperliquid) FetchOrders(options ...ccxt.FetchOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
     opts := ccxt.FetchOrdersOptionsStruct{}
 
@@ -428,7 +428,7 @@ func (this *Hyperliquid) FetchOrders(options ...ccxt.FetchOrdersOptions) ([]ccxt
     if ccxt.IsError(res) {
         return nil, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewOrderArray(res), nil
+    return ccxt.NewPredictionOrderArray(res), nil
 }
 /**
  * @method
@@ -442,7 +442,7 @@ func (this *Hyperliquid) FetchOrders(options ...ccxt.FetchOrdersOptions) ([]ccxt
  * @param {string} [params.clientOrderId] fetch by client order id instead
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Hyperliquid) FetchOrder(id string, options ...ccxt.FetchOrderOptions) (ccxt.Order, error) {
+func (this *Hyperliquid) FetchOrder(id string, options ...ccxt.FetchOrderOptions) (ccxt.PredictionOrder, error) {
 
     opts := ccxt.FetchOrderOptionsStruct{}
 
@@ -461,9 +461,9 @@ func (this *Hyperliquid) FetchOrder(id string, options ...ccxt.FetchOrderOptions
     }
     res := <- this.Core.FetchOrder(id, symbol, params)
     if ccxt.IsError(res) {
-        return ccxt.Order{}, ccxt.CreateReturnError(res)
+        return ccxt.PredictionOrder{}, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewOrder(res), nil
+    return ccxt.NewPredictionOrder(res), nil
 }
 /**
  * @method
@@ -478,7 +478,7 @@ func (this *Hyperliquid) FetchOrder(id string, options ...ccxt.FetchOrderOptions
  * @param {int} [params.until] end timestamp in ms
  * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
  */
-func (this *Hyperliquid) FetchMyTrades(options ...ccxt.FetchMyTradesOptions) ([]ccxt.Trade, error) {
+func (this *Hyperliquid) FetchMyTrades(options ...ccxt.FetchMyTradesOptions) ([]ccxt.PredictionTrade, error) {
 
     opts := ccxt.FetchMyTradesOptionsStruct{}
 
@@ -509,7 +509,7 @@ func (this *Hyperliquid) FetchMyTrades(options ...ccxt.FetchMyTradesOptions) ([]
     if ccxt.IsError(res) {
         return nil, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewTradeArray(res), nil
+    return ccxt.NewPredictionTradeArray(res), nil
 }
 /**
  * @method

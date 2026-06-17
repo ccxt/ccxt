@@ -628,10 +628,12 @@ class kalshi extends Exchange {
         //         }
         //     }
         //
+        $marketAny = $market;
+        $outcomeObj = $this->safeOutcome ($this->safe_string($marketAny, 'symbol'), $marketAny);
         $outcomeLabel = $market ? $this->safe_string($market, 'label', $this->safe_string($market['info'], 'outcomeLabel', 'YES')) : 'YES';
         $isNo = strtoupper($outcomeLabel) === 'NO';
         $now = $this->milliseconds();
-        $symbol = $this->safe_symbol(null, $market);
+        $symbol = $this->safe_string($outcomeObj, 'symbol');
         $yesAsk = $this->safe_number($raw, 'yes_ask_dollars');
         $yesBid = $this->safe_number($raw, 'yes_bid_dollars');
         $noAsk = $this->safe_number($raw, 'no_ask_dollars');
@@ -653,8 +655,11 @@ class kalshi extends Exchange {
         if (($bid !== null) && ($ask !== null)) {
             $average = $this->parse_number(Precise::string_div(Precise::string_add($this->number_to_string($bid), $this->number_to_string($ask)), '2'));
         }
-        return $this->safe_ticker(array(
+        return $this->safePredictionTicker (array(
             'symbol' => $symbol,
+            'outcomeId' => $this->safe_string_2($outcomeObj, 'outcomeId', 'id'),
+            'label' => $this->safe_string($outcomeObj, 'label'),
+            'market' => $this->safe_string_2($outcomeObj, 'market', 'marketSymbol'),
             'timestamp' => $now,
             'datetime' => $this->iso8601($now),
             'high' => null,
@@ -1053,10 +1058,11 @@ class kalshi extends Exchange {
         $amount = $this->safe_number($trade, 'count', $amountFp);
         $rawSide = $this->safe_string_lower($trade, 'taker_side');
         $marketAny = $market;
-        $marketInfo = $this->safe_dict($marketAny, 'info', array());
-        $requestedOutcomeLabel = $this->safe_string_lower($marketAny, 'label', $this->safe_string_lower($marketInfo, 'outcomeLabel'));
-        $outcomeSymbol = $this->safe_string($marketAny, 'symbol', $this->safe_symbol(null, $market));
-        $outcomeId = $this->safe_string($marketAny, 'id');
+        $outcomeObj = $this->safeOutcome ($this->safe_string($marketAny, 'symbol'), $marketAny);
+        $marketInfo = $this->safe_dict($outcomeObj, 'info', array());
+        $requestedOutcomeLabel = $this->safe_string_lower($outcomeObj, 'label', $this->safe_string_lower($marketInfo, 'outcomeLabel'));
+        $outcomeSymbol = $this->safe_string($outcomeObj, 'symbol');
+        $outcomeId = $this->safe_string_2($outcomeObj, 'outcomeId', 'id');
         if ($rawSide === 'yes' || $rawSide === 'no') {
             if ($requestedOutcomeLabel === 'yes' || $requestedOutcomeLabel === 'no') {
                 $side = ($rawSide === $requestedOutcomeLabel) ? 'buy' : 'sell';
@@ -1068,14 +1074,16 @@ class kalshi extends Exchange {
         if (($price !== null) && ($amount !== null)) {
             $cost = $price * $amount;
         }
-        return $this->safe_trade(array(
+        return $this->safePredictionTrade (array(
             'id' => $id,
             'info' => $trade,
             'timestamp' => $ts,
             'datetime' => $this->iso8601($ts),
-            'symbol' => $this->safe_symbol(null, $market),
+            'symbol' => $outcomeSymbol,
             'outcome' => $outcomeSymbol,
             'outcomeId' => $outcomeId,
+            'label' => $this->safe_string($outcomeObj, 'label'),
+            'market' => $this->safe_string_2($outcomeObj, 'market', 'marketSymbol'),
             'order' => null,
             'type' => null,
             'side' => $side,
@@ -1166,9 +1174,12 @@ class kalshi extends Exchange {
             $positionSide = ($yesContracts >= 0) ? 'long' : 'short';
             $contractsValue = $this->parse_number(Precise::string_abs($this->number_to_string($yesContracts)));
         }
-        return array(
+        return $this->safePredictionPosition (array(
             'id' => null,
             'symbol' => $this->safe_string($outcomeObj, 'symbol', $ticker),
+            'outcomeId' => $this->safe_string_2($outcomeObj, 'outcomeId', 'id'),
+            'label' => $this->safe_string($outcomeObj, 'label'),
+            'market' => $this->safe_string_2($outcomeObj, 'market', 'marketSymbol'),
             'timestamp' => null,
             'datetime' => null,
             'contracts' => $contractsValue,
@@ -1192,7 +1203,7 @@ class kalshi extends Exchange {
             'marginType' => 'cross',
             'percentage' => null,
             'info' => $position,
-        );
+        ));
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
@@ -1274,7 +1285,7 @@ class kalshi extends Exchange {
             $remaining = $amount - $filled;
         }
         $ts = $this->parse8601($this->safe_string($order, 'created_time'));
-        return $this->safe_order(array(
+        return $this->safePredictionOrder (array(
             'id' => $id,
             'clientOrderId' => $this->safe_string($order, 'client_order_id'),
             'info' => $order,
@@ -1282,7 +1293,10 @@ class kalshi extends Exchange {
             'datetime' => $this->iso8601($ts),
             'lastTradeTimestamp' => null,
             'status' => $status,
-            'symbol' => $mkt['symbol'],
+            'symbol' => $this->safe_string($mkt, 'symbol'),
+            'outcomeId' => $this->safe_string_2($mkt, 'outcomeId', 'id'),
+            'label' => $this->safe_string($mkt, 'label'),
+            'market' => $this->safe_string_2($mkt, 'market', 'marketSymbol'),
             'type' => $this->safe_string_lower($order, 'type', 'limit'),
             'timeInForce' => 'GTC',
             'postOnly' => null,

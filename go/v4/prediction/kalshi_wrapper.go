@@ -54,7 +54,7 @@ func (this *Kalshi) FetchMarkets(params ...any) ([]ccxt.MarketInterface, error) 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
  */
-func (this *Kalshi) FetchTicker(symbol string, options ...ccxt.FetchTickerOptions) (ccxt.Ticker, error) {
+func (this *Kalshi) FetchTicker(symbol string, options ...ccxt.FetchTickerOptions) (ccxt.PredictionTicker, error) {
 
     opts := ccxt.FetchTickerOptionsStruct{}
 
@@ -68,9 +68,9 @@ func (this *Kalshi) FetchTicker(symbol string, options ...ccxt.FetchTickerOption
     }
     res := <- this.Core.FetchTicker(symbol, params)
     if ccxt.IsError(res) {
-        return ccxt.Ticker{}, ccxt.CreateReturnError(res)
+        return ccxt.PredictionTicker{}, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewTicker(res), nil
+    return ccxt.NewPredictionTicker(res), nil
 }
 /**
  * @method
@@ -123,7 +123,7 @@ func (this *Kalshi) FetchOpenInterest(symbol string, options ...ccxt.FetchOpenIn
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome symbol
  */
-func (this *Kalshi) FetchTickers(options ...ccxt.FetchTickersOptions) (ccxt.Tickers, error) {
+func (this *Kalshi) FetchTickers(options ...ccxt.FetchTickersOptions) (ccxt.PredictionTickers, error) {
 
     opts := ccxt.FetchTickersOptionsStruct{}
 
@@ -142,9 +142,9 @@ func (this *Kalshi) FetchTickers(options ...ccxt.FetchTickersOptions) (ccxt.Tick
     }
     res := <- this.Core.FetchTickers(symbols, params)
     if ccxt.IsError(res) {
-        return ccxt.Tickers{}, ccxt.CreateReturnError(res)
+        return ccxt.PredictionTickers{}, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewTickers(res), nil
+    return ccxt.NewPredictionTickers(res), nil
 }
 /**
  * @method
@@ -235,7 +235,7 @@ func (this *Kalshi) FetchOHLCV(symbol string, options ...ccxt.FetchOHLCVOptions)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
  */
-func (this *Kalshi) FetchTrades(symbol string, options ...ccxt.FetchTradesOptions) ([]ccxt.Trade, error) {
+func (this *Kalshi) FetchTrades(symbol string, options ...ccxt.FetchTradesOptions) ([]ccxt.PredictionTrade, error) {
 
     opts := ccxt.FetchTradesOptionsStruct{}
 
@@ -261,7 +261,7 @@ func (this *Kalshi) FetchTrades(symbol string, options ...ccxt.FetchTradesOption
     if ccxt.IsError(res) {
         return nil, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewTradeArray(res), nil
+    return ccxt.NewPredictionTradeArray(res), nil
 }
 /**
  * @method
@@ -287,7 +287,7 @@ func (this *Kalshi) FetchBalance(params ...any) (ccxt.Balances, error) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
  */
-func (this *Kalshi) FetchPositions(options ...ccxt.FetchPositionsOptions) ([]ccxt.Position, error) {
+func (this *Kalshi) FetchPositions(options ...ccxt.FetchPositionsOptions) ([]ccxt.PredictionPosition, error) {
 
     opts := ccxt.FetchPositionsOptionsStruct{}
 
@@ -308,7 +308,7 @@ func (this *Kalshi) FetchPositions(options ...ccxt.FetchPositionsOptions) ([]ccx
     if ccxt.IsError(res) {
         return nil, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewPositionArray(res), nil
+    return ccxt.NewPredictionPositionArray(res), nil
 }
 /**
  * @method
@@ -321,7 +321,7 @@ func (this *Kalshi) FetchPositions(options ...ccxt.FetchPositionsOptions) ([]ccx
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Kalshi) FetchOpenOrders(options ...ccxt.FetchOpenOrdersOptions) ([]ccxt.Order, error) {
+func (this *Kalshi) FetchOpenOrders(options ...ccxt.FetchOpenOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
     opts := ccxt.FetchOpenOrdersOptionsStruct{}
 
@@ -352,7 +352,7 @@ func (this *Kalshi) FetchOpenOrders(options ...ccxt.FetchOpenOrdersOptions) ([]c
     if ccxt.IsError(res) {
         return nil, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewOrderArray(res), nil
+    return ccxt.NewPredictionOrderArray(res), nil
 }
 /**
  * @method
@@ -364,7 +364,7 @@ func (this *Kalshi) FetchOpenOrders(options ...ccxt.FetchOpenOrdersOptions) ([]c
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Kalshi) FetchOrder(id string, options ...ccxt.FetchOrderOptions) (ccxt.Order, error) {
+func (this *Kalshi) FetchOrder(id string, options ...ccxt.FetchOrderOptions) (ccxt.PredictionOrder, error) {
 
     opts := ccxt.FetchOrderOptionsStruct{}
 
@@ -383,9 +383,9 @@ func (this *Kalshi) FetchOrder(id string, options ...ccxt.FetchOrderOptions) (cc
     }
     res := <- this.Core.FetchOrder(id, symbol, params)
     if ccxt.IsError(res) {
-        return ccxt.Order{}, ccxt.CreateReturnError(res)
+        return ccxt.PredictionOrder{}, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewOrder(res), nil
+    return ccxt.NewPredictionOrder(res), nil
 }
 /**
  * @method
@@ -400,7 +400,7 @@ func (this *Kalshi) FetchOrder(id string, options ...ccxt.FetchOrderOptions) (cc
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Kalshi) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...ccxt.CreateOrderOptions) (ccxt.Order, error) {
+func (this *Kalshi) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...ccxt.CreateOrderOptions) (ccxt.PredictionOrder, error) {
 
     opts := ccxt.CreateOrderOptionsStruct{}
 
@@ -419,9 +419,9 @@ func (this *Kalshi) CreateOrder(symbol string, typeVar string, side string, amou
     }
     res := <- this.Core.CreateOrder(symbol, typeVar, side, amount, price, params)
     if ccxt.IsError(res) {
-        return ccxt.Order{}, ccxt.CreateReturnError(res)
+        return ccxt.PredictionOrder{}, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewOrder(res), nil
+    return ccxt.NewPredictionOrder(res), nil
 }
 /**
  * @method
@@ -433,7 +433,7 @@ func (this *Kalshi) CreateOrder(symbol string, typeVar string, side string, amou
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Kalshi) CancelOrder(id string, options ...ccxt.CancelOrderOptions) (ccxt.Order, error) {
+func (this *Kalshi) CancelOrder(id string, options ...ccxt.CancelOrderOptions) (ccxt.PredictionOrder, error) {
 
     opts := ccxt.CancelOrderOptionsStruct{}
 
@@ -452,9 +452,9 @@ func (this *Kalshi) CancelOrder(id string, options ...ccxt.CancelOrderOptions) (
     }
     res := <- this.Core.CancelOrder(id, symbol, params)
     if ccxt.IsError(res) {
-        return ccxt.Order{}, ccxt.CreateReturnError(res)
+        return ccxt.PredictionOrder{}, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewOrder(res), nil
+    return ccxt.NewPredictionOrder(res), nil
 }
 /**
  * @method
@@ -465,7 +465,7 @@ func (this *Kalshi) CancelOrder(id string, options ...ccxt.CancelOrderOptions) (
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Kalshi) CancelAllOrders(options ...ccxt.CancelAllOrdersOptions) ([]ccxt.Order, error) {
+func (this *Kalshi) CancelAllOrders(options ...ccxt.CancelAllOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
     opts := ccxt.CancelAllOrdersOptionsStruct{}
 
@@ -486,7 +486,7 @@ func (this *Kalshi) CancelAllOrders(options ...ccxt.CancelAllOrdersOptions) ([]c
     if ccxt.IsError(res) {
         return nil, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewOrderArray(res), nil
+    return ccxt.NewPredictionOrderArray(res), nil
 }
 /**
  * @method

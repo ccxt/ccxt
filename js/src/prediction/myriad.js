@@ -23,7 +23,7 @@ import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from '../abstract/prediction/myriad.js';
 import { ecdsa } from '../base/functions/crypto.js';
-import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheByOutcomeById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { ArgumentsRequired, NotSupported, ExchangeError, InvalidOrder, InsufficientFunds, OrderNotFound, BadSymbol, AuthenticationError, RateLimitExceeded } from '../../ccxt.js';
 // ---------------------------------------------------------------------------
@@ -388,7 +388,7 @@ export default class myriad extends Exchange {
         for (let i = 0; i < data.length; i++) {
             result.push(this.parsePosition(data[i]));
         }
-        return this.filterByArrayPositions(result, 'symbol', symbols, false);
+        return this.filterByArrayPositions(result, 'outcome', symbols, false);
     }
     /**
      * @ignore
@@ -403,6 +403,7 @@ export default class myriad extends Exchange {
         const marketSlug = this.safeString(position, 'marketSlug', '');
         const outcomeTitle = this.safeString(position, 'outcomeTitle', '');
         const symbol = this.slugToOutcomeSymbol(marketSlug, marketSlug, outcomeTitle);
+        const marketSymbol = this.slugToMarketSymbol(marketSlug, marketSlug);
         const networkId = this.safeString(position, 'networkId');
         const marketId = this.safeString(position, 'marketId');
         const outcomeId = this.safeString(position, 'outcomeId');
@@ -415,10 +416,13 @@ export default class myriad extends Exchange {
         if (roi !== undefined) {
             percentage = roi * 100;
         }
-        return this.safePosition({
+        return this.safePredictionPosition({
             'info': position,
             'id': id,
             'symbol': symbol,
+            'outcomeId': outcomeId,
+            'label': outcomeTitle,
+            'market': marketSymbol,
             'contracts': shares,
             'side': 'long',
             'notional': value,
@@ -1025,14 +1029,20 @@ export default class myriad extends Exchange {
         const isMarketTif = (tif === 'FOK') || (tif === 'FAK');
         // resolve the outcome symbol from market/outcome ids when no market was passed (e.g. fetchOrders without a symbol)
         let symbol = (market === undefined) ? undefined : this.safeString(market, 'symbol');
+        let outcomeObj = market;
         if (symbol === undefined) {
             // the REST order has no top-level networkId; order book lives on the default network
             const networkId = this.safeString2(order, 'networkId', 'network_id', this.safeString(this.options, 'defaultNetworkId', '56'));
             const marketId = this.safeString(inner, 'marketId');
             const outcomeId = this.safeString(inner, 'outcomeId');
-            symbol = this.marketOutcomeToSymbol(networkId, marketId, outcomeId);
+            let composite = undefined;
+            if ((networkId !== undefined) && (marketId !== undefined) && (outcomeId !== undefined)) {
+                composite = networkId + ':' + marketId + '/' + outcomeId;
+            }
+            outcomeObj = this.safeOutcome(composite, market);
+            symbol = this.safeString(outcomeObj, 'symbol');
         }
-        return this.safeOrder({
+        return this.safePredictionOrder({
             'id': orderHash,
             'clientOrderId': undefined,
             'info': order,
@@ -1040,6 +1050,9 @@ export default class myriad extends Exchange {
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
+            'outcomeId': this.safeString(outcomeObj, 'id'),
+            'label': this.safeString(outcomeObj, 'label'),
+            'market': this.safeString(outcomeObj, 'marketSymbol'),
             'type': isMarketTif ? 'market' : 'limit',
             'timeInForce': tif,
             'postOnly': (tif === 'PO'),
@@ -1303,7 +1316,7 @@ export default class myriad extends Exchange {
             const order = orders[i];
             trades.push(this.orderToTrade(order));
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
+        return this.filterByValueSinceLimit(trades, 'outcome', symbol, since, limit, 'timestamp', true);
     }
     orderToTrade(order) {
         const timestamp = this.safeInteger(order, 'timestamp');
@@ -1314,13 +1327,16 @@ export default class myriad extends Exchange {
         if (orderType !== 'market') {
             price = this.safeNumber(order, 'price');
         }
-        return this.safeTrade({
+        return this.safePredictionTrade({
             'id': this.safeString(order, 'id'),
             'order': this.safeString(order, 'id'),
             'info': this.safeDict(order, 'info', {}),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': this.safeString(order, 'symbol'),
+            'symbol': this.safeString(order, 'outcome'),
+            'outcomeId': this.safeString(order, 'outcomeId'),
+            'label': this.safeString(order, 'label'),
+            'market': this.safeString(order, 'market'),
             'type': orderType,
             'side': this.safeString(order, 'side'),
             'takerOrMaker': undefined,
@@ -1395,11 +1411,14 @@ export default class myriad extends Exchange {
         return Precise.stringDiv(decimalString, scale);
     }
     parseTradeTx(txHash, quote, market, side) {
-        return this.safeOrder({
+        return this.safePredictionOrder({
             'id': txHash,
             'clientOrderId': undefined,
             'info': this.extend({ 'transactionHash': txHash }, this.safeDict(quote, 'info', {})),
             'symbol': this.safeString(market, 'symbol'),
+            'outcomeId': this.safeString(market, 'id'),
+            'label': this.safeString(market, 'label'),
+            'market': this.safeString(market, 'marketSymbol'),
             'type': 'market',
             'side': side,
             'price': this.safeNumber(quote, 'priceAverage'),
@@ -1785,8 +1804,11 @@ export default class myriad extends Exchange {
             }
         }
         const now = this.milliseconds();
-        return this.safeTicker({
-            'symbol': this.safeSymbol(undefined, market),
+        return this.safePredictionTicker({
+            'symbol': this.safeString(market, 'symbol'),
+            'outcomeId': this.safeString(market, 'id'),
+            'label': this.safeString(market, 'label'),
+            'market': this.safeString(market, 'marketSymbol'),
             'timestamp': now,
             'datetime': this.iso8601(now),
             'high': undefined,
@@ -2165,7 +2187,7 @@ export default class myriad extends Exchange {
                 const outcomesList = this.safeList(m, 'outcomes', []);
                 for (let j = 0; j < outcomesList.length; j++) {
                     const ticker = this.parseTicker(raw, outcomesList[j]);
-                    const symbolKey = this.safeString(ticker, 'symbol');
+                    const symbolKey = this.safeString(ticker, 'outcome');
                     if (symbolKey !== undefined) {
                         result[symbolKey] = ticker;
                     }
@@ -2210,7 +2232,7 @@ export default class myriad extends Exchange {
             for (let j = 0; j < grouped.length; j++) {
                 const outcomeObj = grouped[j];
                 const ticker = this.parseTicker(response, outcomeObj);
-                const symbolKey = this.safeString(ticker, 'symbol');
+                const symbolKey = this.safeString(ticker, 'outcome');
                 if (symbolKey !== undefined) {
                     result[symbolKey] = ticker;
                 }
@@ -2301,12 +2323,15 @@ export default class myriad extends Exchange {
         if ((amountStr !== undefined) && (costStr !== undefined) && !Precise.stringEq(amountStr, '0')) {
             priceStr = Precise.stringDiv(costStr, amountStr);
         }
-        return this.safeTrade({
+        return this.safePredictionTrade({
             'id': this.safeString(trade, 'txId'),
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': this.safeSymbol(undefined, market),
+            'symbol': this.safeString(market, 'symbol'),
+            'outcomeId': this.safeString(market, 'id'),
+            'label': this.safeString(market, 'label'),
+            'market': this.safeString(market, 'marketSymbol'),
             'order': undefined,
             'type': undefined,
             'side': this.safeString(trade, 'action'),
@@ -2687,7 +2712,7 @@ export default class myriad extends Exchange {
         const channel = 'trades:' + networkId + ':' + marketId;
         const messageHash = 'myTrades';
         const trades = await this.subscribeMyriadChannel(messageHash, channel, params);
-        return this.filterBySymbolSinceLimit(trades, sym, since, limit, true);
+        return this.filterByValueSinceLimit(trades, 'outcome', sym, since, limit, 'timestamp', true);
     }
     walletAddressOrUndefined() {
         // like walletAddressFromKeys but returns undefined instead of throwing when no wallet is configured
@@ -2711,15 +2736,19 @@ export default class myriad extends Exchange {
             return;
         }
         const market = this.safeMarket(sym);
+        const outcomeObj = this.safeOutcome(sym);
         // the trades channel reports human-decimal values (averagePrice "0.14", totalAmount "1"),
         // unlike the orders channel which is 1e18-scaled — so read them directly without fromWei
         const fees = this.safeDict(taker, 'totalFees', {});
-        const trade = this.safeTrade({
+        const trade = this.safePredictionTrade({
             'id': txHash,
             'info': data,
             'timestamp': ts,
             'datetime': this.iso8601(ts),
             'symbol': sym,
+            'outcomeId': this.safeString(outcomeObj, 'id'),
+            'label': this.safeString(outcomeObj, 'label'),
+            'market': this.safeString(outcomeObj, 'marketSymbol'),
             'order': this.safeString(taker, 'orderHash'),
             'type': undefined,
             'side': this.safeStringLower(taker, 'side'),
@@ -2758,13 +2787,17 @@ export default class myriad extends Exchange {
                 if (makerTrader === myWallet) {
                     const makerSym = this.marketOutcomeToSymbol(networkId, marketId, this.safeString(maker, 'outcome'));
                     const makerMarket = this.safeMarket(makerSym);
+                    const makerOutcomeObj = this.safeOutcome(makerSym);
                     const makerFees = this.safeDict(maker, 'fees', {});
-                    const makerTrade = this.safeTrade({
+                    const makerTrade = this.safePredictionTrade({
                         'id': txHash,
                         'info': maker,
                         'timestamp': ts,
                         'datetime': this.iso8601(ts),
                         'symbol': makerSym,
+                        'outcomeId': this.safeString(makerOutcomeObj, 'id'),
+                        'label': this.safeString(makerOutcomeObj, 'label'),
+                        'market': this.safeString(makerOutcomeObj, 'marketSymbol'),
                         'order': this.safeString(maker, 'orderHash'),
                         'type': undefined,
                         'side': this.safeStringLower(maker, 'side'),
@@ -2784,7 +2817,7 @@ export default class myriad extends Exchange {
             if (myLegsLength > 0) {
                 if (this.myTrades === undefined) {
                     const myTradesLimit = this.safeInteger(this.options, 'myTradesLimit', 1000);
-                    this.myTrades = new ArrayCacheBySymbolById(myTradesLimit);
+                    this.myTrades = new ArrayCacheByOutcomeById(myTradesLimit);
                 }
                 const myStored = this.myTrades;
                 for (let k = 0; k < myLegsLength; k++) {
@@ -2851,7 +2884,7 @@ export default class myriad extends Exchange {
             }
         }
         const tickers = await client.future('tickers');
-        return this.filterByArray(tickers, 'symbol', resolvedSymbols, true);
+        return this.filterByArray(tickers, 'outcome', resolvedSymbols, true);
     }
     /**
      * @method
@@ -2894,9 +2927,13 @@ export default class myriad extends Exchange {
                 continue;
             }
             const market = this.safeMarket(sym);
+            const outcomeObj = this.safeOutcome(sym);
             const last = this.fromWei(this.safeString(oc, 'last'));
-            const ticker = this.safeTicker({
+            const ticker = this.safePredictionTicker({
                 'symbol': sym,
+                'outcomeId': this.safeString(outcomeObj, 'id'),
+                'label': this.safeString(outcomeObj, 'label'),
+                'market': this.safeString(outcomeObj, 'marketSymbol'),
                 'timestamp': ts,
                 'datetime': this.iso8601(ts),
                 'high': undefined,
@@ -2947,17 +2984,18 @@ export default class myriad extends Exchange {
         const channel = 'orders:' + networkId + ':' + trader;
         const messageHash = 'orders';
         const orders = await this.subscribeMyriadChannel(messageHash, channel, params);
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterByValueSinceLimit(orders, 'outcome', symbol, since, limit, 'timestamp', true);
     }
     handleOrder(client, data) {
         if (this.orders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
-            this.orders = new ArrayCacheBySymbolById(limit);
+            this.orders = new ArrayCacheByOutcomeById(limit);
         }
         const networkId = this.safeString(data, 'networkId');
         const marketId = this.safeString(data, 'marketId');
         const outcomeId = this.safeString(data, 'outcome');
         const sym = this.marketOutcomeToSymbol(networkId, marketId, outcomeId);
+        const outcomeObj = this.safeOutcome(sym);
         const price = this.fromWei(this.safeString(data, 'price'));
         const amount = this.fromWei(this.safeString(data, 'amount'));
         const filled = this.fromWei(this.safeString(data, 'filledAmount'));
@@ -2965,13 +3003,16 @@ export default class myriad extends Exchange {
         const tif = this.safeStringUpper(data, 'timeInForce');
         const isMarketTif = (tif === 'FOK') || (tif === 'FAK');
         const timestamp = this.parse8601(this.safeString2(data, 'updatedAt', 'createdAt'));
-        const parsed = this.safeOrder({
+        const parsed = this.safePredictionOrder({
             'id': this.safeString(data, 'orderHash'),
             'clientOrderId': undefined,
             'info': data,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'symbol': sym,
+            'outcomeId': this.safeString(outcomeObj, 'id'),
+            'label': this.safeString(outcomeObj, 'label'),
+            'market': this.safeString(outcomeObj, 'marketSymbol'),
             'type': isMarketTif ? 'market' : 'limit',
             'timeInForce': tif,
             'side': this.safeStringLower(data, 'side'),
@@ -3025,7 +3066,7 @@ export default class myriad extends Exchange {
         if (this.newUpdates) {
             return positions;
         }
-        return this.filterBySymbolsSinceLimit(positions, symbols, since, limit, true);
+        return this.filterByOutcomesSinceLimit(positions, symbols, since, limit, true);
     }
     async seedPositionBalances(trader) {
         const positions = await this.fetchPositions(undefined, { 'address': trader });
@@ -3043,12 +3084,13 @@ export default class myriad extends Exchange {
     handlePosition(client, data) {
         if (this.positions === undefined) {
             const limit = this.safeInteger(this.options, 'positionsLimit', 1000);
-            this.positions = new ArrayCacheBySymbolById(limit);
+            this.positions = new ArrayCacheByOutcomeById(limit);
         }
         const networkId = this.safeString(data, 'networkId');
         const marketId = this.safeString(data, 'marketId');
         const outcomeId = this.safeString(data, 'outcome');
         const sym = this.marketOutcomeToSymbol(networkId, marketId, outcomeId);
+        const outcomeObj = this.safeOutcome(sym);
         const ts = this.safeInteger(data, 'ts');
         // the channel pushes a signed share delta per fill/redeem/split/merge (no absolute balance);
         // apply it to the REST-seeded balance keyed by outcome id to maintain a running contracts figure
@@ -3069,10 +3111,13 @@ export default class myriad extends Exchange {
             this.options['positionBalances'] = balances;
             contracts = this.parseNumber(updated);
         }
-        const parsed = this.safePosition({
+        const parsed = this.safePredictionPosition({
             'info': data,
             'id': posId,
             'symbol': sym,
+            'outcomeId': posId,
+            'label': this.safeString(outcomeObj, 'label'),
+            'market': this.safeString(outcomeObj, 'marketSymbol'),
             'timestamp': ts,
             'datetime': this.iso8601(ts),
             'side': 'long',

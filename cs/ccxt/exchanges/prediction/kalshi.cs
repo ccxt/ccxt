@@ -660,10 +660,12 @@ public partial class kalshi : PredictionExchange
         //         }
         //     }
         //
+        object marketAny = ((object)market);
+        object outcomeObj = this.safeOutcome(this.safeString(marketAny, "symbol"), marketAny);
         object outcomeLabel = ((bool) isTrue(market)) ? this.safeString(market, "label", this.safeString(getValue(market, "info"), "outcomeLabel", "YES")) : "YES";
         object isNo = isEqual(((string)outcomeLabel).ToUpper(), "NO");
         object now = this.milliseconds();
-        object symbol = this.safeSymbol(null, market);
+        object symbol = this.safeString(outcomeObj, "symbol");
         object yesAsk = this.safeNumber(raw, "yes_ask_dollars");
         object yesBid = this.safeNumber(raw, "yes_bid_dollars");
         object noAsk = this.safeNumber(raw, "no_ask_dollars");
@@ -691,8 +693,11 @@ public partial class kalshi : PredictionExchange
         {
             average = this.parseNumber(Precise.stringDiv(Precise.stringAdd(this.numberToString(bid), this.numberToString(ask)), "2"));
         }
-        return this.safeTicker(new Dictionary<string, object>() {
+        return this.safePredictionTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
+            { "outcomeId", this.safeString2(outcomeObj, "outcomeId", "id") },
+            { "label", this.safeString(outcomeObj, "label") },
+            { "market", this.safeString2(outcomeObj, "market", "marketSymbol") },
             { "timestamp", now },
             { "datetime", this.iso8601(now) },
             { "high", null },
@@ -1124,10 +1129,11 @@ public partial class kalshi : PredictionExchange
         object amount = this.safeNumber(trade, "count", amountFp);
         object rawSide = this.safeStringLower(trade, "taker_side");
         object marketAny = ((object)market);
-        object marketInfo = this.safeDict(marketAny, "info", new Dictionary<string, object>() {});
-        object requestedOutcomeLabel = this.safeStringLower(marketAny, "label", this.safeStringLower(marketInfo, "outcomeLabel"));
-        object outcomeSymbol = this.safeString(marketAny, "symbol", this.safeSymbol(null, market));
-        object outcomeId = this.safeString(marketAny, "id");
+        object outcomeObj = this.safeOutcome(this.safeString(marketAny, "symbol"), marketAny);
+        object marketInfo = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
+        object requestedOutcomeLabel = this.safeStringLower(outcomeObj, "label", this.safeStringLower(marketInfo, "outcomeLabel"));
+        object outcomeSymbol = this.safeString(outcomeObj, "symbol");
+        object outcomeId = this.safeString2(outcomeObj, "outcomeId", "id");
         object side = null;
         if (isTrue(isTrue(isEqual(rawSide, "yes")) || isTrue(isEqual(rawSide, "no"))))
         {
@@ -1144,14 +1150,16 @@ public partial class kalshi : PredictionExchange
         {
             cost = multiply(price, amount);
         }
-        return this.safeTrade(new Dictionary<string, object>() {
+        return this.safePredictionTrade(new Dictionary<string, object>() {
             { "id", id },
             { "info", trade },
             { "timestamp", ts },
             { "datetime", this.iso8601(ts) },
-            { "symbol", this.safeSymbol(null, market) },
+            { "symbol", outcomeSymbol },
             { "outcome", outcomeSymbol },
             { "outcomeId", outcomeId },
+            { "label", this.safeString(outcomeObj, "label") },
+            { "market", this.safeString2(outcomeObj, "market", "marketSymbol") },
             { "order", null },
             { "type", null },
             { "side", side },
@@ -1261,9 +1269,12 @@ public partial class kalshi : PredictionExchange
             positionSide = ((bool) isTrue((isGreaterThanOrEqual(yesContracts, 0)))) ? "long" : "short";
             contractsValue = this.parseNumber(Precise.stringAbs(this.numberToString(yesContracts)));
         }
-        return new Dictionary<string, object>() {
+        return this.safePredictionPosition(new Dictionary<string, object>() {
             { "id", null },
             { "symbol", this.safeString(outcomeObj, "symbol", ticker) },
+            { "outcomeId", this.safeString2(outcomeObj, "outcomeId", "id") },
+            { "label", this.safeString(outcomeObj, "label") },
+            { "market", this.safeString2(outcomeObj, "market", "marketSymbol") },
             { "timestamp", null },
             { "datetime", null },
             { "contracts", contractsValue },
@@ -1287,7 +1298,7 @@ public partial class kalshi : PredictionExchange
             { "marginType", "cross" },
             { "percentage", null },
             { "info", position },
-        };
+        });
     }
 
     /**
@@ -1383,7 +1394,7 @@ public partial class kalshi : PredictionExchange
             remaining = subtract(amount, filled);
         }
         object ts = this.parse8601(this.safeString(order, "created_time"));
-        return this.safeOrder(new Dictionary<string, object>() {
+        return this.safePredictionOrder(new Dictionary<string, object>() {
             { "id", id },
             { "clientOrderId", this.safeString(order, "client_order_id") },
             { "info", order },
@@ -1391,7 +1402,10 @@ public partial class kalshi : PredictionExchange
             { "datetime", this.iso8601(ts) },
             { "lastTradeTimestamp", null },
             { "status", status },
-            { "symbol", getValue(mkt, "symbol") },
+            { "symbol", this.safeString(mkt, "symbol") },
+            { "outcomeId", this.safeString2(mkt, "outcomeId", "id") },
+            { "label", this.safeString(mkt, "label") },
+            { "market", this.safeString2(mkt, "market", "marketSymbol") },
             { "type", this.safeStringLower(order, "type", "limit") },
             { "timeInForce", "GTC" },
             { "postOnly", null },

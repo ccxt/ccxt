@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.prediction_exchange import PredictionExchange
 from ccxt.abstract.prediction.kalshi import ImplicitAPI
-from ccxt.base.types import Any, Balances, Int, Market, Num, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, OpenInterest, Trade, PredictionEvent
+from ccxt.base.types import Any, Balances, Int, Market, Num, OrderBook, Str, Strings, OpenInterest, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition
 from typing import List
 from ccxt.base.precise import Precise
 
@@ -397,7 +397,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             'created': None,
         }
 
-    async def fetch_ticker(self, symbol: Str, params={}) -> Ticker:
+    async def fetch_ticker(self, symbol: Str, params={}) -> PredictionTicker:
         """
         fetches the current market price and bid/ask for a single kalshi outcome
 
@@ -532,7 +532,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             'info': interest,
         }, market)
 
-    def parse_ticker(self, raw: dict, market: Market = None) -> Ticker:
+    def parse_ticker(self, raw: dict, market: Market = None) -> PredictionTicker:
         """
  @ignore
         parses a raw kalshi market object into a unified ticker object
@@ -595,10 +595,12 @@ class kalshi(PredictionExchange, ImplicitAPI):
         #         }
         #     }
         #
+        marketAny = market
+        outcomeObj = self.safeOutcome(self.safe_string(marketAny, 'symbol'), marketAny)
         outcomeLabel = self.safe_string(market, 'label', self.safe_string(market['info'], 'outcomeLabel', 'YES')) if market else 'YES'
         isNo = outcomeLabel.upper() == 'NO'
         now = self.milliseconds()
-        symbol = self.safe_symbol(None, market)
+        symbol = self.safe_string(outcomeObj, 'symbol')
         yesAsk = self.safe_number(raw, 'yes_ask_dollars')
         yesBid = self.safe_number(raw, 'yes_bid_dollars')
         noAsk = self.safe_number(raw, 'no_ask_dollars')
@@ -621,8 +623,11 @@ class kalshi(PredictionExchange, ImplicitAPI):
         average = None
         if (bid is not None) and (ask is not None):
             average = self.parse_number(Precise.string_div(Precise.string_add(self.number_to_string(bid), self.number_to_string(ask)), '2'))
-        return self.safe_ticker({
+        return self.safePredictionTicker({
             'symbol': symbol,
+            'outcomeId': self.safe_string_2(outcomeObj, 'outcomeId', 'id'),
+            'label': self.safe_string(outcomeObj, 'label'),
+            'market': self.safe_string_2(outcomeObj, 'market', 'marketSymbol'),
             'timestamp': now,
             'datetime': self.iso8601(now),
             'high': None,
@@ -644,7 +649,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             'info': raw,
         }, market)
 
-    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def fetch_tickers(self, symbols: Strings = None, params={}) -> PredictionTickers:
         """
         fetches tickers for multiple outcomes at once, batching their market tickers through the markets endpoint
 
@@ -681,7 +686,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             grouped.append(outcomeObj)
             outcomesByTicker[ticker] = grouped
         chunkSize = self.safe_integer(self.options, 'fetchTickersBatchSize', 100)
-        result: Tickers = {}
+        result: PredictionTickers = {}
         tickersLength = len(tickers)
         startIndex = 0
         while(startIndex < tickersLength):
@@ -929,7 +934,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume_fp', 0),
         ]
 
-    async def fetch_trades(self, symbol: Str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: Str, since: Int = None, limit: Int = None, params={}) -> List[PredictionTrade]:
         """
         fetches public trade history for a single kalshi market ticker
 
@@ -959,7 +964,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 filteredTrades.append(trade)
         return self.parse_trades(filteredTrades, outcomeObj, since, limit)
 
-    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> PredictionTrade:
         """
  @ignore
         parses a raw kalshi trade object into a unified trade object
@@ -980,10 +985,11 @@ class kalshi(PredictionExchange, ImplicitAPI):
         amount = self.safe_number(trade, 'count', amountFp)
         rawSide = self.safe_string_lower(trade, 'taker_side')
         marketAny = market
-        marketInfo = self.safe_dict(marketAny, 'info', {})
-        requestedOutcomeLabel = self.safe_string_lower(marketAny, 'label', self.safe_string_lower(marketInfo, 'outcomeLabel'))
-        outcomeSymbol = self.safe_string(marketAny, 'symbol', self.safe_symbol(None, market))
-        outcomeId = self.safe_string(marketAny, 'id')
+        outcomeObj = self.safeOutcome(self.safe_string(marketAny, 'symbol'), marketAny)
+        marketInfo = self.safe_dict(outcomeObj, 'info', {})
+        requestedOutcomeLabel = self.safe_string_lower(outcomeObj, 'label', self.safe_string_lower(marketInfo, 'outcomeLabel'))
+        outcomeSymbol = self.safe_string(outcomeObj, 'symbol')
+        outcomeId = self.safe_string_2(outcomeObj, 'outcomeId', 'id')
         side: Str
         if rawSide == 'yes' or rawSide == 'no':
             if requestedOutcomeLabel == 'yes' or requestedOutcomeLabel == 'no':
@@ -993,14 +999,16 @@ class kalshi(PredictionExchange, ImplicitAPI):
         cost = None
         if (price is not None) and (amount is not None):
             cost = price * amount
-        return self.safe_trade({
+        return self.safePredictionTrade({
             'id': id,
             'info': trade,
             'timestamp': ts,
             'datetime': self.iso8601(ts),
-            'symbol': self.safe_symbol(None, market),
+            'symbol': outcomeSymbol,
             'outcome': outcomeSymbol,
             'outcomeId': outcomeId,
+            'label': self.safe_string(outcomeObj, 'label'),
+            'market': self.safe_string_2(outcomeObj, 'market', 'marketSymbol'),
             'order': None,
             'type': None,
             'side': side,
@@ -1040,7 +1048,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         result['USD'] = {'free': total, 'used': 0, 'total': total}
         return result
 
-    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[PredictionPosition]:
         """
         fetches open market positions for the authenticated kalshi user
 
@@ -1063,7 +1071,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         positions = self.safe_list(response, 'market_positions', [])
         return self.parse_positions(positions, outcomes)
 
-    def parse_position(self, position: dict, market: Market = None) -> Position:
+    def parse_position(self, position: dict, market: Market = None) -> PredictionPosition:
         """
  @ignore
         parses a raw kalshi portfolio position into a unified position object
@@ -1079,9 +1087,12 @@ class kalshi(PredictionExchange, ImplicitAPI):
         if yesContracts is not None:
             positionSide = 'long' if (yesContracts >= 0) else 'short'
             contractsValue = self.parse_number(Precise.string_abs(self.number_to_string(yesContracts)))
-        return {
+        return self.safePredictionPosition({
             'id': None,
             'symbol': self.safe_string(outcomeObj, 'symbol', ticker),
+            'outcomeId': self.safe_string_2(outcomeObj, 'outcomeId', 'id'),
+            'label': self.safe_string(outcomeObj, 'label'),
+            'market': self.safe_string_2(outcomeObj, 'market', 'marketSymbol'),
             'timestamp': None,
             'datetime': None,
             'contracts': contractsValue,
@@ -1105,9 +1116,9 @@ class kalshi(PredictionExchange, ImplicitAPI):
             'marginType': 'cross',
             'percentage': None,
             'info': position,
-        }
+        })
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[PredictionOrder]:
         """
         fetches resting(open) orders for the authenticated kalshi user, optionally filtered by ticker
 
@@ -1133,7 +1144,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         orders = self.safe_list(response, 'orders', [])
         return self.parse_orders(orders, outcomeObj, since, limit)
 
-    async def fetch_order(self, id: Str, symbol: Str = None, params={}) -> Order:
+    async def fetch_order(self, id: Str, symbol: Str = None, params={}) -> PredictionOrder:
         """
         fetches a single order by id from the kalshi portfolio endpoint
 
@@ -1151,7 +1162,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         response = await self.kalshiPrivateGetPortfolioOrdersOrderId(self.extend({'order_id': id}, params))
         return self.parse_order(self.safe_value(response, 'order', response))
 
-    def parse_order(self, order: dict, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> PredictionOrder:
         """
  @ignore
         parses a raw kalshi order object into a unified order object
@@ -1175,7 +1186,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         if (amount is not None) and (filled is not None):
             remaining = amount - filled
         ts = self.parse8601(self.safe_string(order, 'created_time'))
-        return self.safe_order({
+        return self.safePredictionOrder({
             'id': id,
             'clientOrderId': self.safe_string(order, 'client_order_id'),
             'info': order,
@@ -1183,7 +1194,10 @@ class kalshi(PredictionExchange, ImplicitAPI):
             'datetime': self.iso8601(ts),
             'lastTradeTimestamp': None,
             'status': status,
-            'symbol': mkt['symbol'],
+            'symbol': self.safe_string(mkt, 'symbol'),
+            'outcomeId': self.safe_string_2(mkt, 'outcomeId', 'id'),
+            'label': self.safe_string(mkt, 'label'),
+            'market': self.safe_string_2(mkt, 'market', 'marketSymbol'),
             'type': self.safe_string_lower(order, 'type', 'limit'),
             'timeInForce': 'GTC',
             'postOnly': None,
@@ -1215,7 +1229,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def create_order(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}) -> Order:
+    async def create_order(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}) -> PredictionOrder:
         """
         places a limit or market order on kalshi for the given outcome token
 
@@ -1251,7 +1265,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         response = await self.kalshiPrivatePostPortfolioOrders(self.extend(request, params))
         return self.parse_order(self.safe_value(response, 'order', response), outcomeObj)
 
-    async def cancel_order(self, id: Str, symbol: Str = None, params={}) -> Order:
+    async def cancel_order(self, id: Str, symbol: Str = None, params={}) -> PredictionOrder:
         """
         cancels a single open order by id on kalshi
 
@@ -1269,7 +1283,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         response = await self.kalshiPrivateDeletePortfolioOrdersOrderId(self.extend({'order_id': id}, params))
         return self.parse_order(self.safe_value(response, 'order', response))
 
-    async def cancel_all_orders(self, symbol: Str = None, params={}) -> List[Order]:
+    async def cancel_all_orders(self, symbol: Str = None, params={}) -> List[PredictionOrder]:
         """
         cancels all open orders on kalshi, optionally scoped to one outcome ticker
 

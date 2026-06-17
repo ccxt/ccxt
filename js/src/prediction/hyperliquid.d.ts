@@ -1,5 +1,5 @@
 import Exchange from '../abstract/prediction/hyperliquid.js';
-import type { Int, int, Str, Num, Dict, Market, Ticker, Tickers, OrderBook, Trade, OHLCV, Order, Balances, Position, Strings, PredictionEvent } from '../base/types.js';
+import type { Int, int, Str, Num, Dict, Market, OrderBook, OHLCV, Balances, Strings, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition } from '../base/types.js';
 /**
  * @class hyperliquid
  * @augments Exchange
@@ -125,7 +125,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    fetchTicker(symbol: string, params?: {}): Promise<PredictionTicker>;
     /**
      * @method
      * @name hyperliquid#fetchTickers
@@ -135,7 +135,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    fetchTickers(symbols?: Strings, params?: {}): Promise<PredictionTickers>;
     /**
      * @ignore
      * @method
@@ -145,7 +145,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [market] the market the ticker belongs to
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    parseTicker(raw: Dict, market?: Market): Ticker;
+    parseTicker(raw: Dict, market?: Market): PredictionTicker;
     /**
      * @method
      * @name hyperliquid#fetchOrderBook
@@ -200,17 +200,17 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.user] wallet address
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
+    fetchPositions(symbols?: Strings, params?: {}): Promise<PredictionPosition[]>;
     /**
      * @ignore
      * @method
      * @name hyperliquid#parsePosition
      * @description parses a spot balance entry for an outcome token into a unified position object
      * @param {object} position the raw balance entry
-     * @param {object} [outcomeObj] the outcome object the position belongs to
+     * @param {object} [market] the outcome object the position belongs to
      * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
      */
-    parsePosition(position: Dict, outcomeObj?: any): Position;
+    parsePosition(position: Dict, market?: Market): PredictionPosition;
     findOutcomeInMarket(market: Market, sideHint?: Str): Dict;
     parseOutcomeInputSideHint(outcomeInput: string): Str;
     resolveOutcomeInput(outcomeInput: string): Dict;
@@ -233,7 +233,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.vaultAddress] optional subaccount/vault address to trade on behalf of (master signer must be authorized)
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    createOrder(symbol: string, type: string, side: string, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: string, side: string, amount: number, price?: Num, params?: {}): Promise<PredictionOrder>;
     /**
      * @method
      * @name hyperliquid#cancelOrder
@@ -246,7 +246,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.vaultAddress] optional subaccount/vault address to cancel on behalf of
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<PredictionOrder>;
     /**
      * @method
      * @name hyperliquid#cancelOrders
@@ -257,7 +257,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    cancelOrders(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
+    cancelOrders(ids: string[], symbol?: Str, params?: {}): Promise<PredictionOrder[]>;
     /**
      * @method
      * @name hyperliquid#fetchOpenOrders
@@ -271,7 +271,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.method] 'openOrders' | 'frontendOpenOrders' (default)
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionOrder[]>;
     /**
      * @method
      * @name hyperliquid#fetchOrders
@@ -284,7 +284,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.user] wallet address
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionOrder[]>;
     /**
      * @method
      * @name hyperliquid#fetchOrder
@@ -297,7 +297,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.clientOrderId] fetch by client order id instead
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    fetchOrder(id: string, symbol?: Str, params?: {}): Promise<PredictionOrder>;
     /**
      * @ignore
      * @method
@@ -307,7 +307,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [market] the market the order belongs to
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    parseOrder(order: Dict, market?: Market): Order;
+    parseOrder(order: Dict, market?: Market): PredictionOrder;
     parseOrderStatus(status: Str): Str;
     parseOrderType(status: Str): Str;
     parseTimeInForce(timeInForce: Str): Str;
@@ -324,7 +324,7 @@ export default class hyperliquid extends Exchange {
      * @param {int} [params.until] end timestamp in ms
      * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
      */
-    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionTrade[]>;
     /**
      * @ignore
      * @method
@@ -334,7 +334,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [market] the market the trade belongs to
      * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=trade-structure)
      */
-    parseTrade(trade: Dict, market?: Market): Trade;
+    parseTrade(trade: Dict, market?: Market): PredictionTrade;
     /**
      * @method
      * @name hyperliquid#fetchEvents

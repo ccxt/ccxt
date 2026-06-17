@@ -4,9 +4,9 @@ import { Precise } from '../base/Precise.js';
 import { rsa } from '../base/functions/rsa.js';
 import type {
     Int, Str, Num, Dict, Strings,
-    Market, Ticker, Tickers, OrderBook, Trade, OHLCV,
-    Order, Balances, Position, OpenInterest,
-    PredictionEvent,
+    Market, OrderBook, OHLCV,
+    Balances, OpenInterest,
+    PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition,
 } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
@@ -435,7 +435,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    async fetchTicker (symbol: Str, params = {}): Promise<Ticker> {
+    async fetchTicker (symbol: Str, params = {}): Promise<PredictionTicker> {
         const outcome = symbol;
         await this.loadMarkets ();
         this.checkEventsAndMarkets (outcome);
@@ -574,7 +574,7 @@ export default class kalshi extends Exchange {
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    parseTicker (raw: Dict, market: Market = undefined): Ticker {
+    parseTicker (raw: Dict, market: Market = undefined): PredictionTicker {
         //
         //     {
         //         "market": {
@@ -630,10 +630,12 @@ export default class kalshi extends Exchange {
         //         }
         //     }
         //
+        const marketAny = market as any;
+        const outcomeObj = this.safeOutcome (this.safeString (marketAny, 'symbol'), marketAny);
         const outcomeLabel = market ? this.safeString (market, 'label', this.safeString (market['info'], 'outcomeLabel', 'YES')) : 'YES';
         const isNo = outcomeLabel.toUpperCase () === 'NO';
         const now = this.milliseconds ();
-        const symbol = this.safeSymbol (undefined, market);
+        const symbol = this.safeString (outcomeObj, 'symbol');
         const yesAsk = this.safeNumber (raw, 'yes_ask_dollars');
         const yesBid = this.safeNumber (raw, 'yes_bid_dollars');
         const noAsk = this.safeNumber (raw, 'no_ask_dollars');
@@ -658,8 +660,11 @@ export default class kalshi extends Exchange {
         if ((bid !== undefined) && (ask !== undefined)) {
             average = this.parseNumber (Precise.stringDiv (Precise.stringAdd (this.numberToString (bid), this.numberToString (ask)), '2'));
         }
-        return this.safeTicker ({
+        return this.safePredictionTicker ({
             'symbol': symbol,
+            'outcomeId': this.safeString2 (outcomeObj, 'outcomeId', 'id'),
+            'label': this.safeString (outcomeObj, 'label'),
+            'market': this.safeString2 (outcomeObj, 'market', 'marketSymbol'),
             'timestamp': now,
             'datetime': this.iso8601 (now),
             'high': undefined,
@@ -691,7 +696,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome symbol
      */
-    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<PredictionTickers> {
         await this.loadMarkets ();
         const targets: any[] = [];
         if (symbols !== undefined) {
@@ -725,7 +730,7 @@ export default class kalshi extends Exchange {
             outcomesByTicker[ticker] = grouped;
         }
         const chunkSize = this.safeInteger (this.options, 'fetchTickersBatchSize', 100);
-        const result: Tickers = {};
+        const result: PredictionTickers = {};
         const tickersLength = tickers.length;
         let startIndex = 0;
         while (startIndex < tickersLength) {
@@ -1009,7 +1014,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
      */
-    async fetchTrades (symbol: Str, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async fetchTrades (symbol: Str, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
         const outcome = symbol;
         await this.loadMarkets ();
         this.checkEventsAndMarkets (outcome);
@@ -1029,7 +1034,7 @@ export default class kalshi extends Exchange {
                 filteredTrades.push (trade);
             }
         }
-        return this.parseTrades (filteredTrades, outcomeObj as any, since, limit);
+        return this.parseTrades (filteredTrades, outcomeObj as any, since, limit) as PredictionTrade[];
     }
 
     /**
@@ -1041,7 +1046,7 @@ export default class kalshi extends Exchange {
      * @param {object} [market] the outcome object the trade belongs to
      * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=public-trades)
      */
-    parseTrade (trade: Dict, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): PredictionTrade {
         const id = this.safeString (trade, 'trade_id');
         const ts = this.parse8601 (this.safeString (trade, 'created_time'));
         const priceDollars = this.safeNumber2 (trade, 'yes_price_dollars', 'price_dollars');
@@ -1056,10 +1061,11 @@ export default class kalshi extends Exchange {
         const amount = this.safeNumber (trade, 'count', amountFp);
         const rawSide = this.safeStringLower (trade, 'taker_side');
         const marketAny = market as any;
-        const marketInfo = this.safeDict (marketAny, 'info', {});
-        const requestedOutcomeLabel = this.safeStringLower (marketAny, 'label', this.safeStringLower (marketInfo, 'outcomeLabel'));
-        const outcomeSymbol = this.safeString (marketAny, 'symbol', this.safeSymbol (undefined, market));
-        const outcomeId = this.safeString (marketAny, 'id');
+        const outcomeObj = this.safeOutcome (this.safeString (marketAny, 'symbol'), marketAny);
+        const marketInfo = this.safeDict (outcomeObj, 'info', {});
+        const requestedOutcomeLabel = this.safeStringLower (outcomeObj, 'label', this.safeStringLower (marketInfo, 'outcomeLabel'));
+        const outcomeSymbol = this.safeString (outcomeObj, 'symbol');
+        const outcomeId = this.safeString2 (outcomeObj, 'outcomeId', 'id');
         let side: Str;
         if (rawSide === 'yes' || rawSide === 'no') {
             if (requestedOutcomeLabel === 'yes' || requestedOutcomeLabel === 'no') {
@@ -1072,14 +1078,16 @@ export default class kalshi extends Exchange {
         if ((price !== undefined) && (amount !== undefined)) {
             cost = price * amount;
         }
-        return this.safeTrade ({
+        return this.safePredictionTrade ({
             'id': id,
             'info': trade,
             'timestamp': ts,
             'datetime': this.iso8601 (ts),
-            'symbol': this.safeSymbol (undefined, market),
+            'symbol': outcomeSymbol,
             'outcome': outcomeSymbol,
             'outcomeId': outcomeId,
+            'label': this.safeString (outcomeObj, 'label'),
+            'market': this.safeString2 (outcomeObj, 'market', 'marketSymbol'),
             'order': undefined,
             'type': undefined,
             'side': side,
@@ -1134,7 +1142,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<PredictionPosition[]> {
         const outcomes = symbols;
         let outcomesLength = 0;
         if (outcomes !== undefined) {
@@ -1149,7 +1157,7 @@ export default class kalshi extends Exchange {
         }
         const response = await this.kalshiPrivateGetPortfolioPositions (params);
         const positions = this.safeList (response, 'market_positions', []) as any[];
-        return this.parsePositions (positions, outcomes);
+        return this.parsePositions (positions, outcomes) as PredictionPosition[];
     }
 
     /**
@@ -1161,7 +1169,7 @@ export default class kalshi extends Exchange {
      * @param {object} [market] the outcome object the position belongs to
      * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
      */
-    parsePosition (position: Dict, market: Market = undefined): Position {
+    parsePosition (position: Dict, market: Market = undefined): PredictionPosition {
         const ticker = this.safeString (position, 'ticker');
         const outcomeObj = this.safeOutcome (ticker, market as any);
         const yesContracts = this.safeNumber (position, 'position');  // positive = long YES
@@ -1171,9 +1179,12 @@ export default class kalshi extends Exchange {
             positionSide = (yesContracts >= 0) ? 'long' : 'short';
             contractsValue = this.parseNumber (Precise.stringAbs (this.numberToString (yesContracts)));
         }
-        return {
+        return this.safePredictionPosition ({
             'id': undefined,
             'symbol': this.safeString (outcomeObj, 'symbol', ticker),
+            'outcomeId': this.safeString2 (outcomeObj, 'outcomeId', 'id'),
+            'label': this.safeString (outcomeObj, 'label'),
+            'market': this.safeString2 (outcomeObj, 'market', 'marketSymbol'),
             'timestamp': undefined,
             'datetime': undefined,
             'contracts': contractsValue,
@@ -1197,7 +1208,7 @@ export default class kalshi extends Exchange {
             'marginType': 'cross',
             'percentage': undefined,
             'info': position,
-        } as Position;
+        });
     }
 
     /**
@@ -1211,7 +1222,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
         const outcome = symbol;
         if (outcome !== undefined) {
             this.checkEventsAndMarkets (outcome);
@@ -1226,7 +1237,7 @@ export default class kalshi extends Exchange {
         }
         const response = await this.kalshiPrivateGetPortfolioOrders (this.extend (request, params));
         const orders = this.safeList (response, 'orders', []) as any[];
-        return this.parseOrders (orders, outcomeObj as any, since, limit);
+        return this.parseOrders (orders, outcomeObj as any, since, limit) as PredictionOrder[];
     }
 
     /**
@@ -1239,7 +1250,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    async fetchOrder (id: Str, symbol: Str = undefined, params = {}): Promise<Order> {
+    async fetchOrder (id: Str, symbol: Str = undefined, params = {}): Promise<PredictionOrder> {
         if (symbol !== undefined) {
             this.checkEventsAndMarkets (symbol);
         } else {
@@ -1258,7 +1269,7 @@ export default class kalshi extends Exchange {
      * @param {object} [market] the outcome object the order belongs to
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    parseOrder (order: Dict, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): PredictionOrder {
         const id = this.safeString (order, 'order_id');
         const ticker = this.safeString (order, 'ticker');
         const mkt = this.safeOutcome (ticker, market as any);
@@ -1277,7 +1288,7 @@ export default class kalshi extends Exchange {
             remaining = amount - filled;
         }
         const ts = this.parse8601 (this.safeString (order, 'created_time'));
-        return this.safeOrder ({
+        return this.safePredictionOrder ({
             'id': id,
             'clientOrderId': this.safeString (order, 'client_order_id'),
             'info': order,
@@ -1285,7 +1296,10 @@ export default class kalshi extends Exchange {
             'datetime': this.iso8601 (ts),
             'lastTradeTimestamp': undefined,
             'status': status,
-            'symbol': mkt['symbol'],
+            'symbol': this.safeString (mkt, 'symbol'),
+            'outcomeId': this.safeString2 (mkt, 'outcomeId', 'id'),
+            'label': this.safeString (mkt, 'label'),
+            'market': this.safeString2 (mkt, 'market', 'marketSymbol'),
             'type': this.safeStringLower (order, 'type', 'limit'),
             'timeInForce': 'GTC',
             'postOnly': undefined,
@@ -1334,7 +1348,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    async createOrder (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Promise<Order> {
+    async createOrder (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Promise<PredictionOrder> {
         const outcome = symbol;
         await this.loadMarkets ();
         this.checkEventsAndMarkets (outcome);
@@ -1370,7 +1384,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    async cancelOrder (id: Str, symbol: Str = undefined, params = {}): Promise<Order> {
+    async cancelOrder (id: Str, symbol: Str = undefined, params = {}): Promise<PredictionOrder> {
         if (symbol !== undefined) {
             this.checkEventsAndMarkets (symbol);
         } else {
@@ -1389,7 +1403,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
+    async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<PredictionOrder[]> {
         const outcome = symbol;
         if (outcome !== undefined) {
             this.checkEventsAndMarkets (outcome);
@@ -1403,7 +1417,7 @@ export default class kalshi extends Exchange {
             request['ticker'] = this.safeString (outcomeObj['info'], 'ticker');
         }
         const response = await this.kalshiPrivateDeletePortfolioOrders (this.extend (request, params));
-        return this.parseOrders (this.safeList (response, 'orders', []) as any[]);
+        return this.parseOrders (this.safeList (response, 'orders', []) as any[]) as PredictionOrder[];
     }
 
     /**

@@ -1459,7 +1459,7 @@ class limitless extends Exchange {
         }) ();
     }
 
-    public function fetch_orders_by_ids($ids, ?string $symbol = null, $params = array ()) {
+    public function fetch_orders_by_ids($ids, ?string $symbol = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * fetch orders by the list of order $id
@@ -2128,7 +2128,7 @@ class limitless extends Exchange {
         }) ();
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple orders at the same time

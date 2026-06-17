@@ -143,10 +143,10 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [position structures](https://docs.ccxt.com/#/?id=position-structure).</returns>
-    public async Task<List<Position>> FetchPositions(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<List<PredictionPosition>> FetchPositions(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPositions(symbols, parameters);
-        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
+        return ((IList<object>)res).Select(item => new PredictionPosition(item)).ToList<PredictionPosition>();
     }
     /// <summary>
     /// fetches a trade quote — price, shares, fees and the on-chain calldata — for buying or selling an outcome. Myriad settles trades on-chain, so this returns the calldata to submit to the prediction-market contract rather than placing an off-chain order
@@ -213,11 +213,11 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure](https://docs.ccxt.com/#/?id=order-structure).</returns>
-    public async Task<Order> CreateOrder(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<PredictionOrder> CreateOrder(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
         var res = await this.createOrder(symbol, type, side, amount, price, parameters);
-        return new Order(res);
+        return new PredictionOrder(res);
     }
     /// <summary>
     /// signs an EIP-712 order and posts it to the gasless order book; the operator settles the match on-chain
@@ -227,11 +227,11 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure](https://docs.ccxt.com/#/?id=order-structure).</returns>
-    public async Task<Order> CreateOrderbookOrder(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<PredictionOrder> CreateOrderbookOrder(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
         var res = await this.createOrderbookOrder(symbol, type, side, amount, price, parameters);
-        return new Order(res);
+        return new PredictionOrder(res);
     }
     /// <summary>
     /// places multiple order book orders. Myriad's batch endpoint is not reliable, so the
@@ -248,10 +248,10 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [order structures](https://docs.ccxt.com/#/?id=order-structure).</returns>
-    public async Task<List<Order>> CreateOrders(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
+    public async Task<List<PredictionOrder>> CreateOrders(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
     {
         var res = await this.createOrders(orders, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+        return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
     }
     /// <summary>
     /// edits an open order by cancelling it and placing a replacement (gasless). Myriad's
@@ -274,12 +274,12 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure](https://docs.ccxt.com/#/?id=order-structure).</returns>
-    public async Task<Order> EditOrder(string id, string symbol, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<PredictionOrder> EditOrder(string id, string symbol, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var amount = amount2 == 0 ? null : (object)amount2;
         var price = price2 == 0 ? null : (object)price2;
         var res = await this.editOrder(id, symbol, type, side, amount, price, parameters);
-        return new Order(res);
+        return new PredictionOrder(res);
     }
     /// <summary>
     /// buys or sells outcome shares by submitting the quote's calldata as an on-chain AMM transaction. Requires a privateKey with gas + collateral on the market's network
@@ -289,11 +289,11 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure](https://docs.ccxt.com/#/?id=order-structure).</returns>
-    public async Task<Order> CreateAmmOrder(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<PredictionOrder> CreateAmmOrder(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
         var res = await this.createAmmOrder(symbol, type, side, amount, price, parameters);
-        return new Order(res);
+        return new PredictionOrder(res);
     }
     /// <summary>
     /// cancels an open order book order by its hash (re-signs the original order to prove ownership; gasless)
@@ -316,10 +316,10 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure](https://docs.ccxt.com/#/?id=order-structure).</returns>
-    public async Task<Order> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<PredictionOrder> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrder(id, symbol, parameters);
-        return new Order(res);
+        return new PredictionOrder(res);
     }
     /// <summary>
     /// cancels all open order book orders for the wallet, optionally scoped to one market (gasless)
@@ -368,10 +368,10 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [order structures](https://docs.ccxt.com/#/?id=order-structure).</returns>
-    public async Task<List<Order>> CancelOrders(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<List<PredictionOrder>> CancelOrders(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrders(ids, symbol, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+        return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
     }
     /// <summary>
     /// fetches a single order book order by its hash
@@ -394,10 +394,10 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure](https://docs.ccxt.com/#/?id=order-structure).</returns>
-    public async Task<Order> FetchOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<PredictionOrder> FetchOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOrder(id, symbol, parameters);
-        return new Order(res);
+        return new PredictionOrder(res);
     }
     /// <summary>
     /// fetches order book orders for the wallet (or any trader passed via params.trader)
@@ -444,12 +444,12 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [order structures](https://docs.ccxt.com/#/?id=order-structure).</returns>
-    public async Task<List<Order>> FetchOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<PredictionOrder>> FetchOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOrders(symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+        return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
     }
     /// <summary>
     /// fetches open order book orders for the wallet
@@ -484,12 +484,12 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [order structures](https://docs.ccxt.com/#/?id=order-structure).</returns>
-    public async Task<List<Order>> FetchOpenOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<PredictionOrder>> FetchOpenOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOpenOrders(symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+        return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
     }
     /// <summary>
     /// fetches the wallet's filled order book orders
@@ -524,12 +524,12 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [order structures](https://docs.ccxt.com/#/?id=order-structure).</returns>
-    public async Task<List<Order>> FetchClosedOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<PredictionOrder>> FetchClosedOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchClosedOrders(symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+        return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
     }
     /// <summary>
     /// fetches the wallet's cancelled order book orders
@@ -564,12 +564,12 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [order structures](https://docs.ccxt.com/#/?id=order-structure).</returns>
-    public async Task<List<Order>> FetchCanceledOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<PredictionOrder>> FetchCanceledOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchCanceledOrders(symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+        return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
     }
     /// <summary>
     /// fetches the wallet's filled order book orders as trades. Note: Myriad's REST exposes the order's
@@ -604,12 +604,12 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure).</returns>
-    public async Task<List<Trade>> FetchMyTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<PredictionTrade>> FetchMyTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchMyTrades(symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
+        return ((IList<object>)res).Select(item => new PredictionTrade(item)).ToList<PredictionTrade>();
     }
     /// <summary>
     /// fetches the wallet's on-chain collateral balance for the order-book network (USD1 on BNB Chain)
@@ -652,10 +652,10 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure).</returns>
-    public async Task<Ticker> FetchTicker(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<PredictionTicker> FetchTicker(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTicker(symbol, parameters);
-        return new Ticker(res);
+        return new PredictionTicker(res);
     }
     /// <summary>
     /// fetches the buy/sell fee rates for a market outcome
@@ -753,10 +753,10 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome symbol.</returns>
-    public async Task<Tickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<PredictionTickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTickers(symbols, parameters);
-        return new Tickers(res);
+        return new PredictionTickers(res);
     }
     /// <summary>
     /// fetches recent public trades for a single outcome from the market action feed
@@ -785,12 +785,12 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades).</returns>
-    public async Task<List<Trade>> FetchTrades(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<PredictionTrade>> FetchTrades(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchTrades(symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
+        return ((IList<object>)res).Select(item => new PredictionTrade(item)).ToList<PredictionTrade>();
     }
     /// <summary>
     /// fetches prediction-market events matching the given search terms (or all open markets when omitted) and caches their markets and outcomes on the instance
@@ -884,12 +884,12 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades).</returns>
-    public async Task<List<Trade>> WatchTrades(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<PredictionTrade>> WatchTrades(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.watchTrades(symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
+        return ((IList<object>)res).Select(item => new PredictionTrade(item)).ToList<PredictionTrade>();
     }
     /// <summary>
     /// streams the wallet's own fills for a market over the Centrifugo trades channel (real
@@ -918,12 +918,12 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure).</returns>
-    public async Task<List<Trade>> WatchMyTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<PredictionTrade>> WatchMyTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.watchMyTrades(symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
+        return ((IList<object>)res).Select(item => new PredictionTrade(item)).ToList<PredictionTrade>();
     }
     /// <summary>
     /// streams best bid/ask/last for an outcome over the Centrifugo prices channel
@@ -940,10 +940,10 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure).</returns>
-    public async Task<Ticker> WatchTicker(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<PredictionTicker> WatchTicker(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.watchTicker(symbol, parameters);
-        return new Ticker(res);
+        return new PredictionTicker(res);
     }
     /// <summary>
     /// streams best bid/ask/last for several outcomes over the Centrifugo prices channels
@@ -960,10 +960,10 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dict of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by symbol.</returns>
-    public async Task<Tickers> WatchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<PredictionTickers> WatchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.watchTickers(symbols, parameters);
-        return new Tickers(res);
+        return new PredictionTickers(res);
     }
     /// <summary>
     /// streams OHLCV candles for an outcome, synthesised from the live trades channel
@@ -1032,12 +1032,12 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [order structures](https://docs.ccxt.com/#/?id=order-structure).</returns>
-    public async Task<List<Order>> WatchOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<PredictionOrder>> WatchOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.watchOrders(symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+        return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
     }
     /// <summary>
     /// streams the wallet's share-balance changes over the Centrifugo positions channel
@@ -1066,11 +1066,11 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [position structures](https://docs.ccxt.com/#/?id=position-structure).</returns>
-    public async Task<List<Position>> WatchPositions(List<String> symbols = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<PredictionPosition>> WatchPositions(List<String> symbols = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.watchPositions(symbols, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
+        return ((IList<object>)res).Select(item => new PredictionPosition(item)).ToList<PredictionPosition>();
     }
 }
