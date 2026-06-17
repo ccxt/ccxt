@@ -26,7 +26,7 @@ wait_time = 5 # seconds to wait between each check
 paper_trading = True # set to false to actually execute trades
 
 # exchange you want to use to look for lending opportunities
-exchange = ccxt.bitfinex2()
+exchange = ccxt.bitfinex()
 
 # currencies you want to lend
 currencies = [
