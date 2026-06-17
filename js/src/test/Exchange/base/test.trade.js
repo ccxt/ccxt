@@ -19,7 +19,10 @@ function testTrade(exchange, skippedProperties, method, entry, symbol, now) {
         'amount': exchange.parseNumber('1.5'), // amount of base currency
         'cost': exchange.parseNumber('0.10376526'), // total cost (including fees), `price * amount`
         'fees': [],
-        'fee': {},
+        'fee': {
+            'cost': exchange.parseNumber('0.001'), // float, the fee amount in the quote currency
+            'currency': 'USDT', // string, the currency of the fee
+        },
     };
     // todo: add takeOrMaker as mandatory (atm, many exchanges fail)
     // removed side because some public endpoints return trades without side
