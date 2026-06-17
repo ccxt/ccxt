@@ -104,11 +104,11 @@ php -f path/to/example.php # substitute for actual filename here
 
 - [Gateio Watch Balance](./examples/php/gateio-watch-balance.md)
 
-- [Huobi Fetch Balance](./examples/php/huobi-fetch-balance.md)
+- [htx Fetch Balance](./examples/php/htx-fetch-balance.md)
 
-- [Huobi Futures](./examples/php/huobi-futures.md)
+- [htx Futures](./examples/php/htx-futures.md)
 
-- [Huobi Swaps](./examples/php/huobi-swaps.md)
+- [htx Swaps](./examples/php/htx-swaps.md)
 
 - [Hyperliquid Load Hip3 Dexes](./examples/php/hyperliquid-load-hip3-dexes.md)
 
