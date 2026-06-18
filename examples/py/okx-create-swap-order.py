@@ -6,7 +6,7 @@ import ccxt.pro
 
 print('CCXT Pro Version: ', ccxt.pro.__version__)
 
-exchange = ccxt.pro.okex({
+exchange = ccxt.pro.okx({
     'apiKey': 'YOUR_API_KEY',
     'secret': 'YOUR_API_SECRET',
     'password': 'YOUR_API_PASSWORD',
@@ -19,7 +19,7 @@ async def main():
     # exchange.verbose = True  # uncomment for debugging
 
     # https://github.com/ccxt/ccxt/wiki/Manual#overriding-unified-params
-    # https://www.okex.com/docs/en/#swap-swap---orders
+    # https://www.okx.com/docs/en/#swap-swap---orders
 
     symbol = 'BTC/USDT:USDT'
     amount = 1  # how may contracts
