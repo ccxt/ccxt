@@ -4842,6 +4842,102 @@
                     }
                 ]
             }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "Linear swap fetch funding history",
+                "method": "fetchFundingHistory",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "Success",
+                    "data": [
+                        {
+                            "id": "2194774775",
+                            "type": "30",
+                            "currency": "USDT",
+                            "amount": "0.000433432461821856",
+                            "contract_code": "BTC-USDT",
+                            "margin_mode": "cross",
+                            "created_time": "1780963213165"
+                        },
+                        {
+                            "id": "2194672211",
+                            "type": "30",
+                            "currency": "USDT",
+                            "amount": "0.003552384039005036",
+                            "contract_code": "BTC-USDT",
+                            "margin_mode": "cross",
+                            "created_time": "1780934413527"
+                        },
+                        {
+                            "id": "2194540518",
+                            "type": "30",
+                            "currency": "USDT",
+                            "amount": "0.003736324290641847",
+                            "contract_code": "BTC-USDT",
+                            "margin_mode": "cross",
+                            "created_time": "1780905620461"
+                        }
+                    ],
+                    "ts": "1781772448836"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "2194540518",
+                            "type": "30",
+                            "currency": "USDT",
+                            "amount": "0.003736324290641847",
+                            "contract_code": "BTC-USDT",
+                            "margin_mode": "cross",
+                            "created_time": "1780905620461"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "code": "USDT",
+                        "timestamp": 1780905620461,
+                        "datetime": "2026-06-08T08:00:20.461Z",
+                        "id": "2194540518",
+                        "amount": 0.003736324290641847
+                    },
+                    {
+                        "info": {
+                            "id": "2194672211",
+                            "type": "30",
+                            "currency": "USDT",
+                            "amount": "0.003552384039005036",
+                            "contract_code": "BTC-USDT",
+                            "margin_mode": "cross",
+                            "created_time": "1780934413527"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "code": "USDT",
+                        "timestamp": 1780934413527,
+                        "datetime": "2026-06-08T16:00:13.527Z",
+                        "id": "2194672211",
+                        "amount": 0.003552384039005036
+                    },
+                    {
+                        "info": {
+                            "id": "2194774775",
+                            "type": "30",
+                            "currency": "USDT",
+                            "amount": "0.000433432461821856",
+                            "contract_code": "BTC-USDT",
+                            "margin_mode": "cross",
+                            "created_time": "1780963213165"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "code": "USDT",
+                        "timestamp": 1780963213165,
+                        "datetime": "2026-06-09T00:00:13.165Z",
+                        "id": "2194774775",
+                        "amount": 0.000433432461821856
+                    }
+                ]
+            }
         ]
     }
 }

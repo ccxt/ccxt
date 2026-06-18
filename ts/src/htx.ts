@@ -790,8 +790,6 @@ export default class htx extends Exchange {
                             'linear-swap-api/v1/swap_cross_sub_account_info': 1,
                             'linear-swap-api/v1/swap_sub_position_info': 1,
                             'linear-swap-api/v1/swap_cross_sub_position_info': 1,
-                            'linear-swap-api/v1/swap_financial_record': 1,
-                            'linear-swap-api/v1/swap_financial_record_exact': 1,
                             'linear-swap-api/v1/swap_user_settlement_records': 1,
                             'linear-swap-api/v1/swap_cross_user_settlement_records': 1,
                             'linear-swap-api/v1/swap_available_level_rate': 1,
@@ -805,8 +803,6 @@ export default class htx extends Exchange {
                             'linear-swap-api/v1/swap_master_sub_transfer': 1,
                             'linear-swap-api/v1/swap_master_sub_transfer_record': 1,
                             'linear-swap-api/v1/swap_transfer_inner': 1,
-                            'linear-swap-api/v3/swap_financial_record': 1,
-                            'linear-swap-api/v3/swap_financial_record_exact': 1,
                             // Swap Trade Interface
                             'linear-swap-api/v1/swap_cross_matchresults': 1,
                             'linear-swap-api/v1/swap_cross_matchresults_exact': 1,
@@ -7760,61 +7756,63 @@ export default class htx extends Exchange {
      * @method
      * @name htx#fetchFundingHistory
      * @description fetch the history of funding payments paid and received on this account
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-account-financial-records-via-multiple-fields-new   // linear swaps
-     * @see https://huobiapi.github.io/docs/dm/v1/en/#query-financial-records-via-multiple-fields-new                          // coin-m futures
-     * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-financial-records-via-multiple-fields-new          // coin-m swaps
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b930b8bee                         // linear swaps
+     * @see https://huobiapi.github.io/docs/dm/v1/en/#query-financial-records-via-multiple-fields-new                   // coin-m futures
+     * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-financial-records-via-multiple-fields-new   // coin-m swaps
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch funding history for
      * @param {int} [limit] the maximum number of funding history structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchFundingHistory', market, params);
-        const request: Dict = {
+        let request: Dict = {
             'type': '30,31',
         };
+        [ request, params ] = this.handleUntilOption ('end_time', request, params);
         if (since !== undefined) {
-            request['start_date'] = since;
+            if (market['linear']) {
+                request['start_time'] = since;
+            } else {
+                request['start_date'] = since;
+            }
         }
         let response = undefined;
         if (marketType === 'swap') {
-            request['contract'] = market['id'];
             if (market['linear']) {
-                //
-                //    {
-                //        "status": "ok",
-                //        "data": {
-                //           "financial_record": [
-                //               {
-                //                   "id": "1320088022",
-                //                   "type": "30",
-                //                   "amount": "0.004732510000000000",
-                //                   "ts": "1641168019321",
-                //                   "contract_code": "BTC-USDT",
-                //                   "asset": "USDT",
-                //                   "margin_account": "BTC-USDT",
-                //                   "face_margin_account": ''
-                //               },
-                //           ],
-                //           "remain_size": "0",
-                //           "next_id": null
-                //        },
-                //        "ts": "1641189898425"
-                //    }
-                //
                 let marginMode = undefined;
                 [ marginMode, params ] = this.handleMarginModeAndParams ('fetchFundingHistory', params);
                 marginMode = (marginMode === undefined) ? 'cross' : marginMode;
-                if (marginMode === 'isolated') {
-                    request['mar_acct'] = market['id'];
-                } else {
-                    request['mar_acct'] = market['quoteId'];
+                request['margin_mode'] = marginMode;
+                request['contract_code'] = market['id'];
+                if (limit !== undefined) {
+                    request['limit'] = limit;
                 }
-                response = await this.contractPrivatePostLinearSwapApiV3SwapFinancialRecordExact (this.extend (request, query));
+                response = await this.contractPrivateGetV5AccountBills (this.extend (request, query));
+                //
+                //     {
+                //         "code": 200,
+                //         "message": "Success",
+                //         "data": [
+                //             {
+                //                 "id": "2194774775",
+                //                 "type": "30",
+                //                 "currency": "USDT",
+                //                 "amount": "0.000433432461821856",
+                //                 "contract_code": "BTC-USDT",
+                //                 "margin_mode": "cross",
+                //                 "created_time": "1780963213165"
+                //             },
+                //         ],
+                //         "ts": 1781772448836
+                //     }
+                //
             } else {
+                request['contract'] = market['id'];
                 //
                 //     {
                 //         "code": 200,
@@ -7931,12 +7929,24 @@ export default class htx extends Exchange {
         //       "contract_code": "BTC-USD"
         //     }
         //
+        // linear swap
+        //
+        //     {
+        //         "id": "2194774775",
+        //         "type": "30",
+        //         "currency": "USDT",
+        //         "amount": "0.000433432461821856",
+        //         "contract_code": "BTC-USDT",
+        //         "margin_mode": "cross",
+        //         "created_time": "1780963213165"
+        //     }
+        //
         const marketId = this.safeString (income, 'contract_code');
         const symbol = this.safeSymbol (marketId, market);
         const amount = this.safeNumber (income, 'amount');
-        const timestamp = this.safeInteger (income, 'ts');
+        const timestamp = this.safeInteger2 (income, 'ts', 'created_time');
         const id = this.safeString (income, 'id');
-        const currencyId = this.safeString2 (income, 'symbol', 'asset');
+        const currencyId = this.safeStringN (income, [ 'symbol', 'asset', 'currency' ]);
         const code = this.safeCurrencyCode (currencyId);
         return {
             'info': income,
