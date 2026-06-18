@@ -209,7 +209,7 @@ node path/to/example.js # substitute for actual filename here
 
 - [Hibachi Example](./examples/js/hibachi-example.md)
 
-- [Hitbtc2 Withdraw](./examples/js/hitbtc2-withdraw.md)
+- [Hitbtc Withdraw](./examples/js/hitbtc-withdraw.md)
 
 - [How To Import One Exchange Esm](./examples/js/how-to-import-one-exchange-esm.md)
 
