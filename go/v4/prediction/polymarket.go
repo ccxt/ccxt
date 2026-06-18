@@ -893,7 +893,7 @@ func  (this *PolymarketCore) FetchTickers(optionalArgs ...any) <- chan any {
                         "book": book,
                     }
                     var ticker any = this.ParseTicker(tickerInput, outcomeObj)
-                    var symbolKey any = this.SafeString(ticker, "symbol", tokenId)
+                    var symbolKey any = this.SafeString(ticker, "outcome", tokenId)
                     ccxt.AddElementToObject(result, symbolKey, ticker)
                 }
                 startIndex = this.Sum(startIndex, chunkSize)

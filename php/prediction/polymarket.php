@@ -818,7 +818,7 @@ class polymarket extends Exchange {
                     $mid = $this->safe_string($midpoints, $tokenId);
                     $tickerInput = array( 'midpoint' => array( 'mid' => $mid ), 'book' => $book );
                     $ticker = $this->parse_ticker($tickerInput, $outcomeObj);
-                    $symbolKey = $this->safe_string($ticker, 'symbol', $tokenId);
+                    $symbolKey = $this->safe_string($ticker, 'outcome', $tokenId);
                     $result[$symbolKey] = $ticker;
                 }
                 $startIndex = $this->sum($startIndex, $chunkSize);

@@ -922,7 +922,7 @@ final Object finalMarketSymbol = marketSymbol;
                         put( "book", book );
                     }};
                     Object ticker = this.parseTicker(tickerInput, outcomeObj);
-                    Object symbolKey = this.safeString(ticker, "symbol", tokenId);
+                    Object symbolKey = this.safeString(ticker, "outcome", tokenId);
                     Helpers.addElementToObject(result, symbolKey, ticker);
                 }
                 startIndex = this.sum(startIndex, chunkSize);

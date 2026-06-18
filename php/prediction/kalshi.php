@@ -342,6 +342,13 @@ class kalshi extends Exchange {
         // Market symbol (no outcome suffix)
         $subtitleOrTicker = ($subtitle !== null) ? $subtitle : $ticker;
         $marketSymbol = $this->slugToMarketSymbol ($eventTicker, $subtitleOrTicker);
+        // kalshi quotes in cents and exposes the price tick per market via tick_size (in cents);
+        // convert it to a dollar price $precision (defaults to 1 cent). amount is a whole number of contracts
+        $tickSizeCents = $this->safe_string($raw, 'tick_size', '1');
+        $precision = array(
+            'amount' => 1,
+            'price' => $this->parse_number(Precise::string_div($tickSizeCents, '100')),
+        );
         // Build $outcomes
         $outcomeLabels = array( 'YES', 'NO' );
         $outcomeIds = array( $ticker, $ticker . '-NO' );
@@ -358,6 +365,7 @@ class kalshi extends Exchange {
                 'market' => $marketSymbol,
                 'label' => $label,
                 'active' => $active,
+                'precision' => $precision,
                 'info' => array(
                     'ticker' => $ticker,
                     'eventTicker' => $eventTicker,
@@ -402,10 +410,7 @@ class kalshi extends Exchange {
             'percentage' => true,
             'tierBased' => false,
             'feeSide' => 'get',
-            'precision' => array(
-                'amount' => 1,
-                'price' => 0.01,
-            ),
+            'precision' => $precision,
             'limits' => array(
                 'leverage' => array( 'min' => 1, 'max' => 1 ),
                 'amount' => array( 'min' => 1, 'max' => null ),
@@ -759,7 +764,7 @@ class kalshi extends Exchange {
                     $grouped = $outcomesByTicker[$marketTicker];
                     for ($j = 0; $j < count($grouped); $j++) {
                         $ticker = $this->parse_ticker($raw, $grouped[$j]);
-                        $symbolKey = $this->safe_string($ticker, 'symbol');
+                        $symbolKey = $this->safe_string($ticker, 'outcome');
                         if ($symbolKey !== null) {
                             $result[$symbolKey] = $ticker;
                         }

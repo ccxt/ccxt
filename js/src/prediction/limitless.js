@@ -486,7 +486,10 @@ export default class limitless extends Exchange {
     async fetchEvent(id, params = {}) {
         const request = { 'addressOrSlug': id };
         const response = await this.limitlessPublicGetMarketsAddressOrSlug(this.extend(request, params));
-        const event = this.parseEvent(response);
+        // the single-market endpoint returns one raw market (no `markets` array like the grouped
+        // listing), so wrap it for parseEvent — its loop then parses this market into the event
+        const wrapped = this.extend(response, { 'markets': [response] });
+        const event = this.parseEvent(wrapped);
         return event;
     }
     parseEvent(event) {
@@ -1037,7 +1040,7 @@ export default class limitless extends Exchange {
                 const outcomesList = this.safeList(m, 'outcomes', []);
                 for (let j = 0; j < outcomesList.length; j++) {
                     const ticker = this.parseTicker(raw, outcomesList[j]);
-                    const symbolKey = this.safeString(ticker, 'symbol');
+                    const symbolKey = this.safeString(ticker, 'outcome');
                     if (symbolKey !== undefined) {
                         result[symbolKey] = ticker;
                     }
@@ -1077,7 +1080,7 @@ export default class limitless extends Exchange {
             const grouped = outcomesBySlug[slug];
             for (let j = 0; j < grouped.length; j++) {
                 const ticker = this.parseTicker(tickerInput, grouped[j]);
-                const symbolKey = this.safeString(ticker, 'symbol');
+                const symbolKey = this.safeString(ticker, 'outcome');
                 if (symbolKey !== undefined) {
                     result[symbolKey] = ticker;
                 }

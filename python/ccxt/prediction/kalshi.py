@@ -321,6 +321,13 @@ class kalshi(PredictionExchange, ImplicitAPI):
         # Market symbol(no outcome suffix)
         subtitleOrTicker = subtitle if (subtitle is not None) else ticker
         marketSymbol = self.slugToMarketSymbol(eventTicker, subtitleOrTicker)
+        # kalshi quotes in cents and exposes the price tick per market via tick_size(in cents)
+        # convert it to a dollar price precision(defaults to 1 cent). amount is a whole number of contracts
+        tickSizeCents = self.safe_string(raw, 'tick_size', '1')
+        precision = {
+            'amount': 1,
+            'price': self.parse_number(Precise.string_div(tickSizeCents, '100')),
+        }
         # Build outcomes
         outcomeLabels = ['YES', 'NO']
         outcomeIds = [ticker, ticker + '-NO']
@@ -337,6 +344,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 'market': marketSymbol,
                 'label': label,
                 'active': active,
+                'precision': precision,
                 'info': {
                     'ticker': ticker,
                     'eventTicker': eventTicker,
@@ -380,10 +388,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             'percentage': True,
             'tierBased': False,
             'feeSide': 'get',
-            'precision': {
-                'amount': 1,
-                'price': 0.01,
-            },
+            'precision': precision,
             'limits': {
                 'leverage': {'min': 1, 'max': 1},
                 'amount': {'min': 1, 'max': None},
@@ -716,7 +721,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 grouped = outcomesByTicker[marketTicker]
                 for j in range(0, len(grouped)):
                     ticker = self.parse_ticker(raw, grouped[j])
-                    symbolKey = self.safe_string(ticker, 'symbol')
+                    symbolKey = self.safe_string(ticker, 'outcome')
                     if symbolKey is not None:
                         result[symbolKey] = ticker
             startIndex = self.sum(startIndex, chunkSize)

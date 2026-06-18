@@ -754,7 +754,7 @@ export default class kalshi extends Exchange {
                 const grouped = outcomesByTicker[marketTicker];
                 for (let j = 0; j < grouped.length; j++) {
                     const ticker = this.parseTicker(raw, grouped[j]);
-                    const symbolKey = this.safeString(ticker, 'symbol');
+                    const symbolKey = this.safeString(ticker, 'outcome');
                     if (symbolKey !== undefined) {
                         result[symbolKey] = ticker;
                     }

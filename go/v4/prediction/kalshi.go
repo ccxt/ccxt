@@ -845,7 +845,7 @@ func  (this *KalshiCore) FetchTickers(optionalArgs ...any) <- chan any {
                     var grouped any = ccxt.GetValue(outcomesByTicker, marketTicker)
                     for j := 0; ccxt.IsLessThan(j, ccxt.GetArrayLength(grouped)); j++ {
                         var ticker any = this.ParseTicker(raw, ccxt.GetValue(grouped, j))
-                        var symbolKey any = this.SafeString(ticker, "symbol")
+                        var symbolKey any = this.SafeString(ticker, "outcome")
                         if ccxt.IsTrue(!ccxt.IsEqual(symbolKey, nil)) {
                             ccxt.AddElementToObject(result, symbolKey, ticker)
                         }

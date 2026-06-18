@@ -816,7 +816,7 @@ public partial class kalshi : PredictionExchange
                 for (object j = 0; isLessThan(j, getArrayLength(grouped)); postFixIncrement(ref j))
                 {
                     object ticker = this.parseTicker(raw, getValue(grouped, j));
-                    object symbolKey = this.safeString(ticker, "symbol");
+                    object symbolKey = this.safeString(ticker, "outcome");
                     if (isTrue(!isEqual(symbolKey, null)))
                     {
                         ((IDictionary<string,object>)result)[(string)symbolKey] = ticker;

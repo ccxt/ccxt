@@ -364,6 +364,14 @@ class limitless(PredictionExchange, ImplicitAPI):
         endDate = self.safe_string(raw, 'deadline', self.safe_string(raw, 'expiresAt'))
         volume24h = self.safe_number(raw, 'volume24h')
         marketSymbol = self.slugToMarketSymbol(groupId, slug)
+        # amount precision comes from the collateral token decimals(USDC, 6); limitless does not
+        # expose a price tick, so 0.001 is the platform convention
+        collateralToken = self.safe_dict(raw, 'collateralToken', {})
+        collateralDecimals = self.safe_integer(collateralToken, 'decimals', self.safe_integer(self.options, 'usdcDecimals', 6))
+        precision = {
+            'amount': str(self.parse_number(self.parse_precision(collateralDecimals))),
+            'price': 0.001,
+        }
         outcomes: List[Any] = []
         tokenEntries = list(tokens.keys())
         for i in range(0, len(tokenEntries)):
@@ -376,6 +384,7 @@ class limitless(PredictionExchange, ImplicitAPI):
                 'market': marketSymbol,
                 'label': outcomeLabel,
                 'active': active,
+                'precision': precision,
                 'info': {
                     'slug': slug,
                     'address': address,
@@ -419,10 +428,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             'percentage': True,
             'tierBased': False,
             'feeSide': 'get',
-            'precision': {
-                'amount': 0.000001,
-                'price': 0.001,
-            },
+            'precision': precision,
             'limits': {
                 'leverage': {'min': 1, 'max': 1},
                 'amount': {'min': 0, 'max': None},
@@ -450,7 +456,10 @@ class limitless(PredictionExchange, ImplicitAPI):
         """
         request: dict = {'addressOrSlug': id}
         response = await self.limitlessPublicGetMarketsAddressOrSlug(self.extend(request, params))
-        event: Any = self.parse_event(response)
+        # the single-market endpoint returns one raw market(no `markets` array like the grouped
+        # listing), so wrap it for parseEvent — its loop then parses self market into the event
+        wrapped = self.extend(response, {'markets': [response]})
+        event: Any = self.parse_event(wrapped)
         return event
 
     def parse_event(self, event: dict) -> Any:
@@ -984,7 +993,7 @@ class limitless(PredictionExchange, ImplicitAPI):
                 outcomesList = self.safe_list(m, 'outcomes', [])
                 for j in range(0, len(outcomesList)):
                     ticker = self.parse_ticker(raw, outcomesList[j])
-                    symbolKey = self.safe_string(ticker, 'symbol')
+                    symbolKey = self.safe_string(ticker, 'outcome')
                     if symbolKey is not None:
                         result[symbolKey] = ticker
             return result
@@ -1017,7 +1026,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             grouped = outcomesBySlug[slug]
             for j in range(0, len(grouped)):
                 ticker = self.parse_ticker(tickerInput, grouped[j])
-                symbolKey = self.safe_string(ticker, 'symbol')
+                symbolKey = self.safe_string(ticker, 'outcome')
                 if symbolKey is not None:
                     result[symbolKey] = ticker
         return result

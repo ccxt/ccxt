@@ -762,7 +762,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 mid = self.safe_string(midpoints, tokenId)
                 tickerInput: dict = {'midpoint': {'mid': mid}, 'book': book}
                 ticker = self.parse_ticker(tickerInput, outcomeObj)
-                symbolKey = self.safe_string(ticker, 'symbol', tokenId)
+                symbolKey = self.safe_string(ticker, 'outcome', tokenId)
                 result[symbolKey] = ticker
             startIndex = self.sum(startIndex, chunkSize)
         return result

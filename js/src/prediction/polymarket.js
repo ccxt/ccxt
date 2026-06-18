@@ -801,7 +801,7 @@ export default class polymarket extends Exchange {
                 const mid = this.safeString(midpoints, tokenId);
                 const tickerInput = { 'midpoint': { 'mid': mid }, 'book': book };
                 const ticker = this.parseTicker(tickerInput, outcomeObj);
-                const symbolKey = this.safeString(ticker, 'symbol', tokenId);
+                const symbolKey = this.safeString(ticker, 'outcome', tokenId);
                 result[symbolKey] = ticker;
             }
             startIndex = this.sum(startIndex, chunkSize);

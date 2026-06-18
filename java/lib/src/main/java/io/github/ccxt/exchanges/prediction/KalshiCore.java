@@ -869,7 +869,7 @@ final Object finalOi = oi;
                     for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(grouped)); j++)
                     {
                         Object ticker = this.parseTicker(raw, Helpers.GetValue(grouped, j));
-                        Object symbolKey = this.safeString(ticker, "symbol");
+                        Object symbolKey = this.safeString(ticker, "outcome");
                         if (Helpers.isTrue(!Helpers.isEqual(symbolKey, null)))
                         {
                             Helpers.addElementToObject(result, symbolKey, ticker);

@@ -383,6 +383,14 @@ class limitless extends Exchange {
         $endDate = $this->safe_string($raw, 'deadline', $this->safe_string($raw, 'expiresAt'));
         $volume24h = $this->safe_number($raw, 'volume24h');
         $marketSymbol = $this->slugToMarketSymbol ($groupId, $slug);
+        // amount $precision comes from the collateral token decimals (USDC, 6); limitless does not
+        // expose a price tick, so 0.001 is the platform convention
+        $collateralToken = $this->safe_dict($raw, 'collateralToken', array());
+        $collateralDecimals = $this->safe_integer($collateralToken, 'decimals', $this->safe_integer($this->options, 'usdcDecimals', 6));
+        $precision = array(
+            'amount' => (string) $this->parse_number($this->parse_precision($collateralDecimals)),
+            'price' => 0.001,
+        );
         $outcomes = array();
         $tokenEntries = is_array($tokens) ? array_keys($tokens) : array();
         for ($i = 0; $i < count($tokenEntries); $i++) {
@@ -395,6 +403,7 @@ class limitless extends Exchange {
                 'market' => $marketSymbol,
                 'label' => $outcomeLabel,
                 'active' => $active,
+                'precision' => $precision,
                 'info' => array(
                     'slug' => $slug,
                     'address' => $address,
@@ -439,10 +448,7 @@ class limitless extends Exchange {
             'percentage' => true,
             'tierBased' => false,
             'feeSide' => 'get',
-            'precision' => array(
-                'amount' => 0.000001,
-                'price' => 0.001,
-            ),
+            'precision' => $precision,
             'limits' => array(
                 'leverage' => array( 'min' => 1, 'max' => 1 ),
                 'amount' => array( 'min' => 0, 'max' => null ),
@@ -472,7 +478,10 @@ class limitless extends Exchange {
              */
             $request = array( 'addressOrSlug' => $id );
             $response = Async\await($this->limitlessPublicGetMarketsAddressOrSlug ($this->extend($request, $params)));
-            $event = $this->parse_event($response);
+            // the single-market endpoint returns one raw market (no `markets` array like the grouped
+            // listing), so wrap it for parseEvent — its loop then parses this market into the $event
+            $wrapped = $this->extend($response, array( 'markets' => array( $response ) ));
+            $event = $this->parse_event($wrapped);
             return $event;
         }) ();
     }
@@ -1027,7 +1036,7 @@ class limitless extends Exchange {
                     $outcomesList = $this->safe_list($m, 'outcomes', array());
                     for ($j = 0; $j < count($outcomesList); $j++) {
                         $ticker = $this->parse_ticker($raw, $outcomesList[$j]);
-                        $symbolKey = $this->safe_string($ticker, 'symbol');
+                        $symbolKey = $this->safe_string($ticker, 'outcome');
                         if ($symbolKey !== null) {
                             $result[$symbolKey] = $ticker;
                         }
@@ -1067,7 +1076,7 @@ class limitless extends Exchange {
                 $grouped = $outcomesBySlug[$slug];
                 for ($j = 0; $j < count($grouped); $j++) {
                     $ticker = $this->parse_ticker($tickerInput, $grouped[$j]);
-                    $symbolKey = $this->safe_string($ticker, 'symbol');
+                    $symbolKey = $this->safe_string($ticker, 'outcome');
                     if ($symbolKey !== null) {
                         $result[$symbolKey] = $ticker;
                     }

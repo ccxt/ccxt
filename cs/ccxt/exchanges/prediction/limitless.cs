@@ -508,7 +508,12 @@ public partial class limitless : PredictionExchange
             { "addressOrSlug", id },
         };
         object response = await this.limitlessPublicGetMarketsAddressOrSlug(this.extend(request, parameters));
-        object eventVar = this.parseEvent(response);
+        // the single-market endpoint returns one raw market (no `markets` array like the grouped
+        // listing), so wrap it for parseEvent — its loop then parses this market into the event
+        object wrapped = this.extend(response, new Dictionary<string, object>() {
+            { "markets", new List<object>() {response} },
+        });
+        object eventVar = this.parseEvent(wrapped);
         return eventVar;
     }
 
@@ -1087,7 +1092,7 @@ public partial class limitless : PredictionExchange
                 for (object j = 0; isLessThan(j, getArrayLength(outcomesList)); postFixIncrement(ref j))
                 {
                     object ticker = this.parseTicker(raw, getValue(outcomesList, j));
-                    object symbolKey = this.safeString(ticker, "symbol");
+                    object symbolKey = this.safeString(ticker, "outcome");
                     if (isTrue(!isEqual(symbolKey, null)))
                     {
                         ((IDictionary<string,object>)result)[(string)symbolKey] = ticker;
@@ -1140,7 +1145,7 @@ public partial class limitless : PredictionExchange
             for (object j = 0; isLessThan(j, getArrayLength(grouped)); postFixIncrement(ref j))
             {
                 object ticker = this.parseTicker(tickerInput, getValue(grouped, j));
-                object symbolKey = this.safeString(ticker, "symbol");
+                object symbolKey = this.safeString(ticker, "outcome");
                 if (isTrue(!isEqual(symbolKey, null)))
                 {
                     ((IDictionary<string,object>)result)[(string)symbolKey] = ticker;

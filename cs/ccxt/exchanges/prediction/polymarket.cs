@@ -880,7 +880,7 @@ public partial class polymarket : PredictionExchange
                     { "book", book },
                 };
                 object ticker = this.parseTicker(tickerInput, outcomeObj);
-                object symbolKey = this.safeString(ticker, "symbol", tokenId);
+                object symbolKey = this.safeString(ticker, "outcome", tokenId);
                 ((IDictionary<string,object>)result)[(string)symbolKey] = ticker;
             }
             startIndex = this.sum(startIndex, chunkSize);

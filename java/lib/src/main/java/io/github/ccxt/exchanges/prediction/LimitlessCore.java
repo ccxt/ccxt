@@ -531,7 +531,12 @@ public class LimitlessCore extends LimitlessApi
                 put( "addressOrSlug", id );
             }};
             Object response = (this.limitlessPublicGetMarketsAddressOrSlug(this.extend(request, parameters))).join();
-            Object eventVar = this.parseEvent(response);
+            // the single-market endpoint returns one raw market (no `markets` array like the grouped
+            // listing), so wrap it for parseEvent — its loop then parses this market into the event
+            Object wrapped = this.extend(response, new java.util.HashMap<String, Object>() {{
+                put( "markets", new java.util.ArrayList<Object>(java.util.Arrays.asList(response)) );
+            }});
+            Object eventVar = this.parseEvent(wrapped);
             return eventVar;
         });
 
@@ -1130,7 +1135,7 @@ public class LimitlessCore extends LimitlessApi
                     for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(outcomesList)); j++)
                     {
                         Object ticker = this.parseTicker(raw, Helpers.GetValue(outcomesList, j));
-                        Object symbolKey = this.safeString(ticker, "symbol");
+                        Object symbolKey = this.safeString(ticker, "outcome");
                         if (Helpers.isTrue(!Helpers.isEqual(symbolKey, null)))
                         {
                             Helpers.addElementToObject(result, symbolKey, ticker);
@@ -1184,7 +1189,7 @@ public class LimitlessCore extends LimitlessApi
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(grouped)); j++)
                 {
                     Object ticker = this.parseTicker(tickerInput, Helpers.GetValue(grouped, j));
-                    Object symbolKey = this.safeString(ticker, "symbol");
+                    Object symbolKey = this.safeString(ticker, "outcome");
                     if (Helpers.isTrue(!Helpers.isEqual(symbolKey, null)))
                     {
                         Helpers.addElementToObject(result, symbolKey, ticker);
