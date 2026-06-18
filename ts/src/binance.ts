@@ -1339,7 +1339,7 @@ export default class binance extends Exchange {
                 'defaultType': 'spot', // 'spot', 'future', 'margin', 'delivery', 'option'
                 'defaultSubType': undefined, // 'linear', 'inverse'
                 'hasAlreadyAuthenticatedSuccessfully': false,
-                'warnOnFetchOpenOrdersWithoutSymbol': false,
+                'warnOnFetchOpenOrdersWithoutSymbol': true,
                 'currencyToPrecisionRoundingMode': TRUNCATE,
                 // not an error
                 // https://github.com/ccxt/ccxt/issues/11268
@@ -5455,6 +5455,10 @@ export default class binance extends Exchange {
     }
 
     editContractOrderRequest (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        if ((price === undefined) && !('priceMatch' in params)) {
+            // moved here from editContractOrder for warning in case of calling editOrderWs() without price argument for swap orders
+            throw new ArgumentsRequired (this.id + ' editOrder() and editOrderWs() require a price argument for swap orders');
+        }
         const market = this.market (symbol);
         if (!market['contract']) {
             throw new NotSupported (this.id + ' editContractOrder() does not support ' + market['type'] + ' orders');
@@ -5468,8 +5472,6 @@ export default class binance extends Exchange {
         const clientOrderId = this.safeStringN (params, [ 'newClientOrderId', 'clientOrderId', 'origClientOrderId' ]);
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
-        } else if (market['inverse']) {
-            throw new ArgumentsRequired (this.id + ' editContractOrder() requires both amount and price arguments for inverse contract orders');
         }
         if (clientOrderId !== undefined) {
             request['origClientOrderId'] = clientOrderId;
@@ -5501,11 +5503,6 @@ export default class binance extends Exchange {
         const market = this.market (symbol);
         let isPortfolioMargin = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'editContractOrder', 'papi', 'portfolioMargin', false);
-        if (market['linear'] || isPortfolioMargin) {
-            if ((price === undefined) && !('priceMatch' in params)) {
-                throw new ArgumentsRequired (this.id + ' editOrder() requires a price argument for portfolio margin and linear orders');
-            }
-        }
         const request = this.editContractOrderRequest (id, symbol, type, side, amount, price, params);
         let response = undefined;
         if (market['linear']) {
