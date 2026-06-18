@@ -4,7 +4,7 @@ import ccxt from '../../js/ccxt.js';
 (async () => {
 
     const exchanges = [
-        'bittrex',
+        'kraken',
         'poloniex',
     ]
 

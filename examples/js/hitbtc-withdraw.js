@@ -20,7 +20,7 @@ const getPositiveAccounts = function (balance) {
 ;(async () => {
 
     // instantiate the exchange
-    let exchange = new ccxt.hitbtc2  ({
+    let exchange = new ccxt.hitbtc  ({
         "apiKey": "YOUR_API_KEY",
         "secret": "YOUR_SECRET",
     })
