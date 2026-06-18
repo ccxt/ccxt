@@ -13628,12 +13628,12 @@ export default class binance extends Exchange {
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchPositionMode', market, params);
         let response = undefined;
-        if (subType === 'linear') {
-            response = await this.fapiPrivateGetPositionSideDual (params);
-        } else if (subType === 'inverse') {
+        // we still have two working endpoints but positionMode is common for linear and inverse markets
+        // thus we do not throw an error if the subType is not specified and default to linear for now
+        if (subType === 'inverse') {
             response = await this.dapiPrivateGetPositionSideDual (params);
         } else {
-            throw new BadRequest (this.id + ' fetchPositionMode requires either a symbol argument or params["subType"]');
+            response = await this.fapiPrivateGetPositionSideDual (params);
         }
         //
         //    {
