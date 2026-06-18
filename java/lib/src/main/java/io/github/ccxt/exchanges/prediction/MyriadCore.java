@@ -1937,6 +1937,10 @@ final Object finalNetworkId = networkId;
                 put( "market", marketSymbol );
                 put( "label", outcomeLabel );
                 put( "active", active );
+                put( "precision", new java.util.HashMap<String, Object>() {{
+                    put( "amount", 0.01 );
+                    put( "price", 0.001 );
+                }} );
                 put( "info", new java.util.HashMap<String, Object>() {{
                     put( "networkId", finalNetworkId );
                     put( "marketId", marketId );

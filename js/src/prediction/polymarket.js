@@ -554,7 +554,9 @@ export default class polymarket extends Exchange {
             const marketSlug = this.safeString(market, 'slug', conditionId);
             const active = this.safeBool(market, 'active', false);
             const closed = this.safeBool(market, 'closed', false);
-            const tickSize = this.safeNumber(market, 'minimumTickSize', 0.01);
+            // gamma exposes the order-book tick as orderPriceMinTickSize; minimumTickSize is the clob alias
+            const tickSize = this.safeNumber2(market, 'orderPriceMinTickSize', 'minimumTickSize', 0.01);
+            const negRisk = this.safeBool(market, 'negRisk', false);
             const endDate = this.safeString(market, 'endDate', this.safeString(market, 'end_date_iso'));
             // Gamma API returns these arrays as JSON-encoded strings
             let outcomeLabels = [];
@@ -607,6 +609,12 @@ export default class polymarket extends Exchange {
                     'label': outcomeLabel,
                     'price': outcomePrice,
                     'active': active && !closed,
+                    // carry the order precision so createOrder needs no extra request
+                    'precision': {
+                        'amount': tickSize,
+                        'price': tickSize,
+                    },
+                    'negRisk': negRisk,
                     'info': market,
                 });
             }
@@ -1589,16 +1597,16 @@ export default class polymarket extends Exchange {
      * @description places a limit or market order on the CLOB for the given outcome token
      * @see https://docs.polymarket.com/api-reference/trade/post-a-new-order
      * @param {string} symbol unified outcome symbol or outcome token id
-     * @param {string} type 'market' or 'limit'; market orders default to FOK and, when no price is given, sweep the top of the opposing book
+     * @param {string} type 'market' or 'limit'; market orders default to FOK and, when no price is given, use the outcome's current price as the marketable reference
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how many outcome tokens to trade
-     * @param {float} [price] the price per outcome token between 0 and 1; required for limit orders, optional for market orders
+     * @param {float} [price] the price per outcome token between 0 and 1; required for limit orders, defaults to the outcome's current price for market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.orderType] time-in-force override: 'GTC' (default for limit), 'FOK' (default for market), 'GTD' or 'FAK'
      * @param {int} [params.signatureType] 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271 (deposit wallet); defaults to options.signatureType
      * @param {string} [params.funder] the wallet that holds the USDC collateral; defaults to options.funder or the signing address
-     * @param {string} [params.tickSize] the market tick size ('0.1'/'0.01'/'0.001'/'0.0001'); fetched from the exchange when omitted
-     * @param {bool} [params.negRisk] whether the market is a neg-risk market; fetched from the exchange when omitted
+     * @param {string} [params.tickSize] the market tick size ('0.1'/'0.01'/'0.001'/'0.0001'); read from the outcome when omitted
+     * @param {bool} [params.negRisk] whether the market is a neg-risk market; read from the outcome when omitted
      * @param {string} [params.salt] order salt; defaults to the current time in ms (pin it for idempotent retries)
      * @param {string} [params.timestamp] order timestamp; defaults to the current time in ms
      * @param {string} [params.expiration] unix-seconds expiration for GTD orders; defaults to '0' (no expiry)
@@ -1671,24 +1679,17 @@ export default class polymarket extends Exchange {
             if (!isMarket) {
                 throw new ArgumentsRequired(this.id + ' createOrder() requires a price for limit orders');
             }
-            // market order without an explicit price: sweep the top of the opposing book
-            const orderbook = await this.fetchOrderBook(outcome);
-            const levels = (sideStr === 'BUY') ? this.safeList(orderbook, 'asks', []) : this.safeList(orderbook, 'bids', []);
-            const best = this.safeList(levels, 0);
-            if (best === undefined) {
-                throw new ArgumentsRequired(this.id + ' createOrder() could not determine a market price; pass an explicit price');
+            // market order without an explicit price: use the outcome's current price as the marketable reference
+            price = this.safeNumber(outcomeObj, 'price');
+            if (price === undefined) {
+                throw new ArgumentsRequired(this.id + ' createOrder() could not determine a price from the outcome, pass an explicit price');
             }
-            price = this.safeNumber(best, 0);
         }
-        // tick size + neg-risk flag drive the rounding and the verifying contract; both can be
-        // supplied via params to skip the extra market lookup (and to keep requests deterministic)
-        let tickSize = this.safeString(params, 'tickSize');
-        let negRisk = this.safeBool(params, 'negRisk');
-        if ((tickSize === undefined) || (negRisk === undefined)) {
-            const clobMarket = await this.clobPublicGetMarketsByTokenTokenId({ 'token_id': tokenId });
-            tickSize = this.safeString(clobMarket, 'minimum_tick_size', '0.01');
-            negRisk = this.safeBool(clobMarket, 'neg_risk', false);
-        }
+        // tick size + neg-risk flag drive the rounding and the verifying contract; both are read from the
+        // outcome object (set in parseMarket) and can be overridden via params to keep requests deterministic
+        const outcomePrecision = this.safeDict(outcomeObj, 'precision', {});
+        const tickSize = this.safeString(params, 'tickSize', this.numberToString(this.safeNumber(outcomePrecision, 'price', 0.01)));
+        const negRisk = this.safeBool(params, 'negRisk', this.safeBool(outcomeObj, 'negRisk', false));
         // 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271 (deposit wallet, default); funder/maker holds the USDC
         const signatureType = this.safeInteger2(params, 'signatureType', 'signature_type', this.safeInteger(this.options, 'signatureType', 3));
         // the signer/owner is the EOA behind the privateKey; the funder/maker is the proxy or deposit wallet (walletAddress)

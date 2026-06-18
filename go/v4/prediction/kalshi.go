@@ -358,6 +358,13 @@ func  (this *KalshiCore) ParseMarket(raw any) any  {
     // ccxt.Market symbol (no outcome suffix)
     var subtitleOrTicker any = ccxt.Ternary(ccxt.IsTrue((!ccxt.IsEqual(subtitle, nil))), subtitle, ticker)
     var marketSymbol any = this.SlugToMarketSymbol(eventTicker, subtitleOrTicker)
+    // kalshi quotes in cents and exposes the price tick per market via tick_size (in cents)
+    // convert it to a dollar price precision (defaults to 1 cent). amount is a whole number of contracts
+    var tickSizeCents any = this.SafeString(raw, "tick_size", "1")
+    var precision any = map[string]any {
+        "amount": 1,
+        "price": this.ParseNumber(ccxt.Precise.StringDiv(tickSizeCents, "100")),
+    }
     // Build outcomes
     var outcomeLabels any = []any{"YES", "NO"}
     var outcomeIds any = []any{ticker, ccxt.Add(ticker, "-NO")}
@@ -374,6 +381,7 @@ func  (this *KalshiCore) ParseMarket(raw any) any  {
             "market": marketSymbol,
             "label": label,
             "active": active,
+            "precision": precision,
             "info": map[string]any {
                 "ticker": ticker,
                 "eventTicker": eventTicker,
@@ -418,10 +426,7 @@ func  (this *KalshiCore) ParseMarket(raw any) any  {
         "percentage": true,
         "tierBased": false,
         "feeSide": "get",
-        "precision": map[string]any {
-            "amount": 1,
-            "price": 0.01,
-        },
+        "precision": precision,
         "limits": map[string]any {
             "leverage": map[string]any {
                 "min": 1,
@@ -471,8 +476,8 @@ func  (this *KalshiCore) FetchTicker(symbol any, optionalArgs ...any) <- chan an
             _ = params
             var outcome any = symbol
         
-            retRes4408 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes4408)
+            retRes4458 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes4458)
             this.CheckEventsAndMarkets(outcome)
             var outcomeObj any = this.Outcome(outcome)
             var ticker any = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "ticker")
@@ -598,8 +603,8 @@ func  (this *KalshiCore) FetchOpenInterest(symbol any, optionalArgs ...any) <- c
             _ = params
             var outcome any = symbol
         
-            retRes5418 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes5418)
+            retRes5468 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes5468)
             this.CheckEventsAndMarkets(outcome)
             var outcomeObj any = this.Outcome(outcome)
             var ticker any = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "ticker")
@@ -777,8 +782,8 @@ func  (this *KalshiCore) FetchTickers(optionalArgs ...any) <- chan any {
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-            retRes7008 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes7008)
+            retRes7058 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes7058)
             var targets any = []any{}
             if ccxt.IsTrue(!ccxt.IsEqual(symbols, nil)) {
                 for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
@@ -876,8 +881,8 @@ func  (this *KalshiCore) FetchOrderBook(symbol any, optionalArgs ...any) <- chan
             _ = params
             var outcome any = symbol
         
-            retRes7838 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes7838)
+            retRes7888 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes7888)
             this.CheckEventsAndMarkets(outcome)
             var outcomeObj any = this.Outcome(outcome)
             var ticker any = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "ticker")
@@ -989,8 +994,8 @@ func  (this *KalshiCore) FetchOHLCV(symbol any, optionalArgs ...any) <- chan any
             _ = params
             var outcome any = symbol
         
-            retRes8778 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes8778)
+            retRes8828 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes8828)
             this.CheckEventsAndMarkets(outcome)
             var outcomeObj any = this.Outcome(outcome)
             var ticker any = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "ticker")
@@ -1141,8 +1146,8 @@ func  (this *KalshiCore) FetchTrades(symbol any, optionalArgs ...any) <- chan an
             _ = params
             var outcome any = symbol
         
-            retRes10198 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes10198)
+            retRes10248 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes10248)
             this.CheckEventsAndMarkets(outcome)
             var outcomeObj any = this.Outcome(outcome)
             var ticker any = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "ticker")
@@ -1562,8 +1567,8 @@ func  (this *KalshiCore) CreateOrder(symbol any, typeVar any, side any, amount a
             _ = params
             var outcome any = symbol
         
-            retRes13538 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes13538)
+            retRes13588 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes13588)
             this.CheckEventsAndMarkets(outcome)
             var outcomeObj any = this.Outcome(outcome)
             var ticker any = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "ticker")
@@ -1656,8 +1661,8 @@ func  (this *KalshiCore) CancelAllOrders(optionalArgs ...any) <- chan any {
             var request any = map[string]any {}
             if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
         
-                retRes141512 := (<-this.LoadMarkets())
-                ccxt.PanicOnError(retRes141512)
+                retRes142012 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes142012)
                 var outcomeObj any = this.Outcome(outcome)
                 ccxt.AddElementToObject(request, "ticker", this.SafeString(ccxt.GetValue(outcomeObj, "info"), "ticker"))
             }

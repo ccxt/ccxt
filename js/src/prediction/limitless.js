@@ -393,6 +393,14 @@ export default class limitless extends Exchange {
         const endDate = this.safeString(raw, 'deadline', this.safeString(raw, 'expiresAt'));
         const volume24h = this.safeNumber(raw, 'volume24h');
         const marketSymbol = this.slugToMarketSymbol(groupId, slug);
+        // amount precision comes from the collateral token decimals (USDC, 6); limitless does not
+        // expose a price tick, so 0.001 is the platform convention
+        const collateralToken = this.safeDict(raw, 'collateralToken', {});
+        const collateralDecimals = this.safeInteger(collateralToken, 'decimals', this.safeInteger(this.options, 'usdcDecimals', 6));
+        const precision = {
+            'amount': this.parseNumber(this.parsePrecision(collateralDecimals.toString())),
+            'price': 0.001,
+        };
         const outcomes = [];
         const tokenEntries = Object.keys(tokens);
         for (let i = 0; i < tokenEntries.length; i++) {
@@ -405,6 +413,7 @@ export default class limitless extends Exchange {
                 'market': marketSymbol,
                 'label': outcomeLabel,
                 'active': active,
+                'precision': precision,
                 'info': {
                     'slug': slug,
                     'address': address,
@@ -449,10 +458,7 @@ export default class limitless extends Exchange {
             'percentage': true,
             'tierBased': false,
             'feeSide': 'get',
-            'precision': {
-                'amount': 0.000001,
-                'price': 0.001,
-            },
+            'precision': precision,
             'limits': {
                 'leverage': { 'min': 1, 'max': 1 },
                 'amount': { 'min': 0, 'max': undefined },

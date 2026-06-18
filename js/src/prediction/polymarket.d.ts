@@ -285,16 +285,16 @@ export default class polymarket extends Exchange {
      * @description places a limit or market order on the CLOB for the given outcome token
      * @see https://docs.polymarket.com/api-reference/trade/post-a-new-order
      * @param {string} symbol unified outcome symbol or outcome token id
-     * @param {string} type 'market' or 'limit'; market orders default to FOK and, when no price is given, sweep the top of the opposing book
+     * @param {string} type 'market' or 'limit'; market orders default to FOK and, when no price is given, use the outcome's current price as the marketable reference
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how many outcome tokens to trade
-     * @param {float} [price] the price per outcome token between 0 and 1; required for limit orders, optional for market orders
+     * @param {float} [price] the price per outcome token between 0 and 1; required for limit orders, defaults to the outcome's current price for market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.orderType] time-in-force override: 'GTC' (default for limit), 'FOK' (default for market), 'GTD' or 'FAK'
      * @param {int} [params.signatureType] 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271 (deposit wallet); defaults to options.signatureType
      * @param {string} [params.funder] the wallet that holds the USDC collateral; defaults to options.funder or the signing address
-     * @param {string} [params.tickSize] the market tick size ('0.1'/'0.01'/'0.001'/'0.0001'); fetched from the exchange when omitted
-     * @param {bool} [params.negRisk] whether the market is a neg-risk market; fetched from the exchange when omitted
+     * @param {string} [params.tickSize] the market tick size ('0.1'/'0.01'/'0.001'/'0.0001'); read from the outcome when omitted
+     * @param {bool} [params.negRisk] whether the market is a neg-risk market; read from the outcome when omitted
      * @param {string} [params.salt] order salt; defaults to the current time in ms (pin it for idempotent retries)
      * @param {string} [params.timestamp] order timestamp; defaults to the current time in ms
      * @param {string} [params.expiration] unix-seconds expiration for GTD orders; defaults to '0' (no expiry)

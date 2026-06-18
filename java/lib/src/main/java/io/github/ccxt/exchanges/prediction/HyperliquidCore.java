@@ -587,6 +587,10 @@ public class HyperliquidCore extends HyperliquidApi
         Object quoteCurrency = this.safeString(this.options, "outcomeQuoteCurrency", "USDH");
         Object szDecimals = 4; // outcomes use 4 decimal places
         Object active = true;
+        Object outcomePrecision = new java.util.HashMap<String, Object>() {{
+            put( "amount", HyperliquidCore.this.parseNumber(HyperliquidCore.this.parsePrecision(String.valueOf(szDecimals))) );
+            put( "price", 0.0001 );
+        }};
         final Object finalParentSymbol = parentSymbol;
         Object outcomes = new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
     put( "id", HyperliquidCore.this.outcomeCoin(yesEncoding) );
@@ -597,6 +601,7 @@ public class HyperliquidCore extends HyperliquidApi
     put( "market", finalParentSymbol );
     put( "label", yesLabel );
     put( "active", active );
+    put( "precision", outcomePrecision );
     put( "info", new java.util.HashMap<String, Object>() {{
         put( "encoding", yesEncoding );
         put( "assetId", HyperliquidCore.this.outcomeAssetId(yesEncoding) );
@@ -617,6 +622,7 @@ public class HyperliquidCore extends HyperliquidApi
     put( "market", finalParentSymbol );
     put( "label", noLabel );
     put( "active", active );
+    put( "precision", outcomePrecision );
     put( "info", new java.util.HashMap<String, Object>() {{
         put( "encoding", noEncoding );
         put( "assetId", HyperliquidCore.this.outcomeAssetId(noEncoding) );
@@ -663,10 +669,7 @@ public class HyperliquidCore extends HyperliquidApi
             put( "percentage", true );
             put( "tierBased", false );
             put( "feeSide", "get" );
-            put( "precision", new java.util.HashMap<String, Object>() {{
-                put( "amount", HyperliquidCore.this.parseNumber(HyperliquidCore.this.parsePrecision(String.valueOf(szDecimals))) );
-                put( "price", 0.0001 );
-            }} );
+            put( "precision", outcomePrecision );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "leverage", new java.util.HashMap<String, Object>() {{
                     put( "min", null );

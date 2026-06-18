@@ -338,6 +338,13 @@ export default class kalshi extends Exchange {
         // Market symbol (no outcome suffix)
         const subtitleOrTicker = (subtitle !== undefined) ? subtitle : ticker;
         const marketSymbol = this.slugToMarketSymbol(eventTicker, subtitleOrTicker);
+        // kalshi quotes in cents and exposes the price tick per market via tick_size (in cents);
+        // convert it to a dollar price precision (defaults to 1 cent). amount is a whole number of contracts
+        const tickSizeCents = this.safeString(raw, 'tick_size', '1');
+        const precision = {
+            'amount': 1,
+            'price': this.parseNumber(Precise.stringDiv(tickSizeCents, '100')),
+        };
         // Build outcomes
         const outcomeLabels = ['YES', 'NO'];
         const outcomeIds = [ticker, ticker + '-NO'];
@@ -354,6 +361,7 @@ export default class kalshi extends Exchange {
                 'market': marketSymbol,
                 'label': label,
                 'active': active,
+                'precision': precision,
                 'info': {
                     'ticker': ticker,
                     'eventTicker': eventTicker,
@@ -398,10 +406,7 @@ export default class kalshi extends Exchange {
             'percentage': true,
             'tierBased': false,
             'feeSide': 'get',
-            'precision': {
-                'amount': 1,
-                'price': 0.01,
-            },
+            'precision': precision,
             'limits': {
                 'leverage': { 'min': 1, 'max': 1 },
                 'amount': { 'min': 1, 'max': undefined },

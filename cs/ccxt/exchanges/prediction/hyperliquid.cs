@@ -569,6 +569,10 @@ public partial class hyperliquid : PredictionExchange
         object quoteCurrency = this.safeString(this.options, "outcomeQuoteCurrency", "USDH");
         object szDecimals = 4; // outcomes use 4 decimal places
         object active = true;
+        object outcomePrecision = new Dictionary<string, object>() {
+            { "amount", this.parseNumber(this.parsePrecision(((object)szDecimals).ToString())) },
+            { "price", 0.0001 },
+        };
         object outcomes = new List<object>() {new Dictionary<string, object>() {
     { "id", this.outcomeCoin(yesEncoding) },
     { "outcomeId", this.outcomeCoin(yesEncoding) },
@@ -578,6 +582,7 @@ public partial class hyperliquid : PredictionExchange
     { "market", parentSymbol },
     { "label", yesLabel },
     { "active", active },
+    { "precision", outcomePrecision },
     { "info", new Dictionary<string, object>() {
         { "encoding", yesEncoding },
         { "assetId", this.outcomeAssetId(yesEncoding) },
@@ -598,6 +603,7 @@ public partial class hyperliquid : PredictionExchange
     { "market", parentSymbol },
     { "label", noLabel },
     { "active", active },
+    { "precision", outcomePrecision },
     { "info", new Dictionary<string, object>() {
         { "encoding", noEncoding },
         { "assetId", this.outcomeAssetId(noEncoding) },
@@ -642,10 +648,7 @@ public partial class hyperliquid : PredictionExchange
             { "percentage", true },
             { "tierBased", false },
             { "feeSide", "get" },
-            { "precision", new Dictionary<string, object>() {
-                { "amount", this.parseNumber(this.parsePrecision(((object)szDecimals).ToString())) },
-                { "price", 0.0001 },
-            } },
+            { "precision", outcomePrecision },
             { "limits", new Dictionary<string, object>() {
                 { "leverage", new Dictionary<string, object>() {
                     { "min", null },

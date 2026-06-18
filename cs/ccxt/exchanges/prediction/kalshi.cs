@@ -355,6 +355,13 @@ public partial class kalshi : PredictionExchange
         // Market symbol (no outcome suffix)
         object subtitleOrTicker = ((bool) isTrue((!isEqual(subtitle, null)))) ? subtitle : ticker;
         object marketSymbol = this.slugToMarketSymbol(eventTicker, subtitleOrTicker);
+        // kalshi quotes in cents and exposes the price tick per market via tick_size (in cents);
+        // convert it to a dollar price precision (defaults to 1 cent). amount is a whole number of contracts
+        object tickSizeCents = this.safeString(raw, "tick_size", "1");
+        object precision = new Dictionary<string, object>() {
+            { "amount", 1 },
+            { "price", this.parseNumber(Precise.stringDiv(tickSizeCents, "100")) },
+        };
         // Build outcomes
         object outcomeLabels = new List<object>() {"YES", "NO"};
         object outcomeIds = new List<object>() {ticker, add(ticker, "-NO")};
@@ -372,6 +379,7 @@ public partial class kalshi : PredictionExchange
                 { "market", marketSymbol },
                 { "label", label },
                 { "active", active },
+                { "precision", precision },
                 { "info", new Dictionary<string, object>() {
                     { "ticker", ticker },
                     { "eventTicker", eventTicker },
@@ -416,10 +424,7 @@ public partial class kalshi : PredictionExchange
             { "percentage", true },
             { "tierBased", false },
             { "feeSide", "get" },
-            { "precision", new Dictionary<string, object>() {
-                { "amount", 1 },
-                { "price", 0.01 },
-            } },
+            { "precision", precision },
             { "limits", new Dictionary<string, object>() {
                 { "leverage", new Dictionary<string, object>() {
                     { "min", 1 },

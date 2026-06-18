@@ -559,7 +559,8 @@ export default class polymarket extends Exchange {
             const marketSlug = this.safeString (market, 'slug', conditionId);
             const active = this.safeBool (market, 'active', false);
             const closed = this.safeBool (market, 'closed', false);
-            const tickSize = this.safeNumber (market, 'minimumTickSize', 0.01);
+            // gamma exposes the order-book tick as orderPriceMinTickSize; minimumTickSize is the clob alias
+            const tickSize = this.safeNumber2 (market, 'orderPriceMinTickSize', 'minimumTickSize', 0.01);
             const negRisk = this.safeBool (market, 'negRisk', false);
             const endDate = this.safeString (market, 'endDate', this.safeString (market, 'end_date_iso'));
             // Gamma API returns these arrays as JSON-encoded strings

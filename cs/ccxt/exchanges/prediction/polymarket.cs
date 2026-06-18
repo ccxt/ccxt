@@ -584,7 +584,9 @@ public partial class polymarket : PredictionExchange
             object marketSlug = this.safeString(market, "slug", conditionId);
             object active = this.safeBool(market, "active", false);
             object closed = this.safeBool(market, "closed", false);
-            object tickSize = this.safeNumber(market, "minimumTickSize", 0.01);
+            // gamma exposes the order-book tick as orderPriceMinTickSize; minimumTickSize is the clob alias
+            object tickSize = this.safeNumber2(market, "orderPriceMinTickSize", "minimumTickSize", 0.01);
+            object negRisk = this.safeBool(market, "negRisk", false);
             object endDate = this.safeString(market, "endDate", this.safeString(market, "end_date_iso"));
             // Gamma API returns these arrays as JSON-encoded strings
             object outcomeLabels = new List<object>() {};
@@ -646,6 +648,11 @@ public partial class polymarket : PredictionExchange
                     { "label", outcomeLabel },
                     { "price", outcomePrice },
                     { "active", isTrue(active) && !isTrue(closed) },
+                    { "precision", new Dictionary<string, object>() {
+                        { "amount", tickSize },
+                        { "price", tickSize },
+                    } },
+                    { "negRisk", negRisk },
                     { "info", market },
                 });
             }
@@ -1773,16 +1780,16 @@ public partial class polymarket : PredictionExchange
      * @description places a limit or market order on the CLOB for the given outcome token
      * @see https://docs.polymarket.com/api-reference/trade/post-a-new-order
      * @param {string} symbol unified outcome symbol or outcome token id
-     * @param {string} type 'market' or 'limit'; market orders default to FOK and, when no price is given, sweep the top of the opposing book
+     * @param {string} type 'market' or 'limit'; market orders default to FOK and, when no price is given, use the outcome's current price as the marketable reference
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how many outcome tokens to trade
-     * @param {float} [price] the price per outcome token between 0 and 1; required for limit orders, optional for market orders
+     * @param {float} [price] the price per outcome token between 0 and 1; required for limit orders, defaults to the outcome's current price for market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.orderType] time-in-force override: 'GTC' (default for limit), 'FOK' (default for market), 'GTD' or 'FAK'
      * @param {int} [params.signatureType] 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271 (deposit wallet); defaults to options.signatureType
      * @param {string} [params.funder] the wallet that holds the USDC collateral; defaults to options.funder or the signing address
-     * @param {string} [params.tickSize] the market tick size ('0.1'/'0.01'/'0.001'/'0.0001'); fetched from the exchange when omitted
-     * @param {bool} [params.negRisk] whether the market is a neg-risk market; fetched from the exchange when omitted
+     * @param {string} [params.tickSize] the market tick size ('0.1'/'0.01'/'0.001'/'0.0001'); read from the outcome when omitted
+     * @param {bool} [params.negRisk] whether the market is a neg-risk market; read from the outcome when omitted
      * @param {string} [params.salt] order salt; defaults to the current time in ms (pin it for idempotent retries)
      * @param {string} [params.timestamp] order timestamp; defaults to the current time in ms
      * @param {string} [params.expiration] unix-seconds expiration for GTD orders; defaults to '0' (no expiry)
@@ -1872,28 +1879,18 @@ public partial class polymarket : PredictionExchange
             {
                 throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a price for limit orders")) ;
             }
-            // market order without an explicit price: sweep the top of the opposing book
-            object orderbook = await this.fetchOrderBook(outcome);
-            object levels = ((bool) isTrue((isEqual(sideStr, "BUY")))) ? this.safeList(orderbook, "asks", new List<object>() {}) : this.safeList(orderbook, "bids", new List<object>() {});
-            object best = this.safeList(levels, 0);
-            if (isTrue(isEqual(best, null)))
+            // market order without an explicit price: use the outcome's current price as the marketable reference
+            price = this.safeNumber(outcomeObj, "price");
+            if (isTrue(isEqual(price, null)))
             {
-                throw new ArgumentsRequired ((string)add(this.id, " createOrder() could not determine a market price; pass an explicit price")) ;
+                throw new ArgumentsRequired ((string)add(this.id, " createOrder() could not determine a price from the outcome, pass an explicit price")) ;
             }
-            price = this.safeNumber(best, 0);
         }
-        // tick size + neg-risk flag drive the rounding and the verifying contract; both can be
-        // supplied via params to skip the extra market lookup (and to keep requests deterministic)
-        object tickSize = this.safeString(parameters, "tickSize");
-        object negRisk = this.safeBool(parameters, "negRisk");
-        if (isTrue(isTrue((isEqual(tickSize, null))) || isTrue((isEqual(negRisk, null)))))
-        {
-            object clobMarket = await this.clobPublicGetMarketsByTokenTokenId(new Dictionary<string, object>() {
-                { "token_id", tokenId },
-            });
-            tickSize = this.safeString(clobMarket, "minimum_tick_size", "0.01");
-            negRisk = this.safeBool(clobMarket, "neg_risk", false);
-        }
+        // tick size + neg-risk flag drive the rounding and the verifying contract; both are read from the
+        // outcome object (set in parseMarket) and can be overridden via params to keep requests deterministic
+        object outcomePrecision = this.safeDict(outcomeObj, "precision", new Dictionary<string, object>() {});
+        object tickSize = this.safeString(parameters, "tickSize", this.numberToString(this.safeNumber(outcomePrecision, "price", 0.01)));
+        object negRisk = this.safeBool(parameters, "negRisk", this.safeBool(outcomeObj, "negRisk", false));
         // 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271 (deposit wallet, default); funder/maker holds the USDC
         object signatureType = this.safeInteger2(parameters, "signatureType", "signature_type", this.safeInteger(this.options, "signatureType", 3));
         // the signer/owner is the EOA behind the privateKey; the funder/maker is the proxy or deposit wallet (walletAddress)

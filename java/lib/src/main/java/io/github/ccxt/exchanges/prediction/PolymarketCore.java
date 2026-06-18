@@ -614,7 +614,9 @@ public class PolymarketCore extends PolymarketApi
             Object marketSlug = this.safeString(market, "slug", conditionId);
             Object active = this.safeBool(market, "active", false);
             Object closed = this.safeBool(market, "closed", false);
-            Object tickSize = this.safeNumber(market, "minimumTickSize", 0.01);
+            // gamma exposes the order-book tick as orderPriceMinTickSize; minimumTickSize is the clob alias
+            Object tickSize = this.safeNumber2(market, "orderPriceMinTickSize", "minimumTickSize", 0.01);
+            Object negRisk = this.safeBool(market, "negRisk", false);
             Object endDate = this.safeString(market, "endDate", this.safeString(market, "end_date_iso"));
             // Gamma API returns these arrays as JSON-encoded strings
             Object outcomeLabels = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -678,6 +680,11 @@ final Object finalMarketSymbol = marketSymbol;
                     put( "label", outcomeLabel );
                     put( "price", outcomePrice );
                     put( "active", Helpers.isTrue(finalActive) && !Helpers.isTrue(closed) );
+                    put( "precision", new java.util.HashMap<String, Object>() {{
+                        put( "amount", tickSize );
+                        put( "price", tickSize );
+                    }} );
+                    put( "negRisk", negRisk );
                     put( "info", market );
                 }});
             }
@@ -1924,16 +1931,16 @@ final Object finalMarketSymbol = marketSymbol;
      * @description places a limit or market order on the CLOB for the given outcome token
      * @see https://docs.polymarket.com/api-reference/trade/post-a-new-order
      * @param {string} symbol unified outcome symbol or outcome token id
-     * @param {string} type 'market' or 'limit'; market orders default to FOK and, when no price is given, sweep the top of the opposing book
+     * @param {string} type 'market' or 'limit'; market orders default to FOK and, when no price is given, use the outcome's current price as the marketable reference
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how many outcome tokens to trade
-     * @param {float} [price] the price per outcome token between 0 and 1; required for limit orders, optional for market orders
+     * @param {float} [price] the price per outcome token between 0 and 1; required for limit orders, defaults to the outcome's current price for market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.orderType] time-in-force override: 'GTC' (default for limit), 'FOK' (default for market), 'GTD' or 'FAK'
      * @param {int} [params.signatureType] 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271 (deposit wallet); defaults to options.signatureType
      * @param {string} [params.funder] the wallet that holds the USDC collateral; defaults to options.funder or the signing address
-     * @param {string} [params.tickSize] the market tick size ('0.1'/'0.01'/'0.001'/'0.0001'); fetched from the exchange when omitted
-     * @param {bool} [params.negRisk] whether the market is a neg-risk market; fetched from the exchange when omitted
+     * @param {string} [params.tickSize] the market tick size ('0.1'/'0.01'/'0.001'/'0.0001'); read from the outcome when omitted
+     * @param {bool} [params.negRisk] whether the market is a neg-risk market; read from the outcome when omitted
      * @param {string} [params.salt] order salt; defaults to the current time in ms (pin it for idempotent retries)
      * @param {string} [params.timestamp] order timestamp; defaults to the current time in ms
      * @param {string} [params.expiration] unix-seconds expiration for GTD orders; defaults to '0' (no expiry)
@@ -2039,28 +2046,18 @@ final Object finalMarketSymbol = marketSymbol;
                 {
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a price for limit orders")) ;
                 }
-                // market order without an explicit price: sweep the top of the opposing book
-                Object orderbook = (this.fetchOrderBook(outcome)).join();
-                Object levels = ((Helpers.isTrue((Helpers.isEqual(sideStr, "BUY"))))) ? this.safeList(orderbook, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList())) : this.safeList(orderbook, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Object best = this.safeList(levels, 0);
-                if (Helpers.isTrue(Helpers.isEqual(best, null)))
+                // market order without an explicit price: use the outcome's current price as the marketable reference
+                price = this.safeNumber(outcomeObj, "price");
+                if (Helpers.isTrue(Helpers.isEqual(price, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() could not determine a market price; pass an explicit price")) ;
+                    throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() could not determine a price from the outcome, pass an explicit price")) ;
                 }
-                price = this.safeNumber(best, 0);
             }
-            // tick size + neg-risk flag drive the rounding and the verifying contract; both can be
-            // supplied via params to skip the extra market lookup (and to keep requests deterministic)
-            Object tickSize = this.safeString(parameters, "tickSize");
-            Object negRisk = this.safeBool(parameters, "negRisk");
-            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(tickSize, null))) || Helpers.isTrue((Helpers.isEqual(negRisk, null)))))
-            {
-                Object clobMarket = (this.clobPublicGetMarketsByTokenTokenId(new java.util.HashMap<String, Object>() {{
-                    put( "token_id", tokenId );
-                }})).join();
-                tickSize = this.safeString(clobMarket, "minimum_tick_size", "0.01");
-                negRisk = this.safeBool(clobMarket, "neg_risk", false);
-            }
+            // tick size + neg-risk flag drive the rounding and the verifying contract; both are read from the
+            // outcome object (set in parseMarket) and can be overridden via params to keep requests deterministic
+            Object outcomePrecision = this.safeDict(outcomeObj, "precision", new java.util.HashMap<String, Object>() {{}});
+            Object tickSize = this.safeString(parameters, "tickSize", this.numberToString(this.safeNumber(outcomePrecision, "price", 0.01)));
+            Object negRisk = this.safeBool(parameters, "negRisk", this.safeBool(outcomeObj, "negRisk", false));
             // 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271 (deposit wallet, default); funder/maker holds the USDC
             Object signatureType = this.safeInteger2(parameters, "signatureType", "signature_type", this.safeInteger(this.options, "signatureType", 3));
             // the signer/owner is the EOA behind the privateKey; the funder/maker is the proxy or deposit wallet (walletAddress)

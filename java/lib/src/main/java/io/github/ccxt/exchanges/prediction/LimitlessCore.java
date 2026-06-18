@@ -416,6 +416,14 @@ public class LimitlessCore extends LimitlessApi
         Object endDate = this.safeString(raw, "deadline", this.safeString(raw, "expiresAt"));
         Object volume24h = this.safeNumber(raw, "volume24h");
         Object marketSymbol = this.slugToMarketSymbol(groupId, slug);
+        // amount precision comes from the collateral token decimals (USDC, 6); limitless does not
+        // expose a price tick, so 0.001 is the platform convention
+        Object collateralToken = this.safeDict(raw, "collateralToken", new java.util.HashMap<String, Object>() {{}});
+        Object collateralDecimals = this.safeInteger(collateralToken, "decimals", this.safeInteger(this.options, "usdcDecimals", 6));
+        Object precision = new java.util.HashMap<String, Object>() {{
+            put( "amount", LimitlessCore.this.parseNumber(LimitlessCore.this.parsePrecision(String.valueOf(collateralDecimals))) );
+            put( "price", 0.001 );
+        }};
         Object outcomes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         Object tokenEntries = Helpers.objectKeys(tokens);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tokenEntries)); i++)
@@ -429,6 +437,7 @@ public class LimitlessCore extends LimitlessApi
                 put( "market", marketSymbol );
                 put( "label", outcomeLabel );
                 put( "active", active );
+                put( "precision", precision );
                 put( "info", new java.util.HashMap<String, Object>() {{
                     put( "slug", slug );
                     put( "address", address );
@@ -474,10 +483,7 @@ public class LimitlessCore extends LimitlessApi
             put( "percentage", true );
             put( "tierBased", false );
             put( "feeSide", "get" );
-            put( "precision", new java.util.HashMap<String, Object>() {{
-                put( "amount", 0.000001 );
-                put( "price", 0.001 );
-            }} );
+            put( "precision", precision );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "leverage", new java.util.HashMap<String, Object>() {{
                     put( "min", 1 );

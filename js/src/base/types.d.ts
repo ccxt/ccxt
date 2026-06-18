@@ -39,6 +39,11 @@ export interface MarketMarginModes {
     isolated: boolean;
     cross: boolean;
 }
+export interface Precision {
+    amount: Num;
+    price: Num;
+    cost?: Num;
+}
 export interface MarketInterface {
     id: Str;
     numericId?: Num;
@@ -74,11 +79,7 @@ export interface MarketInterface {
     percentage?: Bool;
     tierBased?: Bool;
     feeSide?: Str;
-    precision: {
-        amount: Num;
-        price: Num;
-        cost?: Num;
-    };
+    precision: Precision;
     marginModes?: MarketMarginModes;
     limits: {
         amount?: MinMax;
@@ -167,6 +168,7 @@ export interface PredictionOutcome {
     active?: Bool;
     winner?: Bool;
     settleFraction?: Num;
+    precision?: Precision;
 }
 export interface PredictionOrder extends Order {
     outcome: string;

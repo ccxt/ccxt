@@ -541,7 +541,7 @@ public partial class polymarket
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price per outcome token between 0 and 1; required for limit orders, optional for market orders
+    /// float : the price per outcome token between 0 and 1; required for limit orders, defaults to the outcome's current price for market orders
     /// </description>
     /// </item>
     /// <item>
@@ -571,13 +571,13 @@ public partial class polymarket
     /// <item>
     /// <term>params.tickSize</term>
     /// <description>
-    /// string : the market tick size ('0.1'/'0.01'/'0.001'/'0.0001'); fetched from the exchange when omitted
+    /// string : the market tick size ('0.1'/'0.01'/'0.001'/'0.0001'); read from the outcome when omitted
     /// </description>
     /// </item>
     /// <item>
     /// <term>params.negRisk</term>
     /// <description>
-    /// bool : whether the market is a neg-risk market; fetched from the exchange when omitted
+    /// bool : whether the market is a neg-risk market; read from the outcome when omitted
     /// </description>
     /// </item>
     /// <item>

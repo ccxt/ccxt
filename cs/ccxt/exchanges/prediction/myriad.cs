@@ -1744,6 +1744,10 @@ public partial class myriad : PredictionExchange
                 { "market", marketSymbol },
                 { "label", outcomeLabel },
                 { "active", active },
+                { "precision", new Dictionary<string, object>() {
+                    { "amount", 0.01 },
+                    { "price", 0.001 },
+                } },
                 { "info", new Dictionary<string, object>() {
                     { "networkId", networkId },
                     { "marketId", marketId },

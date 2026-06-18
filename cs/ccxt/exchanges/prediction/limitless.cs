@@ -397,6 +397,14 @@ public partial class limitless : PredictionExchange
         object endDate = this.safeString(raw, "deadline", this.safeString(raw, "expiresAt"));
         object volume24h = this.safeNumber(raw, "volume24h");
         object marketSymbol = this.slugToMarketSymbol(groupId, slug);
+        // amount precision comes from the collateral token decimals (USDC, 6); limitless does not
+        // expose a price tick, so 0.001 is the platform convention
+        object collateralToken = this.safeDict(raw, "collateralToken", new Dictionary<string, object>() {});
+        object collateralDecimals = this.safeInteger(collateralToken, "decimals", this.safeInteger(this.options, "usdcDecimals", 6));
+        object precision = new Dictionary<string, object>() {
+            { "amount", this.parseNumber(this.parsePrecision(((object)collateralDecimals).ToString())) },
+            { "price", 0.001 },
+        };
         object outcomes = new List<object>() {};
         object tokenEntries = new List<object>(((IDictionary<string,object>)tokens).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(tokenEntries)); postFixIncrement(ref i))
@@ -410,6 +418,7 @@ public partial class limitless : PredictionExchange
                 { "market", marketSymbol },
                 { "label", outcomeLabel },
                 { "active", active },
+                { "precision", precision },
                 { "info", new Dictionary<string, object>() {
                     { "slug", slug },
                     { "address", address },
@@ -454,10 +463,7 @@ public partial class limitless : PredictionExchange
             { "percentage", true },
             { "tierBased", false },
             { "feeSide", "get" },
-            { "precision", new Dictionary<string, object>() {
-                { "amount", 0.000001 },
-                { "price", 0.001 },
-            } },
+            { "precision", precision },
             { "limits", new Dictionary<string, object>() {
                 { "leverage", new Dictionary<string, object>() {
                     { "min", 1 },

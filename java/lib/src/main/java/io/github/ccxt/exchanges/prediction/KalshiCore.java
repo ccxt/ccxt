@@ -374,6 +374,13 @@ public class KalshiCore extends KalshiApi
         // Market symbol (no outcome suffix)
         Object subtitleOrTicker = ((Helpers.isTrue((!Helpers.isEqual(subtitle, null))))) ? subtitle : ticker;
         Object marketSymbol = this.slugToMarketSymbol(eventTicker, subtitleOrTicker);
+        // kalshi quotes in cents and exposes the price tick per market via tick_size (in cents);
+        // convert it to a dollar price precision (defaults to 1 cent). amount is a whole number of contracts
+        Object tickSizeCents = this.safeString(raw, "tick_size", "1");
+        Object precision = new java.util.HashMap<String, Object>() {{
+            put( "amount", 1 );
+            put( "price", KalshiCore.this.parseNumber(Precise.stringDiv(tickSizeCents, "100")) );
+        }};
         // Build outcomes
         Object outcomeLabels = new java.util.ArrayList<Object>(java.util.Arrays.asList("YES", "NO"));
         Object outcomeIds = new java.util.ArrayList<Object>(java.util.Arrays.asList(ticker, Helpers.add(ticker, "-NO")));
@@ -396,6 +403,7 @@ final Object finalOi = oi;
                 put( "market", finalMarketSymbol );
                 put( "label", label );
                 put( "active", active );
+                put( "precision", precision );
                 put( "info", new java.util.HashMap<String, Object>() {{
                     put( "ticker", finalTicker );
                     put( "eventTicker", eventTicker );
@@ -444,10 +452,7 @@ final Object finalOi = oi;
             put( "percentage", true );
             put( "tierBased", false );
             put( "feeSide", "get" );
-            put( "precision", new java.util.HashMap<String, Object>() {{
-                put( "amount", 1 );
-                put( "price", 0.01 );
-            }} );
+            put( "precision", precision );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "leverage", new java.util.HashMap<String, Object>() {{
                     put( "min", 1 );

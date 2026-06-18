@@ -535,7 +535,9 @@ class polymarket(PredictionExchange, ImplicitAPI):
             marketSlug = self.safe_string(market, 'slug', conditionId)
             active = self.safe_bool(market, 'active', False)
             closed = self.safe_bool(market, 'closed', False)
-            tickSize = self.safe_number(market, 'minimumTickSize', 0.01)
+            # gamma exposes the order-book tick; minimumTickSize is the clob alias
+            tickSize = self.safe_number_2(market, 'orderPriceMinTickSize', 'minimumTickSize', 0.01)
+            negRisk = self.safe_bool(market, 'negRisk', False)
             endDate = self.safe_string(market, 'endDate', self.safe_string(market, 'end_date_iso'))
             # Gamma API returns these arrays-encoded strings
             outcomeLabels: List[Any] = []
@@ -580,6 +582,12 @@ class polymarket(PredictionExchange, ImplicitAPI):
                     'label': outcomeLabel,
                     'price': outcomePrice,
                     'active': active and not closed,
+                    # carry the order precision so createOrder needs no extra request
+                    'precision': {
+                        'amount': tickSize,
+                        'price': tickSize,
+                    },
+                    'negRisk': negRisk,
                     'info': market,
                 })
             baseId = conditionId if (conditionId is not None) else marketId
@@ -1497,16 +1505,16 @@ class polymarket(PredictionExchange, ImplicitAPI):
         https://docs.polymarket.com/api-reference/trade/post-a-new-order
 
         :param str symbol: unified outcome symbol or outcome token id
-        :param str type: 'market' or 'limit'; market orders default to FOK and, when no price is given, sweep the top of the opposing book
+        :param str type: 'market' or 'limit'; market orders default to FOK and, when no price is given, use the outcome's current price marketable reference
         :param str side: 'buy' or 'sell'
         :param float amount: how many outcome tokens to trade
-        :param float [price]: the price per outcome token between 0 and 1; required for limit orders, optional for market orders
+        :param float [price]: the price per outcome token between 0 and 1; required for limit orders, defaults to the outcome's current price for market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.orderType]: time-in-force override: 'GTC'(default for limit), 'FOK'(default for market), 'GTD' or 'FAK'
         :param int [params.signatureType]: 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271(deposit wallet); defaults to options.signatureType
         :param str [params.funder]: the wallet that holds the USDC collateral; defaults to options.funder or the signing address
-        :param str [params.tickSize]: the market tick size('0.1'/'0.01'/'0.001'/'0.0001'); fetched from the exchange when omitted
-        :param bool [params.negRisk]: whether the market is a neg-risk market; fetched from the exchange when omitted
+        :param str [params.tickSize]: the market tick size('0.1'/'0.01'/'0.001'/'0.0001'); read from the outcome when omitted
+        :param bool [params.negRisk]: whether the market is a neg-risk market; read from the outcome when omitted
         :param str [params.salt]: order salt; defaults to the current time in ms(pin it for idempotent retries)
         :param str [params.timestamp]: order timestamp; defaults to the current time in ms
         :param str [params.expiration]: unix-seconds expiration for GTD orders; defaults to '0'(no expiry)
@@ -1569,21 +1577,15 @@ class polymarket(PredictionExchange, ImplicitAPI):
         if price is None:
             if not isMarket:
                 raise ArgumentsRequired(self.id + ' createOrder() requires a price for limit orders')
-            # market order without an explicit price: sweep the top of the opposing book
-            orderbook = await self.fetch_order_book(outcome)
-            levels = self.safe_list(orderbook, 'asks', []) if (sideStr == 'BUY') else self.safe_list(orderbook, 'bids', [])
-            best = self.safe_list(levels, 0)
-            if best is None:
-                raise ArgumentsRequired(self.id + ' createOrder() could not determine a market price; pass an explicit price')
-            price = self.safe_number(best, 0)
-        # tick size + neg-risk flag drive the rounding and the verifying contract; both can be
-        # supplied via params to skip the extra market lookup(and to keep requests deterministic)
-        tickSize = self.safe_string(params, 'tickSize')
-        negRisk = self.safe_bool(params, 'negRisk')
-        if (tickSize is None) or (negRisk is None):
-            clobMarket = await self.clobPublicGetMarketsByTokenTokenId({'token_id': tokenId})
-            tickSize = self.safe_string(clobMarket, 'minimum_tick_size', '0.01')
-            negRisk = self.safe_bool(clobMarket, 'neg_risk', False)
+            # market order without an explicit price: use the outcome's current price marketable reference
+            price = self.safe_number(outcomeObj, 'price')
+            if price is None:
+                raise ArgumentsRequired(self.id + ' createOrder() could not determine a price from the outcome, pass an explicit price')
+        # tick size + neg-risk flag drive the rounding and the verifying contract; both are read from the
+        # outcome object(set in parseMarket) and can be overridden via params to keep requests deterministic
+        outcomePrecision = self.safe_dict(outcomeObj, 'precision', {})
+        tickSize = self.safe_string(params, 'tickSize', self.number_to_string(self.safe_number(outcomePrecision, 'price', 0.01)))
+        negRisk = self.safe_bool(params, 'negRisk', self.safe_bool(outcomeObj, 'negRisk', False))
         # 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271(deposit wallet, default); funder/maker holds the USDC
         signatureType = self.safe_integer_2(params, 'signatureType', 'signature_type', self.safe_integer(self.options, 'signatureType', 3))
         # the signer/owner is the EOA behind the privateKey; the funder/maker is the proxy or deposit wallet(walletAddress)

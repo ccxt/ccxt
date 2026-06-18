@@ -565,7 +565,9 @@ class polymarket extends Exchange {
             $marketSlug = $this->safe_string($market, 'slug', $conditionId);
             $active = $this->safe_bool($market, 'active', false);
             $closed = $this->safe_bool($market, 'closed', false);
-            $tickSize = $this->safe_number($market, 'minimumTickSize', 0.01);
+            // gamma exposes the order-book tick; minimumTickSize is the clob alias
+            $tickSize = $this->safe_number_2($market, 'orderPriceMinTickSize', 'minimumTickSize', 0.01);
+            $negRisk = $this->safe_bool($market, 'negRisk', false);
             $endDate = $this->safe_string($market, 'endDate', $this->safe_string($market, 'end_date_iso'));
             // Gamma API returns these arrays-encoded strings
             $outcomeLabels = array();
@@ -618,6 +620,12 @@ class polymarket extends Exchange {
                     'label' => $outcomeLabel,
                     'price' => $outcomePrice,
                     'active' => $active && !$closed,
+                    // carry the order precision so createOrder needs no extra request
+                    'precision' => array(
+                        'amount' => $tickSize,
+                        'price' => $tickSize,
+                    ),
+                    'negRisk' => $negRisk,
                     'info' => $market,
                 );
             }
@@ -1642,16 +1650,16 @@ class polymarket extends Exchange {
              * @see https://docs.polymarket.com/api-reference/trade/post-a-new-order
              *
              * @param {string} $symbol unified outcome $symbol or outcome token id
-             * @param {string} $type 'market' or 'limit'; market orders default to FOK and, when no $price is given, sweep the top of the opposing book
+             * @param {string} $type 'market' or 'limit'; market orders default to FOK and, when no $price is given, use the outcome's current $price marketable reference
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how many outcome tokens to trade
-             * @param {float} [$price] the $price per outcome token between 0 and 1; required for limit orders, optional for market orders
+             * @param {float} [$price] the $price per outcome token between 0 and 1; required for limit orders, defaults to the outcome's current $price for market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->orderType] time-in-force override => 'GTC' (default for limit), 'FOK' (default for market), 'GTD' or 'FAK'
              * @param {int} [$params->signatureType] 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271 (deposit wallet); defaults to options.signatureType
              * @param {string} [$params->funder] the wallet that holds the USDC collateral; defaults to options.funder or the signing address
-             * @param {string} [$params->tickSize] the market tick size ('0.1'/'0.01'/'0.001'/'0.0001'); fetched from the exchange when omitted
-             * @param {bool} [$params->negRisk] whether the market is a neg-risk market; fetched from the exchange when omitted
+             * @param {string} [$params->tickSize] the market tick size ('0.1'/'0.01'/'0.001'/'0.0001'); read from the outcome when omitted
+             * @param {bool} [$params->negRisk] whether the market is a neg-risk market; read from the outcome when omitted
              * @param {string} [$params->salt] order salt; defaults to the current time in ms (pin it for idempotent retries)
              * @param {string} [$params->timestamp] order timestamp; defaults to the current time in ms
              * @param {string} [$params->expiration] unix-seconds expiration for GTD orders; defaults to '0' (no expiry)
@@ -1704,115 +1712,106 @@ class polymarket extends Exchange {
     }
 
     public function build_clob_order_body(string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
-            /**
-             * @ignore
-             * builds and signs a single CLOB order request body (shared by createOrder and createOrders)
-             * @return {array} an object with 'body' (the signed order request) and 'outcome' (the resolved $outcome)
-             */
-            $outcome = $symbol;
-            // $outcome () validates the $symbol against the loaded outcomes (built from events or markets)
-            $outcomeObj = $this->outcome ($outcome);
-            $tokenId = $outcomeObj['outcomeId'];
-            $sideStr = strtoupper($side);
-            $isMarket = ($type === 'market');
-            // CCXT $type (limit/market) maps to a polymarket time-in-force => limit -> GTC, market -> FOK.
-            // callers can override with $params->orderType (GTC, GTD, FOK or FAK)
-            $orderTypeStr = $this->safe_string_upper($params, 'orderType');
-            if ($orderTypeStr === null) {
-                $orderTypeStr = $isMarket ? 'FOK' : 'GTC';
+        /**
+         * @ignore
+         * builds and signs a single CLOB order request body (shared by createOrder and createOrders)
+         * @return {array} an object with 'body' (the signed order request) and 'outcome' (the resolved $outcome)
+         */
+        $outcome = $symbol;
+        // $outcome () validates the $symbol against the loaded outcomes (built from events or markets)
+        $outcomeObj = $this->outcome ($outcome);
+        $tokenId = $outcomeObj['outcomeId'];
+        $sideStr = strtoupper($side);
+        $isMarket = ($type === 'market');
+        // CCXT $type (limit/market) maps to a polymarket time-in-force => limit -> GTC, market -> FOK.
+        // callers can override with $params->orderType (GTC, GTD, FOK or FAK)
+        $orderTypeStr = $this->safe_string_upper($params, 'orderType');
+        if ($orderTypeStr === null) {
+            $orderTypeStr = $isMarket ? 'FOK' : 'GTC';
+        }
+        if ($price === null) {
+            if (!$isMarket) {
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a $price for limit orders');
             }
+            // market order without an explicit $price => use the outcome's current $price marketable reference
+            $price = $this->safe_number($outcomeObj, 'price');
             if ($price === null) {
-                if (!$isMarket) {
-                    throw new ArgumentsRequired($this->id . ' createOrder() requires a $price for limit orders');
-                }
-                // market order without an explicit $price => sweep the top of the opposing book
-                $orderbook = Async\await($this->fetch_order_book($outcome));
-                $levels = ($sideStr === 'BUY') ? $this->safe_list($orderbook, 'asks', array()) : $this->safe_list($orderbook, 'bids', array());
-                $best = $this->safe_list($levels, 0);
-                if ($best === null) {
-                    throw new ArgumentsRequired($this->id . ' createOrder() could not determine a market $price; pass an explicit price');
-                }
-                $price = $this->safe_number($best, 0);
+                throw new ArgumentsRequired($this->id . ' createOrder() could not determine a $price from the $outcome, pass an explicit price');
             }
-            // tick size . neg-risk flag drive the rounding and the verifying contract; both can be
-            // supplied via $params to skip the extra market lookup (and to keep requests deterministic)
-            $tickSize = $this->safe_string($params, 'tickSize');
-            $negRisk = $this->safe_bool($params, 'negRisk');
-            if (($tickSize === null) || ($negRisk === null)) {
-                $clobMarket = Async\await($this->clobPublicGetMarketsByTokenTokenId (array( 'token_id' => $tokenId )));
-                $tickSize = $this->safe_string($clobMarket, 'minimum_tick_size', '0.01');
-                $negRisk = $this->safe_bool($clobMarket, 'neg_risk', false);
-            }
-            // 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271 (deposit wallet, default); funder/maker holds the USDC
-            $signatureType = $this->safe_integer_2($params, 'signatureType', 'signature_type', $this->safe_integer($this->options, 'signatureType', 3));
-            // the signer/owner is the EOA behind the privateKey; the funder/maker is the proxy or deposit wallet (walletAddress)
-            $eoa = $this->eth_checksum_address($this->eth_get_address_from_private_key($this->privateKey));
-            $funder = $this->eth_checksum_address($this->safe_string_2($params, 'funder', 'maker', $this->safe_string($this->options, 'funder', $this->walletAddress)));
-            // $salt and $timestamp default to the current time but can be pinned via $params for idempotency
-            $salt = $this->safe_string($params, 'salt', $this->number_to_string($this->milliseconds()));
-            $timestamp = $this->safe_string($params, 'timestamp', $this->number_to_string($this->milliseconds()));
-            // GTD (good-til-date) orders need a unix-seconds $expiration; 0 means no expiry
-            $expiration = $this->safe_string($params, 'expiration', '0');
-            // a market buy can be sized by USDC $cost instead of shares (see createMarketBuyOrderWithCost)
-            $cost = $this->safe_number($params, 'cost');
-            $rest = $this->omit($params, array( 'signatureType', 'signature_type', 'funder', 'maker', 'orderType', 'tickSize', 'negRisk', 'salt', 'timestamp', 'expiration', 'cost' ));
-            $amounts = $this->polymarket_order_raw_amounts($sideStr, $amount, $price, $tickSize, $cost);
-            $makerAmount = $this->safe_string($amounts, 'makerAmount');
-            $takerAmount = $this->safe_string($amounts, 'takerAmount');
-            $sideInt = ($sideStr === 'BUY') ? 0 : 1;
-            $bytes32Zero = '0x0000000000000000000000000000000000000000000000000000000000000000';
-            // POLY_1271 ($type 3) => the order $signer is the deposit wallet itself — the exchange calls
-            // wallet.isValidSignature and the inner ERC-7739 domain's verifyingContract is the wallet (the EOA
-            // still produces the $signature and is checked on-chain wallet $owner). Otherwise $signer = EOA.
-            $maker = $funder;
-            $signer = ($signatureType === 3) ? $funder : $eoa;
-            $message = array(
-                'salt' => $salt,
+        }
+        // tick size . neg-risk flag drive the rounding and the verifying contract; both are read from the
+        // $outcome object (is_array(parseMarket) && array_key_exists(set, parseMarket)) and can be overridden via $params to keep requests deterministic
+        $outcomePrecision = $this->safe_dict($outcomeObj, 'precision', array());
+        $tickSize = $this->safe_string($params, 'tickSize', $this->number_to_string($this->safe_number($outcomePrecision, 'price', 0.01)));
+        $negRisk = $this->safe_bool($params, 'negRisk', $this->safe_bool($outcomeObj, 'negRisk', false));
+        // 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271 (deposit wallet, default); funder/maker holds the USDC
+        $signatureType = $this->safe_integer_2($params, 'signatureType', 'signature_type', $this->safe_integer($this->options, 'signatureType', 3));
+        // the signer/owner is the EOA behind the privateKey; the funder/maker is the proxy or deposit wallet (walletAddress)
+        $eoa = $this->eth_checksum_address($this->eth_get_address_from_private_key($this->privateKey));
+        $funder = $this->eth_checksum_address($this->safe_string_2($params, 'funder', 'maker', $this->safe_string($this->options, 'funder', $this->walletAddress)));
+        // $salt and $timestamp default to the current time but can be pinned via $params for idempotency
+        $salt = $this->safe_string($params, 'salt', $this->number_to_string($this->milliseconds()));
+        $timestamp = $this->safe_string($params, 'timestamp', $this->number_to_string($this->milliseconds()));
+        // GTD (good-til-date) orders need a unix-seconds $expiration; 0 means no expiry
+        $expiration = $this->safe_string($params, 'expiration', '0');
+        // a market buy can be sized by USDC $cost instead of shares (see createMarketBuyOrderWithCost)
+        $cost = $this->safe_number($params, 'cost');
+        $rest = $this->omit($params, array( 'signatureType', 'signature_type', 'funder', 'maker', 'orderType', 'tickSize', 'negRisk', 'salt', 'timestamp', 'expiration', 'cost' ));
+        $amounts = $this->polymarket_order_raw_amounts($sideStr, $amount, $price, $tickSize, $cost);
+        $makerAmount = $this->safe_string($amounts, 'makerAmount');
+        $takerAmount = $this->safe_string($amounts, 'takerAmount');
+        $sideInt = ($sideStr === 'BUY') ? 0 : 1;
+        $bytes32Zero = '0x0000000000000000000000000000000000000000000000000000000000000000';
+        // POLY_1271 ($type 3) => the order $signer is the deposit wallet itself — the exchange calls
+        // wallet.isValidSignature and the inner ERC-7739 domain's verifyingContract is the wallet (the EOA
+        // still produces the $signature and is checked on-chain wallet $owner). Otherwise $signer = EOA.
+        $maker = $funder;
+        $signer = ($signatureType === 3) ? $funder : $eoa;
+        $message = array(
+            'salt' => $salt,
+            'maker' => $maker,
+            'signer' => $signer,
+            'tokenId' => $tokenId,
+            'makerAmount' => $makerAmount,
+            'takerAmount' => $takerAmount,
+            'side' => $sideInt,
+            'signatureType' => $signatureType,
+            'timestamp' => $timestamp,
+            'metadata' => $bytes32Zero,
+            'builder' => $bytes32Zero,
+        );
+        $exchangeV2 = $this->safe_string($this->options, 'exchangeAddress', '0xE111180000d2663C0091e4f400237545B87B996B');
+        $negRiskExchangeV2 = $this->safe_string($this->options, 'negRiskExchangeAddress', '0xe2222d279d744050d28e00520010520000310F59');
+        $exchangeAddress = $negRisk ? $negRiskExchangeV2 : $exchangeV2;
+        $domainVersion = $this->safe_string($this->options, 'ctfExchangeVersion', '2');
+        $signature = $this->sign_clob_order($message, $exchangeAddress, $domainVersion, $signatureType);
+        $owner = $this->safe_string($this->options, 'l2ApiKey', $this->apiKey);
+        $orderBody = array(
+            'deferExec' => false,
+            'postOnly' => false,
+            'order' => array(
+                'salt' => $this->parse_to_int($salt),
                 'maker' => $maker,
                 'signer' => $signer,
+                'taker' => '0x0000000000000000000000000000000000000000',
                 'tokenId' => $tokenId,
                 'makerAmount' => $makerAmount,
                 'takerAmount' => $takerAmount,
-                'side' => $sideInt,
+                'side' => $sideStr,
                 'signatureType' => $signatureType,
                 'timestamp' => $timestamp,
+                'expiration' => $expiration,
                 'metadata' => $bytes32Zero,
                 'builder' => $bytes32Zero,
-            );
-            $exchangeV2 = $this->safe_string($this->options, 'exchangeAddress', '0xE111180000d2663C0091e4f400237545B87B996B');
-            $negRiskExchangeV2 = $this->safe_string($this->options, 'negRiskExchangeAddress', '0xe2222d279d744050d28e00520010520000310F59');
-            $exchangeAddress = $negRisk ? $negRiskExchangeV2 : $exchangeV2;
-            $domainVersion = $this->safe_string($this->options, 'ctfExchangeVersion', '2');
-            $signature = $this->sign_clob_order($message, $exchangeAddress, $domainVersion, $signatureType);
-            $owner = $this->safe_string($this->options, 'l2ApiKey', $this->apiKey);
-            $orderBody = array(
-                'deferExec' => false,
-                'postOnly' => false,
-                'order' => array(
-                    'salt' => $this->parse_to_int($salt),
-                    'maker' => $maker,
-                    'signer' => $signer,
-                    'taker' => '0x0000000000000000000000000000000000000000',
-                    'tokenId' => $tokenId,
-                    'makerAmount' => $makerAmount,
-                    'takerAmount' => $takerAmount,
-                    'side' => $sideStr,
-                    'signatureType' => $signatureType,
-                    'timestamp' => $timestamp,
-                    'expiration' => $expiration,
-                    'metadata' => $bytes32Zero,
-                    'builder' => $bytes32Zero,
-                    'signature' => $signature,
-                ),
-                'owner' => $owner,
-                'orderType' => $orderTypeStr,
-            );
-            return array(
-                'body' => $this->extend($orderBody, $rest),
-                'outcome' => $outcomeObj,
-            );
-        }) ();
+                'signature' => $signature,
+            ),
+            'owner' => $owner,
+            'orderType' => $orderTypeStr,
+        );
+        return array(
+            'body' => $this->extend($orderBody, $rest),
+            'outcome' => $outcomeObj,
+        );
     }
 
     public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()): PromiseInterface {
