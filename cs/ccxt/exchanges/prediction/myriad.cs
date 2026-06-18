@@ -1759,9 +1759,14 @@ public partial class myriad : PredictionExchange
                 } },
             });
         }
+        object marketTradingModel = this.safeString(raw, "tradingModel", "amm");
+        object marketExecutionModel = ((bool) isTrue((isEqual(marketTradingModel, "amm")))) ? "amm" : "clob";
+        object outcomesLength = getArrayLength(outcomes);
         return new Dictionary<string, object>() {
             { "id", add(add(networkId, ":"), marketId) },
             { "symbol", marketSymbol },
+            { "marketType", ((bool) isTrue((isGreaterThan(outcomesLength, 2)))) ? "categorical" : "binary" },
+            { "executionModel", marketExecutionModel },
             { "base", slug },
             { "quote", quoteCurrency },
             { "settle", null },

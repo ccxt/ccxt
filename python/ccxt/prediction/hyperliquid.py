@@ -504,6 +504,8 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             'quoteId': quoteCurrency,
             'settleId': None,
             'type': 'prediction',
+            'marketType': 'binary',
+            'executionModel': 'clob',
             'spot': False,
             'margin': None,
             'swap': False,

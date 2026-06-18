@@ -389,6 +389,8 @@ export default class kalshi extends Exchange {
             'quoteId': 'USD',
             'settleId': undefined,
             'type': 'prediction',
+            'marketType': 'binary',
+            'executionModel': 'clob',
             'spot': false,
             'margin': false,
             'swap': false,
@@ -427,7 +429,7 @@ export default class kalshi extends Exchange {
                 'openInterest': openInt,
             }),
             'created': undefined,
-        };
+        } as unknown as Market;
     }
 
     /**

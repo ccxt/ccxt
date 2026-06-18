@@ -641,6 +641,8 @@ public class HyperliquidCore extends HyperliquidApi
             put( "quoteId", quoteCurrency );
             put( "settleId", null );
             put( "type", "prediction" );
+            put( "marketType", "binary" );
+            put( "executionModel", "clob" );
             put( "spot", false );
             put( "margin", null );
             put( "swap", false );

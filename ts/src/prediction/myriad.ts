@@ -1576,9 +1576,14 @@ export default class myriad extends Exchange {
                 },
             });
         }
+        const marketTradingModel = this.safeString (raw, 'tradingModel', 'amm');
+        const marketExecutionModel = (marketTradingModel === 'amm') ? 'amm' : 'clob';
+        const outcomesLength = outcomes.length;
         return {
             'id': networkId + ':' + marketId,
             'symbol': marketSymbol,
+            'marketType': (outcomesLength > 2) ? 'categorical' : 'binary',
+            'executionModel': marketExecutionModel,
             'base': slug,
             'quote': quoteCurrency,
             'settle': undefined,

@@ -620,6 +620,8 @@ public partial class hyperliquid : PredictionExchange
             { "quoteId", quoteCurrency },
             { "settleId", null },
             { "type", "prediction" },
+            { "marketType", "binary" },
+            { "executionModel", "clob" },
             { "spot", false },
             { "margin", null },
             { "swap", false },

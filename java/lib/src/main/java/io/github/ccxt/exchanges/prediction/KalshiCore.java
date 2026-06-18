@@ -422,6 +422,8 @@ final Object finalOi = oi;
             put( "quoteId", "USD" );
             put( "settleId", null );
             put( "type", "prediction" );
+            put( "marketType", "binary" );
+            put( "executionModel", "clob" );
             put( "spot", false );
             put( "margin", false );
             put( "swap", false );

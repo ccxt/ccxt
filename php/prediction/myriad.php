@@ -1582,9 +1582,14 @@ class myriad extends Exchange {
                 ),
             );
         }
+        $marketTradingModel = $this->safe_string($raw, 'tradingModel', 'amm');
+        $marketExecutionModel = ($marketTradingModel === 'amm') ? 'amm' : 'clob';
+        $outcomesLength = count($outcomes);
         return array(
             'id' => $networkId . ':' . $marketId,
             'symbol' => $marketSymbol,
+            'marketType' => ($outcomesLength > 2) ? 'categorical' : 'binary',
+            'executionModel' => $marketExecutionModel,
             'base' => $slug,
             'quote' => $quoteCurrency,
             'settle' => null,

@@ -1952,11 +1952,17 @@ final Object finalNetworkId = networkId;
                 }} );
             }});
         }
+        Object marketTradingModel = this.safeString(raw, "tradingModel", "amm");
+        Object marketExecutionModel = ((Helpers.isTrue((Helpers.isEqual(marketTradingModel, "amm"))))) ? "amm" : "clob";
+        Object outcomesLength = Helpers.getArrayLength(outcomes);
         final Object finalNetworkId = networkId;
+        final Object finalOutcomesLength = outcomesLength;
         final Object finalState = state;
         return new java.util.HashMap<String, Object>() {{
             put( "id", Helpers.add(Helpers.add(finalNetworkId, ":"), marketId) );
             put( "symbol", marketSymbol );
+            put( "marketType", ((Helpers.isTrue((Helpers.isGreaterThan(finalOutcomesLength, 2))))) ? "categorical" : "binary" );
+            put( "executionModel", marketExecutionModel );
             put( "base", slug );
             put( "quote", quoteCurrency );
             put( "settle", null );

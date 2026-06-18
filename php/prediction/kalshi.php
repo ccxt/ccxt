@@ -380,6 +380,8 @@ class kalshi extends Exchange {
             'quoteId' => 'USD',
             'settleId' => null,
             'type' => 'prediction',
+            'marketType' => 'binary',
+            'executionModel' => 'clob',
             'spot' => false,
             'margin' => false,
             'swap' => false,

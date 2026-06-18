@@ -358,6 +358,8 @@ class kalshi(PredictionExchange, ImplicitAPI):
             'quoteId': 'USD',
             'settleId': None,
             'type': 'prediction',
+            'marketType': 'binary',
+            'executionModel': 'clob',
             'spot': False,
             'margin': False,
             'swap': False,

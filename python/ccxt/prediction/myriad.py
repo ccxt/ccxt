@@ -1411,9 +1411,14 @@ class myriad(PredictionExchange, ImplicitAPI):
                     'tokenDecimals': tokenDecimals,
                 },
             })
+        marketTradingModel = self.safe_string(raw, 'tradingModel', 'amm')
+        marketExecutionModel = 'amm' if (marketTradingModel == 'amm') else 'clob'
+        outcomesLength = len(outcomes)
         return {
             'id': networkId + ':' + marketId,
             'symbol': marketSymbol,
+            'marketType': 'categorical' if (outcomesLength > 2) else 'binary',
+            'executionModel': marketExecutionModel,
             'base': slug,
             'quote': quoteCurrency,
             'settle': None,

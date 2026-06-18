@@ -564,6 +564,8 @@ export default class hyperliquid extends Exchange {
             'quoteId': quoteCurrency,
             'settleId': undefined,
             'type': 'prediction',
+            'marketType': 'binary',
+            'executionModel': 'clob',
             'spot': false,
             'margin': undefined,
             'swap': false,
