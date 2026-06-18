@@ -7,7 +7,7 @@ import sys
 
 import ccxt  # noqa: E402
 
-exchange = ccxt.coinbasepro({
+exchange = ccxt.coinbaseexchange({
     'apiKey': "YOUR_API_KEY",
     'secret': "YOUR_SECRET",
     'password': 'zdmj8o7byla',

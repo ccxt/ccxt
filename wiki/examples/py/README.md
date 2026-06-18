@@ -107,8 +107,6 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 
 - [Async Gather Concurrency](./examples/py/async-gather-concurrency.md)
 
-- [Async Gdax Fetch Order Book Continuously](./examples/py/async-gdax-fetch-order-book-continuously.md)
-
 - [Async Generator Basic](./examples/py/async-generator-basic.md)
 
 - [Async Generator Multiple Tickers](./examples/py/async-generator-multiple-tickers.md)
@@ -158,8 +156,6 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 - [Async](./examples/py/async.md)
 
 - [Balance Coinbasepro](./examples/py/balance-coinbasepro.md)
-
-- [Balance Gdax](./examples/py/balance-gdax.md)
 
 - [Balance Kraken](./examples/py/balance-kraken.md)
 
@@ -311,7 +307,7 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 
 - [Coinbase Watch Trades](./examples/py/coinbase-watch-trades.md)
 
-- [Coinbasepro Fetch My Trades Pagination](./examples/py/coinbasepro-fetch-my-trades-pagination.md)
+- [Coinbaseexchange Fetch My Trades Pagination](./examples/py/coinbaseexchange-fetch-my-trades-pagination.md)
 
 - [Coinex Futures](./examples/py/coinex-futures.md)
 
@@ -396,8 +392,6 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 - [Gate Watch Balance](./examples/py/gate-watch-balance.md)
 
 - [Gate Watch Trades](./examples/py/gate-watch-trades.md)
-
-- [Gdax Fetch My Trades Pagination](./examples/py/gdax-fetch-my-trades-pagination.md)
 
 - [Hitbtc Withdraw](./examples/py/hitbtc-withdraw.md)
 

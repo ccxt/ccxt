@@ -58,9 +58,7 @@ php -f path/to/example.php # substitute for actual filename here
 
 - [Cli](./examples/php/cli.md)
 
-- [Coinbase Fetch All Balances](./examples/php/coinbase-fetch-all-balances.md)
-
-- [Coinbasepro Cursor Pagination](./examples/php/coinbasepro-cursor-pagination.md)
+- [Coinbaseexchange Cursor Pagination](./examples/php/coinbaseexchange-cursor-pagination.md)
 
 - [Coinone Markets](./examples/php/coinone-markets.md)
 

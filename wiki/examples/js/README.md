@@ -205,8 +205,6 @@ node path/to/example.js # substitute for actual filename here
 
 - [Gateio Watch Order Book](./examples/js/gateio-watch-order-book.md)
 
-- [Gdax Fetch Trades Pagination](./examples/js/gdax-fetch-trades-pagination.md)
-
 - [Graceful Shutdown](./examples/js/graceful-shutdown.md)
 
 - [Hibachi Example](./examples/js/hibachi-example.md)
