@@ -24,7 +24,7 @@ async function main () {
         'bitfinex': 'BTC/USDT',
         'hitbtc': 'BTC/USDT',
         'upbit': 'BTC/USDT',
-        'coinbasepro': 'BTC/USD',
+        'coinbaseexchange': 'BTC/USD',
         'okx': 'BTC/USDT',
         'gate': 'BTC/USDT',
     };

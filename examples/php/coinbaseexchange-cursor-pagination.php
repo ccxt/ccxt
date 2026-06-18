@@ -6,7 +6,7 @@ include $root . '/ccxt.php';
 
 date_default_timezone_set('UTC');
 
-$exchange = new \ccxt\coinbasepro(array(
+$exchange = new \ccxt\coinbaseexchange(array(
     'apiKey' => 'YOUR_API_KEY',  // required for fetch_orders, fetch_my_trades
     'secret' => 'YOUR_SECRET',  // required for fetch_orders, fetch_my_trades
     'password' => 'YOUR_PASSWORD',  // required for fetch_orders, fetch_my_trades

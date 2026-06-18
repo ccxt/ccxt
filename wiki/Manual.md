@@ -239,8 +239,8 @@ const ccxt = require ('ccxt')
 let exchange = new ccxt.kraken () // default id
 let kraken1 = new ccxt.kraken ({ id: 'kraken1' })
 let kraken2 = new ccxt.kraken ({ id: 'kraken2' })
-let id = 'coinbasepro'
-let coinbasepro = new ccxt[id] ();
+let id = 'coinbaseexchange'
+let coinbaseexchange = new ccxt[id] ();
 
 // from variable id
 const exchangeId = 'binance'
@@ -258,7 +258,7 @@ okcoin1 = ccxt.okcoin ({ 'id': 'okcoin1' })
 okcoin2 = ccxt.okcoin ({ 'id': 'okcoin2' })
 id = 'btcchina'
 btcchina = eval ('ccxt.%s ()' % id)
-coinbasepro = getattr (ccxt, 'coinbasepro') ()
+coinbaseexchange = getattr (ccxt, 'coinbaseexchange') ()
 
 # from variable id
 exchange_id = 'binance'
@@ -2779,7 +2779,7 @@ while (true) {
 
 The user supplies a page number or an *initial "cursor"* value. The exchange returns a page of results and the *next "cursor"* value, to proceed from. Most of exchanges that implement this type of pagination will either return the next cursor within the response itself or will return the next cursor values within HTTP response headers.
 
-See an example implementation here: https://github.com/ccxt/ccxt/blob/master/examples/py/coinbasepro-fetch-my-trades-pagination.py
+See an example implementation here: https://github.com/ccxt/ccxt/blob/master/examples/py/coinbaseexchange-fetch-my-trades-pagination.py
 
 Upon each iteration of the loop the user has to take the next cursor and put it into the overrided params for the next query (on the following iteration):
 <!-- tabs:start -->
@@ -4748,7 +4748,7 @@ exchange.checkRequiredCredentials() // throw AuthenticationError
 #### **Python**
 ```python
 import ccxt
-exchange = ccxt.coinbasepro()
+exchange = ccxt.coinbaseexchange()
 print(exchange.requiredCredentials)  # prints required credentials
 exchange.check_required_credentials()  # raises AuthenticationError
 ```
@@ -4961,7 +4961,7 @@ In Python and PHP you can do the same by subclassing and overriding nonce functi
 # Python
 
 # 1: the shortest
-coinbasepro = ccxt.coinbasepro({'nonce': ccxt.Exchange.milliseconds})
+coinbaseexchange = ccxt.coinbaseexchange({'nonce': ccxt.Exchange.milliseconds})
 
 # 2: custom nonce
 class MyKraken(ccxt.kraken):

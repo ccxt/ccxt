@@ -90,7 +90,7 @@ function initializeAllExchanges () {
         'bcex',
         'bitsane',
         'chbtc',
-        'coinbasepro',
+        'coinbaseexchange',
         'jubi',
         'hitbtc',
         'bitstamp1',
