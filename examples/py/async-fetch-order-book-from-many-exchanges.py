@@ -11,7 +11,7 @@ sys.path.append(root + '/python')
 import ccxt.async_support as ccxt  # noqa: E402
 
 
-exchange_ids = [ 'binance', 'kucoin', 'huobipro' ]
+exchange_ids = [ 'binance', 'kucoin', 'htx' ]
 symbol = 'ETH/BTC'
 
 async def loop(exchange_id, symbol):
