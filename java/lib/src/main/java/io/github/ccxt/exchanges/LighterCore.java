@@ -147,7 +147,7 @@ public class LighterCore extends LighterApi
             }} );
             put( "hostname", "zklighter.elliot.ai" );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/ff1aaf96-bffb-4545-a750-5eba716e75d0" );
+                put( "logo", "https://github.com/user-attachments/assets/478f648a-05e4-4b09-a841-e7fced3846c0" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "root", "https://mainnet.{hostname}" );
                     put( "public", "https://mainnet.{hostname}" );
