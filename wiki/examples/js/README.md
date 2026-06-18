@@ -187,6 +187,12 @@ node path/to/example.js # substitute for actual filename here
 
 - [📂 Fetch Tickers](https://github.com/ccxt/ccxt/tree/master/./examples/js/fetch-tickers)
 
+- [Gate Swap Watch Many Orderbooks](./examples/js/gate-swap-watch-many-orderbooks.md)
+
+- [Gate Watch Balance](./examples/js/gate-watch-balance.md)
+
+- [Gate Watch Order Book](./examples/js/gate-watch-order-book.md)
+
 - [Gateio Create Batch Order](./examples/js/gateio-create-batch-order.md)
 
 - [Gateio Futures](./examples/js/gateio-futures.md)

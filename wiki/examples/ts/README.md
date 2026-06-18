@@ -50,11 +50,11 @@
 
 - [📂 Fetch Tickers](https://github.com/ccxt/ccxt/tree/master/./examples/ts/fetch-tickers)
 
-- [Gateio Swap Watch Many Orderbooks](./examples/ts/gateio-swap-watch-many-orderbooks.md)
+- [Gate Swap Watch Many Orderbooks](./examples/ts/gate-swap-watch-many-orderbooks.md)
 
-- [Gateio Watch Balance](./examples/ts/gateio-watch-balance.md)
+- [Gate Watch Balance](./examples/ts/gate-watch-balance.md)
 
-- [Gateio Watch Order Book](./examples/ts/gateio-watch-order-book.md)
+- [Gate Watch Order Book](./examples/ts/gate-watch-order-book.md)
 
 - [Graceful Shutdown](./examples/ts/graceful-shutdown.md)
 

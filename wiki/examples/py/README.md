@@ -385,17 +385,17 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 
 - [Fetch Longer Ohlcv Through Multiple Calls And Save To Csv](./examples/py/fetch_longer_ohlcv_through_multiple_calls_and_save_to_csv.md)
 
-- [Gateio Fetch Ohlcv Pagination](./examples/py/gateio-fetch-ohlcv-pagination.md)
+- [Gate Fetch Ohlcv Pagination](./examples/py/gate-fetch-ohlcv-pagination.md)
 
-- [Gateio Futures](./examples/py/gateio-futures.md)
+- [Gate Futures](./examples/py/gate-futures.md)
 
-- [Gateio Open Close Contract](./examples/py/gateio-open-close-contract.md)
+- [Gate Open Close Contract](./examples/py/gate-open-close-contract.md)
 
-- [Gateio Swaps](./examples/py/gateio-swaps.md)
+- [Gate Swaps](./examples/py/gate-swaps.md)
 
-- [Gateio Watch Balance](./examples/py/gateio-watch-balance.md)
+- [Gate Watch Balance](./examples/py/gate-watch-balance.md)
 
-- [Gateio Watch Trades](./examples/py/gateio-watch-trades.md)
+- [Gate Watch Trades](./examples/py/gate-watch-trades.md)
 
 - [Gdax Fetch My Trades Pagination](./examples/py/gdax-fetch-my-trades-pagination.md)
 
