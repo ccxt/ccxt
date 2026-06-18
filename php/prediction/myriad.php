@@ -1243,13 +1243,13 @@ class myriad extends Exchange {
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * fetches order book orders for the wallet (or any $trader passed via $params->trader)
+             * fetches order book $orders for the wallet (or any $trader passed via $params->trader)
              *
              * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828171a003cf996487d008
              *
              * @param {string} [$symbol] unified outcome $symbol to filter by
              * @param {int} [$since] timestamp in ms of the earliest order
-             * @param {int} [$limit] the maximum number of orders to return
+             * @param {int} [$limit] the maximum number of $orders to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->trader] wallet address to query (defaults to the configured wallet)
              * @param {string} [$params->status] 'open', 'filled', 'cancelled' or 'expired'
@@ -1265,19 +1265,19 @@ class myriad extends Exchange {
                     $request['trader'] = $this->walletAddress;
                 }
             }
-            $market = null;
+            $outcomeSymbol = null;
             if ($symbol !== null) {
                 $this->ensure_outcomes_loaded();
                 $outcomeObj = $this->outcome ($symbol);
-                $market = $outcomeObj;
-                $request['market_id'] = $this->safe_string($this->safe_dict($outcomeObj, 'info', array()), 'marketId');
-            }
-            if ($limit !== null) {
-                $request['limit'] = $limit;
+                $outcomeSymbol = $this->safe_string_2($outcomeObj, 'outcome', 'symbol', $symbol);
             }
             $response = Async\await($this->myriadPublicGetOrders ($this->extend($request, $params)));
             $data = $this->safe_list($response, 'data', array());
-            return $this->parse_orders($data, $market, $since, $limit);
+            // the /orders endpoint ignores a market_id filter server-side (it returns nothing even for a
+            // valid market), so parse every order — each self-resolves its outcome from the network/market/
+            // outcome ids — and filter by the requested outcome client-side
+            $orders = $this->parse_orders($data, null, null, null);
+            return $this->filterByOutcomeSinceLimit ($orders, $outcomeSymbol, $since, $limit);
         }) ();
     }
 
@@ -1567,6 +1567,10 @@ class myriad extends Exchange {
                 'market' => $marketSymbol,
                 'label' => $outcomeLabel,
                 'active' => $active,
+                'precision' => array(
+                    'amount' => 0.01,
+                    'price' => 0.001,
+                ),
                 'info' => array(
                     'networkId' => $networkId,
                     'marketId' => $marketId,

@@ -1262,19 +1262,19 @@ export default class myriad extends Exchange {
                 request['trader'] = this.walletAddress;
             }
         }
-        let market = undefined;
+        let outcomeSymbol = undefined;
         if (symbol !== undefined) {
             this.ensureOutcomesLoaded ();
             const outcomeObj = this.outcome (symbol);
-            market = outcomeObj;
-            request['market_id'] = this.safeString (this.safeDict (outcomeObj, 'info', {}), 'marketId');
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit;
+            outcomeSymbol = this.safeString2 (outcomeObj, 'outcome', 'symbol', symbol);
         }
         const response = await this.myriadPublicGetOrders (this.extend (request, params));
         const data = this.safeList (response, 'data', []);
-        return this.parseOrders (data, market as any, since, limit) as PredictionOrder[];
+        // the /orders endpoint ignores a market_id filter server-side (it returns nothing even for a
+        // valid market), so parse every order — each self-resolves its outcome from the network/market/
+        // outcome ids — and filter by the requested outcome client-side
+        const orders = this.parseOrders (data, undefined, undefined, undefined);
+        return this.filterByOutcomeSinceLimit (orders, outcomeSymbol, since, limit) as PredictionOrder[];
     }
 
     /**

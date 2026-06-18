@@ -1585,22 +1585,22 @@ func  (this *MyriadCore) FetchOrders(optionalArgs ...any) <- chan any {
                     ccxt.AddElementToObject(request, "trader", this.WalletAddress)
                 }
             }
-            var market any = nil
+            var outcomeSymbol any = nil
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 this.EnsureOutcomesLoaded()
                 var outcomeObj any = this.Outcome(symbol)
-                market = outcomeObj
-                ccxt.AddElementToObject(request, "market_id", this.SafeString(this.SafeDict(outcomeObj, "info", map[string]any {}), "marketId"))
-            }
-            if ccxt.IsTrue(!ccxt.IsEqual(limit, nil)) {
-                ccxt.AddElementToObject(request, "limit", limit)
+                outcomeSymbol = this.SafeString2(outcomeObj, "outcome", "symbol", symbol)
             }
         
             response:= (<-this.MyriadPublicGetOrders(this.Extend(request, params)))
             ccxt.PanicOnError(response)
             var data any = this.SafeList(response, "data", []any{})
+            // the /orders endpoint ignores a market_id filter server-side (it returns nothing even for a
+            // valid market), so parse every order — each self-resolves its outcome from the network/market/
+            // outcome ids — and filter by the requested outcome client-side
+            var orders any = this.ParseOrders(data, nil, nil, nil)
         
-            ch <- this.ParseOrders(data, market, since, limit)
+            ch <- this.FilterByOutcomeSinceLimit(orders, outcomeSymbol, since, limit)
             return nil
         
             }()

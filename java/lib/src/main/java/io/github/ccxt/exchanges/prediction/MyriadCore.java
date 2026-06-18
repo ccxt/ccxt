@@ -1559,21 +1559,20 @@ public class MyriadCore extends MyriadApi
                     Helpers.addElementToObject(request, "trader", this.walletAddress);
                 }
             }
-            Object market = null;
+            Object outcomeSymbol = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 this.ensureOutcomesLoaded();
                 Object outcomeObj = this.outcome(symbol);
-                market = outcomeObj;
-                Helpers.addElementToObject(request, "market_id", this.safeString(this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}}), "marketId"));
-            }
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
-            {
-                Helpers.addElementToObject(request, "limit", limit);
+                outcomeSymbol = this.safeString2(outcomeObj, "outcome", "symbol", symbol);
             }
             Object response = (this.myriadPublicGetOrders(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            return this.parseOrders(data, ((Object)market), since, limit);
+            // the /orders endpoint ignores a market_id filter server-side (it returns nothing even for a
+            // valid market), so parse every order — each self-resolves its outcome from the network/market/
+            // outcome ids — and filter by the requested outcome client-side
+            Object orders = this.parseOrders(data, null, null, null);
+            return this.filterByOutcomeSinceLimit(orders, outcomeSymbol, since, limit);
         });
 
     }

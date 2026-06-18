@@ -1127,17 +1127,18 @@ class myriad(PredictionExchange, ImplicitAPI):
                 request['trader'] = self.eth_get_address_from_private_key(self.privateKey)
             elif self.walletAddress is not None:
                 request['trader'] = self.walletAddress
-        market = None
+        outcomeSymbol = None
         if symbol is not None:
             self.ensure_outcomes_loaded()
             outcomeObj = self.outcome(symbol)
-            market = outcomeObj
-            request['market_id'] = self.safe_string(self.safe_dict(outcomeObj, 'info', {}), 'marketId')
-        if limit is not None:
-            request['limit'] = limit
+            outcomeSymbol = self.safe_string_2(outcomeObj, 'outcome', 'symbol', symbol)
         response = await self.myriadPublicGetOrders(self.extend(request, params))
         data = self.safe_list(response, 'data', [])
-        return self.parse_orders(data, market, since, limit)
+        # the /orders endpoint ignores a market_id filter server-side(it returns nothing even for a
+        # valid market), so parse every order — each self-resolves its outcome from the network/market/
+        # outcome ids — and filter by the requested outcome client-side
+        orders = self.parse_orders(data, None, None, None)
+        return self.filterByOutcomeSinceLimit(orders, outcomeSymbol, since, limit)
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[PredictionOrder]:
         """
@@ -1397,6 +1398,10 @@ class myriad(PredictionExchange, ImplicitAPI):
                 'market': marketSymbol,
                 'label': outcomeLabel,
                 'active': active,
+                'precision': {
+                    'amount': 0.01,
+                    'price': 0.001,
+                },
                 'info': {
                     'networkId': networkId,
                     'marketId': marketId,

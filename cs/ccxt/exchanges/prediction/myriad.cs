@@ -1413,21 +1413,20 @@ public partial class myriad : PredictionExchange
                 ((IDictionary<string,object>)request)["trader"] = this.walletAddress;
             }
         }
-        object market = null;
+        object outcomeSymbol = null;
         if (isTrue(!isEqual(symbol, null)))
         {
             this.ensureOutcomesLoaded();
             object outcomeObj = this.outcome(symbol);
-            market = outcomeObj;
-            ((IDictionary<string,object>)request)["market_id"] = this.safeString(this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {}), "marketId");
-        }
-        if (isTrue(!isEqual(limit, null)))
-        {
-            ((IDictionary<string,object>)request)["limit"] = limit;
+            outcomeSymbol = this.safeString2(outcomeObj, "outcome", "symbol", symbol);
         }
         object response = await this.myriadPublicGetOrders(this.extend(request, parameters));
         object data = this.safeList(response, "data", new List<object>() {});
-        return this.parseOrders(data, ((object)market), since, limit);
+        // the /orders endpoint ignores a market_id filter server-side (it returns nothing even for a
+        // valid market), so parse every order — each self-resolves its outcome from the network/market/
+        // outcome ids — and filter by the requested outcome client-side
+        object orders = this.parseOrders(data, null, null, null);
+        return this.filterByOutcomeSinceLimit(orders, outcomeSymbol, since, limit);
     }
 
     /**
