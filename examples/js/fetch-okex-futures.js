@@ -4,7 +4,7 @@ import ccxt from '../../js/ccxt.js';
 
 async function test () {
 
-    const exchange = new ccxt.okex ()
+    const exchange = new ccxt.okx ()
     await exchange.loadMarkets ()
 
     for (let symbol in exchange.markets) {

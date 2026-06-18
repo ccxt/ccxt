@@ -8,7 +8,7 @@ console.log ('CCXT Version:', ccxt.version)
 
 async function main () {
 
-    const exchange = new ccxt.okex ({
+    const exchange = new ccxt.okx ({
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_SECRET',
         'password': 'YOUR_PASSWORD',

@@ -14,7 +14,7 @@ import ccxt.async_support as ccxt  # noqa: E402
 
 print('CCXT Version:', ccxt.__version__)
 
-exchange = ccxt.huobi({
+exchange = ccxt.htx({
     'apiKey': 'YOUR_API_KEY',
     'secret': 'YOUR_SECRET_KEY',
 })
@@ -29,7 +29,7 @@ async def example_1():
 
     # create market order and open position
     symbol = 'ADA/USDT:USDT'
-    # type = 'opponent' means it will use BB0 (the best bid or offer on the Exchange) as the price, huobi does not support "market"
+    # type = 'opponent' means it will use BB0 (the best bid or offer on the Exchange) as the price, htx does not support "market"
     # other types available are: opponent_fok, optimal_5, optimal_10, optimal_20, etc, etc
     # you can check all the types available in the docs: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-an-order
     type = 'opponent' 

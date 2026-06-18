@@ -1460,11 +1460,11 @@ print(okcoin.id, markets)
 
 #### **PHP**
 ```php
-$id = 'huobipro';
+$id = 'htx';
 $exchange = '\\ccxt\\' . $id;
-$huobipro = new $exchange();
-$markets = $huobipro->load_markets();
-var_dump($huobipro->id, $markets);
+$htx = new $exchange();
+$markets = $htx->load_markets();
+var_dump($htx->id, $markets);
 ```
 
 #### **Go**
@@ -4121,7 +4121,7 @@ In the example above:
 - a stake amount of 150     = a max leverage of (10000 / 150)   = 66.66
 - stakes between 133.33-200 = a max leverage of (10000 / stake) = 50.01 -> 74.99
 
-**Note for Huobi users:** Huobi uses both leverage and amount to determine maintenance margin rates: https://www.huobi.com/support/en-us/detail/900000089903
+**Note for htx users:** htx uses both leverage and amount to determine maintenance margin rates: https://www.htx.com/support/en-us/detail/900000089903
 
 ## Funding Rate
 

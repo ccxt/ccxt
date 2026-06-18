@@ -13,7 +13,7 @@ const log = ololog.configure .unlimited.handleNodeErrors (),
       amount = 191.03,
       price = 0.000011,
       options = { createMarketBuyOrderRequiresPrice },
-      exchange = new ccxt.huobipro ({ enableRateLimit, options });
+      exchange = new ccxt.htx ({ enableRateLimit, options });
 
 // This is an example that demonstrates the issues discussed here:
 // https://github.com/ccxt/ccxt/issues/564
@@ -28,7 +28,7 @@ log.green ('CCXT', ccxt.version)
     // preload them first
     await exchange.loadMarkets ()
 
-    // huobipro has this
+    // htx has this
     if (!exchange.has['fetchTradingLimits']) {
         throw new NotSupported (exchange.id + ' does not have fetchTradingLimits() yet, make sure your version of CCXT is up to date');
     }
@@ -64,7 +64,7 @@ log.green ('CCXT', ccxt.version)
     log.yellow (symbol, 'limits:')
     log.yellow (limits)
 
-    // To make things a bit more complicated huobipro specifies
+    // To make things a bit more complicated htx specifies
     // different minimums for market and limit orders
     // and different minimums for buy/sell directions
     // therefore we have to work with it in an exchange-specific way
@@ -77,8 +77,8 @@ log.green ('CCXT', ccxt.version)
     const min = info[typeSide + '-order-must-greater-than']
     const max = info[typeSide + '-order-must-less-than']
 
-    // huobipro requires the amount in quote currency for market sell orders
-    // huobipro requires the cost in quote currency for market buy orders
+    // htx requires the amount in quote currency for market sell orders
+    // htx requires the cost in quote currency for market buy orders
     // cost = amount * price
 
     const cost = createMarketBuyOrderRequiresPrice ? (amount * price) : amount
