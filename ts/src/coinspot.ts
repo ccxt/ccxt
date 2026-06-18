@@ -3,7 +3,7 @@
 
 import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/coinspot.js';
-import { ExchangeError, ArgumentsRequired } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type { Balances, Dict, Int, Market, Num, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 import { Precise } from './base/Precise.js';
@@ -666,7 +666,7 @@ export default class coinspot extends Exchange {
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
-        const method = 'privatePostMy' + this.capitalize (side);
+        const sideUpper = side.toUpperCase ();
         if (type === 'market') {
             throw new ExchangeError (this.id + ' createOrder() allows limit orders only');
         }
@@ -676,8 +676,20 @@ export default class coinspot extends Exchange {
             'amount': amount,
             'rate': price,
         };
-        const response = await this[method] (this.extend (request, params));
-        return this.parseOrder (response);
+        let response = undefined;
+        if (sideUpper === 'BUY') {
+            response = await this.privatePostMyBuy (this.extend (request, params));
+        } else if (sideUpper === 'SELL') {
+            response = await this.privatePostMySell (this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' createOrder only support buy/sell side');
+        }
+        //
+        // status - ok, error
+        //
+        return this.safeOrder ({
+            'info': response,
+        });
     }
 
     /**
@@ -712,6 +724,18 @@ export default class coinspot extends Exchange {
         return this.safeOrder ({
             'info': response,
         });
+    }
+
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+        if (!response) {
+            return undefined; // fallback to default error handler
+        }
+        const status = this.safeString (response, 'status');
+        if (status === 'error') {
+            const feedback = this.id + ' ' + this.json (response);
+            throw new ExchangeError (feedback);
+        }
+        return undefined;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
