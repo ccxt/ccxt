@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import nadoRest from '../nado.js';
-import { ArgumentsRequired, BadResponse } from '../base/errors.js';
+import { BadResponse } from '../base/errors.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import type { Bool, Dict, Int, OrderBook, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -110,15 +110,23 @@ export default class nado extends nadoRest {
      */
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false, true, true);
-        const symbolsLength = symbols.length;
-        if (symbolsLength !== 1) {
-            throw new ArgumentsRequired (this.id + ' watchBidsAsks() requires exactly one symbol');
+        symbols = this.marketSymbols (symbols, undefined, true, true, true);
+        let market = undefined;
+        let messageHash = 'bidask';
+        let streamType = 'all_bbo';
+        if (symbols !== undefined) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength === 1) {
+                market = this.market (symbols[0]);
+                messageHash = 'bidask:' + market['symbol'];
+                streamType = 'best_bid_offer';
+            }
         }
-        const market = this.market (symbols[0]);
-        const messageHash = 'bidask:' + market['symbol'];
-        const ticker = await this.watchPublic ('best_bid_offer', market, messageHash, params);
+        const ticker = await this.watchPublic (streamType, market, messageHash, params);
         if (this.newUpdates) {
+            if (messageHash === 'bidask') {
+                return this.filterByArray (ticker, 'symbol', symbols);
+            }
             const tickers: Dict = {};
             tickers[ticker['symbol']] = ticker;
             return tickers;
@@ -128,17 +136,20 @@ export default class nado extends nadoRest {
 
     async watchPublic (streamType, market, messageHash: string, params = {}) {
         const url = this.urls['api']['ws']['subscriptions'];
+        const stream: Dict = {
+            'type': streamType,
+        };
+        if (market !== undefined) {
+            stream['product_id'] = this.parseToInt (market['id']);
+        }
         const request: Dict = {
             'method': 'subscribe',
-            'stream': {
-                'type': streamType,
-                'product_id': this.parseToInt (market['id']),
-            },
+            'stream': stream,
             'id': this.nonce (),
         };
         const subscription = {
             'streamType': streamType,
-            'symbol': market['symbol'],
+            'symbol': this.safeString (market, 'symbol'),
         };
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash, subscription);
     }
@@ -245,6 +256,50 @@ export default class nado extends nadoRest {
         client.resolve (tickers, 'bidask');
     }
 
+    parseWsAllBidsAsks (message: Dict): Tickers {
+        //
+        //     {
+        //         "type": "all_bbo",
+        //         "time": "1781750134714",
+        //         "bbos": {
+        //             "2": { "bid": "64924000000000000000000", "ask": "64935000000000000000000" }
+        //         }
+        //     }
+        //
+        const timestamp = this.safeInteger (message, 'time');
+        const bbos = this.safeDict (message, 'bbos', {});
+        const marketIds = Object.keys (bbos);
+        const result: Dict = {};
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            const market = this.safeMarket (marketId);
+            const bbo = this.safeDict (bbos, marketId, {});
+            const ticker = this.safeTicker ({
+                'symbol': market['symbol'],
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'ask': this.parseX18 (this.safeString (bbo, 'ask')),
+                'bid': this.parseX18 (this.safeString (bbo, 'bid')),
+                'info': bbo,
+            }, market);
+            const symbol = market['symbol'];
+            result[symbol] = ticker;
+        }
+        return result;
+    }
+
+    handleAllBidsAsks (client: Client, message) {
+        const tickers = this.parseWsAllBidsAsks (message);
+        const symbols = Object.keys (tickers);
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const ticker = tickers[symbol];
+            this.bidsasks[symbol] = ticker;
+            client.resolve (ticker, 'bidask:' + symbol);
+        }
+        client.resolve (tickers, 'bidask');
+    }
+
     parseWsOrderBookDeltas (deltas) {
         const result = [];
         for (let i = 0; i < deltas.length; i++) {
@@ -327,7 +382,7 @@ export default class nado extends nadoRest {
         const feedback = this.id + ' ' + this.json (message);
         const exception = new BadResponse (feedback);
         const id = this.safeString (message, 'id');
-        if (id !== undefined) {
+        if ((id !== undefined) && (id in client.futures)) {
             client.reject (exception, id);
         } else {
             client.reject (exception);
@@ -348,6 +403,7 @@ export default class nado extends nadoRest {
         const type = this.safeString (message, 'type');
         const methods = {
             'trade': this.handleTrade,
+            'all_bbo': this.handleAllBidsAsks,
             'best_bid_offer': this.handleBidAsk,
             'book_depth': this.handleOrderBook,
         };
