@@ -4,7 +4,7 @@ import ccxt from '../../js/ccxt.js';
 import log from 'ololog';
 
 const symbol = 'ETH/BTC'
-const exchanges = [ 'coinbasepro', 'hitbtc', 'poloniex' ]
+const exchanges = [ 'coinbaseexchange', 'hitbtc', 'poloniex' ]
 
 ;(async () => {
 

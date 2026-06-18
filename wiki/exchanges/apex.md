@@ -49,7 +49,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 **Kind**: instance method of [<code>apex</code>](#apex)  
 **Returns**: <code>int</code> - the current integer timestamp in milliseconds from the exchange server
 
-**See**: https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-system-time-v3  
+**See**: https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-system-time-v3  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -69,7 +69,7 @@ query for account info
 **Kind**: instance method of [<code>apex</code>](#apex)  
 **Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
-**See**: https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-balance  
+**See**: https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-balance  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -89,7 +89,7 @@ query for balance and get the amount of funds available for trading or funds loc
 **Kind**: instance method of [<code>apex</code>](#apex)  
 **Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
-**See**: https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-data  
+**See**: https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-data  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -109,7 +109,7 @@ fetches all available currencies on an exchange
 **Kind**: instance method of [<code>apex</code>](#apex)  
 **Returns**: <code>object</code> - an associative dictionary of currencies
 
-**See**: https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-all-config-data-v3  
+**See**: https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-all-config-data-v3  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -129,7 +129,7 @@ retrieves data on all markets for apex
 **Kind**: instance method of [<code>apex</code>](#apex)  
 **Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
 
-**See**: https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-all-config-data-v3  
+**See**: https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-all-config-data-v3  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -149,7 +149,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 **Kind**: instance method of [<code>apex</code>](#apex)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**: https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3  
+**See**: https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -170,7 +170,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 **Kind**: instance method of [<code>apex</code>](#apex)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**: https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3  
+**See**: https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -191,7 +191,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 **Kind**: instance method of [<code>apex</code>](#apex)  
 **Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
 
-**See**: https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-candlestick-chart-data-v3  
+**See**: https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-candlestick-chart-data-v3  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -216,7 +216,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 **Kind**: instance method of [<code>apex</code>](#apex)  
 **Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
-**See**: https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-market-depth-v3  
+**See**: https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-market-depth-v3  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -238,7 +238,7 @@ get the list of most recent trades for a particular symbol
 **Kind**: instance method of [<code>apex</code>](#apex)  
 **Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
-**See**: https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-newest-trading-data-v3  
+**See**: https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-newest-trading-data-v3  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -263,7 +263,7 @@ retrieves the open interest of a contract trading pair
 **Kind**: instance method of [<code>apex</code>](#apex)  
 **Returns**: <code>object</code> - an open interest structure[https://docs.ccxt.com/?id=open-interest-structure](https://docs.ccxt.com/?id=open-interest-structure)
 
-**See**: https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3  
+**See**: https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -284,7 +284,7 @@ fetches historical funding rate prices
 **Kind**: instance method of [<code>apex</code>](#apex)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure)
 
-**See**: https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-funding-rate-history-v3  
+**See**: https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-funding-rate-history-v3  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -309,7 +309,7 @@ create a trade order
 **Kind**: instance method of [<code>apex</code>](#apex)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-creating-orders  
+**See**: https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-creating-orders  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -365,7 +365,7 @@ cancel all open orders in a market
 **Kind**: instance method of [<code>apex</code>](#apex)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-cancel-all-open-orders  
+**See**: https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-cancel-all-open-orders  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -386,7 +386,7 @@ cancels an open order
 **Kind**: instance method of [<code>apex</code>](#apex)  
 **Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-cancel-order  
+**See**: https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-cancel-order  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -410,8 +410,8 @@ fetches information on an order made by the user
 
 **See**
 
-- https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-order-id
-- https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-order-by-clientorderid
+- https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-order-id
+- https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-order-by-clientorderid
 
 
 | Param | Type | Required | Description |
@@ -435,7 +435,7 @@ fetches information on multiple orders made by the user
 **Kind**: instance method of [<code>apex</code>](#apex)  
 **Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-open-orders  
+**See**: https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-open-orders  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -458,7 +458,7 @@ fetches information on multiple orders made by the user *classic accounts only*
 **Kind**: instance method of [<code>apex</code>](#apex)  
 **Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-all-order-history  
+**See**: https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-all-order-history  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -487,7 +487,7 @@ fetch all the trades made from a single order
 **Kind**: instance method of [<code>apex</code>](#apex)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
-**See**: https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-trade-history  
+**See**: https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-trade-history  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -511,7 +511,7 @@ fetches information on multiple orders made by the user *classic accounts only*
 **Kind**: instance method of [<code>apex</code>](#apex)  
 **Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
-**See**: https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-trade-history  
+**See**: https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-trade-history  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -538,7 +538,7 @@ fetches information on multiple orders made by the user *classic accounts only*
 **Kind**: instance method of [<code>apex</code>](#apex)  
 **Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=funding-history-structure)
 
-**See**: https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-funding-rate  
+**See**: https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-funding-rate  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -564,7 +564,7 @@ set the level of leverage for a market
 **Kind**: instance method of [<code>apex</code>](#apex)  
 **Returns**: <code>object</code> - response from the exchange
 
-**See**: https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-sets-the-initial-margin-rate-of-a-contract  
+**See**: https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-sets-the-initial-margin-rate-of-a-contract  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -586,7 +586,7 @@ fetch all open positions
 **Kind**: instance method of [<code>apex</code>](#apex)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
-**See**: https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-data  
+**See**: https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-data  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

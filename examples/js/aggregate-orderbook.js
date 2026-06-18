@@ -36,7 +36,7 @@ const aggregateOrderBook = function (orderbook, precision = undefined) {
 
 ;(async () => {
 
-    const exchange = new ccxt.coinbasepro()
+    const exchange = new ccxt.coinbaseexchange()
 
     await exchange.loadMarkets ()
 

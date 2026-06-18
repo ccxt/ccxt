@@ -107,8 +107,6 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 
 - [Async Gather Concurrency](./examples/py/async-gather-concurrency.md)
 
-- [Async Gdax Fetch Order Book Continuously](./examples/py/async-gdax-fetch-order-book-continuously.md)
-
 - [Async Generator Basic](./examples/py/async-generator-basic.md)
 
 - [Async Generator Multiple Tickers](./examples/py/async-generator-multiple-tickers.md)
@@ -158,8 +156,6 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 - [Async](./examples/py/async.md)
 
 - [Balance Coinbasepro](./examples/py/balance-coinbasepro.md)
-
-- [Balance Gdax](./examples/py/balance-gdax.md)
 
 - [Balance Kraken](./examples/py/balance-kraken.md)
 
@@ -311,7 +307,7 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 
 - [Coinbase Watch Trades](./examples/py/coinbase-watch-trades.md)
 
-- [Coinbasepro Fetch My Trades Pagination](./examples/py/coinbasepro-fetch-my-trades-pagination.md)
+- [Coinbaseexchange Fetch My Trades Pagination](./examples/py/coinbaseexchange-fetch-my-trades-pagination.md)
 
 - [Coinex Futures](./examples/py/coinex-futures.md)
 
@@ -385,31 +381,29 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 
 - [Fetch Longer Ohlcv Through Multiple Calls And Save To Csv](./examples/py/fetch_longer_ohlcv_through_multiple_calls_and_save_to_csv.md)
 
-- [Gateio Fetch Ohlcv Pagination](./examples/py/gateio-fetch-ohlcv-pagination.md)
+- [Gate Fetch Ohlcv Pagination](./examples/py/gate-fetch-ohlcv-pagination.md)
 
-- [Gateio Futures](./examples/py/gateio-futures.md)
+- [Gate Futures](./examples/py/gate-futures.md)
 
-- [Gateio Open Close Contract](./examples/py/gateio-open-close-contract.md)
+- [Gate Open Close Contract](./examples/py/gate-open-close-contract.md)
 
-- [Gateio Swaps](./examples/py/gateio-swaps.md)
+- [Gate Swaps](./examples/py/gate-swaps.md)
 
-- [Gateio Watch Balance](./examples/py/gateio-watch-balance.md)
+- [Gate Watch Balance](./examples/py/gate-watch-balance.md)
 
-- [Gateio Watch Trades](./examples/py/gateio-watch-trades.md)
-
-- [Gdax Fetch My Trades Pagination](./examples/py/gdax-fetch-my-trades-pagination.md)
+- [Gate Watch Trades](./examples/py/gate-watch-trades.md)
 
 - [Hitbtc Withdraw](./examples/py/hitbtc-withdraw.md)
 
-- [Huobi Futures](./examples/py/huobi-futures.md)
+- [Htx Futures](./examples/py/htx-futures.md)
 
-- [Huobi Open Close Contract](./examples/py/huobi-open-close-contract.md)
+- [Htx Open Close Contract](./examples/py/htx-open-close-contract.md)
 
-- [Huobi Open Close Position Bbo](./examples/py/huobi-open-close-position-bbo.md)
+- [Htx Open Close Position Bbo](./examples/py/htx-open-close-position-bbo.md)
 
-- [Huobi Spot](./examples/py/huobi-spot.md)
+- [Htx Spot](./examples/py/htx-spot.md)
 
-- [Huobi Swaps](./examples/py/huobi-swaps.md)
+- [Htx Swaps](./examples/py/htx-swaps.md)
 
 - [Hyperliquid Load Hip3 Dexes](./examples/py/hyperliquid-load-hip3-dexes.md)
 
@@ -473,13 +467,9 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 
 - [Normalize Sparse Candle Timestamps](./examples/py/normalize-sparse-candle-timestamps.md)
 
-- [Okex Create Swap Order](./examples/py/okex-create-swap-order.md)
-
-- [Okex Watch Margin Balance With Params](./examples/py/okex-watch-margin-balance-with-params.md)
-
-- [Okex Watch Margin Balance](./examples/py/okex-watch-margin-balance.md)
-
 - [Okx Bbo Tbt](./examples/py/okx-bbo-tbt.md)
+
+- [Okx Create Swap Order](./examples/py/okx-create-swap-order.md)
 
 - [Okx Fetch All My Trades](./examples/py/okx-fetch-all-my-trades.md)
 
@@ -488,6 +478,10 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 - [Okx Position Takeprofit Stoploss](./examples/py/okx-position-takeprofit-stoploss.md)
 
 - [Okx Transfer](./examples/py/okx-transfer.md)
+
+- [Okx Watch Margin Balance With Params](./examples/py/okx-watch-margin-balance-with-params.md)
+
+- [Okx Watch Margin Balance](./examples/py/okx-watch-margin-balance.md)
 
 - [On Connected User Hook](./examples/py/on-connected-user-hook.md)
 

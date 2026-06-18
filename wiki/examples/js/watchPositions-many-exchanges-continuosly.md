@@ -33,7 +33,7 @@ async function example() {
             'apiKey': 'YOUR_API_KEY',
             'secret': 'YOUR_API_SECRET',
         },
-        'huobi': {
+        'htx': {
             'apiKey': 'YOUR_API_KEY',
             'secret': 'YOUR_API_SECRET',
         },
