@@ -1614,7 +1614,10 @@ export default class polymarket extends Exchange {
             'update': 'open',
             'cancellation': 'canceled',
         };
-        return this.safeStringLower (statuses, status, status);
+        // the REST data endpoints return upper-case statuses (LIVE, MATCHED, CANCELLED) while the
+        // user websocket sends lower-case lifecycle types — lower-case before the lookup so both map
+        const normalized = this.safeStringLower ({ 'status': status }, 'status');
+        return this.safeString (statuses, normalized, normalized);
     }
 
     /**
@@ -1934,7 +1937,12 @@ export default class polymarket extends Exchange {
         // cancelling by id needs no market data, so events do not have to be loaded first
         const request: Dict = { 'orderID': id };
         const response = await this.clobPrivateDeleteOrder (this.extend (request, params));
-        return this.parseOrder (response);
+        // the DELETE endpoint returns { canceled: [id], not_canceled: { id: reason } } with no order
+        // fields, so report the cancellation outcome explicitly rather than parsing an empty order
+        const notCanceled = this.safeDict (response, 'not_canceled', {});
+        const failureReason = this.safeString (notCanceled, id);
+        const status = (failureReason === undefined) ? 'canceled' : 'open';
+        return this.safePredictionOrder ({ 'id': id, 'status': status, 'info': response }) as PredictionOrder;
     }
 
     /**

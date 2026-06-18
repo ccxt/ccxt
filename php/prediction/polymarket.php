@@ -1639,7 +1639,10 @@ class polymarket extends Exchange {
             'update' => 'open',
             'cancellation' => 'canceled',
         );
-        return $this->safe_string_lower($statuses, $status, $status);
+        // the REST data endpoints return upper-case $statuses (LIVE, MATCHED, CANCELLED) while the
+        // user websocket sends lower-case lifecycle types — lower-case before the lookup so both map
+        $normalized = $this->safe_string_lower(array( 'status' => $status ), 'status');
+        return $this->safe_string($statuses, $normalized, $normalized);
     }
 
     public function create_order(string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array ()): PromiseInterface {
@@ -1964,7 +1967,12 @@ class polymarket extends Exchange {
             // cancelling by $id needs no market data, so events do not have to be loaded first
             $request = array( 'orderID' => $id );
             $response = Async\await($this->clobPrivateDeleteOrder ($this->extend($request, $params)));
-            return $this->parse_order($response);
+            // the DELETE endpoint returns array( canceled => [$id], not_canceled => array( $id => reason ) ) with no order
+            // fields, so report the cancellation outcome explicitly rather than parsing an empty order
+            $notCanceled = $this->safe_dict($response, 'not_canceled', array());
+            $failureReason = $this->safe_string($notCanceled, $id);
+            $status = ($failureReason === null) ? 'canceled' : 'open';
+            return $this->safePredictionOrder (array( 'id' => $id, 'status' => $status, 'info' => $response ));
         }) ();
     }
 
