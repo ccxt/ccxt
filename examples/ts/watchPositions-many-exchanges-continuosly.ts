@@ -1,7 +1,5 @@
 import ccxt from '../../js/ccxt.js';
 
-// AUTO-TRANSPILE //
-
 // watch and handle constinuosly
 async function watchPositionsContinuously (exchange) {
     while (true) {

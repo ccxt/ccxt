@@ -1,5 +1,3 @@
-// AUTO-TRANSPILE //
-
 'use strict';
 
 import ccxt from '../../js/ccxt.js';
