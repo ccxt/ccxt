@@ -3,31 +3,42 @@
 
 import ccxt from '../../js/ccxt.js';
 import asTable from 'as-table';
-import ansicolor from 'ansicolor';
-import ololog from 'ololog'
+import ololog from 'ololog';
+const log       = ololog.configure ({ locate: false })
 
-const log = ololog.configure ({ locate: false })
+require ('ansicolor').nice
 
-ansicolor.nice
-
-let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms))
+const getPositiveAccounts = function (balance) {
+    const result = {}
+    Object.keys (balance)
+        .filter (currency => balance[currency] && (balance[currency] > 0))
+        .forEach (currency => {
+            result[currency] = balance[currency]
+        })
+    return result
+}
 
 ;(async () => {
 
     // instantiate the exchange
-    let exchange = new ccxt.kraken  ({
-        "apiKey": "471b47a06c384e81b24072e9a8739064",
-        "secret": "694025686e9445589787e8ca212b4cff",
+    let exchange = new ccxt.hitbtc  ({
+        "apiKey": "YOUR_API_KEY",
+        "secret": "YOUR_SECRET",
     })
-
 
     try {
 
-        // fetch account balance from the exchange
-        let balance = await exchange.fetchBalance ()
+        let tradingBalance = await exchange.fetchBalance ()
+        let accountBalance = await exchange.fetchBalance ({ type: 'account' })
+
+        log.cyan    ('Trading balance:', getPositiveAccounts (tradingBalance.total))
+        log.magenta ('Account balance:', getPositiveAccounts (accountBalance.total))
+
+        // withdraw
+        let withdraw = await exchange.withdraw ('ETH', 0.01, '0x811DCfeb6dC0b9ed825808B6B060Ca469b83fB81')
 
         // output the result
-        log (exchange.name.green, 'balance', balance)
+        log (exchange.name.green, 'withdraw', withdraw)
 
     } catch (e) {
 
@@ -44,7 +55,7 @@ let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms))
         } else if (e instanceof ccxt.NetworkError) {
             log.bright.yellow ('[Network Error] ' + e.message)
         } else {
-            throw e;
+            throw e
         }
     }
 

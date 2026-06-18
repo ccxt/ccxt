@@ -89,8 +89,6 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 
 - [Async Bitstamp Create Order Cancel Order](./examples/py/async-bitstamp-create-order-cancel-order.md)
 
-- [Async Bittrex Orderbook](./examples/py/async-bittrex-orderbook.md)
-
 - [Async Bybit Transfer](./examples/py/async-bybit-transfer.md)
 
 - [Async Fetch Balance](./examples/py/async-fetch-balance.md)

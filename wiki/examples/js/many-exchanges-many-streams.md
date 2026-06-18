@@ -17,7 +17,7 @@ async function eachRun(exchangeId, symbol) {
 async function main() {
     const streams = {
         'binance': 'BTC/USDT',
-        'bittrex': 'BTC/USDT',
+        'kucoin': 'BTC/USDT',
         'poloniex': 'BTC/USDT',
         'bitfinex': 'BTC/USDT',
         'hitbtc': 'BTC/USDT',
