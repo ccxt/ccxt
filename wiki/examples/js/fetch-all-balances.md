@@ -97,7 +97,7 @@ function initializeAllExchanges () {
         'bitstamp1',
         'bitfinex',
         'upbit',
-        'huobipro',
+        'htx',
     ]
     const result = []
     ccxt.exchanges.filter (exchangeId => (!ignore.includes (exchangeId))).forEach (exchangeId => {

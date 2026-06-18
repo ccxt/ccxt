@@ -104,11 +104,11 @@ php -f path/to/example.php # substitute for actual filename here
 
 - [Gate Watch Balance](./examples/php/gate-watch-balance.md)
 
-- [htx Fetch Balance](./examples/php/htx-fetch-balance.md)
+- [Htx Fetch Balance](./examples/php/htx-fetch-balance.md)
 
-- [htx Futures](./examples/php/htx-futures.md)
+- [Htx Futures](./examples/php/htx-futures.md)
 
-- [htx Swaps](./examples/php/htx-swaps.md)
+- [Htx Swaps](./examples/php/htx-swaps.md)
 
 - [Hyperliquid Load Hip3 Dexes](./examples/php/hyperliquid-load-hip3-dexes.md)
 

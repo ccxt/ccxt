@@ -72,9 +72,9 @@
 
 - [📂 Nextjs Page Router](https://github.com/ccxt/ccxt/tree/master/./examples/ts/nextjs-page-router)
 
-- [Okex Watch Balance And Create Order](./examples/ts/okex-watch-balance-and-create-order.md)
-
 - [Okx Create Futures Order](./examples/ts/okx-create-futures-order.md)
+
+- [Okx Watch Balance And Create Order](./examples/ts/okx-watch-balance-and-create-order.md)
 
 - [Okx Watch Tickers](./examples/ts/okx-watch-tickers.md)
 

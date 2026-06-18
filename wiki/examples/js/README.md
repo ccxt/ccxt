@@ -215,13 +215,13 @@ node path/to/example.js # substitute for actual filename here
 
 - [How To Import One Exchange Esm](./examples/js/how-to-import-one-exchange-esm.md)
 
-- [Huobi Futures](./examples/js/huobi-futures.md)
+- [Htx Futures](./examples/js/htx-futures.md)
 
-- [Huobi Open Close Contract](./examples/js/huobi-open-close-contract.md)
+- [Htx Market Buy Sell Fetch Trading Limits](./examples/js/htx-market-buy-sell-fetch-trading-limits.md)
 
-- [Huobi Swaps](./examples/js/huobi-swaps.md)
+- [Htx Open Close Contract](./examples/js/htx-open-close-contract.md)
 
-- [Huobipro Market Buy Sell Fetch Trading Limits](./examples/js/huobipro-market-buy-sell-fetch-trading-limits.md)
+- [Htx Swaps](./examples/js/htx-swaps.md)
 
 - [HybridCJSExample](./examples/js/hybridCJSExample.md)
 
@@ -271,17 +271,17 @@ node path/to/example.js # substitute for actual filename here
 
 - [Ohlcv Console Chart](./examples/js/ohlcv-console-chart.md)
 
-- [Okex Fetch Closed Orders Archive](./examples/js/okex-fetch-closed-orders-archive.md)
-
-- [Okex Transfer](./examples/js/okex-transfer.md)
-
-- [Okex Watch Balance And Create Order](./examples/js/okex-watch-balance-and-create-order.md)
-
 - [Okx Create Futures Order](./examples/js/okx-create-futures-order.md)
+
+- [Okx Fetch Closed Orders Archive](./examples/js/okx-fetch-closed-orders-archive.md)
 
 - [Okx Poll Fetch My Trades](./examples/js/okx-poll-fetch-my-trades.md)
 
 - [Okx Poll Rate Limit](./examples/js/okx-poll-rate-limit.md)
+
+- [Okx Transfer](./examples/js/okx-transfer.md)
+
+- [Okx Watch Balance And Create Order](./examples/js/okx-watch-balance-and-create-order.md)
 
 - [Okx Watch Tickers](./examples/js/okx-watch-tickers.md)
 

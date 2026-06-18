@@ -401,15 +401,15 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 
 - [Hitbtc Withdraw](./examples/py/hitbtc-withdraw.md)
 
-- [Huobi Futures](./examples/py/huobi-futures.md)
+- [Htx Futures](./examples/py/htx-futures.md)
 
-- [Huobi Open Close Contract](./examples/py/huobi-open-close-contract.md)
+- [Htx Open Close Contract](./examples/py/htx-open-close-contract.md)
 
-- [Huobi Open Close Position Bbo](./examples/py/huobi-open-close-position-bbo.md)
+- [Htx Open Close Position Bbo](./examples/py/htx-open-close-position-bbo.md)
 
-- [Huobi Spot](./examples/py/huobi-spot.md)
+- [Htx Spot](./examples/py/htx-spot.md)
 
-- [Huobi Swaps](./examples/py/huobi-swaps.md)
+- [Htx Swaps](./examples/py/htx-swaps.md)
 
 - [Hyperliquid Load Hip3 Dexes](./examples/py/hyperliquid-load-hip3-dexes.md)
 
@@ -473,13 +473,9 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 
 - [Normalize Sparse Candle Timestamps](./examples/py/normalize-sparse-candle-timestamps.md)
 
-- [Okex Create Swap Order](./examples/py/okex-create-swap-order.md)
-
-- [Okex Watch Margin Balance With Params](./examples/py/okex-watch-margin-balance-with-params.md)
-
-- [Okex Watch Margin Balance](./examples/py/okex-watch-margin-balance.md)
-
 - [Okx Bbo Tbt](./examples/py/okx-bbo-tbt.md)
+
+- [Okx Create Swap Order](./examples/py/okx-create-swap-order.md)
 
 - [Okx Fetch All My Trades](./examples/py/okx-fetch-all-my-trades.md)
 
@@ -488,6 +484,10 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 - [Okx Position Takeprofit Stoploss](./examples/py/okx-position-takeprofit-stoploss.md)
 
 - [Okx Transfer](./examples/py/okx-transfer.md)
+
+- [Okx Watch Margin Balance With Params](./examples/py/okx-watch-margin-balance-with-params.md)
+
+- [Okx Watch Margin Balance](./examples/py/okx-watch-margin-balance.md)
 
 - [On Connected User Hook](./examples/py/on-connected-user-hook.md)
 
