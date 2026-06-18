@@ -166,7 +166,7 @@ export async function generateMetadata(props: PageProps<'/[lang]/docs/[[...slug]
     openGraph: {
       type: 'website',
       siteName: appName,
-      images: getPageImage(page).url,
+      images: [{ url: getPageImage(page).url, width: 1200, height: 630 }],
     },
   };
 }

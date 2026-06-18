@@ -18,7 +18,9 @@ export const metadata: Metadata = {
     title: 'CCXT — Connect to any exchange',
     description: 'One unified crypto trading API across 100+ exchanges — JS, Python, PHP, C#, Go and Java.',
     // basePath-prefixed so the social-card URL resolves under /v2 (Next doesn't add it).
-    images: [`${basePath}/og/home`],
+    // explicit width/height so Telegram/WhatsApp render the large card (they don't fetch
+    // dimensions reliably; without these the preview falls back to a tiny thumbnail or none).
+    images: [{ url: `${basePath}/og/home`, width: 1200, height: 630 }],
   },
 };
 
