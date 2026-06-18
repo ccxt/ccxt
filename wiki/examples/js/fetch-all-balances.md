@@ -95,7 +95,7 @@ function initializeAllExchanges () {
         'jubi',
         'hitbtc',
         'bitstamp1',
-        'bitfinex2',
+        'bitfinex',
         'upbit',
         'huobipro',
     ]

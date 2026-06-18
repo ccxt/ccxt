@@ -5,7 +5,7 @@ include './ccxt.php';
 
 date_default_timezone_set('UTC');
 
-$id = 'bitfinex2';
+$id = 'bitfinex';
 
 // instantiate the exchange by id
 $exchange = '\\ccxt\\' . $id;

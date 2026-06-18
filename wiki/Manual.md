@@ -276,9 +276,7 @@ The ccxt library in PHP uses builtin UTC/GMT time functions, therefore you are r
 // PHP
 date_default_timezone_set('UTC');
 include 'ccxt.php';
-$bitfinex = new \ccxt\bitfinex(); // default id
-$bitfinex1 = new \ccxt\bitfinex(array('id' => 'bitfinex1'));
-$bitfinex2 = new \ccxt\bitfinex(array('id' => 'bitfinex2'));
+$bitfinex = new \ccxt\bitfinex();
 $id = 'kraken';
 $exchange = '\\ccxt\\' . $id;
 $kraken = new $exchange();
