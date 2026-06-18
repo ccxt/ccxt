@@ -170,7 +170,7 @@ const safeStringUpperN = (o, k, $default) => {
     }
     return $default;
 };
-export { isNumber, isInteger, isArray, isObject, isString, isStringCoercible, isDictionary, hasProps, prop, asFloat, asInteger, safeFloat, safeInteger, safeIntegerProduct, safeTimestamp, safeValue, safeString, safeStringLower, safeStringUpper
+export { isNumber, isInteger, isArray, isObject, isString, isStringCoercible, isDictionary as isDict, hasProps, prop, asFloat, asInteger, safeFloat, safeInteger, safeIntegerProduct, safeTimestamp, safeValue, safeString, safeStringLower, safeStringUpper
 // not using safeFloats with an array argument as we're trying to save some cycles here
 // we're not using safeFloat3 either because those cases are too rare to deserve their own optimization
 , safeFloat2, safeInteger2, safeIntegerProduct2, safeTimestamp2, safeValue2, safeString2, safeStringLower2, safeStringUpper2
