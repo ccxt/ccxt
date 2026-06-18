@@ -6,7 +6,7 @@ include $root . '/ccxt.php';
 
 date_default_timezone_set('UTC');
 
-$exchange = new \ccxt\huobipro(array(
+$exchange = new \ccxt\htx(array(
     'apiKey' => 'YOUR_API_KEY', // ←------------ replace with your keys
     'secret' => 'YOUR_SECRET_KEY',
     // 'verbose' => true, // uncomment if debug output is needed

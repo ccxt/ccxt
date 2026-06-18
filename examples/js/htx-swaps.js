@@ -1,6 +1,6 @@
 import ccxt from '../../js/ccxt.js';
 
-const exchange = new ccxt.huobi ({
+const exchange = new ccxt.htx ({
     'apiKey': 'YOUR_API_KEY',
     'secret': 'YOUR_SECRET_KEY',
     'options': {
