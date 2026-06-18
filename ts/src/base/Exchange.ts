@@ -5178,18 +5178,22 @@ export default class Exchange {
         });
     }
 
-    filterBySymbol (objects, symbol: Str = undefined) {
-        if (symbol === undefined) {
+    filterByKey (objects, key: IndexType, value: Str = undefined) {
+        if (value === undefined) {
             return objects;
         }
         const result = [];
         for (let i = 0; i < objects.length; i++) {
-            const objectSymbol = this.safeString (objects[i], 'symbol');
-            if (objectSymbol === symbol) {
+            const objectValue = this.safeString (objects[i], key);
+            if (objectValue === value) {
                 result.push (objects[i]);
             }
         }
         return result;
+    }
+
+    filterBySymbol (objects, symbol: Str = undefined) {
+        return this.filterByKey (objects, 'symbol', symbol);
     }
 
     parseOHLCV (ohlcv, market: Market = undefined) : OHLCV {

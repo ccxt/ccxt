@@ -1,9 +1,8 @@
 // ----------------------------------------------------------------------------
 
 import { Exchange } from './Exchange.js';
-import { ExchangeError, BadSymbol, NotSupported, ArgumentsRequired, InvalidOrder } from './errors.js';
-import { TRUNCATE } from './functions.js';
-import type { Str, Strings, Num, Int, Bool, Dictionary, Ticker, OrderBook, OHLCV, Trade, Order, OrderType, OrderSide, Dict } from './types.js';
+import { ExchangeError, BadSymbol, NotSupported, ArgumentsRequired } from './errors.js';
+import type { Str, Strings, Num, Int, Bool, Dictionary, Ticker, OrderBook, OHLCV, Trade, Order, OrderType, OrderSide, Dict, MarketInterface } from './types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -120,13 +119,13 @@ export default class PredictionExchange extends Exchange {
         if (outcomeObj !== undefined) {
             return outcomeObj;
         }
-        return { 'id': outcomeIdOrSymbol, 'symbol': outcomeIdOrSymbol, 'marketSymbol': undefined, 'label': undefined, 'info': {}};
+        return { 'id': outcomeIdOrSymbol, 'outcome': outcomeIdOrSymbol, 'info': {}};
     }
 
-    safeOutcomeSymbol (outcomeIdOrSymbol: Str, outcomeObj: any = undefined): Str {
-        outcomeObj = this.safeOutcome (outcomeIdOrSymbol, outcomeObj);
-        return outcomeObj['symbol'];
-    }
+    // safeOutcome (outcomeIdOrSymbol: Str, outcomeObj: any = undefined): Str {
+    //     outcomeObj = this.safeOutcome (outcomeIdOrSymbol, outcomeObj);
+    //     return outcomeObj['outcome'];
+    // }
 
     shortenSlug (slug: string): string {
         const replacements = {
@@ -282,23 +281,63 @@ export default class PredictionExchange extends Exchange {
     }
 
     filterByOutcomeSinceLimit (array, outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
-        return this.filterByValueSinceLimit (array, 'outcome', outcome, since, limit, 'timestamp', tail);
+        // accept an outcome symbol or id; resolve it to the canonical symbol (checks outcomes and outcomes_by_id)
+        return this.filterByValueSinceLimit (array, 'outcome', this.safeOutcome (outcome), since, limit, 'timestamp', tail);
     }
 
     filterByOutcomesSinceLimit (array, outcomes: string[] = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
-        const result = this.filterByArray (array, 'outcome', outcomes, false);
+        let resolved = outcomes;
+        if (outcomes !== undefined) {
+            resolved = [];
+            for (let i = 0; i < outcomes.length; i++) {
+                resolved.push (this.safeOutcome (outcomes[i]));
+            }
+        }
+        const result = this.filterByArray (array, 'outcome', resolved, false);
         return this.filterBySinceLimit (result, since, limit, 'timestamp', tail);
     }
 
+    // outcome (symbol: string): MarketInterface {
+    //     // for a prediction exchange the tradeable "market" is an outcome; resolve outcomes first
+    //     // (populated by fetchEvents) and fall back to real markets so inherited base logic that
+    //     // calls this.market (precisionToString, etc.) works with an outcome symbol or id
+    //     if (this.outcomes !== undefined) {
+    //         if (symbol in this.outcomes) {
+    //             return this.outcomes[symbol];
+    //         }
+    //         if ((this.outcomes_by_id !== undefined) && (symbol in this.outcomes_by_id)) {
+    //             return this.outcomes_by_id[symbol];
+    //         }
+    //     }
+    //     return undefined;
+    // }
+
+    outcomeId (outcome: string): string {
+        return this.marketId (outcome);
+    }
+
+    outcomeSymbol (outcome: string): string {
+        return this.symbol (outcome);
+    }
+
+    outcomeSymbols (outcomes: Strings = undefined): Strings {
+        return this.marketSymbols (outcomes);
+    }
+
     amountToPrecision (outcome: string, amount) {
-        if (amount === undefined) {
-            return undefined;
-        }
-        const outcomeObj = this.market (outcome);
-        const result = this.decimalToPrecision (amount, TRUNCATE, outcomeObj['precision']['amount'], this.precisionMode, this.paddingMode);
-        if (result === '0') {
-            throw new InvalidOrder (this.id + ' amount of ' + outcomeObj['symbol'] + ' must be greater than minimum amount precision of ' + this.numberToString (outcomeObj['precision']['amount']));
-        }
-        return result;
+        return super.amountToPrecision (outcome, amount);
+    }
+
+    priceToPrecision (outcome: string, price): string {
+        return super.priceToPrecision (outcome, price);
+    }
+
+    costToPrecision (outcome: string, cost) {
+        return super.costToPrecision (outcome, cost);
+    }
+
+    filterByOutcome (objects, outcome: Str = undefined) {
+        // accept an outcome symbol or id; resolve it to the canonical symbol (checks outcomes and outcomes_by_id)
+        return this.filterByKey (objects, 'outcome', this.safeOutcome (outcome));
     }
 }
