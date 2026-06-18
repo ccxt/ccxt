@@ -785,7 +785,7 @@ export default class binance extends Exchange {
                         'order': 1,
                         'openOrder': 1,
                         'openOrders': { 'cost': 1, 'noSymbol': 5 },
-                        'openAlgoOrders': { 'cost': 1, 'noSymbol': 40 }, // todo check weight
+                        'openAlgoOrders': { 'cost': 1, 'noSymbol': 40 },
                         'allOrders': 5,
                         'balance': 1,
                         'account': 5,
@@ -809,7 +809,7 @@ export default class binance extends Exchange {
                     'post': {
                         'positionSide/dual': 1,
                         'order': 4,
-                        'algoOrder': 1, // todo check weight
+                        'algoOrder': 1,
                         'batchOrders': 5,
                         'countdownCancelAll': 10,
                         'leverage': 1,
@@ -824,7 +824,7 @@ export default class binance extends Exchange {
                     },
                     'delete': {
                         'order': 1,
-                        'algoOrder': 1, // todo check weight
+                        'algoOrder': 1,
                         'allOpenOrders': 1,
                         'batchOrders': 5,
                         'listenKey': 1,
@@ -1340,6 +1340,7 @@ export default class binance extends Exchange {
                 'defaultSubType': undefined, // 'linear', 'inverse'
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'warnOnFetchOpenOrdersWithoutSymbol': true,
+                'warnOnSTPForInverse': true,
                 'currencyToPrecisionRoundingMode': TRUNCATE,
                 // not an error
                 // https://github.com/ccxt/ccxt/issues/11268
@@ -6818,9 +6819,10 @@ export default class binance extends Exchange {
         let selfTradePrevention = undefined;
         [ selfTradePrevention, params ] = this.handleOptionAndParams (params, 'createOrder', 'selfTradePrevention');
         if (selfTradePrevention !== undefined) {
-            if (market['spot']) {
-                request['selfTradePreventionMode'] = selfTradePrevention.toUpperCase (); // binance enums exactly match the unified ccxt enums (but needs uppercase)
+            if (market['inverse'] && this.options['warnOnSTPForInverse']) {
+                throw new NotSupported (this.id + ' createOrder() selfTradePrevention is not supported for inverse markets. selfTradePrevention for inverse markets is taken from linear market. To disable this warning set the "warnOnSTPForInverse" option to false.');
             }
+            request['selfTradePreventionMode'] = selfTradePrevention.toUpperCase (); // binance enums exactly match the unified ccxt enums (but needs uppercase)
         }
         // unified iceberg
         const icebergAmount = this.safeNumber (params, 'icebergAmount');
