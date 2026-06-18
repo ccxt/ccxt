@@ -25,7 +25,7 @@ export default class nado extends Exchange {
             'version': 'v1',
             'precisionMode': TICK_SIZE,
             'certified': false,
-            'pro': false,
+            'pro': true,
             'dex': true,
             'has': {
                 'CORS': undefined,

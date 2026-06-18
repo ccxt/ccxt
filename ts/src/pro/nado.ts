@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import nadoRest from '../nado.js';
-import { BadResponse } from '../base/errors.js';
+import { ArgumentsRequired, BadResponse } from '../base/errors.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import type { Bool, Dict, Int, OrderBook, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -23,13 +23,13 @@ export default class nado extends nadoRest {
                 'watchOHLCV': false,
                 'watchOHLCVForSymbols': false,
                 'watchOrderBook': true,
-                'watchOrderBookForSymbols': false,
+                'watchOrderBookForSymbols': true,
                 'watchOrders': false,
                 'watchPositions': false,
-                'watchTicker': false,
-                'watchTickers': false,
+                'watchTicker': true,
+                'watchTickers': true,
                 'watchTrades': true,
-                'watchTradesForSymbols': false,
+                'watchTradesForSymbols': true,
             },
             'streaming': {
                 'ping': this.ping,
@@ -79,6 +79,39 @@ export default class nado extends nadoRest {
 
     /**
      * @method
+     * @name nado#watchTradesForSymbols
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @description get the list of most recent trades for a list of symbols
+     * @param {string[]} symbols unified symbols of the markets to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum number of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
+            throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
+        }
+        symbols = this.marketSymbols (symbols, undefined, false, true, true);
+        const promises = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const market = this.market (symbols[i]);
+            const messageHash = 'trade:' + market['symbol'];
+            promises.push (this.watchPublic ('trade', market, messageHash, params));
+        }
+        const trades = await Promise.race (promises);
+        if (this.newUpdates) {
+            const first = this.safeValue (trades, 0);
+            const tradeSymbol = this.safeString (first, 'symbol');
+            limit = trades.getLimit (tradeSymbol, limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    /**
+     * @method
      * @name nado#watchOrderBook
      * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -97,6 +130,89 @@ export default class nado extends nadoRest {
         }
         const orderbook = await this.watchPublic ('book_depth', market, messageHash, params);
         return orderbook.limit ();
+    }
+
+    /**
+     * @method
+     * @name nado#watchOrderBookForSymbols
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for a list of symbols
+     * @param {string[]} symbols unified symbols of the markets to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {OrderBook} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+        await this.loadMarkets ();
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
+            throw new ArgumentsRequired (this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
+        }
+        symbols = this.marketSymbols (symbols, undefined, false, true, true);
+        const promises = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            const messageHash = 'orderbook:' + market['symbol'];
+            if (!(market['symbol'] in this.orderbooks)) {
+                const snapshot = await this.fetchOrderBook (symbol, limit);
+                this.orderbooks[market['symbol']] = this.orderBook (snapshot, limit);
+            }
+            promises.push (this.watchPublic ('book_depth', market, messageHash, params));
+        }
+        const orderbook = await Promise.race (promises);
+        return orderbook.limit ();
+    }
+
+    /**
+     * @method
+     * @name nado#watchTicker
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @description watches a price ticker with the best bid and ask for a specific market
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+        await this.loadMarkets ();
+        symbol = this.symbol (symbol);
+        const tickers = await this.watchTickers ([ symbol ], params);
+        return tickers[symbol];
+    }
+
+    /**
+     * @method
+     * @name nado#watchTickers
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @description watches price tickers with the best bid and ask for all markets of a specific list
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, true, true, true);
+        let market = undefined;
+        let messageHash = 'ticker';
+        let streamType = 'all_bbo';
+        if (symbols !== undefined) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength === 1) {
+                market = this.market (symbols[0]);
+                messageHash = 'ticker:' + market['symbol'];
+                streamType = 'best_bid_offer';
+            }
+        }
+        const ticker = await this.watchPublic (streamType, market, messageHash, params);
+        if (this.newUpdates) {
+            if (messageHash === 'ticker') {
+                return this.filterByArray (ticker, 'symbol', symbols);
+            }
+            const tickers: Dict = {};
+            tickers[ticker['symbol']] = ticker;
+            return tickers;
+        }
+        return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
     /**
@@ -250,10 +366,13 @@ export default class nado extends nadoRest {
         const ticker = this.parseWsBidAsk (message);
         const symbol = ticker['symbol'];
         this.bidsasks[symbol] = ticker;
+        this.tickers[symbol] = ticker;
         const tickers: Dict = {};
         tickers[symbol] = ticker;
         client.resolve (ticker, 'bidask:' + symbol);
+        client.resolve (ticker, 'ticker:' + symbol);
         client.resolve (tickers, 'bidask');
+        client.resolve (tickers, 'ticker');
     }
 
     parseWsAllBidsAsks (message: Dict): Tickers {
@@ -295,9 +414,12 @@ export default class nado extends nadoRest {
             const symbol = symbols[i];
             const ticker = tickers[symbol];
             this.bidsasks[symbol] = ticker;
+            this.tickers[symbol] = ticker;
             client.resolve (ticker, 'bidask:' + symbol);
+            client.resolve (ticker, 'ticker:' + symbol);
         }
         client.resolve (tickers, 'bidask');
+        client.resolve (tickers, 'ticker');
     }
 
     parseWsOrderBookDeltas (deltas) {
