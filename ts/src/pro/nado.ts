@@ -1,0 +1,359 @@
+//  ---------------------------------------------------------------------------
+
+import nadoRest from '../nado.js';
+import { ArgumentsRequired, BadResponse } from '../base/errors.js';
+import { ArrayCache } from '../base/ws/Cache.js';
+import type { Bool, Dict, Int, OrderBook, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import Client from '../base/ws/Client.js';
+
+//  ---------------------------------------------------------------------------
+
+export default class nado extends nadoRest {
+    describe (): any {
+        return this.deepExtend (super.describe (), {
+            'has': {
+                'ws': true,
+                'watchBalance': false,
+                'watchBidsAsks': true,
+                'watchFundingRate': false,
+                'watchFundingRates': false,
+                'watchLiquidations': false,
+                'watchLiquidationsForSymbols': false,
+                'watchMyTrades': false,
+                'watchOHLCV': false,
+                'watchOHLCVForSymbols': false,
+                'watchOrderBook': true,
+                'watchOrderBookForSymbols': false,
+                'watchOrders': false,
+                'watchPositions': false,
+                'watchTicker': false,
+                'watchTickers': false,
+                'watchTrades': true,
+                'watchTradesForSymbols': false,
+            },
+            'streaming': {
+                'ping': this.ping,
+                'keepAlive': 30000,
+            },
+            'options': {
+                'tradesLimit': 1000,
+            },
+            'urls': {
+                'api': {
+                    'ws': {
+                        'gateway': 'wss://gateway.prod.nado.xyz/v1/ws',
+                        'subscriptions': 'wss://gateway.prod.nado.xyz/v1/subscribe',
+                    },
+                },
+                'test': {
+                    'ws': {
+                        'gateway': 'wss://gateway.test.nado.xyz/v1/ws',
+                        'subscriptions': 'wss://gateway.test.nado.xyz/v1/subscribe',
+                    },
+                },
+            },
+        });
+    }
+
+    /**
+     * @method
+     * @name nado#watchTrades
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @description watches information on multiple trades made in a market
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum number of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const messageHash = 'trade:' + market['symbol'];
+        const trades = await this.watchPublic ('trade', market, messageHash, params);
+        if (this.newUpdates) {
+            limit = trades.getLimit (market['symbol'], limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    /**
+     * @method
+     * @name nado#watchOrderBook
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {OrderBook} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const messageHash = 'orderbook:' + market['symbol'];
+        if (!(market['symbol'] in this.orderbooks)) {
+            const snapshot = await this.fetchOrderBook (symbol, limit);
+            this.orderbooks[market['symbol']] = this.orderBook (snapshot, limit);
+        }
+        const orderbook = await this.watchPublic ('book_depth', market, messageHash, params);
+        return orderbook.limit ();
+    }
+
+    /**
+     * @method
+     * @name nado#watchBidsAsks
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @description watches best bid & ask for symbols
+     * @param {string[]} symbols unified symbols of the markets to fetch the bids and asks for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false, true, true);
+        const symbolsLength = symbols.length;
+        if (symbolsLength !== 1) {
+            throw new ArgumentsRequired (this.id + ' watchBidsAsks() requires exactly one symbol');
+        }
+        const market = this.market (symbols[0]);
+        const messageHash = 'bidask:' + market['symbol'];
+        const ticker = await this.watchPublic ('best_bid_offer', market, messageHash, params);
+        if (this.newUpdates) {
+            const tickers: Dict = {};
+            tickers[ticker['symbol']] = ticker;
+            return tickers;
+        }
+        return this.filterByArray (this.bidsasks, 'symbol', symbols);
+    }
+
+    async watchPublic (streamType, market, messageHash: string, params = {}) {
+        const url = this.urls['api']['ws']['subscriptions'];
+        const request: Dict = {
+            'method': 'subscribe',
+            'stream': {
+                'type': streamType,
+                'product_id': this.parseToInt (market['id']),
+            },
+            'id': this.nonce (),
+        };
+        const subscription = {
+            'streamType': streamType,
+            'symbol': market['symbol'],
+        };
+        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash, subscription);
+    }
+
+    parseWsTimestamp (message: Dict, key: string): Int {
+        const value = this.safeString (message, key);
+        if (value === undefined) {
+            return undefined;
+        }
+        const length = value.length;
+        if (length > 13) {
+            return this.parseToInt (value.slice (0, length - 6));
+        }
+        return this.safeInteger (message, key);
+    }
+
+    parseWsTrade (trade: Dict, market = undefined): Trade {
+        //
+        //     {
+        //         "type": "trade",
+        //         "timestamp": "1676151190656903000",
+        //         "product_id": 1,
+        //         "price": "25000000000000000000000",
+        //         "taker_qty": "1000000000000000000",
+        //         "maker_qty": "1000000000000000000",
+        //         "is_taker_buyer": true
+        //     }
+        //
+        const marketId = this.safeString (trade, 'product_id');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.parseWsTimestamp (trade, 'timestamp');
+        const isTakerBuyer = this.safeBool (trade, 'is_taker_buyer');
+        let side = undefined;
+        if (isTakerBuyer !== undefined) {
+            side = isTakerBuyer ? 'buy' : 'sell';
+        }
+        return this.safeTrade ({
+            'info': trade,
+            'id': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'order': undefined,
+            'type': undefined,
+            'side': side,
+            'takerOrMaker': 'taker',
+            'price': this.parseX18 (this.safeString (trade, 'price')),
+            'amount': this.parseX18 (this.safeString (trade, 'taker_qty')),
+            'cost': undefined,
+            'fee': undefined,
+        }, market);
+    }
+
+    handleTrade (client: Client, message) {
+        const marketId = this.safeString (message, 'product_id');
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const messageHash = 'trade:' + symbol;
+        let trades = this.safeValue (this.trades, symbol);
+        if (trades === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            trades = new ArrayCache (limit);
+            this.trades[symbol] = trades;
+        }
+        const trade = this.parseWsTrade (message, market);
+        trades.append (trade);
+        client.resolve (trades, messageHash);
+    }
+
+    parseWsBidAsk (bidask: Dict, market = undefined): Ticker {
+        //
+        //     {
+        //         "type": "best_bid_offer",
+        //         "timestamp": "1676151190656903000",
+        //         "product_id": 1,
+        //         "bid_price": "24990000000000000000000",
+        //         "bid_qty": "5000000000000000000",
+        //         "ask_price": "25010000000000000000000",
+        //         "ask_qty": "3000000000000000000"
+        //     }
+        //
+        const marketId = this.safeString (bidask, 'product_id');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.parseWsTimestamp (bidask, 'timestamp');
+        return this.safeTicker ({
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'ask': this.parseX18 (this.safeString (bidask, 'ask_price')),
+            'askVolume': this.parseX18 (this.safeString (bidask, 'ask_qty')),
+            'bid': this.parseX18 (this.safeString (bidask, 'bid_price')),
+            'bidVolume': this.parseX18 (this.safeString (bidask, 'bid_qty')),
+            'info': bidask,
+        }, market);
+    }
+
+    handleBidAsk (client: Client, message) {
+        const ticker = this.parseWsBidAsk (message);
+        const symbol = ticker['symbol'];
+        this.bidsasks[symbol] = ticker;
+        const tickers: Dict = {};
+        tickers[symbol] = ticker;
+        client.resolve (ticker, 'bidask:' + symbol);
+        client.resolve (tickers, 'bidask');
+    }
+
+    parseWsOrderBookDeltas (deltas) {
+        const result = [];
+        for (let i = 0; i < deltas.length; i++) {
+            const delta = deltas[i];
+            result.push ([
+                this.parseX18 (this.safeString (delta, 0)),
+                this.parseX18 (this.safeString (delta, 1)),
+            ]);
+        }
+        return result;
+    }
+
+    handleDelta (bookside, delta) {
+        const bidAsk = this.parseBidAsk (delta, 0, 1);
+        bookside.storeArray (bidAsk);
+    }
+
+    handleOrderBook (client: Client, message) {
+        //
+        //     {
+        //         "type": "book_depth",
+        //         "min_timestamp": "1683805381879572835",
+        //         "max_timestamp": "1683805381879572835",
+        //         "last_max_timestamp": "1683805381771464799",
+        //         "product_id": 1,
+        //         "bids": [["21594490000000000000000", "51007390115411548"]],
+        //         "asks": [["21694490000000000000000", "0"]]
+        //     }
+        //
+        const marketId = this.safeString (message, 'product_id');
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook ();
+        }
+        const orderbook = this.orderbooks[symbol];
+        const asks = this.parseWsOrderBookDeltas (this.safeList (message, 'asks', []));
+        const bids = this.parseWsOrderBookDeltas (this.safeList (message, 'bids', []));
+        this.handleDeltas (orderbook['asks'], asks);
+        this.handleDeltas (orderbook['bids'], bids);
+        const timestamp = this.parseWsTimestamp (message, 'max_timestamp');
+        orderbook['symbol'] = symbol;
+        orderbook['timestamp'] = timestamp;
+        orderbook['datetime'] = this.iso8601 (timestamp);
+        orderbook['maxTimestamp'] = this.safeString (message, 'max_timestamp');
+        const messageHash = 'orderbook:' + symbol;
+        client.resolve (orderbook, messageHash);
+    }
+
+    ping (client: Client) {
+        return {
+            'method': 'ping',
+            'id': this.nonce (),
+            'client_time': this.numberToString (this.milliseconds ()),
+        };
+    }
+
+    handlePong (client: Client, message) {
+        //
+        //     {
+        //         "result": {
+        //             "method": "pong",
+        //             "server_time": "1780000000123",
+        //             "client_time": "1780000000000"
+        //         },
+        //         "id": 10
+        //     }
+        //
+        const result = this.safeDict (message, 'result', {});
+        client.lastPong = this.safeInteger (result, 'server_time', this.milliseconds ());
+        return message;
+    }
+
+    handleErrorMessage (client: Client, message): Bool {
+        const error = this.safeValue (message, 'error');
+        const status = this.safeString (message, 'status');
+        if ((error === undefined) && (status !== 'failure')) {
+            return false;
+        }
+        const feedback = this.id + ' ' + this.json (message);
+        const exception = new BadResponse (feedback);
+        const id = this.safeString (message, 'id');
+        if (id !== undefined) {
+            client.reject (exception, id);
+        } else {
+            client.reject (exception);
+        }
+        return true;
+    }
+
+    handleMessage (client: Client, message) {
+        if (this.handleErrorMessage (client, message)) {
+            return;
+        }
+        const result = this.safeDict (message, 'result');
+        const method = this.safeString (result, 'method');
+        if (method === 'pong') {
+            this.handlePong (client, message);
+            return;
+        }
+        const type = this.safeString (message, 'type');
+        const methods = {
+            'trade': this.handleTrade,
+            'best_bid_offer': this.handleBidAsk,
+            'book_depth': this.handleOrderBook,
+        };
+        const handler = this.safeValue (methods, type);
+        if (handler !== undefined) {
+            handler.call (this, client, message);
+        }
+    }
+}
