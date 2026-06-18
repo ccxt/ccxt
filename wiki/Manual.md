@@ -4757,7 +4757,7 @@ exchange.check_required_credentials()  # raises AuthenticationError
 #### **PHP**
 ```php
 include 'ccxt.php';
-$exchange = new \ccxt\bittrex ();
+$exchange = new \ccxt\coinbase ();
 var_dump($exchange->requiredCredentials); // prints required credentials
 $exchange->check_required_credentials(); // throws AuthenticationError
 ```

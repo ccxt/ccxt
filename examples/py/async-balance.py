@@ -11,13 +11,13 @@ import ccxt.async_support as ccxt  # noqa: E402
 
 
 async def test():
-    bittrex = ccxt.bittrex({
+    kucoin = ccxt.kucoin({
         'apiKey': "YOUR_API_KEY",
         'secret': "YOUR_SECRET",
         'verbose': True,  # switch it to False if you don't want the HTTP log
     })
-    print(await bittrex.fetch_balance())
-    await bittrex.close()
+    print(await kucoin.fetch_balance())
+    await kucoin.close()
 
 
 asyncio.run(test())

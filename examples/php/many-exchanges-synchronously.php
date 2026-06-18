@@ -6,7 +6,7 @@ include $root . '/ccxt.php';
 
 $config = array('enableRateLimit' => true);
 $binance = new \ccxt\pro\binance($config);
-$bittrex = new \ccxt\pro\bittrex($config);
+$kucoin = new \ccxt\pro\kucoin($config);
 $symbol = "BTC/USDT";
 
 $loop = function($exchange, $symbol) {
@@ -23,5 +23,5 @@ function print_ticker($ticker, $exchange_name, $symbol) {
     echo "$exchange_name $symbol - bid: $bid <> ask: $ask" . PHP_EOL;
 }
 
-\React\Async\coroutine($loop, $bittrex, $symbol);
+\React\Async\coroutine($loop, $kucoin, $symbol);
 \React\Async\coroutine($loop, $binance, $symbol);
