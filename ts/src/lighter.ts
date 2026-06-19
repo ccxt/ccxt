@@ -939,8 +939,8 @@ export default class lighter extends Exchange {
         if (this.safeInteger (order, 'nonce') === undefined) {
             order['nonce'] = await this.fetchNonce (accountIndex, apiKeyIndex);
         }
-        let txType = undefined;
-        let txInfo = undefined;
+        let txType: Str = undefined;
+        let txInfo: Dict = undefined;
         if (totalOrderRequests < 2) {
             [ txType, txInfo ] = this.lighterSignCreateOrder (signer, order);
         } else {
