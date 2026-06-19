@@ -6,7 +6,7 @@ import Exchange from './abstract/kraken.js';
 import { AccountSuspended, BadSymbol, BadRequest, ExchangeNotAvailable, ArgumentsRequired, PermissionDenied, AuthenticationError, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress, RateLimitExceeded, OnMaintenance, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
-import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, Bool, TradingFeeInterface, Currencies, int, LedgerEntry, DepositAddress, Position, OrderRequest } from './base/types.js';
+import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, Bool, TradingFeeInterface, Currencies, int, LedgerEntry, List, DepositAddress, Position, OrderRequest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1449,7 +1449,7 @@ export default class kraken extends Exchange {
         let amount: Str = undefined;
         let id: Str = undefined;
         let orderId: Str = undefined;
-        let fee = undefined;
+        let fee: Dict = undefined;
         let symbol: Str = undefined;
         if (Array.isArray (trade)) {
             timestamp = this.safeTimestamp (trade, 2);
@@ -2018,7 +2018,7 @@ export default class kraken extends Exchange {
         const timestamp = this.safeTimestamp (order, 'opentm');
         amount = this.safeString (order, 'vol', amount);
         const filled = this.safeString (order, 'vol_exec');
-        let fee = undefined;
+        let fee: Dict = undefined;
         // kraken truncates the cost in the api response so we will ignore it and calculate it from average & filled
         // const cost = this.safeString (order, 'cost');
         price = this.safeString (description, 'price', price);
@@ -3162,7 +3162,7 @@ export default class kraken extends Exchange {
         //        }
         //     }
         //
-        let rawWithdrawals = undefined;
+        let rawWithdrawals: List = undefined;
         const result = this.safeValue (response, 'result');
         if (!Array.isArray (result)) {
             rawWithdrawals = this.addPaginationCursorToResult (result);
