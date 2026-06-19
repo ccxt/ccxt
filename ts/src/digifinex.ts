@@ -1810,7 +1810,7 @@ export default class digifinex extends Exchange {
         const marketIdRequest = swap ? 'instrument_id' : 'symbol';
         request[marketIdRequest] = market['id'];
         let postOnly = this.isPostOnly (isMarketOrder, false, params);
-        let postOnlyParsed = undefined;
+        let postOnlyParsed: Int = undefined;
         if (swap) {
             const reduceOnly = this.safeBool (params, 'reduceOnly', false);
             const timeInForce = this.safeString (params, 'timeInForce');
