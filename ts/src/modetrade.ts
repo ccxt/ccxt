@@ -667,7 +667,7 @@ export default class modetrade extends Exchange {
         const currencyId = this.safeString (rawCurrency, 'token');
         const networks = this.safeList (rawCurrency, 'chain_details');
         const code = this.safeCurrencyCode (currencyId);
-        let minPrecision = undefined;
+        let minPrecision: Str = undefined;
         const resultingNetworks: Dict = {};
         for (let j = 0; j < networks.length; j++) {
             const network = networks[j];
