@@ -1120,7 +1120,7 @@ export default class latoken extends Exchange {
             }
         }
         const orderSide = this.safeString (order, 'side');
-        let side = undefined;
+        let side: Str = undefined;
         if (orderSide !== undefined) {
             const parts = orderSide.split ('_');
             const partsLength = parts.length;
