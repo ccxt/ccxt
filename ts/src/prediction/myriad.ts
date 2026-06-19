@@ -427,7 +427,7 @@ export default class myriad extends Exchange {
         return this.safePredictionPosition ({
             'info': position,
             'id': id,
-            'symbol': symbol,
+            'outcome': symbol,
             'outcomeId': outcomeId,
             'label': outcomeTitle,
             'market': marketSymbol,
@@ -490,7 +490,7 @@ export default class myriad extends Exchange {
      */
     parseTradeQuote (quote: Dict, market: any = undefined): Dict {
         return {
-            'symbol': this.safeString (market, 'symbol'),
+            'outcome': this.safeString (market, 'outcome'),
             'side': this.safeStringLower (quote, 'action'),
             'value': this.safeNumber (quote, 'value'),
             'shares': this.safeNumber (quote, 'shares'),
@@ -1068,7 +1068,7 @@ export default class myriad extends Exchange {
                 composite = networkId + ':' + marketId + '/' + outcomeId;
             }
             outcomeObj = this.safeOutcome (composite, market as any);
-            symbol = this.safeString (outcomeObj, 'symbol');
+            symbol = this.safeString (outcomeObj, 'outcome');
         }
         return this.safePredictionOrder ({
             'id': orderHash,
@@ -1077,7 +1077,7 @@ export default class myriad extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'symbol': symbol,
+            'outcome': symbol,
             'outcomeId': this.safeString (outcomeObj, 'id'),
             'label': this.safeString (outcomeObj, 'label'),
             'market': this.safeString (outcomeObj, 'outcome'),
@@ -1365,7 +1365,7 @@ export default class myriad extends Exchange {
             'info': this.safeDict (order, 'info', {}),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': this.safeString (order, 'outcome'),
+            'outcome': this.safeString (order, 'outcome'),
             'outcomeId': this.safeString (order, 'outcomeId'),
             'label': this.safeString (order, 'label'),
             'market': this.safeString (order, 'market'),
@@ -1451,7 +1451,7 @@ export default class myriad extends Exchange {
             'id': txHash,
             'clientOrderId': undefined,
             'info': this.extend ({ 'transactionHash': txHash }, this.safeDict (quote, 'info', {})),
-            'symbol': this.safeString (market, 'symbol'),
+            'outcome': this.safeString (market, 'outcome'),
             'outcomeId': this.safeString (market, 'id'),
             'label': this.safeString (market, 'label'),
             'market': this.safeString (market, 'outcome'),
@@ -1545,7 +1545,6 @@ export default class myriad extends Exchange {
             outcomes.push ({
                 'id': outcomeCompositeId,
                 'outcomeId': outcomeCompositeId,
-                'symbol': outcomeHandle,
                 'outcome': outcomeHandle,
                 'market': marketSymbol,
                 'label': outcomeLabel,
@@ -1754,14 +1753,13 @@ export default class myriad extends Exchange {
         const sell = this.safeDict (fees, 'sell', {});
         return {
             'info': response,
-            'symbol': this.safeSymbol (undefined, outcomeObj as any),
             'outcome': this.safeOutcomeSymbol (undefined, outcomeObj as any),
             'outcomeId': this.safeString (outcomeObj, 'outcomeId'),
             'maker': this.safeNumber (sell, 'fee'),
             'taker': this.safeNumber (buy, 'fee'),
             'percentage': true,
             'tierBased': false,
-        };
+        } as any;
     }
 
     /**
@@ -1861,7 +1859,7 @@ export default class myriad extends Exchange {
         }
         const now = this.milliseconds ();
         return this.safePredictionTicker ({
-            'symbol': this.safeString (market, 'symbol'),
+            'outcome': this.safeString (market, 'outcome'),
             'outcomeId': this.safeString (market, 'id'),
             'label': this.safeString (market, 'label'),
             'market': this.safeString (market, 'outcome'),
@@ -2030,7 +2028,7 @@ export default class myriad extends Exchange {
             asks.push ([ ask, synthSize ]);
         }
         return {
-            'symbol': this.safeOutcomeSymbol (outcome, outcomeObj),
+            'outcome': this.safeOutcomeSymbol (outcome, outcomeObj),
             'bids': bids,
             'asks': asks,
             'timestamp': timestamp,
@@ -2067,7 +2065,7 @@ export default class myriad extends Exchange {
         }
         const timestamp = this.milliseconds ();
         return {
-            'symbol': symbol,
+            'outcome': symbol,
             'bids': this.sortBy (bids, 0, true),
             'asks': this.sortBy (asks, 0),
             'timestamp': timestamp,
@@ -2386,7 +2384,7 @@ export default class myriad extends Exchange {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': this.safeString (market, 'symbol'),
+            'outcome': this.safeString (market, 'outcome'),
             'outcomeId': this.safeString (market, 'id'),
             'label': this.safeString (market, 'label'),
             'market': this.safeString (market, 'outcome'),
@@ -2473,11 +2471,11 @@ export default class myriad extends Exchange {
             const outcomesList = this.safeList (market, 'outcomes', []) as any[];
             for (let j = 0; j < outcomesList.length; j++) {
                 const oc = outcomesList[j];
-                const ocSymbol = this.safeString (oc, 'symbol');
+                const ocSymbol = this.safeString (oc, 'outcome');
                 if (ocSymbol !== undefined) {
                     this.outcomes[ocSymbol] = oc;
                 }
-                const ocId = this.safeString (oc, 'id');
+                const ocId = this.safeString (oc, 'outcomeId');
                 if (ocId !== undefined) {
                     this.outcomes_by_id[ocId] = oc;
                 }
@@ -2553,7 +2551,7 @@ export default class myriad extends Exchange {
         }
         const ocId = networkId + ':' + marketId + '/' + outcomeId;
         const outcomeObj = this.safeDict (this.outcomes_by_id, ocId);
-        return this.safeString (outcomeObj, 'symbol');
+        return this.safeString (outcomeObj, 'outcome');
     }
 
     async connectCentrifugo (url: string): Promise<any> {
@@ -2816,7 +2814,7 @@ export default class myriad extends Exchange {
             'info': data,
             'timestamp': ts,
             'datetime': this.iso8601 (ts),
-            'symbol': sym,
+            'outcome': sym,
             'outcomeId': this.safeString (outcomeObj, 'id'),
             'label': this.safeString (outcomeObj, 'label'),
             'market': this.safeString (outcomeObj, 'outcome'),
@@ -2865,7 +2863,7 @@ export default class myriad extends Exchange {
                         'info': maker,
                         'timestamp': ts,
                         'datetime': this.iso8601 (ts),
-                        'symbol': makerSym,
+                        'outcome': makerSym,
                         'outcomeId': this.safeString (makerOutcomeObj, 'id'),
                         'label': this.safeString (makerOutcomeObj, 'label'),
                         'market': this.safeString (makerOutcomeObj, 'outcome'),
@@ -3003,7 +3001,7 @@ export default class myriad extends Exchange {
             const outcomeObj = this.safeOutcome (sym);
             const last = this.fromWei (this.safeString (oc, 'last'));
             const ticker = this.safePredictionTicker ({
-                'symbol': sym,
+                'outcome': sym,
                 'outcomeId': this.safeString (outcomeObj, 'id'),
                 'label': this.safeString (outcomeObj, 'label'),
                 'market': this.safeString (outcomeObj, 'outcome'),
@@ -3083,7 +3081,7 @@ export default class myriad extends Exchange {
             'info': data,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': sym,
+            'outcome': sym,
             'outcomeId': this.safeString (outcomeObj, 'id'),
             'label': this.safeString (outcomeObj, 'label'),
             'market': this.safeString (outcomeObj, 'outcome'),
@@ -3190,7 +3188,7 @@ export default class myriad extends Exchange {
         const parsed = this.safePredictionPosition ({
             'info': data,
             'id': posId,
-            'symbol': sym,
+            'outcome': sym,
             'outcomeId': posId,
             'label': this.safeString (outcomeObj, 'label'),
             'market': this.safeString (outcomeObj, 'outcome'),

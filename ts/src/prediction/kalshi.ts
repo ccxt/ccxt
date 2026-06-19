@@ -837,7 +837,7 @@ export default class kalshi extends Exchange {
                 asks.push ([ price, this.safeNumber (rawNo[ai], 1) ]);
             }
         }
-        return this.sortedOrders (this.safeString (outcomeObj, 'symbol', outcome), timestamp, bids, asks);
+        return this.sortedOrders (this.safeString (outcomeObj, 'outcome', outcome), timestamp, bids, asks);
     }
 
     /**

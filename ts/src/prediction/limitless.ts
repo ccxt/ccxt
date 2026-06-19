@@ -1007,7 +1007,7 @@ export default class limitless extends Exchange {
         const now = this.milliseconds ();
         const outcomeSymbol = this.safeOutcomeSymbol (undefined, market);
         return this.safePredictionTicker ({
-            'symbol': outcomeSymbol,
+            'outcome': outcomeSymbol,
             'outcomeId': this.safeString (market, 'outcomeId'),
             'label': this.safeString (market, 'label'),
             'market': this.safeString (market, 'market'),
@@ -1238,7 +1238,7 @@ export default class limitless extends Exchange {
             asks.push ([ this.parseNumber (priceStr), this.parseNumber (sizeStr) ]);
         }
         return {
-            'symbol': this.safeOutcomeSymbol (outcome, outcomeObj),
+            'outcome': this.safeOutcomeSymbol (outcome, outcomeObj),
             'bids': this.sortBy (bids, 0, true),
             'asks': this.sortBy (asks, 0),
             'timestamp': timestamp,
@@ -1801,7 +1801,6 @@ export default class limitless extends Exchange {
             'datetime': datetime,
             'lastTradeTimestamp': undefined,
             'status': this.parseOrderStatus (rawStatus),
-            'symbol': outcomeSymbol,
             'outcome': outcomeSymbol,
             'outcomeId': this.safeString (mkt, 'outcomeId'),
             'label': this.safeString (mkt, 'label'),
@@ -2336,7 +2335,6 @@ export default class limitless extends Exchange {
                 'info': trade,
                 'timestamp': ts,
                 'datetime': this.iso8601 (ts),
-                'symbol': feedOutcome,
                 'outcome': feedOutcome,
                 'outcomeId': this.safeString (market, 'outcomeId'),
                 'label': this.safeString (market, 'label'),
@@ -2410,7 +2408,6 @@ export default class limitless extends Exchange {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': tradeOutcome,
             'outcome': tradeOutcome,
             'outcomeId': this.safeString (trade, 'asset'),
             'label': this.safeString (outcome, 'label'),
@@ -2610,7 +2607,6 @@ export default class limitless extends Exchange {
         const entryPrice = this.applyScale (this.safeString (position, 'fillPrice'));
         return {
             'id': undefined,
-            'symbol': outcomeSymbol,
             'outcome': outcomeSymbol,
             'outcomeId': this.safeString (market, 'outcomeId'),
             'label': this.safeString (market, 'label'),
@@ -2638,7 +2634,7 @@ export default class limitless extends Exchange {
             'marginType': 'cross',
             'percentage': undefined,
             'info': position,
-        } as PredictionPosition;
+        } as unknown as PredictionPosition;
     }
 
     /**
@@ -2731,11 +2727,11 @@ export default class limitless extends Exchange {
             const outcomesList = this.safeList (market, 'outcomes', []) as any[];
             for (let j = 0; j < outcomesList.length; j++) {
                 const oc = outcomesList[j];
-                const ocSymbol = this.safeString (oc, 'symbol');
+                const ocSymbol = this.safeString (oc, 'outcome');
                 if (ocSymbol !== undefined) {
                     this.outcomes[ocSymbol] = oc;
                 }
-                const ocId = this.safeString (oc, 'id');
+                const ocId = this.safeString (oc, 'outcomeId');
                 if (ocId !== undefined) {
                     this.outcomes_by_id[ocId] = oc;
                 }
