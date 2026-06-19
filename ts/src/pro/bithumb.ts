@@ -4,7 +4,7 @@
 import { sha256 } from '@noble/hashes/sha2.js';
 import bithumbRest from '../bithumb.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, OrderBook, Ticker, Trade, Strings, Tickers, Dict, Bool, Order, Str } from '../base/types.js';
+import type{ Int, OrderBook, Ticker, Trade, Strings, Tickers, Dict, Bool, Order, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ExchangeError } from '../base/errors.js';
 import { jwt } from '../base/functions/rsa.js';
@@ -582,7 +582,7 @@ export default class bithumb extends bithumbRest {
         const sideId = this.safeString (order, 'ask_bid');
         const side = (sideId === 'BID') ? ('buy') : ('sell');
         const typeId = this.safeString (order, 'order_type');
-        let type = undefined;
+        let type: Str = undefined;
         if (typeId === 'limit') {
             type = 'limit';
         } else if (typeId === 'price') {
@@ -591,7 +591,7 @@ export default class bithumb extends bithumbRest {
             type = 'market';
         }
         const stateId = this.safeString (order, 'state');
-        let status = undefined;
+        let status: Str = undefined;
         if (stateId === 'wait') {
             status = 'open';
         } else if (stateId === 'trade') {

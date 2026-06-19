@@ -4,7 +4,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/bullish.js';
 import { AuthenticationError, ArgumentsRequired, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, InvalidAddress, InvalidNonce, InvalidOrder, InsufficientFunds, MarketClosed, NotSupported, OperationRejected, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Account, Balances, Bool, Currencies, Currency, DepositAddress, Dict, Int, int, FundingRateHistory, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, OpenInterest } from './base/types.js';
+import { Account, Balances, Bool, Currencies, Currency, DepositAddress, Dict, Fee, Int, int, FundingRateHistory, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, OpenInterest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1137,11 +1137,11 @@ export default class bullish extends Exchange {
         const currency = market['quote'];
         const code = this.safeCurrencyCode (currency);
         const feeCost = this.safeNumber (trade, 'quoteFee');
-        let fee = undefined;
+        let fee: Fee = undefined;
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
-        let takerOrMaker = undefined;
+        let takerOrMaker: Str = undefined;
         if (isTaker) {
             takerOrMaker = 'taker';
         } else {
@@ -1290,7 +1290,7 @@ export default class bullish extends Exchange {
     }
 
     async safeDeterministicCall (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, timeframe: Str = undefined, params = {}) {
-        let maxRetries = undefined;
+        let maxRetries: Int = undefined;
         [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', 3);
         let errors = 0;
         params = this.omit (params, 'until');
@@ -1479,7 +1479,7 @@ export default class bullish extends Exchange {
             params = this.handlePaginationParams ('fetchOrders', since, params);
             return await this.fetchPaginatedCallDynamic ('fetchOrders', symbol, since, limit, params, 100) as Order[];
         }
-        let market = undefined;
+        let market: Market = undefined;
         const request: Dict = {
             'tradingAccountId': tradingAccountId,
         };
@@ -1493,7 +1493,7 @@ export default class bullish extends Exchange {
         }
         let method = 'privateGetV2HistoryOrders';
         [ method, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'method', method);
-        let response = undefined;
+        let response: Dict[] = undefined;
         if (method === 'privateGetV2Orders') {
             //
             //     [
@@ -1676,7 +1676,7 @@ export default class bullish extends Exchange {
     async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         const tradingAccountId = await this.loadAccount (params);
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -1880,7 +1880,7 @@ export default class bullish extends Exchange {
         const request: Dict = {
             'tradingAccountId': tradingAccountId,
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -2081,7 +2081,7 @@ export default class bullish extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -2381,7 +2381,7 @@ export default class bullish extends Exchange {
         const safeResponse = this.toArray (response);
         const length = safeResponse.length;
         let data = this.safeDict (safeResponse, 0, {});
-        let network = undefined;
+        let network: Str = undefined;
         [ network, params ] = this.handleNetworkCodeAndParams (params);
         const networkDefinedByUser = network !== undefined;
         if ((length > 1) || (networkDefinedByUser)) {

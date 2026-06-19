@@ -4,7 +4,7 @@ import assert from 'assert';
 import { Exchange } from "../../../../ccxt.js";
 import Precise from '../../../base/Precise.js';
 import { OnMaintenance, OperationFailed } from '../../../base/errors.js';
-import { Str } from '../../../base/types.js';
+import { Bool, Num, Order, Str } from '../../../base/types.js';
 
 function logTemplate (exchange: Exchange, method: string, entry: object) {
     // there are cases when exchange is undefined (eg. base tests)
@@ -19,7 +19,7 @@ function isTemporaryFailure (e: any) {
 }
 
 function stringValue (value: any) {
-    let stringVal = undefined;
+    let stringVal: Str = undefined;
     if (typeof value === 'string') {
         stringVal = value;
     } else if (value === undefined) {
@@ -400,10 +400,10 @@ function checkPrecisionAccuracy (exchange: Exchange, skippedProperties: object, 
 async function fetchBestBidAsk (exchange, method, symbol) {
     const logText = logTemplate (exchange, method, {});
     // find out best bid/ask price
-    let bestBid = undefined;
-    let bestAsk = undefined;
+    let bestBid: Num = undefined;
+    let bestAsk: Num = undefined;
 
-    let usedMethod = undefined;
+    let usedMethod: Str = undefined;
     if (exchange.has['fetchOrderBook']) {
         usedMethod = 'fetchOrderBook';
         const orderbook = await exchange.fetchOrderBook (symbol);
@@ -437,7 +437,7 @@ async function fetchBestBidAsk (exchange, method, symbol) {
 }
 
 async function fetchOrder (exchange, symbol, orderId, skippedProperties) {
-    let fetchedOrder = undefined;
+    let fetchedOrder: Order = undefined;
     const originalId = orderId;
     // set 'since' to 5 minute ago for optimal results
     const sinceTime = exchange.milliseconds () - 1000 * 60 * 5;
@@ -493,7 +493,7 @@ function assertOrderState (exchange, skippedProperties, method, order, assertedS
     const statusClanceled = (order['status'] === 'canceled');
     const filledDefined = (filled !== undefined);
     const amountDefined = (amount !== undefined);
-    let condition = undefined;
+    let condition: Bool = undefined;
     //
     // ### OPEN STATUS
     //

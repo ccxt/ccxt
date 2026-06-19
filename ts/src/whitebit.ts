@@ -6,7 +6,7 @@ import Exchange from './abstract/whitebit.js';
 import { ExchangeNotAvailable, ExchangeError, DDoSProtection, BadSymbol, InvalidOrder, ArgumentsRequired, AuthenticationError, OrderNotFound, PermissionDenied, InsufficientFunds, BadRequest, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Account, Balances, Bool, BorrowInterest, Conversion, CrossBorrowRate, Currency, Currencies, DepositAddress, Dict, int, Int, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry } from './base/types.js';
+import type{ Account, Balances, Bool, BorrowInterest, Conversion, CrossBorrowRate, Currency, Currencies, DepositAddress, Dict, int, Int, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry, Fee } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1171,7 +1171,7 @@ export default class whitebit extends Exchange {
                 continue;
             }
             // Find corresponding fee data for this currency
-            let feeData = undefined;
+            let feeData: Dict = undefined;
             const feeKeys = Object.keys (feesData);
             for (let j = 0; j < feeKeys.length; j++) {
                 const feeKey = feeKeys[j];
@@ -1409,7 +1409,7 @@ export default class whitebit extends Exchange {
         const request: Dict = {
             'orderId': id,
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['market'] = market['id'];
@@ -1489,9 +1489,9 @@ export default class whitebit extends Exchange {
         } else {
             onlyContractSymbols = false;
         }
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
-        let method = undefined;
+        let method: Str = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'fetchTickers', 'method', method);
         if (method === undefined) {
             // if the user did not specify a method, choose it based on market type and symbols
@@ -1501,7 +1501,7 @@ export default class whitebit extends Exchange {
                 method = 'v4PublicGetTicker';
             }
         }
-        let response = undefined;
+        let response: Dict = undefined;
         if (method === 'v4PublicGetTicker') {
             //
             //      "BCH_RUB": {
@@ -2015,7 +2015,7 @@ export default class whitebit extends Exchange {
         }
         params = this.omit (query, [ 'postOnly', 'triggerPrice', 'stopPrice' ]);
         const useCollateralEndpoint = marginMode !== undefined || marketType === 'swap';
-        let response = undefined;
+        let response: Dict = undefined;
         if (isStopOrder) {
             request['activation_price'] = this.priceToPrecision (symbol, triggerPrice);
             if (isLimitOrder) {
@@ -2175,17 +2175,17 @@ export default class whitebit extends Exchange {
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         const requestType = [];
         if (type === 'spot') {
-            let isMargin = undefined;
+            let isMargin: Bool = undefined;
             [ isMargin, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'isMargin', false);
             if (isMargin) {
                 requestType.push ('margin');
@@ -2308,9 +2308,9 @@ export default class whitebit extends Exchange {
      */
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        let response = undefined;
+        let response: Dict = undefined;
         if (marketType === 'swap') {
             response = await this.v4PrivatePostCollateralAccountBalance (params);
         } else {
@@ -2362,7 +2362,7 @@ export default class whitebit extends Exchange {
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -2409,7 +2409,7 @@ export default class whitebit extends Exchange {
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         const request: Dict = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -2529,7 +2529,7 @@ export default class whitebit extends Exchange {
             amount = filled;
         }
         const dealFee = this.safeString (order, 'dealFee');
-        let fee = undefined;
+        let fee: Fee = undefined;
         if (dealFee !== undefined) {
             fee = {
                 'cost': this.parseNumber (dealFee),
@@ -2590,7 +2590,7 @@ export default class whitebit extends Exchange {
         const request: Dict = {
             'orderId': parseInt (id),
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['market'] = market['id'];
@@ -2636,7 +2636,7 @@ export default class whitebit extends Exchange {
      */
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         await this.loadMarkets ();
-        let currency = undefined;
+        let currency: Currency = undefined;
         const request: Dict = {};
         if (code !== undefined) {
             currency = this.currency (code);
@@ -2689,7 +2689,7 @@ export default class whitebit extends Exchange {
      */
     async fetchTransactions (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         await this.loadMarkets ();
-        let currency = undefined;
+        let currency: Currency = undefined;
         const request: Dict = {};
         if (code !== undefined) {
             currency = this.currency (code);
@@ -2743,7 +2743,7 @@ export default class whitebit extends Exchange {
         const request: Dict = {
             'ticker': currency['id'],
         };
-        let response = undefined;
+        let response: Dict = undefined;
         if (this.isFiat (code)) {
             const provider = this.safeString (params, 'provider');
             if (provider === undefined) {
@@ -3121,7 +3121,7 @@ export default class whitebit extends Exchange {
      */
     async fetchDeposit (id: string, code: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        let currency = undefined;
+        let currency: Currency = undefined;
         const request: Dict = {
             'transactionMethod': 1,
             'uniqueId': id,
@@ -3188,7 +3188,7 @@ export default class whitebit extends Exchange {
      */
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         await this.loadMarkets ();
-        let currency = undefined;
+        let currency: Currency = undefined;
         const request: Dict = {
             'transactionMethod': 1,
             'limit': 100,
@@ -3258,7 +3258,7 @@ export default class whitebit extends Exchange {
     async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<BorrowInterest[]> {
         await this.loadMarkets ();
         const request: Dict = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['market'] = market['id'];
@@ -3570,7 +3570,7 @@ export default class whitebit extends Exchange {
     async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         await this.loadMarkets ();
         const request: Dict = {};
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['ticker'] = currency['id'];

@@ -2124,7 +2124,7 @@ export default class gate extends Exchange {
     async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        let market = undefined;
+        let market: Market = undefined;
         if (symbols !== undefined) {
             const firstSymbol = this.safeString (symbols, 0);
             market = this.market (firstSymbol);
@@ -2631,7 +2631,7 @@ export default class gate extends Exchange {
     async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         // let defaultType = 'future';
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -3003,7 +3003,7 @@ export default class gate extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const first = this.safeString (symbols, 0);
-        let market = undefined;
+        let market: Market = undefined;
         if (first !== undefined) {
             market = this.market (first);
         }
@@ -5327,7 +5327,7 @@ export default class gate extends Exchange {
         await this.loadMarkets ();
         await this.loadUnifiedStatus ();
         const until = this.safeInteger (params, 'until');
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -5357,7 +5357,7 @@ export default class gate extends Exchange {
     }
 
     prepareOrdersByStatusRequest (status, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -5399,7 +5399,7 @@ export default class gate extends Exchange {
     async fetchOrdersByStatus (status, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         await this.loadUnifiedStatus ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -5748,7 +5748,7 @@ export default class gate extends Exchange {
     async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         await this.loadUnifiedStatus ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -6307,7 +6307,7 @@ export default class gate extends Exchange {
      */
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         symbols = this.marketSymbols (symbols, undefined, true, true, true);
         if (symbols !== undefined) {
             const symbolsLength = symbols.length;
@@ -6880,7 +6880,7 @@ export default class gate extends Exchange {
             currency = this.currency (code);
             request['currency'] = currency['id'];
         }
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -7270,7 +7270,7 @@ export default class gate extends Exchange {
      */
     async fetchMySettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -8070,7 +8070,7 @@ export default class gate extends Exchange {
      */
     async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             // unified account does not require a symbol
             market = this.market (symbol);
@@ -8433,7 +8433,7 @@ export default class gate extends Exchange {
      */
     async fetchPositionsHistory (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbols !== undefined) {
             const symbolsLength = symbols.length;
             if (symbolsLength === 1) {

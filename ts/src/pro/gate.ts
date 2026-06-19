@@ -364,7 +364,7 @@ export default class gate extends gateRest {
      */
     async fetchOrdersByStatusWs (status: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -770,7 +770,7 @@ export default class gate extends gateRest {
         const market = this.market (symbols[0]);
         const messageType = this.getTypeByMarket (market);
         const marketIds = this.marketIds (symbols);
-        let channelName = undefined;
+        let channelName: Str = undefined;
         [ channelName, params ] = this.handleOptionAndParams (params, callerMethodName, 'method');
         const url = this.getUrlByMarket (market);
         const channel = messageType + '.' + channelName;
@@ -1056,10 +1056,10 @@ export default class gate extends gateRest {
      */
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        let subType = undefined;
+        let subType: Str = undefined;
         let type = undefined;
         let marketId = '!' + 'all';
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             marketId = market['id'];
@@ -1153,7 +1153,7 @@ export default class gate extends gateRest {
     async watchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
         let type = undefined;
-        let subType = undefined;
+        let subType: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         [ subType, params ] = this.handleSubTypeAndParams ('watchBalance', undefined, params);
         const isInverse = (subType === 'inverse');
@@ -1280,14 +1280,14 @@ export default class gate extends gateRest {
      */
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         symbols = this.marketSymbols (symbols);
         const payload = [ '!' + 'all' ];
         if (!this.isEmpty (symbols)) {
             market = this.getMarketFromSymbols (symbols);
         }
         let type = undefined;
-        let query = undefined;
+        let query: Dict = undefined;
         [ type, query ] = this.handleMarketTypeAndParams ('watchPositions', market, params);
         if (type === 'spot') {
             type = 'swap';
@@ -1302,7 +1302,7 @@ export default class gate extends gateRest {
             messageHash += '::' + symbols.join (',');
         }
         const channel = typeId + '.positions';
-        let subType = undefined;
+        let subType: Str = undefined;
         [ subType, query ] = this.handleSubTypeAndParams ('watchPositions', market, query);
         const isInverse = (subType === 'inverse');
         const url = this.getUrlByMarketType (type, isInverse);
@@ -1456,13 +1456,13 @@ export default class gate extends gateRest {
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
         }
         let type = undefined;
-        let query = undefined;
+        let query: Dict = undefined;
         [ type, query ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         const typeId = this.getSupportedMapping (type, {
             'spot': 'spot',
@@ -1478,7 +1478,7 @@ export default class gate extends gateRest {
             messageHash += ':' + market['id'];
             payload = [ market['id'] ];
         }
-        let subType = undefined;
+        let subType: Str = undefined;
         [ subType, query ] = this.handleSubTypeAndParams ('watchOrders', market, query);
         const isInverse = (subType === 'inverse');
         const url = this.getUrlByMarketType (type, isInverse);
@@ -1604,14 +1604,14 @@ export default class gate extends gateRest {
         symbols = this.marketSymbols (symbols, undefined, true, true);
         const market = this.getMarketFromSymbols (symbols);
         let type = undefined;
-        let query = undefined;
+        let query: Dict = undefined;
         [ type, query ] = this.handleMarketTypeAndParams ('watchMyLiquidationsForSymbols', market, params);
         const typeId = this.getSupportedMapping (type, {
             'future': 'futures',
             'swap': 'futures',
             'option': 'options',
         });
-        let subType = undefined;
+        let subType: Str = undefined;
         [ subType, query ] = this.handleSubTypeAndParams ('watchMyLiquidationsForSymbols', market, query);
         const isInverse = (subType === 'inverse');
         const url = this.getUrlByMarketType (type, isInverse);

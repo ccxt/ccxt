@@ -306,10 +306,10 @@ export default class bitflyer extends Exchange {
             const future = (marketType === 'Futures');
             const spot = !swap && !future;
             let type = 'spot';
-            let settle = undefined;
-            let baseId = undefined;
-            let quoteId = undefined;
-            let expiry = undefined;
+            let settle: Str = undefined;
+            let baseId: Str = undefined;
+            let quoteId: Str = undefined;
+            let expiry: Int = undefined;
             if (spot) {
                 baseId = this.safeString (currencies, 0);
                 quoteId = this.safeString (currencies, 1);
@@ -738,7 +738,7 @@ export default class bitflyer extends Exchange {
         const side = this.safeStringLower (order, 'side');
         const marketId = this.safeString (order, 'product_code');
         const symbol = this.safeSymbol (marketId, market);
-        let fee = undefined;
+        let fee: Dict = undefined;
         const feeCost = this.safeNumber (order, 'total_commission');
         if (feeCost !== undefined) {
             fee = {
@@ -986,7 +986,7 @@ export default class bitflyer extends Exchange {
      */
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         await this.loadMarkets ();
-        let currency = undefined;
+        let currency: Currency = undefined;
         const request: Dict = {};
         if (code !== undefined) {
             currency = this.currency (code);
@@ -1025,7 +1025,7 @@ export default class bitflyer extends Exchange {
      */
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         await this.loadMarkets ();
-        let currency = undefined;
+        let currency: Currency = undefined;
         const request: Dict = {};
         if (code !== undefined) {
             currency = this.currency (code);
@@ -1113,8 +1113,8 @@ export default class bitflyer extends Exchange {
         const amount = this.safeNumber (transaction, 'amount');
         const txId = this.safeString (transaction, 'tx_hash');
         const rawStatus = this.safeString (transaction, 'status');
-        let type = undefined;
-        let status = undefined;
+        let type: Str = undefined;
+        let status: Str = undefined;
         let fee = undefined;
         if ('fee' in transaction) {
             type = 'withdrawal';

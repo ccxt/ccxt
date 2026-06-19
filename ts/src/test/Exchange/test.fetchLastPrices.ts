@@ -1,3 +1,4 @@
+import type { Str } from './../../base/types.js';
 import assert from 'assert';
 import { Exchange } from "../../../ccxt.js";
 import testLastPrice from './base/test.lastPrice.js';
@@ -8,7 +9,7 @@ async function testFetchLastPrices (exchange: Exchange, skippedProperties: objec
     const method = 'fetchLastprices';
     // log ('fetching all tickers at once...')
     let response: LastPrices = undefined;
-    let checkedSymbol = undefined;
+    let checkedSymbol: Str
     try {
         response = await exchange.fetchLastPrices ();
     } catch (e) {

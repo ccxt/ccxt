@@ -676,7 +676,7 @@ export default class mercado extends Exchange {
         //
         const id = this.safeString (order, 'order_id');
         const order_type = this.safeString (order, 'order_type');
-        let side = undefined;
+        let side: Str = undefined;
         if ('order_type' in order) {
             side = (order_type === '1') ? 'buy' : 'sell';
         }

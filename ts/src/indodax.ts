@@ -6,7 +6,7 @@ import Exchange from './abstract/indodax.js';
 import { ExchangeError, ArgumentsRequired, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError, BadSymbol } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress } from './base/types.js';
+import type{ Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress, Fee } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -796,12 +796,12 @@ export default class indodax extends Exchange {
         //        }
         //    }
         //
-        let side = undefined;
+        let side: Str = undefined;
         if ('type' in order) {
             side = order['type'];
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status', 'open'));
-        let symbol = undefined;
+        let symbol: Str = undefined;
         let cost = undefined;
         const price = this.safeString (order, 'price');
         let amount = undefined;
@@ -892,7 +892,7 @@ export default class indodax extends Exchange {
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1180,7 +1180,7 @@ export default class indodax extends Exchange {
         const withdraw = this.safeValue (data, 'withdraw', {});
         const deposit = this.safeValue (data, 'deposit', {});
         let transactions = [];
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code === undefined) {
             let keys = Object.keys (withdraw);
             for (let i = 0; i < keys.length; i++) {
@@ -1299,7 +1299,7 @@ export default class indodax extends Exchange {
         const timestamp = this.safeTimestamp2 (transaction, 'success_time', 'submit_time');
         const depositId = this.safeString (transaction, 'deposit_id');
         const feeCost = this.safeNumber (transaction, 'fee');
-        let fee = undefined;
+        let fee: Fee = undefined;
         if (feeCost !== undefined) {
             fee = {
                 'currency': this.safeCurrencyCode (undefined, currency),
