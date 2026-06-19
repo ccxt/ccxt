@@ -542,7 +542,7 @@ export default class hibachi extends Exchange {
         const timestamp = this.safeIntegerProduct (trade, 'timestamp', 1000);
         const cost = Precise.stringMul (price, amount);
         let side: Str = undefined;
-        let fee = undefined;
+        let fee: Dict = undefined;
         let orderType: Str = undefined;
         let orderId: Str = undefined;
         let takerOrMaker: Str = undefined;
@@ -690,7 +690,7 @@ export default class hibachi extends Exchange {
         const remaining = this.safeString (order, 'availableQuantity');
         const totalQuantity = this.safeString (order, 'totalQuantity');
         const availableQuantity = this.safeString (order, 'availableQuantity');
-        let filled = undefined;
+        let filled: Str = undefined;
         if (totalQuantity !== undefined && availableQuantity !== undefined) {
             filled = Precise.stringSub (totalQuantity, availableQuantity);
         }
