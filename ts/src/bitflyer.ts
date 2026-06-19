@@ -556,7 +556,7 @@ export default class bitflyer extends Exchange {
                 side = undefined;
             }
         }
-        let order = undefined;
+        let order: Str = undefined;
         if (side !== undefined) {
             const idInner = side + '_child_order_acceptance_id';
             if (idInner in trade) {
@@ -1115,7 +1115,7 @@ export default class bitflyer extends Exchange {
         const rawStatus = this.safeString (transaction, 'status');
         let type: Str = undefined;
         let status: Str = undefined;
-        let fee = undefined;
+        let fee: Dict = undefined;
         if ('fee' in transaction) {
             type = 'withdrawal';
             status = this.parseWithdrawalStatus (rawStatus);
