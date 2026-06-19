@@ -731,6 +731,8 @@ export default class limitless extends Exchange {
         const title = this.safeString (event, 'title', groupId);
         const markets = [];
         const rawMarkets = this.safeList (event, 'markets', []);
+        // aggregate 24h volume across the markets so sort by volume works
+        let totalVolume = 0;
         for (let i = 0; i < rawMarkets.length; i++) {
             const rawMarket = rawMarkets[i];
             const marketSymbol = this.safeString (rawMarket, 'symbol');
@@ -740,6 +742,8 @@ export default class limitless extends Exchange {
             } else {
                 markets.push (this.parseMarket (rawMarket));
             }
+            const marketInfo = this.safeDict (rawMarket, 'info', rawMarket);
+            totalVolume = this.sum (totalVolume, this.safeNumber2 (marketInfo, 'volume24h', 'volume', 0));
         }
         return this.extend ({
             'id': groupId,
@@ -748,6 +752,8 @@ export default class limitless extends Exchange {
             'title': title,
             'description': this.safeString (event, 'description'),
             'markets': markets,
+            'volume': totalVolume,
+            'liquidity': this.safeNumber (event, 'liquidity'),
             'url': this.safeString (event, 'url'),
             'image': this.safeString (event, 'imageUrl', this.safeString (event, 'image')),
             'active': this.safeBool (event, 'active', true),

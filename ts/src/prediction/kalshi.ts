@@ -1665,22 +1665,38 @@ export default class kalshi extends Exchange {
         // }
         const rawMarkets = this.safeList (rawEvent, 'markets', []) as any[];
         const marketsList: any[] = [];
+        // aggregate volume/liquidity from the markets and derive the creation time so sort works
+        let totalVolume = 0;
+        let totalLiquidity = 0;
+        let earliestCreated = undefined;
         for (let i = 0; i < rawMarkets.length; i++) {
             const rawMarket = rawMarkets[i];
             const parsed = this.parseMarket (rawMarket);
             marketsList.push (parsed);
+            totalVolume = this.sum (totalVolume, this.safeNumber2 (rawMarket, 'volume_fp', 'volume', 0));
+            totalLiquidity = this.sum (totalLiquidity, this.safeNumber2 (rawMarket, 'liquidity_dollars', 'liquidity', 0));
+            const marketCreated = this.parse8601 (this.safeString (rawMarket, 'open_time'));
+            if ((marketCreated !== undefined) && ((earliestCreated === undefined) || (marketCreated < earliestCreated))) {
+                earliestCreated = marketCreated;
+            }
         }
         const ticker = this.safeString (rawEvent, 'event_ticker');
         const title = this.safeString (rawEvent, 'title');
+        let created = this.parse8601 (this.safeString (rawEvent, 'created_date_iso'));
+        if (created === undefined) {
+            created = earliestCreated;
+        }
         return this.extend ({
             'id': ticker,
             'slug': ticker,
             'symbol': title ? this.shortenSlug (title) : undefined,
             'title': title,
             'markets': marketsList,
+            'volume': totalVolume,
+            'liquidity': totalLiquidity,
             'url': this.safeString (rawEvent, 'url'),
             'image': this.safeString (rawEvent, 'image_url'),
-            'created': this.parse8601 (this.safeString (rawEvent, 'created_date_iso')),
+            'created': created,
             'createdDatetime': this.safeString (rawEvent, 'created_date_iso'),
             'end': this.parse8601 (this.safeString (rawEvent, 'end_date_iso')),
             'endDatetime': this.safeString (rawEvent, 'end_date_iso'),
