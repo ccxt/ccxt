@@ -92,7 +92,7 @@ async function main () {
         return;
     }
 
-    console.log ('\nCommon FED topic: "' + bestToken + '" — listed on ' + bestCount + ' exchanges\n');
+    console.log ('\nCommon FED topic:', bestToken, '— listed on', bestCount, 'exchanges\n');
 
     // 4) for each exchange that has it, show the event -> market -> outcome
     for (const id of ids) {
@@ -102,10 +102,10 @@ async function main () {
         }
         const market = (match.markets && match.markets.length > 0) ? match.markets[0] : undefined;
         const outcome = market ? pickOutcome (market.outcomes) : undefined;
-        console.log ('• ' + id);
-        console.log ('    event:   ' + match.title);
-        console.log ('    market:  ' + (market ? market.symbol : 'n/a'));
-        console.log ('    outcome: ' + (outcome ? (outcome.label + '  [' + outcome.symbol + ']') : 'n/a'));
+        console.log ('•', id);
+        console.log ('    event:  ', match.title);
+        console.log ('    market: ', market ? market.symbol : 'n/a');
+        console.log ('    outcome:', outcome ? outcome.label : 'n/a', outcome ? outcome.symbol : '');
     }
 }
 
