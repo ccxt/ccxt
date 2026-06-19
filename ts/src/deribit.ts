@@ -1981,7 +1981,7 @@ export default class deribit extends Exchange {
         const request: Dict = {
             'order_id': id,
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -2310,7 +2310,7 @@ export default class deribit extends Exchange {
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         const request: Dict = {};
-        let market = undefined;
+        let market: Market = undefined;
         let response = undefined;
         if (symbol === undefined) {
             const code = this.codeFromOptions ('fetchOpenOrders', params);
@@ -2341,7 +2341,7 @@ export default class deribit extends Exchange {
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         const request: Dict = {};
-        let market = undefined;
+        let market: Market = undefined;
         let response = undefined;
         if (limit !== undefined) {
             request['count'] = limit;
@@ -2436,7 +2436,7 @@ export default class deribit extends Exchange {
         const request: Dict = {
             'include_old': true,
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (limit !== undefined) {
             request['count'] = limit; // default 10
         }
