@@ -4978,6 +4978,59 @@
                     }
                 ]
             }
+        ],
+        "fetchLiquidations": [
+            {
+                "description": "Linear swap fetch liquidations",
+                "method": "fetchLiquidations",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "Success",
+                    "data": [
+                        {
+                            "id": "150153038758",
+                            "contract_code": "BTC-USDT",
+                            "liquidation_time": "1781849094165",
+                            "side": "buy",
+                            "position_side": "short",
+                            "volume": "2",
+                            "amount": "2",
+                            "bankrupt_price": "62978.5",
+                            "trade_turnover": "125.957"
+                        }
+                    ],
+                    "ts": "1781854869221"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "150153038758",
+                            "contract_code": "BTC-USDT",
+                            "liquidation_time": "1781849094165",
+                            "side": "buy",
+                            "position_side": "short",
+                            "volume": "2",
+                            "amount": "2",
+                            "bankrupt_price": "62978.5",
+                            "trade_turnover": "125.957"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "contracts": 2,
+                        "contractSize": null,
+                        "price": 62978.5,
+                        "side": "buy",
+                        "baseValue": 2,
+                        "quoteValue": 125.957,
+                        "timestamp": 1781849094165,
+                        "datetime": "2026-06-19T06:04:54.165Z"
+                    }
+                ]
+            }
         ]
     }
 }

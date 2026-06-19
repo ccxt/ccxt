@@ -1646,6 +1646,18 @@
                     }
                 ]
             }
+        ],
+        "fetchLiquidations": [
+            {
+                "description": "Linear swap fetchLiquidations",
+                "method": "fetchLiquidations",
+                "url": "https://api.hbdm.vn/v5/market/liquidation_orders?contract_code=BTC-USDT&limit=1",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    1
+                ]
+            }
         ]
     }
 }

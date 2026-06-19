@@ -605,7 +605,6 @@ export default class htx extends Exchange {
                             'linear-swap-api/v1/swap_cross_trade_state': 1,
                             'linear-swap-api/v1/swap_elite_account_ratio': 1,
                             'linear-swap-api/v1/swap_elite_position_ratio': 1,
-                            'linear-swap-api/v1/swap_liquidation_orders': 1,
                             'linear-swap-api/v1/swap_settlement_records': 1,
                             'linear-swap-api/v3/swap_liquidation_orders': 1,
                             'index/market/history/linear_swap_premium_index_kline': 1,
@@ -9545,7 +9544,7 @@ export default class htx extends Exchange {
      * @method
      * @name htx#fetchLiquidations
      * @description retrieves the public liquidations of a trading pair
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-liquidation-orders-new
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b975edf5a
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-liquidation-orders-new
      * @see https://huobiapi.github.io/docs/dm/v1/en/#query-liquidation-order-information-new
      * @param {string} symbol unified CCXT market symbol
@@ -9560,19 +9559,44 @@ export default class htx extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const tradeType = this.safeInteger (params, 'trade_type', 0);
-        let request: Dict = {
-            'trade_type': tradeType,
-        };
+        let request: Dict = {};
+        if (!market['linear']) {
+            request['trade_type'] = tradeType;
+        }
         if (since !== undefined) {
             request['start_time'] = since;
         }
         [ request, params ] = this.handleUntilOption ('end_time', request, params);
         let response = undefined;
         if (market['swap']) {
-            request['contract'] = market['id'];
             if (market['linear']) {
-                response = await this.contractPublicGetLinearSwapApiV3SwapLiquidationOrders (this.extend (request, params));
+                request['contract_code'] = market['id'];
+                if (limit !== undefined) {
+                    request['limit'] = limit;
+                }
+                response = await this.contractPublicGetV5MarketLiquidationOrders (this.extend (request, params));
+                //
+                //     {
+                //         "code": 200,
+                //         "message": "Success",
+                //         "data": [
+                //             {
+                //                 "id": "150153038758",
+                //                 "contract_code": "BTC-USDT",
+                //                 "liquidation_time": "1781849094165",
+                //                 "side": "buy",
+                //                 "position_side": "short",
+                //                 "volume": "2",
+                //                 "amount": "2",
+                //                 "bankrupt_price": "62978.5",
+                //                 "trade_turnover": "125.957"
+                //             }
+                //         ],
+                //         "ts": 1781854869221
+                //     }
+                //
             } else {
+                request['contract'] = market['id'];
                 response = await this.contractPublicGetSwapApiV3SwapLiquidationOrders (this.extend (request, params));
             }
         } else if (market['future']) {
@@ -9625,15 +9649,29 @@ export default class htx extends Exchange {
         //         "pair": "BTC-USDT"
         //     }
         //
+        // linear swap
+        //
+        //     {
+        //         "id": "150153038758",
+        //         "contract_code": "BTC-USDT",
+        //         "liquidation_time": "1781849094165",
+        //         "side": "buy",
+        //         "position_side": "short",
+        //         "volume": "2",
+        //         "amount": "2",
+        //         "bankrupt_price": "62978.5",
+        //         "trade_turnover": "125.957"
+        //     }
+        //
         const marketId = this.safeString (liquidation, 'contract_code');
-        const timestamp = this.safeInteger (liquidation, 'created_at');
+        const timestamp = this.safeInteger2 (liquidation, 'created_at', 'liquidation_time');
         return this.safeLiquidation ({
             'info': liquidation,
             'symbol': this.safeSymbol (marketId, market),
             'contracts': this.safeNumber (liquidation, 'volume'),
             'contractSize': this.safeNumber (market, 'contractSize'),
-            'price': this.safeNumber (liquidation, 'price'),
-            'side': this.safeStringLower (liquidation, 'direction'),
+            'price': this.safeNumber2 (liquidation, 'price', 'bankrupt_price'),
+            'side': this.safeStringLower2 (liquidation, 'direction', 'side'),
             'baseValue': this.safeNumber (liquidation, 'amount'),
             'quoteValue': this.safeNumber (liquidation, 'trade_turnover'),
             'timestamp': timestamp,
