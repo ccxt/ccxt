@@ -905,7 +905,7 @@ export default class polymarket extends Exchange {
             quoteVolume = this.safeNumber2 (market['info'], 'volume24hr', 'volume');
         }
         return this.safePredictionTicker ({
-            'symbol': symbol,
+            'outcome': symbol,
             'outcomeId': this.safeString (market, 'outcomeId'),
             'label': this.safeString (market, 'label'),
             'market': this.safeString (market, 'market'),
@@ -1164,6 +1164,7 @@ export default class polymarket extends Exchange {
         }, market);
         openInterest['outcome'] = this.safeOutcomeSymbol (undefined, market);
         openInterest['outcomeId'] = this.safeString (market, 'outcomeId');
+        delete openInterest['symbol'];
         return openInterest as PredictionOpenInterest;
     }
 
@@ -1190,14 +1191,13 @@ export default class polymarket extends Exchange {
         const rate = (baseFeeBps !== undefined) ? this.parseNumber (Precise.stringDiv (baseFeeBps, '10000')) : undefined;
         return {
             'info': response,
-            'symbol': this.safeOutcomeSymbol (undefined, outcomeObj as any),
             'outcome': this.safeOutcomeSymbol (undefined, outcomeObj as any),
             'outcomeId': this.safeString (outcomeObj, 'outcomeId'),
             'maker': rate,
             'taker': rate,
             'percentage': true,
             'tierBased': false,
-        };
+        } as any;
     }
 
     /**
@@ -1337,7 +1337,6 @@ export default class polymarket extends Exchange {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
             'outcome': symbol,
             'outcomeId': assetId,
             'label': this.safeString (mkt, 'label'),
@@ -1487,7 +1486,7 @@ export default class polymarket extends Exchange {
         }
         return this.safePredictionPosition ({
             'id': this.safeString (position, 'id'),
-            'symbol': marketData['outcome'],
+            'outcome': marketData['outcome'],
             'outcomeId': marketData['outcomeId'],
             'market': marketData['market'],
             'label': marketData['label'],
@@ -1609,7 +1608,7 @@ export default class polymarket extends Exchange {
             'datetime': this.iso8601 (ts),
             'lastTradeTimestamp': undefined,
             'status': status,
-            'symbol': mkt['outcome'],
+            'outcome': mkt['outcome'],
             'outcomeId': this.safeString (mkt, 'outcomeId'),
             'label': this.safeString (mkt, 'label'),
             'market': this.safeString (mkt, 'market'),
@@ -2121,11 +2120,11 @@ export default class polymarket extends Exchange {
             const outcomesList = this.safeList (market, 'outcomes', []) as any[];
             for (let j = 0; j < outcomesList.length; j++) {
                 const oc = outcomesList[j];
-                const ocSymbol = this.safeString (oc, 'symbol');
+                const ocSymbol = this.safeString (oc, 'outcome');
                 if (ocSymbol !== undefined) {
                     this.outcomes[ocSymbol] = oc;
                 }
-                const ocId = this.safeString (oc, 'id');
+                const ocId = this.safeString (oc, 'outcomeId');
                 if (ocId !== undefined) {
                     this.outcomes_by_id[ocId] = oc;
                 }
@@ -2576,7 +2575,7 @@ export default class polymarket extends Exchange {
             'asks': asks,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'outcome': symbol,
         });
         client.resolve (orderbook, 'orderbook::' + symbol);
         client.resolve (orderbook, 'ticker::' + symbol);
@@ -2629,7 +2628,7 @@ export default class polymarket extends Exchange {
             'info': event,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'outcome': symbol,
             'outcomeId': this.safeString (market, 'outcomeId'),
             'label': this.safeString (market, 'label'),
             'market': this.safeString (market, 'market'),
@@ -2754,7 +2753,7 @@ export default class polymarket extends Exchange {
         }
         const market = this.safeOutcome (symbol);
         return this.safePredictionTicker ({
-            'symbol': symbol,
+            'outcome': symbol,
             'outcomeId': this.safeString (market, 'outcomeId'),
             'label': this.safeString (market, 'label'),
             'market': this.safeString (market, 'market'),

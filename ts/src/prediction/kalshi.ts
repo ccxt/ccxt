@@ -361,7 +361,6 @@ export default class kalshi extends Exchange {
             outcomes.push ({
                 'id': outcomeIds[oi],
                 'outcomeId': outcomeIds[oi],
-                'symbol': outcomeHandle,
                 'outcome': outcomeHandle,
                 'market': marketSymbol,
                 'label': label,
@@ -569,6 +568,7 @@ export default class kalshi extends Exchange {
         }, market);
         openInterest['outcome'] = this.safeOutcomeSymbol (undefined, market);
         openInterest['outcomeId'] = this.safeString (market, 'outcomeId');
+        delete openInterest['symbol'];
         return openInterest as PredictionOpenInterest;
     }
 
@@ -638,11 +638,11 @@ export default class kalshi extends Exchange {
         //     }
         //
         const marketAny = market as any;
-        const outcomeObj = this.safeOutcome (this.safeString (marketAny, 'symbol'), marketAny);
+        const outcomeObj = this.safeOutcome (this.safeString (marketAny, 'outcome'), marketAny);
         const outcomeLabel = market ? this.safeString (market, 'label', this.safeString (market['info'], 'outcomeLabel', 'YES')) : 'YES';
         const isNo = outcomeLabel.toUpperCase () === 'NO';
         const now = this.milliseconds ();
-        const symbol = this.safeString (outcomeObj, 'symbol');
+        const symbol = this.safeString (outcomeObj, 'outcome');
         const yesAsk = this.safeNumber (raw, 'yes_ask_dollars');
         const yesBid = this.safeNumber (raw, 'yes_bid_dollars');
         const noAsk = this.safeNumber (raw, 'no_ask_dollars');
@@ -668,7 +668,7 @@ export default class kalshi extends Exchange {
             average = this.parseNumber (Precise.stringDiv (Precise.stringAdd (this.numberToString (bid), this.numberToString (ask)), '2'));
         }
         return this.safePredictionTicker ({
-            'symbol': symbol,
+            'outcome': symbol,
             'outcomeId': this.safeString2 (outcomeObj, 'outcomeId', 'id'),
             'label': this.safeString (outcomeObj, 'label'),
             'market': this.safeString2 (outcomeObj, 'market', 'outcome'),
@@ -856,7 +856,7 @@ export default class kalshi extends Exchange {
         bids = this.sortBy (bids, 0, true);
         asks = this.sortBy (asks, 0);
         return {
-            'symbol': symbol,
+            'outcome': symbol,
             'bids': bids,
             'asks': asks,
             'timestamp': timestamp,
@@ -1064,10 +1064,10 @@ export default class kalshi extends Exchange {
         const amount = this.safeNumber (trade, 'count', amountFp);
         const rawSide = this.safeStringLower (trade, 'taker_side');
         const marketAny = market as any;
-        const outcomeObj = this.safeOutcome (this.safeString (marketAny, 'symbol'), marketAny);
+        const outcomeObj = this.safeOutcome (this.safeString (marketAny, 'outcome'), marketAny);
         const marketInfo = this.safeDict (outcomeObj, 'info', {});
         const requestedOutcomeLabel = this.safeStringLower (outcomeObj, 'label', this.safeStringLower (marketInfo, 'outcomeLabel'));
-        const outcomeSymbol = this.safeString (outcomeObj, 'symbol');
+        const outcomeSymbol = this.safeString (outcomeObj, 'outcome');
         const outcomeId = this.safeString2 (outcomeObj, 'outcomeId', 'id');
         let side: Str;
         if (rawSide === 'yes' || rawSide === 'no') {
@@ -1086,7 +1086,6 @@ export default class kalshi extends Exchange {
             'info': trade,
             'timestamp': ts,
             'datetime': this.iso8601 (ts),
-            'symbol': outcomeSymbol,
             'outcome': outcomeSymbol,
             'outcomeId': outcomeId,
             'label': this.safeString (outcomeObj, 'label'),
@@ -1184,7 +1183,7 @@ export default class kalshi extends Exchange {
         }
         return this.safePredictionPosition ({
             'id': undefined,
-            'symbol': this.safeString (outcomeObj, 'symbol', ticker),
+            'outcome': this.safeString (outcomeObj, 'outcome', ticker),
             'outcomeId': this.safeString2 (outcomeObj, 'outcomeId', 'id'),
             'label': this.safeString (outcomeObj, 'label'),
             'market': this.safeString2 (outcomeObj, 'market', 'outcome'),
@@ -1299,7 +1298,7 @@ export default class kalshi extends Exchange {
             'datetime': this.iso8601 (ts),
             'lastTradeTimestamp': undefined,
             'status': status,
-            'symbol': this.safeString (mkt, 'symbol'),
+            'outcome': this.safeString (mkt, 'outcome'),
             'outcomeId': this.safeString2 (mkt, 'outcomeId', 'id'),
             'label': this.safeString (mkt, 'label'),
             'market': this.safeString2 (mkt, 'market', 'outcome'),
@@ -1547,11 +1546,11 @@ export default class kalshi extends Exchange {
             const outcomesList = this.safeList (market, 'outcomes', []) as any[];
             for (let j = 0; j < outcomesList.length; j++) {
                 const oc = outcomesList[j];
-                const ocSymbol = this.safeString (oc, 'symbol');
+                const ocSymbol = this.safeString (oc, 'outcome');
                 if (ocSymbol !== undefined) {
                     this.outcomes[ocSymbol] = oc;
                 }
-                const ocId = this.safeString (oc, 'id');
+                const ocId = this.safeString (oc, 'outcomeId');
                 if (ocId !== undefined) {
                     this.outcomes_by_id[ocId] = oc;
                 }
