@@ -6,7 +6,7 @@ import Exchange from './abstract/hollaex.js';
 import { BadRequest, AuthenticationError, NetworkError, ArgumentsRequired, OrderNotFound, InsufficientFunds, InvalidNonce, OrderImmediatelyFillable } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, Dict, Dictionary, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, OrderBooks } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Dictionary, Int, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, OrderBooks } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -819,7 +819,7 @@ export default class hollaex extends Exchange {
         const amountString = this.safeString (trade, 'size');
         const feeCostString = this.safeString (trade, 'fee');
         const feeCoin = this.safeString (trade, 'fee_coin');
-        let fee = undefined;
+        let fee: NullableDict = undefined;
         if (feeCostString !== undefined) {
             fee = {
                 'cost': feeCostString,
@@ -1164,7 +1164,7 @@ export default class hollaex extends Exchange {
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         const request: Dict = {
             // 'symbol': market['id'],
             // 'side': 'buy', // 'sell'
@@ -1412,7 +1412,7 @@ export default class hollaex extends Exchange {
         }
         await this.loadMarkets ();
         const request: Dict = {};
-        let market = undefined;
+        let market: Market = undefined;
         market = this.market (symbol);
         request['symbol'] = market['id'];
         const response = await this.privateDeleteOrderAll (this.extend (request, params));
@@ -1456,7 +1456,7 @@ export default class hollaex extends Exchange {
             // 'start_date': 123, // starting date of queried data
             // 'end_date': 321, // ending date of queried data
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -1499,7 +1499,7 @@ export default class hollaex extends Exchange {
         //     }
         //
         let address = this.safeString (depositAddress, 'address');
-        let tag = undefined;
+        let tag: Str = undefined;
         if (address !== undefined) {
             const parts = address.split (':');
             address = this.safeString (parts, 0);
@@ -1604,7 +1604,7 @@ export default class hollaex extends Exchange {
             // 'start_date': 123, // starting date of queried data
             // 'end_date': 321, // ending date of queried data
         };
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['currency'] = currency['id'];
@@ -1658,7 +1658,7 @@ export default class hollaex extends Exchange {
         const request: Dict = {
             'transaction_id': id,
         };
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['currency'] = currency['id'];
@@ -1714,7 +1714,7 @@ export default class hollaex extends Exchange {
             // 'start_date': 123, // starting date of queried data
             // 'end_date': 321, // ending date of queried data
         };
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['currency'] = currency['id'];
@@ -1792,10 +1792,10 @@ export default class hollaex extends Exchange {
         const type = this.safeString (transaction, 'type');
         const amount = this.safeNumber (transaction, 'amount');
         let address = this.safeString (transaction, 'address');
-        let addressTo = undefined;
+        let addressTo: Str = undefined;
         const addressFrom = undefined;
-        let tag = undefined;
-        let tagTo = undefined;
+        let tag: Str = undefined;
+        let tagTo: Str = undefined;
         const tagFrom = undefined;
         if (address !== undefined) {
             const parts = address.split (':');
@@ -1821,7 +1821,7 @@ export default class hollaex extends Exchange {
         const feeCurrencyId = this.safeString (transaction, 'fee_coin');
         const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId, currency);
         const feeCost = this.safeNumber (transaction, 'fee');
-        let fee = undefined;
+        let fee: NullableDict = undefined;
         if (feeCost !== undefined) {
             fee = {
                 'currency': feeCurrencyCode,
