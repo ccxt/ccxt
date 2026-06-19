@@ -1795,7 +1795,7 @@ export default class bittrade extends Exchange {
             limit = 100;
         }
         await this.loadMarkets ();
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -1829,7 +1829,7 @@ export default class bittrade extends Exchange {
             limit = 100;
         }
         await this.loadMarkets ();
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
