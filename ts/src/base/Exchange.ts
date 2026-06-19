@@ -166,14 +166,14 @@ const {
 // import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, FundingHistory, MarginMode, Tickers, Greeks, Str, Num, MarketInterface, CurrencyInterface, Account } from './types.js';
 export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, Bool, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion, DepositAddress, LongShortRatio, ADL } from './types.js';
 // ----------------------------------------------------------------------------
-let protobufMexc: any = undefined;
-let encodeAsAny: any = undefined;
-let AuthInfo: any = undefined;
-let Tx: any = undefined;
-let TxBody: any = undefined;
-let TxRaw: any = undefined;
-let SignDoc: any = undefined;
-let SignMode: any = undefined;
+let protobufMexc = undefined;
+let encodeAsAny = undefined;
+let AuthInfo = undefined;
+let Tx = undefined;
+let TxBody = undefined;
+let TxRaw = undefined;
+let SignDoc = undefined;
+let SignMode = undefined;
 
 // -----------------------------------------------------------------------------
 /**
@@ -799,7 +799,7 @@ export default class Exchange {
     }
 
     setProxyAgents (httpProxy, httpsProxy, socksProxy) {
-        let chosenAgent: any = undefined;
+        let chosenAgent = undefined;
         // in browser-side, proxy modules are not supported in 'fetch/ws' methods
         if (!isNode && (httpProxy || httpsProxy || socksProxy)) {
             throw new NotSupported (this.id + ' - proxies in browser-side projects are not supported. You have several choices: [A] Use `exchange.proxyUrl` property to redirect requests through local/remote cors-proxy server (find sample file named "sample-local-proxy-server-with-cors" in https://github.com/ccxt/ccxt/tree/master/examples/ folder, which can be used for REST requests only) [B] override `exchange.fetch` && `exchange.watch` methods to send requests through your custom proxy');
@@ -1121,7 +1121,7 @@ export default class Exchange {
             }
             return this.markets;
         }
-        let currencies: Currencies | undefined = undefined;
+        let currencies = undefined;
         // only call if exchange API provides endpoint (true), thus avoid emulated versions ('emulated')
         if (this.has['fetchCurrencies'] === true) {
             currencies = await this.fetchCurrencies ();
@@ -1797,7 +1797,7 @@ export default class Exchange {
     }
 
     retrieveDydxCredentials (entropy: string): object {
-        let credentials: Dict | undefined = undefined;
+        let credentials = undefined;
         if (entropy.indexOf (' ') > 0) {
             credentials = deriveHDKeyFromMnemonic (entropy);
             credentials['mnemonic'] = entropy;
@@ -2802,7 +2802,7 @@ export default class Exchange {
 
     checkProxyUrlSettings (url: Str = undefined, method: Str = undefined, headers = undefined, body = undefined) {
         const usedProxies = [];
-        let proxyUrl: Str = undefined;
+        let proxyUrl = undefined;
         if (this.proxyUrl !== undefined) {
             usedProxies.push ('proxyUrl');
             proxyUrl = this.proxyUrl;
@@ -2845,9 +2845,9 @@ export default class Exchange {
 
     checkProxySettings (url: Str = undefined, method: Str = undefined, headers = undefined, body = undefined) {
         const usedProxies = [];
-        let httpProxy: Str = undefined;
-        let httpsProxy: Str = undefined;
-        let socksProxy: Str = undefined;
+        let httpProxy = undefined;
+        let httpsProxy = undefined;
+        let socksProxy = undefined;
         // httpProxy
         const isHttpProxyDefined = this.valueIsDefined (this.httpProxy);
         const isHttp_proxy_defined = this.valueIsDefined (this.http_proxy);
@@ -2898,9 +2898,9 @@ export default class Exchange {
 
     checkWsProxySettings () {
         const usedProxies = [];
-        let wsProxy: Str = undefined;
-        let wssProxy: Str = undefined;
-        let wsSocksProxy: Str = undefined;
+        let wsProxy = undefined;
+        let wssProxy = undefined;
+        let wsSocksProxy = undefined;
         // ws proxy
         const isWsProxyDefined = this.valueIsDefined (this.wsProxy);
         const is_ws_proxy_defined = this.valueIsDefined (this.ws_proxy);
@@ -4372,7 +4372,7 @@ export default class Exchange {
         // cost = filled * contract size * price
         const costPriceExists = (average !== undefined) || (price !== undefined);
         if (parseCost && (filled !== undefined) && costPriceExists) {
-            let multiplyPrice: Str = undefined;
+            let multiplyPrice = undefined;
             if (average === undefined) {
                 multiplyPrice = price;
             } else {
@@ -4513,7 +4513,7 @@ export default class Exchange {
         }
         const market = this.markets[symbol];
         const feeSide = this.safeString (market, 'feeSide', 'quote');
-        let useQuote: Bool = undefined;
+        let useQuote = undefined;
         if (feeSide === 'get') {
             // the fee is always in the currency you get
             useQuote = side === 'sell';
@@ -4525,7 +4525,7 @@ export default class Exchange {
             useQuote = feeSide === 'quote';
         }
         let cost = this.numberToString (amount);
-        let key: Str = undefined;
+        let key = undefined;
         if (useQuote) {
             const priceString = this.numberToString (price);
             cost = Precise.stringMul (cost, priceString);
@@ -4615,7 +4615,7 @@ export default class Exchange {
 
     createCcxtTradeId (timestamp = undefined, side = undefined, amount = undefined, price = undefined, takerOrMaker = undefined) {
         // this approach is being used by multiple exchanges (mexc, woo, coinsbit, dydx, ...)
-        let id: Str = undefined;
+        let id = undefined;
         if (timestamp !== undefined) {
             id = this.numberToString (timestamp);
             if (side !== undefined) {
@@ -5019,7 +5019,7 @@ export default class Exchange {
                 return undefined;
             }
             const maxRetries = this.safeValue (options, 'webApiRetries', 10);
-            let response: any = undefined;
+            let response = undefined;
             let retry = 0;
             let shouldBreak = false;
             while (retry < maxRetries) {
@@ -5114,8 +5114,8 @@ export default class Exchange {
             return symbols;
         }
         const result = [];
-        let marketType: Str = undefined;
-        let isLinearSubType: Bool = undefined;
+        let marketType = undefined;
+        let isLinearSubType = undefined;
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market (symbols[i]);
             if (sameTypeOnly && (marketType !== undefined)) {
@@ -5349,7 +5349,7 @@ export default class Exchange {
     }
 
     defaultNetworkCode (currencyCode: string) {
-        let defaultNetworkCode: Str = undefined;
+        let defaultNetworkCode = undefined;
         const defaultNetworks = this.safeDict (this.options, 'defaultNetworks', {});
         if (currencyCode in defaultNetworks) {
             // if currency had set its network in "defaultNetworks", use it
@@ -5374,7 +5374,7 @@ export default class Exchange {
 
     selectNetworkKeyFromNetworks (currencyCode, networkCode, indexedNetworkEntries, isIndexedByUnifiedNetworkCode = false) {
         // this method is used against raw & unparse network entries, which are just indexed by network id
-        let chosenNetworkId: Str = undefined;
+        let chosenNetworkId = undefined;
         const availableNetworkIds = Object.keys (indexedNetworkEntries);
         const responseNetworksLength = availableNetworkIds.length;
         if (networkCode !== undefined) {
@@ -5498,7 +5498,7 @@ export default class Exchange {
         // if contractSize is undefined get from market
         let contractSize = this.safeNumber (position, 'contractSize');
         const symbol = this.safeString (position, 'symbol');
-        let market: Market = undefined;
+        let market = undefined;
         if (symbol !== undefined) {
             market = this.safeValue (this.markets, symbol);
         }
@@ -5549,7 +5549,7 @@ export default class Exchange {
         trades = this.toArray (trades);
         let result = [];
         for (let i = 0; i < trades.length; i++) {
-            let parsed: Trade | undefined = undefined;
+            let parsed = undefined;
             if (isWs) {
                 parsed = this.parseWsTrade (trades[i], market);
             } else {
@@ -5702,7 +5702,7 @@ export default class Exchange {
      * @returns {object[]} - returns [request, params] where request is the modified request object and params is the modified params object
      */
     handleRequestNetwork (params: Dict, request: Dict, exchangeSpecificKey: string, currencyCode:Str = undefined, isRequired: boolean = false) {
-        let networkCode: Str = undefined;
+        let networkCode = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
             request[exchangeSpecificKey] = this.networkCodeToId (networkCode, currencyCode);
@@ -5804,9 +5804,9 @@ export default class Exchange {
             const cost = this.calculateRateLimiterCost (api, method, path, params, config);
             await this.throttle (cost);
         }
-        let retries: Int = undefined;
+        let retries = undefined;
         [ retries, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailure', 0);
-        let retryDelay: Int = undefined;
+        let retryDelay = undefined;
         [ retryDelay, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailureDelay', 0);
         for (let i = 0; i < retries + 1; i++) {
             try {
@@ -6246,7 +6246,7 @@ export default class Exchange {
     }
 
     handleOptionAndParams2 (params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue = undefined) {
-        let value: any = undefined;
+        let value = undefined;
         [ value, params ] = this.handleOptionAndParams (params, methodName1, optionName1);
         if (value !== undefined) {
             // omit optionName2 too from params
@@ -6254,7 +6254,7 @@ export default class Exchange {
             return [ value, params ];
         }
         // if still undefined, try optionName2
-        let value2: any = undefined;
+        let value2 = undefined;
         [ value2, params ] = this.handleOptionAndParams (params, methodName1, optionName2, defaultValue);
         return [ value2, params ];
     }
@@ -6307,7 +6307,7 @@ export default class Exchange {
     }
 
     handleSubTypeAndParams (methodName: string, market = undefined, params = {}, defaultValue = undefined) {
-        let subType: any = undefined;
+        let subType = undefined;
         // if set in params, it takes precedence
         const subTypeInParams = this.safeString2 (params, 'subType', 'defaultSubType');
         // avoid omitting if it's not present
@@ -8393,7 +8393,7 @@ export default class Exchange {
     }
 
     handleMaxEntriesPerRequestAndParams (method: string, maxEntriesPerRequest: Int = undefined, params = {}): [Int, any] {
-        let newMaxEntriesPerRequest: Int = undefined;
+        let newMaxEntriesPerRequest = undefined;
         [ newMaxEntriesPerRequest, params ] = this.handleOptionAndParams (params, method, 'maxEntriesPerRequest');
         if ((newMaxEntriesPerRequest !== undefined) && (newMaxEntriesPerRequest !== maxEntriesPerRequest)) {
             maxEntriesPerRequest = newMaxEntriesPerRequest;
@@ -8405,10 +8405,13 @@ export default class Exchange {
     }
 
     async fetchPaginatedCallDynamic (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}, maxEntriesPerRequest: Int = undefined, removeRepeated = true): Promise<any> {
-        const maxCalls: Int = undefined;
-        const maxRetries: Int = undefined;
-        const paginationDirection: Str = undefined;
-        let paginationTimestamp: Int = undefined;
+        let maxCalls = undefined;
+        [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', 10);
+        let maxRetries = undefined;
+        [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', 3);
+        let paginationDirection = undefined;
+        [ paginationDirection, params ] = this.handleOptionAndParams (params, method, 'paginationDirection', 'backward');
+        let paginationTimestamp = undefined;
         let removeRepeatedOption = removeRepeated;
         [ removeRepeatedOption, params ] = this.handleOptionAndParams (params, method, 'removeRepeated', removeRepeated);
         let calls = 0;
@@ -8489,7 +8492,7 @@ export default class Exchange {
     }
 
     async safeDeterministicCall (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, timeframe: Str = undefined, params = {}) {
-        let maxRetries: Int = undefined;
+        let maxRetries = undefined;
         [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', 3);
         let errors = 0;
         while (errors <= maxRetries) {
@@ -8513,7 +8516,7 @@ export default class Exchange {
     }
 
     async fetchPaginatedCallDeterministic (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, timeframe: Str = undefined, params = {}, maxEntriesPerRequest = undefined): Promise<any> {
-        let maxCalls: Int = undefined;
+        let maxCalls = undefined;
         [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', 10);
         [ maxEntriesPerRequest, params ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, params);
         const current = this.milliseconds ();
@@ -8554,12 +8557,12 @@ export default class Exchange {
     }
 
     async fetchPaginatedCallCursor (method: string, symbol: Str = undefined, since = undefined, limit = undefined, params = {}, cursorReceived = undefined, cursorSent = undefined, cursorIncrement = undefined, maxEntriesPerRequest = undefined): Promise<any> {
-        let maxCalls: Int = undefined;
+        let maxCalls = undefined;
         [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', 10);
-        let maxRetries: Int = undefined;
+        let maxRetries = undefined;
         [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', 3);
         [ maxEntriesPerRequest, params ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, params);
-        let cursorValue: any = undefined;
+        let cursorValue = undefined;
         let i = 0;
         let errors = 0;
         let result = [];
@@ -8573,7 +8576,7 @@ export default class Exchange {
                     }
                     params[cursorSent] = cursorValue;
                 }
-                let response: any = undefined;
+                let response = undefined;
                 if (method === 'fetchAccounts') {
                     response = await this[method] (params);
                 } else if (method === 'getLeverageTiersPaginated' || method === 'fetchPositions') {
@@ -8629,9 +8632,9 @@ export default class Exchange {
     }
 
     async fetchPaginatedCallIncremental (method: string, symbol: Str = undefined, since = undefined, limit = undefined, params = {}, pageKey = undefined, maxEntriesPerRequest = undefined): Promise<any> {
-        let maxCalls: Int = undefined;
+        let maxCalls = undefined;
         [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', 10);
-        let maxRetries: Int = undefined;
+        let maxRetries = undefined;
         [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', 3);
         [ maxEntriesPerRequest, params ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, params);
         let i = 0;
@@ -8870,8 +8873,8 @@ export default class Exchange {
     parseConversions (conversions: any[], code: Str = undefined, fromCurrencyKey: Str = undefined, toCurrencyKey: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Conversion[] {
         conversions = this.toArray (conversions);
         const result = [];
-        let fromCurrency: Currency = undefined;
-        let toCurrency: Currency = undefined;
+        let fromCurrency = undefined;
+        let toCurrency = undefined;
         for (let i = 0; i < conversions.length; i++) {
             const entry = conversions[i];
             const fromId = this.safeString (entry, fromCurrencyKey);
@@ -8886,7 +8889,7 @@ export default class Exchange {
             result.push (conversion);
         }
         const sorted = this.sortBy (result, 'timestamp');
-        let currency: Currency = undefined;
+        let currency = undefined;
         if (code !== undefined) {
             currency = this.safeCurrency (code);
             code = currency['code'];
@@ -8917,7 +8920,7 @@ export default class Exchange {
         // parse 240119 to 19JAN24
         const year = date.slice (0, 2);
         const monthRaw = date.slice (2, 4);
-        let month: Str = undefined;
+        let month = undefined;
         const day = date.slice (4, 6);
         if (monthRaw === '01') {
             month = 'JAN';
