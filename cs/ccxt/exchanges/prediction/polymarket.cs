@@ -1771,7 +1771,12 @@ public partial class polymarket : PredictionExchange
             { "update", "open" },
             { "cancellation", "canceled" },
         };
-        return this.safeStringLower(statuses, status, status);
+        // the REST data endpoints return upper-case statuses (LIVE, MATCHED, CANCELLED) while the
+        // user websocket sends lower-case lifecycle types — lower-case before the lookup so both map
+        object normalized = this.safeStringLower(new Dictionary<string, object>() {
+            { "status", status },
+        }, "status");
+        return this.safeString(statuses, normalized, normalized);
     }
 
     /**
@@ -2174,7 +2179,16 @@ public partial class polymarket : PredictionExchange
             { "orderID", id },
         };
         object response = await this.clobPrivateDeleteOrder(this.extend(request, parameters));
-        return this.parseOrder(response);
+        // the DELETE endpoint returns { canceled: [id], not_canceled: { id: reason } } with no order
+        // fields, so report the cancellation outcome explicitly rather than parsing an empty order
+        object notCanceled = this.safeDict(response, "not_canceled", new Dictionary<string, object>() {});
+        object failureReason = this.safeString(notCanceled, id);
+        object status = ((bool) isTrue((isEqual(failureReason, null)))) ? "canceled" : "open";
+        return this.safePredictionOrder(new Dictionary<string, object>() {
+            { "id", id },
+            { "status", status },
+            { "info", response },
+        });
     }
 
     /**

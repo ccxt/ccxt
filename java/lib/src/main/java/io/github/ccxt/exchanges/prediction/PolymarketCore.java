@@ -1922,7 +1922,12 @@ final Object finalMarketSymbol = marketSymbol;
             put( "update", "open" );
             put( "cancellation", "canceled" );
         }};
-        return this.safeStringLower(statuses, status, status);
+        // the REST data endpoints return upper-case statuses (LIVE, MATCHED, CANCELLED) while the
+        // user websocket sends lower-case lifecycle types — lower-case before the lookup so both map
+        Object normalized = this.safeStringLower(new java.util.HashMap<String, Object>() {{
+            put( "status", status );
+        }}, "status");
+        return this.safeString(statuses, normalized, normalized);
     }
 
     /**
@@ -2356,7 +2361,16 @@ final Object finalMarketSymbol = marketSymbol;
                 put( "orderID", id );
             }};
             Object response = (this.clobPrivateDeleteOrder(this.extend(request, parameters))).join();
-            return this.parseOrder(response);
+            // the DELETE endpoint returns { canceled: [id], not_canceled: { id: reason } } with no order
+            // fields, so report the cancellation outcome explicitly rather than parsing an empty order
+            Object notCanceled = this.safeDict(response, "not_canceled", new java.util.HashMap<String, Object>() {{}});
+            Object failureReason = this.safeString(notCanceled, id);
+            Object status = ((Helpers.isTrue((Helpers.isEqual(failureReason, null))))) ? "canceled" : "open";
+            return this.safePredictionOrder(new java.util.HashMap<String, Object>() {{
+                put( "id", id );
+                put( "status", status );
+                put( "info", response );
+            }});
         });
 
     }

@@ -1496,7 +1496,10 @@ class polymarket(PredictionExchange, ImplicitAPI):
             'update': 'open',
             'cancellation': 'canceled',
         }
-        return self.safe_string_lower(statuses, status, status)
+        # the REST data endpoints return upper-case statuses(LIVE, MATCHED, CANCELLED) while the
+        # user websocket sends lower-case lifecycle types — lower-case before the lookup so both map
+        normalized = self.safe_string_lower({'status': status}, 'status')
+        return self.safe_string(statuses, normalized, normalized)
 
     async def create_order(self, symbol: str, type: Str, side: Str, amount: Num, price: Num = None, params={}) -> PredictionOrder:
         """
@@ -1797,7 +1800,12 @@ class polymarket(PredictionExchange, ImplicitAPI):
         # cancelling by id needs no market data, so events do not have to be loaded first
         request: dict = {'orderID': id}
         response = await self.clobPrivateDeleteOrder(self.extend(request, params))
-        return self.parse_order(response)
+        # the DELETE endpoint returns {canceled: [id], not_canceled: {id: reason}} with no order
+        # fields, so report the cancellation outcome explicitly rather than parsing an empty order
+        notCanceled = self.safe_dict(response, 'not_canceled', {})
+        failureReason = self.safe_string(notCanceled, id)
+        status = 'canceled' if (failureReason is None) else 'open'
+        return self.safePredictionOrder({'id': id, 'status': status, 'info': response})
 
     async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}) -> List[PredictionOrder]:
         """
