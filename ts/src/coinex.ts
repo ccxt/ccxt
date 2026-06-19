@@ -1102,7 +1102,7 @@ export default class coinex extends Exchange {
         const request: Dict = {
             'market': market['id'],
         };
-        let response: Dict = undefined;
+        let response = undefined;
         if (market['swap']) {
             response = await this.v2PublicGetFuturesTicker (this.extend (request, params));
         } else {
@@ -1179,7 +1179,7 @@ export default class coinex extends Exchange {
             market = this.market (symbol);
         }
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-        let response: Dict = undefined;
+        let response = undefined;
         if (marketType === 'swap') {
             response = await this.v2PublicGetFuturesTicker (query);
         } else {
@@ -1281,7 +1281,7 @@ export default class coinex extends Exchange {
             'limit': limit,
             'interval': '0',
         };
-        let response: Dict = undefined;
+        let response = undefined;
         if (market['swap']) {
             response = await this.v2PublicGetFuturesDepth (this.extend (request, params));
             //
@@ -1439,7 +1439,7 @@ export default class coinex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
-        let response: Dict = undefined;
+        let response = undefined;
         if (market['swap']) {
             response = await this.v2PublicGetFuturesDeals (this.extend (request, params));
         } else {
@@ -1481,7 +1481,7 @@ export default class coinex extends Exchange {
         const request: Dict = {
             'market': market['id'],
         };
-        let response: Dict = undefined;
+        let response = undefined;
         if (market['spot']) {
             response = await this.v2PublicGetSpotMarket (this.extend (request, params));
             //
@@ -1546,7 +1546,7 @@ export default class coinex extends Exchange {
         await this.loadMarkets ();
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTradingFees', undefined, params);
-        let response: Dict = undefined;
+        let response = undefined;
         if (type === 'swap') {
             response = await this.v2PublicGetFuturesMarket (params);
             //
@@ -1664,7 +1664,7 @@ export default class coinex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response: Dict = undefined;
+        let response = undefined;
         if (market['swap']) {
             response = await this.v2PublicGetFuturesKline (this.extend (request, params));
         } else {
@@ -2309,7 +2309,7 @@ export default class coinex extends Exchange {
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
         const isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
         const request = this.createOrderRequest (symbol, type, side, amount, price, params);
-        let response: Dict = undefined;
+        let response = undefined;
         if (market['spot']) {
             if (isTriggerOrder) {
                 response = await this.v2PrivatePostSpotStopOrder (request);
@@ -2569,7 +2569,7 @@ export default class coinex extends Exchange {
             'market': market['id'],
             'orders': ordersRequests,
         };
-        let response: Dict = undefined;
+        let response = undefined;
         if (market['spot']) {
             if (isTriggerOrder) {
                 response = await this.v2PrivatePostSpotBatchStopOrder (request);
@@ -2741,7 +2741,7 @@ export default class coinex extends Exchange {
         };
         const trigger = this.safeBool2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
-        let response: Dict = undefined;
+        let response = undefined;
         const requestIds = [];
         for (let i = 0; i < ids.length; i++) {
             requestIds.push (parseInt (ids[i]));
@@ -2933,7 +2933,7 @@ export default class coinex extends Exchange {
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        let response: Dict = undefined;
+        let response = undefined;
         const triggerPrice = this.safeStringN (params, [ 'stopPrice', 'triggerPrice', 'trigger_price' ]);
         params = this.omit (params, [ 'stopPrice', 'triggerPrice' ]);
         const isTriggerOrder = triggerPrice !== undefined;
@@ -3094,7 +3094,7 @@ export default class coinex extends Exchange {
         const request: Dict = {
             'orders': ordersRequests,
         };
-        let response: Dict = undefined;
+        let response = undefined;
         if (firstMarket['spot']) {
             response = await this.v2PrivatePostSpotBatchModifyOrder (this.extend (request, params));
         } else {
@@ -3162,7 +3162,7 @@ export default class coinex extends Exchange {
         }
         const clientOrderId = this.safeString2 (params, 'client_id', 'clientOrderId');
         params = this.omit (params, [ 'stop', 'trigger', 'clientOrderId' ]);
-        let response: Dict = undefined;
+        let response = undefined;
         if (clientOrderId !== undefined) {
             request['client_id'] = clientOrderId;
             if (isTriggerOrder) {
@@ -3434,7 +3434,7 @@ export default class coinex extends Exchange {
         const request: Dict = {
             'market': market['id'],
         };
-        let response: Dict = undefined;
+        let response = undefined;
         if (market['swap']) {
             request['market_type'] = 'FUTURES';
             response = await this.v2PrivatePostFuturesCancelAllOrder (this.extend (request, params));
@@ -3482,7 +3482,7 @@ export default class coinex extends Exchange {
             'market': market['id'],
             'order_id': this.parseToNumeric (id),
         };
-        let response: Dict = undefined;
+        let response = undefined;
         if (market['swap']) {
             response = await this.v2PrivateGetFuturesOrderStatus (this.extend (request, params));
             //
@@ -3583,7 +3583,7 @@ export default class coinex extends Exchange {
         params = this.omit (params, [ 'stop', 'trigger' ]);
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
-        let response: Dict = undefined;
+        let response = undefined;
         const isClosed = (status === 'finished') || (status === 'closed');
         const isOpen = (status === 'pending') || (status === 'open');
         if (marketType === 'swap') {
@@ -4041,7 +4041,7 @@ export default class coinex extends Exchange {
             request['start_time'] = since;
         }
         [ request, params ] = this.handleUntilOption ('end_time', request, params);
-        let response: Dict = undefined;
+        let response = undefined;
         if (market['swap']) {
             request['market_type'] = 'FUTURES';
             response = await this.v2PrivateGetFuturesUserDeals (this.extend (request, params));
@@ -4134,7 +4134,7 @@ export default class coinex extends Exchange {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
-        let response: Dict = undefined;
+        let response = undefined;
         if (defaultMethod === 'v2PrivateGetFuturesPendingPosition') {
             response = await this.v2PrivateGetFuturesPendingPosition (this.extend (request, params));
         } else {
