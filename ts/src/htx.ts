@@ -3764,7 +3764,8 @@ export default class htx extends Exchange {
                 const currencyId = this.safeString (balance, 'currency');
                 const code = this.safeCurrencyCode (currencyId);
                 const account = this.account ();
-                account['free'] = this.safeString (balance, 'withdraw_available');
+                account['free'] = this.safeString (balance, 'available_margin');
+                account['total'] = this.safeString(balance, 'equity');
                 result[code] = account;
             }
             result = this.safeBalance (result);
@@ -3800,7 +3801,8 @@ export default class htx extends Exchange {
                 const currencyId = this.safeString (balance, 'currency');
                 const code = this.safeCurrencyCode (currencyId);
                 const account = this.account ();
-                account['free'] = this.safeString (balance, 'withdraw_available');
+                account['free'] = this.safeString(balance, 'available_margin');
+                account['total'] = this.safeString(balance, 'equity');
                 result[code] = account;
             }
             result = this.safeBalance (result);
