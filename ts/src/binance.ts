@@ -5055,7 +5055,7 @@ export default class binance extends Exchange {
         const symbol = market['symbol'];
         let side: Str = undefined;
         const buyerMaker = this.safeBool2 (trade, 'm', 'isBuyerMaker');
-        let takerOrMaker = undefined;
+        let takerOrMaker: Str = undefined;
         if (buyerMaker !== undefined) {
             side = buyerMaker ? 'sell' : 'buy'; // this is reversed intentionally
         } else if ('side' in trade) {
@@ -8925,8 +8925,8 @@ export default class binance extends Exchange {
         const code = this.safeCurrencyCode (currencyId, currency);
         const amount = this.safeNumber (transfer, 'amount');
         const type = this.safeString (transfer, 'type');
-        let fromAccount = undefined;
-        let toAccount = undefined;
+        let fromAccount: Str = undefined;
+        let toAccount: Str = undefined;
         const accountsById = this.safeDict (this.options, 'accountsById', {});
         if (type !== undefined) {
             const parts = type.split ('_');
