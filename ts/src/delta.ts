@@ -347,9 +347,9 @@ export default class delta extends Exchange {
         const quote = 'USDT';
         const optionParts = symbol.split ('-');
         const symbolBase = symbol.split ('/');
-        let base: Str;
+        let base: Str = undefined;
         let expiry = undefined;
-        let optionType: Str;
+        let optionType: Str = undefined;
         if (symbol.indexOf ('/') > -1) {
             base = this.safeString (symbolBase, 0);
             expiry = this.safeString (optionParts, 1);
@@ -878,7 +878,7 @@ export default class delta extends Exchange {
             const expiryDatetime = this.safeString (market, 'settlement_time');
             const expiry = this.parse8601 (expiryDatetime);
             const contractSize = this.safeNumber (market, 'contract_value');
-            let amountPrecision: Num;
+            let amountPrecision: Num = undefined;
             if (spot) {
                 amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (productSpecs, 'underlying_precision'))); // seems inverse of 'impact_size'
             } else {
@@ -886,7 +886,7 @@ export default class delta extends Exchange {
                 amountPrecision = this.parseNumber ('1');
             }
             const linear = (settle === quote);
-            let optionType: Str;
+            let optionType: Str = undefined;
             let symbol = base + '/' + quote;
             if (swap || future || option) {
                 symbol = symbol + ':' + settle;
@@ -1823,7 +1823,7 @@ export default class delta extends Exchange {
         const symbol = market['symbol'];
         const timestamp = this.safeIntegerProduct (position, 'timestamp', 0.001);
         const sizeString = this.safeString (position, 'size');
-        let side: Str;
+        let side: Str = undefined;
         if (sizeString !== undefined) {
             if (Precise.stringGt (sizeString, '0')) {
                 side = 'buy';
@@ -1931,7 +1931,7 @@ export default class delta extends Exchange {
         const id = this.safeString (order, 'id');
         const clientOrderId = this.safeString (order, 'client_order_id');
         const createdAt = this.safeString (order, 'created_at');
-        let timestamp: Int;
+        let timestamp: Int = undefined;
         if (createdAt !== undefined) {
             if (createdAt.indexOf ('-') >= 0) {
                 timestamp = this.parse8601 (createdAt);
@@ -1956,7 +1956,7 @@ export default class delta extends Exchange {
         let fee = undefined;
         const feeCostString = this.safeString (order, 'paid_commission');
         if (feeCostString !== undefined) {
-            let feeCurrencyCode: Str;
+            let feeCurrencyCode: Str = undefined;
             if (market !== undefined) {
                 const settlingAsset = this.safeDict (market['info'], 'settling_asset', {});
                 const feeCurrencyId = this.safeString (settlingAsset, 'symbol');
@@ -2239,7 +2239,7 @@ export default class delta extends Exchange {
         const clientOrderId = this.safeStringN (params, [ 'clientOrderId', 'client_oid', 'clientOid' ]);
         params = this.omit (params, [ 'clientOrderId', 'client_oid', 'clientOid' ]);
         const request: Dict = {};
-        let response: Dict;
+        let response: Dict = undefined;
         if (clientOrderId !== undefined) {
             request['client_oid'] = clientOrderId;
             response = await this.privateGetOrdersClientOrderIdClientOid (this.extend (request, params));
@@ -2328,7 +2328,7 @@ export default class delta extends Exchange {
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        let response: Dict;
+        let response: Dict = undefined;
         if (method === 'privateGetOrders') {
             response = await this.privateGetOrders (this.extend (request, params));
         } else if (method === 'privateGetOrdersHistory') {
@@ -2531,7 +2531,7 @@ export default class delta extends Exchange {
         //     }
         //
         const id = this.safeString (item, 'uuid');
-        let direction: Str;
+        let direction: Str = undefined;
         const account = undefined;
         const metaData = this.safeDict (item, 'meta_data', {});
         const referenceId = this.safeString (metaData, 'transaction_id');
@@ -3587,7 +3587,7 @@ export default class delta extends Exchange {
     }
 
     parseMarginMode (marginMode: Dict, market = undefined): MarginMode {
-        let symbol: Str;
+        let symbol: Str = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
         }

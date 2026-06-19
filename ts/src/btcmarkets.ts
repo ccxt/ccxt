@@ -436,7 +436,7 @@ export default class btcmarkets extends Exchange {
         const cryptoPaymentDetail = this.safeDict (transaction, 'paymentDetail', {});
         const txid = this.safeString (cryptoPaymentDetail, 'txId');
         let address = this.safeString (cryptoPaymentDetail, 'address');
-        let tag: Str;
+        let tag: Str = undefined;
         if (address !== undefined) {
             const addressParts = address.split ('?dt=');
             const numParts = addressParts.length;
@@ -524,7 +524,7 @@ export default class btcmarkets extends Exchange {
         const minAmount = this.safeNumber (market, 'minOrderAmount');
         const maxAmount = this.safeNumber (market, 'maxOrderAmount');
         const status = this.safeString (market, 'status');
-        let minPrice: Num;
+        let minPrice: Num = undefined;
         if (quote === 'AUD') {
             minPrice = pricePrecision;
         }

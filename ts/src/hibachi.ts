@@ -541,11 +541,11 @@ export default class hibachi extends Exchange {
         const amount = this.safeString (trade, 'quantity');
         const timestamp = this.safeIntegerProduct (trade, 'timestamp', 1000);
         const cost = Precise.stringMul (price, amount);
-        let side: Str;
+        let side: Str = undefined;
         let fee = undefined;
-        let orderType: Str;
-        let orderId: Str;
-        let takerOrMaker: Str;
+        let orderType: Str = undefined;
+        let orderId: Str = undefined;
+        let takerOrMaker: Str = undefined;
         if (id === undefined) {
             // public trades
             side = this.safeStringLower (trade, 'takerSide');
@@ -680,7 +680,7 @@ export default class hibachi extends Exchange {
         const type = this.safeStringLower (order, 'orderType');
         const price = this.safeString (order, 'price');
         const rawSide = this.safeString (order, 'side');
-        let side: Str;
+        let side: Str = undefined;
         if (rawSide === 'BID') {
             side = 'buy';
         } else if (rawSide === 'ASK') {
@@ -1681,14 +1681,14 @@ export default class hibachi extends Exchange {
 
     parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
         const transactionType = this.safeString (item, 'transactionType');
-        let timestamp: Int;
-        let type: Str;
-        let direction: Str;
-        let amount: Num;
-        let fee: Fee;
-        let referenceId: Str;
-        let referenceAccount: Str;
-        let status: Str;
+        let timestamp: Int = undefined;
+        let type: Str = undefined;
+        let direction: Str = undefined;
+        let amount: Num = undefined;
+        let fee: Fee = undefined;
+        let referenceId: Str = undefined;
+        let referenceAccount: Str = undefined;
+        let status: Str = undefined;
         if (transactionType === undefined) {
             // response from TradeAccountTradingHistory
             timestamp = this.safeIntegerProduct (item, 'timestamp', 1000);

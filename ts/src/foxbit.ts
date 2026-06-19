@@ -1554,7 +1554,7 @@ export default class foxbit extends Exchange {
         if (tag !== undefined) {
             request['destination_tag'] = tag;
         }
-        let networkCode: Str;
+        let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
             request['network_code'] = this.networkCodeToId (networkCode, code);

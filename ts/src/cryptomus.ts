@@ -719,7 +719,7 @@ export default class cryptomus extends Exchange {
         const priceToString = this.numberToString (price);
         let cost = undefined;
         [ cost, params ] = this.handleParamString (params, 'cost');
-        let response: Dict;
+        let response: Dict = undefined;
         if (type === 'market') {
             if (sideBuy) {
                 let createMarketBuyOrderRequiresPrice = true;
@@ -974,7 +974,7 @@ export default class cryptomus extends Exchange {
         const side = this.safeString (order, 'direction');
         let price = this.safeNumber (order, 'price');
         const transaction = this.safeList (deal, 'transactions', []);
-        let fee: Fee;
+        let fee: Fee = undefined;
         const firstTx = this.safeDict (transaction, 0);
         const feeCurrency = this.safeString (firstTx, 'feeCurrency');
         if (feeCurrency !== undefined) {

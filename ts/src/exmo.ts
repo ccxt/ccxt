@@ -312,7 +312,7 @@ export default class exmo extends Exchange {
             'position_id': market['id'],
             'quantity': amount,
         };
-        let response: Dict;
+        let response: Dict = undefined;
         if (type === 'add') {
             response = await this.privatePostMarginUserPositionMarginAdd (this.extend (request, params));
         } else if (type === 'reduce') {
@@ -1088,12 +1088,12 @@ export default class exmo extends Exchange {
      */
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
-        let marginMode: Str;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBalance', params);
         if (marginMode === 'cross') {
             throw new BadRequest (this.id + ' does not support cross margin');
         }
-        let response: Dict;
+        let response: Dict = undefined;
         if (marginMode === 'isolated') {
             response = await this.privatePostMarginUserWalletList (params);
             //
@@ -1342,12 +1342,12 @@ export default class exmo extends Exchange {
         market = this.safeMarket (marketId, market, '_');
         const symbol = market['symbol'];
         const isMaker = this.safeValue (trade, 'is_maker');
-        let takerOrMakerDefault: Str;
+        let takerOrMakerDefault: Str = undefined;
         if (isMaker !== undefined) {
             takerOrMakerDefault = isMaker ? 'maker' : 'taker';
         }
         const takerOrMaker = this.safeString (trade, 'exec_type', takerOrMakerDefault);
-        let fee: Dict;
+        let fee: Dict = undefined;
         const feeCostString = this.safeString (trade, 'commission_amount');
         if (feeCostString !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'commission_currency');
@@ -1442,7 +1442,7 @@ export default class exmo extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
-        let marginMode: Str;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
         if (marginMode === 'cross') {
             throw new BadRequest (this.id + ' only isolated margin is supported');
@@ -1465,7 +1465,7 @@ export default class exmo extends Exchange {
         }
         const offset = this.safeInteger (params, 'offset', 0);
         request['offset'] = offset;
-        let response: Dict;
+        let response: Dict = undefined;
         if (isSpot) {
             response = await this.privatePostUserTrades (this.extend (request, params));
             //
@@ -1597,7 +1597,7 @@ export default class exmo extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const isMarket = (type === 'market') && (price === undefined);
-        let marginMode: Str;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
         if (marginMode === 'cross') {
             throw new BadRequest (this.id + ' only supports isolated margin');
@@ -1639,7 +1639,7 @@ export default class exmo extends Exchange {
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (market['symbol'], price);
         }
-        let response: Dict;
+        let response: Dict = undefined;
         if (isSpot) {
             if (triggerPrice !== undefined) {
                 if (type === 'limit') {
@@ -1651,7 +1651,7 @@ export default class exmo extends Exchange {
                 response = await this.privatePostStopMarketOrderCreate (this.extend (request, params));
             } else {
                 const execType = this.safeString (params, 'exec_type');
-                let isPostOnly: Bool;
+                let isPostOnly: Bool = undefined;
                 [ isPostOnly, params ] = this.handlePostOnly (type === 'market', execType === 'post_only', params);
                 const timeInForce = this.safeString (params, 'timeInForce');
                 request['price'] = isMarket ? 0 : this.priceToPrecision (market['symbol'], price);
@@ -1709,12 +1709,12 @@ export default class exmo extends Exchange {
         const request: Dict = {};
         const trigger = this.safeValue2 (params, 'trigger', 'stop');
         params = this.omit (params, [ 'trigger', 'stop' ]);
-        let marginMode: Str;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('cancelOrder', params);
         if (marginMode === 'cross') {
             throw new BadRequest (this.id + ' only supports isolated margin');
         }
-        let response: Dict;
+        let response: Dict = undefined;
         if ((marginMode === 'isolated')) {
             request['order_id'] = id;
             response = await this.privatePostMarginUserOrderCancel (this.extend (request, params));
@@ -1799,7 +1799,7 @@ export default class exmo extends Exchange {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        let marginMode: Str;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrderTrades', params);
         if (marginMode === 'cross') {
             throw new BadRequest (this.id + ' only supports isolated margin');
@@ -1811,7 +1811,7 @@ export default class exmo extends Exchange {
         const request: Dict = {
             'order_id': id.toString (),
         };
-        let response: Dict;
+        let response: Dict = undefined;
         if (marginMode === 'isolated') {
             response = await this.privatePostMarginUserOrderTrades (this.extend (request, params));
             //
@@ -1882,10 +1882,10 @@ export default class exmo extends Exchange {
             market = this.market (symbol);
             symbol = market['symbol'];
         }
-        let marginMode: Str;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOpenOrders', params);
         const isMargin = ((marginMode === 'cross') || (marginMode === 'isolated'));
-        let response: Dict;
+        let response: Dict = undefined;
         let orders = [];
         if (isMargin) {
             response = await this.privatePostMarginUserOrderList (params);
@@ -2072,7 +2072,7 @@ export default class exmo extends Exchange {
         const timestamp = this.safeTimestamp (order, 'created', eventTime);
         const orderType = this.safeString2 (order, 'type', 'order_type');
         const side = this.parseSide (orderType);
-        let marketId: Str;
+        let marketId: Str = undefined;
         if ('pair' in order) {
             marketId = order['pair'];
         } else if (('in_currency' in order) && ('out_currency' in order)) {
@@ -2097,7 +2097,7 @@ export default class exmo extends Exchange {
         if (triggerPrice === '0') {
             triggerPrice = undefined;
         }
-        let type: Str;
+        let type: Str = undefined;
         if ((orderType !== 'buy') && (orderType !== 'sell')) {
             type = orderType;
         }
@@ -2141,7 +2141,7 @@ export default class exmo extends Exchange {
      */
     async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        let marginMode: Str;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrders', params);
         if (marginMode === 'cross') {
             throw new BadRequest (this.id + ' only supports isolated margin');
@@ -2163,7 +2163,7 @@ export default class exmo extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let response: Dict;
+        let response: Dict = undefined;
         if (isSpot) {
             response = await this.privatePostUserCancelledOrders (this.extend (request, params));
             //
@@ -2222,7 +2222,7 @@ export default class exmo extends Exchange {
     async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let marginMode: Str;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('editOrder', params);
         if (marginMode !== 'isolated') {
             throw new BadRequest (this.id + ' editOrder() can only be used for isolated margin orders');
@@ -2264,7 +2264,7 @@ export default class exmo extends Exchange {
         //     }
         //
         const depositAddress = this.safeString (response, code);
-        let address: Str;
+        let address: Str = undefined;
         let tag = undefined;
         if (depositAddress) {
             const addressAndTag = depositAddress.split (',');
@@ -2408,8 +2408,8 @@ export default class exmo extends Exchange {
         const type = this.safeString (transaction, 'type');
         const currencyId = this.safeString2 (transaction, 'curr', 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        let address: Str;
-        let comment: Str;
+        let address: Str = undefined;
+        let comment: Str = undefined;
         const account = this.safeString (transaction, 'account');
         if (type === 'deposit') {
             comment = account;
@@ -2806,7 +2806,7 @@ export default class exmo extends Exchange {
                 }
             }
             if (!success) {
-                let code: Str;
+                let code: Str = undefined;
                 const message = this.safeString2 (response, 'error', 'errmsg');
                 const errorParts = message.split (':');
                 const numParts = errorParts.length;

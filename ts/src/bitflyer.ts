@@ -306,10 +306,10 @@ export default class bitflyer extends Exchange {
             const future = (marketType === 'Futures');
             const spot = !swap && !future;
             let type = 'spot';
-            let settle: Str;
-            let baseId: Str;
-            let quoteId: Str;
-            let expiry: Int;
+            let settle: Str = undefined;
+            let baseId: Str = undefined;
+            let quoteId: Str = undefined;
+            let expiry: Int = undefined;
             if (spot) {
                 baseId = this.safeString (currencies, 0);
                 quoteId = this.safeString (currencies, 1);
@@ -738,7 +738,7 @@ export default class bitflyer extends Exchange {
         const side = this.safeStringLower (order, 'side');
         const marketId = this.safeString (order, 'product_code');
         const symbol = this.safeSymbol (marketId, market);
-        let fee: Dict;
+        let fee: Dict = undefined;
         const feeCost = this.safeNumber (order, 'total_commission');
         if (feeCost !== undefined) {
             fee = {
@@ -1113,8 +1113,8 @@ export default class bitflyer extends Exchange {
         const amount = this.safeNumber (transaction, 'amount');
         const txId = this.safeString (transaction, 'tx_hash');
         const rawStatus = this.safeString (transaction, 'status');
-        let type: Str;
-        let status: Str;
+        let type: Str = undefined;
+        let status: Str = undefined;
         let fee = undefined;
         if ('fee' in transaction) {
             type = 'withdrawal';

@@ -1339,7 +1339,7 @@ export default class alpaca extends Exchange {
         if (price !== undefined) {
             request['limit_price'] = this.priceToPrecision (symbol, price);
         }
-        let timeInForce: Str;
+        let timeInForce: Str = undefined;
         [ timeInForce, params ] = this.handleOptionAndParams2 (params, 'editOrder', 'timeInForce', 'defaultTimeInForce');
         if (timeInForce !== undefined) {
             request['time_in_force'] = timeInForce;
@@ -1607,7 +1607,7 @@ export default class alpaca extends Exchange {
         //         "created_at": "2024-11-03T07:30:05.609976344Z"
         //     }
         //
-        let parsedCurrency: Str;
+        let parsedCurrency: Str = undefined;
         if (currency !== undefined) {
             parsedCurrency = currency['id'];
         }

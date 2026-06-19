@@ -882,7 +882,7 @@ export default class bigone extends Exchange {
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let type: Str;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTicker', market, params);
         if (type === 'spot') {
             const request: Dict = {
@@ -929,7 +929,7 @@ export default class bigone extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let type: Str;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         const isSpot = type === 'spot';
         const request: Dict = {};
@@ -1036,7 +1036,7 @@ export default class bigone extends Exchange {
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let response: Dict;
+        let response: Dict = undefined;
         if (market['contract']) {
             const request: Dict = {
                 'symbol': market['id'],
@@ -1431,7 +1431,7 @@ export default class bigone extends Exchange {
         await this.loadMarkets ();
         const type = this.safeString (params, 'type', '');
         params = this.omit (params, 'type');
-        let response: Dict;
+        let response: Dict = undefined;
         if (type === 'funding' || type === 'fund') {
             response = await this.privateGetFundAccounts (params);
         } else {
@@ -1495,15 +1495,15 @@ export default class bigone extends Exchange {
             triggerPrice = undefined;
         }
         const immediateOrCancel = this.safeBool (order, 'immediate_or_cancel');
-        let timeInForce: Str;
+        let timeInForce: Str = undefined;
         if (immediateOrCancel) {
             timeInForce = 'IOC';
         }
         const type = this.parseType (this.safeString (order, 'type'));
         const price = this.safeString (order, 'price');
-        let amount: Str;
-        let filled: Str;
-        let cost: Str;
+        let amount: Str = undefined;
+        let filled: Str = undefined;
+        let cost: Str = undefined;
         if (type === 'market' && side === 'buy') {
             cost = this.safeString (order, 'filled_amount');
         } else {
@@ -1584,7 +1584,7 @@ export default class bigone extends Exchange {
         let uppercaseType = type.toUpperCase ();
         const isLimit = uppercaseType === 'LIMIT';
         const exchangeSpecificParam = this.safeBool (params, 'post_only', false);
-        let postOnly: Bool;
+        let postOnly: Bool = undefined;
         [ postOnly, params ] = this.handlePostOnly ((uppercaseType === 'MARKET'), exchangeSpecificParam, params);
         const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
         const request: Dict = {
@@ -2321,7 +2321,7 @@ export default class bigone extends Exchange {
         if (tag !== undefined) {
             request['memo'] = tag;
         }
-        let networkCode: Str;
+        let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
             request['gateway_name'] = this.networkCodeToId (networkCode, currency['code']);

@@ -796,12 +796,12 @@ export default class indodax extends Exchange {
         //        }
         //    }
         //
-        let side: Str;
+        let side: Str = undefined;
         if ('type' in order) {
             side = order['type'];
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status', 'open'));
-        let symbol: Str;
+        let symbol: Str = undefined;
         let cost = undefined;
         const price = this.safeString (order, 'price');
         let amount = undefined;
@@ -1299,7 +1299,7 @@ export default class indodax extends Exchange {
         const timestamp = this.safeTimestamp2 (transaction, 'success_time', 'submit_time');
         const depositId = this.safeString (transaction, 'deposit_id');
         const feeCost = this.safeNumber (transaction, 'fee');
-        let fee: Fee;
+        let fee: Fee = undefined;
         if (feeCost !== undefined) {
             fee = {
                 'currency': this.safeCurrencyCode (undefined, currency),

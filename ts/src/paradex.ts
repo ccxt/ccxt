@@ -1481,7 +1481,7 @@ export default class paradex extends Exchange {
         const remaining = this.omitZero (this.safeString (order, 'remaining_size'));
         const lastUpdateTimestamp = this.safeInteger (order, 'last_updated_at');
         const flags = this.safeList (order, 'flags', []);
-        let reduceOnly: Bool;
+        let reduceOnly: Bool = undefined;
         if ('REDUCE_ONLY' in flags) {
             reduceOnly = true;
         }
@@ -1884,7 +1884,7 @@ export default class paradex extends Exchange {
         await this.loadMarkets ();
         const request: Dict = {};
         const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
-        let response: Dict;
+        let response: Dict = undefined;
         if (clientOrderId !== undefined) {
             request['client_id'] = clientOrderId;
             response = await this.privateDeleteOrdersByClientIdClientId (this.extend (request, params));
@@ -1958,7 +1958,7 @@ export default class paradex extends Exchange {
             const marketId = this.safeString (result, 'market');
             const market = this.safeMarket (marketId, undefined);
             const status = this.safeString (result, 'status');
-            let orderStatus: Str;
+            let orderStatus: Str = undefined;
             if (status === 'QUEUED_FOR_CANCELLATION') {
                 orderStatus = 'canceled';
             } else if (status === 'ALREADY_CLOSED') {
@@ -2021,7 +2021,7 @@ export default class paradex extends Exchange {
         const request: Dict = {};
         const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
         params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
-        let response: Dict;
+        let response: Dict = undefined;
         if (clientOrderId !== undefined) {
             request['client_id'] = clientOrderId;
             response = await this.privateGetOrdersByClientIdClientId (this.extend (request, params));
@@ -2685,8 +2685,8 @@ export default class paradex extends Exchange {
         const code = this.safeCurrencyCode (currencyId, currency);
         const timestamp = this.safeInteger (transfer, 'created_at');
         const kind = this.safeString (transfer, 'kind');
-        let fromAccount: Str;
-        let toAccount: Str;
+        let fromAccount: Str = undefined;
+        let toAccount: Str = undefined;
         if (kind === 'DEPOSIT') {
             fromAccount = 'external';
             toAccount = 'account';

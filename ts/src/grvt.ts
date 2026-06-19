@@ -1077,7 +1077,7 @@ export default class grvt extends Exchange {
         const marketId = this.safeString (trade, 'instrument');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeIntegerProduct (trade, 'event_time', 0.000001);
-        let takerOrMaker: Str;
+        let takerOrMaker: Str = undefined;
         const isTakerBuyer = this.safeBool (trade, 'is_taker_buyer');
         let side: Str = undefined;
         if (isTakerBuyer !== undefined) {
@@ -1087,7 +1087,7 @@ export default class grvt extends Exchange {
             takerOrMaker = this.safeBool (trade, 'is_taker') ? 'taker' : 'maker';
             side = this.safeBool (trade, 'is_buyer') ? 'buy' : 'sell';
         }
-        let fee: Fee;
+        let fee: Fee = undefined;
         const feeString = this.safeString (trade, 'fee');
         if (feeString !== undefined) {
             fee = {
@@ -1281,7 +1281,7 @@ export default class grvt extends Exchange {
     }
 
     getSubAccountId (params) {
-        let subAccountId: Str;
+        let subAccountId: Str = undefined;
         [ subAccountId, params ] = this.handleOptionAndParams (params, 'getSubAccountId', 'accountId');
         if (subAccountId === undefined) {
             throw new ArgumentsRequired (this.id + ' you should set "accountId" in options or params, which can be found in the grvt dashboard, under Api-Keys page');
@@ -2982,7 +2982,7 @@ export default class grvt extends Exchange {
         const timeInForceRaw = this.safeString (order, 'time_in_force');
         const timeInForce = isPostOnly ? 'PO' : this.parseTimeInForce (timeInForceRaw);
         let size = undefined;
-        let side: Str;
+        let side: Str = undefined;
         let price = undefined;
         let filled = undefined;
         let avgPrice = undefined;
@@ -3153,7 +3153,7 @@ export default class grvt extends Exchange {
     }
 
     createSignedRequest (request: any, structureType: string, currencyObj = undefined, signerAddress: Str = undefined): Dict {
-        let messageData: Dict;
+        let messageData: Dict = undefined;
         if (structureType === 'EIP712_TRANSFER_TYPE') {
             const amountMultiplier = this.convertToBigIntCustom ('1000000');
             const amountInt = request['num_tokens'] * amountMultiplier;

@@ -707,7 +707,7 @@ export default class derive extends deriveRest {
             'orders': this.handleOrder,
             'mytrades': this.handleMyTrade,
         };
-        let event: Str;
+        let event: Str = undefined;
         const params = this.safeDict (message, 'params');
         if (params !== undefined) {
             const channel = this.safeString (params, 'channel');

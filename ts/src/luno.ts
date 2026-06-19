@@ -580,7 +580,7 @@ export default class luno extends Exchange {
         const request: Dict = {
             'pair': market['id'],
         };
-        let response: Dict;
+        let response: Dict = undefined;
         if (limit !== undefined && limit <= 100) {
             response = await this.publicGetOrderbookTop (this.extend (request, params));
         } else {
@@ -619,7 +619,7 @@ export default class luno extends Exchange {
         const timestamp = this.safeInteger (order, 'creation_timestamp');
         let status = this.parseOrderStatus (this.safeString (order, 'state'));
         status = (status === 'open') ? status : status;
-        let side: Str;
+        let side: Str = undefined;
         const orderType = this.safeString (order, 'type');
         if ((orderType === 'ASK') || (orderType === 'SELL')) {
             side = 'sell';
@@ -634,7 +634,7 @@ export default class luno extends Exchange {
         const baseFee = this.safeNumber (order, 'fee_base');
         const filled = this.safeString (order, 'base');
         const cost = this.safeString (order, 'counter');
-        let fee: Dict;
+        let fee: Dict = undefined;
         if (quoteFee !== undefined) {
             fee = {
                 'cost': quoteFee,
@@ -879,8 +879,8 @@ export default class luno extends Exchange {
         // Private trade data includes ID field which public trade data does not.
         const orderId = this.safeString (trade, 'order_id');
         const id = this.safeString (trade, 'sequence');
-        let takerOrMaker: Str;
-        let side: Str;
+        let takerOrMaker: Str = undefined;
+        let side: Str = undefined;
         if (orderId !== undefined) {
             const type = this.safeString (trade, 'type');
             if ((type === 'ASK') || (type === 'SELL')) {
@@ -1143,7 +1143,7 @@ export default class luno extends Exchange {
         const request: Dict = {
             'pair': market['id'],
         };
-        let response: Dict;
+        let response: Dict = undefined;
         if (type === 'market') {
             request['type'] = side.toUpperCase ();
             // todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
@@ -1278,7 +1278,7 @@ export default class luno extends Exchange {
             'Bought': 'trade',
             'Failure': 'failed',
         };
-        let referenceId: Str;
+        let referenceId: Str = undefined;
         const firstWord = this.safeString (words, 0);
         const thirdWord = this.safeString (words, 2);
         const fourthWord = this.safeString (words, 3);
@@ -1312,8 +1312,8 @@ export default class luno extends Exchange {
         const result = this.parseLedgerComment (comment);
         const type = result['type'];
         const referenceId = result['referenceId'];
-        let direction: Str;
-        let status: Str;
+        let direction: Str = undefined;
+        let status: Str = undefined;
         if (!Precise.stringEquals (balance_delta, '0.0')) {
             before = Precise.stringSub (after, balance_delta);
             status = 'ok';

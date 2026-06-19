@@ -833,7 +833,7 @@ export default class hitbtc extends hitbtcRest {
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        let marketType: Str;
+        let marketType: Str = undefined;
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1031,7 +1031,7 @@ export default class hitbtc extends hitbtcRest {
         }
         const rawStatus = this.safeString (order, 'status');
         const report_type = this.safeString (order, 'report_type');
-        let parsedStatus: Str;
+        let parsedStatus: Str = undefined;
         if (report_type === 'canceled') {
             parsedStatus = this.parseOrderStatus (report_type);
         } else {
@@ -1077,7 +1077,7 @@ export default class hitbtc extends hitbtcRest {
      */
     async watchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
-        let type: Str;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         const name = this.getSupportedMapping (type, {
             'spot': 'spot_balance_subscribe',
@@ -1115,10 +1115,10 @@ export default class hitbtc extends hitbtcRest {
     async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let request: Dict;
-        let marketType: Str;
+        let request: Dict = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('createOrder', market, params);
-        let marginMode: Str;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
         [ request, params ] = this.createOrderRequest (market, marketType, type, side, amount, price, marginMode, params);
         request = this.extend (request, params);
@@ -1154,7 +1154,7 @@ export default class hitbtc extends hitbtcRest {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let marketType: Str;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrderWs', market, params);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('cancelOrderWs', params);
         request = this.extend (request, query);
@@ -1185,9 +1185,9 @@ export default class hitbtc extends hitbtcRest {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let marketType: Str;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('cancelAllOrdersWs', market, params);
-        let marginMode: Str;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('cancelAllOrdersWs', params);
         if (marketType === 'swap') {
             return await this.tradeRequest ('futures_cancel_orders', params);
@@ -1221,9 +1221,9 @@ export default class hitbtc extends hitbtcRest {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        let marketType: Str;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrdersWs', market, params);
-        let marginMode: Str;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOpenOrdersWs', params);
         if (marketType === 'swap') {
             return await this.tradeRequest ('futures_get_orders', request);

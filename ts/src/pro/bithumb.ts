@@ -582,7 +582,7 @@ export default class bithumb extends bithumbRest {
         const sideId = this.safeString (order, 'ask_bid');
         const side = (sideId === 'BID') ? ('buy') : ('sell');
         const typeId = this.safeString (order, 'order_type');
-        let type: Str;
+        let type: Str = undefined;
         if (typeId === 'limit') {
             type = 'limit';
         } else if (typeId === 'price') {
@@ -591,7 +591,7 @@ export default class bithumb extends bithumbRest {
             type = 'market';
         }
         const stateId = this.safeString (order, 'state');
-        let status: Str;
+        let status: Str = undefined;
         if (stateId === 'wait') {
             status = 'open';
         } else if (stateId === 'trade') {

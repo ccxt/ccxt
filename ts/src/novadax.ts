@@ -666,7 +666,7 @@ export default class novadax extends Exchange {
         const symbol = this.safeSymbol (marketId, market, '_');
         const takerOrMaker = this.safeStringLower (trade, 'role');
         const feeString = this.safeString (trade, 'fee');
-        let fee: Dict;
+        let fee: Dict = undefined;
         if (feeString !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'feeCurrency');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
@@ -1225,7 +1225,7 @@ export default class novadax extends Exchange {
         const timestamp = this.safeInteger (order, 'timestamp');
         const average = this.safeString (order, 'averagePrice');
         const filled = this.safeString (order, 'filledAmount');
-        let fee: Dict;
+        let fee: Dict = undefined;
         const feeCost = this.safeNumber (order, 'filledFee');
         if (feeCost !== undefined) {
             fee = {
@@ -1664,7 +1664,7 @@ export default class novadax extends Exchange {
                 'X-Nova-Access-Key': this.apiKey,
                 'X-Nova-Timestamp': timestamp,
             };
-            let queryString: Str;
+            let queryString: Str = undefined;
             if (method === 'POST') {
                 body = this.json (query);
                 queryString = this.hash (this.encode (body), md5);

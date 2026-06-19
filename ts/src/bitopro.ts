@@ -672,7 +672,7 @@ export default class bitopro extends Exchange {
         //
         const id = this.safeString (trade, 'tradeId');
         const orderId = this.safeString (trade, 'orderId');
-        let timestamp: Int;
+        let timestamp: Int = undefined;
         if (id === undefined) {
             timestamp = this.safeTimestamp (trade, 'timestamp');
         } else {
@@ -696,7 +696,7 @@ export default class bitopro extends Exchange {
         if (amount === undefined) {
             amount = this.safeString (trade, 'baseAmount');
         }
-        let fee: Dict;
+        let fee: Dict = undefined;
         const feeAmount = this.safeString (trade, 'fee');
         const feeSymbol = this.safeCurrencyCode (this.safeString (trade, 'feeSymbol'));
         if (feeAmount !== undefined) {
@@ -707,7 +707,7 @@ export default class bitopro extends Exchange {
             };
         }
         const isTaker = this.safeBool (trade, 'isTaker');
-        let takerOrMaker: Str;
+        let takerOrMaker: Str = undefined;
         if (isTaker !== undefined) {
             if (isTaker) {
                 takerOrMaker = 'taker';
@@ -895,7 +895,7 @@ export default class bitopro extends Exchange {
             limit = Math.min (limit, 75000); // supports slightly more than 75k candles atm, but limit here to avoid errors
         }
         const timeframeInSeconds = this.parseTimeframe (timeframe);
-        let alignedSince: Int;
+        let alignedSince: Int = undefined;
         if (since === undefined) {
             request['to'] = this.seconds ();
             request['from'] = request['to'] - (limit * timeframeInSeconds);
@@ -934,7 +934,7 @@ export default class bitopro extends Exchange {
         }
         const result = [];
         let copyFrom = candles[0];
-        let timestamp: Int;
+        let timestamp: Int = undefined;
         if (since === undefined) {
             timestamp = copyFrom[0];
         } else {
@@ -1085,11 +1085,11 @@ export default class bitopro extends Exchange {
         const filled = this.safeString (order, 'executedAmount');
         const remaining = this.safeString (order, 'remainingAmount');
         const timeInForce = this.safeString (order, 'timeInForce');
-        let postOnly: Bool;
+        let postOnly: Bool = undefined;
         if (timeInForce === 'POST_ONLY') {
             postOnly = true;
         }
-        let fee: Dict;
+        let fee: Dict = undefined;
         const feeAmount = this.safeString (order, 'fee');
         const feeSymbol = this.safeCurrencyCode (this.safeString (order, 'feeSymbol'));
         if (Precise.stringGt (feeAmount, '0')) {
@@ -1283,7 +1283,7 @@ export default class bitopro extends Exchange {
         const request: Dict = {
             // 'pair': market['id'], // optional
         };
-        let response: Dict;
+        let response: Dict = undefined;
         if (symbol !== undefined) {
             const market = this.market (symbol);
             request['pair'] = market['id'];
