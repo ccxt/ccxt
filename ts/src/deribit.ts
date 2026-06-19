@@ -6,7 +6,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, DDoSProtection, NotSupported, ExchangeNotAvailable, InsufficientFunds, BadRequest, InvalidAddress, OnMaintenance } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { totp } from './base/functions/totp.js';
-import type { Balances, Currency, FundingRateHistory, Greeks, Int, Liquidation, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, MarketInterface, Num, Account, Option, OptionChain, Currencies, TradingFees, Dict, int, FundingRate, DepositAddress, Position } from './base/types.js';
+import type { Balances, Bool, Currency, FundingRateHistory, Greeks, Int, Liquidation, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, MarketInterface, Num, Account, Option, OptionChain, Currencies, TradingFees, Dict, int, FundingRate, DepositAddress, Position } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -949,8 +949,8 @@ export default class deribit extends Exchange {
                 } else if (isSpot) {
                     type = 'spot';
                 }
-                let inverse = undefined;
-                let linear = undefined;
+                let inverse: Bool = undefined;
+                let linear: Bool = undefined;
                 if (isSpot) {
                     symbol = base + '/' + quote;
                 } else if (!isComboMarket) {
@@ -1349,7 +1349,7 @@ export default class deribit extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         let code = this.safeString2 (params, 'code', 'currency');
-        let type = undefined;
+        let type: Str = undefined;
         params = this.omit (params, [ 'code' ]);
         if (symbols !== undefined) {
             for (let i = 0; i < symbols.length; i++) {
