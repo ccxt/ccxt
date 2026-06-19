@@ -3,7 +3,7 @@
 
 import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/xt.js';
-import type { Bool, Currencies, Currency, DepositAddress, Dict, FundingHistory, FundingRate, FundingRateHistory, Int, LedgerEntry, LeverageTier, LeverageTiers, List, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Position, Str, SubType, Tickers, Transaction, TransferEntry, int } from './base/types.js';
+import type { Bool, Currencies, Currency, DepositAddress, Dict, FundingHistory, FundingRate, FundingRateHistory, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Position, Str, SubType, Tickers, Transaction, TransferEntry, int } from './base/types.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NetworkError, NotSupported, OnMaintenance, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';

@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import ascendexRest from '../ascendex.js';
 import { AuthenticationError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Balances, Bool, Dict, Fee, Int, List, Market, OHLCV, Order, OrderBook, Str, Trade } from '../base/types.js';
+import type { Balances, Bool, Dict, Fee, Int, Market, OHLCV, Order, OrderBook, Str, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
