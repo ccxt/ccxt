@@ -5,16 +5,6 @@
 //   2. fetch the order book, ticker, OHLCV, open interest and recent trades for that outcome
 //   3. place a resting limit BUY, fetch it back, then cancel it
 //
-// SAFETY (per the repo's hard rules):
-//   - the order is priced well BELOW the best bid so it cannot fill
-//   - it uses the minimum size and the notional (amount * price) is asserted < 25 USD
-//   - it is always cancelled in a finally block
-//
-// Credentials come from env vars (the signer EOA private key + your deposit/proxy wallet):
-//   polymarket_privateKey    (the owner EOA key that signs)
-//   polymarket_walletAddress (your Polymarket deposit/proxy wallet, holds the USDC)
-// Optionally set POLYMARKET_SIGNATURE_TYPE (1=POLY_PROXY, 2=GNOSIS_SAFE, 3=deposit wallet; default 3).
-//
 // Usage:
 //   polymarket_privateKey=0x... polymarket_walletAddress=0x... \
 //   npx tsx examples/ts/prediction-polymarket-end-to-end.ts
@@ -29,7 +19,7 @@ async function main () {
     const privateKey = process.env['POLYMARKET_PRIVATEKEY'];
     const walletAddress = process.env['POLYMARKET_WALLETADDRESS'];
     if (!privateKey || !walletAddress) {
-        console.log ('Set polymarket_privateKey and polymarket_walletAddress env vars first.');
+        console.log ('Set POLYMARKET_PRIVATEKEY and POLYMARKET_WALLETADDRESS env vars first.');
         return;
     }
     const options: any = {};
