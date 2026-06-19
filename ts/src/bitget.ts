@@ -1877,7 +1877,7 @@ export default class bitget extends Exchange {
     handleProductTypeAndParams (market = undefined, params = {}) {
         let subType: Str;
         [ subType, params ] = this.handleSubTypeAndParams ('handleProductTypeAndParams', undefined, params);
-        let defaultProductType: Str;
+        let defaultProductType: Str = undefined;
         if ((subType !== undefined) && (market === undefined)) {
             // set default only if subType is defined and market is not defined, since there is also USDC productTypes which are also linear
             // const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);

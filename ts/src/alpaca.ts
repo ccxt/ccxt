@@ -1324,7 +1324,7 @@ export default class alpaca extends Exchange {
         const request: Dict = {
             'order_id': id,
         };
-        let market: Market;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -1470,7 +1470,7 @@ export default class alpaca extends Exchange {
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        let market: Market;
+        let market: Market = undefined;
         let request: Dict = {
             'activity_type': 'FILL',
         };
