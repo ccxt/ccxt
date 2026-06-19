@@ -3857,8 +3857,8 @@ export default class deribit extends Exchange {
         const marketId = this.safeString (interest, 'instrument_name');
         market = this.safeMarket (marketId, market);
         const openInterest = this.safeNumber (interest, 'open_interest');
-        let openInterestAmount = undefined;
-        let openInterestValue = undefined;
+        let openInterestAmount: Num = undefined;
+        let openInterestValue: Num = undefined;
         if (market['option'] || (market['future'] && market['linear'])) {
             openInterestAmount = openInterest;
         } else {
