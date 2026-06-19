@@ -889,7 +889,7 @@ export default class upbit extends Exchange {
         if (timestamp === undefined) {
             timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
         }
-        let side = undefined;
+        let side: Str = undefined;
         const askOrBid = this.safeStringLower2 (trade, 'ask_bid', 'side');
         if (askOrBid === 'ask') {
             side = 'sell';
@@ -1163,7 +1163,7 @@ export default class upbit extends Exchange {
     }
 
     calcOrderPrice (symbol: string, amount: number, price: Num = undefined, params = {}): string {
-        let quoteAmount = undefined;
+        let quoteAmount: Str = undefined;
         const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice');
         const cost = this.safeString (params, 'cost');
         if (cost !== undefined) {
@@ -1218,7 +1218,7 @@ export default class upbit extends Exchange {
         if (postOnly && (selfTradePrevention !== undefined)) {
             throw new ExchangeError (this.id + ' createOrder() does not support post_only and selfTradePrevention simultaneously.');
         }
-        let orderSide = undefined;
+        let orderSide: Str = undefined;
         if (side === 'buy') {
             orderSide = 'bid';
         } else if (side === 'sell') {
@@ -1840,7 +1840,7 @@ export default class upbit extends Exchange {
             cost = price;
             price = undefined;
         }
-        let average = undefined;
+        let average: Str = undefined;
         let fee = undefined;
         let feeCost = this.safeString (order, 'paid_fee');
         const marketId = this.safeString (order, 'market');
@@ -2204,7 +2204,7 @@ export default class upbit extends Exchange {
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         await this.loadMarkets ();
         const currency = this.currency (code);
-        let networkCode = undefined;
+        let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddress requires params["network"]');
