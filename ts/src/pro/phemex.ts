@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import phemexRest from '../phemex.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Strings, Tickers, Num } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Strings, Tickers, Num, Market } from '../base/types.js';
 import { AuthenticationError } from '../base/errors.js';
 import Client from '../base/ws/Client.js';
 
@@ -801,7 +801,7 @@ export default class phemex extends phemexRest {
      */
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         let type: Str = undefined;
         let messageHash = 'trades:';
         if (symbol !== undefined) {
@@ -967,7 +967,7 @@ export default class phemex extends phemexRest {
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         let messageHash = 'orders:';
-        let market = undefined;
+        let market: Market = undefined;
         let type: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
