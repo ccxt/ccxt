@@ -650,7 +650,9 @@ export default class Exchange {
         const nameBytes = new TextEncoder ().encode (name);
         const data = new Uint8Array ([ ...nsBytes, ...nameBytes ]);
         const nsHash = sha1 (data);
+        // eslint-disable-next-line
         nsHash[6] = (nsHash[6] & 0x0f) | 0x50;
+        // eslint-disable-next-line
         nsHash[8] = (nsHash[8] & 0x3f) | 0x80;
         const hex = [ ...nsHash.slice (0, 16) ]
             .map ((b) => b.toString (16).padStart (2, '0'))
@@ -779,7 +781,7 @@ export default class Exchange {
                         // @ts-ignore
                         this.httpProxyAgentModule = await import (/* webpackIgnore: true */ 'http-proxy-agent');
                         // @ts-ignore
-                        this.httpsProxyAgentModule = await import (/* webpackIgnore: true */ 'https-proxy-agent');
+                        this.httpsProxyAgentModule = await import (/* webpackIgnore: true */ 'https-proxy-agent'); // eslint-disable-line
                     } catch (err) {
                         // TODO: handle error
                     }
