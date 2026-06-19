@@ -761,7 +761,7 @@ export default class woofipro extends Exchange {
 
     parseTokenAndFeeTemp (item, feeTokenKey, feeAmountKey) {
         const feeCost = this.safeString (item, feeAmountKey);
-        let fee = undefined;
+        let fee: Dict = undefined;
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (item, feeTokenKey);
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
@@ -1624,7 +1624,7 @@ export default class woofipro extends Exchange {
         const stopLoss = this.safeValue (params, 'stopLoss');
         const takeProfit = this.safeValue (params, 'takeProfit');
         const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue (params, 'childOrders') !== undefined);
-        let response = undefined;
+        let response: Dict = undefined;
         if (isConditional) {
             response = await this.v1PrivatePostAlgoOrder (request);
             //
@@ -1758,7 +1758,7 @@ export default class woofipro extends Exchange {
             request[orderQtyKey] = this.amountToPrecision (symbol, amount);
         }
         params = this.omit (params, [ 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent' ]);
-        let response = undefined;
+        let response: Dict = undefined;
         if (isConditional) {
             response = await this.v1PrivatePutAlgoOrder (this.extend (request, params));
         } else {
@@ -1832,7 +1832,7 @@ export default class woofipro extends Exchange {
         const clientOrderIdUnified = this.safeString2 (params, 'clOrdID', 'clientOrderId');
         const clientOrderIdExchangeSpecific = this.safeString (params, 'client_order_id', clientOrderIdUnified);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
-        let response = undefined;
+        let response: Dict = undefined;
         if (trigger) {
             if (isByClientOrder) {
                 request['client_order_id'] = clientOrderIdExchangeSpecific;
@@ -1897,7 +1897,7 @@ export default class woofipro extends Exchange {
         const clientOrderIds = this.safeListN (params, [ 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ]);
         params = this.omit (params, [ 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ]);
         const request: Dict = {};
-        let response = undefined;
+        let response: Dict = undefined;
         if (clientOrderIds) {
             request['client_order_ids'] = clientOrderIds.join (',');
             response = await this.v1PrivateDeleteClientBatchOrder (this.extend (request, params));
@@ -1939,7 +1939,7 @@ export default class woofipro extends Exchange {
             const market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        let response = undefined;
+        let response: Dict = undefined;
         if (trigger) {
             response = await this.v1PrivateDeleteAlgoOrders (this.extend (request, params));
         } else {
@@ -1984,7 +1984,7 @@ export default class woofipro extends Exchange {
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -1992,7 +1992,7 @@ export default class woofipro extends Exchange {
         const request: Dict = {};
         const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
         params = this.omit (params, [ 'stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id' ]);
-        let response = undefined;
+        let response: Dict = undefined;
         if (trigger) {
             if (clientOrderId) {
                 request['client_order_id'] = clientOrderId;
@@ -2086,7 +2086,7 @@ export default class woofipro extends Exchange {
             request['algo_type'] = 'STOP';
         }
         [ request, params ] = this.handleUntilOption ('end_t', request, params);
-        let response = undefined;
+        let response: Dict = undefined;
         if (isTrigger) {
             response = await this.v1PrivateGetAlgoOrders (this.extend (request, params));
         } else {
