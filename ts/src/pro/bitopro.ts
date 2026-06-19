@@ -74,7 +74,7 @@ export default class bitopro extends bitoproRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'ORDER_BOOK' + ':' + symbol;
-        let endPart = undefined;
+        let endPart: Str = undefined;
         if (limit === undefined) {
             endPart = market['id'];
         } else {
@@ -292,7 +292,7 @@ export default class bitopro extends bitoproRest {
             }
         }
         const amount = this.safeString (trade, 'volume');
-        let fee = undefined;
+        let fee: Dict = undefined;
         const feeAmount = this.safeString (trade, 'fee');
         const feeSymbol = this.safeCurrencyCode (this.safeString (trade, 'feeCurrency'));
         if (feeAmount !== undefined) {
@@ -303,7 +303,7 @@ export default class bitopro extends bitoproRest {
             };
         }
         const isMaker = this.safeValue (trade, 'isMaker');
-        let takerOrMaker = undefined;
+        let takerOrMaker: Str = undefined;
         if (isMaker !== undefined) {
             if (isMaker) {
                 takerOrMaker = 'maker';
