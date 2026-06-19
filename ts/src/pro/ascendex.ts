@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import ascendexRest from '../ascendex.js';
 import { AuthenticationError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Balances, Bool, Dict, Fee, Int, Market, OHLCV, Order, OrderBook, Str, Trade } from '../base/types.js';
+import type { Balances, Bool, Dict, Fee, Int, Market, OHLCV, Order, OrderBook, Str, Trade, NullableList } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -514,7 +514,7 @@ export default class ascendex extends ascendexRest {
             type = this.safeString (categoriesAccounts, accountType, 'spot');
             result = this.safeValue (this.balance, type, {});
             const data = this.safeValue (message, 'data');
-            let balances = undefined;
+            let balances: NullableList = undefined;
             if (data === undefined) {
                 balances = this.safeValue (message, 'col');
             } else {
