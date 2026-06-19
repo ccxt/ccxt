@@ -648,7 +648,7 @@ export default class lbank extends lbankRest {
         const timestamp = this.safeInteger (orderUpdate, 'updateTime');
         const status = this.safeString (orderUpdate, 'orderStatus');
         const orderAmount = this.safeString (orderUpdate, 'orderAmt');
-        let cost = undefined;
+        let cost: Str = undefined;
         if ((type === 'market') && (side === 'buy')) {
             cost = orderAmount;
         }
