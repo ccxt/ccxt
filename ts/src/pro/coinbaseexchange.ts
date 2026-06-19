@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import coinbaseexchangeRest from '../coinbaseexchange.js';
 import { AuthenticationError, ExchangeError, BadSymbol, BadRequest, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Tickers, Int, Ticker, Str, Strings, OrderBook, Trade, Order, Dict, Bool } from '../base/types.js';
+import type { Tickers, Int, Ticker, Str, Strings, OrderBook, Trade, Order, Dict, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import Precise from '../base/Precise.js';
 
@@ -62,7 +62,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
 
     async subscribe (name, symbol = undefined, messageHashStart = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         let messageHash = messageHashStart;
         const productIds = [];
         if (symbol !== undefined) {
@@ -88,7 +88,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
 
     async subscribeMultiple (name, symbols = [], messageHashStart = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         symbols = this.marketSymbols (symbols);
         const messageHashes = [];
         const productIds = [];
@@ -489,7 +489,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         //     "order_type": "limit"
         // }
         const parsed = super.parseTrade (trade);
-        let feeRate = undefined;
+        let feeRate: Str = undefined;
         let isMaker = false;
         if ('maker_fee_rate' in trade) {
             isMaker = true;
@@ -510,7 +510,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         parsed['order'] = this.safeString (trade, idKey);
         market = this.market (parsed['symbol']);
         const feeCurrency = market['quote'];
-        let feeCost = undefined;
+        let feeCost: Str = undefined;
         if ((parsed['cost'] !== undefined) && (feeRate !== undefined)) {
             const cost = this.safeString (parsed, 'cost');
             feeCost = Precise.stringMul (cost, feeRate);
@@ -715,7 +715,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         const orderType = this.safeString (order, 'order_type');
         let remaining = this.safeString (order, 'remaining_size');
         const type = this.safeString (order, 'type');
-        let filled = undefined;
+        let filled: Str = undefined;
         if ((amount !== undefined) && (remaining !== undefined)) {
             filled = Precise.stringSub (amount, remaining);
         } else if (type === 'received') {
