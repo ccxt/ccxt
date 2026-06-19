@@ -1,7 +1,10 @@
 {
     "exchange": "polymarket",
     "skipKeys": [],
-    "options": {},
+    "options": {
+        "l2ApiKey": "0xabc123",
+        "l2Secret": "0xdef456"
+    },
     "methods": {
         "fetchTicker": [
             {

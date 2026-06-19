@@ -1,7 +1,11 @@
 {
     "exchange": "polymarket",
-    "skipKeys": [],
+    "skipKeys": ["owner"],
     "outputType": "json",
+    "options": {
+        "l2ApiKey": "0xabc123",
+        "l2Secret": "0xdef456"
+    },
     "methods": {
         "fetchOrderBook": [
             {
@@ -51,7 +55,11 @@
                 "description": "fetchBalance reads the COLLATERAL balance-allowance for the default signature type",
                 "method": "fetchBalance",
                 "url": "https://clob.polymarket.com/balance-allowance?asset_type=COLLATERAL&signature_type=0",
-                "input": []
+                "input": [
+                    {
+                        "signatureType": 0
+                    }
+                ]
             },
             {
                 "description": "fetchBalance with a deposit-wallet signature type (POLY_1271)",
