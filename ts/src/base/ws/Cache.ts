@@ -169,7 +169,13 @@ class ArrayCacheBySymbolById extends ArrayCache {
     constructor (maxSize = undefined) {
         super (maxSize)
         this.nestedNewUpdatesBySymbol = true
-        this.keyField = 'symbol' // the item field used as the first nesting level (overridden by ArrayCacheByOutcomeById)
+        // non-enumerable so it stays invisible to array equality/iteration (this extends Array);
+        // the item field used as the first nesting level, overridden by ArrayCacheByOutcomeById
+        Object.defineProperty (this, 'keyField', {
+            __proto__: null, // make it invisible
+            value: 'symbol',
+            writable: true,
+        })
     }
 
     append (item) {
