@@ -4141,8 +4141,7 @@ final Object finalI = i;
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             Object request = new java.util.HashMap<String, Object>() {{}};
-            Object response = null;
-            response = (this.v2PublicGetFuturesPricingData(this.extend(request, parameters))).join();
+            Object response = (this.v2PublicGetFuturesPricingData(this.extend(request, parameters))).join();
             //
             //    {
             //        code: '0',
