@@ -9169,7 +9169,7 @@ export default class htx extends Exchange {
      * @description Fetches historical settlement records
      * @see https://huobiapi.github.io/docs/dm/v1/en/#query-historical-settlement-records-of-the-platform-interface
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-historical-settlement-records-of-the-platform-interface
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-historical-settlement-records-of-the-platform-interface
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b931869f0
      * @param {string} symbol unified symbol of the market to fetch the settlement history for
      * @param {int} [since] timestamp in ms, value range = current time - 90 days，default = current time - 90 days
      * @param {int} [limit] page items, default 20, shall not exceed 50
@@ -9193,18 +9193,30 @@ export default class htx extends Exchange {
             request['contract_code'] = market['id'];
         }
         if (since !== undefined) {
-            request['start_at'] = since;
+            if (market['linear']) {
+                request['start_time'] = since;
+            } else {
+                request['start_at'] = since;
+            }
         }
         if (limit !== undefined) {
-            request['page_size'] = limit;
+            if (market['linear']) {
+                request['limit'] = limit;
+            } else {
+                request['page_size'] = limit;
+            }
         }
         if (until !== undefined) {
-            request['end_at'] = until;
+            if (market['linear']) {
+                request['end_time'] = until;
+            } else {
+                request['end_at'] = until;
+            }
         }
         let response = undefined;
         if (market['swap']) {
             if (market['linear']) {
-                response = await this.contractPublicGetLinearSwapApiV1SwapSettlementRecords (this.extend (request, params));
+                response = await this.contractPublicGetV5MarketSettlementHistory (this.extend (request, params));
             } else {
                 response = await this.contractPublicGetSwapApiV1SwapSettlementRecords (this.extend (request, params));
             }
@@ -9212,7 +9224,7 @@ export default class htx extends Exchange {
             response = await this.contractPublicGetApiV1ContractSettlementRecords (this.extend (request, params));
         }
         //
-        // linear swap, coin-m swap
+        // coin-m swap
         //
         //    {
         //        "status": "ok",
@@ -9263,6 +9275,28 @@ export default class htx extends Exchange {
         //        }
         //    }
         //
+        // linear swap
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": [
+        //             {
+        //                 "id": "14900",
+        //                 "contract_code": "BTC-USDT",
+        //                 "settlement_time": "1781827200000",
+        //                 "clawback_ratio": "0",
+        //                 "settlement_price": "62933.747161774209291325"
+        //             },
+        //         ],
+        //         "ts": 1781853150623
+        //     }
+        //
+        if (market['linear']) {
+            const data = this.safeList (response, 'data', []);
+            const settlements = this.parseSettlements (data, market);
+            return this.sortBy (settlements, 'timestamp');
+        }
         const data = this.safeValue (response, 'data');
         const settlementRecord = this.safeValue (data, 'settlement_record');
         const settlements = this.parseSettlements (settlementRecord, market);
@@ -9390,7 +9424,7 @@ export default class htx extends Exchange {
 
     parseSettlements (settlements, market) {
         //
-        // linear swap, coin-m swap, fetchSettlementHistory
+        // coin-m swap, fetchSettlementHistory
         //
         //    [
         //        {
@@ -9425,11 +9459,26 @@ export default class htx extends Exchange {
         //        },
         //    ]
         //
+        // linear swap fetchSettlementHistory
+        //
+        //     [
+        //         {
+        //             "id": "14900",
+        //             "contract_code": "BTC-USDT",
+        //             "settlement_time": "1781827200000",
+        //             "clawback_ratio": "0",
+        //             "settlement_price": "62933.747161774209291325"
+        //         }
+        //     ]
+        //
         const result = [];
         for (let i = 0; i < settlements.length; i++) {
             const settlement = settlements[i];
             const list = this.safeValue (settlement, 'list');
-            if (list !== undefined) {
+            if (market['linear']) {
+                const parsedSettlement = this.parseSettlement (settlement, market);
+                result.push (parsedSettlement);
+            } else if (list !== undefined) {
                 const timestamp = this.safeInteger (settlement, 'settlement_time');
                 const timestampDetails: Dict = {
                     'timestamp': timestamp,
@@ -9449,7 +9498,7 @@ export default class htx extends Exchange {
 
     parseSettlement (settlement, market) {
         //
-        // linear swap, coin-m swap, fetchSettlementHistory
+        // coin-m swap, fetchSettlementHistory
         //
         //    {
         //        "symbol": "ADA",
@@ -9470,6 +9519,16 @@ export default class htx extends Exchange {
         //        "settlement_price": 7.016000000000000000,
         //        "settlement_type": "settlement"
         //    }
+        //
+        // linear swap fetchSettlementHistory
+        //
+        //     {
+        //         "id": "14900",
+        //         "contract_code": "BTC-USDT",
+        //         "settlement_time": "1781827200000",
+        //         "clawback_ratio": "0",
+        //         "settlement_price": "62933.747161774209291325"
+        //     }
         //
         const timestamp = this.safeInteger (settlement, 'settlement_time');
         const marketId = this.safeString (settlement, 'contract_code');

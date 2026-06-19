@@ -4938,6 +4938,46 @@
                     }
                 ]
             }
+        ],
+        "fetchSettlementHistory": [
+            {
+                "description": "Linear swap fetch settlement history",
+                "method": "fetchSettlementHistory",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "Success",
+                    "data": [
+                        {
+                            "id": "14890",
+                            "contract_code": "BTC-USDT",
+                            "settlement_time": "1781683200000",
+                            "clawback_ratio": "0",
+                            "settlement_price": "65516.0425978568703878"
+                        }
+                    ],
+                    "ts": "1781853535612"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "14890",
+                            "contract_code": "BTC-USDT",
+                            "settlement_time": "1781683200000",
+                            "clawback_ratio": "0",
+                            "settlement_price": "65516.0425978568703878"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "price": 65516.04259785687,
+                        "timestamp": 1781683200000,
+                        "datetime": "2026-06-17T08:00:00.000Z"
+                    }
+                ]
+            }
         ]
     }
 }

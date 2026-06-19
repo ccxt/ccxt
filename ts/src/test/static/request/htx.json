@@ -761,11 +761,13 @@
         ],
         "fetchSettlementHistory": [
             {
-                "description": "fetch Settlement History - swap linear",
+                "description": "Linear swap fetchSettlementHistory",
                 "method": "fetchSettlementHistory",
-                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_settlement_records?contract_code=LTC-USDT",
+                "url": "https://api.hbdm.vn/v5/market/settlement_history?contract_code=BTC-USDT&limit=1",
                 "input": [
-                    "LTC/USDT:USDT"
+                    "BTC/USDT:USDT",
+                    null,
+                    1
                 ]
             },
             {
