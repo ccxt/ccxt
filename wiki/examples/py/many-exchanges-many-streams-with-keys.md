@@ -56,7 +56,7 @@ async def exchange_loop(exchange_id, methods, config={}):
 
 async def main():
     keys = {
-        'okex': {
+        'okx': {
             'apiKey': 'YOUR_API_KEY',
             'secret': 'YOUR_SECRET',
         },
@@ -66,7 +66,7 @@ async def main():
         },
     }
     exchanges = {
-        'okex': {
+        'okx': {
             'watchOrderBook': ['BTC/USDT', 'ETH/BTC', 'ETH/USDT'],
             'watchTicker': ['BTC/USDT'],
             'watchBalance': [],

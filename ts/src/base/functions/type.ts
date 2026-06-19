@@ -201,7 +201,7 @@ export {
     , isObject
     , isString
     , isStringCoercible
-    , isDictionary
+    , isDictionary as isDict
     , hasProps
     , prop
     , asFloat

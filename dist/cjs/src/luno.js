@@ -215,7 +215,7 @@ class luno extends luno$1["default"] {
             },
             'fees': {
                 'trading': {
-                    'tierBased': true,
+                    'tierBased': true, // based on volume from your primary currency (not the same for everyone)
                     'percentage': true,
                     'taker': this.parseNumber('0.001'),
                     'maker': this.parseNumber('0'),
@@ -230,11 +230,11 @@ class luno extends luno$1["default"] {
                     },
                     'createOrder': {
                         'marginMode': false,
-                        'triggerPrice': true,
+                        'triggerPrice': true, // todo
                         'triggerPriceType': undefined,
-                        'triggerDirection': true,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'triggerDirection': true, // todo
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -254,8 +254,8 @@ class luno extends luno$1["default"] {
                     'fetchMyTrades': {
                         'marginMode': false,
                         'limit': 1000,
-                        'daysBack': 100000,
-                        'untilDays': 100000,
+                        'daysBack': 100000, // todo
+                        'untilDays': 100000, // todo
                         'symbolRequired': true,
                     },
                     'fetchOrder': {

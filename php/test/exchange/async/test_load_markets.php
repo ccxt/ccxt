@@ -15,7 +15,7 @@ function test_load_markets($exchange, $skipped_properties) {
     return Async\async(function () use ($exchange, $skipped_properties) {
         $method = 'loadMarkets';
         $markets = \React\Async\await($exchange->load_markets());
-        assert(is_array($exchange->markets), '.markets is not an object');
+        assert($exchange->is_dictionary($exchange->markets), '.markets is not a dict');
         assert(gettype($exchange->symbols) === 'array' && array_is_list($exchange->symbols), '.symbols is not an array');
         $symbols_length = count($exchange->symbols);
         $market_keys = is_array($exchange->markets) ? array_keys($exchange->markets) : array();

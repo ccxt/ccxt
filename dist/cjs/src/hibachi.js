@@ -258,8 +258,8 @@ class hibachi extends hibachi$1["default"] {
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {
-                    '2': errors.BadRequest,
-                    '3': errors.OrderNotFound,
+                    '2': errors.BadRequest, // {"errorCode":2,"message":"Invalid signature: Failed to verify signature"}
+                    '3': errors.OrderNotFound, // {"errorCode":3,"message":"Not found: order ID 33","status":"failed"}
                     '4': errors.BadRequest, // {"errorCode":4,"message":"Missing accountId","status":"failed"}
                 },
                 'broad': {},
@@ -822,6 +822,7 @@ class hibachi extends hibachi$1["default"] {
             const priceInternal = Precise["default"].stringDiv(Precise["default"].stringDiv(Precise["default"].stringMul(Precise["default"].stringMul(priceStr, priceFactor), settlement), underlying), one, 0);
             const price16 = this.intToBase16(this.parseToInt(priceInternal));
             const pricePadded = price16.padStart(16, '0');
+            // @ts-expect-error
             encodedPrice = this.base16ToBinary(pricePadded);
         }
         const message = this.binaryConcat(encodedNonce, encodedMarketId, encodedQuantity, encodedSide, encodedPrice, encodedFeeRate);
@@ -1849,7 +1850,7 @@ class hibachi extends hibachi$1["default"] {
             'txid': this.safeString(transaction, 'transactionHash'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'network': 'ARBITRUM',
+            'network': 'ARBITRUM', // Currently the exchange only exists on Arbitrum,
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,

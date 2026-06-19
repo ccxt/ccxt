@@ -1,6 +1,5 @@
 ```javascript
 import ccxt from '../../js/ccxt.js';
-// AUTO-TRANSPILE //
 async function example() {
     const exchange = new ccxt.binance({
         'apiKey': 'MY_API_KEY',

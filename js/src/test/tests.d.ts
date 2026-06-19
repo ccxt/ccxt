@@ -32,7 +32,7 @@ declare class testMainClass {
     expandSettings(exchange: Exchange): void;
     addPadding(message: string, size: any): string;
     testMethod(methodName: string, exchange: any, args: any[], isPublic: boolean): Promise<boolean>;
-    getSkips(exchange: Exchange, methodName: string): any;
+    getSkips(exchange: Exchange, methodName: string): {};
     testSafe(methodName: any, exchange: any, args?: any[], isPublic?: boolean): Promise<any>;
     runPublicTests(exchange: any, symbols: any): Promise<boolean>;
     runTests(exchange: any, tests: any, isPublicTest: boolean): Promise<boolean>;
@@ -47,6 +47,7 @@ declare class testMainClass {
     checkConstructor(exchange: Exchange): void;
     testReturnResponseHeaders(exchange: Exchange): Promise<boolean>;
     startTest(exchange: any, symbolArgv: any): Promise<boolean>;
+    testHasProps(exchange: Exchange): void;
     assertStaticError(cond: boolean, message: string, calculatedOutput: any, storedOutput: any, key?: any): void;
     loadMarketsFromFile(id: string): any;
     loadCurrenciesFromFile(id: string): any;

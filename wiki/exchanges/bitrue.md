@@ -775,7 +775,7 @@ bitrue.watchOrders (symbol, since?, limit?, params?)
 watches public trades for a swap (futures) market
 
 **Kind**: instance method of [<code>bitrue</code>](#bitrue)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://www.bitrue.com/api_docs_includes_file/futures/index.html#websocket-market-data  
 
@@ -822,7 +822,7 @@ bitrue.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 watches a 24h ticker for a swap (futures) market
 
 **Kind**: instance method of [<code>bitrue</code>](#bitrue)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://www.bitrue.com/api_docs_includes_file/futures/index.html#websocket-market-data  
 

@@ -26,7 +26,7 @@ function fetch_tickers_helper_test($exchange, $skipped_properties, $arg_symbols,
     return Async\async(function () use ($exchange, $skipped_properties, $arg_symbols, $arg_params) {
         $method = 'fetchTickers';
         $response = \React\Async\await($exchange->fetch_tickers($arg_symbols, $arg_params));
-        assert(is_array($response), $exchange->id . ' ' . $method . ' ' . $exchange->json($arg_symbols) . ' must return an object. ' . $exchange->json($response));
+        assert($exchange->is_dictionary($response), $exchange->id . ' ' . $method . ' ' . $exchange->json($arg_symbols) . ' must return a dict. ' . $exchange->json($response));
         $values = is_array($response) ? array_values($response) : array();
         $checked_symbol = null;
         if ($arg_symbols !== null && count($arg_symbols) === 1) {

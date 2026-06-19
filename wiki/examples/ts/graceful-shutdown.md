@@ -1,4 +1,6 @@
 ```javascript
+// @NO_AUTO_TRANSPILE
+
 'use strict';
 
 import ccxt from '../../js/ccxt.js';

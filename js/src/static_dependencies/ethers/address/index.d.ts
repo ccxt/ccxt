@@ -29,7 +29,7 @@ export interface Addressable {
 /**
  *  Anything that can be used to return or resolve an address.
  */
-export declare type AddressLike = string | Promise<string> | Addressable;
+export type AddressLike = string | Promise<string> | Addressable;
 /**
  *  An interface for any object which can resolve an ENS name.
  */

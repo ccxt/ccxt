@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.58'
+__version__ = '4.5.59'
 
 # -----------------------------------------------------------------------------
 
@@ -2987,10 +2987,10 @@ class Exchange(object):
         :returns dict | None:
         """
         value = self.safe_value(dictionaryOrList, key1)
-        if (value is not None) and isinstance(value, dict):
+        if self.is_dictionary(value):
             return value
         value2 = self.safe_value(dictionaryOrList, key2)
-        if (value2 is not None) and isinstance(value2, dict):
+        if self.is_dictionary(value2):
             return value2
         return defaultValue
 

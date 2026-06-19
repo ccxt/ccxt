@@ -19,8 +19,8 @@ class bitso extends bitso$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'bitso',
             'name': 'Bitso',
-            'countries': ['MX'],
-            'rateLimit': 2000,
+            'countries': ['MX'], // Mexico
+            'rateLimit': 2000, // 30 requests per minute
             'version': 'v3',
             'has': {
                 'CORS': undefined,
@@ -228,11 +228,11 @@ class bitso extends bitso$1["default"] {
                     'sandbox': false,
                     'createOrder': {
                         'marginMode': false,
-                        'triggerPrice': true,
+                        'triggerPrice': true, // todo implementation
                         'triggerPriceType': undefined,
                         'triggerDirection': undefined,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         // todo: implementation for TIF
                         'timeInForce': {
@@ -286,8 +286,8 @@ class bitso extends bitso$1["default"] {
                 },
             },
             'exceptions': {
-                '0201': errors.AuthenticationError,
-                '104': errors.InvalidNonce,
+                '0201': errors.AuthenticationError, // Invalid Nonce or Invalid Credentials
+                '104': errors.InvalidNonce, // Cannot perform request - nonce must be higher than 1520307203724237
                 '0304': errors.BadRequest, // {"success":false,"error":{"code":"0304","message":"The field time_bucket () is either invalid or missing"}}
             },
         });
@@ -1193,7 +1193,7 @@ class bitso extends bitso$1["default"] {
     }
     parseOrderStatus(status) {
         const statuses = {
-            'partial-fill': 'open',
+            'partial-fill': 'open', // this is a common substitution in ccxt
             'partially filled': 'open',
             'queued': 'open',
             'completed': 'closed',

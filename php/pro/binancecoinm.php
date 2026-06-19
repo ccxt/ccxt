@@ -13,7 +13,8 @@ class binancecoinm extends \ccxt\pro\binance {
         // eslint-disable-next-line new-cap
         $restInstance = new \ccxt\async\binancecoinm ();
         $restDescribe = $restInstance->describe ();
-        $extended = $this->deep_extend(parent::describe(), $restDescribe);
+        $parentWsDescribe = parent::describe_data();
+        $extended = $this->deep_extend($restDescribe, $parentWsDescribe);
         return $this->deep_extend($extended, array(
             'id' => 'binancecoinm',
             'name' => 'Binance COIN-M',

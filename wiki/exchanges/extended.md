@@ -100,7 +100,7 @@ extended.fetchCurrencies (params?)
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://api.docs.extended.exchange/#get-market-statistics  
 
@@ -121,7 +121,7 @@ extended.fetchTicker (symbol, params?)
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for all markets
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://api.docs.extended.exchange/#get-markets  
 
@@ -142,7 +142,7 @@ extended.fetchTickers (symbols?, params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://api.docs.extended.exchange/#get-market-order-book  
 
@@ -164,7 +164,7 @@ extended.fetchOrderBook (symbol, limit?, params?)
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://api.docs.extended.exchange/#get-market-last-trades  
 
@@ -187,7 +187,7 @@ extended.fetchTrades (symbol, since?, limit?, params?)
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://api.docs.extended.exchange/#get-trades  
 
@@ -211,7 +211,7 @@ extended.fetchMyTrades (symbol?, since?, limit?, params?)
 fetch the funding payments history
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>Array&lt;FundingHistory&gt;</code> - a list of [funding history structures](https://docs.ccxt.com/#/?id=funding-history-structure)
+**Returns**: <code>Array&lt;FundingHistory&gt;</code> - a list of [funding history structures](https://docs.ccxt.com/?id=funding-history-structure)
 
 **See**: https://api.docs.extended.exchange/#get-funding-payments  
 
@@ -262,7 +262,7 @@ extended.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 fetches historical funding rate prices
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure)
 
 **See**: https://api.docs.extended.exchange/#get-funding-rates-history  
 
@@ -289,7 +289,7 @@ extended.fetchFundingRateHistory (symbol, since?, limit?, params?)
 Retrieves the open interest history of a currency
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>Array&lt;object&gt;</code> - an array of [open interest structures](https://docs.ccxt.com/#/?id=open-interest-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - an array of [open interest structures](https://docs.ccxt.com/?id=open-interest-structure)
 
 **See**: https://api.docs.extended.exchange/#get-open-interest-history  
 
@@ -334,7 +334,7 @@ extended.fetchBalance (params?)
 fetch the current authenticated sub-account
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>object</code> - an [account structure](https://docs.ccxt.com/#/?id=account-structure)
+**Returns**: <code>object</code> - an [account structure](https://docs.ccxt.com/?id=account-structure)
 
 **See**: https://api.docs.extended.exchange/#get-account-details  
 
@@ -354,7 +354,7 @@ extended.fetchAccount (params?)
 fetch the current authenticated sub-account, extended private endpoints only return records for the authenticated sub-account
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [account structures](https://docs.ccxt.com/#/?id=account-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [account structures](https://docs.ccxt.com/?id=account-structure)
 
 **See**: https://api.docs.extended.exchange/#get-sub-accounts  
 
@@ -374,7 +374,7 @@ extended.fetchAccounts (params?)
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [ledger structures](https://docs.ccxt.com/#/?id=ledger)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [ledger structures](https://docs.ccxt.com/?id=ledger)
 
 **See**: https://api.docs.extended.exchange/#get-deposits-withdrawals-transfers-history  
 
@@ -398,7 +398,7 @@ extended.fetchLedger (code?, since?, limit?, params?)
 fetch history of deposits, withdrawals, and transfers
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>Array&lt;Transaction&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;Transaction&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://api.docs.extended.exchange/#get-deposits-withdrawals-transfers-history  
 
@@ -422,7 +422,7 @@ extended.fetchTransactions (code?, since?, limit?, params?)
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>Array&lt;Transaction&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;Transaction&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://api.docs.extended.exchange/#get-deposits-withdrawals-transfers-history  
 
@@ -446,7 +446,7 @@ extended.fetchDeposits (code?, since?, limit?, params?)
 fetch all withdrawals made from an account
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>Array&lt;Transaction&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;Transaction&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://api.docs.extended.exchange/#get-deposits-withdrawals-transfers-history  
 
@@ -496,7 +496,7 @@ extended.withdraw (code, amount, address, tag, params?)
 fetch a history of internal transfers made on an account
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>Array&lt;TransferEntry&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>Array&lt;TransferEntry&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://api.docs.extended.exchange/#get-deposits-withdrawals-transfers-history  
 
@@ -520,7 +520,7 @@ extended.fetchTransfers (code?, since?, limit?, params?)
 transfer collateral between sub-accounts associated with the same wallet
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://api.docs.extended.exchange/#create-transfer  
 
@@ -591,7 +591,7 @@ extended.fetchTradingFees (params?)
 fetch the set leverage for a market
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/#/?id=leverage-structure)
+**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/?id=leverage-structure)
 
 **See**: https://api.docs.extended.exchange/#get-leverage  
 
@@ -634,7 +634,7 @@ extended.setLeverage (leverage, symbol, params?)
 fetch all open positions
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>Array&lt;Position&gt;</code> - a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;Position&gt;</code> - a list of [position structures](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://api.docs.extended.exchange/#get-positions  
 
@@ -655,7 +655,7 @@ extended.fetchPositions (symbols, params?)
 fetch data on an open position
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://api.docs.extended.exchange/#get-positions  
 
@@ -676,7 +676,7 @@ extended.fetchPosition (symbol, params?)
 fetch historical positions
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>Array&lt;Position&gt;</code> - a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;Position&gt;</code> - a list of [position structures](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://api.docs.extended.exchange/#get-positions-history  
 
@@ -700,7 +700,7 @@ extended.fetchPositionsHistory (symbols, since?, limit?, params?)
 create a trade order
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api.docs.extended.exchange/#create-or-edit-order  
 
@@ -743,7 +743,7 @@ extended.createOrder (symbol, type, side, amount, price?, params?)
 edit a trade order
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api.docs.extended.exchange/#create-or-edit-order  
 
@@ -862,7 +862,7 @@ extended.cancelAllOrdersAfter (timeout, params?)
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -889,7 +889,7 @@ extended.fetchOrder (id, symbol?, params?)
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api.docs.extended.exchange/#get-open-orders  
 
@@ -912,7 +912,7 @@ extended.fetchOpenOrders (symbol?, since?, limit?, params?)
 fetches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api.docs.extended.exchange/#get-orders-history  
 
@@ -936,7 +936,7 @@ extended.fetchOrders (symbol?, since?, limit?, params?)
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api.docs.extended.exchange/#get-orders-history  
 
@@ -960,7 +960,7 @@ extended.fetchClosedOrders (symbol?, since?, limit?, params?)
 fetches information on multiple canceled orders made by the user
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api.docs.extended.exchange/#get-orders-history  
 
@@ -1050,7 +1050,7 @@ extended.watchBalance (params?)
 watches information on multiple trades made by the user
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://api.docs.extended.exchange/#account-updates-stream  
 
@@ -1073,7 +1073,7 @@ extended.watchMyTrades (symbol?, since?, limit?, params?)
 watches information on multiple positions
 
 **Kind**: instance method of [<code>extended</code>](#extended)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://api.docs.extended.exchange/#account-updates-stream  
 

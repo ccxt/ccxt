@@ -439,7 +439,7 @@ export default class upbit extends upbitRest {
             'wait': 'open',
             'done': 'closed',
             'cancel': 'canceled',
-            'watch': 'open',
+            'watch': 'open', // not sure what this status means
             'trade': 'open',
         };
         return this.safeString(statuses, status, status);

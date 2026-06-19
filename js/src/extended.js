@@ -21,7 +21,7 @@ export default class extended extends Exchange {
             'name': 'Extended',
             'countries': ['SG'],
             'version': 'v2',
-            'rateLimit': 600,
+            'rateLimit': 600, // Default Tier 1,000 requests/minute ≈ 1.67 request per second
             'precisionMode': TICK_SIZE,
             'certified': false,
             'pro': true,
@@ -258,69 +258,69 @@ export default class extended extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                    '1000': InvalidOrder,
-                    '1001': InvalidOrder,
-                    '1002': InvalidOrder,
-                    '1003': InvalidOrder,
-                    '1004': InvalidOrder,
-                    '1005': InvalidOrder,
-                    '1006': ExchangeError,
-                    '1008': InvalidOrder,
-                    '1009': InvalidOrder,
-                    '1010': ExchangeError,
-                    '1011': InvalidOrder,
-                    '1012': InvalidOrder,
-                    '1013': InvalidOrder,
-                    '1014': InvalidOrder,
-                    '1049': InvalidOrder,
-                    '1050': InvalidOrder,
-                    '10501': InvalidOrder,
-                    '1052': InvalidOrder,
-                    '1053': InvalidOrder,
-                    '1100': InvalidOrder,
-                    '1101': InvalidOrder,
-                    '1102': InvalidOrder,
-                    '1120': InvalidOrder,
-                    '1121': InvalidOrder,
-                    '1122': InvalidOrder,
-                    '1123': InvalidOrder,
-                    '1124': InvalidOrder,
-                    '1125': InvalidOrder,
-                    '1126': InvalidOrder,
-                    '1127': InvalidOrder,
-                    '1128': InvalidOrder,
-                    '1129': InvalidOrder,
-                    '1130': InvalidOrder,
-                    '1131': InvalidOrder,
-                    '1132': InvalidOrder,
-                    '1133': InvalidOrder,
-                    '1134': InvalidOrder,
-                    '1135': InvalidOrder,
-                    '1136': InvalidOrder,
-                    '1137': InvalidOrder,
-                    '1138': InvalidOrder,
-                    '1139': InvalidOrder,
-                    '1140': InsufficientFunds,
-                    '1141': InvalidOrder,
-                    '1142': InvalidOrder,
-                    '1143': InvalidOrder,
-                    '1144': InvalidOrder,
-                    '1145': InvalidOrder,
-                    '1146': InvalidOrder,
-                    '1147': InvalidOrder,
-                    '1148': InvalidOrder,
-                    '1500': InvalidOrder,
-                    '1600': BadRequest,
-                    '1601': BadRequest,
-                    '1602': BadRequest,
-                    '1604': BadRequest,
-                    '1605': BadRequest,
-                    '1607': BadRequest,
-                    '1608': BadRequest,
-                    '1650': BadRequest,
-                    '1700': BadRequest,
-                    '1701': BadRequest,
-                    '1703': BadRequest,
+                    '1000': InvalidOrder, // Asset not found.
+                    '1001': InvalidOrder, // Market not found.
+                    '1002': InvalidOrder, // Market is disabled.
+                    '1003': InvalidOrder, // Market group not found.
+                    '1004': InvalidOrder, // Account not found.
+                    '1005': InvalidOrder, // Not supported interval.
+                    '1006': ExchangeError, // Application error.
+                    '1008': InvalidOrder, // Client not found.
+                    '1009': InvalidOrder, // Action is not allowed.
+                    '1010': ExchangeError, // Maintenance mode.
+                    '1011': InvalidOrder, // Post only mode.
+                    '1012': InvalidOrder, // Reduce only mode.
+                    '1013': InvalidOrder, // Percentage should be between 0 and 1.
+                    '1014': InvalidOrder, // Market is in reduce only mode, non-reduce only orders are not allowed.
+                    '1049': InvalidOrder, // Leverage below min leverage.
+                    '1050': InvalidOrder, // Leverage exceeds max leverage.
+                    '10501': InvalidOrder, // Max position value exceeded for new leverage.
+                    '1052': InvalidOrder, // Insufficient margin for new leverage.
+                    '1053': InvalidOrder, // Leverage has invalid precision.
+                    '1100': InvalidOrder, // Invalid Starknet public key.
+                    '1101': InvalidOrder, // Invalid Starknet signature.
+                    '1102': InvalidOrder, // Invalid Starknet vault.
+                    '1120': InvalidOrder, // Order quantity less than min trade size, based on market-specific trading rules.
+                    '1121': InvalidOrder, // Invalid quantity due to the wrong size increment, based on market-specific Minimum Change in Trade Size trading rule.
+                    '1122': InvalidOrder, // Order value exceeds max order value, based on market-specific trading rules.
+                    '1123': InvalidOrder, // Invalid quantity precision, currently equals to market-specific Minimum Change in Trade Size.
+                    '1124': InvalidOrder, // Invalid price due to wrong price movement, based on market-specific Minimum Price Change trading rule.
+                    '1125': InvalidOrder, // Invalid price precision, currently equals to market-specific Minimum Price Change.
+                    '1126': InvalidOrder, // Max open orders number exceeded, currently 200 orders per market.
+                    '1127': InvalidOrder, // Max position value exceeded, based on the Margin schedule.
+                    '1128': InvalidOrder, // Trading fees are invalid. Refer to Order management section for details.
+                    '1129': InvalidOrder, // Invalid quantity for position TP/SL.
+                    '1130': InvalidOrder, // Order price is missing.
+                    '1131': InvalidOrder, // TP/SL order trigger is missing.
+                    '1132': InvalidOrder, // Order type is not allowed.
+                    '1133': InvalidOrder, // Invalid order parameters.
+                    '1134': InvalidOrder, // Duplicate Order.
+                    '1135': InvalidOrder, // Order expiration date must be within 90 days for the Mainnet, 28 days for the Testnet.
+                    '1136': InvalidOrder, // Reduce-only order size exceeds open position size.
+                    '1137': InvalidOrder, // Position is missing for a reduce-only order.
+                    '1138': InvalidOrder, // Position is the same side as a reduce-only order.
+                    '1139': InvalidOrder, // Market order must have time in force IOC.
+                    '1140': InsufficientFunds, // New order cost exceeds available balance.
+                    '1141': InvalidOrder, // Invalid price value.
+                    '1142': InvalidOrder, // Edit order not found.
+                    '1143': InvalidOrder, // Conditional order trigger is missing.
+                    '1144': InvalidOrder, // Conditional market order can't be Post-only.
+                    '1145': InvalidOrder, // Non reduce-only orders are not allowed.
+                    '1146': InvalidOrder, // Twap order must have time in force GTT.
+                    '1147': InvalidOrder, // Open loss exceeds equity.
+                    '1148': InvalidOrder, // TP/SL open loss exceeds equity.
+                    '1500': InvalidOrder, // Account not selected.
+                    '1600': BadRequest, // Withdrawal amount must be positive.
+                    '1601': BadRequest, // Withdrawal description is too long.
+                    '1602': BadRequest, // Withdrawal request does not match settlement.
+                    '1604': BadRequest, // Withdrawal expiration time is below the 14 days minimum.
+                    '1605': BadRequest, // Withdrawal asset is not valid.
+                    '1607': BadRequest, // Withdrawals blocked for the account. Please contact the team on Discord to unblock the withdrawals.
+                    '1608': BadRequest, // The withdrawal address does not match the account address.
+                    '1650': BadRequest, // Vault transfer amount is incorrect.
+                    '1700': BadRequest, // Referral code already exist.
+                    '1701': BadRequest, // Referral code is not valid.
+                    '1703': BadRequest, // Referral program is not enabled.
                     '1704': BadRequest, // Referral code already applied.
                 },
                 'broad': {},
@@ -699,7 +699,7 @@ export default class extended extends Exchange {
      * @see https://api.docs.extended.exchange/#get-market-statistics
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
         await this.loadMarkets();
@@ -754,7 +754,7 @@ export default class extended extends Exchange {
      * @see https://api.docs.extended.exchange/#get-markets
      * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
         await this.loadMarkets();
@@ -870,7 +870,7 @@ export default class extended extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -917,7 +917,7 @@ export default class extended extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -955,7 +955,7 @@ export default class extended extends Exchange {
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1024,7 +1024,7 @@ export default class extended extends Exchange {
      * @param {int} [limit] the maximum number of funding history structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {FundingHistory[]} a list of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     * @returns {FundingHistory[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1281,7 +1281,7 @@ export default class extended extends Exchange {
      * @param {int} [params.endTime] exchange-specific end timestamp in ms of the latest funding rate to fetch
      * @param {int} [params.cursor] offset of the result set
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
@@ -1372,7 +1372,7 @@ export default class extended extends Exchange {
      * @param {int} [limit] the maximum amount of open interest structures to retrieve
      * @param {object} [params] exchange specific parameters
      * @param {int} [params.until] timestamp in ms of the latest open interest record to fetch
-     * @returns {object[]} an array of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     * @returns {object[]} an array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     async fetchOpenInterestHistory(symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1495,7 +1495,7 @@ export default class extended extends Exchange {
      * @description fetch the current authenticated sub-account
      * @see https://api.docs.extended.exchange/#get-account-details
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [account structure]{@link https://docs.ccxt.com/#/?id=account-structure}
+     * @returns {object} an [account structure]{@link https://docs.ccxt.com/?id=account-structure}
      */
     async fetchAccount(params = {}) {
         const response = await this.v1PrivateGetUserAccountInfo(params);
@@ -1526,7 +1526,7 @@ export default class extended extends Exchange {
      * @description fetch the current authenticated sub-account, extended private endpoints only return records for the authenticated sub-account
      * @see https://api.docs.extended.exchange/#get-sub-accounts
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure}
+     * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/?id=account-structure}
      */
     async fetchAccounts(params = {}) {
         const response = await this.v1PrivateGetUserAccounts(params);
@@ -1580,7 +1580,7 @@ export default class extended extends Exchange {
      * @param {int} [limit] max number of ledger entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/#/?id=ledger}
+     * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/?id=ledger}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1671,7 +1671,7 @@ export default class extended extends Exchange {
      * @param {int} [limit] the maximum number of transaction structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchTransactions(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1735,7 +1735,7 @@ export default class extended extends Exchange {
      * @param {int} [limit] the maximum number of deposit structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
         return await this.fetchTransactions(code, since, limit, this.extend({ 'type': 'DEPOSIT' }, params));
@@ -1750,7 +1750,7 @@ export default class extended extends Exchange {
      * @param {int} [limit] the maximum number of withdrawal structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         return await this.fetchTransactions(code, since, limit, this.extend({ 'type': 'WITHDRAWAL' }, params));
@@ -1833,7 +1833,7 @@ export default class extended extends Exchange {
      * @param {int} [limit] the maximum number of transfer structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {TransferEntry[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {TransferEntry[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async fetchTransfers(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1880,7 +1880,7 @@ export default class extended extends Exchange {
      * @param {string} params.toVault destination account L2 vault
      * @param {string} params.toL2Key destination account L2 public key
      * @param {int} [params.settlementExpiration] settlement expiration timestamp in seconds, defaults to now + 21 days
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
         this.checkRequiredCredentials();
@@ -2157,7 +2157,7 @@ export default class extended extends Exchange {
      * @see https://api.docs.extended.exchange/#get-leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     async fetchLeverage(symbol, params = {}) {
         await this.loadMarkets();
@@ -2235,7 +2235,7 @@ export default class extended extends Exchange {
      * @see https://api.docs.extended.exchange/#get-positions
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Position[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {Position[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
         await this.loadMarkets();
@@ -2285,7 +2285,7 @@ export default class extended extends Exchange {
      * @see https://api.docs.extended.exchange/#get-positions
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPosition(symbol, params = {}) {
         const positions = await this.fetchPositions([symbol], params);
@@ -2301,7 +2301,7 @@ export default class extended extends Exchange {
      * @param {int} [limit] the maximum number of position structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Position[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {Position[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositionsHistory(symbols = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -2771,7 +2771,7 @@ export default class extended extends Exchange {
      * @param {float} [params.stopLoss.triggerPrice] *swap only* stop loss trigger price
      * @param {float} [params.stopLoss.price] *swap only* the execution price for a stop loss attached to a trigger order
      * @param {string} [params.stopLoss.type] *swap only* the type for a stop loss attached to a trigger order, 'LAST', 'MARK' or 'INDEX', default is ''
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         this.checkRequiredCredentials();
@@ -2806,7 +2806,7 @@ export default class extended extends Exchange {
      * @param {float} [amount] how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         if (id === undefined) {
@@ -3025,7 +3025,7 @@ export default class extended extends Exchange {
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] user-defined order id, fetches by external id
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
         await this.loadMarkets();
@@ -3066,7 +3066,7 @@ export default class extended extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of open order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -3118,7 +3118,7 @@ export default class extended extends Exchange {
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -3193,7 +3193,7 @@ export default class extended extends Exchange {
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const orders = await this.fetchOrders(symbol, since, undefined, params);
@@ -3210,7 +3210,7 @@ export default class extended extends Exchange {
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const orders = await this.fetchOrders(symbol, since, undefined, params);

@@ -2,11 +2,11 @@ import { StarknetChainId } from '../../constants.js';
 import { ECDSASignature as SignatureType } from '@noble/curves/abstract/weierstrass.js';
 import { CairoEnum } from '../cairoEnum.js';
 import { CompiledContract, CompiledSierraCasm, ContractClass } from './contract/index.js';
-export declare type WeierstrassSignatureType = SignatureType;
-export declare type ArraySignatureType = string[];
-export declare type Signature = ArraySignatureType | WeierstrassSignatureType;
-export declare type BigNumberish = string | number | bigint;
-export declare type ByteArray = {
+export type WeierstrassSignatureType = SignatureType;
+export type ArraySignatureType = string[];
+export type Signature = ArraySignatureType | WeierstrassSignatureType;
+export type BigNumberish = string | number | bigint;
+export type ByteArray = {
     data: BigNumberish[];
     pending_word: BigNumberish;
     pending_word_len: BigNumberish;
@@ -16,7 +16,7 @@ export declare type ByteArray = {
  *
  * decimal-string array
  */
-export declare type Calldata = string[] & {
+export type Calldata = string[] & {
     readonly __compiled__?: true;
 };
 /**
@@ -40,74 +40,74 @@ export interface Uint512 {
  *
  * use CallData.compile() to convert to Calldata
  */
-export declare type RawCalldata = BigNumberish[];
+export type RawCalldata = BigNumberish[];
 /**
  * Hexadecimal-string array
  */
-export declare type HexCalldata = string[];
-export declare type AllowArray<T> = T | T[];
-export declare type OptionalPayload<T> = {
+export type HexCalldata = string[];
+export type AllowArray<T> = T | T[];
+export type OptionalPayload<T> = {
     payload: T;
 } | T;
-export declare type RawArgs = RawArgsObject | RawArgsArray;
-export declare type RawArgsObject = {
+export type RawArgs = RawArgsObject | RawArgsArray;
+export type RawArgsObject = {
     [inputName: string]: MultiType | MultiType[] | RawArgs;
 };
-export declare type RawArgsArray = Array<MultiType | MultiType[] | RawArgs>;
-export declare type MultiType = BigNumberish | Uint256 | object | boolean | CairoEnum;
-export declare type UniversalDeployerContractPayload = {
+export type RawArgsArray = Array<MultiType | MultiType[] | RawArgs>;
+export type MultiType = BigNumberish | Uint256 | object | boolean | CairoEnum;
+export type UniversalDeployerContractPayload = {
     classHash: BigNumberish;
     salt?: string;
     unique?: boolean;
     constructorCalldata?: RawArgs;
 };
-export declare type DeployAccountContractPayload = {
+export type DeployAccountContractPayload = {
     classHash: string;
     constructorCalldata?: RawArgs;
     addressSalt?: BigNumberish;
     contractAddress?: string;
 };
-export declare type DeployAccountContractTransaction = Omit<DeployAccountContractPayload, 'contractAddress'> & {
+export type DeployAccountContractTransaction = Omit<DeployAccountContractPayload, 'contractAddress'> & {
     signature?: Signature;
 };
-export declare type DeclareContractPayload = {
+export type DeclareContractPayload = {
     contract: CompiledContract | string;
     classHash?: string;
     casm?: CompiledSierraCasm;
     compiledClassHash?: string;
 };
-export declare type CompleteDeclareContractPayload = {
+export type CompleteDeclareContractPayload = {
     contract: CompiledContract | string;
     classHash: string;
     casm?: CompiledSierraCasm;
     compiledClassHash?: string;
 };
-export declare type DeclareAndDeployContractPayload = Omit<UniversalDeployerContractPayload, 'classHash'> & DeclareContractPayload;
-export declare type DeclareContractTransaction = {
+export type DeclareAndDeployContractPayload = Omit<UniversalDeployerContractPayload, 'classHash'> & DeclareContractPayload;
+export type DeclareContractTransaction = {
     contract: ContractClass;
     senderAddress: string;
     signature?: Signature;
     compiledClassHash?: string;
 };
-export declare type CallDetails = {
+export type CallDetails = {
     contractAddress: string;
     calldata?: RawArgs | Calldata;
     entrypoint?: string;
 };
-export declare type Invocation = CallDetails & {
+export type Invocation = CallDetails & {
     signature?: Signature;
 };
-export declare type Call = CallDetails & {
+export type Call = CallDetails & {
     entrypoint: string;
 };
-export declare type CairoVersion = '0' | '1' | undefined;
-export declare type CompilerVersion = '0' | '1' | '2' | undefined;
-export declare type InvocationsDetails = {
+export type CairoVersion = '0' | '1' | undefined;
+export type CompilerVersion = '0' | '1' | '2' | undefined;
+export type InvocationsDetails = {
     nonce?: BigNumberish;
     maxFee?: BigNumberish;
     version?: BigNumberish;
 } & Partial<V3TransactionDetails>;
-export declare type V3TransactionDetails = {
+export type V3TransactionDetails = {
     nonce: BigNumberish;
     version: BigNumberish;
     tip: BigNumberish;
@@ -117,13 +117,13 @@ export declare type V3TransactionDetails = {
 /**
  * Contain all additional details params
  */
-export declare type Details = {
+export type Details = {
     nonce: BigNumberish;
     maxFee: BigNumberish;
     version: BigNumberish;
     chainId: StarknetChainId;
 };
-export declare type InvocationsDetailsWithNonce = (InvocationsDetails & {
+export type InvocationsDetailsWithNonce = (InvocationsDetails & {
     nonce: BigNumberish;
 }) | V3TransactionDetails;
 export declare enum TransactionType {
@@ -165,7 +165,7 @@ export declare enum BlockTag {
     pending = "pending",
     latest = "latest"
 }
-export declare type BlockNumber = BlockTag | null | number;
+export type BlockNumber = BlockTag | null | number;
 /**
  * hex string and BigInt are detected as block hashes
  *
@@ -175,11 +175,11 @@ export declare type BlockNumber = BlockTag | null | number;
  *
  * null return 'pending' block tag
  */
-export declare type BlockIdentifier = BlockNumber | BigNumberish;
+export type BlockIdentifier = BlockNumber | BigNumberish;
 /**
  * items used by AccountInvocations
  */
-export declare type AccountInvocationItem = (({
+export type AccountInvocationItem = (({
     type: TransactionType.DECLARE;
 } & DeclareContractTransaction) | ({
     type: TransactionType.DEPLOY_ACCOUNT;
@@ -189,11 +189,11 @@ export declare type AccountInvocationItem = (({
 /**
  * Complete invocations array with account details (internal type from account -> provider)
  */
-export declare type AccountInvocations = AccountInvocationItem[];
+export type AccountInvocations = AccountInvocationItem[];
 /**
  * Invocations array user provide to bulk method (simulate)
  */
-export declare type Invocations = Array<({
+export type Invocations = Array<({
     type: TransactionType.DECLARE;
 } & OptionalPayload<DeclareContractPayload>) | ({
     type: TransactionType.DEPLOY;
@@ -202,32 +202,32 @@ export declare type Invocations = Array<({
 } & OptionalPayload<DeployAccountContractPayload>) | ({
     type: TransactionType.INVOKE;
 } & OptionalPayload<AllowArray<Call>>)>;
-export declare type Tupled = {
+export type Tupled = {
     element: any;
     type: string;
 };
-export declare type Args = {
+export type Args = {
     [inputName: string]: BigNumberish | BigNumberish[] | ParsedStruct | ParsedStruct[];
 };
-export declare type ParsedStruct = {
+export type ParsedStruct = {
     [key: string]: BigNumberish | BigNumberish[] | ParsedStruct | Uint256;
 };
-export declare type waitForTransactionOptions = {
+export type waitForTransactionOptions = {
     retryInterval?: number;
     successStates?: Array<TransactionFinalityStatus | TransactionExecutionStatus>;
     errorStates?: Array<TransactionFinalityStatus | TransactionExecutionStatus>;
 };
-export declare type getSimulateTransactionOptions = {
+export type getSimulateTransactionOptions = {
     blockIdentifier?: BlockIdentifier;
     skipValidate?: boolean;
     skipExecute?: boolean;
     skipFeeCharge?: boolean;
 };
-export declare type getContractVersionOptions = {
+export type getContractVersionOptions = {
     blockIdentifier?: BlockIdentifier;
     compiler?: boolean;
 };
-export declare type getEstimateFeeBulkOptions = {
+export type getEstimateFeeBulkOptions = {
     blockIdentifier?: BlockIdentifier;
     skipValidate?: boolean;
 };
@@ -239,7 +239,7 @@ export interface CallStruct {
 /**
  * Represent Contract version
  */
-export declare type ContractVersion = {
+export type ContractVersion = {
     /** version of the cairo language */
     cairo: CairoVersion;
     /** version of the cairo compiler used to compile the contract */

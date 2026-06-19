@@ -715,7 +715,75 @@ class bitmex(Exchange, ImplicitAPI):
         #        "settledPriceAdjustmentRate": null,
         #        "settledPrice": null,
         #        "timestamp": "2022-01-14T17:49:55.000Z"
-        #    }
+        #    },
+        #
+        #    other kind of markets have extra fields
+        #
+        #    {
+        #     "symbol": "XBTUSD-XBTU26",
+        #     "rootSymbol": "XBT",
+        #     "instrumentID": "3059",
+        #     "state": "Open",
+        #     "typ": "FFMCSX",
+        #     "listing": "2026-06-10T08:00:00.000Z",
+        #     "front": "2026-06-10T08:00:00.000Z",
+        #     "expiry": "2026-09-25T12:00:00.000Z",
+        #     "settle": "2026-09-25T12:00:00.000Z",
+        #     "positionCurrency": "USD",
+        #     "underlying": "XBT",
+        #     "quoteCurrency": "USD",
+        #     "underlyingSymbol": "XBT=",
+        #     "referenceSymbol": "XBTUSD",
+        #     "maxOrderQty": "10000000",
+        #     "minPrice": "-1000000",
+        #     "maxPrice": "1000000",
+        #     "lotSize": "100",
+        #     "tickSize": "0.5",
+        #     "multiplier": "1",
+        #     "settlCurrency": "XBt",
+        #     "underlyingToSettleMultiplier": "-100000000",
+        #     "isQuanto": False,
+        #     "isInverse": False,
+        #     "taxed": True,
+        #     "deleverage": True,
+        #     "makerFee": "0.0005",
+        #     "takerFee": "0.0005",
+        #     "limitDownPrice": null,
+        #     "limitUpPrice": null,
+        #     "prevTotalVolume": "300",
+        #     "totalVolume": "300",
+        #     "volume": "0",
+        #     "volume24h": "200",
+        #     "prevTotalTurnover": "460833",
+        #     "totalTurnover": "460833",
+        #     "turnover": "0",
+        #     "turnover24h": "298516",
+        #     "homeNotional24h": "0",
+        #     "foreignNotional24h": "0",
+        #     "prevPrice24h": "0",
+        #     "vwap": "577.5",
+        #     "highPrice": "577.5",
+        #     "lowPrice": "0",
+        #     "lastPrice": "577.5",
+        #     "lastPriceProtected": "577.5",
+        #     "lastTickDirection": "ZeroPlusTick",
+        #     "lastChangePcnt": "0",
+        #     "bidPrice": "566.5",
+        #     "midPrice": "567.25",
+        #     "askPrice": "568",
+        #     "hasLiquidity": False,
+        #     "openInterest": "0",
+        #     "openValue": "0",
+        #     "instantPnl": False,
+        #     "timestamp": "2026-06-17T05:22:50.000Z",
+        #     "capped": False,
+        #     "closingTimestamp": "2026-06-17T06:00:00.000Z",
+        #     "farLegSymbol": "XBTU26",
+        #     "nearLegSymbol": "XBTUSD",
+        #     "openingTimestamp": "2026-06-17T05:00:00.000Z",
+        #     "pool": "Primary",
+        #     "referencePrice": "65728"
+        #     }
         #  ]
         #
         return self.parse_markets(response)
@@ -739,7 +807,7 @@ class bitmex(Exchange, ImplicitAPI):
         elif typ == 'IFXXXP':
             type = 'spot'
             spot = True
-        elif typ == 'FFCCSX':
+        elif typ == 'FFCCSX' or typ == 'FFMCSX':
             type = 'future'
             future = True
         elif typ == 'FFICSX':
@@ -769,11 +837,10 @@ class bitmex(Exchange, ImplicitAPI):
             symbol = base + '/' + quote + ':' + settle
             if linear:
                 multiplierString = self.safe_string_2(market, 'underlyingToPositionMultiplier', 'underlyingToSettleMultiplier')
-                contractSize = self.parse_number(Precise.string_div('1', multiplierString))
+                contractSize = Precise.string_abs(Precise.string_div('1', multiplierString))
             else:
-                multiplierString = Precise.string_abs(self.safe_string(market, 'multiplier'))
-                contractSize = self.parse_number(multiplierString)
-            expiryDatetime = self.safe_string(market, 'expiry')
+                contractSize = Precise.string_abs(self.safe_string(market, 'multiplier'))
+            expiryDatetime = self.safe_string_2(market, 'expiry', 'closingTimestamp')
             expiry = self.parse8601(expiryDatetime)
             if expiry is not None:
                 symbol = symbol + '-' + self.yymmdd(expiry)
@@ -813,7 +880,7 @@ class bitmex(Exchange, ImplicitAPI):
             'quanto': isQuanto,
             'taker': self.safe_number(market, 'takerFee'),
             'maker': self.safe_number(market, 'makerFee'),
-            'contractSize': contractSize,
+            'contractSize': self.parse_number(contractSize),
             'expiry': expiry,
             'expiryDatetime': expiryDatetime,
             'strike': self.safe_number(market, 'optionStrikePrice'),

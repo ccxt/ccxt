@@ -17,7 +17,10 @@ from ccxt.base.errors import NotSupported
 class hitbtc(ccxt.async_support.hitbtc):
 
     def describe(self) -> Any:
-        return self.deep_extend(super(hitbtc, self).describe(), {
+        return self.deep_extend(super(hitbtc, self).describe(), self.describe_data())
+
+    def describe_data(self) -> Any:
+        return {
             'has': {
                 'ws': True,
                 'watchTicker': True,
@@ -79,7 +82,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             'streaming': {
                 'keepAlive': 4000,
             },
-        })
+        }
 
     async def authenticate(self):
         """

@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { Exchange } from "../../../ccxt";
+import { Exchange } from "../../../ccxt.js";
 
 async function testAfterConstruct (exchange: Exchange, skippedProperties: object) {
     if (!('networks' in skippedProperties)) {
@@ -17,13 +17,13 @@ function testOptionsNetworks (exchange: Exchange, skippedProperties: object) {
             return;
         }
         // 1) ensure 'networks' dictionary exists in options
-        assert (exchange.isDictionary (networks), 'exchange.options["networks"] is not an object');
+        assert (exchange.isDictionary (networks), 'exchange.options["networks"] is not a dict');
         if (Object.keys (networks).length === 0) {
             return;
         }
         // 2) ensure 'networksById' dictionary exists in options
         assert ('networksById' in exchange.options, 'exchange.options["networksById"] is not set');
-        assert (exchange.isDictionary (exchange.options['networksById']), 'exchange.options["networksById"] is not an object');
+        assert (exchange.isDictionary (exchange.options['networksById']), 'exchange.options["networksById"] is not a dict');
         //
         const networkCodes = Object.keys (exchange.options['networks']);
         // 3) ensure that the same network-id is not assigned to multiple networkCodes

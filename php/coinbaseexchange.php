@@ -230,6 +230,7 @@ class coinbaseexchange extends Exchange {
                         'funding/repay',
                         'orders',
                         'position/close',
+                        'profiles',
                         'profiles/margin-transfer',
                         'profiles/transfer',
                         'reports',
@@ -245,6 +246,10 @@ class coinbaseexchange extends Exchange {
                         'orders',
                         'orders/client:{client_oid}',
                         'orders/{id}',
+                    ),
+                    'put' => array(
+                        'profiles/{id}/deactivate',
+                        'profiles/{id}',
                     ),
                 ),
             ),

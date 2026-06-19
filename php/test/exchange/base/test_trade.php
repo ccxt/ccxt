@@ -23,7 +23,10 @@ function test_trade($exchange, $skipped_properties, $method, $entry, $symbol, $n
         'amount' => $exchange->parse_number('1.5'),
         'cost' => $exchange->parse_number('0.10376526'),
         'fees' => [],
-        'fee' => array(),
+        'fee' => array(
+            'cost' => $exchange->parse_number('0.001'),
+            'currency' => 'USDT',
+        ),
     );
     // todo: add takeOrMaker as mandatory (atm, many exchanges fail)
     // removed side because some public endpoints return trades without side

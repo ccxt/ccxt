@@ -2827,7 +2827,7 @@ class bullish extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function fetch_open_interest(string $symbol, $params = array ()): OpenInterest {
+    public function fetch_open_interest(string $symbol, $params = array ()): array {
         /**
          * fetches the open interest of a specific $market
          *

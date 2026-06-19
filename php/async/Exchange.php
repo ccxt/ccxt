@@ -46,11 +46,11 @@ use Lighter\Signer;
 
 use Exception;
 
-$version = '4.5.58';
+$version = '4.5.59';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.5.58';
+    const VERSION = '4.5.59';
 
     public $browser;
     public $marketsLoading = null;
@@ -837,11 +837,11 @@ class Exchange extends \ccxt\Exchange {
          * @return array(object | null)
          */
         $value = $this->safe_value($dictionaryOrList, $key1);
-        if (($value !== null) && (gettype($value) === 'array') && (gettype($value) !== 'array' || array_keys($value) !== array_keys(array_keys($value)))) {
+        if ($this->is_dictionary($value)) {
             return $value;
         }
         $value2 = $this->safe_value($dictionaryOrList, $key2);
-        if (($value2 !== null) && (gettype($value2) === 'array') && (gettype($value2) !== 'array' || array_keys($value2) !== array_keys(array_keys($value2)))) {
+        if ($this->is_dictionary($value2)) {
             return $value2;
         }
         return $defaultValue;

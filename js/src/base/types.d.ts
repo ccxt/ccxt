@@ -1,21 +1,21 @@
-export declare type Int = number | undefined;
-export declare type int = number;
-export declare type Str = string | undefined;
-export declare type Strings = string[] | undefined;
-export declare type Num = number | undefined;
-export declare type Bool = boolean | undefined;
-export declare type IndexType = number | string;
-export declare type OrderSide = 'buy' | 'sell' | string | undefined;
-export declare type OrderType = 'limit' | 'market' | string;
-export declare type MarketType = 'spot' | 'margin' | 'swap' | 'future' | 'option' | 'delivery' | 'index' | 'prediction';
-export declare type SubType = 'linear' | 'inverse' | undefined;
+export type Int = number | undefined;
+export type int = number;
+export type Str = string | undefined;
+export type Strings = string[] | undefined;
+export type Num = number | undefined;
+export type Bool = boolean | undefined;
+export type IndexType = number | string;
+export type OrderSide = 'buy' | 'sell' | string | undefined;
+export type OrderType = 'limit' | 'market' | string;
+export type MarketType = 'spot' | 'margin' | 'swap' | 'future' | 'option' | 'delivery' | 'index';
+export type SubType = 'linear' | 'inverse' | undefined;
 export interface Dictionary<T> {
     [key: string]: T;
 }
-export declare type Dict = Dictionary<any>;
-export declare type NullableDict = Dict | undefined;
-export declare type List = Array<any>;
-export declare type NullableList = List | undefined;
+export type Dict = Dictionary<any>;
+export type NullableDict = Dict | undefined;
+export type List = Array<any>;
+export type NullableList = List | undefined;
 /** Request parameters */
 export interface MinMax {
     min: Num;
@@ -34,7 +34,7 @@ export interface TradingFeeInterface {
     percentage: Bool;
     tierBased: Bool;
 }
-export declare type Fee = FeeInterface | undefined;
+export type Fee = FeeInterface | undefined;
 export interface MarketMarginModes {
     isolated: boolean;
     cross: boolean;
@@ -679,12 +679,12 @@ export interface CrossBorrowRates extends Dictionary<CrossBorrowRate> {
 export interface LeverageTiers extends Dictionary<LeverageTier[]> {
 }
 /** [ timestamp, open, high, low, close, volume ] */
-export declare type OHLCV = [Num, Num, Num, Num, Num, Num];
+export type OHLCV = [Num, Num, Num, Num, Num, Num];
 /** [ timestamp, open, high, low, close, volume, count ] */
-export declare type OHLCVC = [Num, Num, Num, Num, Num, Num, Num];
-export declare type implicitReturnType = any;
-export declare type Market = MarketInterface | undefined;
-export declare type Currency = CurrencyInterface | undefined;
+export type OHLCVC = [Num, Num, Num, Num, Num, Num, Num];
+export type implicitReturnType = any;
+export type Market = MarketInterface | undefined;
+export type Currency = CurrencyInterface | undefined;
 interface BaseConstructorArgs {
     apiKey?: string;
     secret?: string;
@@ -712,7 +712,7 @@ interface BaseConstructorArgs {
     urls?: Dict;
     headers?: Dict;
 }
-export declare type ConstructorArgs = Partial<BaseConstructorArgs> & {
+export type ConstructorArgs = Partial<BaseConstructorArgs> & {
     [key: string]: any;
 };
 export {};

@@ -49,7 +49,6 @@ Exchange::$exchanges = array(
     'bydfi',
     'cex',
     'coinbase',
-    'coinbaseadvanced',
     'coinbaseexchange',
     'coinbaseinternational',
     'coincheck',

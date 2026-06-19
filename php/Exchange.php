@@ -44,7 +44,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.5.58';
+$version = '4.5.59';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -63,7 +63,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.5.58';
+    const VERSION = '4.5.59';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -375,7 +375,6 @@ class Exchange {
         'bydfi',
         'cex',
         'coinbase',
-        'coinbaseadvanced',
         'coinbaseexchange',
         'coinbaseinternational',
         'coincheck',
@@ -1122,9 +1121,13 @@ class Exchange {
     }
 
     public static function is_json_encoded_object($input) {
-        return ('string' === gettype($input)) &&
-            // (strlen($input) >= 2) && // commented: https://github.com/ccxt/ccxt/pull/28193
-            (('{' === $input[0]) || ('[' === $input[0]));
+        try {
+            return ('string' === gettype($input)) &&
+                // (strlen($input) >= 2) && // commented: https://github.com/ccxt/ccxt/pull/28193
+                (('{' === $input[0]) || ('[' === $input[0]));
+        } catch (\Throwable $e) {
+            return false;
+        }
     }
 
     public static function encode($input) {
@@ -3212,11 +3215,11 @@ class Exchange {
          * @return array(object | null)
          */
         $value = $this->safe_value($dictionaryOrList, $key1);
-        if (($value !== null) && (gettype($value) === 'array') && (gettype($value) !== 'array' || array_keys($value) !== array_keys(array_keys($value)))) {
+        if ($this->is_dictionary($value)) {
             return $value;
         }
         $value2 = $this->safe_value($dictionaryOrList, $key2);
-        if (($value2 !== null) && (gettype($value2) === 'array') && (gettype($value2) !== 'array' || array_keys($value2) !== array_keys(array_keys($value2)))) {
+        if ($this->is_dictionary($value2)) {
             return $value2;
         }
         return $defaultValue;

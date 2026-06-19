@@ -51,7 +51,7 @@ async def test_watch_tickers_helper(exchange, skipped_properties, arg_symbols, a
         if should_return:
             return False
         if success:
-            assert isinstance(response, dict), exchange.id + ' ' + method + ' ' + exchange.json(arg_symbols) + ' must return an object. ' + exchange.json(response)
+            assert exchange.is_dictionary(response), exchange.id + ' ' + method + ' ' + exchange.json(arg_symbols) + ' must return an object. ' + exchange.json(response)
             values = list(response.values())
             checked_symbol = None
             if arg_symbols is not None and len(arg_symbols) == 1:

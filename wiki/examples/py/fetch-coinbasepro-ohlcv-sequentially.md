@@ -12,7 +12,7 @@ import ccxt  # noqa: E402
 msec = 1000
 minute = 60 * msec
 hold = 30
-exchange = ccxt.coinbasepro()
+exchange = ccxt.coinbaseexchange()
 from_datetime = '2017-09-01 00:00:00'
 from_timestamp = exchange.parse8601(from_datetime)
 now = exchange.milliseconds()

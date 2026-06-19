@@ -1329,7 +1329,7 @@ class binance extends \ccxt\async\binance {
         //
         //     {
         //         "e" => "trade",       // event $type
-        //         "E" => 1579481530911, // event time
+        //         "E" => 1579481530912, // event time
         //         "s" => "ETHBTC",      // $symbol
         //         "t" => 158410082,     // $trade $id
         //         "p" => "0.01914100",  // $price

@@ -15,12 +15,17 @@
     "ccxt": "^4.5.49",
     "next": "^15.3.0",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "undici": "^7.16.0"
   },
   "devDependencies": {
     "@types/node": "^22.13.0",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
     "typescript": "^5.8.0"
+  },
+  "overrides": {
+    "postcss": "^8.5.10",
+    "dompurify": "^3.4.0"
   }
 }

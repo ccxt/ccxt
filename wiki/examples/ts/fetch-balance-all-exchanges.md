@@ -1,4 +1,6 @@
 ```javascript
+// @NO_AUTO_TRANSPILE
+
 import * as fs from 'fs';
 import ccxt from '../../js/ccxt.js';
 

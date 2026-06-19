@@ -1277,8 +1277,8 @@ func (this *CoinoneCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires {\\'price\\': 12345, \\'qty\\': 1.2345, \\'is_ask\\': 0} in the params argument.")))
 		}
 
-		retRes11578 := (<-this.LoadMarkets())
-		PanicOnError(retRes11578)
+		retRes11558 := (<-this.LoadMarkets())
+		PanicOnError(retRes11558)
 		var request any = map[string]any{
 			"order_id": id,
 			"price":    price,
@@ -1321,8 +1321,8 @@ func (this *CoinoneCore) FetchDepositAddresses(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes11848 := (<-this.LoadMarkets())
-		PanicOnError(retRes11848)
+		retRes11828 := (<-this.LoadMarkets())
+		PanicOnError(retRes11828)
 
 		response := (<-this.V2PrivatePostAccountDepositAddress(params))
 		PanicOnError(response)

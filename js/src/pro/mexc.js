@@ -1465,12 +1465,12 @@ export default class mexc extends mexcRest {
     }
     parseWsOrderStatus(status, market = undefined) {
         const statuses = {
-            '0': 'open',
-            '1': 'open',
-            '2': 'closed',
-            '3': 'open',
-            '4': 'canceled',
-            '5': 'closed',
+            '0': 'open', // new/pending (OCO orders)
+            '1': 'open', // new order
+            '2': 'closed', // filled
+            '3': 'open', // partially filled
+            '4': 'canceled', // canceled
+            '5': 'closed', // partially filled then canceled
             'NEW': 'open',
             'CANCELED': 'canceled',
             'EXECUTED': 'closed',
@@ -1480,26 +1480,26 @@ export default class mexc extends mexcRest {
     }
     parseWsOrderType(type) {
         const types = {
-            '1': 'limit',
-            '2': 'limit',
-            '3': undefined,
-            '4': undefined,
-            '5': 'market',
-            '100': 'limit',
-            '101': 'limit',
+            '1': 'limit', // LIMIT_ORDER
+            '2': 'limit', // POST_ONLY
+            '3': undefined, // IMMEDIATE_OR_CANCEL
+            '4': undefined, // FILL_OR_KILL
+            '5': 'market', // MARKET_ORDER
+            '100': 'limit', // STOP_LIMIT
+            '101': 'limit', // OCO_STOP_LIMIT
             '102': 'limit', // OCO_LIMIT
         };
         return this.safeString(types, type);
     }
     parseWsTimeInForce(timeInForce) {
         const timeInForceIds = {
-            '1': 'GTC',
-            '2': 'PO',
-            '3': 'IOC',
-            '4': 'FOK',
-            '5': 'GTC',
-            '100': 'GTC',
-            '101': 'GTC',
+            '1': 'GTC', // LIMIT_ORDER
+            '2': 'PO', // POST_ONLY
+            '3': 'IOC', // IMMEDIATE_OR_CANCEL
+            '4': 'FOK', // FILL_OR_KILL
+            '5': 'GTC', // MARKET_ORDER
+            '100': 'GTC', // STOP_LIMIT
+            '101': 'GTC', // OCO_STOP_LIMIT
             '102': 'GTC', // OCO_LIMIT
         };
         return this.safeString(timeInForceIds, timeInForce);

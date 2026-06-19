@@ -214,7 +214,7 @@ export default class blofin extends Exchange {
                         'trade/orders-algo-pending': 1,
                         'trade/orders-history': 1,
                         'trade/orders-tpsl-history': 1,
-                        'trade/orders-algo-history': 1,
+                        'trade/orders-algo-history': 1, // todo new
                         'trade/fills-history': 1,
                         'trade/order/price-range': 1,
                         // affiliate
@@ -352,7 +352,7 @@ export default class blofin extends Exchange {
                     'extends': 'default',
                     'createOrder': {
                         'marginMode': true,
-                        'triggerPrice': false,
+                        'triggerPrice': false, // todo
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
                         'stopLossPrice': true,
@@ -377,51 +377,51 @@ export default class blofin extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                    '400': BadRequest,
-                    '401': AuthenticationError,
-                    '500': ExchangeError,
-                    '404': BadRequest,
-                    '405': BadRequest,
-                    '406': BadRequest,
-                    '429': RateLimitExceeded,
-                    '152001': BadRequest,
-                    '152002': BadRequest,
-                    '152003': BadRequest,
-                    '152004': BadRequest,
-                    '152005': BadRequest,
-                    '152006': InvalidOrder,
-                    '152007': InvalidOrder,
-                    '152008': InvalidOrder,
-                    '152009': InvalidOrder,
-                    '150003': InvalidOrder,
-                    '150004': InvalidOrder,
-                    '542': InvalidOrder,
-                    '102002': InvalidOrder,
-                    '102005': InvalidOrder,
-                    '102014': InvalidOrder,
-                    '102015': InvalidOrder,
-                    '102022': InvalidOrder,
-                    '102037': InvalidOrder,
-                    '102038': InvalidOrder,
-                    '102039': InvalidOrder,
-                    '102040': InvalidOrder,
-                    '102047': InvalidOrder,
-                    '102048': InvalidOrder,
-                    '102049': InvalidOrder,
-                    '102050': InvalidOrder,
-                    '102051': InvalidOrder,
-                    '102052': InvalidOrder,
-                    '102053': InvalidOrder,
-                    '102054': InvalidOrder,
-                    '102055': InvalidOrder,
-                    '102064': BadRequest,
-                    '102065': BadRequest,
-                    '102068': BadRequest,
-                    '103013': ExchangeError,
+                    '400': BadRequest, // Body can not be empty
+                    '401': AuthenticationError, // Invalid signature
+                    '500': ExchangeError, // Internal Server Error
+                    '404': BadRequest, // not found
+                    '405': BadRequest, // Method Not Allowed
+                    '406': BadRequest, // Not Acceptable
+                    '429': RateLimitExceeded, // Too Many Requests
+                    '152001': BadRequest, // Parameter {} cannot be empty
+                    '152002': BadRequest, // Parameter {} error
+                    '152003': BadRequest, // Either parameter {} or {} is required
+                    '152004': BadRequest, // JSON syntax error
+                    '152005': BadRequest, // Parameter error: wrong or empty
+                    '152006': InvalidOrder, // Batch orders can be placed for up to 20 at once
+                    '152007': InvalidOrder, // Batch orders can only be placed with the same instId and marginMode
+                    '152008': InvalidOrder, // Only the same field is allowed for bulk cancellation of orders, orderId is preferred
+                    '152009': InvalidOrder, // {} must be a combination of numbers, letters, or underscores, and the maximum length of characters is 32
+                    '150003': InvalidOrder, // clientId already exist
+                    '150004': InvalidOrder, // Insufficient balance. please adjust the amount and try again
+                    '542': InvalidOrder, // Exceeded the maximum order size limit
+                    '102002': InvalidOrder, // Duplicate customized order ID
+                    '102005': InvalidOrder, // Position had been closed
+                    '102014': InvalidOrder, // Limit order exceeds maximum order size limit
+                    '102015': InvalidOrder, // Market order exceeds maximum order size limit
+                    '102022': InvalidOrder, // Failed to place order. You don’t have any positions of this contract. Turn off Reduce-only to continue.
+                    '102037': InvalidOrder, // TP trigger price should be higher than the latest trading price
+                    '102038': InvalidOrder, // SL trigger price should be lower than the latest trading price
+                    '102039': InvalidOrder, // TP trigger price should be lower than the latest trading price
+                    '102040': InvalidOrder, // SL trigger price should be higher than the latest trading price
+                    '102047': InvalidOrder, // Stop loss trigger price should be higher than the order price
+                    '102048': InvalidOrder, // stop loss trigger price must be higher than the best bid price
+                    '102049': InvalidOrder, // Take profit trigger price should be lower than the order price
+                    '102050': InvalidOrder, // stop loss trigger price must be lower than the best ask price
+                    '102051': InvalidOrder, // stop loss trigger price should be lower than the order price
+                    '102052': InvalidOrder, // take profit trigger price should be higher than the order price
+                    '102053': InvalidOrder, // take profit trigger price should be lower than the best bid price
+                    '102054': InvalidOrder, // take profit trigger price should be higher than the best ask price
+                    '102055': InvalidOrder, // stop loss trigger price should be lower than the best ask price
+                    '102064': BadRequest, // Buy price is not within the price limit (Minimum: 310.40; Maximum:1,629.40)
+                    '102065': BadRequest, // Sell price is not within the price limit
+                    '102068': BadRequest, // Cancel failed as the order has been filled, triggered, canceled or does not exist
+                    '103013': ExchangeError, // Internal error; unable to process your request. Please try again.
                     'Order failed. Insufficient USDT margin in account': InsufficientFunds, // Insufficient USDT margin in account
                 },
                 'broad': {
-                    'Internal Server Error': ExchangeNotAvailable,
+                    'Internal Server Error': ExchangeNotAvailable, // {"code":500,"data":{},"detailMsg":"","error_code":"500","error_message":"Internal Server Error","msg":"Internal Server Error"}
                     'server error': ExchangeNotAvailable, // {"code":500,"data":{},"detailMsg":"","error_code":"500","error_message":"server error 1236805249","msg":"server error 1236805249"}
                 },
             },
@@ -477,7 +477,7 @@ export default class blofin extends Exchange {
                 'fetchPositions': {
                     'method': 'privateGetAccountPositions', // privateGetAccountPositions or privateGetAccountPositionsHistory
                 },
-                'createOrder': 'privatePostTradeOrder',
+                'createOrder': 'privatePostTradeOrder', // or 'privatePostTradeOrderTpsl'
                 'createMarketBuyOrderRequiresPrice': false,
                 'fetchMarkets': ['swap'],
                 'defaultType': 'swap',
@@ -1980,16 +1980,16 @@ export default class blofin extends Exchange {
     }
     parseLedgerEntryType(type) {
         const types = {
-            '1': 'transfer',
-            '2': 'trade',
-            '3': 'trade',
-            '4': 'rebate',
-            '5': 'trade',
-            '6': 'transfer',
-            '7': 'trade',
-            '8': 'fee',
-            '9': 'trade',
-            '10': 'trade',
+            '1': 'transfer', // transfer
+            '2': 'trade', // trade
+            '3': 'trade', // delivery
+            '4': 'rebate', // auto token conversion
+            '5': 'trade', // liquidation
+            '6': 'transfer', // margin transfer
+            '7': 'trade', // interest deduction
+            '8': 'fee', // funding rate
+            '9': 'trade', // adl
+            '10': 'trade', // clawback
             '11': 'trade', // system token conversion
         };
         return this.safeString(types, type, type);

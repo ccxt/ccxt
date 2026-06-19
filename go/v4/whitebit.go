@@ -2615,7 +2615,7 @@ func (this *WhitebitCore) ParseBalance(response any) any {
 		var id any = GetValue(balanceKeys, i)
 		var code any = this.SafeCurrencyCode(id)
 		var balance any = GetValue(response, id)
-		if IsTrue(IsTrue(IsObject(balance)) && IsTrue(!IsEqual(balance, nil))) {
+		if IsTrue(IsTrue(!IsEqual(balance, nil)) && IsTrue(this.IsDictionary(balance))) {
 			var account any = this.Account()
 			AddElementToObject(account, "free", this.SafeString2(balance, "available", "main_balance"))
 			AddElementToObject(account, "used", this.SafeString(balance, "freeze"))

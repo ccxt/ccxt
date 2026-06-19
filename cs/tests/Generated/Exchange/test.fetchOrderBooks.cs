@@ -12,7 +12,7 @@ public partial class testMainClass : BaseTest
         object method = "fetchOrderBooks";
         object symbol = getValue(exchange.symbols, 0);
         object orderBooks = await exchange.fetchOrderBooks(new List<object>() {symbol});
-        assert((orderBooks is IDictionary<string, object>), add(add(add(add(exchange.id, " "), method), " must return an object. "), exchange.json(orderBooks)));
+        assert(exchange.isDictionary(orderBooks), add(add(add(add(exchange.id, " "), method), " must return a dict. "), exchange.json(orderBooks)));
         object orderBookKeys = new List<object>(((IDictionary<string,object>)orderBooks).Keys);
         assert(getArrayLength(orderBookKeys), add(add(add(exchange.id, " "), method), " returned 0 length data"));
         for (object i = 0; isLessThan(i, getArrayLength(orderBookKeys)); postFixIncrement(ref i))

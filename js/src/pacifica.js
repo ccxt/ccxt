@@ -23,8 +23,8 @@ export default class pacifica extends Exchange {
             'name': 'Pacifica',
             'countries': [],
             'version': 'v1',
-            'isSandboxModeEnabled': false,
-            'rateLimit': 50,
+            'isSandboxModeEnabled': false, // is testnet api
+            'rateLimit': 50, // 125 requests per minute without api-key (300 with api-key) ~ 2 req/sec = 1 req/500 ms.
             'certified': false,
             'pro': true,
             'dex': true,
@@ -161,7 +161,7 @@ export default class pacifica extends Exchange {
                         'kline': 12,
                         'kline/mark': 12,
                         'book': 1,
-                        'trades': 1,
+                        'trades': 1, // Recent
                         'funding_rate/history': 1,
                         'account': 1,
                         'account/settings': 1,
@@ -216,7 +216,7 @@ export default class pacifica extends Exchange {
             'requiredCredentials': {
                 'apiKey': false,
                 'secret': false,
-                'walletAddress': false,
+                'walletAddress': false, // agentAddress, apiKey only in options.
                 'privateKey': true, // base58 solana private key
             },
             'exceptions': {
@@ -250,8 +250,8 @@ export default class pacifica extends Exchange {
             'options': {
                 'agentAddress': undefined,
                 'apiKey': undefined,
-                'builderCode': 'CCXT',
-                'feeRate': '0.01',
+                'builderCode': 'CCXT', // case sensitive
+                'feeRate': '0.01', // default rate for builder fee approval 0.01%
                 'builderFee': true,
                 'batchOrdersMax': 10,
                 'defaultType': 'swap',
@@ -3168,7 +3168,7 @@ export default class pacifica extends Exchange {
         return costNumber;
     }
     sortJsonKeys(value) {
-        if (typeof value === 'object') {
+        if (this.isDictionary(value)) {
             const result = {};
             const keys = Object.keys(value);
             const sortedKeys = this.sort(keys);

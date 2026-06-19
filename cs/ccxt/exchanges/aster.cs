@@ -1391,7 +1391,6 @@ public partial class aster : Exchange
         object last = this.safeString(ticker, "lastPrice");
         object open = this.safeString(ticker, "openPrice");
         object percentage = this.safeString(ticker, "priceChangePercent");
-        percentage = Precise.stringMul(percentage, "100");
         object quoteVolume = this.safeString(ticker, "quoteVolume");
         object baseVolume = this.safeString(ticker, "volume");
         object high = this.safeString(ticker, "highPrice");

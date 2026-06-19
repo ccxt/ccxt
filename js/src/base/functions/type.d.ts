@@ -3,7 +3,7 @@ declare const isNumber: (number: unknown) => boolean;
 declare const isInteger: (number: unknown) => boolean;
 declare const isArray: (arg: any) => arg is any[];
 declare const hasProps: (o: any) => boolean;
-declare const isString: (s: any) => boolean;
+declare const isString: (s: any) => s is string;
 declare const isObject: (o: any) => boolean;
 declare const isDictionary: (o: any) => boolean;
 declare const isStringCoercible: (x: any) => any;
@@ -34,4 +34,4 @@ declare const safeValueN: (o: implicitReturnType, k: (IndexType)[], $default?: a
 declare const safeStringN: (o: implicitReturnType, k: (IndexType)[], $default?: string) => Str;
 declare const safeStringLowerN: (o: implicitReturnType, k: (IndexType)[], $default?: string) => Str;
 declare const safeStringUpperN: (o: implicitReturnType, k: (IndexType)[], $default?: string) => Str;
-export { isNumber, isInteger, isArray, isObject, isString, isStringCoercible, isDictionary, hasProps, prop, asFloat, asInteger, safeFloat, safeInteger, safeIntegerProduct, safeTimestamp, safeValue, safeString, safeStringLower, safeStringUpper, safeFloat2, safeInteger2, safeIntegerProduct2, safeTimestamp2, safeValue2, safeString2, safeStringLower2, safeStringUpper2, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, };
+export { isNumber, isInteger, isArray, isObject, isString, isStringCoercible, isDictionary as isDict, hasProps, prop, asFloat, asInteger, safeFloat, safeInteger, safeIntegerProduct, safeTimestamp, safeValue, safeString, safeStringLower, safeStringUpper, safeFloat2, safeInteger2, safeIntegerProduct2, safeTimestamp2, safeValue2, safeString2, safeStringLower2, safeStringUpper2, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, };

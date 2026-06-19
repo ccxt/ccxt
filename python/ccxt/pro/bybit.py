@@ -2319,10 +2319,17 @@ class bybit(ccxt.async_support.bybit):
         if exacMethod is not None:
             exacMethod(client, message)
             return
+        # 'order' is a substring of 'orderbook', so an orderbook topic like
+        # 'orderbook.50.BTCUSDT' could be wrongly captured by the 'order' key in a
+        # first-match loop(in Go map iteration order is randomized). Check the
+        # orderbook prefix explicitly, then fall back to a simple first-match.
+        if topic.find('orderbook') >= 0:
+            self.handle_order_book(client, message)
+            return
         keys = list(methods.keys())
         for i in range(0, len(keys)):
             key = keys[i]
-            if topic.find(keys[i]) >= 0:
+            if topic.find(key) >= 0:
                 method = methods[key]
                 method(client, message)
                 return

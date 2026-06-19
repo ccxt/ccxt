@@ -815,7 +815,7 @@ public class CoinspotCore extends CoinspotApi
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object method = Helpers.add("privatePostMy", this.capitalize(side));
+            Object sideUpper = ((String)side).toUpperCase();
             if (Helpers.isTrue(Helpers.isEqual(type, "market")))
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " createOrder() allows limit orders only")) ;
@@ -826,8 +826,24 @@ public class CoinspotCore extends CoinspotApi
                 put( "amount", amount );
                 put( "rate", price );
             }};
-            Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { this.extend(request, parameters) })).join();
-            return this.parseOrder(response);
+            Object response = null;
+            if (Helpers.isTrue(Helpers.isEqual(sideUpper, "BUY")))
+            {
+                response = (this.privatePostMyBuy(this.extend(request, parameters))).join();
+            } else if (Helpers.isTrue(Helpers.isEqual(sideUpper, "SELL")))
+            {
+                response = (this.privatePostMySell(this.extend(request, parameters))).join();
+            } else
+            {
+                throw new NotSupported((String)Helpers.add(this.id, " createOrder only support buy/sell side")) ;
+            }
+            //
+            // status - ok, error
+            //
+            final Object finalResponse = response;
+            return this.safeOrder(new java.util.HashMap<String, Object>() {{
+                put( "info", finalResponse );
+            }});
         });
 
     }
@@ -876,6 +892,21 @@ public class CoinspotCore extends CoinspotApi
             }});
         });
 
+    }
+
+    public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    {
+        if (!Helpers.isTrue(response))
+        {
+            return null;  // fallback to default error handler
+        }
+        Object status = this.safeString(response, "status");
+        if (Helpers.isTrue(Helpers.isEqual(status, "error")))
+        {
+            Object feedback = Helpers.add(Helpers.add(this.id, " "), this.json(response));
+            throw new ExchangeError((String)feedback) ;
+        }
+        return null;
     }
 
     public Object sign(Object path, Object... optionalArgs)

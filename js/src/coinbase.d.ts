@@ -217,7 +217,7 @@ export default class coinbase extends Exchange {
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
     findAccountId(code: any, params?: {}): Promise<string>;
     prepareAccountRequest(limit?: Int, params?: {}): Dict;
-    prepareAccountRequestWithCurrencyCode(code?: Str, limit?: Int, params?: {}): Promise<Dict[]>;
+    prepareAccountRequestWithCurrencyCode(code?: Str, limit?: Int, params?: {}): Promise<{}[]>;
     /**
      * @method
      * @name coinbase#createMarketBuyOrderWithCost

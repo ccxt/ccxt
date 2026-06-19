@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { Exchange } from "../../../ccxt";
+import { Exchange } from "../../../ccxt.js";
 import testTicker from './base/test.ticker.js';
 import testSharedMethods from './base/test.sharedMethods.js';
 
@@ -14,7 +14,7 @@ async function testFetchTickers (exchange: Exchange, skippedProperties: object, 
 async function fetchTickersHelperTest (exchange: Exchange, skippedProperties: object, argSymbols, argParams = {}) {
     const method = 'fetchTickers';
     const response =  await exchange.fetchTickers (argSymbols, argParams);
-    assert (typeof response === 'object', exchange.id + ' ' + method + ' ' + exchange.json (argSymbols) + ' must return an object. ' + exchange.json (response));
+    assert (exchange.isDictionary (response), exchange.id + ' ' + method + ' ' + exchange.json (argSymbols) + ' must return a dict. ' + exchange.json (response));
     const values = Object.values (response);
     let checkedSymbol = undefined;
     if (argSymbols !== undefined && argSymbols.length === 1) {

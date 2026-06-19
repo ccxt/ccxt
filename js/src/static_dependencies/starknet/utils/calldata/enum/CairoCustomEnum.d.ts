@@ -1,4 +1,4 @@
-export declare type CairoEnumRaw = {
+export type CairoEnumRaw = {
     [key: string]: any;
 };
 /**

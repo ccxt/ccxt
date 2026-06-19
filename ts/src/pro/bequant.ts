@@ -11,7 +11,8 @@ export default class bequant extends hitbtc {
         // eslint-disable-next-line new-cap
         const restInstance = new bequantRest ();
         const restDescribe = restInstance.describe ();
-        const extended = this.deepExtend (super.describe (), restDescribe);
+        const parentWsDescribe = super.describeData ();
+        const extended = this.deepExtend (restDescribe, parentWsDescribe);
         return this.deepExtend (extended, {
             'id': 'bequant',
             'name': 'Bequant',

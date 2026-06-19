@@ -50,7 +50,7 @@ function test_watch_bids_asks_helper($exchange, $skipped_properties, $arg_symbol
                 return false;
             }
             if ($success === true) {
-                assert(is_array($response), $exchange->id . ' ' . $method . ' ' . $exchange->json($arg_symbols) . ' must return an object. ' . $exchange->json($response));
+                assert($exchange->is_dictionary($response), $exchange->id . ' ' . $method . ' ' . $exchange->json($arg_symbols) . ' must return an object. ' . $exchange->json($response));
                 $values = is_array($response) ? array_values($response) : array();
                 $checked_symbol = null;
                 if ($arg_symbols !== null && count($arg_symbols) === 1) {
