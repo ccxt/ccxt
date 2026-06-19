@@ -909,7 +909,7 @@ export default class novadax extends Exchange {
             if (uppercaseSide === 'SELL') {
                 request['amount'] = this.amountToPrecision (symbol, amount);
             } else if (uppercaseSide === 'BUY') {
-                let quoteAmount = undefined;
+                let quoteAmount: Str = undefined;
                 let createMarketBuyOrderRequiresPrice = true;
                 [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
                 const cost = this.safeNumber2 (params, 'cost', 'value');
