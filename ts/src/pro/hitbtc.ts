@@ -4,7 +4,7 @@
 import { sha256 } from '@noble/hashes/sha2.js';
 import hitbtcRest from '../hitbtc.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Tickers, Int, OHLCV, OrderSide, OrderType, Strings, Num, Dict, Market } from '../base/types.js';
+import type { Tickers, Int, OHLCV, OrderSide, OrderType, Strings, Num, Dict, Market, List } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types.js';
 import { AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
@@ -1024,7 +1024,7 @@ export default class hitbtc extends hitbtcRest {
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const tradeId = this.safeString (order, 'trade_id');
-        let trades = undefined;
+        let trades: List = undefined;
         if (tradeId !== undefined) {
             const trade = this.parseWsOrderTrade (order, market);
             trades = [ trade ];
