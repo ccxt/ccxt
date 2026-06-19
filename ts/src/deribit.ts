@@ -1917,7 +1917,7 @@ export default class deribit extends Exchange {
                 cost = Precise.stringDiv (amount, averageString);
             }
         }
-        let lastTradeTimestamp = undefined;
+        let lastTradeTimestamp: Int = undefined;
         if (filledString !== undefined) {
             const isFilledPositive = Precise.stringGt (filledString, '0');
             if (isFilledPositive) {
