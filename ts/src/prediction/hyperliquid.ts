@@ -530,7 +530,6 @@ export default class hyperliquid extends Exchange {
                 'outcomeId': this.outcomeCoin (yesEncoding),
                 'symbol': yesOutcomeSymbol,
                 'outcome': yesOutcomeSymbol,
-                'marketSymbol': parentSymbol,
                 'market': parentSymbol,
                 'label': yesLabel,
                 'active': active,
@@ -552,7 +551,6 @@ export default class hyperliquid extends Exchange {
                 'outcomeId': this.outcomeCoin (noEncoding),
                 'symbol': noOutcomeSymbol,
                 'outcome': noOutcomeSymbol,
-                'marketSymbol': parentSymbol,
                 'market': parentSymbol,
                 'label': noLabel,
                 'active': active,
@@ -658,7 +656,6 @@ export default class hyperliquid extends Exchange {
      */
     async fetchTicker (symbol: string, params = {}): Promise<PredictionTicker> {
         const outcome = symbol;
-        await this.loadMarkets ();
         this.checkEvents (outcome);
         const outcomeObj = this.outcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
@@ -694,7 +691,6 @@ export default class hyperliquid extends Exchange {
      */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<PredictionTickers> {
         const outcomes = symbols;
-        await this.loadMarkets ();
         const requestedOutcomeSymbols = {};
         if (outcomes !== undefined) {
             for (let i = 0; i < outcomes.length; i++) {
@@ -772,7 +768,7 @@ export default class hyperliquid extends Exchange {
             mid = this.sum (bid, ask) / 2;
         }
         // day volume lives on the parent market's ctx; resolve it from the outcome's marketSymbol
-        const parentSymbol = this.safeString (mkt, 'marketSymbol');
+        const parentSymbol = this.safeString (mkt, 'outcome');
         const parentMarket = (parentSymbol !== undefined) ? this.safeMarket (parentSymbol) : undefined;
         const ctx = (parentMarket !== undefined) ? this.safeDict (this.safeDict (parentMarket as any, 'info', {}), 'ctx', {}) : {};
         const dayVolume = this.safeNumber (ctx, 'dayNtlVlm');
@@ -780,7 +776,7 @@ export default class hyperliquid extends Exchange {
             'symbol': symbol,
             'outcomeId': this.safeString (mkt, 'id'),
             'label': this.safeString (mkt, 'label'),
-            'market': this.safeString (mkt, 'marketSymbol'),
+            'market': this.safeString (mkt, 'outcome'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
@@ -815,7 +811,6 @@ export default class hyperliquid extends Exchange {
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
         const outcome = symbol;
-        await this.loadMarkets ();
         this.checkEvents (outcome);
         const outcomeObj = this.outcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
@@ -869,10 +864,9 @@ export default class hyperliquid extends Exchange {
      */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         const outcome = symbol;
-        await this.loadMarkets ();
         this.checkEvents (outcome);
         const outcomeObj = this.outcome (outcome);
-        const market = this.market (this.safeString (outcomeObj, 'marketSymbol'));
+        const market = this.market (this.safeString (outcomeObj, 'outcome'));
         const info = this.safeDict (outcomeObj, 'info', {});
         const until = this.safeInteger (params, 'until', this.milliseconds ());
         let startTime = since;
@@ -1003,7 +997,6 @@ export default class hyperliquid extends Exchange {
      */
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<PredictionPosition[]> {
         const outcomes = symbols;
-        await this.loadMarkets ();
         const requestedOutcomeSymbols = {};
         if (outcomes !== undefined) {
             for (let i = 0; i < outcomes.length; i++) {
@@ -1074,7 +1067,7 @@ export default class hyperliquid extends Exchange {
             'symbol': this.safeString (outcomeObj, 'symbol'),
             'outcomeId': this.safeString (outcomeObj, 'id'),
             'label': this.safeString (outcomeObj, 'label'),
-            'market': this.safeString (outcomeObj, 'marketSymbol'),
+            'market': this.safeString (outcomeObj, 'outcome'),
             'timestamp': undefined,
             'datetime': undefined,
             'isolated': false,
@@ -1217,11 +1210,10 @@ export default class hyperliquid extends Exchange {
      */
     async createOrder (symbol: string, type: string, side: string, amount: number, price: Num = undefined, params = {}): Promise<PredictionOrder> {
         const outcome = symbol;
-        await this.loadMarkets ();
         await this.initializeClient ();
         this.checkEvents (outcome);
         const outcomeObj = this.outcome (outcome);
-        const market = this.market (this.safeString (outcomeObj, 'marketSymbol'));
+        const market = this.market (this.safeString (outcomeObj, 'outcome'));
         const outcomeInfo = this.safeDict (outcomeObj, 'info', {});
         const nonce = this.milliseconds ();
         const isBuy = (side.toUpperCase () === 'BUY');
@@ -1247,11 +1239,11 @@ export default class hyperliquid extends Exchange {
         if (isMarket) {
             const priceStr = this.numberToString (price);
             px = isBuy ? Precise.stringMul (priceStr, Precise.stringAdd ('1', slippage)) : Precise.stringMul (priceStr, Precise.stringSub ('1', slippage));
-            px = this.priceToPrecision (this.safeString (outcomeObj, 'marketSymbol'), px);
+            px = this.priceToPrecision (this.safeString (outcomeObj, 'outcome'), px);
         } else {
-            px = this.priceToPrecision (this.safeString (outcomeObj, 'marketSymbol'), price);
+            px = this.priceToPrecision (this.safeString (outcomeObj, 'outcome'), price);
         }
-        const sz = this.amountToPrecision (this.safeString (outcomeObj, 'marketSymbol'), amount);
+        const sz = this.amountToPrecision (this.safeString (outcomeObj, 'outcome'), amount);
         const orderType = {
             'limit': { 'tif': tif },
         };
@@ -1315,7 +1307,7 @@ export default class hyperliquid extends Exchange {
             'symbol': this.safeString (outcomeObj, 'symbol', outcome),
             'outcomeId': this.safeString (outcomeObj, 'id'),
             'label': this.safeString (outcomeObj, 'label'),
-            'market': this.safeString (outcomeObj, 'marketSymbol'),
+            'market': this.safeString (outcomeObj, 'outcome'),
             'type': type,
             'side': side,
             'price': price,
@@ -1362,7 +1354,6 @@ export default class hyperliquid extends Exchange {
         if (outcome === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires an outcome argument');
         }
-        await this.loadMarkets ();
         await this.initializeClient ();
         this.checkEvents (outcome);
         const outcomeObj = this.outcome (outcome);
@@ -1432,7 +1423,7 @@ export default class hyperliquid extends Exchange {
                 'outcome': outcomeSymbol,
                 'outcomeId': this.safeString (outcomeObj, 'id'),
                 'label': this.safeString (outcomeObj, 'label'),
-                'market': this.safeString (outcomeObj, 'marketSymbol'),
+                'market': this.safeString (outcomeObj, 'outcome'),
                 'timestamp': this.milliseconds (),
                 'datetime': this.iso8601 (this.milliseconds ()),
             };
@@ -1456,7 +1447,6 @@ export default class hyperliquid extends Exchange {
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
         const outcome = symbol;
-        await this.loadMarkets ();
         let userAddress: Str;
         [ userAddress, params ] = this.handlePublicAddress ('fetchOpenOrders', params);
         let method: Str;
@@ -1492,7 +1482,6 @@ export default class hyperliquid extends Exchange {
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
         const outcome = symbol;
-        await this.loadMarkets ();
         let userAddress: Str;
         [ userAddress, params ] = this.handlePublicAddress ('fetchOrders', params);
         const request = { 'type': 'historicalOrders', 'user': userAddress };
@@ -1543,7 +1532,6 @@ export default class hyperliquid extends Exchange {
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<PredictionOrder> {
         const outcome = symbol;
-        await this.loadMarkets ();
         let userAddress: Str;
         [ userAddress, params ] = this.handlePublicAddress ('fetchOrder', params);
         const clientOrderId = this.safeString (params, 'clientOrderId');
@@ -1602,7 +1590,7 @@ export default class hyperliquid extends Exchange {
         const status = this.parseOrderStatus (this.safeString2 (order, 'ccxtStatus', 'status'));
         const coin = this.safeString (entry, 'coin');
         const outcomeObj = this.safeOutcome (coin, market as any);
-        const marketSymbol = this.safeString (outcomeObj, 'marketSymbol');
+        const marketSymbol = this.safeString (outcomeObj, 'outcome');
         const resolvedMarket = marketSymbol ? this.safeMarket (marketSymbol, market as any) : market;
         const sideRaw = this.safeString (entry, 'side');
         const side = (sideRaw === 'B') ? 'buy' : 'sell';
@@ -1627,7 +1615,7 @@ export default class hyperliquid extends Exchange {
             'symbol': this.safeString (outcomeObj, 'symbol'),
             'outcomeId': this.safeString (outcomeObj, 'id'),
             'label': this.safeString (outcomeObj, 'label'),
-            'market': this.safeString (outcomeObj, 'marketSymbol'),
+            'market': this.safeString (outcomeObj, 'outcome'),
             'type': this.parseOrderType (this.safeString (entry, 'orderType', 'limit')),
             'timeInForce': tif,
             'postOnly': postOnly,
@@ -1701,7 +1689,6 @@ export default class hyperliquid extends Exchange {
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
         const outcome = symbol;
-        await this.loadMarkets ();
         let userAddress: Str;
         [ userAddress, params ] = this.handlePublicAddress ('fetchMyTrades', params);
         const request = { 'user': userAddress };
@@ -1761,7 +1748,7 @@ export default class hyperliquid extends Exchange {
         const amount = this.safeString (trade, 'sz');
         const coin = this.safeString (trade, 'coin');
         const outcomeObj = this.safeOutcome (coin, market as any);
-        const marketSymbol = this.safeString (outcomeObj, 'marketSymbol');
+        const marketSymbol = this.safeString (outcomeObj, 'outcome');
         const resolvedMarket = marketSymbol ? this.safeMarket (marketSymbol, market as any) : market;
         const rawSide = this.safeString (trade, 'side');
         const side = (rawSide === 'B') ? 'buy' : 'sell';
@@ -1785,7 +1772,7 @@ export default class hyperliquid extends Exchange {
             'outcome': outcomeSymbol,
             'outcomeId': this.safeString (outcomeObj, 'id'),
             'label': this.safeString (outcomeObj, 'label'),
-            'market': this.safeString (outcomeObj, 'marketSymbol'),
+            'market': this.safeString (outcomeObj, 'outcome'),
             'order': this.safeString (trade, 'oid'),
             'type': 'limit',
             'side': side,
@@ -1808,7 +1795,6 @@ export default class hyperliquid extends Exchange {
      */
     async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {
         const queries = this.parseSearchQueries (params);
-        await this.loadMarkets ();
         const marketValues = Object.values (this.markets);
         // Group markets by parentSymbol
         const groupMap = {};

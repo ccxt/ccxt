@@ -2666,7 +2666,6 @@ export default class polymarket extends Exchange {
      */
     async watchOrderBook (symbol: Str, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
         const outcome = symbol;
-        await this.loadMarkets ();
         const outcomeObj = this.outcome (outcome);
         const tokenId = this.safeString (outcomeObj, 'outcomeId');
         symbol = this.safeString (outcomeObj, 'outcome');
@@ -2690,7 +2689,6 @@ export default class polymarket extends Exchange {
      */
     async watchTrades (symbol: Str, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
         const outcome = symbol;
-        await this.loadMarkets ();
         const outcomeObj = this.outcome (outcome);
         const tokenId = this.safeString (outcomeObj, 'outcomeId');
         symbol = this.safeString (outcomeObj, 'outcome');
@@ -2712,7 +2710,6 @@ export default class polymarket extends Exchange {
      */
     async watchTicker (symbol: Str, params = {}): Promise<PredictionTicker> {
         const outcome = symbol;
-        await this.loadMarkets ();
         const outcomeObj = this.outcome (outcome);
         const tokenId = this.safeString (outcomeObj, 'outcomeId');
         symbol = this.safeString (outcomeObj, 'outcome');
@@ -2795,7 +2792,6 @@ export default class polymarket extends Exchange {
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
-        await this.loadMarkets ();
         await this.loadApiCredentials ();
         let messageHash = 'orders';
         if (symbol !== undefined) {
@@ -2822,7 +2818,6 @@ export default class polymarket extends Exchange {
      * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
      */
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
-        await this.loadMarkets ();
         await this.loadApiCredentials ();
         let messageHash = 'myTrades';
         if (symbol !== undefined) {

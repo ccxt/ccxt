@@ -782,7 +782,6 @@ export default class limitless extends Exchange {
      */
     async fetchTicker (symbol: Str, params = {}): Promise<PredictionTicker> {
         const outcome = symbol;
-        await this.loadMarkets ();
         this.checkEvents (outcome);
         const outcomeObj = this.outcome (outcome);
         const slug = this.safeString (outcomeObj['info'], 'slug');
@@ -1045,7 +1044,6 @@ export default class limitless extends Exchange {
      * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome symbol
      */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<PredictionTickers> {
-        await this.loadMarkets ();
         const result: PredictionTickers = {};
         if (symbols === undefined) {
             // parse tickers for every loaded outcome from the cached listing data, without the per-market order books
@@ -1117,7 +1115,6 @@ export default class limitless extends Exchange {
      * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
      */
     async fetchTrades (symbol: Str, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
-        await this.loadMarkets ();
         this.checkEvents (symbol);
         const outcomeObj = this.outcome (symbol);
         const slug = this.safeString (outcomeObj['info'], 'slug');
@@ -1178,7 +1175,6 @@ export default class limitless extends Exchange {
      */
     async fetchOrderBook (symbol: Str, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
         const outcome = symbol;
-        await this.loadMarkets ();
         this.checkEvents (outcome);
         const outcomeObj = this.outcome (outcome);
         const slug = this.safeString (outcomeObj['info'], 'slug');
@@ -1264,7 +1260,6 @@ export default class limitless extends Exchange {
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: Str, timeframe = '1d', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
         this.checkEvents (symbol);
         const outcomeObj = this.outcome (symbol);
         const slug = this.safeString (outcomeObj['info'], 'slug');
@@ -1392,7 +1387,6 @@ export default class limitless extends Exchange {
         if (outcome === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders requires an outcome argument');
         }
-        await this.loadMarkets ();
         this.checkEvents (outcome);
         const outcomeObj = this.outcome (outcome);
         const info = this.safeDict (outcomeObj, 'info');
@@ -1445,7 +1439,6 @@ export default class limitless extends Exchange {
         if (outcome === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires an outcome argument');
         }
-        await this.loadMarkets ();
         this.checkEvents (outcome);
         params = this.extend (params, {
             'statuses': [ 'LIVE' ],
@@ -1469,7 +1462,6 @@ export default class limitless extends Exchange {
         if (outcome === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchClosedOrders requires an outcome argument');
         }
-        await this.loadMarkets ();
         this.checkEvents (outcome);
         params = this.extend (params, {
             'statuses': [ 'MATCHED' ],
@@ -1489,7 +1481,6 @@ export default class limitless extends Exchange {
      */
     async fetchOrdersByIds (ids, symbol: Str = undefined, params = {}): Promise<PredictionOrder[]> {
         const outcome = symbol;
-        await this.loadMarkets ();
         this.checkEvents (outcome);
         const length = ids.length;
         if (length > 50) {
@@ -1627,7 +1618,6 @@ export default class limitless extends Exchange {
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<PredictionOrder> {
         const outcome = symbol;
-        await this.loadMarkets ();
         this.checkEvents (outcome);
         const orders = await this.fetchOrdersByIds ([ id ], outcome, params);
         const order = this.safeDict (orders, 0);
@@ -1916,7 +1906,6 @@ export default class limitless extends Exchange {
      * @returns {object[]} a list of [account structures]
      */
     async fetchAccounts (params = {}): Promise<Account[]> {
-        await this.loadMarkets ();
         const response = await this.limitlessPrivateGetProfilesMe (params);
         const responseList = [ response ];
         return this.parseAccounts (responseList);
@@ -1937,7 +1926,6 @@ export default class limitless extends Exchange {
      */
     async createOrder (symbol: string, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Promise<PredictionOrder> {
         const outcome = symbol;
-        await this.loadMarkets ();
         const accounts = await this.loadAccounts ();
         this.checkEvents (outcome);
         const outcomeObj = this.outcome (outcome);
@@ -2135,7 +2123,6 @@ export default class limitless extends Exchange {
      */
     async cancelOrder (id: Str, symbol: Str = undefined, params = {}): Promise<PredictionOrder> {
         const outcome = symbol;
-        await this.loadMarkets ();
         this.checkEvents (outcome);
         const request: Dict = {
             'order_id': id,
@@ -2156,7 +2143,6 @@ export default class limitless extends Exchange {
      */
     async cancelOrders (ids: string[], symbol: Str = undefined, params = {}): Promise<PredictionOrder[]> {
         const outcome = symbol;
-        await this.loadMarkets ();
         this.checkEvents (outcome);
         const request: Dict = {
             'orderIds': ids,
@@ -2185,7 +2171,6 @@ export default class limitless extends Exchange {
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<PredictionOrder[]> {
         const outcome = symbol;
-        await this.loadMarkets ();
         this.checkEvents (outcome);
         if (outcome !== undefined) {
             let warn = true;
@@ -2224,7 +2209,6 @@ export default class limitless extends Exchange {
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
         const outcome = symbol;
-        await this.loadMarkets ();
         this.checkEvents (outcome);
         let paginate = false;
         const maxLimit = 100;
@@ -2673,7 +2657,6 @@ export default class limitless extends Exchange {
         let result = [];
         const queriesLength = queries.length;
         if (!queries || queriesLength === 0) {
-            await this.loadMarkets ();
             result = Object.values (this.events as Dict) as any[];
         } else {
             const limit = this.safeInteger (params, 'limit', 50);
