@@ -676,7 +676,7 @@ export default class coinspot extends Exchange {
             'amount': amount,
             'rate': price,
         };
-        let response = undefined;
+        let response: Dict = undefined;
         if (sideUpper === 'BUY') {
             response = await this.privatePostMyBuy (this.extend (request, params));
         } else if (sideUpper === 'SELL') {
