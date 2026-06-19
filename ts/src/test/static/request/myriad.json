@@ -94,9 +94,9 @@
         ],
         "fetchOrders": [
             {
-                "description": "fetchOrders for a wallet scoped to one market",
+                "description": "fetchOrders for a wallet scoped to one market (market/limit are applied client-side, only trader is sent)",
                 "method": "fetchOrders",
-                "url": "https://api-v2.myriadprotocol.com/orders?trader=0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf&market_id=730&limit=10",
+                "url": "https://api-v2.myriadprotocol.com/orders?trader=0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf",
                 "input": [
                     "WORLDCUP_GROUP_D_OB:YES",
                     null,
