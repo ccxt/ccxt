@@ -6,7 +6,7 @@ import { ed25519 } from '@noble/curves/ed25519.js';
 import Exchange from './abstract/binance.js';
 import { ExchangeError, ArgumentsRequired, OperationFailed, OperationRejected, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet, MarketClosed } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, Leverage, Leverages, Num, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRates, IsolatedBorrowRate, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, Position, ADL, Bool } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, Leverage, Leverages, Num, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRates, IsolatedBorrowRate, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, Position, ADL, Bool, Fee, MarketType } from './base/types.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { rsa } from './base/functions/rsa.js';
 import { eddsa } from './base/functions/crypto.js';
@@ -2738,7 +2738,7 @@ export default class binance extends Exchange {
         const settle = 'USDT';
         const optionParts = symbol.split ('-');
         const symbolBase = symbol.split ('/');
-        let base = undefined;
+        let base: Str = undefined;
         if (symbol.indexOf ('/') > -1) {
             base = this.safeString (symbolBase, 0);
         } else {
@@ -3087,7 +3087,7 @@ export default class binance extends Exchange {
         const isFiat = this.safeBool (entry, 'isLegalMoney');
         const networkList = this.safeList (entry, 'networkList', []);
         const fees: Dict = {};
-        let fee = undefined;
+        let fee: Num = undefined;
         const networks: Dict = {};
         let isETF = false;
         for (let j = 0; j < networkList.length; j++) {
@@ -3499,12 +3499,12 @@ export default class binance extends Exchange {
         const filters = this.safeList (market, 'filters', []);
         const filtersByType = this.indexBy (filters, 'filterType');
         const status = this.safeString2 (market, 'status', 'contractStatus');
-        let contractSize = undefined;
+        let contractSize: Num = undefined;
         let fees = this.fees;
-        let linear = undefined;
-        let inverse = undefined;
+        let linear: Bool = undefined;
+        let inverse: Bool = undefined;
         let symbol = base + '/' + quote;
-        let strike = undefined;
+        let strike: Str = undefined;
         if (contract) {
             if (swap) {
                 symbol = symbol + ':' + settle;
@@ -3545,7 +3545,7 @@ export default class binance extends Exchange {
                 'isolated': true,
             };
         }
-        let unifiedType = undefined;
+        let unifiedType: MarketType = undefined;
         if (spot) {
             unifiedType = 'spot';
         } else if (swap) {
@@ -3556,7 +3556,7 @@ export default class binance extends Exchange {
             unifiedType = 'option';
             active = undefined;
         }
-        let parsedStrike = undefined;
+        let parsedStrike: Num = undefined;
         if (strike !== undefined) {
             parsedStrike = this.parseToNumeric (strike);
         }
@@ -3801,7 +3801,7 @@ export default class binance extends Exchange {
         [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', undefined, params);
         let isPortfolioMargin: Bool = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchBalance', 'papi', 'portfolioMargin', false);
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         let query = undefined;
         [ marginMode, query ] = this.handleMarginModeAndParams ('fetchBalance', params);
         query = this.omit (query, 'type');
@@ -4262,7 +4262,7 @@ export default class binance extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger2 (ticker, 'closeTime', 'time');
-        let marketType = undefined;
+        let marketType: Str = undefined;
         if (('time' in ticker)) {
             marketType = 'contract';
         }
@@ -4274,8 +4274,8 @@ export default class binance extends Exchange {
         const last = this.safeString (ticker, 'lastPrice');
         const wAvg = this.safeString (ticker, 'weightedAvgPrice');
         const isCoinm = ('baseVolume' in ticker);
-        let baseVolume = undefined;
-        let quoteVolume = undefined;
+        let baseVolume: Str = undefined;
+        let quoteVolume: Str = undefined;
         if (isCoinm) {
             baseVolume = this.safeString (ticker, 'baseVolume');
             // 'volume' field in inverse markets is not quoteVolume, but traded amount (per contracts)
@@ -4395,7 +4395,7 @@ export default class binance extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true, true, true);
         const market = this.getMarketFromSymbols (symbols);
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBidsAsks', market, params);
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchBidsAsks', market, params);
@@ -4432,7 +4432,7 @@ export default class binance extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true, true, true);
         const market = this.getMarketFromSymbols (symbols);
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchLastPrices', market, params);
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchLastPrices', market, params);
@@ -4537,7 +4537,7 @@ export default class binance extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true, true, true);
         const market = this.getMarketFromSymbols (symbols);
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params);
@@ -4598,7 +4598,7 @@ export default class binance extends Exchange {
     async fetchMarkPrice (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchMarkPrice', market, params, 'swap');
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchMarkPrice', market, params, 'linear');
@@ -4634,7 +4634,7 @@ export default class binance extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true, true, true);
         const market = this.getMarketFromSymbols (symbols);
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchMarkPrices', market, params, 'swap');
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchMarkPrices', market, params, 'linear');
@@ -5065,7 +5065,7 @@ export default class binance extends Exchange {
                 side = trade['isBuyer'] ? 'buy' : 'sell'; // this is a true side
             }
         }
-        let fee = undefined;
+        let fee: Dict = undefined;
         if ('commission' in trade) {
             fee = {
                 'cost': this.safeString (trade, 'commission'),
@@ -6236,7 +6236,7 @@ export default class binance extends Exchange {
         const symbol = this.safeSymbol (marketId, market, undefined, marketType);
         const filled = this.safeString (order, 'executedQty', '0');
         const timestamp = this.safeIntegerN (order, [ 'time', 'createTime', 'workingTime', 'transactTime', 'updateTime' ]); // order of the keys matters here
-        let lastTradeTimestamp = undefined;
+        let lastTradeTimestamp: Int = undefined;
         if (('transactTime' in order) || ('updateTime' in order)) {
             const timestampValue = this.safeInteger2 (order, 'updateTime', 'transactTime');
             if (status === 'open') {
@@ -6268,7 +6268,7 @@ export default class binance extends Exchange {
         const stopPriceString = this.safeString2 (order, 'stopPrice', 'triggerPrice');
         const triggerPrice = this.parseNumber (this.omitZero (stopPriceString));
         const feeCost = this.safeNumber (order, 'fee');
-        let fee = undefined;
+        let fee: Fee = undefined;
         if (feeCost !== undefined) {
             fee = {
                 'currency': this.safeString (order, 'quoteAsset'),
@@ -6525,7 +6525,7 @@ export default class binance extends Exchange {
         };
         let isPortfolioMargin: Bool = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'createOrder', 'papi', 'portfolioMargin', false);
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
         const reduceOnly = this.safeBool (params, 'reduceOnly', false);
         if (reduceOnly) {
@@ -6550,7 +6550,7 @@ export default class binance extends Exchange {
         const isPriceMatch = priceMatch !== undefined;
         let priceRequiredForTrailing = true;
         let uppercaseType = type.toUpperCase ();
-        let stopPrice = undefined;
+        let stopPrice: Str = undefined;
         if (isTrailingPercentOrder) {
             if (market['swap']) {
                 uppercaseType = 'TRAILING_STOP_MARKET';
@@ -6635,7 +6635,7 @@ export default class binance extends Exchange {
         } else {
             request[clientOrderIdRequest] = clientOrderId;
         }
-        let postOnly = undefined;
+        let postOnly: Bool = undefined;
         if (!isPortfolioMargin) {
             postOnly = this.isPostOnly (isMarketOrder, initialUppercaseType === 'LIMIT_MAKER', params);
             if (market['spot'] || marketType === 'margin') {
@@ -6919,7 +6919,7 @@ export default class binance extends Exchange {
         const market = this.market (symbol);
         const defaultType = this.safeString2 (this.options, 'fetchOrder', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrder', params);
         let isPortfolioMargin: Bool = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchOrder', 'papi', 'portfolioMargin', false);
@@ -7014,7 +7014,7 @@ export default class binance extends Exchange {
         const market = this.market (symbol);
         const defaultType = this.safeString2 (this.options, 'fetchOrders', 'defaultType', market['type']);
         const type = this.safeString (params, 'type', defaultType);
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrders', params);
         let isPortfolioMargin: Bool = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchOrders', 'papi', 'portfolioMargin', false);
@@ -7279,9 +7279,9 @@ export default class binance extends Exchange {
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         let market: Market = undefined;
-        let type = undefined;
+        let type: Str = undefined;
         const request: Dict = {};
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOpenOrders', params);
         let isPortfolioMargin: Bool = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchOpenOrders', 'papi', 'portfolioMargin', false);
@@ -7690,7 +7690,7 @@ export default class binance extends Exchange {
         const market = this.market (symbol);
         const defaultType = this.safeString2 (this.options, 'cancelOrder', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('cancelOrder', params);
         let isPortfolioMargin: Bool = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'cancelOrder', 'papi', 'portfolioMargin', false);
@@ -7799,7 +7799,7 @@ export default class binance extends Exchange {
         const isConditional = this.safeBoolN (params, [ 'stop', 'trigger', 'conditional' ]);
         const type = this.safeString (params, 'type', market['type']);
         params = this.omit (params, [ 'type', 'stop', 'trigger', 'conditional' ]);
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
         let response = undefined;
         if (market['option']) {
@@ -8082,8 +8082,8 @@ export default class binance extends Exchange {
         }
         const request: Dict = {};
         let market: Market = undefined;
-        let type = undefined;
-        let marginMode = undefined;
+        let type: Str = undefined;
+        let marginMode: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -8384,9 +8384,9 @@ export default class binance extends Exchange {
             'currency': earnedCurrency,
             'cost': this.parseNumber (feeCostString),
         };
-        let symbol = undefined;
-        let amountString = undefined;
-        let costString = undefined;
+        let symbol: Str = undefined;
+        let amountString: Str = undefined;
+        let costString: Str = undefined;
         let side: Str = undefined;
         if (tradedCurrencyIsQuote) {
             symbol = applicantSymbol;
@@ -8399,7 +8399,7 @@ export default class binance extends Exchange {
             costString = this.safeString (trade, 'transferedAmount');
             side = 'sell';
         }
-        let priceString = undefined;
+        let priceString: Str = undefined;
         if (costString !== undefined) {
             if (amountString) {
                 priceString = Precise.stringDiv (costString, amountString);
@@ -8811,12 +8811,12 @@ export default class binance extends Exchange {
         const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
         const amount = this.safeNumber (transaction, 'amount');
         const feeCost = this.safeNumber2 (transaction, 'transactionFee', 'totalFee');
-        let fee = undefined;
+        let fee: Fee = undefined;
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
         const internalInteger = this.safeInteger (transaction, 'transferType');
-        let internal = undefined;
+        let internal: Bool = undefined;
         if (internalInteger !== undefined) {
             internal = (internalInteger !== 0) ? true : false;
         }
@@ -9016,7 +9016,7 @@ export default class binance extends Exchange {
             }
             let fromId = this.convertTypeToAccount (fromAccount).toUpperCase ();
             let toId = this.convertTypeToAccount (toAccount).toUpperCase ();
-            let isolatedSymbol = undefined;
+            let isolatedSymbol: Str = undefined;
             if (market !== undefined) {
                 isolatedSymbol = market['id'];
             }
@@ -9695,7 +9695,7 @@ export default class binance extends Exchange {
      */
     async fetchTradingFees (params = {}): Promise<TradingFees> {
         await this.loadMarkets ();
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTradingFees', undefined, params);
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchTradingFees', undefined, params, 'linear');
@@ -10081,7 +10081,7 @@ export default class binance extends Exchange {
         const fundingRate = this.safeNumber (contract, 'lastFundingRate');
         const fundingTime = this.safeInteger (contract, 'nextFundingTime');
         const interval = this.safeString (contract, 'fundingIntervalHours');
-        let intervalString = undefined;
+        let intervalString: Str = undefined;
         if (interval !== undefined) {
             intervalString = interval + 'h';
         }
@@ -10240,7 +10240,7 @@ export default class binance extends Exchange {
         const leverage = (leverageString !== undefined) ? parseInt (leverageString) : undefined;
         const initialMarginString = this.safeString (position, 'initialMargin');
         const initialMargin = this.parseNumber (initialMarginString);
-        let initialMarginPercentageString = undefined;
+        let initialMarginPercentageString: Str = undefined;
         if (leverageString !== undefined) {
             initialMarginPercentageString = Precise.stringDiv ('1', leverageString, 8);
             const rational = this.isRoundNumber (1000 % leverage);
@@ -10268,7 +10268,7 @@ export default class binance extends Exchange {
         const contracts = this.parseNumber (contractsStringAbs);
         const leverageBrackets = this.safeDict (this.options, 'leverageBrackets', {});
         const leverageBracket = this.safeList (leverageBrackets, symbol, []);
-        let maintenanceMarginPercentageString = undefined;
+        let maintenanceMarginPercentageString: Str = undefined;
         for (let i = 0; i < leverageBracket.length; i++) {
             const bracket = leverageBracket[i];
             if (Precise.stringLt (notionalStringAbs, bracket[0])) {
@@ -10288,9 +10288,9 @@ export default class binance extends Exchange {
             const isolatedMarginRaw = this.safeString (position, 'isolatedMargin');
             isolated = !Precise.stringEq (isolatedMarginRaw, '0');
         }
-        let marginMode = undefined;
-        let collateralString = undefined;
-        let walletBalance = undefined;
+        let marginMode: Str = undefined;
+        let collateralString: Str = undefined;
+        let walletBalance: Str = undefined;
         if (isolated) {
             marginMode = 'isolated';
             walletBalance = this.safeString (position, 'isolatedWallet');
@@ -10301,11 +10301,11 @@ export default class binance extends Exchange {
             collateralString = this.safeString (position, 'crossMargin');
         }
         const collateral = this.parseNumber (collateralString);
-        let marginRatio = undefined;
+        let marginRatio: Num = undefined;
         let side: Str = undefined;
-        let percentage = undefined;
-        let liquidationPriceStringRaw = undefined;
-        let liquidationPrice = undefined;
+        let percentage: Num = undefined;
+        let liquidationPriceStringRaw: Str = undefined;
+        let liquidationPrice: Num = undefined;
         const contractSize = this.safeValue (market, 'contractSize');
         const contractSizeString = this.numberToString (contractSize);
         if (Precise.stringEquals (notionalString, '0')) {
@@ -10322,7 +10322,7 @@ export default class binance extends Exchange {
                 // mmp = maintenanceMarginPercentage
                 // where ± is negative for long and positive for short
                 // TODO: calculate liquidation price for coinm contracts
-                let onePlusMaintenanceMarginPercentageString = undefined;
+                let onePlusMaintenanceMarginPercentageString: Str = undefined;
                 let entryPriceSignString = entryPriceString;
                 if (side === 'short') {
                     onePlusMaintenanceMarginPercentageString = Precise.stringAdd ('1', maintenanceMarginPercentageString);
@@ -10338,7 +10338,7 @@ export default class binance extends Exchange {
                 //
                 // liquidationPrice = (contracts * contractSize(±1 - mmp)) / (±1/entryPrice * contracts * contractSize - walletBalance)
                 //
-                let onePlusMaintenanceMarginPercentageString = undefined;
+                let onePlusMaintenanceMarginPercentageString: Str = undefined;
                 let entryPriceSignString = entryPriceString;
                 if (side === 'short') {
                     onePlusMaintenanceMarginPercentageString = Precise.stringSub ('1', maintenanceMarginPercentageString);
@@ -10489,7 +10489,7 @@ export default class binance extends Exchange {
         const leverageBracket = this.safeList (leverageBrackets, symbol, []);
         const notionalString = this.safeString2 (position, 'notional', 'notionalValue');
         const notionalStringAbs = Precise.stringAbs (notionalString);
-        let maintenanceMarginPercentageString = undefined;
+        let maintenanceMarginPercentageString: Str = undefined;
         for (let i = 0; i < leverageBracket.length; i++) {
             const bracket = leverageBracket[i];
             if (Precise.stringLt (notionalStringAbs, bracket[0])) {
@@ -10504,7 +10504,7 @@ export default class binance extends Exchange {
         const unrealizedPnl = this.parseNumber (unrealizedPnlString);
         const liquidationPriceString = this.omitZero (this.safeString (position, 'liquidationPrice'));
         const liquidationPrice = this.parseNumber (liquidationPriceString);
-        let collateralString = undefined;
+        let collateralString: Str = undefined;
         let marginMode = this.safeString (position, 'marginType');
         if (marginMode === undefined && isolatedMarginString !== undefined) {
             marginMode = Precise.stringEq (isolatedMarginString, '0') ? 'cross' : 'isolated';
@@ -10530,7 +10530,7 @@ export default class binance extends Exchange {
             if (!precisionIsUndefined) {
                 if (linear) {
                     // walletBalance = (liquidationPrice * (±1 + mmp) ± entryPrice) * contracts
-                    let onePlusMaintenanceMarginPercentageString = undefined;
+                    let onePlusMaintenanceMarginPercentageString: Str = undefined;
                     let entryPriceSignString = entryPriceString;
                     if (side === 'short') {
                         onePlusMaintenanceMarginPercentageString = Precise.stringAdd ('1', maintenanceMarginPercentageString);
@@ -10546,7 +10546,7 @@ export default class binance extends Exchange {
                     }
                 } else {
                     // walletBalance = (contracts * contractSize) * (±1/entryPrice - (±1 - mmp) / liquidationPrice)
-                    let onePlusMaintenanceMarginPercentageString = undefined;
+                    let onePlusMaintenanceMarginPercentageString: Str = undefined;
                     let entryPriceSignString = entryPriceString;
                     if (side === 'short') {
                         onePlusMaintenanceMarginPercentageString = Precise.stringSub ('1', maintenanceMarginPercentageString);
@@ -10579,8 +10579,8 @@ export default class binance extends Exchange {
             maintenanceMarginString = this.safeString (position, 'maintMargin');
         }
         const maintenanceMargin = this.parseNumber (maintenanceMarginString);
-        let initialMarginString = undefined;
-        let initialMarginPercentageString = undefined;
+        let initialMarginString: Str = undefined;
+        let initialMarginPercentageString: Str = undefined;
         const leverageString = this.safeString (position, 'leverage');
         if (leverageString !== undefined) {
             const leverage = parseInt (leverageString);
@@ -10596,8 +10596,8 @@ export default class binance extends Exchange {
             const unrounded = Precise.stringMul (initialMarginString, '1');
             initialMarginPercentageString = Precise.stringDiv (unrounded, notionalStringAbs, 8);
         }
-        let marginRatio = undefined;
-        let percentage = undefined;
+        let marginRatio: Num = undefined;
+        let percentage: Num = undefined;
         if (!Precise.stringEquals (collateralString, '0')) {
             marginRatio = this.parseNumber (Precise.stringDiv (Precise.stringAdd (Precise.stringDiv (maintenanceMarginString, collateralString), '5e-5'), '1', 4));
             percentage = this.parseNumber (Precise.stringMul (Precise.stringDiv (unrealizedPnlString, initialMarginString, 4), '100'));
@@ -10698,7 +10698,7 @@ export default class binance extends Exchange {
      */
     async fetchLeverageTiers (symbols: Strings = undefined, params = {}): Promise<LeverageTiers> {
         await this.loadMarkets ();
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchLeverageTiers', undefined, params);
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchLeverageTiers', undefined, params, 'linear');
@@ -10864,7 +10864,7 @@ export default class binance extends Exchange {
         const request: Dict = {};
         let market: Market = undefined;
         if (symbols !== undefined) {
-            let symbol = undefined;
+            let symbol: Str = undefined;
             if (Array.isArray (symbols)) {
                 const symbolsLength = symbols.length;
                 if (symbolsLength > 1) {
@@ -10983,7 +10983,7 @@ export default class binance extends Exchange {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
-        let defaultMethod = undefined;
+        let defaultMethod: Str = undefined;
         [ defaultMethod, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'method');
         if (defaultMethod === undefined) {
             const options = this.safeDict (this.options, 'fetchPositions');
@@ -11505,13 +11505,13 @@ export default class binance extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('setPositionMode', market, params);
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('setPositionMode', market, params);
         let isPortfolioMargin: Bool = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'setPositionMode', 'papi', 'portfolioMargin', false);
-        let dualSidePosition = undefined;
+        let dualSidePosition: Str = undefined;
         if (hedged) {
             dualSidePosition = 'true';
         } else {
@@ -11562,7 +11562,7 @@ export default class binance extends Exchange {
     async fetchLeverages (symbols: Strings = undefined, params = {}): Promise<Leverages> {
         await this.loadMarkets ();
         await this.loadLeverageBrackets (false, params);
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchLeverages', undefined, params);
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchLeverages', undefined, params, 'linear');
@@ -11594,7 +11594,7 @@ export default class binance extends Exchange {
     parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         const marketId = this.safeString (leverage, 'symbol');
         const marginModeRaw = this.safeBool (leverage, 'isolated');
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         if (marginModeRaw !== undefined) {
             marginMode = marginModeRaw ? 'isolated' : 'cross';
         }
@@ -11603,8 +11603,8 @@ export default class binance extends Exchange {
             marginMode = (marginTypeRaw === 'crossed') ? 'cross' : 'isolated';
         }
         const side = this.safeStringLower (leverage, 'positionSide');
-        let longLeverage = undefined;
-        let shortLeverage = undefined;
+        let longLeverage: Int = undefined;
+        let shortLeverage: Int = undefined;
         const leverageValue = this.safeInteger (leverage, 'leverage');
         if ((side === undefined) || (side === 'both')) {
             longLeverage = leverageValue;
@@ -11637,7 +11637,7 @@ export default class binance extends Exchange {
     async fetchSettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const market = (symbol === undefined) ? undefined : this.market (symbol);
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchSettlementHistory', market, params);
         if (type !== 'option') {
             throw new NotSupported (this.id + ' fetchSettlementHistory() supports option markets only');
@@ -11684,7 +11684,7 @@ export default class binance extends Exchange {
     async fetchMySettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const market = (symbol === undefined) ? undefined : this.market (symbol);
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchMySettlementHistory', market, params);
         if (type !== 'option') {
             throw new NotSupported (this.id + ' fetchMySettlementHistory() supports option markets only');
@@ -11822,7 +11822,7 @@ export default class binance extends Exchange {
      */
     async fetchLedgerEntry (id: string, code: Str = undefined, params = {}): Promise<LedgerEntry> {
         await this.loadMarkets ();
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchLedgerEntry', undefined, params);
         if (type !== 'option') {
             throw new BadRequest (this.id + ' fetchLedgerEntry() can only be used for type option');
@@ -11875,7 +11875,7 @@ export default class binance extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, params, undefined, false) as LedgerEntry[];
         }
-        let type = undefined;
+        let type: Str = undefined;
         let subType = undefined;
         let currency: Currency = undefined;
         if (code !== undefined) {
@@ -12179,7 +12179,7 @@ export default class binance extends Exchange {
             } else {
                 query = this.urlencode (extendedParams);
             }
-            let signature = undefined;
+            let signature: Str = undefined;
             if (this.secret.indexOf ('PRIVATE KEY') > -1) {
                 if (this.secret.length > 120) {
                     signature = this.encodeURIComponent (rsa (query, this.secret, sha256));
@@ -12208,7 +12208,7 @@ export default class binance extends Exchange {
     }
 
     getExceptionsByUrl (url: string, exactOrBroad: string) {
-        let marketType = undefined;
+        let marketType: Str = undefined;
         const hostname = (this.hostname !== undefined) ? this.hostname : 'binance.com';
         if (url.startsWith ('https://api.' + hostname + '/') || url.startsWith ('https://demo-api') || url.startsWith ('https://testnet.binance.vision')) {
             marketType = 'spot';
@@ -12366,7 +12366,7 @@ export default class binance extends Exchange {
             'amount': amount,
         };
         let response = undefined;
-        let code = undefined;
+        let code: Str = undefined;
         if (market['linear']) {
             code = market['quote'];
             response = await this.fapiPrivatePostPositionMargin (this.extend (request, params));
@@ -13246,7 +13246,7 @@ export default class binance extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchMyLiquidations', market, params);
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchMyLiquidations', market, params, 'linear');
@@ -13773,7 +13773,7 @@ export default class binance extends Exchange {
         const marketId = this.safeString (marginMode, 'symbol');
         market = this.safeMarket (marketId, market);
         const marginModeRaw = this.safeBool (marginMode, 'isolated');
-        let reMarginMode = undefined;
+        let reMarginMode: Str = undefined;
         if (marginModeRaw !== undefined) {
             reMarginMode = marginModeRaw ? 'isolated' : 'cross';
         }
@@ -14150,8 +14150,8 @@ export default class binance extends Exchange {
         }
         const fromCurrencyId = this.safeString2 (data, 'deductedAsset', 'fromAsset');
         const toCurrencyId = this.safeString2 (data, 'targetAsset', 'toAsset');
-        let fromCurrency = undefined;
-        let toCurrency = undefined;
+        let fromCurrency: Currency = undefined;
+        let toCurrency: Currency = undefined;
         if (fromCurrencyId !== undefined) {
             fromCurrency = this.currency (fromCurrencyId);
         }
@@ -14191,9 +14191,9 @@ export default class binance extends Exchange {
         }
         params = this.omit (params, 'until');
         let response = undefined;
-        let responseQuery = undefined;
-        let fromCurrencyKey = undefined;
-        let toCurrencyKey = undefined;
+        let responseQuery: Str = undefined;
+        let fromCurrencyKey: Str = undefined;
+        let toCurrencyKey: Str = undefined;
         if (code === 'BUSD') {
             const currency = this.currency (code);
             request['asset'] = currency['id'];
@@ -14604,7 +14604,7 @@ export default class binance extends Exchange {
         const longNum = this.safeNumber (adlQuantile, 'LONG');
         const shortNum = this.safeNumber (adlQuantile, 'SHORT');
         const both = this.safeNumber (adlQuantile, 'BOTH');
-        let rank = undefined;
+        let rank: Num = undefined;
         if (both !== undefined) {
             rank = both;
         } else {
