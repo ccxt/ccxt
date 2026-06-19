@@ -625,7 +625,7 @@ export default class whitebit extends whitebitRest {
         const rawType = this.safeString (order, 'type');
         const type = this.parseWsOrderType (rawType);
         let amount: Str = undefined;
-        let remaining = undefined;
+        let remaining: Str = undefined;
         if (type === 'market') {
             amount = this.safeString (order, 'deal_stock');
             remaining = '0';
