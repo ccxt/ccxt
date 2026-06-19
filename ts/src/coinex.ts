@@ -3993,8 +3993,8 @@ export default class coinex extends Exchange {
         //
         const coinAddress = this.safeString (depositAddress, 'address');
         const parts = coinAddress.split (':');
-        let address = undefined;
-        let tag = undefined;
+        let address: Str = undefined;
+        let tag: Str = undefined;
         const partsLength = parts.length;
         if (partsLength > 1 && parts[0] !== 'cfx') {
             address = parts[0];
