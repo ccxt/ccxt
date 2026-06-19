@@ -9212,9 +9212,9 @@ export default class htx extends Exchange {
         //     }
         //
         if (market['linear']) {
-            const data = this.safeList (response, 'data', []);
-            const settlements = this.parseSettlements (data, market);
-            return this.sortBy (settlements, 'timestamp');
+            const dataLinear = this.safeList (response, 'data', []);
+            const settlementsLinear = this.parseSettlements (dataLinear, market);
+            return this.sortBy (settlementsLinear, 'timestamp');
         }
         const data = this.safeValue (response, 'data');
         const settlementRecord = this.safeValue (data, 'settlement_record');
