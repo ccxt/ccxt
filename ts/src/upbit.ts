@@ -356,7 +356,7 @@ export default class upbit extends Exchange {
         const maxOnetimeWithdrawal = this.safeString (withdrawLimits, 'onetime');
         const maxDailyWithdrawal = this.safeString (withdrawLimits, 'daily', maxOnetimeWithdrawal);
         const remainingDailyWithdrawal = this.safeString (withdrawLimits, 'remaining_daily', maxDailyWithdrawal);
-        let maxWithdrawLimit = undefined;
+        let maxWithdrawLimit: Str = undefined;
         if (Precise.stringGt (remainingDailyWithdrawal, '0')) {
             maxWithdrawLimit = remainingDailyWithdrawal;
         } else {
@@ -1834,7 +1834,7 @@ export default class upbit extends Exchange {
         const amount = this.safeString (order, 'volume');
         const remaining = this.safeString (order, 'remaining_volume');
         const filled = this.safeString (order, 'executed_volume');
-        let cost = undefined;
+        let cost: Str = undefined;
         if (type === 'price') {
             type = 'market';
             cost = price;

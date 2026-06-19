@@ -5408,8 +5408,8 @@ export default class coinex extends Exchange {
         market = this.safeMarket (marketId, market, undefined, 'spot');
         const currency = this.safeString (info, 'ccy');
         const rate = this.safeNumber (info, 'daily_interest_rate');
-        let baseRate = undefined;
-        let quoteRate = undefined;
+        let baseRate: Num = undefined;
+        let quoteRate: Num = undefined;
         if (currency === market['baseId']) {
             baseRate = rate;
         } else if (currency === market['quoteId']) {
