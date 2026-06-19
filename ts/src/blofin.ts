@@ -825,7 +825,7 @@ export default class blofin extends Exchange {
         const side = this.safeString (trade, 'side');
         const orderId = this.safeString (trade, 'orderId');
         const feeCost = this.safeString (trade, 'fee');
-        let fee = undefined;
+        let fee: Dict = undefined;
         let feeCurrency = this.safeString (trade, 'feeCurrency');
         const isSpot = feeCurrency !== undefined;
         if (feeCurrency === undefined) {
