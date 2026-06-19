@@ -972,7 +972,7 @@ export default class onetrading extends onetradingRest {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             this.myTrades = new ArrayCacheBySymbolById (limit);
         }
-        let symbol = undefined;
+        let symbol: Str = undefined;
         const orders = this.orders;
         const update = this.safeValue (message, 'update', {});
         const updateType = this.safeString (update, 'type');
