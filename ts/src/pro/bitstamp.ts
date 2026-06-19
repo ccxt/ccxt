@@ -381,7 +381,7 @@ export default class bitstamp extends bitstampRest {
         const amount = this.safeString (order, 'amount_str');
         const filled = this.safeString (order, 'amount_traded');
         const event = this.safeString (order, 'event');
-        let status: Str
+        let status: Str;
         if (Precise.stringEq (filled, amount)) {
             status = 'closed';
         } else if (event === 'order_deleted') {

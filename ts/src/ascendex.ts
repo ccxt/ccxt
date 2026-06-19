@@ -6,7 +6,7 @@ import Exchange from './abstract/ascendex.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError, AccountSuspended, InsufficientFunds, InvalidOrder, BadSymbol, PermissionDenied, BadRequest, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { TransferEntry, FundingHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Strings, Num, Currency, Market, Leverage, Leverages, Account, MarginModes, MarginMode, MarginModification, Currencies, TradingFees, Dict, LeverageTier, LeverageTiers, int, FundingRate, FundingRates, DepositAddress, Position, OpenInterests, Bool} from './base/types.js';
+import type { TransferEntry, FundingHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Strings, Num, Currency, Market, Leverage, Leverages, Account, MarginModes, MarginMode, MarginModification, Currencies, TradingFees, Dict, LeverageTier, LeverageTiers, int, FundingRate, FundingRates, DepositAddress, Position, OpenInterests, Bool } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -892,7 +892,7 @@ export default class ascendex extends Exchange {
      */
     async fetchAccounts (params = {}): Promise<Account[]> {
         let accountGroup = this.safeString (this.options, 'account-group');
-        let response: Dict
+        let response: Dict;
         if (accountGroup === undefined) {
             response = await this.v1PrivateGetInfo (params);
             //
@@ -999,8 +999,8 @@ export default class ascendex extends Exchange {
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
         await this.loadAccounts ();
-        let marketType: Str
-        let marginMode: Str
+        let marketType: Str;
+        let marginMode: Str;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBalance', params);
         const isMargin = this.safeBool (params, 'margin', false);
@@ -1020,7 +1020,7 @@ export default class ascendex extends Exchange {
         if ((accountCategory === 'cash') || (accountCategory === 'margin')) {
             request['account-category'] = accountCategory;
         }
-        let response: Dict
+        let response: Dict;
         if ((marketType === 'spot') || (marketType === 'margin')) {
             response = await this.v1PrivateAccountCategoryGetBalance (this.extend (request, params));
         } else if (marketType === 'swap') {
@@ -1222,16 +1222,16 @@ export default class ascendex extends Exchange {
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         const request: Dict = {};
-        let market: Market
+        let market: Market;
         if (symbols !== undefined) {
             const symbol = this.safeString (symbols, 0);
             market = this.market (symbol);
             const marketIds = this.marketIds (symbols);
             request['symbol'] = marketIds.join (',');
         }
-        let type: Str
+        let type: Str;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-        let response: Dict
+        let response: Dict;
         if (type === 'spot') {
             response = await this.v1PublicGetTicker (this.extend (request, params));
         } else {
@@ -1587,7 +1587,7 @@ export default class ascendex extends Exchange {
         }
         const side = this.safeStringLower (order, 'side');
         const feeCost = this.safeNumber2 (order, 'cumFee', 'fee');
-        let fee: Dict
+        let fee: Dict;
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (order, 'feeAsset');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
@@ -1597,12 +1597,12 @@ export default class ascendex extends Exchange {
             };
         }
         const triggerPrice = this.omitZero (this.safeString (order, 'stopPrice'));
-        let reduceOnly: Bool
+        let reduceOnly: Bool;
         const execInst = this.safeStringLower (order, 'execInst');
         if (execInst === 'reduceonly') {
             reduceOnly = true;
         }
-        let postOnly: Bool
+        let postOnly: Bool;
         if (execInst === 'post') {
             postOnly = true;
         }
@@ -1702,8 +1702,8 @@ export default class ascendex extends Exchange {
          * @returns {object} request to be sent to the exchange
          */
         const market = this.market (symbol);
-        let marginMode: Str
-        let marketType: Str
+        let marginMode: Str;
+        let marketType: Str;
         [ marginMode, params ] = this.handleMarginModeAndParams ('createOrderRequest', params);
         [ marketType, params ] = this.handleMarketTypeAndParams ('createOrderRequest', market, params);
         const accountsByType = this.safeDict (this.options, 'accountsByType', {});
@@ -1797,7 +1797,7 @@ export default class ascendex extends Exchange {
         await this.loadAccounts ();
         const market = this.market (symbol);
         const request = this.createOrderRequest (symbol, type, side, amount, price, params);
-        let response: Dict
+        let response: Dict;
         if (market['swap']) {
             response = await this.v2PrivateAccountGroupPostFuturesOrder (request);
         } else {
@@ -1888,8 +1888,8 @@ export default class ascendex extends Exchange {
         await this.loadMarkets ();
         await this.loadAccounts ();
         const ordersRequests = [];
-        let symbol: Str
-        let marginMode: Str
+        let symbol: Str;
+        let marginMode: Str;
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const marketId = this.safeString (rawOrder, 'symbol');
@@ -1928,7 +1928,7 @@ export default class ascendex extends Exchange {
         const account = this.safeDict (this.accounts, 0, {});
         const accountGroup = this.safeString (account, 'id');
         const request: Dict = {};
-        let response: Dict
+        let response: Dict;
         if (market['swap']) {
             throw new NotSupported (this.id + ' createOrders() is not currently supported for swap markets on ascendex');
             // request['account-group'] = accountGroup;
@@ -1982,7 +1982,7 @@ export default class ascendex extends Exchange {
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         await this.loadAccounts ();
-        let market: Market
+        let market: Market;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -1996,7 +1996,7 @@ export default class ascendex extends Exchange {
             'account-category': accountCategory,
             'orderId': id,
         };
-        let response: Dict
+        let response: Dict;
         if ((type === 'spot') || (type === 'margin')) {
             response = await this.v1PrivateAccountCategoryGetOrderStatus (this.extend (request, query));
         } else if (type === 'swap') {
@@ -2091,7 +2091,7 @@ export default class ascendex extends Exchange {
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         await this.loadAccounts ();
-        let market: Market
+        let market: Market;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -2105,7 +2105,7 @@ export default class ascendex extends Exchange {
             'account-group': accountGroup,
             'account-category': accountCategory,
         };
-        let response: Dict
+        let response: Dict;
         if ((type === 'spot') || (type === 'margin')) {
             response = await this.v1PrivateAccountCategoryGetOrderOpen (this.extend (request, query));
         } else if (type === 'swap') {
@@ -2223,7 +2223,7 @@ export default class ascendex extends Exchange {
             // 'page': 1,
             // 'pageSize': 100,
         };
-        let market: Market
+        let market: Market;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -2245,7 +2245,7 @@ export default class ascendex extends Exchange {
         }
         const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         const accountCategory = this.safeString (accountsByType, type, 'cash'); // margin, futures
-        let response: Dict
+        let response: Dict;
         if (method === 'v1PrivateAccountCategoryGetOrderHistCurrent') {
             request['account-group'] = accountGroup;
             request['account-category'] = accountCategory;
@@ -2404,7 +2404,7 @@ export default class ascendex extends Exchange {
             request['id'] = clientOrderId;
             params = this.omit (params, [ 'clientOrderId', 'id' ]);
         }
-        let response: Dict
+        let response: Dict;
         if ((type === 'spot') || (type === 'margin')) {
             response = await this.v1PrivateAccountCategoryDeleteOrder (this.extend (request, query));
         } else if (type === 'swap') {
@@ -2494,7 +2494,7 @@ export default class ascendex extends Exchange {
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         await this.loadAccounts ();
-        let market: Market
+        let market: Market;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -2511,7 +2511,7 @@ export default class ascendex extends Exchange {
         if (symbol !== undefined) {
             request['symbol'] = market['id'];
         }
-        let response: Dict
+        let response: Dict;
         if ((type === 'spot') || (type === 'margin')) {
             response = await this.v1PrivateAccountCategoryDeleteOrderAll (this.extend (request, query));
         } else if (type === 'swap') {
@@ -2719,7 +2719,7 @@ export default class ascendex extends Exchange {
             // 'endTs': this.milliseconds (),
             // 'txType': undefned, // deposit, withdrawal
         };
-        let currency: Currency
+        let currency: Currency;
         if (code !== undefined) {
             currency = this.currency (code);
             request['asset'] = currency['id'];
@@ -2924,7 +2924,7 @@ export default class ascendex extends Exchange {
         }
         const marginType = this.safeString (position, 'marginType');
         const marginMode = (marginType === 'crossed') ? 'cross' : 'isolated';
-        let collateral: Str
+        let collateral: Str;
         if (marginMode === 'isolated') {
             collateral = this.safeString (position, 'isolatedMargin');
         }
@@ -3446,7 +3446,7 @@ export default class ascendex extends Exchange {
         const request: Dict = {
             'account-group': accountGroup,
         };
-        let market: Market
+        let market: Market;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -3647,8 +3647,7 @@ export default class ascendex extends Exchange {
     async fetchOpenInterests (symbols: Strings = undefined, params = {}) {
         await this.loadMarkets ();
         const request: Dict = {};
-        let response: Dict
-        response = await this.v2PublicGetFuturesPricingData (this.extend (request, params));
+        const response: Dict = await this.v2PublicGetFuturesPricingData (this.extend (request, params));
         //
         //    {
         //        code: '0',

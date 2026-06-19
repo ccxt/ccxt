@@ -2354,8 +2354,6 @@ export default class bitget extends Exchange {
             let spot = false;
             let future = false;
             let contract = false;
-            let pricePrecision: Num;
-            let amountPrecision: Num;
             let linear: Bool;
             let inverse: Bool;
             let expiry: Int;
@@ -2406,8 +2404,8 @@ export default class bitget extends Exchange {
                     'isolated': true,
                 };
             }
-            pricePrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'pricePrecision')));
-            amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'quantityPrecision')));
+            const pricePrecision: Num = this.parseNumber (this.parsePrecision (this.safeString (market, 'pricePrecision')));
+            const amountPrecision: Num = this.parseNumber (this.parsePrecision (this.safeString (market, 'quantityPrecision')));
             const status = this.safeString (market, 'status');
             let active: Bool;
             if (status !== undefined) {

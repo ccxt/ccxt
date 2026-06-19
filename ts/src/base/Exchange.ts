@@ -5019,7 +5019,7 @@ export default class Exchange {
                 return undefined;
             }
             const maxRetries = this.safeValue (options, 'webApiRetries', 10);
-                let response: any = undefined;
+            let response: any = undefined;
             let retry = 0;
             let shouldBreak = false;
             while (retry < maxRetries) {
@@ -8405,9 +8405,9 @@ export default class Exchange {
     }
 
     async fetchPaginatedCallDynamic (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}, maxEntriesPerRequest: Int = undefined, removeRepeated = true): Promise<any> {
-        let maxCalls: Int = undefined;
-        let maxRetries: Int = undefined;
-        let paginationDirection: Str = undefined;
+        const maxCalls: Int = undefined;
+        const maxRetries: Int = undefined;
+        const paginationDirection: Str = undefined;
         let paginationTimestamp: Int = undefined;
         let removeRepeatedOption = removeRepeated;
         [ removeRepeatedOption, params ] = this.handleOptionAndParams (params, method, 'removeRepeated', removeRepeated);
@@ -8573,7 +8573,7 @@ export default class Exchange {
                     }
                     params[cursorSent] = cursorValue;
                 }
-            let response: any = undefined;
+                let response: any = undefined;
                 if (method === 'fetchAccounts') {
                     response = await this[method] (params);
                 } else if (method === 'getLeverageTiersPaginated' || method === 'fetchPositions') {
