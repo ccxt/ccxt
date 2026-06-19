@@ -912,12 +912,12 @@ export default class bitvavo extends Exchange {
         const marketId = this.safeString (trade, 'market');
         const symbol = this.safeSymbol (marketId, market, '-');
         const taker = this.safeValue (trade, 'taker');
-        let takerOrMaker = undefined;
+        let takerOrMaker: Str = undefined;
         if (taker !== undefined) {
             takerOrMaker = taker ? 'taker' : 'maker';
         }
         const feeCostString = this.safeString (trade, 'fee');
-        let fee = undefined;
+        let fee: Dict = undefined;
         if (feeCostString !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'feeCurrency');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
@@ -1255,7 +1255,7 @@ export default class bitvavo extends Exchange {
         const currency = this.currency (code);
         let subaccountId = this.safeString (params, 'subaccountId');
         params = this.omit (params, 'subaccountId');
-        let direction = undefined;
+        let direction: Str = undefined;
         if ((fromAccount === 'master') && (toAccount === 'master')) {
             throw new ArgumentsRequired (this.id + ' transfer() requires fromAccount and toAccount to be different (one master and one subaccount id)');
         } else if (fromAccount === 'master') {
@@ -1312,7 +1312,7 @@ export default class bitvavo extends Exchange {
     async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
         await this.loadMarkets ();
         let request: Dict = {};
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['symbol'] = currency['id'];
@@ -1364,7 +1364,7 @@ export default class bitvavo extends Exchange {
      */
     async fetchTransfer (id: string, code: Str = undefined, params = {}): Promise<TransferEntry> {
         await this.loadMarkets ();
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -1401,8 +1401,8 @@ export default class bitvavo extends Exchange {
         const code = this.safeCurrencyCode (currencyId, currency);
         const subaccountId = this.safeString (transfer, 'subaccountId');
         const direction = this.safeString (transfer, 'direction');
-        let fromAccount = undefined;
-        let toAccount = undefined;
+        let fromAccount: Str = undefined;
+        let toAccount: Str = undefined;
         if (direction === 'masterToSub') {
             fromAccount = 'master';
             toAccount = subaccountId;
@@ -1521,14 +1521,14 @@ export default class bitvavo extends Exchange {
         if (postOnly) {
             request['postOnly'] = true;
         }
-        let operatorId = undefined;
+        let operatorId: Str = undefined;
         [ operatorId, params ] = this.handleOptionAndParams (params, 'createOrder', 'operatorId');
         if (operatorId !== undefined) {
             request['operatorId'] = this.parseToInt (operatorId);
         } else {
             throw new ArgumentsRequired (this.id + ' createOrder() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890');
         }
-        let selfTradePrevention = undefined;
+        let selfTradePrevention: Str = undefined;
         [ selfTradePrevention, params ] = this.handleOptionAndParams (params, 'createOrder', 'selfTradePrevention');
         if (selfTradePrevention !== undefined) {
             if (selfTradePrevention === 'EXPIRE_BOTH') {
@@ -1638,7 +1638,7 @@ export default class bitvavo extends Exchange {
         if (clientOrderId === undefined) {
             request['orderId'] = id;
         }
-        let operatorId = undefined;
+        let operatorId: Str = undefined;
         [ operatorId, params ] = this.handleOptionAndParams (params, 'editOrder', 'operatorId');
         if (operatorId !== undefined) {
             request['operatorId'] = this.parseToInt (operatorId);
@@ -1683,7 +1683,7 @@ export default class bitvavo extends Exchange {
         if (clientOrderId === undefined) {
             request['orderId'] = id;
         }
-        let operatorId = undefined;
+        let operatorId: Str = undefined;
         [ operatorId, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'operatorId');
         if (operatorId !== undefined) {
             request['operatorId'] = this.parseToInt (operatorId);
@@ -1728,12 +1728,12 @@ export default class bitvavo extends Exchange {
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         const request: Dict = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
-        let operatorId = undefined;
+        let operatorId: Str = undefined;
         [ operatorId, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'operatorId');
         if (operatorId !== undefined) {
             request['operatorId'] = this.parseToInt (operatorId);
@@ -1769,7 +1769,7 @@ export default class bitvavo extends Exchange {
             throw new BadRequest (this.id + ' cancelAllOrdersAfter() timeout should be 0 or greater than or equal to 10000 milliseconds');
         }
         await this.loadMarkets ();
-        let codGroupId = undefined;
+        let codGroupId: Int = undefined;
         [ codGroupId, params ] = this.handleOptionAndParams (params, 'cancelAllOrdersAfter', 'codGroupId', 1);
         const request: Dict = {
             'codGroupId': codGroupId,
@@ -1947,7 +1947,7 @@ export default class bitvavo extends Exchange {
         const request: Dict = {
             // "market": market["id"], // rate limit 25 without a market, 1 with market specified
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['market'] = market['id'];
@@ -2075,7 +2075,7 @@ export default class bitvavo extends Exchange {
             const amountQuoteRemaining = this.safeString (order, 'amountQuoteRemaining');
             cost = Precise.stringSub (amountQuote, amountQuoteRemaining);
         }
-        let fee = undefined;
+        let fee: Dict = undefined;
         const feeCost = this.safeNumber (order, 'feePaid');
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (order, 'feeCurrency');
@@ -2196,7 +2196,7 @@ export default class bitvavo extends Exchange {
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         await this.loadMarkets ();
         let request: Dict = {};
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -2262,7 +2262,7 @@ export default class bitvavo extends Exchange {
         const code = this.safeCurrencyCode (currencyId);
         currency = this.safeCurrency (currencyId, currency);
         const timestamp = this.parse8601 (this.safeString (item, 'executedAt'));
-        let fee = undefined;
+        let fee: Dict = undefined;
         const feeCost = this.safeString (item, 'feesAmount');
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (item, 'feesCurrency');
@@ -2342,7 +2342,7 @@ export default class bitvavo extends Exchange {
             // 'start': since,
             // 'end': this.milliseconds (),
         };
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['symbol'] = currency['id'];
@@ -2370,7 +2370,7 @@ export default class bitvavo extends Exchange {
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         await this.loadMarkets ();
         const request = this.fetchWithdrawalsRequest (code, since, limit, params);
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -2399,7 +2399,7 @@ export default class bitvavo extends Exchange {
             // 'start': since,
             // 'end': this.milliseconds (),
         };
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['symbol'] = currency['id'];
@@ -2427,7 +2427,7 @@ export default class bitvavo extends Exchange {
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         await this.loadMarkets ();
         const request = this.fetchDepositsRequest (code, since, limit, params);
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -2504,7 +2504,7 @@ export default class bitvavo extends Exchange {
         const amount = this.safeNumber (transaction, 'amount');
         const address = this.safeString (transaction, 'address');
         const txid = this.safeString (transaction, 'txId');
-        let fee = undefined;
+        let fee: Dict = undefined;
         const feeCost = this.safeNumber (transaction, 'fee');
         if (feeCost !== undefined) {
             fee = {
@@ -2512,7 +2512,7 @@ export default class bitvavo extends Exchange {
                 'currency': code,
             };
         }
-        let type = undefined;
+        let type: Str = undefined;
         if (('success' in transaction) || ('address' in transaction)) {
             type = 'withdrawal';
         } else {
