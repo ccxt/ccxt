@@ -579,7 +579,7 @@ export default class htx extends Exchange {
                             'swap-api/v3/swap_liquidation_orders': 1,
                             'index/market/history/swap_estimated_rate_kline': 1,
                             'index/market/history/swap_basis': 1,
-                            // Swap Market Data interface
+                            // Linear Swap Market Data interface
                             'linear-swap-api/v1/swap_contract_info': 1,
                             'linear-swap-api/v1/swap_index': 1,
                             'linear-swap-api/v1/swap_query_elements': 1,
@@ -593,7 +593,6 @@ export default class htx extends Exchange {
                             'v2/linear-swap-ex/market/detail/batch_merged': 1,
                             'linear-swap-ex/market/trade': 1,
                             'linear-swap-ex/market/history/trade': 1,
-                            'linear-swap-api/v1/swap_risk_info': 1,
                             'swap-api/v1/linear-swap-api/v1/swap_insurance_fund': 1,
                             'linear-swap-api/v1/swap_adjustfactor': 1,
                             'linear-swap-api/v1/swap_cross_adjustfactor': 1,
@@ -601,8 +600,6 @@ export default class htx extends Exchange {
                             'linear-swap-api/v1/swap_ladder_margin': 1,
                             'linear-swap-api/v1/swap_cross_ladder_margin': 1,
                             'linear-swap-api/v1/swap_api_state': 1,
-                            'linear-swap-api/v1/swap_cross_transfer_state': 1,
-                            'linear-swap-api/v1/swap_cross_trade_state': 1,
                             'linear-swap-api/v1/swap_elite_account_ratio': 1,
                             'linear-swap-api/v1/swap_elite_position_ratio': 1,
                             'linear-swap-api/v1/swap_settlement_records': 1,
@@ -630,15 +627,7 @@ export default class htx extends Exchange {
                             // Swap Account Interface
                             'swap-api/v1/swap_sub_auth_list': 1,
                             'swap-api/v1/swap_api_trading_status': 1,
-                            // Swap Account Interface
-                            'linear-swap-api/v1/swap_sub_auth_list': 1,
-                            'linear-swap-api/v1/swap_api_trading_status': 1,
-                            'linear-swap-api/v1/swap_cross_position_side': 1,
-                            'linear-swap-api/v1/swap_position_side': 1,
-                            'linear-swap-api/v3/unified_account_info': 1,
-                            'linear-swap-api/v3/fix_position_margin_change_record': 1,
-                            'linear-swap-api/v3/swap_unified_account_type': 1,
-                            'linear-swap-api/v3/linear_swap_overview_account_info': 1,
+                            // Linear Swap Interface
                             'v5/account/asset_mode': 0.20834, // 48 requests per second = 1000ms / ( 100 * 0.20834)
                             'v5/account/balance': 0.20834,
                             'v5/account/bills': 0.20834,
@@ -776,44 +765,7 @@ export default class htx extends Exchange {
                             'swap-api/v1/swap_track_cancelall': 1,
                             'swap-api/v1/swap_track_openorders': 1,
                             'swap-api/v1/swap_track_hisorders': 1,
-                            // Swap Account Interface
-                            'linear-swap-api/v1/swap_lever_position_limit': 1,
-                            'linear-swap-api/v1/swap_cross_lever_position_limit': 1,
-                            'linear-swap-api/v1/swap_balance_valuation': 1,
-                            'linear-swap-api/v1/swap_sub_auth': 1,
-                            'linear-swap-api/v1/swap_sub_account_list': 1,
-                            'linear-swap-api/v1/swap_cross_sub_account_list': 1,
-                            'linear-swap-api/v1/swap_sub_account_info_list': 1,
-                            'linear-swap-api/v1/swap_cross_sub_account_info_list': 1,
-                            'linear-swap-api/v1/swap_sub_account_info': 1,
-                            'linear-swap-api/v1/swap_cross_sub_account_info': 1,
-                            'linear-swap-api/v1/swap_sub_position_info': 1,
-                            'linear-swap-api/v1/swap_cross_sub_position_info': 1,
-                            'linear-swap-api/v1/swap_user_settlement_records': 1,
-                            'linear-swap-api/v1/swap_cross_user_settlement_records': 1,
-                            'linear-swap-api/v1/swap_available_level_rate': 1,
-                            'linear-swap-api/v1/swap_cross_available_level_rate': 1,
-                            'linear-swap-api/v1/swap_order_limit': 1,
-                            'linear-swap-api/v1/swap_fee': 1,
-                            'linear-swap-api/v1/swap_transfer_limit': 1,
-                            'linear-swap-api/v1/swap_cross_transfer_limit': 1,
-                            'linear-swap-api/v1/swap_position_limit': 1,
-                            'linear-swap-api/v1/swap_cross_position_limit': 1,
-                            'linear-swap-api/v1/swap_master_sub_transfer': 1,
-                            'linear-swap-api/v1/swap_master_sub_transfer_record': 1,
-                            'linear-swap-api/v1/swap_transfer_inner': 1,
-                            // Swap Trade Interface
-                            'linear-swap-api/v1/swap_cross_matchresults': 1,
-                            'linear-swap-api/v1/swap_cross_matchresults_exact': 1,
-                            'linear-swap-api/v1/linear-cancel-after': 1,
-                            'linear-swap-api/v3/swap_cross_matchresults': 1,
-                            'linear-swap-api/v3/swap_cross_matchresults_exact': 1,
-                            'linear-swap-api/v3/fix_position_margin_change': 1,
-                            'linear-swap-api/v3/swap_switch_account_type': 1,
-                            'linear-swap-api/v3/linear_swap_fee_switch': 1,
-                            // Swap Strategy Order Interface
-                            'linear-swap-api/v1/swap_relation_tpsl_order': 1,
-                            'linear-swap-api/v1/swap_cross_relation_tpsl_order': 1,
+                            // Linear Swap Interface
                             'v5/account/asset_mode': 100, // 0.1 requests per second = 1000ms / ( 100 * 100)
                             'v5/trade/order': 0.41679,
                             'v5/trade/batch_orders': 0.41679,
@@ -3551,13 +3503,11 @@ export default class htx extends Exchange {
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://huobiapi.github.io/docs/spot/v1/en/#get-account-balance-of-a-specific-account
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec4b429-7773-11ed-9966-0242ac110003
-     * @see https://www.htx.com/en-us/opend/newApiPages/?id=10000074-77b7-11ed-9966-0242ac110003
      * @see https://huobiapi.github.io/docs/dm/v1/en/#query-asset-valuation
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-account-information
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19588469969
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] linear or future
-     * @param {bool} [params.uta] provide this parameter if you have a recent account with unified cross+isolated margin account
      * @param {bool} [params.multiAssetMode] set to true if you are using multi-asset mode for USDT-margined contracts
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
@@ -3566,10 +3516,8 @@ export default class htx extends Exchange {
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         let subType = undefined;
-        let isUnifiedAccount = undefined;
         let isMultiAssetMode = undefined;
         [ subType, params ] = this.handleOptionAndParams2 (params, 'fetchBalance', 'defaultSubType', 'subType', 'linear');
-        [ isUnifiedAccount, params ] = this.handleOptionAndParams2 (params, 'fetchBalance', 'unified', 'uta', false);
         [ isMultiAssetMode, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'multiAssetMode', false);
         const request: Dict = {};
         const spot = (type === 'spot');
@@ -3599,8 +3547,6 @@ export default class htx extends Exchange {
             }
         } else if (linear) {
             response = await this.contractPrivateGetV5AccountBalance (this.extend (request, params));
-        } else if (isUnifiedAccount) {
-            response = await this.contractPrivateGetLinearSwapApiV3UnifiedAccountInfo (this.extend (request, params));
         } else if (inverse) {
             if (future) {
                 response = await this.contractPrivatePostApiV1ContractAccountInfo (this.extend (request, params));
@@ -3799,32 +3745,6 @@ export default class htx extends Exchange {
                 result[code] = account;
             }
             result = this.safeBalance (result);
-        } else if (isUnifiedAccount) {
-            for (let i = 0; i < data.length; i++) {
-                const entry = data[i];
-                const marginAsset = this.safeString (entry, 'margin_asset');
-                const currencyCode = this.safeCurrencyCode (marginAsset);
-                if (isolated) {
-                    const isolated_swap = this.safeValue (entry, 'isolated_swap', {});
-                    for (let j = 0; j < isolated_swap.length; j++) {
-                        const balance = isolated_swap[j];
-                        const marketId = this.safeString (balance, 'contract_code');
-                        const subBalance: Dict = {
-                            'code': currencyCode,
-                            'free': this.safeNumber (balance, 'margin_available'),
-                        };
-                        const symbol = this.safeSymbol (marketId);
-                        result[symbol] = subBalance;
-                        result = this.safeBalance (result);
-                    }
-                } else {
-                    const account = this.account ();
-                    account['free'] = this.safeString (entry, 'margin_static');
-                    account['used'] = this.safeString (entry, 'margin_frozen');
-                    result[currencyCode] = account;
-                    result = this.safeBalance (result);
-                }
-            }
         } else if (inverse) {
             for (let i = 0; i < data.length; i++) {
                 const balance = data[i];
