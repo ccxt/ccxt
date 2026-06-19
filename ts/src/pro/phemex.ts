@@ -930,7 +930,7 @@ export default class phemex extends phemexRest {
             cachedTrades = new ArrayCacheBySymbolById (limit);
         }
         const marketIds: Dict = {};
-        let type = undefined;
+        let type: Str = undefined;
         for (let i = 0; i < message.length; i++) {
             const rawTrade = message[i];
             const marketId = this.safeString (rawTrade, 'symbol');
@@ -1187,7 +1187,7 @@ export default class phemex extends phemexRest {
         if (this.orders === undefined) {
             this.orders = new ArrayCacheBySymbolById (limit);
         }
-        let type = undefined;
+        let type: Str = undefined;
         const stored = this.orders;
         for (let i = 0; i < parsedOrders.length; i++) {
             const parsed = parsedOrders[i];
