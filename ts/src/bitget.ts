@@ -8555,7 +8555,7 @@ export default class bitget extends Exchange {
      */
     async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
         await this.loadMarkets ();
-        let market: Market;
+        let market: Market = undefined;
         if (symbols !== undefined) {
             const symbol = this.safeValue (symbols, 0);
             market = this.market (symbol);
