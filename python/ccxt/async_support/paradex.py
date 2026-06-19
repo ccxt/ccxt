@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.paradex import ImplicitAPI
-from ccxt.base.types import Any, Balances, Currency, FundingHistory, Greeks, Int, Leverage, Liquidation, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Bool, Currency, FundingHistory, Greeks, Int, Leverage, Liquidation, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1436,7 +1436,7 @@ class paradex(Exchange, ImplicitAPI):
         remaining = self.omit_zero(self.safe_string(order, 'remaining_size'))
         lastUpdateTimestamp = self.safe_integer(order, 'last_updated_at')
         flags = self.safe_list(order, 'flags', [])
-        reduceOnly = None
+        reduceOnly: Bool = None
         if 'REDUCE_ONLY' in flags:
             reduceOnly = True
         return self.safe_order({
@@ -1812,7 +1812,7 @@ class paradex(Exchange, ImplicitAPI):
         await self.load_markets()
         request: dict = {}
         clientOrderId = self.safe_string_n(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
-        response = None
+        response: dict = None
         if clientOrderId is not None:
             request['client_id'] = clientOrderId
             response = await self.privateDeleteOrdersByClientIdClientId(self.extend(request, params))
@@ -1881,7 +1881,7 @@ class paradex(Exchange, ImplicitAPI):
             marketId = self.safe_string(result, 'market')
             market = self.safe_market(marketId, None)
             status = self.safe_string(result, 'status')
-            orderStatus = None
+            orderStatus: Str = None
             if status == 'QUEUED_FOR_CANCELLATION':
                 orderStatus = 'canceled'
             elif status == 'ALREADY_CLOSED':
@@ -1939,7 +1939,7 @@ class paradex(Exchange, ImplicitAPI):
         request: dict = {}
         clientOrderId = self.safe_string_n(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
         params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
-        response = None
+        response: dict = None
         if clientOrderId is not None:
             request['client_id'] = clientOrderId
             response = await self.privateGetOrdersByClientIdClientId(self.extend(request, params))
@@ -2334,7 +2334,7 @@ class paradex(Exchange, ImplicitAPI):
             request['from'] = since
         else:
             request['from'] = 1
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
         request, params = self.handle_until_option('to', request, params)
@@ -2506,7 +2506,7 @@ class paradex(Exchange, ImplicitAPI):
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchTransfers', code, since, limit, params, 'next', 'cursor', None, 100)
         request: dict = {}
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.safe_currency(code)
         if limit is not None:
@@ -2559,8 +2559,8 @@ class paradex(Exchange, ImplicitAPI):
         code = self.safe_currency_code(currencyId, currency)
         timestamp = self.safe_integer(transfer, 'created_at')
         kind = self.safe_string(transfer, 'kind')
-        fromAccount = None
-        toAccount = None
+        fromAccount: Str = None
+        toAccount: Str = None
         if kind == 'DEPOSIT':
             fromAccount = 'external'
             toAccount = 'account'

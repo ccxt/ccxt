@@ -311,7 +311,7 @@ class btcmarkets(Exchange, ImplicitAPI):
             request['limit'] = limit
         if since is not None:
             request['after'] = since
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
         response = getattr(self, method)(self.extend(request, params))
@@ -430,7 +430,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         cryptoPaymentDetail = self.safe_dict(transaction, 'paymentDetail', {})
         txid = self.safe_string(cryptoPaymentDetail, 'txId')
         address = self.safe_string(cryptoPaymentDetail, 'address')
-        tag = None
+        tag: Str = None
         if address is not None:
             addressParts = address.split('?dt=')
             numParts = len(addressParts)
@@ -513,7 +513,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         minAmount = self.safe_number(market, 'minOrderAmount')
         maxAmount = self.safe_number(market, 'maxOrderAmount')
         status = self.safe_string(market, 'status')
-        minPrice = None
+        minPrice: Num = None
         if quote == 'AUD':
             minPrice = pricePrecision
         return {
@@ -1061,7 +1061,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         :returns dict: contains the rate, the percentage multiplied to the order amount to obtain the fee amount, and cost, the total value of the fee in units of the quote currency, for the order
         """
         market = self.markets[symbol]
-        currency = None
+        currency: Currency = None
         cost = None
         if market['quote'] == 'AUD':
             currency = market['quote']
@@ -1190,7 +1190,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         request: dict = {
             'status': 'all',
         }
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['marketId'] = market['id']
@@ -1245,7 +1245,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         """
         self.load_markets()
         request: dict = {}
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['marketId'] = market['id']

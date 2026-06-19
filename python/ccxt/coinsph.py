@@ -896,7 +896,7 @@ class coinsph(Exchange, ImplicitAPI):
         defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr'
         options = self.safe_dict(self.options, 'fetchTickers', {})
         method = self.safe_string(options, 'method', defaultMethod)
-        tickers = None
+        tickers: List[dict] = None
         if method == 'publicGetOpenapiQuoteV1TickerPrice':
             tickers = self.publicGetOpenapiQuoteV1TickerPrice(self.extend(request, params))
         elif method == 'publicGetOpenapiQuoteV1TickerBookTicker':
@@ -925,7 +925,7 @@ class coinsph(Exchange, ImplicitAPI):
         defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr'
         options = self.safe_dict(self.options, 'fetchTicker', {})
         method = self.safe_string(options, 'method', defaultMethod)
-        ticker = None
+        ticker: dict = None
         if method == 'publicGetOpenapiQuoteV1TickerPrice':
             ticker = self.publicGetOpenapiQuoteV1TickerPrice(self.extend(request, params))
         elif method == 'publicGetOpenapiQuoteV1TickerBookTicker':
@@ -1262,14 +1262,14 @@ class coinsph(Exchange, ImplicitAPI):
                 'currency': self.safe_currency_code(feeCurrencyId),
             }
         isBuyer = self.safe_bool_2(trade, 'isBuyer', 'isBuyerMaker')
-        side = None
+        side: Str = None
         if isBuyer is not None:
             side = 'buy' if (isBuyer is True) else 'sell'
         isMaker = self.safe_string(trade, 'isMaker')
-        takerOrMaker = None
+        takerOrMaker: Str = None
         if isMaker is not None:
             takerOrMaker = 'maker' if (isMaker == 'true') else 'taker'
-        costString = None
+        costString: Str = None
         if orderId is not None:
             costString = self.safe_string(trade, 'quoteQty')
         return self.safe_trade({
@@ -1386,7 +1386,7 @@ class coinsph(Exchange, ImplicitAPI):
             if orderSide == 'SELL':
                 request['quantity'] = self.amount_to_precision(symbol, amount)
             elif orderSide == 'BUY':
-                quoteAmount = None
+                quoteAmount: Str = None
                 createMarketBuyOrderRequiresPrice = True
                 createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
                 cost = self.safe_number_2(params, 'cost', 'quoteOrderQty')
@@ -1411,7 +1411,7 @@ class coinsph(Exchange, ImplicitAPI):
             request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
         request['newOrderRespType'] = newOrderRespType
         params = self.omit(params, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty')
-        response = None
+        response: dict = None
         if testOrder:
             response = self.privatePostOpenapiV1OrderTest(self.extend(request, params))
         else:
@@ -1480,7 +1480,7 @@ class coinsph(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
-        market = None
+        market: Market = None
         request: dict = {}
         if symbol is not None:
             market = self.market(symbol)
@@ -1551,7 +1551,7 @@ class coinsph(Exchange, ImplicitAPI):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
         self.load_markets()
-        market = None
+        market: Market = None
         request: dict = {}
         if symbol is not None:
             market = self.market(symbol)
@@ -1846,7 +1846,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         # todo: returns an empty array - find out why
         self.load_markets()
-        currency = None
+        currency: Currency = None
         request: dict = {}
         if code is not None:
             currency = self.currency(code)
@@ -1900,7 +1900,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         # todo: returns an empty array - find out why
         self.load_markets()
-        currency = None
+        currency: Currency = None
         request: dict = {}
         if code is not None:
             currency = self.currency(code)
@@ -1992,10 +1992,10 @@ class coinsph(Exchange, ImplicitAPI):
         txid = self.safe_string(transaction, 'txId')
         currencyId = self.safe_string(transaction, 'coin')
         code = self.safe_currency_code(currencyId, currency)
-        timestamp = None
+        timestamp: Int = None
         timestamp = self.safe_integer_2(transaction, 'insertTime', 'applyTime')
         updated = None
-        type = None
+        type: Str = None
         withdrawOrderId = self.safe_string(transaction, 'withdrawOrderId')
         depositOrderId = self.safe_string(transaction, 'depositOrderId')
         if withdrawOrderId is not None:
@@ -2005,7 +2005,7 @@ class coinsph(Exchange, ImplicitAPI):
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         amount = self.safe_number(transaction, 'amount')
         feeCost = self.safe_number(transaction, 'transactionFee')
-        fee = None
+        fee: Fee = None
         if feeCost is not None:
             fee = {'currency': code, 'cost': feeCost}
         network = self.safe_string(transaction, 'network')

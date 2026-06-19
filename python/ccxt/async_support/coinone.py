@@ -565,7 +565,7 @@ class coinone(Exchange, ImplicitAPI):
         request: dict = {
             'quote_currency': 'KRW',
         }
-        market = None
+        market: Market = None
         response = None
         if symbols is not None:
             first = self.safe_string(symbols, 0)
@@ -750,7 +750,7 @@ class coinone(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(trade, 'timestamp')
         market = self.safe_market(None, market)
         isSellerMaker = self.safe_bool(trade, 'is_seller_maker')
-        side = None
+        side: Str = None
         if isSellerMaker is not None:
             side = 'sell' if isSellerMaker else 'buy'
         priceString = self.safe_string(trade, 'price')
@@ -964,7 +964,7 @@ class coinone(Exchange, ImplicitAPI):
             base = self.safe_currency_code(baseId)
         if quoteId is not None:
             quote = self.safe_currency_code(quoteId)
-        symbol = None
+        symbol: Str = None
         if (base is not None) and (quote is not None):
             symbol = base + '/' + quote
             market = self.safe_market(symbol, market, '/')

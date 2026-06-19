@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Any, Balances, Bool, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Market, Num, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -533,8 +533,8 @@ class bitget(ccxt.async_support.bitget):
         await self.load_markets()
         timeframes = self.safe_dict(self.options, 'timeframes')
         interval = self.safe_string(timeframes, timeframe)
-        channel = None
-        market = None
+        channel: Str = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
         instType = None
@@ -627,7 +627,7 @@ class bitget(ccxt.async_support.bitget):
         self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
         channel = self.safe_string_2(arg, 'channel', 'topic')
         interval = self.safe_string(arg, 'interval')
-        isUta = None
+        isUta: Bool = None
         if interval is None:
             isUta = False
             interval = channel.replace('candle', '')
@@ -644,7 +644,7 @@ class bitget(ccxt.async_support.bitget):
         for i in range(0, len(data)):
             parsed = self.parse_ws_ohlcv(data[i], market)
             stored.append(parsed)
-        messageHash = None
+        messageHash: Str = None
         if isUta:
             messageHash = 'kline:' + symbol
         else:
@@ -1165,7 +1165,7 @@ class bitget(ccxt.async_support.bitget):
         instId = self.safe_string_2(trade, 'symbol', 'instId')
         posMode = self.safe_string(trade, 'posMode')
         category = self.safe_string(trade, 'category')
-        defaultType = None
+        defaultType: Str = None
         if category is not None:
             defaultType = 'contract' if (category != 'SPOT') else 'spot'
         else:
@@ -1215,7 +1215,7 @@ class bitget(ccxt.async_support.bitget):
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         messageHash = ''
         subscriptionHash = 'positions'
         instType = 'USDT-FUTURES'
@@ -1414,7 +1414,7 @@ class bitget(ccxt.async_support.bitget):
         timestamp = self.safe_integer_n(position, ['updatedTime', 'uTime', 'cTime', 'createdTime'])
         percentageDecimal = self.safe_string_2(position, 'unrealizedPLR', 'profitRate')
         percentage = Precise.string_mul(percentageDecimal, '100')
-        contractSize = None
+        contractSize: Num = None
         if market is not None:
             contractSize = market['contractSize']
         return self.safe_position({
@@ -1467,9 +1467,9 @@ class bitget(ccxt.async_support.bitget):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        market = None
-        marketId = None
-        isTrigger = None
+        market: Market = None
+        marketId: Str = None
+        isTrigger: Bool = None
         isTrigger, params = self.is_trigger_order(params)
         messageHash = 'triggerOrder' if (isTrigger) else 'order'
         subscriptionHash = 'order:trades'
@@ -1481,9 +1481,9 @@ class bitget(ccxt.async_support.bitget):
         uta: Bool = None
         uta, params = self.handle_option_and_params(params, 'watchOrders', 'uta', False)
         productType = self.safe_string(params, 'productType')
-        type = None
+        type: Str = None
         type, params = self.handle_market_type_and_params('watchOrders', market, params)
-        subType = None
+        subType: Str = None
         subType, params = self.handle_sub_type_and_params('watchOrders', market, params, 'linear')
         if (type == 'spot' or type == 'margin') and (symbol is None):
             marketId = 'default'
@@ -1506,7 +1506,7 @@ class bitget(ccxt.async_support.bitget):
             subscriptionHash = subscriptionHash + ':stop'  # we don't want to re-use the same subscription hash for stop orders
         instId = marketId if (type == 'spot' or type == 'margin') else 'default'  # different from other streams here the 'rest' id is required for spot markets, contract markets require default here
         channel = 'orders-algo' if isTrigger else 'orders'
-        marginMode = None
+        marginMode: Str = None
         marginMode, params = self.handle_margin_mode_and_params('watchOrders', params)
         if marginMode is not None:
             instType = 'MARGIN'
@@ -1619,7 +1619,7 @@ class bitget(ccxt.async_support.bitget):
         channel = self.safe_string_2(arg, 'channel', 'topic')
         instType = self.safe_string_lower(arg, 'instType')
         argInstId = self.safe_string(arg, 'instId')
-        marketType = None
+        marketType: Str = None
         if instType == 'spot':
             marketType = 'spot'
         elif instType == 'margin':
@@ -1835,7 +1835,7 @@ class bitget(ccxt.async_support.bitget):
         orderFee = self.safe_value(order, 'feeDetail', [])
         fee = self.safe_value(orderFee, 0)
         feeAmount = self.safe_string(fee, 'fee')
-        feeObject = None
+        feeObject: Fee = None
         if feeAmount is not None:
             feeCurrency = self.safe_string(fee, 'feeCoin')
             feeObject = {
@@ -1844,7 +1844,7 @@ class bitget(ccxt.async_support.bitget):
             }
         triggerPrice = self.safe_number(order, 'triggerPrice')
         isTriggerOrder = (triggerPrice is not None)
-        price = None
+        price: Num = None
         if not isTriggerOrder:
             price = self.safe_number(order, 'price')
         elif isSpot and isTriggerOrder:
@@ -1939,13 +1939,13 @@ class bitget(ccxt.async_support.bitget):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         messageHash = 'myTrades'
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
             messageHash = messageHash + ':' + symbol
-        type = None
+        type: Str = None
         type, params = self.handle_market_type_and_params('watchMyTrades', market, params)
         instType = None
         uta: Bool = None
@@ -2116,11 +2116,11 @@ class bitget(ccxt.async_support.bitget):
         """
         uta: Bool = None
         uta, params = self.handle_option_and_params(params, 'watchBalance', 'uta', False)
-        type = None
+        type: Str = None
         type, params = self.handle_market_type_and_params('watchBalance', None, params)
-        marginMode = None
+        marginMode: Str = None
         marginMode, params = self.handle_margin_mode_and_params('watchBalance', params)
-        instType = None
+        instType: Str = None
         channel = 'account'
         if (type == 'swap') or (type == 'future'):
             instType = 'USDT-FUTURES'
@@ -2628,7 +2628,7 @@ class bitget(ccxt.async_support.bitget):
         instId = self.safe_string_2(arg, 'instId', 'symbol')
         channel = self.safe_string_2(arg, 'channel', 'topic')
         interval = self.safe_string(arg, 'interval')
-        isUta = None
+        isUta: Bool = None
         if interval is None:
             isUta = False
             interval = channel.replace('candle', '')
@@ -2638,8 +2638,8 @@ class bitget(ccxt.async_support.bitget):
         timeframe = self.find_timeframe(interval, timeframes)
         market = self.safe_market(instId, None, None, type)
         symbol = market['symbol']
-        messageHash = None
-        subMessageHash = None
+        messageHash: Str = None
+        subMessageHash: Str = None
         if isUta:
             messageHash = 'unsubscribe:kline:' + symbol
             subMessageHash = 'kline:' + symbol

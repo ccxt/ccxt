@@ -655,7 +655,7 @@ class derive(ccxt.async_support.derive):
             'orders': self.handle_order,
             'mytrades': self.handle_my_trade,
         }
-        event = None
+        event: Str = None
         params = self.safe_dict(message, 'params')
         if params is not None:
             channel = self.safe_string(params, 'channel')

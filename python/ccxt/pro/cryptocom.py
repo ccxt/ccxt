@@ -126,13 +126,13 @@ class cryptocom(ccxt.async_support.cryptocom):
         topicParams = self.safe_value(params, 'params')
         if topicParams is None:
             params['params'] = {}
-        bookSubscriptionType = None
-        bookSubscriptionType2 = None
+        bookSubscriptionType: Str = None
+        bookSubscriptionType2: Str = None
         bookSubscriptionType, params = self.handle_option_and_params(params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE')
         bookSubscriptionType2, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'bookSubscriptionType', bookSubscriptionType)
         params['params']['bookSubscriptionType'] = bookSubscriptionType2
-        bookUpdateFrequency = None
-        bookUpdateFrequency2 = None
+        bookUpdateFrequency: Str = None
+        bookUpdateFrequency2: Str = None
         bookUpdateFrequency, params = self.handle_option_and_params(params, 'watchOrderBook', 'bookUpdateFrequency')
         bookUpdateFrequency2, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency)
         if bookUpdateFrequency2 is not None:
@@ -169,13 +169,13 @@ class cryptocom(ccxt.async_support.cryptocom):
         topicParams = self.safe_value(params, 'params')
         if topicParams is None:
             params['params'] = {}
-        bookSubscriptionType = None
-        bookSubscriptionType2 = None
+        bookSubscriptionType: Str = None
+        bookSubscriptionType2: Str = None
         bookSubscriptionType, params = self.handle_option_and_params(params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE')
         bookSubscriptionType2, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'bookSubscriptionType', bookSubscriptionType)
         params['params']['bookSubscriptionType'] = bookSubscriptionType2
-        bookUpdateFrequency = None
-        bookUpdateFrequency2 = None
+        bookUpdateFrequency: Str = None
+        bookUpdateFrequency2: Str = None
         bookUpdateFrequency, params = self.handle_option_and_params(params, 'watchOrderBook', 'bookUpdateFrequency')
         bookUpdateFrequency2, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency)
         if bookUpdateFrequency2 is not None:
@@ -422,7 +422,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
@@ -750,7 +750,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
@@ -1097,7 +1097,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         :returns dict} Returns exchange raw message {@link https://docs.ccxt.com/?id=order-structure:
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         request: dict = {
             'method': 'private/cancel-all-orders',
             'params': self.extend({}, params),

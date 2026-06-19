@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.exmo import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, OrderBooks, Trade, TradingFees, Transaction
+from ccxt.base.types import Any, Balances, Bool, Currencies, Currency, DepositAddress, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, OrderBooks, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -322,7 +322,7 @@ class exmo(Exchange, ImplicitAPI):
             'position_id': market['id'],
             'quantity': amount,
         }
-        response = None
+        response: dict = None
         if type == 'add':
             response = await self.privatePostMarginUserPositionMarginAdd(self.extend(request, params))
         elif type == 'reduce':
@@ -1050,11 +1050,11 @@ class exmo(Exchange, ImplicitAPI):
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.load_markets()
-        marginMode = None
+        marginMode: Str = None
         marginMode, params = self.handle_margin_mode_and_params('fetchBalance', params)
         if marginMode == 'cross':
             raise BadRequest(self.id + ' does not support cross margin')
-        response = None
+        response: dict = None
         if marginMode == 'isolated':
             response = await self.privatePostMarginUserWalletList(params)
             #
@@ -1290,11 +1290,11 @@ class exmo(Exchange, ImplicitAPI):
         market = self.safe_market(marketId, market, '_')
         symbol = market['symbol']
         isMaker = self.safe_value(trade, 'is_maker')
-        takerOrMakerDefault = None
+        takerOrMakerDefault: Str = None
         if isMaker is not None:
             takerOrMakerDefault = 'maker' if isMaker else 'taker'
         takerOrMaker = self.safe_string(trade, 'exec_type', takerOrMakerDefault)
-        fee = None
+        fee: dict = None
         feeCostString = self.safe_string(trade, 'commission_amount')
         if feeCostString is not None:
             feeCurrencyId = self.safe_string(trade, 'commission_currency')
@@ -1384,7 +1384,7 @@ class exmo(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
-        marginMode = None
+        marginMode: Str = None
         marginMode, params = self.handle_margin_mode_and_params('fetchMyTrades', params)
         if marginMode == 'cross':
             raise BadRequest(self.id + ' only isolated margin is supported')
@@ -1403,7 +1403,7 @@ class exmo(Exchange, ImplicitAPI):
             request['limit'] = limit
         offset = self.safe_integer(params, 'offset', 0)
         request['offset'] = offset
-        response = None
+        response: dict = None
         if isSpot:
             response = await self.privatePostUserTrades(self.extend(request, params))
             #
@@ -1529,7 +1529,7 @@ class exmo(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         isMarket = (type == 'market') and (price is None)
-        marginMode = None
+        marginMode: Str = None
         marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
         if marginMode == 'cross':
             raise BadRequest(self.id + ' only supports isolated margin')
@@ -1565,7 +1565,7 @@ class exmo(Exchange, ImplicitAPI):
         params = self.omit(params, ['stopPrice', 'stop_price', 'triggerPrice', 'timeInForce', 'client_id', 'clientOrderId', 'cost'])
         if price is not None:
             request['price'] = self.price_to_precision(market['symbol'], price)
-        response = None
+        response: dict = None
         if isSpot:
             if triggerPrice is not None:
                 if type == 'limit':
@@ -1576,7 +1576,7 @@ class exmo(Exchange, ImplicitAPI):
                 response = await self.privatePostStopMarketOrderCreate(self.extend(request, params))
             else:
                 execType = self.safe_string(params, 'exec_type')
-                isPostOnly = None
+                isPostOnly: Bool = None
                 isPostOnly, params = self.handle_post_only(type == 'market', execType == 'post_only', params)
                 timeInForce = self.safe_string(params, 'timeInForce')
                 request['price'] = 0 if isMarket else self.price_to_precision(market['symbol'], price)
@@ -1626,11 +1626,11 @@ class exmo(Exchange, ImplicitAPI):
         request: dict = {}
         trigger = self.safe_value_2(params, 'trigger', 'stop')
         params = self.omit(params, ['trigger', 'stop'])
-        marginMode = None
+        marginMode: Str = None
         marginMode, params = self.handle_margin_mode_and_params('cancelOrder', params)
         if marginMode == 'cross':
             raise BadRequest(self.id + ' only supports isolated margin')
-        response = None
+        response: dict = None
         if (marginMode == 'isolated'):
             request['order_id'] = id
             response = await self.privatePostMarginUserOrderCancel(self.extend(request, params))
@@ -1711,17 +1711,17 @@ class exmo(Exchange, ImplicitAPI):
         :param str [params.marginMode]: set to "isolated" to fetch trades for a margin order
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        marginMode = None
+        marginMode: Str = None
         marginMode, params = self.handle_margin_mode_and_params('fetchOrderTrades', params)
         if marginMode == 'cross':
             raise BadRequest(self.id + ' only supports isolated margin')
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
         request: dict = {
             'order_id': str(id),
         }
-        response = None
+        response: dict = None
         if marginMode == 'isolated':
             response = await self.privatePostMarginUserOrderTrades(self.extend(request, params))
             #
@@ -1785,14 +1785,14 @@ class exmo(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
-        marginMode = None
+        marginMode: Str = None
         marginMode, params = self.handle_margin_mode_and_params('fetchOpenOrders', params)
         isMargin = ((marginMode == 'cross') or (marginMode == 'isolated'))
-        response = None
+        response: dict = None
         orders = []
         if isMargin:
             response = await self.privatePostMarginUserOrderList(params)
@@ -1972,7 +1972,7 @@ class exmo(Exchange, ImplicitAPI):
         timestamp = self.safe_timestamp(order, 'created', eventTime)
         orderType = self.safe_string_2(order, 'type', 'order_type')
         side = self.parse_side(orderType)
-        marketId = None
+        marketId: Str = None
         if 'pair' in order:
             marketId = order['pair']
         elif ('in_currency' in order) and ('out_currency' in order):
@@ -1993,7 +1993,7 @@ class exmo(Exchange, ImplicitAPI):
         triggerPrice = self.safe_string(order, 'stop_price')
         if triggerPrice == '0':
             triggerPrice = None
-        type = None
+        type: Str = None
         if (orderType != 'buy') and (orderType != 'sell'):
             type = orderType
         return self.safe_order({
@@ -2035,7 +2035,7 @@ class exmo(Exchange, ImplicitAPI):
         :returns dict: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        marginMode = None
+        marginMode: Str = None
         marginMode, params = self.handle_margin_mode_and_params('fetchOrders', params)
         if marginMode == 'cross':
             raise BadRequest(self.id + ' only supports isolated margin')
@@ -2050,10 +2050,10 @@ class exmo(Exchange, ImplicitAPI):
         }
         request['offset'] = limit if (since is not None) else 0
         request['limit'] = limit
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
-        response = None
+        response: dict = None
         if isSpot:
             response = await self.privatePostUserCancelledOrders(self.extend(request, params))
             #
@@ -2108,7 +2108,7 @@ class exmo(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        marginMode = None
+        marginMode: Str = None
         marginMode, params = self.handle_margin_mode_and_params('editOrder', params)
         if marginMode != 'isolated':
             raise BadRequest(self.id + ' editOrder() can only be used for isolated margin orders')
@@ -2145,7 +2145,7 @@ class exmo(Exchange, ImplicitAPI):
         #     }
         #
         depositAddress = self.safe_string(response, code)
-        address = None
+        address: Str = None
         tag = None
         if depositAddress:
             addressAndTag = depositAddress.split(',')
@@ -2277,8 +2277,8 @@ class exmo(Exchange, ImplicitAPI):
         type = self.safe_string(transaction, 'type')
         currencyId = self.safe_string_2(transaction, 'curr', 'currency')
         code = self.safe_currency_code(currencyId, currency)
-        address = None
-        comment = None
+        address: Str = None
+        comment: Str = None
         account = self.safe_string(transaction, 'account')
         if type == 'deposit':
             comment = account
@@ -2352,7 +2352,7 @@ class exmo(Exchange, ImplicitAPI):
         request: dict = {}
         if since is not None:
             request['date'] = self.parse_to_int(since / 1000)
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
         response = await self.privatePostWalletHistory(self.extend(request, params))
@@ -2401,7 +2401,7 @@ class exmo(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         await self.load_markets()
-        currency = None
+        currency: Currency = None
         request: dict = {
             'type': 'withdraw',
         }
@@ -2452,7 +2452,7 @@ class exmo(Exchange, ImplicitAPI):
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         await self.load_markets()
-        currency = None
+        currency: Currency = None
         request: dict = {
             'order_id': id,
             'type': 'withdraw',
@@ -2503,7 +2503,7 @@ class exmo(Exchange, ImplicitAPI):
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         await self.load_markets()
-        currency = None
+        currency: Currency = None
         request: dict = {
             'order_id': id,
             'type': 'deposit',
@@ -2555,7 +2555,7 @@ class exmo(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         await self.load_markets()
-        currency = None
+        currency: Currency = None
         request: dict = {
             'type': 'deposit',
         }
@@ -2644,7 +2644,7 @@ class exmo(Exchange, ImplicitAPI):
                 else:
                     success = False
             if not success:
-                code = None
+                code: Str = None
                 message = self.safe_string_2(response, 'error', 'errmsg')
                 errorParts = message.split(':')
                 numParts = len(errorParts)

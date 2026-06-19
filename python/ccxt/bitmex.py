@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitmex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, ADL, Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Leverage, Leverages, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, Transaction
+from ccxt.base.types import Any, ADL, Balances, Bool, Currencies, Currency, DepositAddress, Int, LedgerEntry, Leverage, Leverages, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -828,9 +828,9 @@ class bitmex(Exchange, ImplicitAPI):
         linear = (not isInverse and not isQuanto) if contract else None
         status = self.safe_string(market, 'state')
         active = status == 'Open'  # Open, Settled, Unlisted
-        expiry = None
-        expiryDatetime = None
-        symbol = None
+        expiry: Int = None
+        expiryDatetime: Str = None
+        symbol: Str = None
         if spot:
             symbol = base + '/' + quote
         elif contract:
@@ -1118,7 +1118,7 @@ class bitmex(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate')
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchOrders', symbol, since, limit, params, 100)
-        market = None
+        market: Market = None
         request: dict = {}
         if symbol is not None:
             market = self.market(symbol)
@@ -1193,7 +1193,7 @@ class bitmex(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, params, 100)
-        market = None
+        market: Market = None
         request: dict = {}
         if symbol is not None:
             market = self.market(symbol)
@@ -1338,7 +1338,7 @@ class bitmex(Exchange, ImplicitAPI):
             # set the timestamp to zero, 1970 Jan 1 00:00:00
             # for unrealized pnl and other transactions without a timestamp
             timestamp = 0  # see comments above
-        fee = None
+        fee: Fee = None
         feeCost = self.safe_string(item, 'fee')
         if feeCost is not None:
             feeCost = self.convert_to_real_amount(code, feeCost)
@@ -1350,7 +1350,7 @@ class bitmex(Exchange, ImplicitAPI):
         if after is not None:
             after = self.convert_to_real_amount(code, after)
         before = self.parse_number(Precise.string_sub(self.number_to_string(after), self.number_to_string(amount)))
-        direction = None
+        direction: Str = None
         if Precise.string_lt(amountString, '0'):
             direction = 'out'
             amount = self.convert_to_real_amount(code, Precise.string_abs(amountString))
@@ -1398,7 +1398,7 @@ class bitmex(Exchange, ImplicitAPI):
         #
         if limit is not None:
             request['count'] = limit
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
             request['currency'] = currency['id']
@@ -1447,7 +1447,7 @@ class bitmex(Exchange, ImplicitAPI):
         #         # date-based pagination not supported
         #     }
         #
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
             request['currency'] = currency['id']
@@ -1494,9 +1494,9 @@ class bitmex(Exchange, ImplicitAPI):
         timestamp = self.parse8601(self.safe_string(transaction, 'timestamp'))
         type = self.safe_string_lower(transaction, 'transactType')
         # Deposits have no from address or to address, withdrawals have both
-        address = None
-        addressFrom = None
-        addressTo = None
+        address: Str = None
+        addressFrom: Str = None
+        addressTo: Str = None
         if type == 'withdrawal':
             address = self.safe_string(transaction, 'address')
             addressFrom = self.safe_string(transaction, 'tx')
@@ -1804,7 +1804,7 @@ class bitmex(Exchange, ImplicitAPI):
             }
         # Trade or Funding
         execType = self.safe_string(trade, 'execType')
-        takerOrMaker = None
+        takerOrMaker: Str = None
         if feeCostString is not None and execType == 'Trade':
             takerOrMaker = 'maker' if Precise.string_lt(feeCostString, '0') else 'taker'
         type = self.safe_string_lower(trade, 'ordType')
@@ -1905,15 +1905,15 @@ class bitmex(Exchange, ImplicitAPI):
         else:
             amount = self.convert_from_raw_quantity(symbol, qty)
         average = self.safe_string(order, 'avgPx')
-        filled = None
+        filled: Str = None
         cumQty = self.number_to_string(self.convert_from_raw_quantity(symbol, self.safe_string(order, 'cumQty')))
         if isInverse:
             filled = Precise.string_div(cumQty, average)
         else:
             filled = cumQty
         execInst = self.safe_string(order, 'execInst', '')
-        postOnly = None
-        reduceOnly = None
+        postOnly: Bool = None
+        reduceOnly: Bool = None
         if len(execInst) > 0:
             postOnly = (execInst.find('ParticipateDoNotInitiate') >= 0)
             reduceOnly = ((execInst.find('ReduceOnly') >= 0) or (execInst.find('Close') >= 0))
@@ -2106,7 +2106,7 @@ class bitmex(Exchange, ImplicitAPI):
             triggerAbove = ((triggerDirection == 'ascending') or (triggerDirection == 'above'))
             if (type == 'limit') or (type == 'market'):
                 self.check_required_argument('createOrder', triggerDirection, 'triggerDirection', ['above', 'below'])
-            orderType = None
+            orderType: Str = None
             if type == 'limit':
                 if side == 'buy':
                     orderType = 'StopLimit' if triggerAbove else 'LimitIfTouched'
@@ -2206,7 +2206,7 @@ class bitmex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         request: dict = {}
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -2518,7 +2518,7 @@ class bitmex(Exchange, ImplicitAPI):
         unrealisedPnl = self.convert_to_real_amount(settleCurrencyCode, self.safe_string(position, 'unrealisedPnl'))
         contracts = self.parse_number(Precise.string_abs(self.safe_string(position, 'currentQty')))
         contractSize = self.safe_number(market, 'contractSize')
-        side = None
+        side: Str = None
         homeNotional = self.safe_string(position, 'homeNotional')
         if homeNotional is not None:
             if homeNotional[0] == '-':
@@ -2573,7 +2573,7 @@ class bitmex(Exchange, ImplicitAPI):
         self.load_markets()
         currency = self.currency(code)
         qty = self.convert_from_real_amount(code, amount)
-        networkCode = None
+        networkCode: Str = None
         networkCode, params = self.handle_network_code_and_params(params)
         request: dict = {
             'currency': currency['id'],
@@ -2675,7 +2675,7 @@ class bitmex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         request: dict = {}
-        market = None
+        market: Market = None
         if symbol in self.currencies:
             code = self.currency(symbol)
             request['symbol'] = code['id']
@@ -2798,7 +2798,7 @@ class bitmex(Exchange, ImplicitAPI):
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
         self.load_markets()
-        networkCode = None
+        networkCode: Str = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is None:
             raise ArgumentsRequired(self.id + ' fetchDepositAddress requires params["network"]')
@@ -2936,7 +2936,7 @@ class bitmex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         request: dict = {}
-        response = None
+        response: dict = None
         response = self.publicGetStats(self.extend(request, params))
         #
         #    [
@@ -3353,7 +3353,7 @@ class bitmex(Exchange, ImplicitAPI):
             # startTime string Starting time filter for results.
             # endTime string Ending time filter for results.
         }
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
