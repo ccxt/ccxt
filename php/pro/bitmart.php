@@ -1220,7 +1220,6 @@ class bitmart extends \ccxt\async\bitmart {
         } else {
             $datetime = $this->iso8601($timestamp);
         }
-        $takerOrMaker = null; // true for public trades
         $side = $this->safe_string($trade, 'side');
         $buyerMaker = $this->safe_bool($trade, 'm');
         if ($buyerMaker !== null) {

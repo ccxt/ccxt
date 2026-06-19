@@ -3690,7 +3690,6 @@ class ascendex extends Exchange {
              */
             Async\await($this->load_markets());
             $request = array();
-            $response = null;
             $response = Async\await($this->v2PublicGetFuturesPricingData ($this->extend($request, $params)));
             //
             //    {
