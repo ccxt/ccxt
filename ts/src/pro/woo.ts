@@ -135,7 +135,7 @@ export default class woo extends wooRest {
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
-        let method = undefined;
+        let method: Str = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'method', 'orderbook');
         const market = this.market (symbol);
         const topic = market['id'] + '@' + method;
@@ -173,7 +173,7 @@ export default class woo extends wooRest {
      */
     async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
         await this.loadMarkets ();
-        let method = undefined;
+        let method: Str = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'method', 'orderbook');
         const market = this.market (symbol);
         const subHash = market['id'] + '@' + method;
@@ -343,7 +343,7 @@ export default class woo extends wooRest {
      */
     async unWatchTicker (symbol: string, params = {}): Promise<any> {
         await this.loadMarkets ();
-        let method = undefined;
+        let method: Str = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'watchTicker', 'method', 'ticker');
         const market = this.market (symbol);
         const subHash = market['id'] + '@' + method;
@@ -822,12 +822,12 @@ export default class woo extends wooRest {
         const side = this.safeStringLower (trade, 'side');
         const timestamp = this.safeInteger (trade, 'timestamp');
         const maker = this.safeBool (trade, 'marker');
-        let takerOrMaker = undefined;
+        let takerOrMaker: Str = undefined;
         if (maker !== undefined) {
             takerOrMaker = maker ? 'maker' : 'taker';
         }
         const type = this.safeStringLower (trade, 'type');
-        let fee = undefined;
+        let fee: Dict = undefined;
         const feeCost = this.safeNumber (trade, 'fee');
         if (feeCost !== undefined) {
             fee = {
