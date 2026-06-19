@@ -4,7 +4,7 @@
 import asterRest from '../aster.js';
 import { Precise } from '../base/Precise.js';
 import { ArgumentsRequired } from '../base/errors.js';
-import type{ Balances, Str, Strings, Tickers, Dict, Ticker, Int, Trade, Order, OrderBook, OHLCV, Position, Market } from '../base/types.js';
+import type{ Balances, Str, Strings, Tickers, Dict, Ticker, Int, Trade, Order, OrderBook, OHLCV, Position, Market, NullableDict } from '../base/types.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 
@@ -793,7 +793,7 @@ export default class aster extends asterRest {
         const id = this.safeString2 (trade, 't', 'a');
         const timestamp = this.safeInteger (trade, 'T');
         const price = this.safeString2 (trade, 'L', 'p');
-        let amount = undefined;
+        let amount: Str = undefined;
         if (isPublicTrade) {
             amount = this.safeString (trade, 'q');
         } else {
@@ -818,7 +818,7 @@ export default class aster extends asterRest {
             }
             takerOrMaker = trade['m'] ? 'maker' : 'taker';
         }
-        let fee = undefined;
+        let fee: NullableDict = undefined;
         const feeCost = this.safeString (trade, 'n');
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'N');
@@ -1859,7 +1859,7 @@ export default class aster extends asterRest {
             lastTradeTimestamp = T;
         }
         const lastUpdateTimestamp = T;
-        let fee = undefined;
+        let fee: NullableDict = undefined;
         const feeCost = this.safeString (order, 'n');
         if ((feeCost !== undefined) && (Precise.stringGt (feeCost, '0'))) {
             const feeCurrencyId = this.safeString (order, 'N');
