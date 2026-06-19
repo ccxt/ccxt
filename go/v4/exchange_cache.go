@@ -18,7 +18,7 @@ import "sync"
 type Appender interface{ Append(any) }
 
 type CacheType interface {
-	*ArrayCache | *ArrayCacheByTimestamp | *ArrayCacheBySymbolById | *ArrayCacheBySymbolBySide | map[string]any
+	*ArrayCache | *ArrayCacheByTimestamp | *ArrayCacheBySymbolById | *ArrayCacheByOutcomeById | *ArrayCacheBySymbolBySide | map[string]any
 
 	Append(any)
 }
@@ -62,6 +62,7 @@ type ArrayCache struct {
 	newUpdatesBySymbol       map[string]Set            `json:"-"`
 	clearUpdatesBySymbol     map[string]bool           `json:"-"`
 	nestedNewUpdatesBySymbol bool                      `json:"-"`
+	keyField                 string                    `json:"-"`
 }
 
 func NewArrayCache(MaxSize any) *ArrayCache {
@@ -80,6 +81,7 @@ func NewArrayCache(MaxSize any) *ArrayCache {
 		newUpdatesBySymbol:       make(map[string]Set),
 		clearUpdatesBySymbol:     make(map[string]bool),
 		nestedNewUpdatesBySymbol: false,
+		keyField:                 "symbol",
 	}
 }
 
@@ -87,9 +89,13 @@ func (c *ArrayCache) Append(item any) {
 	// We expect the incoming item to at least expose a "symbol" field; try to
 	// extract it when it is a map[string]any – if not present we still
 	// store the item, it just won't participate in Hashmap logic.
+	keyField := c.keyField
+	if keyField == "" {
+		keyField = "symbol"
+	}
 	var symbol, id string
 	if m, ok := item.(map[string]any); ok {
-		if s, ok := m["symbol"].(string); ok {
+		if s, ok := m[keyField].(string); ok {
 			symbol = s
 		}
 		// optional id field
@@ -131,7 +137,7 @@ func (c *ArrayCache) Append(item any) {
 		removed := c.Data[0]
 		removedMap, ok := removed.(map[string]any)
 		if ok {
-			removedSymbol, okSym := removedMap["symbol"].(string)
+			removedSymbol, okSym := removedMap[keyField].(string)
 			removedId, okId := removedMap["id"].(string)
 			if okSym && okId {
 				byId := c.Hashmap[removedSymbol]
@@ -417,6 +423,25 @@ func (c *ArrayCacheBySymbolById) GetLimit(symbol any, limit any) any {
 
 // Remove delegates to the inner ArrayCache
 func (c *ArrayCacheBySymbolById) Remove(symbol string) {
+	c.ArrayCache.Remove(symbol)
+}
+
+// ArrayCacheByOutcomeById nests two levels: outcome → id (prediction markets).
+type ArrayCacheByOutcomeById struct{ *ArrayCache }
+
+func NewArrayCacheByOutcomeById(optionalArgs ...any) *ArrayCacheByOutcomeById {
+	maxSize := GetArg(optionalArgs, 0, nil)
+	cache := &ArrayCacheByOutcomeById{NewArrayCache(maxSize)}
+	cache.nestedNewUpdatesBySymbol = true
+	cache.keyField = "outcome"
+	return cache
+}
+
+func (c *ArrayCacheByOutcomeById) GetLimit(symbol any, limit any) any {
+	return c.ArrayCache.GetLimit(symbol, limit)
+}
+
+func (c *ArrayCacheByOutcomeById) Remove(symbol string) {
 	c.ArrayCache.Remove(symbol)
 }
 

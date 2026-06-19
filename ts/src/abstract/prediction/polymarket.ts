@@ -6,7 +6,7 @@
 // -------------------------------------------------------------------------------
 
 import { implicitReturnType } from '../../base/types.js';
-import { Exchange as _Exchange } from '../../base/Exchange.js';
+import { default as _Exchange } from '../../base/PredictionExchange.js';
 
 interface Exchange {
     gammaPublicGetStatus (params?: {}): Promise<implicitReturnType>;

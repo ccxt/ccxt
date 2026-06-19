@@ -106,54 +106,142 @@ export interface MarketInterface {
     outcomes?: PredictionOutcome[];
 }
 
-export interface PredictionEvent {
-    id: string;
-    symbol: string;
-    title: string;
-    description: string;
-    slug: string;
-    markets: PredictionMarket[];
-    url: string;
-    image?: string;
-    active?: boolean;
-    resolved?: boolean;
-    category?: string;
-    tags?: string[];
-    created: number;
-    end?: number;
-    endDatetime?: string;
-    createdDatetime: string;
-    lastUpdatedAt: number;
-    resolutionSource?: string;
-    info: any;
+// Prediction-market structures (ccxt.prediction namespace).
+// Hierarchy: Event -> Market -> Outcome. The Outcome is the tradeable unit; there is
+// no `symbol` field — the handle is `outcome` ("MARKET:LABEL") and the raw exchange id
+// is `outcomeId`. Prices are probabilities 0..1, amounts are shares, costs are collateral.
+
+export interface PredictionFees {
+    trading?: Num;       // per-trade taker/maker rate (fraction, e.g. 0.02 = 2%)
+    resolution?: Num;    // fee taken from winnings at settlement (fraction)
 }
 
-export interface PredictionOutcome {
-    id: string;
-    symbol: string;
-    marketSymbol: string;
-    marketId: string;
-    label: string;
-    price?: number;
-    active?: boolean;
-    precision?: Precision;
-    info?: any;
+export interface PredictionEvent {
+    info: any;
+    id: string;                  // raw exchange event id
+    event: string;               // unified handle "US_ELECTION_2024"
+    title?: Str;
+    description?: Str;
+    slug?: Str;
+    category?: Str;
+    tags?: string[];
+    markets: PredictionMarket[]; // grouped markets (does not re-derive outcomes)
+    mutuallyExclusive?: Bool;    // exactly one market in the event resolves YES
+    active?: Bool;
+    resolved?: Bool;
+    volume?: Num;
+    liquidity?: Num;
+    created?: Int;
+    createdDatetime?: Str;
+    end?: Int;
+    endDatetime?: Str;
+    image?: Str;
+    url?: Str;
 }
 
 export interface PredictionMarket {
-    id: string;
-    symbol: string;
-    created: number;
-    description: string;
-    active: boolean;
-    price: number;
     info: any;
-    resolutionSource?: string;
-    image?: string;
-    lastUpdatedAt: number;
-    end?: number;
-    endDatetime?: string;
-    outcomes: PredictionOutcome[];
+    id: string;                  // raw exchange market id
+    market: string;              // unified handle "TRUMP_WIN_2024"
+    event?: Str;
+    marketType: 'binary' | 'categorical' | 'scalar' | Str;
+    executionModel?: 'clob' | 'amm' | 'parimutuel' | Str;
+    title?: Str;
+    description?: Str;
+    outcomes: PredictionOutcome[];   // 1..N (categorical can be > 2)
+    underlying?: Str;            // scalar only
+    floorStrike?: Num;           // scalar only
+    capStrike?: Num;             // scalar only
+    strikeType?: Str;            // scalar only
+    collateral?: Str;            // quote currency symbol (USDC / USD1 / USD / ...)
+    active?: Bool;
+    closed?: Bool;
+    resolved?: Bool;
+    resolvedOutcome?: Str;       // winning outcome handle
+    settlementValue?: Num;       // scalar: the realized number
+    created?: Int;
+    createdDatetime?: Str;
+    end?: Int;
+    endDatetime?: Str;
+    volume?: Num;
+    liquidity?: Num;
+    openInterest?: Num;
+    tickSize?: Num;
+    limits?: { amount?: MinMax, cost?: MinMax };
+    fees?: PredictionFees;
+    resolutionSource?: Str;
+    image?: Str;
+}
+
+export interface PredictionOutcome {
+    info: any;
+    outcome: string;             // unified handle "TRUMP_WIN_2024:YES" — round-trips; ex.outcomes key
+    outcomeId?: Str;             // raw exchange/on-chain id (token id / ticker / coin)
+    label?: Str;                 // short human name "Yes"
+    market?: Str;                // parent market handle
+    marketId?: Str;
+    event?: Str;
+    price?: Num;                 // probability 0..1
+    bid?: Num;
+    ask?: Num;
+    active?: Bool;
+    winner?: Bool;               // resolved true (the settleFraction === 1 case)
+    settleFraction?: Num;        // 0..1 fractional settlement
+    precision?: Precision;       // outcome-level price/amount precision
+}
+
+// Prediction trading structures extend their base unified types so they stay
+// covariantly assignable (parse/fetch overrides type-check without casts) and map
+// 1:1 onto the native structs in Go/C#/Java (embed/inherit the base struct, add the
+// prediction fields). The inherited `symbol` is left unpopulated — `outcome` (the
+// "MARKET:LABEL" handle) is the canonical identity; price = probability 0..1,
+// amount = shares, cost = collateral.
+export interface PredictionOrder extends Order {
+    outcome: string;             // handle "TRUMP_WIN_2024:YES"
+    outcomeId?: Str;
+    label?: Str;
+    market?: Str;
+    event?: Str;
+    trades: PredictionTrade[];
+}
+
+export interface PredictionTrade extends Trade {
+    outcome: string;
+    outcomeId?: Str;
+    label?: Str;
+    market?: Str;
+    realizedPnl?: Num;
+}
+
+export interface PredictionPosition extends Position {
+    outcome: string;
+    outcomeId?: Str;
+    label?: Str;
+    market?: Str;
+    event?: Str;
+    oppositeOutcome?: Str;       // complementary leg (NO when you hold YES)
+    resolved?: Bool;
+    won?: Bool;
+    settleFraction?: Num;
+    payout?: Num;                // claimable collateral after resolution
+}
+
+export interface PredictionTicker extends Ticker {
+    outcome: string;
+    outcomeId?: Str;
+    label?: Str;
+    market?: Str;
+    event?: Str;
+    openInterest?: Num;
+}
+
+export interface PredictionOrderBook extends OrderBook {
+    outcome: string;             // required — books are per-outcome
+    outcomeId?: Str;
+    market?: Str;
+}
+
+export interface PredictionTickers extends Dictionary<PredictionTicker> {
 }
 
 export interface Trade {

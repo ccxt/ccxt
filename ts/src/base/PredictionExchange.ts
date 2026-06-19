@@ -2,7 +2,7 @@
 
 import { Exchange } from './Exchange.js';
 import { ExchangeError, BadSymbol, NotSupported, ArgumentsRequired } from './errors.js';
-import type { Str, Strings, Num, Int, Bool, Dictionary, Ticker, OrderBook, OHLCV, Trade, Order, OrderType, OrderSide, Dict, MarketInterface } from './types.js';
+import type { Str, Strings, Num, Int, Bool, Dictionary, Ticker, OrderBook, OHLCV, Trade, Order, OrderType, OrderSide, Dict, PredictionTicker, PredictionOrder, PredictionTrade, PredictionPosition } from './types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -35,9 +35,16 @@ export default class PredictionExchange extends Exchange {
         };
     }
 
-    async checkEventsAndMarkets (outcome: Str = undefined) {
+    checkEventsAndMarkets (outcome: Str = undefined) {
+        // pure synchronous guard (no I/O) — callers invoke it without await, so leaving it
+        // async would make the coroutine never run in Python/PHP and silently skip validation.
         // outcomes are the real dependency for resolving a symbol; they are populated by
-        // fetchEvents and also rebuilt from cached markets (loadMarkets), so accept either
+        // fetchEvents and also rebuilt from cached markets (loadMarkets), so accept either.
+        // rebuild lazily from cached markets here because the setMarkets override that
+        // normally does it is not dispatched by the base loadMarkets under the AST languages.
+        if ((!this.outcomes || this.isEmpty (this.outcomes)) && !this.isEmpty (this.markets)) {
+            this.setOutcomesFromMarkets ();
+        }
         if (!this.outcomes || this.isEmpty (this.outcomes)) {
             throw new ArgumentsRequired ('Outcomes are required to be loaded, please fetch them first using fetchEvents (or loadMarkets)');
         }
@@ -119,13 +126,13 @@ export default class PredictionExchange extends Exchange {
         if (outcomeObj !== undefined) {
             return outcomeObj;
         }
-        return { 'id': outcomeIdOrSymbol, 'outcome': outcomeIdOrSymbol, 'info': {}};
+        return { 'outcome': outcomeIdOrSymbol, 'outcomeId': outcomeIdOrSymbol, 'market': undefined, 'label': undefined, 'info': {}};
     }
 
-    // safeOutcome (outcomeIdOrSymbol: Str, outcomeObj: any = undefined): Str {
-    //     outcomeObj = this.safeOutcome (outcomeIdOrSymbol, outcomeObj);
-    //     return outcomeObj['outcome'];
-    // }
+    safeOutcomeSymbol (outcomeIdOrSymbol: Str, outcomeObj: any = undefined): Str {
+        outcomeObj = this.safeOutcome (outcomeIdOrSymbol, outcomeObj);
+        return outcomeObj['outcome'];
+    }
 
     shortenSlug (slug: string): string {
         const replacements = {
@@ -213,7 +220,10 @@ export default class PredictionExchange extends Exchange {
 
     setOutcomesFromMarkets () {
         // prediction markets carry their outcome tokens under the outcomes key,
-        // rebuild the outcome lookup caches so cached market data works offline
+        // rebuild the outcome lookup caches so cached market data works offline.
+        // normalize each outcome object to the canonical identity keys (outcome /
+        // outcomeId / market) so consumers and the safe* helpers are uniform even when
+        // an exchange's parseMarket still emits the legacy symbol / id / marketSymbol keys.
         this.outcomes = {};
         this.outcomes_by_id = {};
         const marketKeys = Object.keys (this.markets);
@@ -222,11 +232,17 @@ export default class PredictionExchange extends Exchange {
             const outcomesList = this.safeList (market, 'outcomes', []);
             for (let j = 0; j < outcomesList.length; j++) {
                 const oc = outcomesList[j];
-                const ocSymbol = this.safeString (oc, 'symbol');
+                const ocSymbol = this.safeString2 (oc, 'outcome', 'symbol');
+                const ocId = this.safeString2 (oc, 'outcomeId', 'id');
+                // assign unconditionally — safeString2 keeps the canonical key when present
+                // and falls back to the legacy one, so this never clobbers and avoids a
+                // missing-key access (which throws in Python/PHP, unlike TS undefined)
+                oc['outcome'] = ocSymbol;
+                oc['outcomeId'] = ocId;
+                oc['market'] = this.safeString2 (oc, 'market', 'marketSymbol');
                 if (ocSymbol !== undefined) {
                     this.outcomes[ocSymbol] = oc;
                 }
-                const ocId = this.safeString (oc, 'id');
                 if (ocId !== undefined) {
                     this.outcomes_by_id[ocId] = oc;
                 }
@@ -270,74 +286,64 @@ export default class PredictionExchange extends Exchange {
         return await super.watchTrades (outcome, since, limit, params);
     }
 
-    safePredictionOrder (order: Dict, market = undefined): Order {
-        // call base method
+    safePredictionOrder (order: Dict, market = undefined): PredictionOrder {
         const parsed = super.safeOrder (order, market);
-        // rename symbol to outcome
-        const outcomeSymbol = this.safeString (order, 'symbol');
+        return this.toPredictionStructure (parsed, order);
+    }
+
+    safePredictionTrade (trade: Dict, market = undefined): PredictionTrade {
+        const parsed = super.safeTrade (trade, market);
+        return this.toPredictionStructure (parsed, trade);
+    }
+
+    safePredictionTicker (ticker: Dict, market = undefined): PredictionTicker {
+        const parsed = super.safeTicker (ticker, market);
+        return this.toPredictionStructure (parsed, ticker);
+    }
+
+    safePredictionPosition (position: Dict): PredictionPosition {
+        const parsed = super.safePosition (position);
+        return this.toPredictionStructure (parsed, position);
+    }
+
+    toPredictionStructure (parsed: Dict, raw: Dict): any {
+        // rename the unified `symbol` to the prediction `outcome` handle and attach the
+        // prediction identity fields (raw exchange id, label, parent market/event) that the
+        // base safe* helpers drop. the exchange parser passes them on the raw input dict.
+        const outcomeSymbol = this.safeString2 (raw, 'outcome', 'symbol');
         parsed['outcome'] = outcomeSymbol;
+        parsed['outcomeId'] = this.safeString (raw, 'outcomeId');
+        parsed['label'] = this.safeString (raw, 'label');
+        parsed['market'] = this.safeString (raw, 'market');
+        parsed['event'] = this.safeString (raw, 'event');
         delete parsed['symbol'];
         return parsed;
     }
 
     filterByOutcomeSinceLimit (array, outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
-        // accept an outcome symbol or id; resolve it to the canonical symbol (checks outcomes and outcomes_by_id)
-        return this.filterByValueSinceLimit (array, 'outcome', this.safeOutcome (outcome), since, limit, 'timestamp', tail);
+        return this.filterByValueSinceLimit (array, 'outcome', outcome, since, limit, 'timestamp', tail);
     }
 
     filterByOutcomesSinceLimit (array, outcomes: string[] = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
-        let resolved = outcomes;
-        if (outcomes !== undefined) {
-            resolved = [];
-            for (let i = 0; i < outcomes.length; i++) {
-                resolved.push (this.safeOutcome (outcomes[i]));
-            }
-        }
-        const result = this.filterByArray (array, 'outcome', resolved, false);
+        const result = this.filterByArray (array, 'outcome', outcomes, false);
         return this.filterBySinceLimit (result, since, limit, 'timestamp', tail);
     }
 
-    // outcome (symbol: string): MarketInterface {
-    //     // for a prediction exchange the tradeable "market" is an outcome; resolve outcomes first
-    //     // (populated by fetchEvents) and fall back to real markets so inherited base logic that
-    //     // calls this.market (precisionToString, etc.) works with an outcome symbol or id
-    //     if (this.outcomes !== undefined) {
-    //         if (symbol in this.outcomes) {
-    //             return this.outcomes[symbol];
-    //         }
-    //         if ((this.outcomes_by_id !== undefined) && (symbol in this.outcomes_by_id)) {
-    //             return this.outcomes_by_id[symbol];
-    //         }
-    //     }
-    //     return undefined;
-    // }
-
-    outcomeId (outcome: string): string {
-        return this.marketId (outcome);
+    amountToPredictionPrecision (outcome: string, amount): string {
+        const outcomeObj = this.outcome (outcome);
+        const marketSymbol = this.safeString (outcomeObj, 'market');
+        return this.amountToPrecision (marketSymbol, amount);
     }
 
-    outcomeSymbol (outcome: string): string {
-        return this.symbol (outcome);
+    priceToPredictionPrecision (outcome: string, price): string {
+        const outcomeObj = this.outcome (outcome);
+        const marketSymbol = this.safeString (outcomeObj, 'market');
+        return this.priceToPrecision (marketSymbol, price);
     }
 
-    outcomeSymbols (outcomes: Strings = undefined): Strings {
-        return this.marketSymbols (outcomes);
-    }
-
-    amountToPrecision (outcome: string, amount) {
-        return super.amountToPrecision (outcome, amount);
-    }
-
-    priceToPrecision (outcome: string, price): string {
-        return super.priceToPrecision (outcome, price);
-    }
-
-    costToPrecision (outcome: string, cost) {
-        return super.costToPrecision (outcome, cost);
-    }
-
-    filterByOutcome (objects, outcome: Str = undefined) {
-        // accept an outcome symbol or id; resolve it to the canonical symbol (checks outcomes and outcomes_by_id)
-        return this.filterByKey (objects, 'outcome', this.safeOutcome (outcome));
+    costToPredictionPrecision (outcome: string, cost): string {
+        const outcomeObj = this.outcome (outcome);
+        const marketSymbol = this.safeString (outcomeObj, 'market');
+        return this.costToPrecision (marketSymbol, cost);
     }
 }

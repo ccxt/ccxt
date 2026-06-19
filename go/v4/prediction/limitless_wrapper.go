@@ -82,7 +82,7 @@ func (this *Limitless) FetchEvent(id string, options ...FetchEventOptions) (map[
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
  */
-func (this *Limitless) FetchTicker(symbol string, options ...ccxt.FetchTickerOptions) (ccxt.Ticker, error) {
+func (this *Limitless) FetchTicker(symbol string, options ...ccxt.FetchTickerOptions) (ccxt.PredictionTicker, error) {
 
     opts := ccxt.FetchTickerOptionsStruct{}
 
@@ -96,9 +96,9 @@ func (this *Limitless) FetchTicker(symbol string, options ...ccxt.FetchTickerOpt
     }
     res := <- this.Core.FetchTicker(symbol, params)
     if ccxt.IsError(res) {
-        return ccxt.Ticker{}, ccxt.CreateReturnError(res)
+        return ccxt.PredictionTicker{}, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewTicker(res), nil
+    return ccxt.NewPredictionTicker(res), nil
 }
 /**
  * @method
@@ -110,7 +110,7 @@ func (this *Limitless) FetchTicker(symbol string, options ...ccxt.FetchTickerOpt
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome symbol
  */
-func (this *Limitless) FetchTickers(options ...ccxt.FetchTickersOptions) (ccxt.Tickers, error) {
+func (this *Limitless) FetchTickers(options ...ccxt.FetchTickersOptions) (ccxt.PredictionTickers, error) {
 
     opts := ccxt.FetchTickersOptionsStruct{}
 
@@ -129,9 +129,9 @@ func (this *Limitless) FetchTickers(options ...ccxt.FetchTickersOptions) (ccxt.T
     }
     res := <- this.Core.FetchTickers(symbols, params)
     if ccxt.IsError(res) {
-        return ccxt.Tickers{}, ccxt.CreateReturnError(res)
+        return ccxt.PredictionTickers{}, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewTickers(res), nil
+    return ccxt.NewPredictionTickers(res), nil
 }
 /**
  * @method
@@ -144,7 +144,7 @@ func (this *Limitless) FetchTickers(options ...ccxt.FetchTickersOptions) (ccxt.T
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
  */
-func (this *Limitless) FetchTrades(symbol string, options ...ccxt.FetchTradesOptions) ([]ccxt.Trade, error) {
+func (this *Limitless) FetchTrades(symbol string, options ...ccxt.FetchTradesOptions) ([]ccxt.PredictionTrade, error) {
 
     opts := ccxt.FetchTradesOptionsStruct{}
 
@@ -170,7 +170,7 @@ func (this *Limitless) FetchTrades(symbol string, options ...ccxt.FetchTradesOpt
     if ccxt.IsError(res) {
         return nil, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewTradeArray(res), nil
+    return ccxt.NewPredictionTradeArray(res), nil
 }
 /**
  * @method
@@ -261,7 +261,7 @@ func (this *Limitless) FetchOHLCV(symbol string, options ...ccxt.FetchOHLCVOptio
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Limitless) FetchOrders(options ...ccxt.FetchOrdersOptions) ([]ccxt.Order, error) {
+func (this *Limitless) FetchOrders(options ...ccxt.FetchOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
     opts := ccxt.FetchOrdersOptionsStruct{}
 
@@ -292,7 +292,7 @@ func (this *Limitless) FetchOrders(options ...ccxt.FetchOrdersOptions) ([]ccxt.O
     if ccxt.IsError(res) {
         return nil, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewOrderArray(res), nil
+    return ccxt.NewPredictionOrderArray(res), nil
 }
 /**
  * @method
@@ -305,7 +305,7 @@ func (this *Limitless) FetchOrders(options ...ccxt.FetchOrdersOptions) ([]ccxt.O
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Limitless) FetchOpenOrders(options ...ccxt.FetchOpenOrdersOptions) ([]ccxt.Order, error) {
+func (this *Limitless) FetchOpenOrders(options ...ccxt.FetchOpenOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
     opts := ccxt.FetchOpenOrdersOptionsStruct{}
 
@@ -336,7 +336,7 @@ func (this *Limitless) FetchOpenOrders(options ...ccxt.FetchOpenOrdersOptions) (
     if ccxt.IsError(res) {
         return nil, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewOrderArray(res), nil
+    return ccxt.NewPredictionOrderArray(res), nil
 }
 /**
  * @method
@@ -349,7 +349,7 @@ func (this *Limitless) FetchOpenOrders(options ...ccxt.FetchOpenOrdersOptions) (
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Limitless) FetchClosedOrders(options ...ccxt.FetchClosedOrdersOptions) ([]ccxt.Order, error) {
+func (this *Limitless) FetchClosedOrders(options ...ccxt.FetchClosedOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
     opts := ccxt.FetchClosedOrdersOptionsStruct{}
 
@@ -380,7 +380,7 @@ func (this *Limitless) FetchClosedOrders(options ...ccxt.FetchClosedOrdersOption
     if ccxt.IsError(res) {
         return nil, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewOrderArray(res), nil
+    return ccxt.NewPredictionOrderArray(res), nil
 }
 /**
  * @method
@@ -392,7 +392,7 @@ func (this *Limitless) FetchClosedOrders(options ...ccxt.FetchClosedOrdersOption
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Limitless) FetchOrdersByIds(ids any, options ...ccxt.FetchOrdersByIdsOptions) ([]ccxt.Order, error) {
+func (this *Limitless) FetchOrdersByIds(ids any, options ...ccxt.FetchOrdersByIdsOptions) ([]ccxt.PredictionOrder, error) {
 
     opts := ccxt.FetchOrdersByIdsOptionsStruct{}
 
@@ -413,7 +413,7 @@ func (this *Limitless) FetchOrdersByIds(ids any, options ...ccxt.FetchOrdersById
     if ccxt.IsError(res) {
         return nil, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewOrderArray(res), nil
+    return ccxt.NewPredictionOrderArray(res), nil
 }
 /**
  * @method
@@ -425,7 +425,7 @@ func (this *Limitless) FetchOrdersByIds(ids any, options ...ccxt.FetchOrdersById
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Limitless) FetchOrder(id string, options ...ccxt.FetchOrderOptions) (ccxt.Order, error) {
+func (this *Limitless) FetchOrder(id string, options ...ccxt.FetchOrderOptions) (ccxt.PredictionOrder, error) {
 
     opts := ccxt.FetchOrderOptionsStruct{}
 
@@ -444,9 +444,9 @@ func (this *Limitless) FetchOrder(id string, options ...ccxt.FetchOrderOptions) 
     }
     res := <- this.Core.FetchOrder(id, symbol, params)
     if ccxt.IsError(res) {
-        return ccxt.Order{}, ccxt.CreateReturnError(res)
+        return ccxt.PredictionOrder{}, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewOrder(res), nil
+    return ccxt.NewPredictionOrder(res), nil
 }
 /**
  * @method
@@ -476,7 +476,7 @@ func (this *Limitless) FetchAccounts(params ...any) ([]ccxt.Account, error) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Limitless) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...ccxt.CreateOrderOptions) (ccxt.Order, error) {
+func (this *Limitless) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...ccxt.CreateOrderOptions) (ccxt.PredictionOrder, error) {
 
     opts := ccxt.CreateOrderOptionsStruct{}
 
@@ -495,9 +495,9 @@ func (this *Limitless) CreateOrder(symbol string, typeVar string, side string, a
     }
     res := <- this.Core.CreateOrder(symbol, typeVar, side, amount, price, params)
     if ccxt.IsError(res) {
-        return ccxt.Order{}, ccxt.CreateReturnError(res)
+        return ccxt.PredictionOrder{}, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewOrder(res), nil
+    return ccxt.NewPredictionOrder(res), nil
 }
 /**
  * @method
@@ -509,7 +509,7 @@ func (this *Limitless) CreateOrder(symbol string, typeVar string, side string, a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Limitless) CancelOrder(id string, options ...ccxt.CancelOrderOptions) (ccxt.Order, error) {
+func (this *Limitless) CancelOrder(id string, options ...ccxt.CancelOrderOptions) (ccxt.PredictionOrder, error) {
 
     opts := ccxt.CancelOrderOptionsStruct{}
 
@@ -528,9 +528,9 @@ func (this *Limitless) CancelOrder(id string, options ...ccxt.CancelOrderOptions
     }
     res := <- this.Core.CancelOrder(id, symbol, params)
     if ccxt.IsError(res) {
-        return ccxt.Order{}, ccxt.CreateReturnError(res)
+        return ccxt.PredictionOrder{}, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewOrder(res), nil
+    return ccxt.NewPredictionOrder(res), nil
 }
 /**
  * @method
@@ -542,7 +542,7 @@ func (this *Limitless) CancelOrder(id string, options ...ccxt.CancelOrderOptions
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Limitless) CancelOrders(ids []string, options ...ccxt.CancelOrdersOptions) ([]ccxt.Order, error) {
+func (this *Limitless) CancelOrders(ids []string, options ...ccxt.CancelOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
     opts := ccxt.CancelOrdersOptionsStruct{}
 
@@ -563,7 +563,7 @@ func (this *Limitless) CancelOrders(ids []string, options ...ccxt.CancelOrdersOp
     if ccxt.IsError(res) {
         return nil, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewOrderArray(res), nil
+    return ccxt.NewPredictionOrderArray(res), nil
 }
 /**
  * @method
@@ -575,7 +575,7 @@ func (this *Limitless) CancelOrders(ids []string, options ...ccxt.CancelOrdersOp
  * @param {string} [params.slug] the market slug to cancel all orders for
  * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Limitless) CancelAllOrders(options ...ccxt.CancelAllOrdersOptions) ([]ccxt.Order, error) {
+func (this *Limitless) CancelAllOrders(options ...ccxt.CancelAllOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
     opts := ccxt.CancelAllOrdersOptionsStruct{}
 
@@ -596,7 +596,7 @@ func (this *Limitless) CancelAllOrders(options ...ccxt.CancelAllOrdersOptions) (
     if ccxt.IsError(res) {
         return nil, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewOrderArray(res), nil
+    return ccxt.NewPredictionOrderArray(res), nil
 }
 /**
  * @method
@@ -609,7 +609,7 @@ func (this *Limitless) CancelAllOrders(options ...ccxt.CancelAllOrdersOptions) (
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
  */
-func (this *Limitless) FetchMyTrades(options ...ccxt.FetchMyTradesOptions) ([]ccxt.Trade, error) {
+func (this *Limitless) FetchMyTrades(options ...ccxt.FetchMyTradesOptions) ([]ccxt.PredictionTrade, error) {
 
     opts := ccxt.FetchMyTradesOptionsStruct{}
 
@@ -640,7 +640,7 @@ func (this *Limitless) FetchMyTrades(options ...ccxt.FetchMyTradesOptions) ([]cc
     if ccxt.IsError(res) {
         return nil, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewTradeArray(res), nil
+    return ccxt.NewPredictionTradeArray(res), nil
 }
 /**
  * @method
@@ -651,7 +651,7 @@ func (this *Limitless) FetchMyTrades(options ...ccxt.FetchMyTradesOptions) ([]cc
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
  */
-func (this *Limitless) FetchPositions(options ...ccxt.FetchPositionsOptions) ([]ccxt.Position, error) {
+func (this *Limitless) FetchPositions(options ...ccxt.FetchPositionsOptions) ([]ccxt.PredictionPosition, error) {
 
     opts := ccxt.FetchPositionsOptionsStruct{}
 
@@ -672,7 +672,7 @@ func (this *Limitless) FetchPositions(options ...ccxt.FetchPositionsOptions) ([]
     if ccxt.IsError(res) {
         return nil, ccxt.CreateReturnError(res)
     }
-    return ccxt.NewPositionArray(res), nil
+    return ccxt.NewPredictionPositionArray(res), nil
 }
 /**
  * @method

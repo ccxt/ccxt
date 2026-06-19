@@ -383,6 +383,14 @@ class limitless extends Exchange {
         $endDate = $this->safe_string($raw, 'deadline', $this->safe_string($raw, 'expiresAt'));
         $volume24h = $this->safe_number($raw, 'volume24h');
         $marketSymbol = $this->slugToMarketSymbol ($groupId, $slug);
+        // amount $precision comes from the collateral token decimals (USDC, 6); limitless does not
+        // expose a price tick, so 0.001 is the platform convention
+        $collateralToken = $this->safe_dict($raw, 'collateralToken', array());
+        $collateralDecimals = $this->safe_integer($collateralToken, 'decimals', $this->safe_integer($this->options, 'usdcDecimals', 6));
+        $precision = array(
+            'amount' => (string) $this->parse_number($this->parse_precision($collateralDecimals)),
+            'price' => 0.001,
+        );
         $outcomes = array();
         $tokenEntries = is_array($tokens) ? array_keys($tokens) : array();
         for ($i = 0; $i < count($tokenEntries); $i++) {
@@ -390,11 +398,12 @@ class limitless extends Exchange {
             $tokenData = $tokens[$outcomeLabel];
             $tokenId = $tokenData;
             $outcomes[] = array(
-                'id' => $tokenId,
-                'symbol' => $this->slugToOutcomeSymbol ($groupId, $slug, $outcomeLabel),
-                'marketSymbol' => $marketSymbol,
+                'outcome' => $this->slugToOutcomeSymbol ($groupId, $slug, $outcomeLabel),
+                'outcomeId' => $tokenId,
+                'market' => $marketSymbol,
                 'label' => $outcomeLabel,
                 'active' => $active,
+                'precision' => $precision,
                 'info' => array(
                     'slug' => $slug,
                     'address' => $address,
@@ -404,9 +413,14 @@ class limitless extends Exchange {
                 ),
             );
         }
+        $outcomesLength = count($outcomes);
         return array(
             'id' => $slug,
             'symbol' => $marketSymbol,
+            'market' => $marketSymbol,
+            'marketType' => ($outcomesLength > 2) ? 'categorical' : 'binary',
+            'executionModel' => 'clob',
+            'collateral' => 'USDC',
             'base' => $slug,
             'quote' => 'USDC',
             'settle' => null,
@@ -434,10 +448,7 @@ class limitless extends Exchange {
             'percentage' => true,
             'tierBased' => false,
             'feeSide' => 'get',
-            'precision' => array(
-                'amount' => 0.000001,
-                'price' => 0.001,
-            ),
+            'precision' => $precision,
             'limits' => array(
                 'leverage' => array( 'min' => 1, 'max' => 1 ),
                 'amount' => array( 'min' => 0, 'max' => null ),
@@ -467,7 +478,10 @@ class limitless extends Exchange {
              */
             $request = array( 'addressOrSlug' => $id );
             $response = Async\await($this->limitlessPublicGetMarketsAddressOrSlug ($this->extend($request, $params)));
-            $event = $this->parse_event($response);
+            // the single-market endpoint returns one raw market (no `markets` array like the grouped
+            // listing), so wrap it for parseEvent — its loop then parses this market into the $event
+            $wrapped = $this->extend($response, array( 'markets' => array( $response ) ));
+            $event = $this->parse_event($wrapped);
             return $event;
         }) ();
     }
@@ -971,8 +985,12 @@ class limitless extends Exchange {
             $askSizeStr = Precise::string_div($askSizeStr, '1000000');
         }
         $now = $this->milliseconds();
-        return $this->safe_ticker(array(
-            'symbol' => $this->safe_symbol(null, $market),
+        $outcomeSymbol = $this->safeOutcomeSymbol (null, $market);
+        return $this->safePredictionTicker (array(
+            'symbol' => $outcomeSymbol,
+            'outcomeId' => $this->safe_string($market, 'outcomeId'),
+            'label' => $this->safe_string($market, 'label'),
+            'market' => $this->safe_string($market, 'market'),
             'timestamp' => $now,
             'datetime' => $this->iso8601($now),
             'high' => null,
@@ -992,7 +1010,7 @@ class limitless extends Exchange {
             'baseVolume' => null,
             'quoteVolume' => $this->parse_number($volumeStr),
             'info' => $ticker,
-        ), $market);
+        ));
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
@@ -1018,7 +1036,7 @@ class limitless extends Exchange {
                     $outcomesList = $this->safe_list($m, 'outcomes', array());
                     for ($j = 0; $j < count($outcomesList); $j++) {
                         $ticker = $this->parse_ticker($raw, $outcomesList[$j]);
-                        $symbolKey = $this->safe_string($ticker, 'symbol');
+                        $symbolKey = $this->safe_string($ticker, 'outcome');
                         if ($symbolKey !== null) {
                             $result[$symbolKey] = $ticker;
                         }
@@ -1058,7 +1076,7 @@ class limitless extends Exchange {
                 $grouped = $outcomesBySlug[$slug];
                 for ($j = 0; $j < count($grouped); $j++) {
                     $ticker = $this->parse_ticker($tickerInput, $grouped[$j]);
-                    $symbolKey = $this->safe_string($ticker, 'symbol');
+                    $symbolKey = $this->safe_string($ticker, 'outcome');
                     if ($symbolKey !== null) {
                         $result[$symbolKey] = $ticker;
                     }
@@ -1085,7 +1103,7 @@ class limitless extends Exchange {
             $this->checkEventsAndMarkets ($symbol);
             $outcomeObj = $this->outcome ($symbol);
             $slug = $this->safe_string($outcomeObj['info'], 'slug');
-            $tokenId = $this->safe_string($outcomeObj, 'id');
+            $tokenId = $this->safe_string($outcomeObj, 'outcomeId');
             $request = array(
                 'slug' => $slug,
             );
@@ -1125,7 +1143,9 @@ class limitless extends Exchange {
                 }
                 $filtered[] = $row;
             }
-            return $this->parse_trades($filtered, $outcomeObj, $since, $limit);
+            // parse without a market (parsed trades carry `outcome`, not `$symbol`) then filter by outcome
+            $parsedTrades = $this->parse_trades($filtered, null);
+            return $this->filterByOutcomeSinceLimit ($parsedTrades, $symbol, $since, $limit);
         }) ();
     }
 
@@ -1206,7 +1226,7 @@ class limitless extends Exchange {
                 $asks[] = array( $this->parse_number($priceStr), $this->parse_number($sizeStr) );
             }
             return array(
-                'symbol' => $this->safe_string($outcomeObj, 'symbol', $outcome),
+                'symbol' => $this->safeOutcomeSymbol ($outcome, $outcomeObj),
                 'bids' => $this->sort_by($bids, 0, true),
                 'asks' => $this->sort_by($asks, 0),
                 'timestamp' => $timestamp,
@@ -1448,7 +1468,7 @@ class limitless extends Exchange {
         }) ();
     }
 
-    public function fetch_orders_by_ids($ids, ?string $symbol = null, $params = array ()) {
+    public function fetch_orders_by_ids($ids, ?string $symbol = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * fetch orders by the list of order $id
@@ -1739,7 +1759,7 @@ class limitless extends Exchange {
         $id = $this->safe_string($rawOrder, 'id');
         $tokenId = $this->safe_string_2($rawOrder, 'token', 'tokenId');
         $mkt = $this->safeOutcome ($tokenId, $market);
-        $symbol = $this->safe_string($mkt, 'symbol');
+        $outcomeSymbol = $this->safe_string($mkt, 'outcome');
         $rawSide = $this->safe_string($rawOrder, 'side');
         $side = $this->parse_order_side($rawSide);
         $price = $this->safe_string($rawOrder, 'price');
@@ -1768,7 +1788,7 @@ class limitless extends Exchange {
             $feeCurrency = 'USDC';
             $feeCost = $this->safe_string($totals, 'usdFee');
             if ($side === 'buy') {
-                $feeCurrency = $symbol;
+                $feeCurrency = $outcomeSymbol;
                 $feeCost = $this->safe_string($totals, 'contractsFee');
             }
             $fee = array(
@@ -1776,7 +1796,7 @@ class limitless extends Exchange {
                 'currency' => $feeCurrency,
             );
         }
-        return $this->safe_order(array(
+        return $this->safePredictionOrder (array(
             'id' => $id,
             'clientOrderId' => null,
             'info' => $order,
@@ -1784,8 +1804,11 @@ class limitless extends Exchange {
             'datetime' => $datetime,
             'lastTradeTimestamp' => null,
             'status' => $this->parse_order_status($rawStatus),
-            'symbol' => $mkt['marketSymbol'],
-            'outcome' => $symbol,
+            'symbol' => $outcomeSymbol,
+            'outcome' => $outcomeSymbol,
+            'outcomeId' => $this->safe_string($mkt, 'outcomeId'),
+            'label' => $this->safe_string($mkt, 'label'),
+            'market' => $this->safe_string($mkt, 'market'),
             'type' => $type,
             'timeInForce' => $this->parse_order_time_in_force($timeInForce),
             'postOnly' => null,
@@ -1800,7 +1823,7 @@ class limitless extends Exchange {
             'remaining' => $this->apply_scale($remaining),
             'fee' => $fee,
             'trades' => array(),
-        ), $mkt);
+        ));
     }
 
     public function parse_order_status(?string $status): ?string {
@@ -1956,7 +1979,7 @@ class limitless extends Exchange {
                 'maker' => $maker,
                 'signer' => $signer,
                 'taker' => $taker,
-                'tokenId' => $outcomeObj['id'],
+                'tokenId' => $outcomeObj['outcomeId'],
                 'nonce' => 0,
                 'feeRateBps' => $this->safe_integer($rank, 'feeRateBps'),
                 'side' => $sideValue,
@@ -1982,7 +2005,7 @@ class limitless extends Exchange {
             if ($timeInForce === null) {
                 $timeInForce = $isMarket ? 'FOK' : 'GTC';
             }
-            $marketSymbol = $this->safe_string($outcomeObj, 'marketSymbol');
+            $marketSymbol = $this->safe_string($outcomeObj, 'market');
             if ($isMarket && ($side === 'buy')) {
                 $createMarketBuyOrderRequiresPrice = true;
                 list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
@@ -1994,21 +2017,21 @@ class limitless extends Exchange {
                     } else {
                         $quoteAmount = $this->parse_to_numeric(Precise::string_mul($amountString, $priceString));
                         $costRequest = ($cost !== null) ? $cost : $quoteAmount;
-                        $makerAmount = $this->cost_to_precision($marketSymbol, $costRequest);
+                        $makerAmount = $this->costToPredictionPrecision ($outcome, $costRequest);
                     }
                 } else {
-                    $makerAmount = $this->cost_to_precision($marketSymbol, $amount);
+                    $makerAmount = $this->costToPredictionPrecision ($outcome, $amount);
                 }
             } elseif ($isMarket) {
-                $makerAmount = $this->amount_to_precision($marketSymbol, $amount);
+                $makerAmount = $this->amountToPredictionPrecision ($outcome, $amount);
             } else {
                 $calculatedCost = Precise::string_mul($amountString, $priceString);
                 if ($side === 'buy') {
-                    $makerAmount = $this->cost_to_precision($marketSymbol, $calculatedCost);
-                    $takerAmount = $this->amount_to_precision($marketSymbol, $amount);
+                    $makerAmount = $this->costToPredictionPrecision ($outcome, $calculatedCost);
+                    $takerAmount = $this->amountToPredictionPrecision ($outcome, $amount);
                 } else {
-                    $makerAmount = $this->amount_to_precision($marketSymbol, $amount);
-                    $takerAmount = $this->cost_to_precision($marketSymbol, $calculatedCost);
+                    $makerAmount = $this->amountToPredictionPrecision ($outcome, $amount);
+                    $takerAmount = $this->costToPredictionPrecision ($outcome, $calculatedCost);
                 }
             }
             // amounts must be integers (uint256) => parseNumber yields a float that the Python EIP-712 encoder rejects
@@ -2114,7 +2137,7 @@ class limitless extends Exchange {
         }) ();
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple orders at the same time
@@ -2181,7 +2204,7 @@ class limitless extends Exchange {
             //         "message" => "Orders canceled successfully"
             //     }
             //
-            return array( $this->safe_order(array( 'info' => $response )) );
+            return array( $this->safePredictionOrder (array( 'info' => $response )) );
         }) ();
     }
 
@@ -2211,10 +2234,6 @@ class limitless extends Exchange {
             $request = array();
             if ($limit !== null) {
                 $request['limit'] = min ($limit, $maxLimit);
-            }
-            $outcomeObj = null;
-            if ($outcome !== null) {
-                $outcomeObj = $this->outcome ($outcome);
             }
             $response = Async\await($this->limitlessPrivateGetPortfolioHistory ($this->extend($request, $params)));
             //
@@ -2294,7 +2313,8 @@ class limitless extends Exchange {
                     }
                 }
             }
-            return $this->parse_trades($trades, $outcomeObj, $since, $limit);
+            $parsedTrades = $this->parse_trades($trades, null);
+            return $this->filterByOutcomeSinceLimit ($parsedTrades, $outcome, $since, $limit);
         }) ();
     }
 
@@ -2323,12 +2343,17 @@ class limitless extends Exchange {
             if ($priceStr !== null) {
                 $costStr = Precise::string_mul($priceStr, $amountStr);
             }
-            return $this->safe_trade(array(
+            $feedOutcome = $this->safeOutcomeSymbol (null, $market);
+            return $this->safePredictionTrade (array(
                 'id' => $this->safe_string($trade, 'txHash'),
                 'info' => $trade,
                 'timestamp' => $ts,
                 'datetime' => $this->iso8601($ts),
-                'symbol' => $this->safe_symbol(null, $market),
+                'symbol' => $feedOutcome,
+                'outcome' => $feedOutcome,
+                'outcomeId' => $this->safe_string($market, 'outcomeId'),
+                'label' => $this->safe_string($market, 'label'),
+                'market' => $this->safe_string($market, 'market'),
                 'order' => null,
                 'type' => null,
                 'side' => $feedSide,
@@ -2337,7 +2362,7 @@ class limitless extends Exchange {
                 'amount' => $this->parse_number($amountStr),
                 'cost' => $this->parse_number($costStr),
                 'fee' => null,
-            ), $market);
+            ));
         }
         //
         //     {
@@ -2392,13 +2417,17 @@ class limitless extends Exchange {
         $outcomeIndex = $this->safe_integer($trade, 'outcomeIndex');
         $label = ($outcomeIndex === 0) ? 'yes' : 'no';
         $outcome = $this->get_outcome_by_slug_and_label($slug, $label, $market);
-        return $this->safe_trade(array(
+        $tradeOutcome = $this->safe_string($outcome, 'outcome');
+        return $this->safePredictionTrade (array(
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'outcome' => $this->safe_string($outcome, 'symbol'),
+            'symbol' => $tradeOutcome,
+            'outcome' => $tradeOutcome,
             'outcomeId' => $this->safe_string($trade, 'asset'),
+            'label' => $this->safe_string($outcome, 'label'),
+            'market' => $this->safe_string($outcome, 'market'),
             'order' => null,
             'type' => $type,
             'side' => $side,
@@ -2407,7 +2436,7 @@ class limitless extends Exchange {
             'amount' => $amount,
             'cost' => $cost,
             'fee' => null,
-        ), $market);
+        ));
     }
 
     public function get_outcome_by_slug_and_label(?string $slug, ?string $label, ?array $market = null): mixed {
@@ -2566,7 +2595,7 @@ class limitless extends Exchange {
         }
         $parsed['markPrice'] = $this->safe_number($latestTrade, $key);
         $parsed['info'] = $entry;
-        return $this->safe_position($parsed);
+        return $this->safePredictionPosition ($parsed);
     }
 
     public function parse_position(array $position, ?array $market = null): array {
@@ -2586,7 +2615,7 @@ class limitless extends Exchange {
         //         "unrealizedPnl" => "0"
         //     }
         //
-        $symbol = $this->safe_string($market, 'symbol');
+        $outcomeSymbol = $this->safe_string($market, 'outcome');
         $notional = $this->apply_scale($this->safe_string($position, 'marketValue'));
         $unrealizedPnl = $this->apply_scale($this->safe_string($position, 'unrealizedPnl'));
         $realizedPnl = $this->apply_scale($this->safe_string($position, 'realisedPnl'));
@@ -2594,8 +2623,11 @@ class limitless extends Exchange {
         $entryPrice = $this->apply_scale($this->safe_string($position, 'fillPrice'));
         return array(
             'id' => null,
-            'symbol' => $symbol,
-            'outcome' => $symbol,
+            'symbol' => $outcomeSymbol,
+            'outcome' => $outcomeSymbol,
+            'outcomeId' => $this->safe_string($market, 'outcomeId'),
+            'label' => $this->safe_string($market, 'label'),
+            'market' => $this->safe_string($market, 'market'),
             'timestamp' => null,
             'datetime' => null,
             'contracts' => null,

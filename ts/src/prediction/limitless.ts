@@ -22,12 +22,10 @@ import type {
     int,
     Int, Str, Num, Dict,
     Strings,
-    Market, Ticker, Tickers, OrderBook, OHLCV,
-    Order, Position,
+    Market, OrderBook, OHLCV,
     Bool,
-    Trade,
     Account,
-    PredictionEvent,
+    PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition,
 } from '../base/types.js';
 import { ArgumentsRequired, BadRequest, InvalidAddress, InvalidOrder, OrderNotFound } from '../../ccxt.js';
 import { Precise } from '../base/Precise.js';
@@ -182,7 +180,7 @@ export default class limitless extends Exchange {
                 'defaultFetchMarketsPages': 5,
                 'marketsPageSize': 25,
                 'usdcDecimals': 6,  // Limitless sizes are 6-decimal USDC
-                'warnOnCancelAllOrdersWithOutcome': true, // cancelAllOrders with an outcome outcome will cancel all orders for the entire slug (both YES and NO outcomes), so we warn by default to prevent mistakes. Set this option to false to suppress the warning.
+                'warnOnCancelAllOrdersWithOutcome': true, // cancelAllOrders with an outcome symbol will cancel all orders for the entire slug (both YES and NO outcomes), so we warn by default to prevent mistakes. Set this option to false to suppress the warning.
                 'zeroAddress': '0x0000000000000000000000000000000000000000',
                 'createMarketBuyOrderRequiresPrice': true,
             },
@@ -417,9 +415,9 @@ export default class limitless extends Exchange {
             const tokenData = tokens[outcomeLabel];
             const tokenId = tokenData;
             outcomes.push ({
-                'id': tokenId,
-                'symbol': this.slugToOutcomeSymbol (groupId, slug, outcomeLabel),
-                'marketSymbol': marketSymbol,
+                'outcome': this.slugToOutcomeSymbol (groupId, slug, outcomeLabel),
+                'outcomeId': tokenId,
+                'market': marketSymbol,
                 'label': outcomeLabel,
                 'active': active,
                 'precision': precision,
@@ -432,9 +430,14 @@ export default class limitless extends Exchange {
                 },
             });
         }
+        const outcomesLength = outcomes.length;
         return {
             'id': slug,
             'symbol': marketSymbol,
+            'market': marketSymbol,
+            'marketType': (outcomesLength > 2) ? 'categorical' : 'binary',
+            'executionModel': 'clob',
+            'collateral': 'USDC',
             'base': slug,
             'quote': 'USDC',
             'settle': undefined,
@@ -476,7 +479,7 @@ export default class limitless extends Exchange {
                 'volume24h': volume24h,
             }),
             'created': undefined,
-        };
+        } as unknown as Market;
     }
 
     /**
@@ -491,7 +494,10 @@ export default class limitless extends Exchange {
     async fetchEvent (id: string, params = {}): Promise<PredictionEvent> {
         const request: Dict = { 'addressOrSlug': id };
         const response = await this.limitlessPublicGetMarketsAddressOrSlug (this.extend (request, params));
-        const event: any = this.parseEvent (response);
+        // the single-market endpoint returns one raw market (no `markets` array like the grouped
+        // listing), so wrap it for parseEvent — its loop then parses this market into the event
+        const wrapped = this.extend (response, { 'markets': [ response ] });
+        const event: any = this.parseEvent (wrapped);
         return event;
     }
 
@@ -764,11 +770,12 @@ export default class limitless extends Exchange {
      * @description fetches the current price and best bid/ask for a single outcome token, combining the market detail and order book endpoints
      * @see https://docs.limitless.exchange/api-reference/markets/get-market
      * @see https://docs.limitless.exchange/api-reference/trading/orderbook
-     * @param {string} outcome unified outcome symbol like TRUMP_OUT_PRESIDENT_2027:YES or an outcome token id
+     * @param {string} symbol unified outcome symbol like TRUMP_OUT_PRESIDENT_2027:YES or an outcome token id
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    async fetchTicker (outcome: Str, params = {}): Promise<Ticker> {
+    async fetchTicker (symbol: Str, params = {}): Promise<PredictionTicker> {
+        const outcome = symbol;
         await this.loadMarkets ();
         this.checkEventsAndMarkets (outcome);
         const outcomeObj = this.outcome (outcome);
@@ -858,7 +865,7 @@ export default class limitless extends Exchange {
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): PredictionTicker {
         //
         //     {
         //         "id": "36814",
@@ -993,8 +1000,12 @@ export default class limitless extends Exchange {
             askSizeStr = Precise.stringDiv (askSizeStr, '1000000');
         }
         const now = this.milliseconds ();
-        return this.safeTicker ({
-            'symbol': this.safeSymbol (undefined, market),
+        const outcomeSymbol = this.safeOutcomeSymbol (undefined, market);
+        return this.safePredictionTicker ({
+            'symbol': outcomeSymbol,
+            'outcomeId': this.safeString (market, 'outcomeId'),
+            'label': this.safeString (market, 'label'),
+            'market': this.safeString (market, 'market'),
             'timestamp': now,
             'datetime': this.iso8601 (now),
             'high': undefined,
@@ -1014,7 +1025,7 @@ export default class limitless extends Exchange {
             'baseVolume': undefined,
             'quoteVolume': this.parseNumber (volumeStr),
             'info': ticker,
-        }, market);
+        });
     }
 
     /**
@@ -1023,14 +1034,14 @@ export default class limitless extends Exchange {
      * @description fetches tickers for multiple outcome tokens, grouping requested outcomes by their parent market, fetches all active markets when symbols is omitted
      * @see https://docs.limitless.exchange/api-reference/markets/get-market
      * @see https://docs.limitless.exchange/api-reference/trading/orderbook
-     * @param {string[]} [outcomes] unified outcome symbols or outcome token ids
+     * @param {string[]} [symbols] unified outcome symbols or outcome token ids
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome symbol
      */
-    async fetchTickers (outcomes: Strings = undefined, params = {}): Promise<Tickers> {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<PredictionTickers> {
         await this.loadMarkets ();
-        const result: Tickers = {};
-        if (outcomes === undefined) {
+        const result: PredictionTickers = {};
+        if (symbols === undefined) {
             // parse tickers for every loaded outcome from the cached listing data, without the per-market order books
             const allMarkets = await this.fetchMarkets (params);
             for (let i = 0; i < allMarkets.length; i++) {
@@ -1039,7 +1050,7 @@ export default class limitless extends Exchange {
                 const outcomesList = this.safeList (m as any, 'outcomes', []) as any[];
                 for (let j = 0; j < outcomesList.length; j++) {
                     const ticker = this.parseTicker (raw, outcomesList[j]);
-                    const symbolKey = this.safeString (ticker, 'symbol');
+                    const symbolKey = this.safeString (ticker, 'outcome');
                     if (symbolKey !== undefined) {
                         result[symbolKey] = ticker;
                     }
@@ -1050,9 +1061,9 @@ export default class limitless extends Exchange {
         // group target outcomes by their parent market to fetch each market and book only once
         const outcomesBySlug: Dict = {};
         const slugs: any[] = [];
-        for (let i = 0; i < outcomes.length; i++) {
-            this.checkEventsAndMarkets (outcomes[i]);
-            const outcomeObj = this.outcome (outcomes[i]);
+        for (let i = 0; i < symbols.length; i++) {
+            this.checkEventsAndMarkets (symbols[i]);
+            const outcomeObj = this.outcome (symbols[i]);
             const slug = this.safeString (outcomeObj['info'], 'slug');
             if (!(slug in outcomesBySlug)) {
                 outcomesBySlug[slug] = [];
@@ -1079,7 +1090,7 @@ export default class limitless extends Exchange {
             const grouped = outcomesBySlug[slug] as any[];
             for (let j = 0; j < grouped.length; j++) {
                 const ticker = this.parseTicker (tickerInput, grouped[j]);
-                const symbolKey = this.safeString (ticker, 'symbol');
+                const symbolKey = this.safeString (ticker, 'outcome');
                 if (symbolKey !== undefined) {
                     result[symbolKey] = ticker;
                 }
@@ -1093,18 +1104,18 @@ export default class limitless extends Exchange {
      * @name limitless#fetchTrades
      * @description fetches recent public trades for a single outcome token from the market events feed
      * @see https://docs.limitless.exchange/api-reference/trading/market-events
-     * @param {string} outcome unified outcome symbol like TRUMP_OUT_PRESIDENT_2027:YES or an outcome token id
+     * @param {string} symbol unified outcome symbol like TRUMP_OUT_PRESIDENT_2027:YES or an outcome token id
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum number of trades to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
      */
-    async fetchTrades (outcome: Str, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async fetchTrades (symbol: Str, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
         await this.loadMarkets ();
-        this.checkEventsAndMarkets (outcome);
-        const outcomeObj = this.outcome (outcome);
+        this.checkEventsAndMarkets (symbol);
+        const outcomeObj = this.outcome (symbol);
         const slug = this.safeString (outcomeObj['info'], 'slug');
-        const tokenId = this.safeString (outcomeObj, 'id');
+        const tokenId = this.safeString (outcomeObj, 'outcomeId');
         const request: Dict = {
             'slug': slug,
         };
@@ -1144,7 +1155,9 @@ export default class limitless extends Exchange {
             }
             filtered.push (row);
         }
-        return this.parseTrades (filtered, outcomeObj as any, since, limit);
+        // parse without a market (parsed trades carry `outcome`, not `symbol`) then filter by outcome
+        const parsedTrades = this.parseTrades (filtered, undefined);
+        return this.filterByOutcomeSinceLimit (parsedTrades, symbol, since, limit);
     }
 
     /**
@@ -1152,12 +1165,13 @@ export default class limitless extends Exchange {
      * @name limitless#fetchOrderBook
      * @description fetches the order book for a single outcome token, converting 6-decimal USDC sizes to whole units, no outcomes are quoted at 1 - price with the sides swapped
      * @see https://docs.limitless.exchange/api-reference/trading/orderbook
-     * @param {string} outcome unified outcome symbol like TRUMP_OUT_PRESIDENT_2027:YES or an outcome token id
+     * @param {string} symbol unified outcome symbol like TRUMP_OUT_PRESIDENT_2027:YES or an outcome token id
      * @param {int} [limit] not used by limitless fetchOrderBook
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
-    async fetchOrderBook (outcome: Str, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    async fetchOrderBook (symbol: Str, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        const outcome = symbol;
         await this.loadMarkets ();
         this.checkEventsAndMarkets (outcome);
         const outcomeObj = this.outcome (outcome);
@@ -1222,7 +1236,7 @@ export default class limitless extends Exchange {
             asks.push ([ this.parseNumber (priceStr), this.parseNumber (sizeStr) ]);
         }
         return {
-            'symbol': this.safeString (outcomeObj, 'symbol', outcome),
+            'symbol': this.safeOutcomeSymbol (outcome, outcomeObj),
             'bids': this.sortBy (bids, 0, true),
             'asks': this.sortBy (asks, 0),
             'timestamp': timestamp,
@@ -1236,17 +1250,17 @@ export default class limitless extends Exchange {
      * @name limitless#fetchOHLCV
      * @description fetches historical prices for a single limitless market outcome and maps them to OHLCV format, uses the `interval` query parameter and selects the YES/NO series that matches the requested outcome
      * @see https://docs.limitless.exchange/api-reference/trading/historical-price
-     * @param {string} outcome outcome symbol, e.g. "TRUMP_OUT:YES"
+     * @param {string} symbol outcome symbol, e.g. "TRUMP_OUT:YES"
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum number of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (outcome: Str, timeframe = '1d', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: Str, timeframe = '1d', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
-        this.checkEventsAndMarkets (outcome);
-        const outcomeObj = this.outcome (outcome);
+        this.checkEventsAndMarkets (symbol);
+        const outcomeObj = this.outcome (symbol);
         const slug = this.safeString (outcomeObj['info'], 'slug');
         const outcomeLabel = this.safeStringUpper (outcomeObj['info'], 'outcomeLabel');
         const interval = this.safeString (this.timeframes, timeframe, '1d');
@@ -1361,13 +1375,14 @@ export default class limitless extends Exchange {
      * @name limitless#fetchOrders
      * @description fetches orders for the authenticated user for a single outcome
      * @see https://docs.limitless.exchange/api-reference/orders/get-user-orders
-     * @param {string} [outcome] outcome symbol, e.g. "TRUMP_OUT:YES"
+     * @param {string} [symbol] outcome symbol, e.g. "TRUMP_OUT:YES"
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    async fetchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+        const outcome = symbol;
         if (outcome === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders requires an outcome argument');
         }
@@ -1405,7 +1420,7 @@ export default class limitless extends Exchange {
         // pass undefined as market: parseOrder sets symbol to the market symbol while the outcome
         // lives under 'outcome', so the base symbol filter would drop every order; the per-slug
         // endpoint already scopes results and parseOrder resolves the outcome via outcomes_by_id
-        return this.parseOrders (response, undefined, since, limit);
+        return this.parseOrders (response, undefined, since, limit) as PredictionOrder[];
     }
 
     /**
@@ -1413,13 +1428,14 @@ export default class limitless extends Exchange {
      * @name limitless#fetchOpenOrders
      * @description fetches open orders for the authenticated user for a single outcome
      * @see https://docs.limitless.exchange/api-reference/orders/get-user-orders
-     * @param {string} [outcome] outcome symbol, e.g. "TRUMP_OUT:YES"
+     * @param {string} [symbol] outcome symbol, e.g. "TRUMP_OUT:YES"
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    async fetchOpenOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+        const outcome = symbol;
         if (outcome === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires an outcome argument');
         }
@@ -1436,13 +1452,14 @@ export default class limitless extends Exchange {
      * @name limitless#fetchClosedOrders
      * @description fetches closed orders for the authenticated user for a single outcome
      * @see https://docs.limitless.exchange/api-reference/orders/get-user-orders
-     * @param {string} [outcome] outcome symbol, e.g. "TRUMP_OUT:YES"
+     * @param {string} [symbol] outcome symbol, e.g. "TRUMP_OUT:YES"
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    async fetchClosedOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+        const outcome = symbol;
         if (outcome === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchClosedOrders requires an outcome argument');
         }
@@ -1460,11 +1477,12 @@ export default class limitless extends Exchange {
      * @description fetch orders by the list of order id
      * @see https://docs.limitless.exchange/api-reference/trading/order-status-batch
      * @param {string[]} ids list of order id
-     * @param {string} [outcome] market outcome symbol, e.g. "TRUMP_OUT:YES"
+     * @param {string} [symbol] market outcome symbol, e.g. "TRUMP_OUT:YES"
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    async fetchOrdersByIds (ids, outcome: Str = undefined, params = {}) {
+    async fetchOrdersByIds (ids, symbol: Str = undefined, params = {}): Promise<PredictionOrder[]> {
+        const outcome = symbol;
         await this.loadMarkets ();
         this.checkEventsAndMarkets (outcome);
         const length = ids.length;
@@ -1588,7 +1606,7 @@ export default class limitless extends Exchange {
                 found.push (item);
             }
         }
-        return this.parseOrders (found, undefined);
+        return this.parseOrders (found, undefined) as PredictionOrder[];
     }
 
     /**
@@ -1597,11 +1615,12 @@ export default class limitless extends Exchange {
      * @description fetches information on an order made by the user
      * @see https://docs.limitless.exchange/api-reference/trading/order-status-batch
      * @param {string} id the order id
-     * @param {string} [outcome] market outcome symbol, e.g. "TRUMP_OUT:YES"
+     * @param {string} [symbol] market outcome symbol, e.g. "TRUMP_OUT:YES"
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    async fetchOrder (id: string, outcome: Str = undefined, params = {}): Promise<Order> {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<PredictionOrder> {
+        const outcome = symbol;
         await this.loadMarkets ();
         this.checkEventsAndMarkets (outcome);
         const orders = await this.fetchOrdersByIds ([ id ], outcome, params);
@@ -1609,7 +1628,7 @@ export default class limitless extends Exchange {
         if (order === undefined) {
             throw new OrderNotFound (this.id + ' fetchOrder() could not find order ' + id);
         }
-        return order as Order;
+        return order as PredictionOrder;
     }
 
     /**
@@ -1621,7 +1640,7 @@ export default class limitless extends Exchange {
      * @param {object} [market] the outcome object the order belongs to
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    parseOrder (order: Dict, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): PredictionOrder {
         //
         // fetchOrders, fetchOpenOrders, fetchClosedOrders
         //     {
@@ -1741,7 +1760,7 @@ export default class limitless extends Exchange {
         const id = this.safeString (rawOrder, 'id');
         const tokenId = this.safeString2 (rawOrder, 'token', 'tokenId');
         const mkt = this.safeOutcome (tokenId, market as any);
-        const outcome = this.safeString (mkt, 'symbol');
+        const outcomeSymbol = this.safeString (mkt, 'outcome');
         const rawSide = this.safeString (rawOrder, 'side');
         const side = this.parseOrderSide (rawSide);
         const price = this.safeString (rawOrder, 'price');
@@ -1770,7 +1789,7 @@ export default class limitless extends Exchange {
             let feeCurrency = 'USDC';
             let feeCost = this.safeString (totals, 'usdFee');
             if (side === 'buy') {
-                feeCurrency = outcome;
+                feeCurrency = outcomeSymbol;
                 feeCost = this.safeString (totals, 'contractsFee');
             }
             fee = {
@@ -1778,7 +1797,7 @@ export default class limitless extends Exchange {
                 'currency': feeCurrency,
             };
         }
-        return this.safeOrder ({
+        return this.safePredictionOrder ({
             'id': id,
             'clientOrderId': undefined,
             'info': order,
@@ -1786,8 +1805,11 @@ export default class limitless extends Exchange {
             'datetime': datetime,
             'lastTradeTimestamp': undefined,
             'status': this.parseOrderStatus (rawStatus),
-            'symbol': mkt['marketSymbol'],
-            'outcome': outcome,
+            'symbol': outcomeSymbol,
+            'outcome': outcomeSymbol,
+            'outcomeId': this.safeString (mkt, 'outcomeId'),
+            'label': this.safeString (mkt, 'label'),
+            'market': this.safeString (mkt, 'market'),
             'type': type,
             'timeInForce': this.parseOrderTimeInForce (timeInForce),
             'postOnly': undefined,
@@ -1802,7 +1824,7 @@ export default class limitless extends Exchange {
             'remaining': this.applyScale (remaining),
             'fee': fee,
             'trades': [],
-        }, mkt);
+        });
     }
 
     /**
@@ -1899,7 +1921,7 @@ export default class limitless extends Exchange {
      * @name limitless#createOrder
      * @description places a limit or market order on limitless for the given outcome token
      * @see https://docs.limitless.exchange/api-reference/orders/create-order
-     * @param {string} outcome outcome symbol, e.g. "TRUMP_OUT:YES"
+     * @param {string} symbol outcome symbol, e.g. "TRUMP_OUT:YES"
      * @param {string} type 'limit' or 'market'
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount amount of outcome tokens
@@ -1907,7 +1929,8 @@ export default class limitless extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    async createOrder (outcome: string, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Promise<Order> {
+    async createOrder (symbol: string, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Promise<PredictionOrder> {
+        const outcome = symbol;
         await this.loadMarkets ();
         const accounts = await this.loadAccounts ();
         this.checkEventsAndMarkets (outcome);
@@ -1960,7 +1983,7 @@ export default class limitless extends Exchange {
             'maker': maker,
             'signer': signer,
             'taker': taker,
-            'tokenId': outcomeObj['id'],
+            'tokenId': outcomeObj['outcomeId'],
             'nonce': 0,
             'feeRateBps': this.safeInteger (rank, 'feeRateBps'),
             'side': sideValue,
@@ -1986,7 +2009,7 @@ export default class limitless extends Exchange {
         if (timeInForce === undefined) {
             timeInForce = isMarket ? 'FOK' : 'GTC';
         }
-        const marketSymbol = this.safeString (outcomeObj, 'marketSymbol');
+        const marketSymbol = this.safeString (outcomeObj, 'market');
         if (isMarket && (side === 'buy')) {
             let createMarketBuyOrderRequiresPrice = true;
             [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
@@ -1998,21 +2021,21 @@ export default class limitless extends Exchange {
                 } else {
                     const quoteAmount = this.parseToNumeric (Precise.stringMul (amountString, priceString));
                     const costRequest = (cost !== undefined) ? cost : quoteAmount;
-                    makerAmount = this.costToPrecision (marketSymbol, costRequest);
+                    makerAmount = this.costToPredictionPrecision (outcome, costRequest);
                 }
             } else {
-                makerAmount = this.costToPrecision (marketSymbol, amount);
+                makerAmount = this.costToPredictionPrecision (outcome, amount);
             }
         } else if (isMarket) {
-            makerAmount = this.amountToPrecision (marketSymbol, amount);
+            makerAmount = this.amountToPredictionPrecision (outcome, amount);
         } else {
             const calculatedCost = Precise.stringMul (amountString, priceString);
             if (side === 'buy') {
-                makerAmount = this.costToPrecision (marketSymbol, calculatedCost);
-                takerAmount = this.amountToPrecision (marketSymbol, amount);
+                makerAmount = this.costToPredictionPrecision (outcome, calculatedCost);
+                takerAmount = this.amountToPredictionPrecision (outcome, amount);
             } else {
-                makerAmount = this.amountToPrecision (marketSymbol, amount);
-                takerAmount = this.costToPrecision (marketSymbol, calculatedCost);
+                makerAmount = this.amountToPredictionPrecision (outcome, amount);
+                takerAmount = this.costToPredictionPrecision (outcome, calculatedCost);
             }
         }
         // amounts must be integers (uint256): parseNumber yields a float that the Python EIP-712 encoder rejects
@@ -2100,11 +2123,12 @@ export default class limitless extends Exchange {
      * @description cancels a single open order by id
      * @see https://docs.limitless.exchange/api-reference/orders/cancel-order
      * @param {string} id order id
-     * @param {string} [outcome] outcome symbol, e.g. "TRUMP_OUT:YES"
+     * @param {string} [symbol] outcome symbol, e.g. "TRUMP_OUT:YES"
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    async cancelOrder (id: Str, outcome: Str = undefined, params = {}): Promise<Order> {
+    async cancelOrder (id: Str, symbol: Str = undefined, params = {}): Promise<PredictionOrder> {
+        const outcome = symbol;
         await this.loadMarkets ();
         this.checkEventsAndMarkets (outcome);
         const request: Dict = {
@@ -2120,11 +2144,12 @@ export default class limitless extends Exchange {
      * @description cancel multiple orders at the same time
      * @see https://docs.limitless.exchange/api-reference/trading/cancel-batch
      * @param {string[]} ids order ids
-     * @param {string} [outcome] unified market symbol, default is undefined
+     * @param {string} [symbol] unified market symbol, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    async cancelOrders (ids: string[], outcome: Str = undefined, params = {}) {
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}): Promise<PredictionOrder[]> {
+        const outcome = symbol;
         await this.loadMarkets ();
         this.checkEventsAndMarkets (outcome);
         const request: Dict = {
@@ -2139,7 +2164,7 @@ export default class limitless extends Exchange {
             const feedback = this.id + ' cancelOrders failed: ' + message;
             throw new OrderNotFound (feedback);
         }
-        return this.parseOrders (canceled);
+        return this.parseOrders (canceled) as PredictionOrder[];
     }
 
     /**
@@ -2147,12 +2172,13 @@ export default class limitless extends Exchange {
      * @name limitless#cancelAllOrders
      * @description cancels all open orders for one market slug
      * @see https://docs.limitless.exchange/api-reference/orders/cancel-all-orders
-     * @param {string} [outcome] outcome symbol, e.g. "TRUMP_OUT:YES"
+     * @param {string} [symbol] outcome symbol, e.g. "TRUMP_OUT:YES"
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.slug] the market slug to cancel all orders for
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    async cancelAllOrders (outcome: Str = undefined, params = {}): Promise<Order[]> {
+    async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<PredictionOrder[]> {
+        const outcome = symbol;
         await this.loadMarkets ();
         this.checkEventsAndMarkets (outcome);
         if (outcome !== undefined) {
@@ -2176,7 +2202,7 @@ export default class limitless extends Exchange {
         //         "message": "Orders canceled successfully"
         //     }
         //
-        return [ this.safeOrder ({ 'info': response }) ];
+        return [ this.safePredictionOrder ({ 'info': response }) ];
     }
 
     /**
@@ -2184,13 +2210,14 @@ export default class limitless extends Exchange {
      * @name limitless#fetchMyTrades
      * @description fetch all trades made by the user
      * @see https://docs.limitless.exchange/api-reference/trades/get-trades
-     * @param {string} [outcome] outcome symbol, e.g. "TRUMP_OUT:YES"
+     * @param {string} [symbol] outcome symbol, e.g. "TRUMP_OUT:YES"
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
      */
-    async fetchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+        const outcome = symbol;
         await this.loadMarkets ();
         this.checkEventsAndMarkets (outcome);
         let paginate = false;
@@ -2203,10 +2230,6 @@ export default class limitless extends Exchange {
         const request: Dict = {};
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, maxLimit);
-        }
-        let outcomeObj = undefined;
-        if (outcome !== undefined) {
-            outcomeObj = this.outcome (outcome);
         }
         const response = await this.limitlessPrivateGetPortfolioHistory (this.extend (request, params));
         //
@@ -2286,7 +2309,8 @@ export default class limitless extends Exchange {
                 }
             }
         }
-        return this.parseTrades (trades, outcomeObj as any, since, limit);
+        const parsedTrades = this.parseTrades (trades, undefined);
+        return this.filterByOutcomeSinceLimit (parsedTrades, outcome, since, limit);
     }
 
     /**
@@ -2298,7 +2322,7 @@ export default class limitless extends Exchange {
      * @param {object} [market] the outcome object the trade belongs to
      * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=public-trades)
      */
-    parseTrade (trade: Dict, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): PredictionTrade {
         const matchedSize = this.safeString (trade, 'matchedSize');
         if (matchedSize !== undefined) {
             // public market events feed trade, see fetchTrades for the response sample
@@ -2316,12 +2340,17 @@ export default class limitless extends Exchange {
             if (priceStr !== undefined) {
                 costStr = Precise.stringMul (priceStr, amountStr);
             }
-            return this.safeTrade ({
+            const feedOutcome = this.safeOutcomeSymbol (undefined, market);
+            return this.safePredictionTrade ({
                 'id': this.safeString (trade, 'txHash'),
                 'info': trade,
                 'timestamp': ts,
                 'datetime': this.iso8601 (ts),
-                'symbol': this.safeSymbol (undefined, market),
+                'symbol': feedOutcome,
+                'outcome': feedOutcome,
+                'outcomeId': this.safeString (market, 'outcomeId'),
+                'label': this.safeString (market, 'label'),
+                'market': this.safeString (market, 'market'),
                 'order': undefined,
                 'type': undefined,
                 'side': feedSide,
@@ -2330,7 +2359,7 @@ export default class limitless extends Exchange {
                 'amount': this.parseNumber (amountStr),
                 'cost': this.parseNumber (costStr),
                 'fee': undefined,
-            }, market);
+            });
         }
         //
         //     {
@@ -2385,13 +2414,17 @@ export default class limitless extends Exchange {
         const outcomeIndex = this.safeInteger (trade, 'outcomeIndex');
         const label = (outcomeIndex === 0) ? 'yes' : 'no';
         const outcome = this.getOutcomeBySlugAndLabel (slug, label, market);
-        return this.safeTrade ({
+        const tradeOutcome = this.safeString (outcome, 'outcome');
+        return this.safePredictionTrade ({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'outcome': this.safeString (outcome, 'symbol'),
+            'symbol': tradeOutcome,
+            'outcome': tradeOutcome,
             'outcomeId': this.safeString (trade, 'asset'),
+            'label': this.safeString (outcome, 'label'),
+            'market': this.safeString (outcome, 'market'),
             'order': undefined,
             'type': type,
             'side': side,
@@ -2400,7 +2433,7 @@ export default class limitless extends Exchange {
             'amount': amount,
             'cost': cost,
             'fee': undefined,
-        }, market);
+        });
     }
 
     getOutcomeBySlugAndLabel (slug: Str, label: Str, market: Market = undefined): any {
@@ -2421,18 +2454,18 @@ export default class limitless extends Exchange {
      * @name limitless#fetchPositions
      * @description fetches open positions for the authenticated limitless user from the portfolio endpoint
      * @see https://docs.limitless.exchange/api-reference/portfolio/get-positions
-     * @param {string[]} [outcomes] filter by outcome ids or symbols
+     * @param {string[]} [symbols] filter by outcome ids or symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    async fetchPositions (outcomes: Strings = undefined, params = {}): Promise<Position[]> {
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<PredictionPosition[]> {
         let symbolsLength = 0;
-        if (outcomes !== undefined) {
-            symbolsLength = outcomes.length;
+        if (symbols !== undefined) {
+            symbolsLength = symbols.length;
         }
         if (symbolsLength > 0) {
-            for (let i = 0; i < outcomes.length; i++) {
-                this.checkEventsAndMarkets (outcomes[i]);
+            for (let i = 0; i < symbols.length; i++) {
+                this.checkEventsAndMarkets (symbols[i]);
             }
         } else {
             this.checkEventsAndMarkets ();
@@ -2519,7 +2552,7 @@ export default class limitless extends Exchange {
         //     }
         //
         const clob = this.safeList (response, 'clob', []) as any[];
-        const result: Position[] = [];
+        const result: PredictionPosition[] = [];
         const labels = [ 'yes', 'no' ];
         for (let i = 0; i < clob.length; i++) {
             const entry = this.safeDict (clob, i);
@@ -2557,7 +2590,7 @@ export default class limitless extends Exchange {
         }
         parsed['markPrice'] = this.safeNumber (latestTrade, key);
         parsed['info'] = entry;
-        return this.safePosition (parsed);
+        return this.safePredictionPosition (parsed);
     }
 
     /**
@@ -2569,7 +2602,7 @@ export default class limitless extends Exchange {
      * @param {object} [market] the outcome object the position belongs to
      * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
      */
-    parsePosition (position: Dict, market: Market = undefined): Position {
+    parsePosition (position: Dict, market: Market = undefined): PredictionPosition {
         //
         //     {
         //         "cost": "995720",
@@ -2579,7 +2612,7 @@ export default class limitless extends Exchange {
         //         "unrealizedPnl": "0"
         //     }
         //
-        const outcome = this.safeString (market, 'symbol');
+        const outcomeSymbol = this.safeString (market, 'outcome');
         const notional = this.applyScale (this.safeString (position, 'marketValue'));
         const unrealizedPnl = this.applyScale (this.safeString (position, 'unrealizedPnl'));
         const realizedPnl = this.applyScale (this.safeString (position, 'realisedPnl'));
@@ -2587,8 +2620,11 @@ export default class limitless extends Exchange {
         const entryPrice = this.applyScale (this.safeString (position, 'fillPrice'));
         return {
             'id': undefined,
-            'symbol': outcome,
-            'outcome': outcome,
+            'symbol': outcomeSymbol,
+            'outcome': outcomeSymbol,
+            'outcomeId': this.safeString (market, 'outcomeId'),
+            'label': this.safeString (market, 'label'),
+            'market': this.safeString (market, 'market'),
             'timestamp': undefined,
             'datetime': undefined,
             'contracts': undefined,
@@ -2612,7 +2648,7 @@ export default class limitless extends Exchange {
             'marginType': 'cross',
             'percentage': undefined,
             'info': position,
-        } as Position;
+        } as PredictionPosition;
     }
 
     /**

@@ -1,6 +1,6 @@
 /// <reference lib="es2015" />
 import Exchange from '../abstract/prediction/myriad.js';
-import type { Int, Str, Num, Dict, int, Strings, Order, OrderRequest, Market, Ticker, Tickers, OrderBook, OHLCV, Trade, TradingFeeInterface, PredictionEvent, Position, Balances } from '../base/types.js';
+import type { Int, Str, Num, Dict, int, Strings, OrderRequest, Market, OrderBook, OHLCV, TradingFeeInterface, PredictionEvent, Balances, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition } from '../base/types.js';
 /**
  * @class myriad
  * @augments Exchange
@@ -64,7 +64,7 @@ export default class myriad extends Exchange {
      * @param {string} [params.address] the wallet address to query, defaults to this.walletAddress
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
+    fetchPositions(symbols?: Strings, params?: {}): Promise<PredictionPosition[]>;
     /**
      * @ignore
      * @method
@@ -74,7 +74,7 @@ export default class myriad extends Exchange {
      * @param {object} [market] not used by myriad
      * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
      */
-    parsePosition(position: Dict, market?: Market): Position;
+    parsePosition(position: Dict, market?: Market): PredictionPosition;
     /**
      * @method
      * @name myriad#fetchTradeQuote
@@ -124,7 +124,7 @@ export default class myriad extends Exchange {
      * @param {string} [params.expiration] unix-seconds expiration for a GTD order
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    createOrder(symbol: string, type: Str, side: Str, amount: Num, price?: Num, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: Str, side: Str, amount: Num, price?: Num, params?: {}): Promise<PredictionOrder>;
     /**
      * @ignore
      * @method
@@ -132,7 +132,7 @@ export default class myriad extends Exchange {
      * @description signs an EIP-712 order and posts it to the gasless order book; the operator settles the match on-chain
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    createOrderbookOrder(symbol: string, type: Str, side: Str, amount: Num, price?: Num, params?: {}): Promise<Order>;
+    createOrderbookOrder(symbol: string, type: Str, side: Str, amount: Num, price?: Num, params?: {}): Promise<PredictionOrder>;
     /**
      * @ignore
      * @method
@@ -151,7 +151,7 @@ export default class myriad extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
+    createOrders(orders: OrderRequest[], params?: {}): Promise<PredictionOrder[]>;
     /**
      * @method
      * @name myriad#editOrder
@@ -167,7 +167,7 @@ export default class myriad extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    editOrder(id: string, symbol: string, type: Str, side: Str, amount?: Num, price?: Num, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: string, type: Str, side: Str, amount?: Num, price?: Num, params?: {}): Promise<PredictionOrder>;
     /**
      * @ignore
      * @method
@@ -175,7 +175,7 @@ export default class myriad extends Exchange {
      * @description buys or sells outcome shares by submitting the quote's calldata as an on-chain AMM transaction. Requires a privateKey with gas + collateral on the market's network
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    createAmmOrder(symbol: string, type: Str, side: Str, amount: Num, price?: Num, params?: {}): Promise<Order>;
+    createAmmOrder(symbol: string, type: Str, side: Str, amount: Num, price?: Num, params?: {}): Promise<PredictionOrder>;
     /**
      * @ignore
      * @method
@@ -217,7 +217,7 @@ export default class myriad extends Exchange {
      */
     toOrderbookWei(value: Num): string;
     parseOrderStatus(status: Str): Str;
-    parseOrder(order: Dict, market?: Market): Order;
+    parseOrder(order: Dict, market?: Market): PredictionOrder;
     /**
      * @method
      * @name myriad#cancelOrder
@@ -228,7 +228,7 @@ export default class myriad extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<PredictionOrder>;
     /**
      * @method
      * @name myriad#cancelAllOrders
@@ -249,7 +249,7 @@ export default class myriad extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    cancelOrders(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
+    cancelOrders(ids: string[], symbol?: Str, params?: {}): Promise<PredictionOrder[]>;
     /**
      * @method
      * @name myriad#fetchOrder
@@ -260,7 +260,7 @@ export default class myriad extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    fetchOrder(id: string, symbol?: Str, params?: {}): Promise<PredictionOrder>;
     /**
      * @method
      * @name myriad#fetchOrders
@@ -274,7 +274,7 @@ export default class myriad extends Exchange {
      * @param {string} [params.status] 'open', 'filled', 'cancelled' or 'expired'
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionOrder[]>;
     /**
      * @method
      * @name myriad#fetchOpenOrders
@@ -286,7 +286,7 @@ export default class myriad extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionOrder[]>;
     /**
      * @method
      * @name myriad#fetchClosedOrders
@@ -298,7 +298,7 @@ export default class myriad extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionOrder[]>;
     /**
      * @method
      * @name myriad#fetchCanceledOrders
@@ -310,7 +310,7 @@ export default class myriad extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    fetchCanceledOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchCanceledOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionOrder[]>;
     /**
      * @method
      * @name myriad#fetchMyTrades
@@ -324,8 +324,8 @@ export default class myriad extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
      */
-    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    orderToTrade(order: Dict): Trade;
+    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionTrade[]>;
+    orderToTrade(order: Dict): PredictionTrade;
     /**
      * @method
      * @name myriad#fetchBalance
@@ -338,7 +338,7 @@ export default class myriad extends Exchange {
     fetchBalance(params?: {}): Promise<Balances>;
     hexToDecimalString(hexValue: string): Str;
     fromWeiWithDecimals(hexValue: string, decimals: Int): Str;
-    parseTradeTx(txHash: string, quote: Dict, market: any, side: string): Order;
+    parseTradeTx(txHash: string, quote: Dict, market: any, side: string): PredictionOrder;
     /**
      * @ignore
      * @method
@@ -368,7 +368,7 @@ export default class myriad extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    fetchTicker(symbol: string, params?: {}): Promise<PredictionTicker>;
     /**
      * @method
      * @name myriad#fetchTradingFee
@@ -388,7 +388,7 @@ export default class myriad extends Exchange {
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    parseTicker(raw: Dict, market?: Market): Ticker;
+    parseTicker(raw: Dict, market?: Market): PredictionTicker;
     /**
      * @method
      * @name myriad#fetchOrderBook
@@ -442,7 +442,7 @@ export default class myriad extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome symbol
      */
-    fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    fetchTickers(symbols?: Strings, params?: {}): Promise<PredictionTickers>;
     /**
      * @method
      * @name myriad#fetchTrades
@@ -454,7 +454,7 @@ export default class myriad extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
      */
-    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<PredictionTrade[]>;
     /**
      * @ignore
      * @method
@@ -464,7 +464,7 @@ export default class myriad extends Exchange {
      * @param {object} [market] the outcome object the trade belongs to
      * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=public-trades)
      */
-    parseTrade(trade: Dict, market?: Market): Trade;
+    parseTrade(trade: Dict, market?: Market): PredictionTrade;
     /**
      * @method
      * @name myriad#fetchEvents
@@ -535,7 +535,7 @@ export default class myriad extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
      */
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<PredictionTrade[]>;
     /**
      * @method
      * @name myriad#watchMyTrades
@@ -548,7 +548,7 @@ export default class myriad extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
      */
-    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionTrade[]>;
     walletAddressOrUndefined(): Str;
     handleTrades(client: any, data: any): void;
     /**
@@ -560,7 +560,7 @@ export default class myriad extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    watchTicker(symbol: string, params?: {}): Promise<PredictionTicker>;
     /**
      * @method
      * @name myriad#watchTickers
@@ -570,7 +570,7 @@ export default class myriad extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dict of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by symbol
      */
-    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    watchTickers(symbols?: Strings, params?: {}): Promise<PredictionTickers>;
     /**
      * @method
      * @name myriad#watchOHLCV
@@ -596,7 +596,7 @@ export default class myriad extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionOrder[]>;
     handleOrder(client: any, data: any): void;
     /**
      * @method
@@ -609,7 +609,7 @@ export default class myriad extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
+    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<PredictionPosition[]>;
     seedPositionBalances(trader: string): Promise<void>;
     handlePosition(client: any, data: any): void;
     walletAddressFromKeys(): string;

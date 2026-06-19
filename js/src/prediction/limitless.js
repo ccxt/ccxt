@@ -393,6 +393,14 @@ export default class limitless extends Exchange {
         const endDate = this.safeString(raw, 'deadline', this.safeString(raw, 'expiresAt'));
         const volume24h = this.safeNumber(raw, 'volume24h');
         const marketSymbol = this.slugToMarketSymbol(groupId, slug);
+        // amount precision comes from the collateral token decimals (USDC, 6); limitless does not
+        // expose a price tick, so 0.001 is the platform convention
+        const collateralToken = this.safeDict(raw, 'collateralToken', {});
+        const collateralDecimals = this.safeInteger(collateralToken, 'decimals', this.safeInteger(this.options, 'usdcDecimals', 6));
+        const precision = {
+            'amount': this.parseNumber(this.parsePrecision(collateralDecimals.toString())),
+            'price': 0.001,
+        };
         const outcomes = [];
         const tokenEntries = Object.keys(tokens);
         for (let i = 0; i < tokenEntries.length; i++) {
@@ -400,11 +408,12 @@ export default class limitless extends Exchange {
             const tokenData = tokens[outcomeLabel];
             const tokenId = tokenData;
             outcomes.push({
-                'id': tokenId,
-                'symbol': this.slugToOutcomeSymbol(groupId, slug, outcomeLabel),
-                'marketSymbol': marketSymbol,
+                'outcome': this.slugToOutcomeSymbol(groupId, slug, outcomeLabel),
+                'outcomeId': tokenId,
+                'market': marketSymbol,
                 'label': outcomeLabel,
                 'active': active,
+                'precision': precision,
                 'info': {
                     'slug': slug,
                     'address': address,
@@ -414,9 +423,14 @@ export default class limitless extends Exchange {
                 },
             });
         }
+        const outcomesLength = outcomes.length;
         return {
             'id': slug,
             'symbol': marketSymbol,
+            'market': marketSymbol,
+            'marketType': (outcomesLength > 2) ? 'categorical' : 'binary',
+            'executionModel': 'clob',
+            'collateral': 'USDC',
             'base': slug,
             'quote': 'USDC',
             'settle': undefined,
@@ -444,10 +458,7 @@ export default class limitless extends Exchange {
             'percentage': true,
             'tierBased': false,
             'feeSide': 'get',
-            'precision': {
-                'amount': 0.000001,
-                'price': 0.001,
-            },
+            'precision': precision,
             'limits': {
                 'leverage': { 'min': 1, 'max': 1 },
                 'amount': { 'min': 0, 'max': undefined },
@@ -475,7 +486,10 @@ export default class limitless extends Exchange {
     async fetchEvent(id, params = {}) {
         const request = { 'addressOrSlug': id };
         const response = await this.limitlessPublicGetMarketsAddressOrSlug(this.extend(request, params));
-        const event = this.parseEvent(response);
+        // the single-market endpoint returns one raw market (no `markets` array like the grouped
+        // listing), so wrap it for parseEvent — its loop then parses this market into the event
+        const wrapped = this.extend(response, { 'markets': [response] });
+        const event = this.parseEvent(wrapped);
         return event;
     }
     parseEvent(event) {
@@ -977,8 +991,12 @@ export default class limitless extends Exchange {
             askSizeStr = Precise.stringDiv(askSizeStr, '1000000');
         }
         const now = this.milliseconds();
-        return this.safeTicker({
-            'symbol': this.safeSymbol(undefined, market),
+        const outcomeSymbol = this.safeOutcomeSymbol(undefined, market);
+        return this.safePredictionTicker({
+            'symbol': outcomeSymbol,
+            'outcomeId': this.safeString(market, 'outcomeId'),
+            'label': this.safeString(market, 'label'),
+            'market': this.safeString(market, 'market'),
             'timestamp': now,
             'datetime': this.iso8601(now),
             'high': undefined,
@@ -998,7 +1016,7 @@ export default class limitless extends Exchange {
             'baseVolume': undefined,
             'quoteVolume': this.parseNumber(volumeStr),
             'info': ticker,
-        }, market);
+        });
     }
     /**
      * @method
@@ -1022,7 +1040,7 @@ export default class limitless extends Exchange {
                 const outcomesList = this.safeList(m, 'outcomes', []);
                 for (let j = 0; j < outcomesList.length; j++) {
                     const ticker = this.parseTicker(raw, outcomesList[j]);
-                    const symbolKey = this.safeString(ticker, 'symbol');
+                    const symbolKey = this.safeString(ticker, 'outcome');
                     if (symbolKey !== undefined) {
                         result[symbolKey] = ticker;
                     }
@@ -1062,7 +1080,7 @@ export default class limitless extends Exchange {
             const grouped = outcomesBySlug[slug];
             for (let j = 0; j < grouped.length; j++) {
                 const ticker = this.parseTicker(tickerInput, grouped[j]);
-                const symbolKey = this.safeString(ticker, 'symbol');
+                const symbolKey = this.safeString(ticker, 'outcome');
                 if (symbolKey !== undefined) {
                     result[symbolKey] = ticker;
                 }
@@ -1086,7 +1104,7 @@ export default class limitless extends Exchange {
         this.checkEventsAndMarkets(symbol);
         const outcomeObj = this.outcome(symbol);
         const slug = this.safeString(outcomeObj['info'], 'slug');
-        const tokenId = this.safeString(outcomeObj, 'id');
+        const tokenId = this.safeString(outcomeObj, 'outcomeId');
         const request = {
             'slug': slug,
         };
@@ -1126,7 +1144,9 @@ export default class limitless extends Exchange {
             }
             filtered.push(row);
         }
-        return this.parseTrades(filtered, outcomeObj, since, limit);
+        // parse without a market (parsed trades carry `outcome`, not `symbol`) then filter by outcome
+        const parsedTrades = this.parseTrades(filtered, undefined);
+        return this.filterByOutcomeSinceLimit(parsedTrades, symbol, since, limit);
     }
     /**
      * @method
@@ -1204,7 +1224,7 @@ export default class limitless extends Exchange {
             asks.push([this.parseNumber(priceStr), this.parseNumber(sizeStr)]);
         }
         return {
-            'symbol': this.safeString(outcomeObj, 'symbol', outcome),
+            'symbol': this.safeOutcomeSymbol(outcome, outcomeObj),
             'bids': this.sortBy(bids, 0, true),
             'asks': this.sortBy(asks, 0),
             'timestamp': timestamp,
@@ -1721,7 +1741,7 @@ export default class limitless extends Exchange {
         const id = this.safeString(rawOrder, 'id');
         const tokenId = this.safeString2(rawOrder, 'token', 'tokenId');
         const mkt = this.safeOutcome(tokenId, market);
-        const symbol = this.safeString(mkt, 'symbol');
+        const outcomeSymbol = this.safeString(mkt, 'outcome');
         const rawSide = this.safeString(rawOrder, 'side');
         const side = this.parseOrderSide(rawSide);
         const price = this.safeString(rawOrder, 'price');
@@ -1751,7 +1771,7 @@ export default class limitless extends Exchange {
             let feeCurrency = 'USDC';
             let feeCost = this.safeString(totals, 'usdFee');
             if (side === 'buy') {
-                feeCurrency = symbol;
+                feeCurrency = outcomeSymbol;
                 feeCost = this.safeString(totals, 'contractsFee');
             }
             fee = {
@@ -1759,7 +1779,7 @@ export default class limitless extends Exchange {
                 'currency': feeCurrency,
             };
         }
-        return this.safeOrder({
+        return this.safePredictionOrder({
             'id': id,
             'clientOrderId': undefined,
             'info': order,
@@ -1767,8 +1787,11 @@ export default class limitless extends Exchange {
             'datetime': datetime,
             'lastTradeTimestamp': undefined,
             'status': this.parseOrderStatus(rawStatus),
-            'symbol': mkt['marketSymbol'],
-            'outcome': symbol,
+            'symbol': outcomeSymbol,
+            'outcome': outcomeSymbol,
+            'outcomeId': this.safeString(mkt, 'outcomeId'),
+            'label': this.safeString(mkt, 'label'),
+            'market': this.safeString(mkt, 'market'),
             'type': type,
             'timeInForce': this.parseOrderTimeInForce(timeInForce),
             'postOnly': undefined,
@@ -1783,7 +1806,7 @@ export default class limitless extends Exchange {
             'remaining': this.applyScale(remaining),
             'fee': fee,
             'trades': [],
-        }, mkt);
+        });
     }
     /**
      * @ignore
@@ -1939,7 +1962,7 @@ export default class limitless extends Exchange {
             'maker': maker,
             'signer': signer,
             'taker': taker,
-            'tokenId': outcomeObj['id'],
+            'tokenId': outcomeObj['outcomeId'],
             'nonce': 0,
             'feeRateBps': this.safeInteger(rank, 'feeRateBps'),
             'side': sideValue,
@@ -1966,7 +1989,7 @@ export default class limitless extends Exchange {
         if (timeInForce === undefined) {
             timeInForce = isMarket ? 'FOK' : 'GTC';
         }
-        const marketSymbol = this.safeString(outcomeObj, 'marketSymbol');
+        const marketSymbol = this.safeString(outcomeObj, 'market');
         if (isMarket && (side === 'buy')) {
             let createMarketBuyOrderRequiresPrice = true;
             [createMarketBuyOrderRequiresPrice, params] = this.handleOptionAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
@@ -1979,25 +2002,25 @@ export default class limitless extends Exchange {
                 else {
                     const quoteAmount = this.parseToNumeric(Precise.stringMul(amountString, priceString));
                     const costRequest = (cost !== undefined) ? cost : quoteAmount;
-                    makerAmount = this.costToPrecision(marketSymbol, costRequest);
+                    makerAmount = this.costToPredictionPrecision(outcome, costRequest);
                 }
             }
             else {
-                makerAmount = this.costToPrecision(marketSymbol, amount);
+                makerAmount = this.costToPredictionPrecision(outcome, amount);
             }
         }
         else if (isMarket) {
-            makerAmount = this.amountToPrecision(marketSymbol, amount);
+            makerAmount = this.amountToPredictionPrecision(outcome, amount);
         }
         else {
             const calculatedCost = Precise.stringMul(amountString, priceString);
             if (side === 'buy') {
-                makerAmount = this.costToPrecision(marketSymbol, calculatedCost);
-                takerAmount = this.amountToPrecision(marketSymbol, amount);
+                makerAmount = this.costToPredictionPrecision(outcome, calculatedCost);
+                takerAmount = this.amountToPredictionPrecision(outcome, amount);
             }
             else {
-                makerAmount = this.amountToPrecision(marketSymbol, amount);
-                takerAmount = this.costToPrecision(marketSymbol, calculatedCost);
+                makerAmount = this.amountToPredictionPrecision(outcome, amount);
+                takerAmount = this.costToPredictionPrecision(outcome, calculatedCost);
             }
         }
         // amounts must be integers (uint256): parseNumber yields a float that the Python EIP-712 encoder rejects
@@ -2158,7 +2181,7 @@ export default class limitless extends Exchange {
         //         "message": "Orders canceled successfully"
         //     }
         //
-        return [this.safeOrder({ 'info': response })];
+        return [this.safePredictionOrder({ 'info': response })];
     }
     /**
      * @method
@@ -2185,10 +2208,6 @@ export default class limitless extends Exchange {
         const request = {};
         if (limit !== undefined) {
             request['limit'] = Math.min(limit, maxLimit);
-        }
-        let outcomeObj = undefined;
-        if (outcome !== undefined) {
-            outcomeObj = this.outcome(outcome);
         }
         const response = await this.limitlessPrivateGetPortfolioHistory(this.extend(request, params));
         //
@@ -2268,7 +2287,8 @@ export default class limitless extends Exchange {
                 }
             }
         }
-        return this.parseTrades(trades, outcomeObj, since, limit);
+        const parsedTrades = this.parseTrades(trades, undefined);
+        return this.filterByOutcomeSinceLimit(parsedTrades, outcome, since, limit);
     }
     /**
      * @ignore
@@ -2298,12 +2318,17 @@ export default class limitless extends Exchange {
             if (priceStr !== undefined) {
                 costStr = Precise.stringMul(priceStr, amountStr);
             }
-            return this.safeTrade({
+            const feedOutcome = this.safeOutcomeSymbol(undefined, market);
+            return this.safePredictionTrade({
                 'id': this.safeString(trade, 'txHash'),
                 'info': trade,
                 'timestamp': ts,
                 'datetime': this.iso8601(ts),
-                'symbol': this.safeSymbol(undefined, market),
+                'symbol': feedOutcome,
+                'outcome': feedOutcome,
+                'outcomeId': this.safeString(market, 'outcomeId'),
+                'label': this.safeString(market, 'label'),
+                'market': this.safeString(market, 'market'),
                 'order': undefined,
                 'type': undefined,
                 'side': feedSide,
@@ -2312,7 +2337,7 @@ export default class limitless extends Exchange {
                 'amount': this.parseNumber(amountStr),
                 'cost': this.parseNumber(costStr),
                 'fee': undefined,
-            }, market);
+            });
         }
         //
         //     {
@@ -2368,13 +2393,17 @@ export default class limitless extends Exchange {
         const outcomeIndex = this.safeInteger(trade, 'outcomeIndex');
         const label = (outcomeIndex === 0) ? 'yes' : 'no';
         const outcome = this.getOutcomeBySlugAndLabel(slug, label, market);
-        return this.safeTrade({
+        const tradeOutcome = this.safeString(outcome, 'outcome');
+        return this.safePredictionTrade({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'outcome': this.safeString(outcome, 'symbol'),
+            'symbol': tradeOutcome,
+            'outcome': tradeOutcome,
             'outcomeId': this.safeString(trade, 'asset'),
+            'label': this.safeString(outcome, 'label'),
+            'market': this.safeString(outcome, 'market'),
             'order': undefined,
             'type': type,
             'side': side,
@@ -2383,7 +2412,7 @@ export default class limitless extends Exchange {
             'amount': amount,
             'cost': cost,
             'fee': undefined,
-        }, market);
+        });
     }
     getOutcomeBySlugAndLabel(slug, label, market = undefined) {
         const mkt = this.safeMarket(slug, market);
@@ -2538,7 +2567,7 @@ export default class limitless extends Exchange {
         }
         parsed['markPrice'] = this.safeNumber(latestTrade, key);
         parsed['info'] = entry;
-        return this.safePosition(parsed);
+        return this.safePredictionPosition(parsed);
     }
     /**
      * @ignore
@@ -2559,7 +2588,7 @@ export default class limitless extends Exchange {
         //         "unrealizedPnl": "0"
         //     }
         //
-        const symbol = this.safeString(market, 'symbol');
+        const outcomeSymbol = this.safeString(market, 'outcome');
         const notional = this.applyScale(this.safeString(position, 'marketValue'));
         const unrealizedPnl = this.applyScale(this.safeString(position, 'unrealizedPnl'));
         const realizedPnl = this.applyScale(this.safeString(position, 'realisedPnl'));
@@ -2567,8 +2596,11 @@ export default class limitless extends Exchange {
         const entryPrice = this.applyScale(this.safeString(position, 'fillPrice'));
         return {
             'id': undefined,
-            'symbol': symbol,
-            'outcome': symbol,
+            'symbol': outcomeSymbol,
+            'outcome': outcomeSymbol,
+            'outcomeId': this.safeString(market, 'outcomeId'),
+            'label': this.safeString(market, 'label'),
+            'market': this.safeString(market, 'market'),
             'timestamp': undefined,
             'datetime': undefined,
             'contracts': undefined,
