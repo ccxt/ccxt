@@ -3,7 +3,7 @@ import Exchange from './abstract/blockchaincom.js';
 import { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, Fee, Bool } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -335,7 +335,7 @@ export default class blockchaincom extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const numericId = this.safeNumber (market, 'id');
-            let active = undefined;
+            let active: Bool = undefined;
             const marketState = this.safeString (market, 'status');
             if (marketState === 'open') {
                 active = true;
@@ -818,7 +818,7 @@ export default class blockchaincom extends Exchange {
             'status': state,
             'limit': 100,
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -851,7 +851,7 @@ export default class blockchaincom extends Exchange {
         const datetime = this.iso8601 (timestamp);
         market = this.safeMarket (marketId, market, '-');
         const symbol = market['symbol'];
-        let fee = undefined;
+        let fee: Dict = undefined;
         const feeCostString = this.safeString (trade, 'fee');
         if (feeCostString !== undefined) {
             const feeCurrency = market['quote'];
@@ -891,7 +891,7 @@ export default class blockchaincom extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             request['symbol'] = this.marketId (symbol);
             market = this.market (symbol);
@@ -917,8 +917,8 @@ export default class blockchaincom extends Exchange {
         };
         const response = await this.privatePostDepositsCurrency (this.extend (request, params));
         const rawAddress = this.safeString (response, 'address');
-        let tag = undefined;
-        let address = undefined;
+        let tag: Str = undefined;
+        let address: Str = undefined;
         if (rawAddress !== undefined) {
             const addressParts = rawAddress.split (';');
             // if a tag or memo is used it is separated by a colon in the 'address' value
@@ -971,8 +971,8 @@ export default class blockchaincom extends Exchange {
         //         "timestamp":1634218452549
         //     }
         //
-        let type = undefined;
-        let id = undefined;
+        let type: Str = undefined;
+        let id: Str = undefined;
         const amount = this.safeNumber (transaction, 'amount');
         const timestamp = this.safeInteger (transaction, 'timestamp');
         const currencyId = this.safeString (transaction, 'currency');
@@ -986,7 +986,7 @@ export default class blockchaincom extends Exchange {
             id = this.safeString (transaction, 'withdrawalId');
         }
         const feeCost = (type === 'withdrawal') ? this.safeNumber (transaction, 'fee') : undefined;
-        let fee = undefined;
+        let fee: Fee = undefined;
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
@@ -1072,7 +1072,7 @@ export default class blockchaincom extends Exchange {
         if (since !== undefined) {
             request['from'] = since;
         }
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -1119,7 +1119,7 @@ export default class blockchaincom extends Exchange {
         if (since !== undefined) {
             request['from'] = since;
         }
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
