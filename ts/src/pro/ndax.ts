@@ -408,8 +408,8 @@ export default class ndax extends ndaxRest {
         if (orderbook === undefined) {
             return;
         }
-        let timestamp = undefined;
-        let nonce = undefined;
+        let timestamp: Int = undefined;
+        let nonce: Int = undefined;
         for (let i = 0; i < payload.length; i++) {
             const bidask = payload[i];
             if (timestamp === undefined) {
