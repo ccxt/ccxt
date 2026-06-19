@@ -256,6 +256,19 @@ export interface PredictionOpenInterest extends OpenInterest {
     market?: Str;
 }
 
+// extra params accepted by fetchEvents on prediction exchanges; the [key] index
+// signature keeps it open for exchange-specific passthrough params
+export interface fetchEventsParams {
+    query?: string;       // keyword search
+    limit?: number;       // max number of events to return
+    sort?: 'volume' | 'liquidity' | 'newest';
+    status?: 'active' | 'inactive' | 'closed' | 'all'; // default 'active'; 'inactive' and 'closed' are interchangeable
+    searchIn?: 'title' | 'description' | 'both';
+    eventId?: string;     // direct lookup by event id
+    slug?: string;        // lookup by event slug
+    [key: string]: any;
+}
+
 export interface Trade {
     info: any;                        // the original decoded JSON as is
     amount: Num;                  // amount of base currency

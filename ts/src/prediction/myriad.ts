@@ -23,7 +23,7 @@ import type {
     Int, Str, Num, Dict, int,
     Strings, OrderRequest,
     Market, PredictionOrderBook, OHLCV, PredictionTradingFee,
-    PredictionEvent, Balances,
+    PredictionEvent, Balances, fetchEventsParams,
     PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition,
 } from '../base/types.js';
 import { Precise } from '../base/Precise.js';
@@ -2426,14 +2426,14 @@ export default class myriad extends Exchange {
      * @param {string} [params.state] 'open', 'closed' or 'resolved', defaults to 'open'
      * @returns {object[]} an array of event structures
      */
-    async fetchEvents (params = {}): Promise<PredictionEvent[]> {
+    async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {
         const queries = this.parseSearchQueries (params);
-        const rest = this.omit (params, [ 'query', 'queries' ]);
+        const rest = this.omit (params, [ 'query', 'queries', 'sort', 'searchIn', 'eventId', 'slug', 'status' ]);
         const queriesLength = queries.length;
         if (queriesLength === 0) {
             await this.loadMarkets ();
             this.populateOutcomes ();
-            return Object.values (this.events as Dict) as any[];
+            return this.applyEventFetchParams (Object.values (this.events as Dict) as any[], params, queries);
         }
         const rawMarkets = await this.fetchRawMarketsBySearch (queries, rest);
         if (!this.events) {
@@ -2455,7 +2455,7 @@ export default class myriad extends Exchange {
             }
         }
         this.populateOutcomes ();
-        return result;
+        return this.applyEventFetchParams (result, params, queries);
     }
 
     /**

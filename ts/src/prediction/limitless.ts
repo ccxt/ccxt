@@ -24,7 +24,7 @@ import type {
     Strings,
     Market, PredictionOrderBook, OHLCV,
     Bool,
-    Account,
+    Account, fetchEventsParams,
     PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition,
 } from '../base/types.js';
 import { ArgumentsRequired, BadRequest, InvalidAddress, InvalidOrder, OrderNotFound } from '../../ccxt.js';
@@ -2662,7 +2662,7 @@ export default class limitless extends Exchange {
      * @param {int} [params.limit] maximum number of markets per query, defaults to 50
      * @returns {object[]} an array of event structures
      */
-    async fetchEvents (params = {}): Promise<PredictionEvent[]> {
+    async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {
         const queries = this.parseSearchQueries (params);
         let result = [];
         const queriesLength = queries.length;
@@ -2671,7 +2671,7 @@ export default class limitless extends Exchange {
             result = Object.values (this.events as Dict) as any[];
         } else {
             const limit = this.safeInteger (params, 'limit', 50);
-            const rest = this.omit (params, [ 'query', 'queries', 'limit' ]);
+            const rest = this.omit (params, [ 'query', 'queries', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'status' ]);
             const seen: Dict = {};
             const rawMarkets: any[] = [];
             for (let i = 0; i < queries.length; i++) {
@@ -2722,7 +2722,7 @@ export default class limitless extends Exchange {
             }
         }
         this.rebuildOutcomes ();
-        return result;
+        return this.applyEventFetchParams (result, params, queries);
     }
 
     /**

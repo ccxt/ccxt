@@ -6,7 +6,7 @@ import { ecdsa } from '../base/functions/crypto.js';
 import type {
     Int, int, Str, Num, Dict,
     Market, PredictionOrderBook, OHLCV,
-    Balances,
+    Balances, fetchEventsParams,
     Strings,
     PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition,
 } from '../base/types.js';
@@ -1806,7 +1806,7 @@ export default class hyperliquid extends Exchange {
      * @param {string[]} [params.queries] multiple query strings (alternative to query)
      * @returns {PredictionEvent[]} array of event structures
      */
-    async fetchEvents (params = {}): Promise<PredictionEvent[]> {
+    async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {
         const queries = this.parseSearchQueries (params);
         await this.loadMarkets ();
         const marketValues = Object.values (this.markets);
@@ -1861,7 +1861,7 @@ export default class hyperliquid extends Exchange {
             const ev = events[i];
             this.events[ev['symbol']] = ev;
         }
-        return events;
+        return this.applyEventFetchParams (events, params, queries);
     }
 
     /**

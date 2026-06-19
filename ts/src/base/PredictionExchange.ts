@@ -64,6 +64,98 @@ export default class PredictionExchange extends Exchange {
         return this.safeList (params, 'queries', []);
     }
 
+    applyEventFetchParams (events: any[], params = {}, queries: string[] = undefined): any[] {
+        // applies the unified fetchEvents options client-side (eventId/slug/status/searchIn/sort/limit)
+        // so exchanges whose API can't filter natively still support them consistently
+        let result = events;
+        const eventId = this.safeString (params, 'eventId');
+        const slug = this.safeString (params, 'slug');
+        if ((eventId !== undefined) || (slug !== undefined)) {
+            const filtered = [];
+            for (let i = 0; i < result.length; i++) {
+                const event = result[i];
+                const idMatch = (eventId !== undefined) && (this.safeString (event, 'id') === eventId);
+                const slugMatch = (slug !== undefined) && (this.safeString (event, 'slug') === slug);
+                if (idMatch || slugMatch) {
+                    filtered.push (event);
+                }
+            }
+            result = filtered;
+        }
+        result = this.filterEventsByStatus (result, this.safeString (params, 'status'));
+        if ((queries !== undefined) && (queries.length > 0)) {
+            result = this.filterEventsBySearchIn (result, queries, this.safeString (params, 'searchIn'));
+        }
+        const sort = this.safeString (params, 'sort');
+        if (sort !== undefined) {
+            let sortKey = undefined;
+            if (sort === 'volume') {
+                sortKey = 'volume';
+            } else if (sort === 'liquidity') {
+                sortKey = 'liquidity';
+            } else if (sort === 'newest') {
+                sortKey = 'created';
+            }
+            if (sortKey !== undefined) {
+                result = this.sortBy (result, sortKey, true, 0);
+            }
+        }
+        const limit = this.safeInteger (params, 'limit');
+        if (limit !== undefined) {
+            result = this.arraySlice (result, 0, limit);
+        }
+        return result;
+    }
+
+    filterEventsByStatus (events: any[], status: Str = undefined): any[] {
+        // 'active' | 'inactive' | 'closed' | 'all' — 'inactive' and 'closed' are interchangeable
+        if ((status === undefined) || (status === 'all')) {
+            return events;
+        }
+        const wantActive = (status === 'active');
+        const result = [];
+        for (let i = 0; i < events.length; i++) {
+            const event = events[i];
+            const isActive = this.safeBool (event, 'active');
+            // keep events whose status is unknown (already filtered server-side, no `active` field)
+            if ((isActive === undefined) || (isActive === wantActive)) {
+                result.push (event);
+            }
+        }
+        return result;
+    }
+
+    filterEventsBySearchIn (events: any[], queries: string[], searchIn: Str = undefined): any[] {
+        // keep events whose title and/or description contains one of the queries (searchIn defaults to 'both')
+        if ((searchIn === undefined) || (queries === undefined) || (queries.length === 0)) {
+            return events;
+        }
+        const checkTitle = (searchIn === 'title') || (searchIn === 'both');
+        const checkDescription = (searchIn === 'description') || (searchIn === 'both');
+        const result = [];
+        for (let i = 0; i < events.length; i++) {
+            const event = events[i];
+            const title = this.safeStringLower (event, 'title', '');
+            const description = this.safeStringLower (event, 'description', '');
+            let matched = false;
+            for (let qi = 0; qi < queries.length; qi++) {
+                const q = queries[qi].toLowerCase ();
+                if (checkTitle && (title.indexOf (q) >= 0)) {
+                    matched = true;
+                    break;
+                }
+                if (checkDescription && (description.indexOf (q) >= 0)) {
+                    matched = true;
+                    break;
+                }
+            }
+            if (matched) {
+                result.push (event);
+            }
+        }
+        return result;
+    }
+
     async fetchEvents (params = {}): Promise<any[]> {
         throw new NotSupported (this.id + ' fetchEvents() is not supported yet');
     }

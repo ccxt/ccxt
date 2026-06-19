@@ -12,6 +12,7 @@ import type {
     OrderRequest, Balances,
     Strings, PredictionOpenInterest, PredictionTradingFee,
     PredictionEvent, PredictionTicker, PredictionOrder, PredictionTrade, PredictionPosition,
+    fetchEventsParams,
 } from '../base/types.js';
 import { ArgumentsRequired, BadRequest, AuthenticationError } from '../../ccxt.js';
 
@@ -352,12 +353,30 @@ export default class polymarket extends Exchange {
      */
     async fetchRawEventsBySearch (queries: any[], params = {}): Promise<any[]> {
         const pageSize = this.safeInteger (params, 'limit', 50);
-        const rest = this.omit (params, [ 'limit' ]);
+        // map the unified sort/status onto the gamma search params
+        const sort = this.safeString (params, 'sort');
+        let sortParam = 'volume';
+        if (sort === 'liquidity') {
+            sortParam = 'liquidity';
+        } else if (sort === 'newest') {
+            sortParam = 'startDate';
+        }
+        const status = this.safeString (params, 'status', 'active');
+        let eventsStatus = 'active';
+        if ((status === 'closed') || (status === 'inactive')) {
+            eventsStatus = 'closed';
+        } else if (status === 'all') {
+            eventsStatus = undefined;
+        }
+        const rest = this.omit (params, [ 'limit', 'sort', 'status', 'searchIn', 'eventId', 'slug', 'query', 'queries' ]);
         const seen: Dict = {};
         const rawEvents: any[] = [];
         for (let qi = 0; qi < queries.length; qi++) {
             const q = queries[qi];
-            const baseRequest: Dict = { 'q': q, 'limit_per_type': pageSize, 'events_status': 'active' };
+            const baseRequest: Dict = { 'q': q, 'limit_per_type': pageSize, 'sort': sortParam, 'ascending': false };
+            if (eventsStatus !== undefined) {
+                baseRequest['events_status'] = eventsStatus;
+            }
             let firstRequest: Dict = { 'page': 1 };
             firstRequest = this.extend (this.extend (firstRequest, baseRequest), rest);
             const first = await this.gammaPublicGetPublicSearch (firstRequest);
@@ -417,14 +436,25 @@ export default class polymarket extends Exchange {
         const limit = this.safeInteger (params, 'limit', this.safeInteger (this.options, 'fetchMarketsLimit', 1000));
         const maxPages = Math.ceil (limit / pageSize);
         const status = this.safeString (params, 'status', this.safeString (this.options, 'defaultEventStatus', 'active'));
-        const rest = this.omit (params, [ 'status', 'limit' ]);
-        let baseRequest: Dict = { 'limit': pageSize, 'order': 'volume24hr', 'ascending': false };
+        // sort maps to the gamma `order` field; 'volume' is the default ranking
+        const sort = this.safeString (params, 'sort');
+        let order = 'volume';
+        if (sort === 'liquidity') {
+            order = 'liquidity';
+        } else if (sort === 'newest') {
+            order = 'startDate';
+        }
+        const rest = this.omit (params, [ 'status', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'query', 'queries' ]);
+        let baseRequest: Dict = { 'limit': pageSize, 'order': order, 'ascending': false };
         baseRequest = this.extend (baseRequest, rest);
         if (status === 'active') {
             baseRequest['active'] = true;
-        } else if (status === 'closed') {
+            baseRequest['closed'] = false;
+        } else if ((status === 'closed') || (status === 'inactive')) {
+            baseRequest['active'] = false;
             baseRequest['closed'] = true;
         }
+        // 'all' — no active/closed filter
         // fetch page 1 first; if full, fire remaining pages in parallel
         let firstPageRequest: Dict = { 'offset': 0 };
         firstPageRequest = this.extend (firstPageRequest, baseRequest);
@@ -2011,17 +2041,34 @@ export default class polymarket extends Exchange {
      * @see https://docs.polymarket.com/api-reference/search/search-markets-events-and-profiles
      * @see https://docs.polymarket.com/api-reference/events/list-events
      * @param {object} [params] extra exchange-specific parameters
-     * @param {string} [params.query] a single search term; when omitted (and no queries) the most active events are returned (capped)
+     * @param {string} [params.query] a single keyword search term
      * @param {string[]} [params.queries] multiple search terms (alternative to query)
-     * @param {int} [params.limit] when searching, page size per query (default 50); when omitted, max events to fetch (default options.fetchMarketsLimit, 1000), ordered by 24h volume
+     * @param {int} [params.limit] max number of events to return
+     * @param {string} [params.sort] 'volume' (default), 'liquidity' or 'newest' — mapped to the gamma order field
+     * @param {string} [params.status] 'active' (default), 'inactive', 'closed' or 'all' ('inactive' and 'closed' are interchangeable)
+     * @param {string} [params.searchIn] when searching, restrict the match to 'title' (default), 'description' or 'both'
+     * @param {string} [params.eventId] direct lookup by event id (short-circuits the listing/search)
+     * @param {string} [params.slug] direct lookup by event slug
      * @returns {object[]} an array of event structures
      */
-    async fetchEvents (params = {}): Promise<PredictionEvent[]> {
+    async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {
+        const requestedEventId = this.safeString (params, 'eventId');
+        const requestedSlug = this.safeString (params, 'slug');
         const queries = this.parseSearchQueries (params);
-        const rest = this.omit (params, [ 'query', 'queries' ]);
+        const rest = this.omit (params, [ 'query', 'queries', 'eventId', 'slug' ]);
         const queriesLength = queries.length;
         let rawEvents: any[] = [];
-        if (queriesLength > 0) {
+        if ((requestedEventId !== undefined) || (requestedSlug !== undefined)) {
+            // direct lookup by event id or slug via the events endpoint (returns a list)
+            const lookup: Dict = {};
+            if (requestedEventId !== undefined) {
+                lookup['id'] = requestedEventId;
+            } else {
+                lookup['slug'] = requestedSlug;
+            }
+            const response = await this.gammaPublicGetEvents (lookup);
+            rawEvents = (response !== undefined) ? response : [];
+        } else if (queriesLength > 0) {
             rawEvents = await this.fetchRawEventsBySearch (queries, rest);
         } else {
             rawEvents = await this.fetchRawEventsList (rest);
@@ -2084,7 +2131,18 @@ export default class polymarket extends Exchange {
                 }
             }
         }
-        return result;
+        // the gamma search endpoint is fuzzy, so refine the search path by status and searchIn
+        // client-side (searchIn defaults to 'title', matching the reference behaviour)
+        let filtered = result;
+        if (queriesLength > 0) {
+            filtered = this.filterEventsByStatus (filtered, this.safeString (params, 'status', 'active'));
+            filtered = this.filterEventsBySearchIn (filtered, queries, this.safeString (params, 'searchIn', 'title'));
+        }
+        const finalLimit = this.safeInteger (params, 'limit');
+        if (finalLimit !== undefined) {
+            filtered = this.arraySlice (filtered, 0, finalLimit);
+        }
+        return filtered;
     }
 
     /**

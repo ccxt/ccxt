@@ -7,6 +7,7 @@ import type {
     Market, PredictionOrderBook, OHLCV,
     Balances, PredictionOpenInterest,
     PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition,
+    fetchEventsParams,
 } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
@@ -1442,13 +1443,18 @@ export default class kalshi extends Exchange {
      * @param {int} [params.maxPages] maximum number of pages to scan, defaults to 5
      * @returns {object[]} an array of event structures
      */
-    async fetchEvents (params = {}): Promise<PredictionEvent[]> {
+    async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {
         const queries = this.parseSearchQueries (params);
         params = this.omit (params, [ 'query', 'queries' ]);
-        const status = this.safeString (params, 'status', this.safeString (this.options, 'defaultEventStatus', 'open'));
+        // map the unified status onto the kalshi event status (open / closed) so it is pushed server-side
+        const requestedStatus = this.safeString (params, 'status', this.safeString (this.options, 'defaultEventStatus', 'active'));
+        let status = 'open';
+        if ((requestedStatus === 'closed') || (requestedStatus === 'inactive')) {
+            status = 'closed';
+        }
         const pageLimit = this.safeInteger (params, 'limit', 200);
         const maxPages = this.safeInteger (params, 'maxPages', 50);
-        const rest = this.omit (params, [ 'status', 'limit', 'maxPages' ]);
+        const rest = this.omit (params, [ 'status', 'limit', 'maxPages', 'sort', 'searchIn', 'eventId', 'slug' ]);
         if (!this.events) {
             this.events = {};
         }
@@ -1560,7 +1566,7 @@ export default class kalshi extends Exchange {
                 }
             }
         }
-        return result;
+        return this.applyEventFetchParams (result, params, queries);
     }
 
     /**
