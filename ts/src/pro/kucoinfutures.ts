@@ -2,7 +2,7 @@
 
 import kucoin from './kucoin.js';
 import { BadRequest } from '../base/errors.js';
-import type { Dict, Strings, TransferEntry } from '../base/types.js';
+import type { Dict, NullableDict, Strings, TransferEntry } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -71,7 +71,7 @@ export default class kucoinfutures extends kucoin {
             'amount': amountToPrecision,
         };
         const toAccountString = this.parseTransferType (toAccount);
-        let response = undefined;
+        let response: NullableDict = undefined;
         if (toAccountString === 'TRADE' || toAccountString === 'MAIN') {
             request['recAccountType'] = toAccountString;
             response = await this.futuresPrivatePostTransferOut (this.extend (request, params));
