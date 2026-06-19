@@ -2345,7 +2345,7 @@ export default class upbit extends Exchange {
                 'nonce': nonce,
             };
             const hasQuery = Object.keys (query).length;
-            let auth = undefined;
+            let auth: Str = undefined;
             if ((method !== 'GET') && (method !== 'DELETE')) {
                 body = this.json (params);
                 headers['Content-Type'] = 'application/json';
