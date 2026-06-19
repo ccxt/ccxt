@@ -5,7 +5,7 @@ import bitgetRest from '../bitget.js';
 import { AuthenticationError, BadRequest, ArgumentsRequired, ChecksumError, ExchangeError, RateLimitExceeded, UnsubscribeError } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances, Dict, Bool, Fee, Market, Num } from '../base/types.js';
+import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances, Dict, Bool, Fee, Market, NullableDict, Num } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -1238,7 +1238,7 @@ export default class bitget extends bitgetRest {
         const timestamp = this.safeIntegerN (trade, [ 'uTime', 'cTime', 'ts', 'T', 'execTime' ]);
         const feeDetail = this.safeList (trade, 'feeDetail', []);
         const first = this.safeDict (feeDetail, 0);
-        let fee = undefined;
+        let fee: NullableDict = undefined;
         if (first !== undefined) {
             const feeCurrencyId = this.safeString (first, 'feeCoin');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
@@ -1960,10 +1960,10 @@ export default class bitget extends bitgetRest {
         const newSizeValue = this.omitZero (this.safeString2 (order, 'newSize', 'cumExecValue'));
         const isMarketOrder = (type === 'market');
         const isBuy = (side === 'buy');
-        let totalAmount = undefined;
-        let filledAmount = undefined;
-        let cost = undefined;
-        let remaining = undefined;
+        let totalAmount: Str = undefined;
+        let filledAmount: Str = undefined;
+        let cost: Str = undefined;
+        let remaining: Str = undefined;
         let totalFilled = this.safeString2 (order, 'accBaseVolume', 'cumExecQty');
         if (isSpot) {
             if (isMargin) {
