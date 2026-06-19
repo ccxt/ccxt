@@ -1,4 +1,5 @@
 ```javascript
+// @NO_AUTO_TRANSPILE
 // @ts-nocheck
 // to set custom "proxy-agent" for ccxt
 import ccxt from 'ccxt';

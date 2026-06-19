@@ -1,7 +1,6 @@
 ```javascript
 // eslint-disable-next-line no-unused-vars
 import ccxt from '../../js/ccxt.js';
-// AUTO-TRANSPILE //
 // ###### Description ######
 //
 // This function tries to fetch the "listing time" of a symbol by fetching the earliest available bar in daily resolution.

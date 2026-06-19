@@ -1,4 +1,5 @@
 ```javascript
+// @NO_AUTO_TRANSPILE
 import { spawn } from 'child_process';
 import asTable from 'as-table';
 import ccxt, { version } from '../../js/ccxt.js';
