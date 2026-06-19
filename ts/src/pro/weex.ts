@@ -1482,8 +1482,8 @@ export default class weex extends weexRest {
         const rawStatus = this.safeStringLower (order, 'status');
         const rawType = this.safeString (order, 'type');
         const triggerPrice = this.omitZero (this.safeString (order, 'triggerPrice'));
-        let stopLossPrice = undefined;
-        let takeProfitPrice = undefined;
+        let stopLossPrice: Str = undefined;
+        let takeProfitPrice: Str = undefined;
         if (rawType === 'TAKE_PROFIT_MARKET' || rawType === 'TAKE_PROFIT') {
             takeProfitPrice = triggerPrice;
         } else if (rawType === 'STOP_LOSS' || rawType === 'STOP' || rawType === 'STOP_MARKET') {
