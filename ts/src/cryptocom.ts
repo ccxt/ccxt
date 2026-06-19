@@ -2612,7 +2612,7 @@ export default class cryptocom extends Exchange {
         const defaultType = this.safeString (this.options, 'defaultType');
         const isMargin = this.safeBool (params, 'margin', false);
         params = this.omit (params, 'margin');
-        let marginMode: any = undefined;
+        let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams (methodName, params);
         if (marginMode !== undefined) {
             if (marginMode !== 'cross') {
@@ -3335,7 +3335,7 @@ export default class cryptocom extends Exchange {
             return object;
         }
         let returnString = '';
-        let paramsKeys: any[] = undefined;
+        let paramsKeys = undefined;
         if (Array.isArray (object)) {
             paramsKeys = object;
         } else {

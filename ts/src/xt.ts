@@ -1436,7 +1436,7 @@ export default class xt extends Exchange {
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        let response: Dict | undefined = undefined;
+        let response = undefined;
         if (market['linear']) {
             response = await this.publicLinearGetFutureMarketV1PublicQKline (this.extend (request, params));
         } else if (market['inverse']) {
@@ -1545,7 +1545,7 @@ export default class xt extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        let response: Dict | undefined = undefined;
+        let response = undefined;
         if (market['spot']) {
             if (limit !== undefined) {
                 request['limit'] = Math.min (limit, 500);
@@ -1637,7 +1637,7 @@ export default class xt extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        let response: Dict | undefined = undefined;
+        let response = undefined;
         if (market['linear']) {
             response = await this.publicLinearGetFutureMarketV1PublicQAggTicker (this.extend (request, params));
         } else if (market['inverse']) {
@@ -1718,7 +1718,7 @@ export default class xt extends Exchange {
         const request = {};
         let type: Str = undefined;
         let subType: SubType = undefined;
-        let response: Dict | undefined = undefined;
+        let response = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params);
         if (subType === 'inverse') {
@@ -1931,7 +1931,7 @@ export default class xt extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        let response: Dict | undefined = undefined;
+        let response = undefined;
         if (market['spot']) {
             if (limit !== undefined) {
                 request['limit'] = Math.min (limit, 1000);
@@ -2012,7 +2012,7 @@ export default class xt extends Exchange {
         }
         let type: Str = undefined;
         let subType: SubType = undefined;
-        let response: Dict | undefined = undefined;
+        let response = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         [ subType, params ] = this.handleSubTypeAndParams ('fetchMyTrades', market, params);
         if ((subType !== undefined) || (type === 'swap') || (type === 'future')) {
@@ -2283,7 +2283,7 @@ export default class xt extends Exchange {
         await this.loadMarkets ();
         let type: Str = undefined;
         let subType: SubType = undefined;
-        let response: Dict | undefined = undefined;
+        let response = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', undefined, params);
         const isContractWallet = ((type === 'swap') || (type === 'future'));
@@ -2338,7 +2338,7 @@ export default class xt extends Exchange {
         //         ]
         //     }
         //
-        let balances: List | undefined = undefined;
+        let balances = undefined;
         if ((subType !== undefined) || isContractWallet) {
             balances = this.safeValue (response, 'result', []);
         } else {
@@ -2529,7 +2529,7 @@ export default class xt extends Exchange {
             const requestType = (reduceOnly) ? 'LONG' : 'SHORT';
             request['positionSide'] = requestType;
         }
-        let response: Dict | undefined = undefined;
+        let response = undefined;
         const triggerPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
         const stopLoss = this.safeNumber2 (params, 'stopLoss', 'triggerStopPrice');
         const takeProfit = this.safeNumber2 (params, 'takeProfit', 'triggerProfitPrice');
@@ -2610,7 +2610,7 @@ export default class xt extends Exchange {
         const request = {};
         let type: Str = undefined;
         let subType: SubType = undefined;
-        let response: Dict | undefined = undefined;
+        let response = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
         [ subType, params ] = this.handleSubTypeAndParams ('fetchOrder', market, params);
         const trigger = this.safeValue (params, 'stop');
@@ -2794,7 +2794,7 @@ export default class xt extends Exchange {
         }
         let type: Str = undefined;
         let subType: SubType = undefined;
-        let response: Dict | undefined = undefined;
+        let response = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
         [ subType, params ] = this.handleSubTypeAndParams ('fetchOrders', market, params);
         const trigger = this.safeValue2 (params, 'trigger', 'stop');
@@ -2947,7 +2947,7 @@ export default class xt extends Exchange {
         }
         let type: Str = undefined;
         let subType: SubType = undefined;
-        let response: Dict | undefined = undefined;
+        let response = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
         [ subType, params ] = this.handleSubTypeAndParams ('fetchOrdersByStatus', market, params);
         const trigger = this.safeBool2 (params, 'stop', 'trigger');
@@ -3291,7 +3291,7 @@ export default class xt extends Exchange {
         const request = {};
         let type: Str = undefined;
         let subType: SubType = undefined;
-        let response: Dict | undefined = undefined;
+        let response = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
         [ subType, params ] = this.handleSubTypeAndParams ('cancelOrder', market, params);
         const trigger = this.safeValue2 (params, 'trigger', 'stop');
@@ -3374,7 +3374,7 @@ export default class xt extends Exchange {
         }
         let type: Str = undefined;
         let subType: SubType = undefined;
-        let response: Dict | undefined = undefined;
+        let response = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         [ subType, params ] = this.handleSubTypeAndParams ('cancelAllOrders', market, params);
         const trigger = this.safeValue2 (params, 'trigger', 'stop');
@@ -3681,7 +3681,7 @@ export default class xt extends Exchange {
         }
         let type: Str = undefined;
         let subType: SubType = undefined;
-        let response: Dict | undefined = undefined;
+        let response = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchLedger', undefined, params);
         [ subType, params ] = this.handleSubTypeAndParams ('fetchLedger', undefined, params);
         if (subType === 'inverse') {
@@ -4108,7 +4108,7 @@ export default class xt extends Exchange {
         };
         let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('setLeverage', market, params);
-        let response: Dict | undefined = undefined;
+        let response = undefined;
         if (subType === 'inverse') {
             response = await this.privateInversePostFutureUserV1PositionAdjustLeverage (this.extend (request, params));
         } else {
@@ -4168,7 +4168,7 @@ export default class xt extends Exchange {
         };
         let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('modifyMarginHelper', market, params);
-        let response: Dict | undefined = undefined;
+        let response = undefined;
         if (subType === 'inverse') {
             response = await this.privateInversePostFutureUserV1PositionMargin (this.extend (request, params));
         } else {
@@ -4213,7 +4213,7 @@ export default class xt extends Exchange {
         await this.loadMarkets ();
         let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchLeverageTiers', undefined, params);
-        let response: Dict | undefined = undefined;
+        let response = undefined;
         if (subType === 'inverse') {
             response = await this.publicInverseGetFutureMarketV1PublicLeverageBracketList (params);
         } else {
@@ -4300,7 +4300,7 @@ export default class xt extends Exchange {
         };
         let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchMarketLeverageTiers', market, params);
-        let response: Dict | undefined = undefined;
+        let response = undefined;
         if (subType === 'inverse') {
             response = await this.publicInverseGetFutureMarketV1PublicLeverageBracketDetail (this.extend (request, params));
         } else {
@@ -4407,7 +4407,7 @@ export default class xt extends Exchange {
         }
         let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchFundingRateHistory', market, params);
-        let response: Dict | undefined = undefined;
+        let response = undefined;
         if (subType === 'inverse') {
             response = await this.publicInverseGetFutureMarketV1PublicQFundingRateRecord (this.extend (request, params));
         } else {
@@ -4486,7 +4486,7 @@ export default class xt extends Exchange {
         };
         let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchFundingRate', market, params);
-        let response: Dict | undefined = undefined;
+        let response = undefined;
         if (subType === 'inverse') {
             response = await this.publicInverseGetFutureMarketV1PublicQFundingRate (this.extend (request, params));
         } else {
@@ -4575,7 +4575,7 @@ export default class xt extends Exchange {
         }
         let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchFundingHistory', market, params);
-        let response: Dict | undefined = undefined;
+        let response = undefined;
         if (subType === 'inverse') {
             response = await this.privateInverseGetFutureUserV1BalanceFundingRateList (this.extend (request, params));
         } else {
@@ -4657,7 +4657,7 @@ export default class xt extends Exchange {
         };
         let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchPosition', market, params);
-        let response: Dict | undefined = undefined;
+        let response = undefined;
         if (subType === 'inverse') {
             response = await this.privateInverseGetFutureUserV1PositionList (this.extend (request, params));
         } else {
@@ -4714,7 +4714,7 @@ export default class xt extends Exchange {
         await this.loadMarkets ();
         let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchPositions', undefined, params);
-        let response: Dict | undefined = undefined;
+        let response = undefined;
         if (subType === 'inverse') {
             response = await this.privateInverseGetFutureUserV1PositionList (params);
         } else {
@@ -4954,7 +4954,7 @@ export default class xt extends Exchange {
             request['orderId'] = id;
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        let response: Dict | undefined = undefined;
+        let response = undefined;
         if (market['swap']) {
             if (isStopLoss) {
                 request['triggerStopPrice'] = this.priceToPrecision (symbol, stopLoss);

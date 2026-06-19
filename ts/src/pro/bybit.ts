@@ -2202,7 +2202,7 @@ export default class bybit extends bybitRest {
         }
         let messageHash = 'balance';
         const topic = this.safeValue (message, 'topic');
-        let info: any = undefined;
+        let info = undefined;
         let rawBalances = [];
         let account: Str = undefined;
         if (topic === 'outboundAccountInfo') {

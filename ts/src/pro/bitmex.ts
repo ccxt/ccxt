@@ -1696,7 +1696,7 @@ export default class bitmex extends bitmexRest {
                 const messageHash = args[0];
                 const broad = this.exceptions['ws']['broad'];
                 const broadKey = this.findBroadlyMatchedKey (broad, error);
-                let exception: any = undefined;
+                let exception = undefined;
                 if (broadKey === undefined) {
                     exception = new ExchangeError ((error as string)); // c# requirement for now
                 } else {

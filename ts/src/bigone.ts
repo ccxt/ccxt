@@ -934,7 +934,7 @@ export default class bigone extends Exchange {
         const isSpot = type === 'spot';
         const request: Dict = {};
         symbols = this.marketSymbols (symbols);
-        let data: any[];
+        let data = undefined;
         if (isSpot) {
             if (symbols !== undefined) {
                 const ids = this.marketIds (symbols);

@@ -1951,7 +1951,7 @@ export default class bitstamp extends Exchange {
         //         },
         //     ]
         //
-        let currency: any = undefined;
+        let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -2354,7 +2354,7 @@ export default class bitstamp extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.privatePostUserTransactions (this.extend (request, params));
-        let currency: any = undefined;
+        let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -2524,7 +2524,7 @@ export default class bitstamp extends Exchange {
         const request: Dict = {
             'amount': amount,
         };
-        let currency: any = undefined;
+        let currency = undefined;
         let method: Str = undefined;
         if (!this.isFiat (code)) {
             const name = this.getCurrencyName (code);

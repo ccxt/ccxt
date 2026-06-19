@@ -1024,7 +1024,7 @@ export default class hitbtc extends hitbtcRest {
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const tradeId = this.safeString (order, 'trade_id');
-        let trades: any[];
+        let trades = undefined;
         if (tradeId !== undefined) {
             const trade = this.parseWsOrderTrade (order, market);
             trades = [ trade ];

@@ -9,7 +9,7 @@ async function testWatchMyTrades (exchange: Exchange, skippedProperties: object,
     const ends = now + 15000;
     while (now < ends) {
         let success = true;
-        let response: any;
+        let response = undefined;
         try {
             response = await exchange.watchMyTrades (symbol);
         } catch (e) {

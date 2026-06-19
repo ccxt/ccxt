@@ -1057,7 +1057,7 @@ export default class gate extends gateRest {
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         let subType: Str = undefined;
-        let type: any = undefined;
+        let type = undefined;
         let marketId = '!' + 'all';
         let market: Market = undefined;
         if (symbol !== undefined) {
@@ -1152,7 +1152,7 @@ export default class gate extends gateRest {
      */
     async watchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
-        let type: any = undefined;
+        let type = undefined;
         let subType: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         [ subType, params ] = this.handleSubTypeAndParams ('watchBalance', undefined, params);
@@ -1286,7 +1286,7 @@ export default class gate extends gateRest {
         if (!this.isEmpty (symbols)) {
             market = this.getMarketFromSymbols (symbols);
         }
-        let type: any = undefined;
+        let type = undefined;
         let query: Dict = undefined;
         [ type, query ] = this.handleMarketTypeAndParams ('watchPositions', market, params);
         if (type === 'spot') {
@@ -1461,7 +1461,7 @@ export default class gate extends gateRest {
             market = this.market (symbol);
             symbol = market['symbol'];
         }
-        let type: any = undefined;
+        let type = undefined;
         let query: Dict = undefined;
         [ type, query ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         const typeId = this.getSupportedMapping (type, {
@@ -1603,7 +1603,7 @@ export default class gate extends gateRest {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true, true);
         const market = this.getMarketFromSymbols (symbols);
-        let type: any = undefined;
+        let type = undefined;
         let query: Dict = undefined;
         [ type, query ] = this.handleMarketTypeAndParams ('watchMyLiquidationsForSymbols', market, params);
         const typeId = this.getSupportedMapping (type, {

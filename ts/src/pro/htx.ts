@@ -2483,7 +2483,7 @@ export default class htx extends htxRest {
             'params': params,
         };
         const extendedSubsription = this.extend (subscription, subscriptionParams);
-        let request: Dict | undefined = undefined;
+        let request = undefined;
         if (type === 'spot') {
             request = {
                 'action': 'sub',
@@ -2523,7 +2523,7 @@ export default class htx extends htxRest {
         const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const timestamp = this.ymdhms (this.milliseconds (), 'T');
-            let signatureParams: Dict | undefined = undefined;
+            let signatureParams = undefined;
             if (type === 'spot') {
                 signatureParams = {
                     'accessKey': this.apiKey,
@@ -2543,7 +2543,7 @@ export default class htx extends htxRest {
             const auth = this.urlencode (signatureParams, true); // true required in go
             const payload = [ 'GET', hostname, relativePath, auth ].join ("\n"); // eslint-disable-line quotes
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'base64');
-            let request: Dict | undefined = undefined;
+            let request = undefined;
             if (type === 'spot') {
                 const newParams: Dict = {
                     'authType': 'api',

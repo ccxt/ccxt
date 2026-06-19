@@ -170,7 +170,7 @@ export default class deepcoin extends deepcoinRest {
         let listenKeyExpiryTimestamp = this.safeInteger (this.options, 'listenKeyExpiryTimestamp', time);
         const expired = (time - listenKeyExpiryTimestamp) > 60000; // 1 minute before expiry
         let listenKey = this.safeString (this.options, 'listenKey');
-        let response: any;
+        let response = undefined;
         if (listenKey === undefined) {
             response = await this.privateGetDeepcoinListenkeyAcquire (params);
         } else if (expired) {
@@ -452,7 +452,7 @@ export default class deepcoin extends deepcoinRest {
         const direction = this.safeString (trade, 'D');
         const timestamp = this.safeTimestamp2 (trade, 'TT', 'T');
         const matchRole = this.safeString (trade, 'm');
-        let fee: any;
+        let fee = undefined;
         const feeCost = this.safeString (trade, 'F');
         if (feeCost !== undefined) {
             fee = {

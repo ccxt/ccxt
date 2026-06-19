@@ -6126,7 +6126,7 @@ export default class bingx extends Exchange {
         let subType: Str;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchMyLiquidations', market, params);
         let response: Dict;
-        let liquidations: any[];
+        let liquidations = undefined;
         if (subType === 'inverse') {
             response = await this.cswapV1PrivateGetTradeForceOrders (this.extend (request, params));
             //

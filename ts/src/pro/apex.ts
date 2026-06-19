@@ -440,7 +440,7 @@ export default class apex extends apexRest {
         const updateType = this.safeString (message, 'type', '');
         const data = this.safeDict (message, 'data', {});
         let symbol: Str = undefined;
-        let parsed: Ticker | undefined = undefined;
+        let parsed = undefined;
         if ((updateType === 'snapshot')) {
             parsed = this.parseTicker (data);
             symbol = parsed['symbol'];

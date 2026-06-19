@@ -109,7 +109,7 @@ function ecdsa (request: Hex, secret: Hex, curve: CurveFn, prehash: CHash = null
 }
 
 function eddsa (request: Hex, secret: Input, curve: CurveFnEDDSA) {
-    let privateKey: any = undefined;
+    let privateKey = undefined;
     if (secret.length === 32) {
       // ed25519 secret is 32 bytes
       privateKey = utf8Bytes (secret)

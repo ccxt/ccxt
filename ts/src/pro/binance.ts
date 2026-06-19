@@ -2798,7 +2798,7 @@ export default class binance extends binanceRest {
         //
         //
         const messageHash = this.safeString (message, 'id');
-        let rawBalance: any[] = undefined;
+        let rawBalance = undefined;
         if (Array.isArray (message['result'])) {
             // account.balance
             rawBalance = this.safeList (message, 'result', []);

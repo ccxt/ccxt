@@ -487,7 +487,7 @@ export default class ascendex extends ascendexRest {
         //     (...)
         //
         const channel = this.safeString (message, 'm');
-        let result: Dict | undefined = undefined;
+        let result = undefined;
         let type: Str = undefined;
         if ((channel === 'order') || (channel === 'futures-order')) {
             const data = this.safeValue (message, 'data');
@@ -514,7 +514,7 @@ export default class ascendex extends ascendexRest {
             type = this.safeString (categoriesAccounts, accountType, 'spot');
             result = this.safeValue (this.balance, type, {});
             const data = this.safeValue (message, 'data');
-            let balances: List | undefined = undefined;
+            let balances = undefined;
             if (data === undefined) {
                 balances = this.safeValue (message, 'col');
             } else {

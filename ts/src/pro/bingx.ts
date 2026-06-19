@@ -829,7 +829,7 @@ export default class bingx extends bingxRest {
         const marketId = this.safeString (message, 's', firstPart);
         const marketType = isSwap ? 'swap' : 'spot';
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
-        let candles: any[];
+        let candles = undefined;
         if (isSwap) {
             if (market['inverse']) {
                 candles = [ this.safeDict (message, 'data', {}) ];

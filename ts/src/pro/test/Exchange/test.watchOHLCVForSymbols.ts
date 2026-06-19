@@ -21,7 +21,7 @@ async function testWatchOHLCVForSymbols (exchange: Exchange, skippedProperties: 
     const duration = exchange.parseTimeframe (chosenTimeframeKey);
     const since = exchange.milliseconds () - duration * limit * 1000 - 1000;
     while (now < ends) {
-        let response: Dict | undefined = undefined;
+        let response = undefined;
         let success = true;
         try {
             response = await exchange.watchOHLCVForSymbols ([ [ symbol, chosenTimeframeKey ] ], since, limit);

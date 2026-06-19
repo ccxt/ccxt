@@ -2247,7 +2247,7 @@ export default class poloniex extends Exchange {
                 market['id'],
             ];
         }
-        let response: any = undefined;
+        let response = undefined;
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         if (marketType === 'swap' || marketType === 'future') {
@@ -2326,7 +2326,7 @@ export default class poloniex extends Exchange {
         }
         const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
         params = this.omit (params, [ 'trigger', 'stop' ]);
-        let response: any = undefined;
+        let response = undefined;
         if (isTrigger) {
             response = await this.privateGetSmartordersId (this.extend (request, params));
             response = this.safeValue (response, 0);

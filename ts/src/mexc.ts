@@ -1950,7 +1950,7 @@ export default class mexc extends Exchange {
             market = this.market (firstSymbol);
         }
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-        let tickers: any[] = undefined;
+        let tickers = undefined;
         if (isSingularMarket) {
             request['symbol'] = market['id'];
         }
@@ -2229,7 +2229,7 @@ export default class mexc extends Exchange {
             market = this.market (symbols[0]);
         }
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBidsAsks', market, params);
-        let tickers: any[] = undefined;
+        let tickers = undefined;
         if (marketType === 'spot') {
             tickers = await this.spotPublicGetTickerBookTicker (query);
             //
@@ -2624,7 +2624,7 @@ export default class mexc extends Exchange {
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeValue (rawOrder, 'params', {});
-            let marginMode: any = undefined;
+            let marginMode = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
             const orderRequest = this.createSpotOrderRequest (market, type, side, amount, price, marginMode, orderParams);
             ordersRequests.push (orderRequest);
@@ -3898,7 +3898,7 @@ export default class mexc extends Exchange {
         //         "tradeEnabled": true
         //     }
         //
-        let wallet: any[] = undefined;
+        let wallet = undefined;
         if (marketType === 'margin') {
             wallet = this.safeValue (response, 'assets', []);
         } else if (marketType === 'swap') {
@@ -4784,7 +4784,7 @@ export default class mexc extends Exchange {
             'coin': currency['id'],
         };
         const networkCode = this.safeString (params, 'network');
-        let networkId: any = undefined;
+        let networkId = undefined;
         if (networkCode !== undefined) {
             // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
             const networkUnified = this.networkIdToCode (networkCode, code);
@@ -4838,7 +4838,7 @@ export default class mexc extends Exchange {
             throw new ArgumentsRequired (this.id + ' createDepositAddress requires a `network` parameter');
         }
         // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
-        let networkId: any = undefined;
+        let networkId = undefined;
         const networkUnified = this.networkIdToCode (networkCode, code);
         const networks = this.safeDict (currency, 'networks', {});
         if (networkUnified in networks) {
@@ -4915,7 +4915,7 @@ export default class mexc extends Exchange {
             // 'endTime': this.nonce(),
             // 'limit': limit, // default 1000, maximum 1000
         };
-        let currency: any = undefined;
+        let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['coin'] = currency['id'];
@@ -4979,7 +4979,7 @@ export default class mexc extends Exchange {
             // 'endTime': this.nonce(),
             // 'limit': limit, // default 1000, maximum 1000
         };
-        let currency: any = undefined;
+        let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['coin'] = currency['id'];
@@ -5385,7 +5385,7 @@ export default class mexc extends Exchange {
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTransfers', undefined, params);
         await this.loadMarkets ();
         const request: Dict = {};
-        let currency: any = undefined;
+        let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -5987,7 +5987,7 @@ export default class mexc extends Exchange {
     }
 
     parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
-        let marginMode: any = undefined;
+        let marginMode = undefined;
         let longLeverage: Int = undefined;
         let shortLeverage: Int = undefined;
         for (let i = 0; i < leverage.length; i++) {
@@ -6021,7 +6021,7 @@ export default class mexc extends Exchange {
          */
         const defaultType = this.safeString (this.options, 'defaultType');
         const isMargin = this.safeBool (params, 'margin', false);
-        let marginMode: any = undefined;
+        let marginMode = undefined;
         [ marginMode, params ] = super.handleMarginModeAndParams (methodName, params, defaultValue);
         if ((defaultType === 'margin') || (isMargin === true)) {
             marginMode = 'isolated';

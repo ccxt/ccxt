@@ -1184,7 +1184,7 @@ export default class bittrade extends Exchange {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
-            let account: any = undefined;
+            let account = undefined;
             if (code in result) {
                 account = result[code];
             } else {
@@ -1795,7 +1795,7 @@ export default class bittrade extends Exchange {
             limit = 100;
         }
         await this.loadMarkets ();
-        let currency: any = undefined;
+        let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -1829,7 +1829,7 @@ export default class bittrade extends Exchange {
             limit = 100;
         }
         await this.loadMarkets ();
-        let currency: any = undefined;
+        let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }

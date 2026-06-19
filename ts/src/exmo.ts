@@ -2265,7 +2265,7 @@ export default class exmo extends Exchange {
         //
         const depositAddress = this.safeString (response, code);
         let address: Str;
-        let tag: any;
+        let tag = undefined;
         if (depositAddress) {
             const addressAndTag = depositAddress.split (',');
             address = addressAndTag[0];

@@ -1015,7 +1015,7 @@ export default class bullish extends Exchange {
             request['symbol'] = market['id'];
         }
         const clientOrderId = this.safeString (params, 'clientOrderId');
-        let response: any = undefined;
+        let response = undefined;
         if (clientOrderId !== undefined) {
             response = await this.privateGetV1TradesClientOrderIdClientOrderId (this.extend (request, params));
         } else {
@@ -2439,7 +2439,7 @@ export default class bullish extends Exchange {
         const request: Dict = {
             'tradingAccountId': tradingAccountId,
         };
-        let response: any = undefined;
+        let response = undefined;
         const code = this.safeString (params, 'code');
         if (code !== undefined) {
             request['symbol'] = this.currency (code)['id'];

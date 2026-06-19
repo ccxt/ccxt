@@ -3162,7 +3162,7 @@ export default class kraken extends Exchange {
         //        }
         //     }
         //
-        let rawWithdrawals: any[] = undefined;
+        let rawWithdrawals = undefined;
         const result = this.safeValue (response, 'result');
         if (!Array.isArray (result)) {
             rawWithdrawals = this.addPaginationCursorToResult (result);

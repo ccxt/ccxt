@@ -821,7 +821,7 @@ export default class krakenfutures extends Exchange {
         };
         let method: Str = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'method', 'historyGetMarketSymbolExecutions');
-        let rawTrades: any[] = undefined;
+        let rawTrades = undefined;
         const isFullHistoryEndpoint = (method === 'historyGetMarketSymbolExecutions');
         if (isFullHistoryEndpoint) {
             [ request, params ] = this.handleUntilOption ('before', request, params);

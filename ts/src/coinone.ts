@@ -571,7 +571,7 @@ export default class coinone extends Exchange {
             'quote_currency': 'KRW',
         };
         let market: Market = undefined;
-        let response: Dict | undefined = undefined;
+        let response = undefined;
         if (symbols !== undefined) {
             const first = this.safeString (symbols, 0);
             market = this.market (first);

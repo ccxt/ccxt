@@ -1349,7 +1349,7 @@ export default class woo extends Exchange {
             request['childOrders'] = [ outterOrder ];
         }
         params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingPercent', 'trailingAmount', 'trailingTriggerPrice' ]);
-        let response: Dict | undefined = undefined;
+        let response = undefined;
         if (isConditional) {
             response = await this.v3PrivatePostTradeAlgoOrder (this.extend (request, params));
             //
@@ -1462,7 +1462,7 @@ export default class woo extends Exchange {
         }
         params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent' ]);
         const isConditional = isTrailing || (triggerPrice !== undefined) || (this.safeValue (params, 'childOrders') !== undefined);
-        let response: Dict | undefined = undefined;
+        let response = undefined;
         if (isByClientOrder) {
             request['client_order_id'] = clientOrderIdExchangeSpecific;
             if (isConditional) {
@@ -1522,7 +1522,7 @@ export default class woo extends Exchange {
         const clientOrderIdExchangeSpecific = this.safeString (params, 'client_order_id', clientOrderIdUnified);
         params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
-        let response: Dict | undefined = undefined;
+        let response = undefined;
         if (isTrigger) {
             if (isByClientOrder) {
                 request['clientAlgoOrderId'] = clientOrderIdExchangeSpecific;
@@ -1578,7 +1578,7 @@ export default class woo extends Exchange {
             const market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        let response: Dict | undefined = undefined;
+        let response = undefined;
         if (trigger) {
             response = await this.v3PrivateDeleteTradeAlgoOrders (params);
         } else {
@@ -1646,7 +1646,7 @@ export default class woo extends Exchange {
         params = this.omit (params, [ 'stop', 'trigger' ]);
         const request: Dict = {};
         const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
-        let response: Dict | undefined = undefined;
+        let response = undefined;
         if (trigger) {
             if (clientOrderId !== undefined) {
                 request['clientAlgoOrderId'] = id;
@@ -1775,7 +1775,7 @@ export default class woo extends Exchange {
         if (limit !== undefined) {
             request['size'] = Math.min (limit, 500);
         }
-        let response: Dict | undefined = undefined;
+        let response = undefined;
         if (trigger) {
             response = await this.v3PrivateGetTradeAlgoOrders (this.extend (request, params));
             //

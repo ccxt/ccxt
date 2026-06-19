@@ -1619,7 +1619,7 @@ export default class apex extends Exchange {
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         const request: Dict = {};
         const clientOrderId = this.safeStringN (params, [ 'clientId', 'clientOrderId', 'client_order_id' ]);
-        let response: Dict | undefined = undefined;
+        let response = undefined;
         if (clientOrderId !== undefined) {
             request['id'] = clientOrderId;
             params = this.omit (params, [ 'clientId', 'clientOrderId', 'client_order_id' ]);
@@ -1648,7 +1648,7 @@ export default class apex extends Exchange {
         await this.loadMarkets ();
         const request: Dict = {};
         const clientOrderId = this.safeStringN (params, [ 'clientId', 'clientOrderId', 'client_order_id' ]);
-        let response: Dict | undefined = undefined;
+        let response = undefined;
         if (clientOrderId !== undefined) {
             request['id'] = clientOrderId;
             params = this.omit (params, [ 'clientId', 'clientOrderId', 'client_order_id' ]);

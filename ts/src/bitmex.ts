@@ -831,7 +831,7 @@ export default class bitmex extends Exchange {
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const contract = swap || future;
-        let contractSize: Num = undefined;
+        let contractSize = undefined;
         let isInverse = this.safeValue (market, 'isInverse');  // this is true when BASE and SETTLE are same, i.e. BTC/XXX:BTC
         let isQuanto = this.safeValue (market, 'isQuanto'); // this is true when BASE and SETTLE are different, i.e. AXS/XXX:BTC
         let linear = contract ? (!isInverse && !isQuanto) : undefined;

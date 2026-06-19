@@ -6301,7 +6301,7 @@ export default class bitget extends Exchange {
         const data = this.safeDict (response, 'data');
         const resultList = this.safeListN (data, [ 'resultList', 'successList', 'list' ]);
         const failureList = this.safeList2 (data, 'failure', 'failureList');
-        let responseList: any[];
+        let responseList = undefined;
         if ((resultList !== undefined) && (failureList !== undefined)) {
             responseList = this.arrayConcat (resultList, failureList);
         } else {
