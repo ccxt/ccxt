@@ -1395,7 +1395,7 @@ export default class alpaca extends Exchange {
         const alpacaStatus = this.safeString (order, 'status');
         const status = this.parseOrderStatus (alpacaStatus);
         const feeValue = this.safeString (order, 'commission');
-        let fee = undefined;
+        let fee: Dict = undefined;
         if (feeValue !== undefined) {
             fee = {
                 'cost': feeValue,
