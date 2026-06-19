@@ -271,6 +271,10 @@ func (this *CoinbaseexchangeCore) PrivatePostPositionClose(args ...any) <-chan a
 	return this.callEndpointAsync("privatePostPositionClose", args...)
 }
 
+func (this *CoinbaseexchangeCore) PrivatePostProfiles(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostProfiles", args...)
+}
+
 func (this *CoinbaseexchangeCore) PrivatePostProfilesMarginTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostProfilesMarginTransfer", args...)
 }
@@ -321,4 +325,12 @@ func (this *CoinbaseexchangeCore) PrivateDeleteOrdersClientClientOid(args ...any
 
 func (this *CoinbaseexchangeCore) PrivateDeleteOrdersId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteOrdersId", args...)
+}
+
+func (this *CoinbaseexchangeCore) PrivatePutProfilesIdDeactivate(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutProfilesIdDeactivate", args...)
+}
+
+func (this *CoinbaseexchangeCore) PrivatePutProfilesId(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutProfilesId", args...)
 }
