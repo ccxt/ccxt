@@ -2232,7 +2232,7 @@ export default class delta extends Exchange {
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
-        let market: Market;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -2317,7 +2317,7 @@ export default class delta extends Exchange {
             // 'before', // before cursor for pagination
             // 'page_size': limit, // number of records per page
         };
-        let market: Market;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['product_ids'] = market['numericId']; // accepts a comma-separated list of ids
@@ -2383,7 +2383,7 @@ export default class delta extends Exchange {
             // 'before', // before cursor for pagination
             // 'page_size': limit, // number of records per page
         };
-        let market: Market;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['product_ids'] = market['numericId']; // accepts a comma-separated list of ids
@@ -2464,7 +2464,7 @@ export default class delta extends Exchange {
             // 'before': 'string', // before cursor for pagination
             // 'page_size': limit,
         };
-        let currency: Currency;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['asset_id'] = currency['numericId'];
@@ -3181,7 +3181,7 @@ export default class delta extends Exchange {
      */
     async fetchSettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        let market: Market;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -3514,7 +3514,7 @@ export default class delta extends Exchange {
      */
     async fetchMarginMode (symbol: string, params = {}): Promise<MarginMode> {
         await this.loadMarkets ();
-        let market: Market;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }

@@ -3028,7 +3028,7 @@ export default class bitrue extends Exchange {
         const request: Dict = {
             'transferType': type,
         };
-        let currency: Currency;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['coinSymbol'] = currency['id'];

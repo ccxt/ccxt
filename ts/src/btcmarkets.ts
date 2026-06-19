@@ -309,7 +309,7 @@ export default class btcmarkets extends Exchange {
         if (since !== undefined) {
             request['after'] = since;
         }
-        let currency: Currency;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -1101,7 +1101,7 @@ export default class btcmarkets extends Exchange {
          * @returns {object} contains the rate, the percentage multiplied to the order amount to obtain the fee amount, and cost, the total value of the fee in units of the quote currency, for the order
          */
         const market = this.markets[symbol];
-        let currency: Currency;
+        let currency: Currency = undefined;
         let cost = undefined;
         if (market['quote'] === 'AUD') {
             currency = market['quote'];
@@ -1236,7 +1236,7 @@ export default class btcmarkets extends Exchange {
         const request: Dict = {
             'status': 'all',
         };
-        let market: Market;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['marketId'] = market['id'];
@@ -1297,7 +1297,7 @@ export default class btcmarkets extends Exchange {
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request: Dict = {};
-        let market: Market;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['marketId'] = market['id'];

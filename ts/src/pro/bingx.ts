@@ -973,7 +973,7 @@ export default class bingx extends bingxRest {
         await this.authenticate ();
         let type: Str;
         let subType: Str;
-        let market: Market;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -1036,7 +1036,7 @@ export default class bingx extends bingxRest {
         await this.authenticate ();
         let type: Str;
         let subType: Str;
-        let market: Market;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -1178,7 +1178,7 @@ export default class bingx extends bingxRest {
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         await this.authenticate ();
-        let market: Market;
+        let market: Market = undefined;
         let messageHash = '';
         symbols = this.marketSymbols (symbols);
         if (!this.isEmpty (symbols)) {

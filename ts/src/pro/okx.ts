@@ -1707,7 +1707,7 @@ export default class okx extends okxRest {
         await this.authenticate ({ 'access': isTrigger ? 'business' : 'private' });
         const channel = isTrigger ? 'orders-algo' : 'orders';
         let messageHash = channel + '::myTrades';
-        let market: Market;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -1896,7 +1896,7 @@ export default class okx extends okxRest {
         params = this.omit (params, [ 'stop', 'trigger' ]);
         await this.loadMarkets ();
         await this.authenticate ({ 'access': isTrigger ? 'business' : 'private' });
-        let market: Market;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];

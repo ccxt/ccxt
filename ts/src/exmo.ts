@@ -1804,7 +1804,7 @@ export default class exmo extends Exchange {
         if (marginMode === 'cross') {
             throw new BadRequest (this.id + ' only supports isolated margin');
         }
-        let market: Market;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -1877,7 +1877,7 @@ export default class exmo extends Exchange {
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        let market: Market;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -2159,7 +2159,7 @@ export default class exmo extends Exchange {
         };
         request['offset'] = (since !== undefined) ? limit : 0;
         request['limit'] = limit;
-        let market: Market;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -2493,7 +2493,7 @@ export default class exmo extends Exchange {
         if (since !== undefined) {
             request['date'] = this.parseToInt (since / 1000);
         }
-        let currency: Currency;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -2544,7 +2544,7 @@ export default class exmo extends Exchange {
      */
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         await this.loadMarkets ();
-        let currency: Currency;
+        let currency: Currency = undefined;
         const request: Dict = {
             'type': 'withdraw',
         };
@@ -2598,7 +2598,7 @@ export default class exmo extends Exchange {
      */
     async fetchWithdrawal (id: string, code: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        let currency: Currency;
+        let currency: Currency = undefined;
         const request: Dict = {
             'order_id': id,
             'type': 'withdraw',
@@ -2651,7 +2651,7 @@ export default class exmo extends Exchange {
      */
     async fetchDeposit (id: string, code: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        let currency: Currency;
+        let currency: Currency = undefined;
         const request: Dict = {
             'order_id': id,
             'type': 'deposit',
@@ -2705,7 +2705,7 @@ export default class exmo extends Exchange {
      */
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         await this.loadMarkets ();
-        let currency: Currency;
+        let currency: Currency = undefined;
         const request: Dict = {
             'type': 'deposit',
         };

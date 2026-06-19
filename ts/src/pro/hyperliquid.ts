@@ -1297,7 +1297,7 @@ export default class hyperliquid extends hyperliquidRest {
         await this.loadMarkets ();
         let userAddress: Str;
         [ userAddress, params ] = this.handlePublicAddress ('watchOrders', params);
-        let market: Market;
+        let market: Market = undefined;
         let messageHash = 'order';
         if (symbol !== undefined) {
             market = this.market (symbol);

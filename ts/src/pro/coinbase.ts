@@ -68,7 +68,7 @@ export default class coinbase extends coinbaseRest {
      */
     async subscribe (name: string, isPrivate: boolean, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let market: Market;
+        let market: Market = undefined;
         let messageHash = name;
         let productIds = [];
         if (Array.isArray (symbol)) {
@@ -113,7 +113,7 @@ export default class coinbase extends coinbaseRest {
             throw new ExchangeError (this.id + ' another unSubscription is pending, coinbase does not support concurrent unSubscriptions');
         }
         this.options['unSubscriptionPending'] = true;
-        let market: Market;
+        let market: Market = undefined;
         let watchMessageHash = name;
         let unWatchMessageHash = 'unsubscribe:' + name;
         let productIds = [];

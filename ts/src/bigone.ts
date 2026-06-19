@@ -924,7 +924,7 @@ export default class bigone extends Exchange {
      */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        let market: Market;
+        let market: Market = undefined;
         const symbol = this.safeString (symbols, 0);
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -2135,7 +2135,7 @@ export default class bigone extends Exchange {
             // 'kind': 'string', // optional - air_drop, big_holder_dividend, default, eosc_to_eos, internal, equally_airdrop, referral_mining, one_holder_dividend, single_customer, snapshotted_airdrop, trade_mining
             // 'asset_symbol': 'BTC', // optional
         };
-        let currency: Currency;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['asset_symbol'] = currency['id'];
@@ -2188,7 +2188,7 @@ export default class bigone extends Exchange {
             // 'kind': 'string', // optional - air_drop, big_holder_dividend, default, eosc_to_eos, internal, equally_airdrop, referral_mining, one_holder_dividend, single_customer, snapshotted_airdrop, trade_mining
             // 'asset_symbol': 'BTC', // optional
         };
-        let currency: Currency;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['asset_symbol'] = currency['id'];

@@ -694,7 +694,7 @@ export default class luno extends Exchange {
     async fetchOrdersByState (state: Str, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request: Dict = {};
-        let market: Market;
+        let market: Market = undefined;
         if (state !== undefined) {
             request['state'] = state;
         }
@@ -1221,7 +1221,7 @@ export default class luno extends Exchange {
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         await this.loadMarkets ();
         await this.loadAccounts ();
-        let currency: Currency;
+        let currency: Currency = undefined;
         let id = this.safeString (params, 'id'); // account id
         let min_row = this.safeValue (params, 'min_row');
         let max_row = this.safeValue (params, 'max_row');
