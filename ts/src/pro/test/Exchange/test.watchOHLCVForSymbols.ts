@@ -3,8 +3,6 @@ import assert from 'assert';
 import testOHLCV from '../../../test/Exchange/base/test.ohlcv.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
 import { Exchange } from '../../../../ccxt.js';
-import type { Dict } from '../../../base/types.js';
-
 
 async function testWatchOHLCVForSymbols (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'watchOHLCVForSymbols';
