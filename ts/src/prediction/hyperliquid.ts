@@ -659,7 +659,7 @@ export default class hyperliquid extends Exchange {
     async fetchTicker (symbol: string, params = {}): Promise<PredictionTicker> {
         const outcome = symbol;
         await this.loadMarkets ();
-        this.checkEventsAndMarkets (outcome);
+        this.checkEvents (outcome);
         const outcomeObj = this.outcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
         const coin = this.safeString (info, 'coinName');
@@ -699,7 +699,7 @@ export default class hyperliquid extends Exchange {
         if (outcomes !== undefined) {
             for (let i = 0; i < outcomes.length; i++) {
                 const requested = outcomes[i];
-                this.checkEventsAndMarkets (requested);
+                this.checkEvents (requested);
                 const requestedOutcomeObj = this.outcome (requested);
                 const requestedSymbol = this.safeString (requestedOutcomeObj, 'symbol', requested);
                 requestedOutcomeSymbols[requestedSymbol] = true;
@@ -816,7 +816,7 @@ export default class hyperliquid extends Exchange {
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
         const outcome = symbol;
         await this.loadMarkets ();
-        this.checkEventsAndMarkets (outcome);
+        this.checkEvents (outcome);
         const outcomeObj = this.outcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
         const request = {
@@ -870,7 +870,7 @@ export default class hyperliquid extends Exchange {
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         const outcome = symbol;
         await this.loadMarkets ();
-        this.checkEventsAndMarkets (outcome);
+        this.checkEvents (outcome);
         const outcomeObj = this.outcome (outcome);
         const market = this.market (this.safeString (outcomeObj, 'marketSymbol'));
         const info = this.safeDict (outcomeObj, 'info', {});
@@ -1008,7 +1008,7 @@ export default class hyperliquid extends Exchange {
         if (outcomes !== undefined) {
             for (let i = 0; i < outcomes.length; i++) {
                 const requested = outcomes[i];
-                this.checkEventsAndMarkets (requested);
+                this.checkEvents (requested);
                 const requestedOutcomeObj = this.outcome (requested);
                 const requestedSymbol = this.safeString (requestedOutcomeObj, 'symbol', requested);
                 requestedOutcomeSymbols[requestedSymbol] = true;
@@ -1219,7 +1219,7 @@ export default class hyperliquid extends Exchange {
         const outcome = symbol;
         await this.loadMarkets ();
         await this.initializeClient ();
-        this.checkEventsAndMarkets (outcome);
+        this.checkEvents (outcome);
         const outcomeObj = this.outcome (outcome);
         const market = this.market (this.safeString (outcomeObj, 'marketSymbol'));
         const outcomeInfo = this.safeDict (outcomeObj, 'info', {});
@@ -1364,7 +1364,7 @@ export default class hyperliquid extends Exchange {
         }
         await this.loadMarkets ();
         await this.initializeClient ();
-        this.checkEventsAndMarkets (outcome);
+        this.checkEvents (outcome);
         const outcomeObj = this.outcome (outcome);
         const outcomeInfo = this.safeDict (outcomeObj, 'info', {});
         const assetId = this.safeInteger (outcomeInfo, 'assetId');
@@ -1471,7 +1471,7 @@ export default class hyperliquid extends Exchange {
         const parsed = this.parseOrders (ordersWithStatus, undefined, since, undefined);
         let outcomeHandle: Str = undefined;
         if (outcome !== undefined) {
-            this.checkEventsAndMarkets (outcome);
+            this.checkEvents (outcome);
             const outcomeObj = this.outcome (outcome);
             outcomeHandle = this.safeString (outcomeObj, 'symbol');
         }
@@ -1522,7 +1522,7 @@ export default class hyperliquid extends Exchange {
         const parsed = this.parseOrders (dedupedValues, undefined, since, undefined);
         let outcomeHandle: Str = undefined;
         if (outcome !== undefined) {
-            this.checkEventsAndMarkets (outcome);
+            this.checkEvents (outcome);
             const outcomeObj = this.outcome (outcome);
             outcomeHandle = this.safeString (outcomeObj, 'symbol');
         }
@@ -1559,7 +1559,7 @@ export default class hyperliquid extends Exchange {
         const orderWrapper = this.safeDict (response, 'order', response);
         const parsed = this.parseOrder (orderWrapper, undefined);
         if (outcome !== undefined) {
-            this.checkEventsAndMarkets (outcome);
+            this.checkEvents (outcome);
             const outcomeObj = this.outcome (outcome);
             const expected = this.safeString (outcomeObj, 'symbol');
             if (this.safeString (parsed, 'outcome') !== expected) {
@@ -1720,7 +1720,7 @@ export default class hyperliquid extends Exchange {
         const parsed = this.parseTrades (response, undefined, since, undefined);
         let outcomeHandle: Str = undefined;
         if (outcome !== undefined) {
-            this.checkEventsAndMarkets (outcome);
+            this.checkEvents (outcome);
             const outcomeObj = this.outcome (outcome);
             outcomeHandle = this.safeString (outcomeObj, 'symbol');
         }

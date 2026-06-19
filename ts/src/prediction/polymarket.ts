@@ -719,7 +719,7 @@ export default class polymarket extends Exchange {
      */
     async fetchTicker (symbol: string, params = {}): Promise<PredictionTicker> {
         const outcome = symbol;
-        this.checkEventsAndMarkets (outcome);
+        this.checkEvents (outcome);
         const outcomeObj = this.outcome (outcome);
         const tokenId = outcomeObj['outcomeId'];
         const promises = [
@@ -781,10 +781,10 @@ export default class polymarket extends Exchange {
         }
         if (outcomesLength > 0) {
             for (let i = 0; i < outcomes.length; i++) {
-                this.checkEventsAndMarkets (outcomes[i]);
+                this.checkEvents (outcomes[i]);
             }
         } else {
-            this.checkEventsAndMarkets ();
+            this.checkEvents ();
         }
         const outcomesMap = (this.outcomes !== undefined) ? this.outcomes : {};
         const targets: any[] = [];
@@ -943,7 +943,7 @@ export default class polymarket extends Exchange {
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
         const outcome = symbol;
-        this.checkEventsAndMarkets (outcome);
+        this.checkEvents (outcome);
         const outcomeObj = this.outcome (outcome);
         const tokenId = outcomeObj['outcomeId'] as string;
         const request: Dict = {
@@ -992,7 +992,7 @@ export default class polymarket extends Exchange {
      */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         const outcome = symbol;
-        this.checkEventsAndMarkets (outcome);
+        this.checkEvents (outcome);
         const outcomeObj = this.outcome (outcome);
         const tokenId = outcomeObj['outcomeId'] as string;
         const fidelityMin = this.safeInteger (this.timeframes, timeframe, 1); // fidelity in minutes
@@ -1131,7 +1131,7 @@ export default class polymarket extends Exchange {
      */
     async fetchOpenInterest (symbol: string, params = {}): Promise<PredictionOpenInterest> {
         const outcome = symbol;
-        this.checkEventsAndMarkets (outcome);
+        this.checkEvents (outcome);
         const outcomeObj = this.outcome (outcome);
         const outcomeInfo = this.safeDict (outcomeObj, 'info', {});
         const conditionId = this.safeString (outcomeInfo, 'conditionId');
@@ -1178,7 +1178,7 @@ export default class polymarket extends Exchange {
      */
     async fetchTradingFee (symbol: string, params = {}): Promise<PredictionTradingFee> {
         const outcome = symbol;
-        this.checkEventsAndMarkets (outcome);
+        this.checkEvents (outcome);
         const outcomeObj = this.outcome (outcome);
         const tokenId = this.safeString (outcomeObj, 'outcomeId');
         const request: Dict = { 'token_id': tokenId };
@@ -1213,7 +1213,7 @@ export default class polymarket extends Exchange {
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
         const outcome = symbol;
-        this.checkEventsAndMarkets (outcome);
+        this.checkEvents (outcome);
         const outcomeObj = this.outcome (outcome);
         const tokenId = outcomeObj['outcomeId'] as string;
         const outcomeInfo = this.safeDict (outcomeObj, 'info', {});
@@ -1255,7 +1255,7 @@ export default class polymarket extends Exchange {
         const request: Dict = {};
         let outcomeObj: any = undefined;
         if (symbol !== undefined) {
-            this.checkEventsAndMarkets (symbol);
+            this.checkEvents (symbol);
             outcomeObj = this.outcome (symbol);
             request['asset_id'] = outcomeObj['outcomeId'];
         }
@@ -1416,10 +1416,10 @@ export default class polymarket extends Exchange {
         }
         if (outcomesLength > 0) {
             for (let i = 0; i < outcomes.length; i++) {
-                this.checkEventsAndMarkets (outcomes[i]);
+                this.checkEvents (outcomes[i]);
             }
         } else {
-            this.checkEventsAndMarkets ();
+            this.checkEvents ();
         }
         if (this.walletAddress === undefined) {
             throw new ArgumentsRequired (this.id + ' walletAddress is required to fetchPositions');
@@ -1533,9 +1533,9 @@ export default class polymarket extends Exchange {
         await this.loadApiCredentials ();
         const outcome = symbol;
         if (outcome !== undefined) {
-            this.checkEventsAndMarkets (outcome);
+            this.checkEvents (outcome);
         } else {
-            this.checkEventsAndMarkets ();
+            this.checkEvents ();
         }
         const request: Dict = {};
         let outcomeObj: any = undefined;
@@ -1562,9 +1562,9 @@ export default class polymarket extends Exchange {
         await this.loadApiCredentials ();
         const outcome = symbol;
         if (outcome !== undefined) {
-            this.checkEventsAndMarkets (outcome);
+            this.checkEvents (outcome);
         } else {
-            this.checkEventsAndMarkets ();
+            this.checkEvents ();
         }
         const request: Dict = { 'id': id };
         const response = await this.clobPrivateGetDataOrderId (this.extend (request, params));
@@ -2018,7 +2018,7 @@ export default class polymarket extends Exchange {
         let response = undefined;
         if (outcome !== undefined) {
             // scope to a single outcome token via DELETE /cancel-market-orders { asset_id }
-            this.checkEventsAndMarkets (outcome);
+            this.checkEvents (outcome);
             const outcomeObj = this.outcome (outcome);
             const request: Dict = { 'asset_id': outcomeObj['outcomeId'] };
             response = await this.clobPrivateDeleteCancelMarketOrders (this.extend (request, params));

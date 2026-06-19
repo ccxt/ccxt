@@ -27,15 +27,8 @@ export default class PredictionExchange extends Exchange {
         return this.safeBool (this.has, 'prediction', false);
     }
 
-    async loadMarketsAndEvents (reload = false, params = {}) {
-        const res = await Promise.all ([ this.loadMarkets (reload, params), this.loadEvents (reload, params) ]);
-        return {
-            'markets': res[0],
-            'events': res[1],
-        };
-    }
 
-    checkEventsAndMarkets (outcome: Str = undefined) {
+    checkEvents (outcome: Str = undefined) {
         // pure synchronous guard (no I/O) — callers invoke it without await, so leaving it
         // async would make the coroutine never run in Python/PHP and silently skip validation.
         // outcomes are the real dependency for resolving a symbol; they are populated by

@@ -445,7 +445,7 @@ export default class kalshi extends Exchange {
     async fetchTicker (symbol: Str, params = {}): Promise<PredictionTicker> {
         const outcome = symbol;
         await this.loadMarkets ();
-        this.checkEventsAndMarkets (outcome);
+        this.checkEvents (outcome);
         const outcomeObj = this.outcome (outcome);
         const ticker = this.safeString (outcomeObj['info'], 'ticker');
         const request: Dict = {
@@ -546,7 +546,7 @@ export default class kalshi extends Exchange {
     async fetchOpenInterest (symbol: string, params = {}): Promise<PredictionOpenInterest> {
         const outcome = symbol;
         await this.loadMarkets ();
-        this.checkEventsAndMarkets (outcome);
+        this.checkEvents (outcome);
         const outcomeObj = this.outcome (outcome);
         const ticker = this.safeString (outcomeObj['info'], 'ticker');
         const request: Dict = { 'ticker': ticker };
@@ -711,11 +711,11 @@ export default class kalshi extends Exchange {
         const targets: any[] = [];
         if (symbols !== undefined) {
             for (let i = 0; i < symbols.length; i++) {
-                this.checkEventsAndMarkets (symbols[i]);
+                this.checkEvents (symbols[i]);
                 targets.push (symbols[i]);
             }
         } else {
-            this.checkEventsAndMarkets ();
+            this.checkEvents ();
             const allKeys = Object.keys (this.outcomes);
             for (let i = 0; i < allKeys.length; i++) {
                 targets.push (allKeys[i]);
@@ -791,7 +791,7 @@ export default class kalshi extends Exchange {
     async fetchOrderBook (symbol: Str, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
         const outcome = symbol;
         await this.loadMarkets ();
-        this.checkEventsAndMarkets (outcome);
+        this.checkEvents (outcome);
         const outcomeObj = this.outcome (outcome);
         const ticker = this.safeString (outcomeObj['info'], 'ticker');
         const isNo = outcomeObj['label'] === 'NO';
@@ -885,7 +885,7 @@ export default class kalshi extends Exchange {
     async fetchOHLCV (symbol: Str, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         const outcome = symbol;
         await this.loadMarkets ();
-        this.checkEventsAndMarkets (outcome);
+        this.checkEvents (outcome);
         const outcomeObj = this.outcome (outcome);
         const ticker = this.safeString (outcomeObj['info'], 'ticker');
         const seriesTicker = this.safeString (outcomeObj['info'], 'seriesTicker', ticker);
@@ -1027,7 +1027,7 @@ export default class kalshi extends Exchange {
     async fetchTrades (symbol: Str, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
         const outcome = symbol;
         await this.loadMarkets ();
-        this.checkEventsAndMarkets (outcome);
+        this.checkEvents (outcome);
         const outcomeObj = this.outcome (outcome);
         const ticker = this.safeString (outcomeObj['info'], 'ticker');
         const request: Dict = { 'ticker': ticker };
@@ -1118,7 +1118,7 @@ export default class kalshi extends Exchange {
      * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
     async fetchBalance (params = {}): Promise<Balances> {
-        this.checkEventsAndMarkets ();
+        this.checkEvents ();
         const response = await this.kalshiPrivateGetPortfolioBalance (params);
         return this.parseBalance (response);
     }
@@ -1160,10 +1160,10 @@ export default class kalshi extends Exchange {
         }
         if (outcomesLength > 0) {
             for (let i = 0; i < outcomes.length; i++) {
-                this.checkEventsAndMarkets (outcomes[i]);
+                this.checkEvents (outcomes[i]);
             }
         } else {
-            this.checkEventsAndMarkets ();
+            this.checkEvents ();
         }
         const response = await this.kalshiPrivateGetPortfolioPositions (params);
         const positions = this.safeList (response, 'market_positions', []) as any[];
@@ -1235,9 +1235,9 @@ export default class kalshi extends Exchange {
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
         const outcome = symbol;
         if (outcome !== undefined) {
-            this.checkEventsAndMarkets (outcome);
+            this.checkEvents (outcome);
         } else {
-            this.checkEventsAndMarkets ();
+            this.checkEvents ();
         }
         const request: Dict = { 'status': 'resting' };
         let outcomeObj: any = undefined;
@@ -1262,9 +1262,9 @@ export default class kalshi extends Exchange {
      */
     async fetchOrder (id: Str, symbol: Str = undefined, params = {}): Promise<PredictionOrder> {
         if (symbol !== undefined) {
-            this.checkEventsAndMarkets (symbol);
+            this.checkEvents (symbol);
         } else {
-            this.checkEventsAndMarkets ();
+            this.checkEvents ();
         }
         const response = await this.kalshiPrivateGetPortfolioOrdersOrderId (this.extend ({ 'order_id': id }, params));
         return this.parseOrder (this.safeValue (response, 'order', response));
@@ -1361,7 +1361,7 @@ export default class kalshi extends Exchange {
     async createOrder (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Promise<PredictionOrder> {
         const outcome = symbol;
         await this.loadMarkets ();
-        this.checkEventsAndMarkets (outcome);
+        this.checkEvents (outcome);
         const outcomeObj = this.outcome (outcome);
         const ticker = this.safeString (outcomeObj['info'], 'ticker');
         const outcomeLabel = outcomeObj['label'];
@@ -1396,9 +1396,9 @@ export default class kalshi extends Exchange {
      */
     async cancelOrder (id: Str, symbol: Str = undefined, params = {}): Promise<PredictionOrder> {
         if (symbol !== undefined) {
-            this.checkEventsAndMarkets (symbol);
+            this.checkEvents (symbol);
         } else {
-            this.checkEventsAndMarkets ();
+            this.checkEvents ();
         }
         const response = await this.kalshiPrivateDeletePortfolioOrdersOrderId (this.extend ({ 'order_id': id }, params));
         return this.parseOrder (this.safeValue (response, 'order', response));
@@ -1416,9 +1416,9 @@ export default class kalshi extends Exchange {
     async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<PredictionOrder[]> {
         const outcome = symbol;
         if (outcome !== undefined) {
-            this.checkEventsAndMarkets (outcome);
+            this.checkEvents (outcome);
         } else {
-            this.checkEventsAndMarkets ();
+            this.checkEvents ();
         }
         const request: Dict = {};
         if (outcome !== undefined) {

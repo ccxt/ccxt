@@ -455,7 +455,7 @@ export default class myriad extends Exchange {
      * @returns {object} a quote object with price, shares, fees and the on-chain calldata
      */
     async fetchTradeQuote (symbol: string, side: string, amount: number, params = {}): Promise<Dict> {
-        this.checkEventsAndMarkets (symbol);
+        this.checkEvents (symbol);
         const outcomeObj = this.outcome (symbol);
         const info = this.safeDict (outcomeObj, 'info', {});
         const networkId = this.safeString (info, 'networkId');
@@ -891,7 +891,7 @@ export default class myriad extends Exchange {
         if (this.privateKey === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a privateKey to sign the on-chain transaction');
         }
-        this.checkEventsAndMarkets (symbol);
+        this.checkEvents (symbol);
         const outcomeObj = this.outcome (symbol);
         const info = this.safeDict (outcomeObj, 'info', {});
         const networkId = this.safeString (info, 'networkId');
