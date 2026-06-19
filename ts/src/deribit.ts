@@ -499,11 +499,11 @@ export default class deribit extends Exchange {
     createExpiredOptionMarket (symbol: string) {
         // support expired option contracts
         let quote = 'USD';
-        let settle = undefined;
+        let settle: Str = undefined;
         const optionParts = symbol.split ('-');
         const symbolBase = symbol.split ('/');
-        let base = undefined;
-        let expiry = undefined;
+        let base: Str = undefined;
+        let expiry: Str = undefined;
         if (symbol.indexOf ('/') > -1) {
             base = this.safeString (symbolBase, 0);
             expiry = this.safeString (optionParts, 1);
@@ -938,8 +938,8 @@ export default class deribit extends Exchange {
                 const option = (kind.indexOf ('option') >= 0);
                 const isComboMarket = kind.indexOf ('combo') >= 0;
                 const expiry = this.safeInteger (market, 'expiration_timestamp');
-                let strike = undefined;
-                let optionType = undefined;
+                let strike: Num = undefined;
+                let optionType: Str = undefined;
                 let symbol = id;
                 let type = 'swap';
                 if (future) {
@@ -1072,7 +1072,7 @@ export default class deribit extends Exchange {
         if (code !== undefined) {
             request['currency'] = this.currencyId (code);
         }
-        let response = undefined;
+        let response: Dict = undefined;
         if (code === undefined) {
             response = await this.privateGetGetAccountSummaries (params);
         } else {
@@ -1371,7 +1371,7 @@ export default class deribit extends Exchange {
             'currency': currency['id'],
         };
         if (type !== undefined) {
-            let requestType = undefined;
+            let requestType: Str = undefined;
             if (type === 'spot') {
                 requestType = 'spot';
             } else if (type === 'future' || (type === 'contract')) {
@@ -1555,7 +1555,7 @@ export default class deribit extends Exchange {
             cost = Precise.stringDiv (amount, priceString);
         }
         const liquidity = this.safeString (trade, 'liquidity');
-        let takerOrMaker = undefined;
+        let takerOrMaker: Str = undefined;
         if (liquidity !== undefined) {
             // M = maker, T = taker, MT = both
             takerOrMaker = (liquidity === 'M') ? 'maker' : 'taker';
@@ -1618,7 +1618,7 @@ export default class deribit extends Exchange {
             params = this.omit (params, [ 'until' ]);
             request['end_timestamp'] = until;
         }
-        let response = undefined;
+        let response: Dict = undefined;
         if ((since === undefined) && !('end_timestamp' in request)) {
             response = await this.publicGetGetLastTradesByInstrument (this.extend (request, params));
         } else {
@@ -2126,7 +2126,7 @@ export default class deribit extends Exchange {
             }
         }
         params = this.omit (params, [ 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly', 'trailingAmount' ]);
-        let response = undefined;
+        let response: Dict = undefined;
         if (this.capitalize (side) === 'Buy') {
             response = await this.privateGetBuy (this.extend (request, params));
         } else {
@@ -2270,7 +2270,7 @@ export default class deribit extends Exchange {
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         const request: Dict = {};
-        let response = undefined;
+        let response: Dict = undefined;
         if (symbol === undefined) {
             response = await this.privateGetCancelAll (this.extend (request, params));
         } else {
@@ -2311,7 +2311,7 @@ export default class deribit extends Exchange {
         await this.loadMarkets ();
         const request: Dict = {};
         let market = undefined;
-        let response = undefined;
+        let response: Dict = undefined;
         if (symbol === undefined) {
             const code = this.codeFromOptions ('fetchOpenOrders', params);
             const currency = this.currency (code);
@@ -2342,7 +2342,7 @@ export default class deribit extends Exchange {
         await this.loadMarkets ();
         const request: Dict = {};
         let market = undefined;
-        let response = undefined;
+        let response: Dict = undefined;
         if (limit !== undefined) {
             request['count'] = limit;
         } else {
@@ -2440,7 +2440,7 @@ export default class deribit extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit; // default 10
         }
-        let response = undefined;
+        let response: Dict = undefined;
         if (symbol === undefined) {
             const code = this.codeFromOptions ('fetchMyTrades', params);
             const currency = this.currency (code);
@@ -3000,7 +3000,7 @@ export default class deribit extends Exchange {
             const transferOptions = this.safeValue (this.options, 'transfer', {});
             method = this.safeString (transferOptions, 'method', 'privateGetSubmitTransferToSubaccount');
         }
-        let response = undefined;
+        let response: Dict = undefined;
         if (method === 'privateGetSubmitTransferToUser') {
             response = await this.privateGetSubmitTransferToUser (this.extend (request, params));
         } else {
