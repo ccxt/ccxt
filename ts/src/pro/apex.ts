@@ -255,7 +255,7 @@ export default class apex extends apexRest {
                 newTopicsCount = newTopicsCount + 1;
             }
         }
-        let message = undefined;
+        let message: Dict = undefined;
         if (newTopicsCount > 0) {
             const request: Dict = {
                 'op': 'subscribe',
@@ -440,7 +440,7 @@ export default class apex extends apexRest {
         const updateType = this.safeString (message, 'type', '');
         const data = this.safeDict (message, 'data', {});
         let symbol: Str = undefined;
-        let parsed = undefined;
+        let parsed: Ticker = undefined;
         if ((updateType === 'snapshot')) {
             parsed = this.parseTicker (data);
             symbol = parsed['symbol'];
@@ -710,7 +710,7 @@ export default class apex extends apexRest {
         const symbols: Dict = {};
         for (let i = 0; i < lists.length; i++) {
             const rawTrade = lists[i];
-            let parsed = undefined;
+            let parsed: Trade = undefined;
             parsed = this.parseWsTrade (rawTrade);
             const symbol = parsed['symbol'];
             symbols[symbol] = true;
@@ -763,7 +763,7 @@ export default class apex extends apexRest {
         const orders = this.orders;
         const symbols: Dict = {};
         for (let i = 0; i < lists.length; i++) {
-            let parsed = undefined;
+            let parsed: Order = undefined;
             parsed = this.parseOrder (lists[i]);
             const symbol = parsed['symbol'];
             symbols[symbol] = true;
