@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import coinexRest from '../coinex.js';
 import { AuthenticationError, BadRequest, RateLimitExceeded, NotSupported, RequestTimeout, ExchangeError, ExchangeNotAvailable, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Balances, Dict, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade, int } from '../base/types.js';
+import type { Balances, Dict, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade, int, NullableList } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -336,7 +336,7 @@ export default class coinex extends coinexRest {
         const isSpot = (updated !== undefined);
         const isSwap = (unrealizedPnl !== undefined);
         let info = undefined;
-        let account = undefined;
+        let account: Str = undefined;
         let rawBalances = [];
         if (isSpot) {
             account = 'spot';
@@ -918,7 +918,7 @@ export default class coinex extends coinexRest {
         params = this.omit (params, [ 'trigger', 'stop' ]);
         let messageHash = 'orders';
         let market: Market = undefined;
-        let marketList = undefined;
+        let marketList: NullableList = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -1187,7 +1187,7 @@ export default class coinex extends coinexRest {
         const isSpot = ('margin_market' in order);
         const defaultType = isSpot ? 'spot' : 'swap';
         market = this.safeMarket (marketId, market, undefined, defaultType);
-        let fee = undefined;
+        let fee: Dict = undefined;
         const feeCost = this.omitZero (this.safeString2 (order, 'fee', 'quote_ccy_fee'));
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (order, 'fee_ccy', market['quote']);
