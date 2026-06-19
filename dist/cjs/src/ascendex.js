@@ -3615,8 +3615,7 @@ class ascendex extends ascendex$1["default"] {
     async fetchOpenInterests(symbols = undefined, params = {}) {
         await this.loadMarkets();
         const request = {};
-        let response = undefined;
-        response = await this.v2PublicGetFuturesPricingData(this.extend(request, params));
+        const response = await this.v2PublicGetFuturesPricingData(this.extend(request, params));
         //
         //    {
         //        code: '0',

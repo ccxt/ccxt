@@ -3616,8 +3616,7 @@ export default class ascendex extends Exchange {
     async fetchOpenInterests(symbols = undefined, params = {}) {
         await this.loadMarkets();
         const request = {};
-        let response = undefined;
-        response = await this.v2PublicGetFuturesPricingData(this.extend(request, params));
+        const response = await this.v2PublicGetFuturesPricingData(this.extend(request, params));
         //
         //    {
         //        code: '0',

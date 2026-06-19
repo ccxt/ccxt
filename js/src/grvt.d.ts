@@ -159,7 +159,7 @@ export default class grvt extends Exchange {
         timestamp: number;
         datetime: string;
     };
-    getSubAccountId(params: any): any;
+    getSubAccountId(params: any): string;
     /**
      * @method
      * @name grvt#fetchBalance

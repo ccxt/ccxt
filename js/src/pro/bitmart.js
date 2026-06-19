@@ -1163,7 +1163,7 @@ export default class bitmart extends bitmartRest {
         else {
             datetime = this.iso8601(timestamp);
         }
-        let takerOrMaker = undefined; // true for public trades
+        let takerOrMaker; // true for public trades
         let side = this.safeString(trade, 'side');
         const buyerMaker = this.safeBool(trade, 'm');
         if (buyerMaker !== undefined) {

@@ -216,7 +216,7 @@ export default class luno extends Exchange {
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
     parseLedgerComment(comment: any): {
         type: string;
-        referenceId: any;
+        referenceId: string;
     };
     parseLedgerEntry(entry: any, currency?: Currency): LedgerEntry;
     /**
