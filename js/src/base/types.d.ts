@@ -39,11 +39,6 @@ export interface MarketMarginModes {
     isolated: boolean;
     cross: boolean;
 }
-export interface Precision {
-    amount: Num;
-    price: Num;
-    cost?: Num;
-}
 export interface MarketInterface {
     id: Str;
     numericId?: Num;
@@ -62,7 +57,6 @@ export interface MarketInterface {
     swap: boolean;
     future: boolean;
     option: boolean;
-    prediction?: boolean;
     contract: boolean;
     settle: Str;
     settleId: Str;
@@ -79,7 +73,11 @@ export interface MarketInterface {
     percentage?: Bool;
     tierBased?: Bool;
     feeSide?: Str;
-    precision: Precision;
+    precision: {
+        amount: Num;
+        price: Num;
+        cost?: Num;
+    };
     marginModes?: MarketMarginModes;
     limits: {
         amount?: MinMax;
@@ -90,127 +88,6 @@ export interface MarketInterface {
     };
     created: Int;
     info: any;
-    outcomes?: PredictionOutcome[];
-}
-export interface PredictionFees {
-    trading?: Num;
-    resolution?: Num;
-}
-export interface PredictionEvent {
-    info: any;
-    id: string;
-    event: string;
-    title?: Str;
-    description?: Str;
-    slug?: Str;
-    category?: Str;
-    tags?: string[];
-    markets: PredictionMarket[];
-    mutuallyExclusive?: Bool;
-    active?: Bool;
-    resolved?: Bool;
-    volume?: Num;
-    liquidity?: Num;
-    created?: Int;
-    createdDatetime?: Str;
-    end?: Int;
-    endDatetime?: Str;
-    image?: Str;
-    url?: Str;
-}
-export interface PredictionMarket {
-    info: any;
-    id: string;
-    market: string;
-    event?: Str;
-    marketType: 'binary' | 'categorical' | 'scalar' | Str;
-    executionModel?: 'clob' | 'amm' | 'parimutuel' | Str;
-    title?: Str;
-    description?: Str;
-    outcomes: PredictionOutcome[];
-    underlying?: Str;
-    floorStrike?: Num;
-    capStrike?: Num;
-    strikeType?: Str;
-    collateral?: Str;
-    active?: Bool;
-    closed?: Bool;
-    resolved?: Bool;
-    resolvedOutcome?: Str;
-    settlementValue?: Num;
-    created?: Int;
-    createdDatetime?: Str;
-    end?: Int;
-    endDatetime?: Str;
-    volume?: Num;
-    liquidity?: Num;
-    openInterest?: Num;
-    tickSize?: Num;
-    limits?: {
-        amount?: MinMax;
-        cost?: MinMax;
-    };
-    fees?: PredictionFees;
-    resolutionSource?: Str;
-    image?: Str;
-}
-export interface PredictionOutcome {
-    info: any;
-    outcome: string;
-    outcomeId?: Str;
-    label?: Str;
-    market?: Str;
-    marketId?: Str;
-    event?: Str;
-    price?: Num;
-    bid?: Num;
-    ask?: Num;
-    active?: Bool;
-    winner?: Bool;
-    settleFraction?: Num;
-    precision?: Precision;
-}
-export interface PredictionOrder extends Order {
-    outcome: string;
-    outcomeId?: Str;
-    label?: Str;
-    market?: Str;
-    event?: Str;
-    trades: PredictionTrade[];
-}
-export interface PredictionTrade extends Trade {
-    outcome: string;
-    outcomeId?: Str;
-    label?: Str;
-    market?: Str;
-    realizedPnl?: Num;
-}
-export interface PredictionPosition extends Position {
-    outcome: string;
-    outcomeId?: Str;
-    label?: Str;
-    market?: Str;
-    event?: Str;
-    oppositeOutcome?: Str;
-    resolved?: Bool;
-    won?: Bool;
-    settleFraction?: Num;
-    payout?: Num;
-}
-export interface PredictionTicker extends Ticker {
-    outcome: string;
-    outcomeId?: Str;
-    label?: Str;
-    market?: Str;
-    event?: Str;
-    openInterest?: Num;
-}
-export interface PredictionOrderBook extends OrderBook {
-    outcome: string;
-    outcomeId?: Str;
-    market?: Str;
-}
-export interface PredictionTickers extends Dictionary<PredictionTicker> {
 }
 export interface Trade {
     info: any;

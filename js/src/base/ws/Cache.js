@@ -159,11 +159,14 @@ class ArrayCacheBySymbolById extends ArrayCache {
     constructor(maxSize = undefined) {
         super(maxSize);
         this.nestedNewUpdatesBySymbol = true;
-        this.keyField = 'symbol'; // the item field used as the first nesting level (overridden by ArrayCacheByOutcomeById)
+        // Object.defineProperty (this, 'hashmap', {
+        //     __proto__: null, // make it invisible
+        //     value: {},
+        //     writable: true,
+        // })
     }
     append(item) {
-        const key = item[this.keyField];
-        const byId = this.hashmap[key] = this.hashmap[key] || {};
+        const byId = this.hashmap[item.symbol] = this.hashmap[item.symbol] || {};
         if (item.id in byId) {
             const reference = byId[item.id];
             if (reference !== item) {
@@ -181,7 +184,7 @@ class ArrayCacheBySymbolById extends ArrayCache {
         }
         if (this.maxSize && (this.length === this.maxSize)) {
             const deleteReference = this.shift();
-            delete this.hashmap[deleteReference[this.keyField]][deleteReference.id];
+            delete this.hashmap[deleteReference.symbol][deleteReference.id];
         }
         this.push(item);
         if (this.clearAllUpdates) {
@@ -190,25 +193,19 @@ class ArrayCacheBySymbolById extends ArrayCache {
             this.allNewUpdates = 0;
             this.newUpdatesBySymbol = {};
         }
-        if (this.newUpdatesBySymbol[key] === undefined) {
-            this.newUpdatesBySymbol[key] = new Set();
+        if (this.newUpdatesBySymbol[item.symbol] === undefined) {
+            this.newUpdatesBySymbol[item.symbol] = new Set();
         }
-        if (this.clearUpdatesBySymbol[key]) {
-            this.clearUpdatesBySymbol[key] = false;
-            this.newUpdatesBySymbol[key].clear();
+        if (this.clearUpdatesBySymbol[item.symbol]) {
+            this.clearUpdatesBySymbol[item.symbol] = false;
+            this.newUpdatesBySymbol[item.symbol].clear();
         }
         // in case an exchange updates the same order id twice
-        const idSet = this.newUpdatesBySymbol[key];
+        const idSet = this.newUpdatesBySymbol[item.symbol];
         const beforeLength = idSet.size;
         idSet.add(item.id);
         const afterLength = idSet.size;
         this.allNewUpdates = (this.allNewUpdates || 0) + (afterLength - beforeLength);
-    }
-}
-class ArrayCacheByOutcomeById extends ArrayCacheBySymbolById {
-    constructor(maxSize = undefined) {
-        super(maxSize);
-        this.keyField = 'outcome';
     }
 }
 class ArrayCacheBySymbolBySide extends ArrayCache {
@@ -260,4 +257,4 @@ class ArrayCacheBySymbolBySide extends ArrayCache {
         this.allNewUpdates = (this.allNewUpdates || 0) + (afterLength - beforeLength);
     }
 }
-export { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheByOutcomeById, ArrayCacheBySymbolBySide, };
+export { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, };
