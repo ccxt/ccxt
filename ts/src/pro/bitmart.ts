@@ -582,7 +582,7 @@ export default class bitmart extends bitmartRest {
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        let market: Market;
+        let market: Market = undefined;
         let messageHash = 'orders';
         if (symbol !== undefined) {
             symbol = this.symbol (symbol);
@@ -630,7 +630,7 @@ export default class bitmart extends bitmartRest {
      */
     async unWatchOrders (symbol: Str = undefined, params = {}): Promise<any> {
         await this.loadMarkets ();
-        let market: Market;
+        let market: Market = undefined;
         let messageHash = 'unsubscribe::orders';
         if (symbol !== undefined) {
             symbol = this.symbol (symbol);

@@ -1668,7 +1668,7 @@ export default class alpaca extends Exchange {
 
     async fetchTransactionsHelper (type, code, since, limit, params) {
         await this.loadMarkets ();
-        let currency: Currency;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }

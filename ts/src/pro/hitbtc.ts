@@ -834,7 +834,7 @@ export default class hitbtc extends hitbtcRest {
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         let marketType: Str;
-        let market: Market;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -1147,7 +1147,7 @@ export default class hitbtc extends hitbtcRest {
      */
     async cancelOrderWs (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
-        let market: Market;
+        let market: Market = undefined;
         let request = {
             'client_order_id': id,
         };
@@ -1181,7 +1181,7 @@ export default class hitbtc extends hitbtcRest {
      */
     async cancelAllOrdersWs (symbol: Str = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        let market: Market;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -1215,7 +1215,7 @@ export default class hitbtc extends hitbtcRest {
      */
     async fetchOpenOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        let market: Market;
+        let market: Market = undefined;
         const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);

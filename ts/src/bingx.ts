@@ -1850,7 +1850,7 @@ export default class bingx extends Exchange {
         const request: Dict = {
             'incomeType': 'FUNDING_FEE',
         };
-        let market: Market;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -2084,7 +2084,7 @@ export default class bingx extends Exchange {
      */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        let market: Market;
+        let market: Market = undefined;
         if (symbols !== undefined) {
             symbols = this.marketSymbols (symbols);
             const firstSymbol = this.safeString (symbols, 0);
@@ -2210,7 +2210,7 @@ export default class bingx extends Exchange {
      */
     async fetchMarkPrices (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        let market: Market;
+        let market: Market = undefined;
         if (symbols !== undefined) {
             symbols = this.marketSymbols (symbols);
             const firstSymbol = this.safeString (symbols, 0);
@@ -2683,7 +2683,7 @@ export default class bingx extends Exchange {
         if (standard) {
             response = await this.contractV1PrivateGetAllPosition (params);
         } else {
-            let market: Market;
+            let market: Market = undefined;
             if (symbols !== undefined) {
                 symbols = this.marketSymbols (symbols);
                 const firstSymbol = this.safeString (symbols, 0);
@@ -3910,7 +3910,7 @@ export default class bingx extends Exchange {
         const isTwapOrder = this.safeBool (params, 'twap', false);
         params = this.omit (params, 'twap');
         let response: Dict;
-        let market: Market;
+        let market: Market = undefined;
         if (isTwapOrder) {
             const twapRequest: Dict = {
                 'mainOrderId': id,
@@ -4087,7 +4087,7 @@ export default class bingx extends Exchange {
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        let market: Market;
+        let market: Market = undefined;
         const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -4388,7 +4388,7 @@ export default class bingx extends Exchange {
         const isTwapOrder = this.safeBool (params, 'twap', false);
         params = this.omit (params, 'twap');
         let response: Dict;
-        let market: Market;
+        let market: Market = undefined;
         if (isTwapOrder) {
             const twapRequest: Dict = {
                 'mainOrderId': id,
@@ -4563,7 +4563,7 @@ export default class bingx extends Exchange {
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         let request: Dict = {};
-        let market: Market;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -4655,7 +4655,7 @@ export default class bingx extends Exchange {
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        let market: Market;
+        let market: Market = undefined;
         const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -4887,7 +4887,7 @@ export default class bingx extends Exchange {
      */
     async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        let market: Market;
+        let market: Market = undefined;
         const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -5140,7 +5140,7 @@ export default class bingx extends Exchange {
     async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
         await this.loadMarkets ();
         let request: Dict = {};
-        let currency: Currency;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -5339,7 +5339,7 @@ export default class bingx extends Exchange {
         await this.loadMarkets ();
         const request: Dict = {
         };
-        let currency: Currency;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['coin'] = currency['id'];
@@ -5386,7 +5386,7 @@ export default class bingx extends Exchange {
         await this.loadMarkets ();
         const request: Dict = {
         };
-        let currency: Currency;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['coin'] = currency['id'];
@@ -6112,7 +6112,7 @@ export default class bingx extends Exchange {
             'autoCloseType': 'LIQUIDATION',
         };
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
-        let market: Market;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];

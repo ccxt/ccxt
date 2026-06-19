@@ -449,7 +449,7 @@ export default class cryptocom extends cryptocomRest {
      */
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        let market: Market;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -801,7 +801,7 @@ export default class cryptocom extends cryptocomRest {
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        let market: Market;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -1179,7 +1179,7 @@ export default class cryptocom extends cryptocomRest {
      */
     async cancelAllOrdersWs (symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        let market: Market;
+        let market: Market = undefined;
         const request: Dict = {
             'method': 'private/cancel-all-orders',
             'params': this.extend ({}, params),
