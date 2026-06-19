@@ -1037,7 +1037,7 @@ export default class weex extends weexRest {
      */
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        let marketType = undefined;
+        let marketType: Str = undefined;
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1073,7 +1073,7 @@ export default class weex extends weexRest {
         if (symbol !== undefined) {
             throw new NotSupported (this.id + ' unWatchMyTrades does not support a symbol argument. Unsubscribing from myTrades is global for all symbols.');
         }
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('unWatchMyTrades', undefined, params);
         const isContract = (marketType !== 'spot');
         const subHash = isContract ? 'myContractTrades' : 'myTrades';
@@ -1245,7 +1245,7 @@ export default class weex extends weexRest {
             market = this.market (symbol);
             symbol = market['symbol'];
         }
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         const isContract = (marketType !== 'spot');
         let messageHash = isContract ? 'contractOrders' : 'orders';
@@ -1275,7 +1275,7 @@ export default class weex extends weexRest {
         if (symbol !== undefined) {
             throw new NotSupported (this.id + ' unWatchOrders does not support a symbol argument. Unsubscribing from orders is global for all symbols.');
         }
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('unWatchOrders', undefined, params);
         const isContract = (marketType !== 'spot');
         const subHash = isContract ? 'contractOrders' : 'orders';
@@ -1530,7 +1530,7 @@ export default class weex extends weexRest {
      */
     async watchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         const isContract = (type !== 'spot');
         const urlType = isContract ? 'contract' : 'spot';
