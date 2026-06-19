@@ -6,7 +6,7 @@ include $root . '/ccxt.php';
 
 date_default_timezone_set('UTC');
 
-$exchange = new \ccxt\bittrex ();
+$exchange = new \ccxt\kucoin ();
 
 $message = null;
 

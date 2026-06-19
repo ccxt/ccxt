@@ -7,7 +7,7 @@ import sys
 
 import ccxt  # noqa: E402
 
-exchange = ccxt.bittrex({
+exchange = ccxt.kucoin({
     "apiKey": "YOUR_API_KEY",
     "secret": "YOUR_API_SECRET",
     "enableRateLimit": True,

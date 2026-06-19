@@ -17,14 +17,13 @@ async function eachRun(exchangeId, symbol) {
 async function main() {
     const streams = {
         'binance': 'BTC/USDT',
-        'bittrex': 'BTC/USDT',
+        'kucoin': 'BTC/USDT',
         'poloniex': 'BTC/USDT',
         'bitfinex': 'BTC/USDT',
         'hitbtc': 'BTC/USDT',
         'upbit': 'BTC/USDT',
-        'coinbasepro': 'BTC/USD',
+        'coinbaseexchange': 'BTC/USD',
         'okx': 'BTC/USDT',
-        'okex': 'BTC/USDT',
         'gate': 'BTC/USDT',
     };
     await Promise.all(Object.keys(streams).map((exchangeId) => eachRun(exchangeId, streams[exchangeId])));

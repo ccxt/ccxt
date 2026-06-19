@@ -25,7 +25,7 @@ function create_exchange($exchange_id, $config) {
     return $exchange;
 }
 
-$exchange1 = create_exchange('bittrex', ['custom_id'=>'mybittrex1']);
+$exchange1 = create_exchange('kucoin', ['custom_id'=>'mykucoin1']);
 print ($exchange1->fetch_trades('BTC/USDT')[0]);
 
 ```

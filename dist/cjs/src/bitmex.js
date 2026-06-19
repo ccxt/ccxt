@@ -715,7 +715,75 @@ class bitmex extends bitmex$1["default"] {
         //        "settledPriceAdjustmentRate": null,
         //        "settledPrice": null,
         //        "timestamp": "2022-01-14T17:49:55.000Z"
-        //    }
+        //    },
+        //
+        //    other kind of markets have extra fields
+        //
+        //    {
+        //     "symbol": "XBTUSD-XBTU26",
+        //     "rootSymbol": "XBT",
+        //     "instrumentID": "3059",
+        //     "state": "Open",
+        //     "typ": "FFMCSX",
+        //     "listing": "2026-06-10T08:00:00.000Z",
+        //     "front": "2026-06-10T08:00:00.000Z",
+        //     "expiry": "2026-09-25T12:00:00.000Z",
+        //     "settle": "2026-09-25T12:00:00.000Z",
+        //     "positionCurrency": "USD",
+        //     "underlying": "XBT",
+        //     "quoteCurrency": "USD",
+        //     "underlyingSymbol": "XBT=",
+        //     "referenceSymbol": "XBTUSD",
+        //     "maxOrderQty": "10000000",
+        //     "minPrice": "-1000000",
+        //     "maxPrice": "1000000",
+        //     "lotSize": "100",
+        //     "tickSize": "0.5",
+        //     "multiplier": "1",
+        //     "settlCurrency": "XBt",
+        //     "underlyingToSettleMultiplier": "-100000000",
+        //     "isQuanto": false,
+        //     "isInverse": false,
+        //     "taxed": true,
+        //     "deleverage": true,
+        //     "makerFee": "0.0005",
+        //     "takerFee": "0.0005",
+        //     "limitDownPrice": null,
+        //     "limitUpPrice": null,
+        //     "prevTotalVolume": "300",
+        //     "totalVolume": "300",
+        //     "volume": "0",
+        //     "volume24h": "200",
+        //     "prevTotalTurnover": "460833",
+        //     "totalTurnover": "460833",
+        //     "turnover": "0",
+        //     "turnover24h": "298516",
+        //     "homeNotional24h": "0",
+        //     "foreignNotional24h": "0",
+        //     "prevPrice24h": "0",
+        //     "vwap": "577.5",
+        //     "highPrice": "577.5",
+        //     "lowPrice": "0",
+        //     "lastPrice": "577.5",
+        //     "lastPriceProtected": "577.5",
+        //     "lastTickDirection": "ZeroPlusTick",
+        //     "lastChangePcnt": "0",
+        //     "bidPrice": "566.5",
+        //     "midPrice": "567.25",
+        //     "askPrice": "568",
+        //     "hasLiquidity": false,
+        //     "openInterest": "0",
+        //     "openValue": "0",
+        //     "instantPnl": false,
+        //     "timestamp": "2026-06-17T05:22:50.000Z",
+        //     "capped": false,
+        //     "closingTimestamp": "2026-06-17T06:00:00.000Z",
+        //     "farLegSymbol": "XBTU26",
+        //     "nearLegSymbol": "XBTUSD",
+        //     "openingTimestamp": "2026-06-17T05:00:00.000Z",
+        //     "pool": "Primary",
+        //     "referencePrice": "65728"
+        //     }
         //  ]
         //
         return this.parseMarkets(response);
@@ -741,7 +809,7 @@ class bitmex extends bitmex$1["default"] {
             type = 'spot';
             spot = true;
         }
-        else if (typ === 'FFCCSX') {
+        else if (typ === 'FFCCSX' || typ === 'FFMCSX') {
             type = 'future';
             future = true;
         }
@@ -775,13 +843,12 @@ class bitmex extends bitmex$1["default"] {
             symbol = base + '/' + quote + ':' + settle;
             if (linear) {
                 const multiplierString = this.safeString2(market, 'underlyingToPositionMultiplier', 'underlyingToSettleMultiplier');
-                contractSize = this.parseNumber(Precise["default"].stringDiv('1', multiplierString));
+                contractSize = Precise["default"].stringAbs(Precise["default"].stringDiv('1', multiplierString));
             }
             else {
-                const multiplierString = Precise["default"].stringAbs(this.safeString(market, 'multiplier'));
-                contractSize = this.parseNumber(multiplierString);
+                contractSize = Precise["default"].stringAbs(this.safeString(market, 'multiplier'));
             }
-            expiryDatetime = this.safeString(market, 'expiry');
+            expiryDatetime = this.safeString2(market, 'expiry', 'closingTimestamp');
             expiry = this.parse8601(expiryDatetime);
             if (expiry !== undefined) {
                 symbol = symbol + '-' + this.yymmdd(expiry);
@@ -825,7 +892,7 @@ class bitmex extends bitmex$1["default"] {
             'quanto': isQuanto,
             'taker': this.safeNumber(market, 'takerFee'),
             'maker': this.safeNumber(market, 'makerFee'),
-            'contractSize': contractSize,
+            'contractSize': this.parseNumber(contractSize),
             'expiry': expiry,
             'expiryDatetime': expiryDatetime,
             'strike': this.safeNumber(market, 'optionStrikePrice'),

@@ -4,7 +4,7 @@ import { CodeSwapHero } from '@/components/code-swap-hero';
 import { InstallCommands } from '@/components/install-commands';
 import { CcxtMark } from '@/components/ccxt-mark';
 import { SiDiscord, SiGithub, SiTelegram } from 'react-icons/si';
-import { basePath, gitConfig } from '@/lib/shared';
+import { appName, basePath, gitConfig } from '@/lib/shared';
 import { i18n } from '@/lib/i18n';
 import homeStrings from '@/lib/i18n-home.json';
 
@@ -13,10 +13,14 @@ export const metadata: Metadata = {
   description:
     'A unified cryptocurrency trading library — one API across 100+ exchanges in JavaScript, Python, PHP, C#, Go and Java. Made for developers and AI agents.',
   openGraph: {
+    type: 'website',
+    siteName: appName,
     title: 'CCXT — Connect to any exchange',
     description: 'One unified crypto trading API across 100+ exchanges — JS, Python, PHP, C#, Go and Java.',
     // basePath-prefixed so the social-card URL resolves under /v2 (Next doesn't add it).
-    images: [`${basePath}/og/home`],
+    // explicit width/height so Telegram/WhatsApp render the large card (they don't fetch
+    // dimensions reliably; without these the preview falls back to a tiny thumbnail or none).
+    images: [{ url: `${basePath}/og/home`, width: 1200, height: 630 }],
   },
 };
 
