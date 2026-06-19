@@ -3857,8 +3857,7 @@ public partial class ascendex : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
-        object response = null;
-        response = await this.v2PublicGetFuturesPricingData(this.extend(request, parameters));
+        object response = await this.v2PublicGetFuturesPricingData(this.extend(request, parameters));
         //
         //    {
         //        code: '0',
