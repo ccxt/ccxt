@@ -378,6 +378,13 @@ class MarketLimits(TypedDict):
     price: Optional[MinMax]
     market: Optional[MinMax]
 
+
+class Precision(TypedDict):
+    amount: Num
+    price: Num
+    cost: Num
+
+
 class MarketInterface(TypedDict):
     info: Dict[str, Any]
     id: Str
@@ -410,7 +417,7 @@ class MarketInterface(TypedDict):
     percentage: bool
     tierBased: bool
     feeSide: Str
-    precision: Any
+    precision: Precision
     limits: MarketLimits
     created: Int
 
@@ -597,53 +604,87 @@ IsolatedBorrowRates = Dict[Str, IsolatedBorrowRate]
 CrossBorrowRates = Dict[Str, CrossBorrowRate]
 LeverageTiers = Dict[Str, List[LeverageTier]]
 
+# Prediction-market structures (ccxt.prediction namespace).
+# Hierarchy: Event -> Market -> Outcome. The Outcome is the tradeable unit; there is
+# no `symbol` field — the handle is `outcome` ("MARKET:LABEL") and the raw exchange id
+# is `outcomeId`. Prices are probabilities 0..1, amounts are shares, costs are collateral.
+class PredictionFees(TypedDict):
+    trading: Num       # per-trade taker/maker rate (fraction, e.g. 0.02 = 2%)
+    resolution: Num    # fee taken from winnings at settlement (fraction)
+
+
 class PredictionOutcome(TypedDict):
-    id: str
-    symbol: str
-    marketSymbol: str
-    marketId: str
-    label: str
-    price: Num
-    active: Bool
     info: Any
+    outcome: str         # unified handle "TRUMP_WIN_2024:YES" — round-trips; ex.outcomes key
+    outcomeId: Str       # raw exchange/on-chain id (token id / ticker / coin)
+    label: Str           # short human name "Yes"
+    market: Str          # parent market handle
+    marketId: Str
+    event: Str
+    price: Num           # probability 0..1
+    bid: Num
+    ask: Num
+    active: Bool
+    winner: Bool         # resolved True (the settleFraction == 1 case)
+    settleFraction: Num  # 0..1 fractional settlement
+    precision: Precision  # outcome-level price/amount precision
 
 
 class PredictionMarket(TypedDict):
-    id: str
-    symbol: str
-    created: Num
-    description: str
-    active: Bool
-    price: Num
     info: Any
+    id: str              # raw exchange market id
+    market: str          # unified handle "TRUMP_WIN_2024"
+    event: Str
+    marketType: Str      # 'binary' | 'categorical' | 'scalar'
+    executionModel: Str  # 'clob' | 'amm' | 'parimutuel'
+    title: Str
+    description: Str
+    outcomes: List[PredictionOutcome]   # 1..N (categorical can be > 2)
+    underlying: Str      # scalar only
+    floorStrike: Num     # scalar only
+    capStrike: Num       # scalar only
+    strikeType: Str      # scalar only
+    collateral: Str      # quote currency symbol (USDC / USD1 / USD / ...)
+    active: Bool
+    closed: Bool
+    resolved: Bool
+    resolvedOutcome: Str       # winning outcome handle
+    settlementValue: Num       # scalar: the realized number
+    created: Int
+    createdDatetime: Str
+    end: Int
+    endDatetime: Str
+    volume: Num
+    liquidity: Num
+    openInterest: Num
+    tickSize: Num
+    limits: MarketLimits
+    fees: PredictionFees
     resolutionSource: Str
     image: Str
-    lastUpdatedAt: Num
-    end: Num
-    endDatetime: Str
-    outcomes: List[PredictionOutcome]
 
 
 class PredictionEvent(TypedDict):
-    id: str
-    symbol: str
-    title: str
-    description: str
-    slug: str
-    markets: List[PredictionMarket]
-    url: str
-    image: Str
-    active: Bool
-    resolved: Bool
+    info: Any
+    id: str              # raw exchange event id
+    event: str           # unified handle "US_ELECTION_2024"
+    title: Str
+    description: Str
+    slug: Str
     category: Str
     tags: List[str]
-    created: Num
-    end: Num
+    markets: List[PredictionMarket]   # grouped markets (does not re-derive outcomes)
+    mutuallyExclusive: Bool    # exactly one market in the event resolves YES
+    active: Bool
+    resolved: Bool
+    volume: Num
+    liquidity: Num
+    created: Int
+    createdDatetime: Str
+    end: Int
     endDatetime: Str
-    createdDatetime: str
-    lastUpdatedAt: Num
-    resolutionSource: Str
-    info: Any
+    image: Str
+    url: str
 
 
 # Native dedicated prediction-market trading types. They inherit their base unified
@@ -690,6 +731,34 @@ class PredictionPosition(Position):
 
 
 PredictionTickers = Dict[str, PredictionTicker]
+
+
+class PredictionOrderBook(OrderBook):
+    outcome: str
+    outcomeId: Str
+    market: Str
+
+
+class PredictionTradingFee(TradingFeeInterface):
+    outcome: str
+    outcomeId: Str
+    market: Str
+
+
+class PredictionOpenInterest(OpenInterest):
+    outcome: str
+    outcomeId: Str
+    market: Str
+
+
+class fetchEventsParams(TypedDict):
+    query: Str
+    limit: Int
+    sort: Literal['volume', 'liquidity', 'newest']
+    status: Literal['active', 'inactive', 'closed', 'all']
+    searchIn: Literal['title', 'description', 'both']
+    eventId: Str
+    slug: Str
 
 
 Market = Optional[MarketInterface]
