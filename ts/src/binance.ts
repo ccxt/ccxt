@@ -6,7 +6,7 @@ import { ed25519 } from '@noble/curves/ed25519.js';
 import Exchange from './abstract/binance.js';
 import { ExchangeError, ArgumentsRequired, OperationFailed, OperationRejected, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet, MarketClosed } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, Leverage, Leverages, Num, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRates, IsolatedBorrowRate, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, Position, ADL, Bool, Fee, MarketType } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, Leverage, Leverages, Num, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRates, IsolatedBorrowRate, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, Position, ADL, Bool, Fee, MarketType, NullableDict, NullableList } from './base/types.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { rsa } from './base/functions/rsa.js';
 import { eddsa } from './base/functions/crypto.js';
@@ -2956,7 +2956,7 @@ export default class binance extends Exchange {
         }
         const results = await Promise.all (promises);
         const responseCurrencies = results[0];
-        let marginablesById = undefined;
+        let marginablesById: NullableDict = undefined;
         if (fetchMargins) {
             const responseMarginables = results[1];
             marginablesById = this.indexBy (responseMarginables, 'assetName');
@@ -3175,7 +3175,7 @@ export default class binance extends Exchange {
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
         const promisesRaw = [];
-        let rawFetchMarkets = undefined;
+        let rawFetchMarkets: NullableList = undefined;
         const defaultTypes = [ 'spot', 'linear', 'inverse' ];
         const fetchMarketsOptions = this.safeDict (this.options, 'fetchMarkets');
         if (fetchMarketsOptions !== undefined) {
@@ -3802,7 +3802,7 @@ export default class binance extends Exchange {
         let isPortfolioMargin: Bool = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchBalance', 'papi', 'portfolioMargin', false);
         let marginMode: Str = undefined;
-        let query = undefined;
+        let query: NullableDict = undefined;
         [ marginMode, query ] = this.handleMarginModeAndParams ('fetchBalance', params);
         query = this.omit (query, 'type');
         let response = undefined;
@@ -12114,7 +12114,7 @@ export default class binance extends Exchange {
                     params['newClientOrderId'] = brokerId + this.uuid22 ();
                 }
             }
-            let query = undefined;
+            let query: Str = undefined;
             // handle batchOrders
             if ((path === 'batchOrders') && ((method === 'POST') || (method === 'PUT'))) {
                 const batchOrders = this.safeList (params, 'batchOrders');
