@@ -22,7 +22,7 @@ import type {
     int,
     Int, Str, Num, Dict,
     Strings,
-    Market, OrderBook, OHLCV,
+    Market, PredictionOrderBook, OHLCV,
     Bool,
     Account,
     PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition,
@@ -1170,7 +1170,7 @@ export default class limitless extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
-    async fetchOrderBook (symbol: Str, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    async fetchOrderBook (symbol: Str, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
         const outcome = symbol;
         await this.loadMarkets ();
         this.checkEventsAndMarkets (outcome);
@@ -1242,7 +1242,7 @@ export default class limitless extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'nonce': undefined,
-        } as unknown as OrderBook;
+        } as unknown as PredictionOrderBook;
     }
 
     /**

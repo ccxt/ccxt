@@ -22,7 +22,7 @@ import { ArrayCache, ArrayCacheByOutcomeById } from '../base/ws/Cache.js';
 import type {
     Int, Str, Num, Dict, int,
     Strings, OrderRequest,
-    Market, OrderBook, OHLCV, TradingFeeInterface,
+    Market, PredictionOrderBook, OHLCV, PredictionTradingFee,
     PredictionEvent, Balances,
     PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition,
 } from '../base/types.js';
@@ -1739,7 +1739,7 @@ export default class myriad extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
      */
-    async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
+    async fetchTradingFee (symbol: string, params = {}): Promise<PredictionTradingFee> {
         const outcome = symbol;
         await this.loadMarkets ();
         this.ensureOutcomesLoaded ();
@@ -1764,6 +1764,8 @@ export default class myriad extends Exchange {
         return {
             'info': response,
             'symbol': this.safeSymbol (undefined, outcomeObj as any),
+            'outcome': this.safeOutcomeSymbol (undefined, outcomeObj as any),
+            'outcomeId': this.safeString (outcomeObj, 'outcomeId'),
             'maker': this.safeNumber (sell, 'fee'),
             'taker': this.safeNumber (buy, 'fee'),
             'percentage': true,
@@ -1904,7 +1906,7 @@ export default class myriad extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
         const outcome = symbol;
         await this.loadMarkets ();
         this.ensureOutcomesLoaded ();
@@ -2044,7 +2046,7 @@ export default class myriad extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'nonce': undefined,
-        } as unknown as OrderBook;
+        } as unknown as PredictionOrderBook;
     }
 
     /**
@@ -2056,7 +2058,7 @@ export default class myriad extends Exchange {
      * @param {string} symbol the unified outcome symbol of the order book
      * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
-    parseWeiOrderBook (response: Dict, symbol: Str): OrderBook {
+    parseWeiOrderBook (response: Dict, symbol: Str): PredictionOrderBook {
         const rawBids = this.safeList (response, 'bids', []) as any[];
         const rawAsks = this.safeList (response, 'asks', []) as any[];
         const bids: any[] = [];
@@ -2081,7 +2083,7 @@ export default class myriad extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'nonce': undefined,
-        } as unknown as OrderBook;
+        } as unknown as PredictionOrderBook;
     }
 
     /**
@@ -2669,7 +2671,7 @@ export default class myriad extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
         await this.loadMarkets ();
         this.ensureOutcomesLoaded ();
         const outcomeObj = this.outcome (symbol);

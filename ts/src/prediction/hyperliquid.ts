@@ -5,7 +5,7 @@ import { Precise } from '../base/Precise.js';
 import { ecdsa } from '../base/functions/crypto.js';
 import type {
     Int, int, Str, Num, Dict,
-    Market, OrderBook, OHLCV,
+    Market, PredictionOrderBook, OHLCV,
     Balances,
     Strings,
     PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition,
@@ -813,7 +813,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
         const outcome = symbol;
         await this.loadMarkets ();
         this.checkEventsAndMarkets (outcome);
@@ -848,7 +848,10 @@ export default class hyperliquid extends Exchange {
             const entry = rawAsks[i];
             asks.push ([ this.safeNumber (entry, 'px'), this.safeNumber (entry, 'sz') ]);
         }
-        return this.parseOrderBook ({ 'bids': bids, 'asks': asks }, this.safeString (outcomeObj, 'symbol', outcome), timestamp);
+        const orderbook = this.parseOrderBook ({ 'bids': bids, 'asks': asks }, this.safeString (outcomeObj, 'symbol', outcome), timestamp);
+        orderbook['outcome'] = this.safeString2 (outcomeObj, 'outcome', 'symbol');
+        orderbook['outcomeId'] = this.safeString (outcomeObj, 'outcomeId');
+        return orderbook as PredictionOrderBook;
     }
 
     /**

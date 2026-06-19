@@ -8,9 +8,9 @@ import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByOutcomeById } from '../base/ws/Cache.js';
 import type {
     Int, Str, Num, Dict,
-    Market, PredictionTickers, OrderBook, OHLCV,
+    Market, PredictionTickers, PredictionOrderBook, OHLCV,
     OrderRequest, Balances,
-    Strings, OpenInterest, TradingFeeInterface,
+    Strings, PredictionOpenInterest, PredictionTradingFee,
     PredictionEvent, PredictionTicker, PredictionOrder, PredictionTrade, PredictionPosition,
 } from '../base/types.js';
 import { ArgumentsRequired, BadRequest, AuthenticationError } from '../../ccxt.js';
@@ -911,7 +911,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
         const outcome = symbol;
         this.checkEventsAndMarkets (outcome);
         const outcomeObj = this.outcome (outcome);
@@ -945,7 +945,7 @@ export default class polymarket extends Exchange {
         orderbook['outcome'] = this.safeString (outcomeObj, 'outcome');
         orderbook['outcomeId'] = this.safeString (outcomeObj, 'outcomeId');
         orderbook['market'] = this.safeString (outcomeObj, 'market');
-        return orderbook;
+        return orderbook as PredictionOrderBook;
     }
 
     /**
@@ -1099,7 +1099,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
      */
-    async fetchOpenInterest (symbol: string, params = {}): Promise<OpenInterest> {
+    async fetchOpenInterest (symbol: string, params = {}): Promise<PredictionOpenInterest> {
         const outcome = symbol;
         this.checkEventsAndMarkets (outcome);
         const outcomeObj = this.outcome (outcome);
@@ -1117,12 +1117,12 @@ export default class polymarket extends Exchange {
         return this.parseOpenInterest (first, outcomeObj as any);
     }
 
-    parseOpenInterest (interest, market: Market = undefined): OpenInterest {
+    parseOpenInterest (interest, market: Market = undefined): PredictionOpenInterest {
         //
         //     { "market": "0x7976b8...92", "value": 4925662.470476 }
         //
         const timestamp = this.milliseconds ();
-        return this.safeOpenInterest ({
+        const openInterest = this.safeOpenInterest ({
             'symbol': this.safeOutcomeSymbol (undefined, market),
             'openInterestAmount': undefined,
             'openInterestValue': this.safeNumber (interest, 'value'),
@@ -1132,6 +1132,9 @@ export default class polymarket extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'info': interest,
         }, market);
+        openInterest['outcome'] = this.safeOutcomeSymbol (undefined, market);
+        openInterest['outcomeId'] = this.safeString (market, 'outcomeId');
+        return openInterest as PredictionOpenInterest;
     }
 
     /**
@@ -1143,7 +1146,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
      */
-    async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
+    async fetchTradingFee (symbol: string, params = {}): Promise<PredictionTradingFee> {
         const outcome = symbol;
         this.checkEventsAndMarkets (outcome);
         const outcomeObj = this.outcome (outcome);
@@ -1158,6 +1161,8 @@ export default class polymarket extends Exchange {
         return {
             'info': response,
             'symbol': this.safeOutcomeSymbol (undefined, outcomeObj as any),
+            'outcome': this.safeOutcomeSymbol (undefined, outcomeObj as any),
+            'outcomeId': this.safeString (outcomeObj, 'outcomeId'),
             'maker': rate,
             'taker': rate,
             'percentage': true,
@@ -2601,7 +2606,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra params (currently unused)
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/#/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: Str, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    async watchOrderBook (symbol: Str, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
         const outcome = symbol;
         await this.loadMarkets ();
         const outcomeObj = this.outcome (outcome);

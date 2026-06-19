@@ -4,8 +4,8 @@ import { Precise } from '../base/Precise.js';
 import { rsa } from '../base/functions/rsa.js';
 import type {
     Int, Str, Num, Dict, Strings,
-    Market, OrderBook, OHLCV,
-    Balances, OpenInterest,
+    Market, PredictionOrderBook, OHLCV,
+    Balances, PredictionOpenInterest,
     PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition,
 } from '../base/types.js';
 
@@ -542,7 +542,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
      */
-    async fetchOpenInterest (symbol: string, params = {}): Promise<OpenInterest> {
+    async fetchOpenInterest (symbol: string, params = {}): Promise<PredictionOpenInterest> {
         const outcome = symbol;
         await this.loadMarkets ();
         this.checkEventsAndMarkets (outcome);
@@ -554,12 +554,12 @@ export default class kalshi extends Exchange {
         return this.parseOpenInterest (raw, outcomeObj as any);
     }
 
-    parseOpenInterest (interest, market: Market = undefined): OpenInterest {
+    parseOpenInterest (interest, market: Market = undefined): PredictionOpenInterest {
         //
         //     { "ticker": "...", "open_interest_fp": "60802.01", ... }   // open interest in contracts
         //
         const timestamp = this.milliseconds ();
-        return this.safeOpenInterest ({
+        const openInterest = this.safeOpenInterest ({
             'symbol': this.safeSymbol (undefined, market),
             'openInterestAmount': this.safeNumber2 (interest, 'open_interest_fp', 'open_interest'),
             'openInterestValue': undefined,
@@ -569,6 +569,9 @@ export default class kalshi extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'info': interest,
         }, market);
+        openInterest['outcome'] = this.safeOutcomeSymbol (undefined, market);
+        openInterest['outcomeId'] = this.safeString (market, 'outcomeId');
+        return openInterest as PredictionOpenInterest;
     }
 
     /**
@@ -784,7 +787,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
-    async fetchOrderBook (symbol: Str, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    async fetchOrderBook (symbol: Str, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
         const outcome = symbol;
         await this.loadMarkets ();
         this.checkEventsAndMarkets (outcome);
@@ -852,7 +855,7 @@ export default class kalshi extends Exchange {
      * @param {object[]} asks array of [price, size] ask levels
      * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
-    sortedOrders (symbol: Str, timestamp: Int, bids: any[], asks: any[]): OrderBook {
+    sortedOrders (symbol: Str, timestamp: Int, bids: any[], asks: any[]): PredictionOrderBook {
         // Sort bids descending, asks ascending, match CCXT OrderBook shape
         bids = this.sortBy (bids, 0, true);
         asks = this.sortBy (asks, 0);
@@ -863,7 +866,7 @@ export default class kalshi extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'nonce': undefined,
-        } as unknown as OrderBook;
+        } as unknown as PredictionOrderBook;
     }
 
     /**
