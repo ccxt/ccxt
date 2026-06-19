@@ -761,7 +761,7 @@ export default class gemini extends Exchange {
         let tickSize: Num = undefined;
         let amountPrecision: Num = undefined;
         let minSize: Num = undefined;
-        let status = undefined;
+        let status: Bool = undefined;
         let swap = false;
         let contractSize: Num = undefined;
         let linear: Bool = undefined;
