@@ -1597,12 +1597,12 @@ export default class ascendex extends Exchange {
             };
         }
         const triggerPrice = this.omitZero (this.safeString (order, 'stopPrice'));
-        let reduceOnly: Bool;
+        let reduceOnly = undefined;
         const execInst = this.safeStringLower (order, 'execInst');
         if (execInst === 'reduceonly') {
             reduceOnly = true;
         }
-        let postOnly: Bool;
+        let postOnly = undefined;
         if (execInst === 'post') {
             postOnly = true;
         }
