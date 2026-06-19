@@ -50,6 +50,7 @@ export default class cryptocom extends cryptocomRest {
                     'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
                 },
                 'watchOrderBook': {
+                    'adjustLimit': true, // to automatically ceil the limit number to the nearest supported value
                     'checksum': true,
                 },
             },
@@ -82,6 +83,7 @@ export default class cryptocom extends cryptocomRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.bookSubscriptionType] The subscription type. Allowed values: SNAPSHOT full snapshot. This is the default if not specified. SNAPSHOT_AND_UPDATE delta updates
      * @param {int} [params.bookUpdateFrequency] Book update interval in ms. Allowed values: 100 for snapshot subscription 10 for delta subscription
+     * @param {boolean} [params.adjustLimit] (default: true) to automatically ceil the limit to the nearest supported value, otherwise you should select one from: 10, 50
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
@@ -113,6 +115,7 @@ export default class cryptocom extends cryptocomRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.bookSubscriptionType] The subscription type. Allowed values: SNAPSHOT full snapshot. This is the default if not specified. SNAPSHOT_AND_UPDATE delta updates
      * @param {int} [params.bookUpdateFrequency] Book update interval in ms. Allowed values: 100 for snapshot subscription 10 for delta subscription
+     * @param {boolean} [params.adjustLimit] (default: true) to automatically ceil the limit to the nearest supported value, otherwise you should select one from: 10, 50
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
@@ -120,8 +123,16 @@ export default class cryptocom extends cryptocomRest {
         symbols = this.marketSymbols (symbols);
         const topics = [];
         const messageHashes = [];
-        if (!limit) {
-            limit = 50;
+        if (limit === undefined) {
+            limit = 50; // max
+        }
+        const supported = [ 10, 50 ];
+        if (!this.inArray (limit, supported)) {
+            if (this.handleOption ('watchOrderBook', 'adjustLimit', false)) {
+                limit = this.findNearestCeiling (supported, limit);
+            } else {
+                throw new ExchangeError (this.id + " watchOrderBook 'limit' argument must be undefined, or one of: " + this.json (supported));
+            }
         }
         const topicParams = this.safeValue (params, 'params');
         if (topicParams === undefined) {
@@ -131,13 +142,16 @@ export default class cryptocom extends cryptocomRest {
         let bookSubscriptionType2 = undefined;
         [ bookSubscriptionType, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE');
         [ bookSubscriptionType2, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'bookSubscriptionType', bookSubscriptionType);
-        params['params']['bookSubscriptionType'] = bookSubscriptionType2;
+        params['params']['book_subscription_type'] = bookSubscriptionType2;
         let bookUpdateFrequency = undefined;
         let bookUpdateFrequency2 = undefined;
         [ bookUpdateFrequency, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'bookUpdateFrequency');
         [ bookUpdateFrequency2, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency);
         if (bookUpdateFrequency2 !== undefined) {
-            params['params']['bookSubscriptionType'] = bookUpdateFrequency2;
+            if ((bookSubscriptionType === 'SNAPSHOT' && bookUpdateFrequency2 !== 500) || (bookSubscriptionType === 'SNAPSHOT_AND_UPDATE' && !this.inArray (bookUpdateFrequency2, [ 10, 100 ]))) {
+                throw new ExchangeError (this.id + ' watchOrderBookForSymbols(): bookUpdateFrequency must be 500 for SNAPSHOT subscription, but for SNAPSHOT_AND_UPDATE subscription - 10 or 100');
+            }
+            params['params']['book_update_frequency'] = bookUpdateFrequency2;
         }
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
