@@ -6,7 +6,7 @@ import Exchange from './abstract/hashkey.js';
 import { AccountNotEnabled, AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ContractUnavailable, DDoSProtection, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidAddress, InvalidNonce, InvalidOrder, NotSupported, OperationFailed, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Account, Balances, Bool, Currencies, Currency, Dict, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, LedgerEntry, FundingRate, FundingRates, DepositAddress, int } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, Dict, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, SubType, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, LedgerEntry, FundingRate, FundingRates, DepositAddress, int } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1036,7 +1036,7 @@ export default class hashkey extends Exchange {
         const status = this.safeString (market, 'status');
         const active = status === 'TRADING';
         let isLinear: Bool = undefined;
-        let subType = undefined;
+        let subType: SubType = undefined;
         const isInverse = this.safeBool (market, 'inverse');
         if (isInverse !== undefined) {
             if (isInverse) {
@@ -1350,7 +1350,7 @@ export default class hashkey extends Exchange {
         }
         let accountId: Str = undefined;
         [ accountId, params ] = this.handleOptionAndParams (params, methodName, 'accountId');
-        let response = undefined;
+        let response: List = undefined;
         if (marketType === 'spot') {
             if (market !== undefined) {
                 request['symbol'] = market['id'];
@@ -1489,7 +1489,7 @@ export default class hashkey extends Exchange {
         if (isBuyer !== undefined) {
             side = isBuyer ? 'buy' : 'sell';
         }
-        let takerOrMaker = undefined;
+        let takerOrMaker: Str = undefined;
         const isMaker = this.safeBoolN (trade, [ 'isMaker', 'isMarker' ]);
         if (isMaker !== undefined) {
             takerOrMaker = isMaker ? 'maker' : 'taker';
@@ -1503,7 +1503,7 @@ export default class hashkey extends Exchange {
         let feeCost = this.safeString (trade, 'commission');
         let feeCurrncyId = this.safeString (trade, 'commissionAsset');
         const feeInfo = this.safeDict (trade, 'fee');
-        let fee = undefined;
+        let fee: Dict = undefined;
         if (feeInfo !== undefined) {
             feeCost = this.safeString (feeInfo, 'fee');
             feeCurrncyId = this.safeString (feeInfo, 'feeCoinId');
@@ -2146,7 +2146,7 @@ export default class hashkey extends Exchange {
         const timestamp = this.safeInteger (transaction, 'time');
         const amount = this.safeNumber (transaction, 'quantity');
         const feeCost = this.safeNumber (transaction, 'fee');
-        let fee = undefined;
+        let fee: Dict = undefined;
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
@@ -2356,12 +2356,12 @@ export default class hashkey extends Exchange {
             request['limit'] = limit;
         }
         request['endTime'] = until;
-        let flowType = undefined;
+        let flowType: Str = undefined;
         [ flowType, params ] = this.handleOptionAndParams (params, methodName, 'flowType');
         if (flowType !== undefined) {
             request['flowType'] = this.encodeFlowType (flowType);
         }
-        let accountType = undefined;
+        let accountType: Str = undefined;
         [ accountType, params ] = this.handleOptionAndParams (params, methodName, 'accountType');
         if (accountType !== undefined) {
             request['accountType'] = this.encodeAccountType (accountType);
@@ -2832,7 +2832,7 @@ export default class hashkey extends Exchange {
         const request: Dict = {
             'orders': ordersRequests,
         };
-        let response = undefined;
+        let response: Dict = undefined;
         if (market['spot']) {
             response = await this.privatePostApiV1SpotBatchOrders (this.extend (request, params));
             //
@@ -2942,7 +2942,7 @@ export default class hashkey extends Exchange {
         }
         let marketType = 'spot';
         [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params, marketType);
-        let response = undefined;
+        let response: Dict = undefined;
         if (marketType === 'spot') {
             response = await this.privateDeleteApiV1SpotOrder (this.extend (request, params));
             //
@@ -3028,7 +3028,7 @@ export default class hashkey extends Exchange {
         if (side !== undefined) {
             request['side'] = side;
         }
-        let response = undefined;
+        let response: Dict = undefined;
         if (market['spot']) {
             response = await this.privateDeleteApiV1SpotOpenOrders (this.extend (request, params));
             //
@@ -3071,7 +3071,7 @@ export default class hashkey extends Exchange {
         }
         let marketType = 'spot';
         [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params, marketType);
-        let response = undefined;
+        let response: Dict = undefined;
         if (marketType === 'spot') {
             response = await this.privateDeleteApiV1SpotCancelOrderByIds (request);
             //
@@ -3122,7 +3122,7 @@ export default class hashkey extends Exchange {
         }
         let marketType = 'spot';
         [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params, marketType);
-        let response = undefined;
+        let response: Dict = undefined;
         if (marketType === 'spot') {
             if (clientOrderId !== undefined) {
                 request['origClientOrderId'] = clientOrderId;
@@ -3256,7 +3256,7 @@ export default class hashkey extends Exchange {
         [ methodName, params ] = this.handleParamString (params, 'methodName', methodName);
         let market: Market = undefined;
         const request: Dict = {};
-        let response = undefined;
+        let response: Dict = undefined;
         let accountId: Str = undefined;
         [ accountId, params ] = this.handleOptionAndParams (params, methodName, 'accountId');
         if (accountId !== undefined) {
@@ -3340,7 +3340,7 @@ export default class hashkey extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response = undefined;
+        let response: Dict = undefined;
         let accountId: Str = undefined;
         [ accountId, params ] = this.handleOptionAndParams (params, methodName, 'accountId');
         if (accountId !== undefined) {
@@ -3440,7 +3440,7 @@ export default class hashkey extends Exchange {
         }
         let marketType = 'spot';
         [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params, marketType);
-        let response = undefined;
+        let response: Dict = undefined;
         if (marketType === 'spot') {
             if (market !== undefined) {
                 request['symbol'] = market['id'];
@@ -4217,7 +4217,7 @@ export default class hashkey extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const methodName = 'fetchTradingFee';
-        let response = undefined;
+        let response: Dict = undefined;
         if (market['spot']) {
             response = await this.fetchTradingFees (params);
             return this.safeDict (response, symbol) as TradingFeeInterface;
