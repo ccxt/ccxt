@@ -751,7 +751,7 @@ export default class backpack extends backpackRest {
         }
         const price = this.safeString (trade, 'p');
         const amount = this.safeString (trade, 'q');
-        let orderId = undefined;
+        let orderId: Str = undefined;
         if (side === 'buy') {
             orderId = this.safeString (trade, 'b');
         } else {
@@ -955,7 +955,7 @@ export default class backpack extends backpackRest {
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -984,7 +984,7 @@ export default class backpack extends backpackRest {
      */
     async unWatchOrders (symbol: Str = undefined, params = {}): Promise<any> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -1084,7 +1084,7 @@ export default class backpack extends backpackRest {
         const amount = this.safeString (order, 'q');
         const cost = this.safeString (order, 'Z');
         const filled = this.safeString (order, 'l');
-        let fee = undefined;
+        let fee: Dict = undefined;
         const feeCurrency = this.safeString (order, 'N');
         if (feeCurrency !== undefined) {
             fee = {
