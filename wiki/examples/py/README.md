@@ -271,6 +271,8 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 
 - [Bitvavo Watch Order Book](./examples/py/bitvavo-watch-order-book.md)
 
+- [📂 Bots](https://github.com/ccxt/ccxt/tree/master/./examples/py/bots)
+
 - [Build Ohlcv Bars](./examples/py/build-ohlcv-bars.md)
 
 - [Build Ohlcv Many Symbols](./examples/py/build-ohlcv-many-symbols.md)
