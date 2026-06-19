@@ -3765,7 +3765,7 @@ export default class htx extends Exchange {
                 const code = this.safeCurrencyCode (currencyId);
                 const account = this.account ();
                 account['free'] = this.safeString (balance, 'available_margin');
-                account['total'] = this.safeString(balance, 'equity');
+                account['total'] = this.safeString (balance, 'equity');
                 result[code] = account;
             }
             result = this.safeBalance (result);
