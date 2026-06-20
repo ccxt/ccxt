@@ -878,7 +878,7 @@ export default class bingx extends Exchange {
         const currencyId = this.safeString (rawCurrency, 'coin');
         const code = this.safeCurrencyCode (currencyId);
         const name = this.safeString (rawCurrency, 'name');
-        const networkList = this.safeList (rawCurrency, 'networkList');
+        const networkList = this.safeList (rawCurrency, 'networkList') as List;
         const networks: Dict = {};
         for (let j = 0; j < networkList.length; j++) {
             const rawNetwork = networkList[j];
@@ -1019,7 +1019,7 @@ export default class bingx extends Exchange {
     }
 
     parseMarket (market: Dict): Market {
-        const id = this.safeString (market, 'symbol');
+        const id = this.safeString (market, 'symbol') as string;
         const symbolParts = id.split ('-');
         const baseId = symbolParts[0];
         const quoteId = symbolParts[1];
@@ -2564,11 +2564,11 @@ export default class bingx extends Exchange {
         //     }
         //
         const result: Dict = { 'info': response };
-        const contractBalances = this.safeList (response, 'data');
+        const contractBalances = this.safeList (response, 'data') as List;
         const firstContractBalances = this.safeDict (contractBalances, 0);
         const isContract = firstContractBalances !== undefined;
         const spotData = this.safeDict (response, 'data', {});
-        const spotBalances = this.safeList2 (spotData, 'balances', 'assets', []);
+        const spotBalances = this.safeList2 (spotData, 'balances', 'assets', []) as List;
         if (isContract) {
             for (let i = 0; i < contractBalances.length; i++) {
                 const balance = contractBalances[i];
@@ -2930,7 +2930,7 @@ export default class bingx extends Exchange {
         //         "totalFunding": "-2.921461693902908"
         //     }
         //
-        let marketId = this.safeString (position, 'symbol', '');
+        let marketId = this.safeString (position, 'symbol', '') as string;
         marketId = marketId.replace ('/', '-'); // standard return different format
         const isolated = this.safeBool (position, 'isolated');
         let marginMode: Str = undefined;
@@ -3035,7 +3035,7 @@ export default class bingx extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
             'type': type,
-            'side': side.toUpperCase (),
+            'side': (side as string).toUpperCase (),
         };
         const isMarketOrder = type === 'MARKET';
         const isSpot = marketType === 'spot';
@@ -3397,7 +3397,7 @@ export default class bingx extends Exchange {
             const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
-        const symbols = this.marketSymbols (marketIds, undefined, false, true, true);
+        const symbols = this.marketSymbols (marketIds, undefined, false, true, true) as string[];
         const symbolsLength = symbols.length;
         const market = this.market (symbols[0]);
         const request: Dict = {};
@@ -3832,7 +3832,7 @@ export default class bingx extends Exchange {
             }
             takeProfitPrice = this.omitZero (this.safeString (takeProfit, 'stopPrice'));
         }
-        const rawType = this.safeStringLower2 (order, 'type', 'o');
+        const rawType = this.safeStringLower2 (order, 'type', 'o') as string;
         const stopPrice = this.omitZero (this.safeString2 (order, 'StopPrice', 'stopPrice'));
         let triggerPrice = stopPrice;
         if (stopPrice !== undefined) {
@@ -4340,10 +4340,10 @@ export default class bingx extends Exchange {
      */
     async cancelAllOrdersAfter (timeout: Int, params = {}) {
         await this.loadMarkets ();
-        const isActive = (timeout > 0);
+        const isActive = ((timeout as number) > 0);
         const request: Dict = {
             'type': (isActive) ? 'ACTIVATE' : 'CLOSE',
-            'timeOut': (isActive) ? (this.parseToInt (timeout / 1000)) : 0,
+            'timeOut': (isActive) ? (this.parseToInt ((timeout as number) / 1000)) : 0,
         };
         let response: Dict;
         let type: Str = undefined;
@@ -5959,7 +5959,7 @@ export default class bingx extends Exchange {
         //
         // currencie structure
         //
-        const networks = this.safeDict (fee, 'networks', {});
+        const networks = this.safeDict (fee, 'networks', {}) as Dict;
         const networkCodes = Object.keys (networks);
         const networksLength = networkCodes.length;
         const result: Dict = {
@@ -6363,7 +6363,7 @@ export default class bingx extends Exchange {
             //
         }
         const data = this.safeDict (response, 'data', {});
-        const success = this.safeList (data, 'success', []);
+        const success = this.safeList (data, 'success', []) as List;
         const positions = [];
         for (let i = 0; i < success.length; i++) {
             const position = this.parsePosition ({ 'positionId': success[i] });
@@ -6812,7 +6812,7 @@ export default class bingx extends Exchange {
         const tiers = [];
         for (let i = 0; i < info.length; i++) {
             const tier = this.safeDict (info, i);
-            const tierString = this.safeString (tier, 'tier');
+            const tierString = this.safeString (tier, 'tier') as string;
             const tierParts = tierString.split (' ');
             const marketId = this.safeString (tier, 'symbol');
             market = this.safeMarket (marketId, market, undefined, 'swap');
