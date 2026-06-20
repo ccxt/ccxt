@@ -74,8 +74,8 @@ export default class bithumb extends bithumbRest {
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         const url = this.urls['api']['ws']['public'];
-        const marketIds = [];
-        const messageHashes = [];
+        const marketIds: any[] = [];
+        const messageHashes: any[] = [];
         symbols = this.marketSymbols (symbols, undefined, false, true, true);
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];

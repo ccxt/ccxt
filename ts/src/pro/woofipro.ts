@@ -290,7 +290,7 @@ export default class woofipro extends woofiproRest {
         const topic = this.safeString (message, 'topic');
         const data = this.safeList (message, 'data', []);
         const timestamp = this.safeInteger (message, 'ts');
-        const result = [];
+        const result: any[] = [];
         for (let i = 0; i < data.length; i++) {
             const marketId = this.safeString (data[i], 'symbol');
             const market = this.safeMarket (marketId);
@@ -343,7 +343,7 @@ export default class woofipro extends woofiproRest {
         const topic = this.safeString (message, 'topic');
         const data = this.safeList (message, 'data', []);
         const timestamp = this.safeInteger (message, 'ts');
-        const result = [];
+        const result: any[] = [];
         for (let i = 0; i < data.length; i++) {
             const ticker = this.parseWsBidAsk (this.extend (data[i], { 'ts': timestamp }));
             this.tickers[ticker['symbol']] = ticker;
@@ -994,7 +994,7 @@ export default class woofipro extends woofiproRest {
      */
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
-        const messageHashes = [];
+        const messageHashes: any[] = [];
         symbols = this.marketSymbols (symbols);
         if (!this.isEmpty (symbols)) {
             for (let i = 0; i < symbols.length; i++) {
@@ -1095,7 +1095,7 @@ export default class woofipro extends woofiproRest {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
         const cache = this.positions;
-        const newPositions = [];
+        const newPositions: any[] = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
             const marketId = this.safeString (rawPosition, 'symbol');

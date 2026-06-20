@@ -1436,7 +1436,7 @@ export default class bullish extends Exchange {
         //         }, ...
         //     ]
         //
-        const rates = [];
+        const rates: any[] = [];
         const result = this.toArray (response);
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];

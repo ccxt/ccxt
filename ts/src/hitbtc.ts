@@ -804,7 +804,7 @@ export default class hitbtc extends Exchange {
         //         },
         //     }
         //
-        const result = [];
+        const result: any[] = [];
         const ids = Object.keys (response);
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
@@ -2928,7 +2928,7 @@ export default class hitbtc extends Exchange {
         //    }
         //
         const contracts = Object.keys (response);
-        const rates = [];
+        const rates: any[] = [];
         for (let i = 0; i < contracts.length; i++) {
             const marketId = contracts[i];
             const marketInner = this.safeMarket (marketId);
@@ -3018,7 +3018,7 @@ export default class hitbtc extends Exchange {
         //         },
         //     ]
         //
-        const result = [];
+        const result: any[] = [];
         for (let i = 0; i < response.length; i++) {
             result.push (this.parsePosition (response[i]));
         }
@@ -3246,7 +3246,7 @@ export default class hitbtc extends Exchange {
         //         }
         //     }
         //
-        const results = [];
+        const results: any[] = [];
         const markets = Object.keys (response);
         for (let i = 0; i < markets.length; i++) {
             const marketId = markets[i];
