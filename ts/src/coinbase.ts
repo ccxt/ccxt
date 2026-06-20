@@ -7,7 +7,7 @@ import { ExchangeError, ArgumentsRequired, AuthenticationError, BadRequest, Inva
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { jwt } from './base/functions/rsa.js';
-import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, Num, Account, Currencies, MarketInterface, Conversion, Dict, NullableDict, int, TradingFees, LedgerEntry, DepositAddress, Position, Bool } from './base/types.js';
+import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, Num, Account, Currencies, MarketInterface, Conversion, Dict, NullableDict, List, NullableList, int, TradingFees, LedgerEntry, DepositAddress, Position, Bool } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -1429,7 +1429,7 @@ export default class coinbase extends Exchange {
     async fetchMarketsV3 (params = {}): Promise<Market[]> {
         let usePrivate = false;
         [ usePrivate, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'usePrivate', false);
-        const spotUnresolvedPromises = [];
+        const spotUnresolvedPromises: List = [];
         if (usePrivate) {
             spotUnresolvedPromises.push (this.v3PrivateGetBrokerageProducts (params));
         } else {
@@ -1507,7 +1507,7 @@ export default class coinbase extends Exchange {
         //    }
         //
         const promises = await Promise.all (spotUnresolvedPromises);
-        let unresolvedContractPromises = [];
+        let unresolvedContractPromises: List = [];
         try {
             unresolvedContractPromises = [
                 this.v3PublicGetBrokerageMarketProducts (this.extend (params, { 'product_type': 'FUTURE' })),
@@ -1516,7 +1516,7 @@ export default class coinbase extends Exchange {
         } catch (e) {
             unresolvedContractPromises = []; // the sync version of ccxt won't have the promise.all line so the request is made here. Some users can't access perpetual products
         }
-        let contractPromises = undefined;
+        let contractPromises: NullableList = undefined;
         try {
             contractPromises = await Promise.all (unresolvedContractPromises); // some users don't have access to contracts
         } catch (e) {
@@ -5133,7 +5133,7 @@ export default class coinbase extends Exchange {
         return this.milliseconds () - this.options['timeDifference'];
     }
 
-    sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = [], method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         const version = api[0];
         const signed = api[1] === 'private';
         const isV3 = version === 'v3';
