@@ -2087,7 +2087,7 @@ export default class bybit extends Exchange {
             } else if (future) {
                 type = 'future';
             }
-            let expiry = undefined;
+            let expiry: any = undefined;
             // some swaps have deliveryTime meaning delisting time
             if (!swap) {
                 expiry = this.omitZero (this.safeString (market, 'deliveryTime'));
@@ -9659,7 +9659,7 @@ export default class bybit extends Exchange {
         return this.safeString (marginModes, marginMode, marginMode);
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = this.implodeHostname (this.urls['api'][api]) + '/' + path;
         if (api === 'public') {
             if (Object.keys (params).length) {
