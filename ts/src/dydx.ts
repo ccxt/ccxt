@@ -695,7 +695,7 @@ export default class dydx extends Exchange {
         //     ]
         // }
         //
-        const rows = this.safeList (response, 'trades', []);
+        const rows: List = this.safeList (response, 'trades', []) as List;
         return this.parseTrades (rows, market, since, limit);
     }
 
@@ -780,7 +780,7 @@ export default class dydx extends Exchange {
         //     ]
         // }
         //
-        const rows = this.safeList (response, 'candles', []);
+        const rows: List = this.safeList (response, 'candles', []) as List;
         return this.parseOHLCVs (rows, market, timeframe, since, limit);
     }
 
@@ -1186,7 +1186,7 @@ export default class dydx extends Exchange {
         //     ]
         // }
         //
-        const rows = this.safeList (response, 'positions', []);
+        const rows: List = this.safeList (response, 'positions', []) as List;
         return this.parsePositions (rows, symbols);
     }
 
@@ -2015,8 +2015,8 @@ export default class dydx extends Exchange {
             currency = this.currency (code);
         }
         const response = await this.fetchTransactionsHelper (code, since, limit, this.extend (params, { 'methodName': 'fetchTransfers' }));
-        const transferIn = this.filterBy (response, 'type', 'TRANSFER_IN');
-        const transferOut = this.filterBy (response, 'type', 'TRANSFER_OUT');
+        const transferIn: List = this.filterBy (response, 'type', 'TRANSFER_IN') as List;
+        const transferOut: List = this.filterBy (response, 'type', 'TRANSFER_OUT') as List;
         const rows = this.arrayConcat (transferIn, transferOut);
         return this.parseTransfers (rows, currency, since, limit);
     }
@@ -2159,7 +2159,7 @@ export default class dydx extends Exchange {
             currency = this.currency (code);
         }
         const response = await this.fetchTransactionsHelper (code, since, limit, this.extend (params, { 'methodName': 'fetchWithdrawals' }));
-        const rows = this.filterBy (response, 'type', 'WITHDRAWAL');
+        const rows: List = this.filterBy (response, 'type', 'WITHDRAWAL') as List;
         return this.parseTransactions (rows, currency, since, limit);
     }
 
@@ -2183,7 +2183,7 @@ export default class dydx extends Exchange {
             currency = this.currency (code);
         }
         const response = await this.fetchTransactionsHelper (code, since, limit, this.extend (params, { 'methodName': 'fetchDeposits' }));
-        const rows = this.filterBy (response, 'type', 'DEPOSIT');
+        const rows: List = this.filterBy (response, 'type', 'DEPOSIT') as List;
         return this.parseTransactions (rows, currency, since, limit);
     }
 
@@ -2207,8 +2207,8 @@ export default class dydx extends Exchange {
             currency = this.currency (code);
         }
         const response = await this.fetchTransactionsHelper (code, since, limit, this.extend (params, { 'methodName': 'fetchDepositsWithdrawals' }));
-        const withdrawals = this.filterBy (response, 'type', 'WITHDRAWAL');
-        const deposits = this.filterBy (response, 'type', 'DEPOSIT');
+        const withdrawals: List = this.filterBy (response, 'type', 'WITHDRAWAL') as List;
+        const deposits: List = this.filterBy (response, 'type', 'DEPOSIT') as List;
         const rows = this.arrayConcat (withdrawals, deposits);
         return this.parseTransactions (rows, currency, since, limit);
     }
