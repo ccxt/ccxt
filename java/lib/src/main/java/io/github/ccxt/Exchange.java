@@ -3562,7 +3562,7 @@ public class Exchange {
      * Always hand-written: TS source has close() above the transpile delimiter.
      */
     @SuppressWarnings("unchecked")
-    public java.util.concurrent.CompletableFuture<Object> close(boolean cleanInstanceData = false) {
+    public java.util.concurrent.CompletableFuture<Object> close(boolean cleanInstanceData) {
         closeWsClients().join();
         // [WS]
         if (cleanInstanceData) {
@@ -3573,6 +3573,10 @@ public class Exchange {
             this.cleanRestData();
         }
         return java.util.concurrent.CompletableFuture.completedFuture(null);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object> close() {
+        return close(false);
     }
 
     @SuppressWarnings("unchecked")
