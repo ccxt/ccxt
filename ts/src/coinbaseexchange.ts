@@ -2105,7 +2105,7 @@ export default class coinbaseexchange extends Exchange {
         } as DepositAddress;
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (method === 'GET') {

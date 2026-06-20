@@ -1344,7 +1344,7 @@ export default class aftermath extends Exchange {
         return undefined;
     }
 
-    sign (path, api = 'public', method = 'POST', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'POST', params = {}, headers = undefined, body = undefined) {
         const url = this.urls['api']['rest'] + '/' + path;
         if (api === 'private') {
             this.checkRequiredCredentials ();

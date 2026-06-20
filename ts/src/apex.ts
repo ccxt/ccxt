@@ -1957,7 +1957,7 @@ export default class apex extends Exchange {
         });
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.implodeHostname (this.urls['api'][api]) + '/' + path;
         headers = {
             'User-Agent': 'apex-CCXT',

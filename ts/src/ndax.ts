@@ -2544,7 +2544,7 @@ export default class ndax extends Exchange {
         return this.milliseconds ();
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (api === 'public') {

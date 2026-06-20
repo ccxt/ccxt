@@ -2977,7 +2977,7 @@ export default class lbank extends Exchange {
         return result;
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let query = this.omit (params, this.extractParams (path));
         let url = this.urls['api']['rest'] + '/' + this.version + '/' + this.implodeParams (path, params);
         // Every spot endpoint ends with ".do"

@@ -2267,7 +2267,7 @@ export default class backpack extends Exchange {
         return this.milliseconds () - this.options['timeDifference'];
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let endpoint = '/' + path;
         let url = this.urls['api'][api];
         const sortedParams = Array.isArray (params) ? params : this.keysort (params);
