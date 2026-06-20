@@ -5,7 +5,7 @@ import Exchange from './abstract/onetrading.js';
 import { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, ArgumentsRequired, OrderNotFound, InsufficientFunds, ExchangeNotAvailable, DDoSProtection, InvalidAddress, InvalidOrder, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, int } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, NullableDict, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -756,8 +756,8 @@ export default class onetrading extends Exchange {
     }
 
     parseFeeTiers (feeTiers, market: Market = undefined) {
-        const takerFees = [];
-        const makerFees = [];
+        const takerFees: List = [];
+        const makerFees: List = [];
         for (let i = 0; i < feeTiers.length; i++) {
             const tier = feeTiers[i];
             const volume = this.safeNumber (tier, 'volume');
@@ -1135,8 +1135,8 @@ export default class onetrading extends Exchange {
         const marketId = this.safeString (trade, 'instrument_code');
         const symbol = this.safeSymbol (marketId, market, '_');
         const feeCostString = this.safeString (feeInfo, 'fee_amount');
-        let takerOrMaker = undefined;
-        let fee = undefined;
+        let takerOrMaker: Str = undefined;
+        let fee: NullableDict = undefined;
         if (feeCostString !== undefined) {
             const feeCurrencyId = this.safeString (feeInfo, 'fee_currency');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
@@ -1594,7 +1594,7 @@ export default class onetrading extends Exchange {
             // 'max_page_size': 100,
             // 'cursor': 'string', // pointer specifying the position from which the next pages should be returned
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['instrument_code'] = market['id'];
@@ -1765,7 +1765,7 @@ export default class onetrading extends Exchange {
         //     }
         //
         const tradeHistory = this.safeValue (response, 'trade_history', []);
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -1792,7 +1792,7 @@ export default class onetrading extends Exchange {
             // 'max_page_size': 100,
             // 'cursor': 'string', // pointer specifying the position from which the next pages should be returned
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['instrument_code'] = market['id'];
