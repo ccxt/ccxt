@@ -572,7 +572,7 @@ export default class mexc extends mexcRest {
         const timeframes = this.safeValue (this.options, 'timeframes', {});
         const timeframeId = this.safeString (timeframes, timeframe);
         const messageHash = 'candles:' + symbol + ':' + timeframe;
-        let ohlcv: any = undefined;
+        let ohlcv = undefined;
         if (market['spot']) {
             const channel = 'spot@public.kline.v3.api.pb@' + market['id'] + '@' + timeframeId;
             ohlcv = await this.watchSpotPublic (channel, messageHash, params);
@@ -764,7 +764,7 @@ export default class mexc extends mexcRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'orderbook:' + symbol;
-        let orderbook: any = undefined;
+        let orderbook = undefined;
         if (market['spot']) {
             let frequency: Str = undefined;
             [ frequency, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'frequency', '100ms');
@@ -967,7 +967,7 @@ export default class mexc extends mexcRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'trades:' + symbol;
-        let trades: any = undefined;
+        let trades = undefined;
         if (market['spot']) {
             const channel = 'spot@public.aggre.deals.v3.api.pb@100ms@' + market['id'];
             trades = await this.watchSpotPublic (channel, messageHash, params);
@@ -1085,7 +1085,7 @@ export default class mexc extends mexcRest {
         }
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
-        let trades: any = undefined;
+        let trades = undefined;
         if (type === 'spot') {
             const channel = 'spot@private.deals.v3.api.pb';
             trades = await this.watchSpotPrivate (channel, messageHash, params);
@@ -1264,7 +1264,7 @@ export default class mexc extends mexcRest {
         }
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
-        let orders: any = undefined;
+        let orders = undefined;
         if (type === 'spot') {
             const channel = 'spot@private.orders.v3.api.pb';
             orders = await this.watchSpotPrivate (channel, messageHash, params);
@@ -2116,7 +2116,7 @@ export default class mexc extends mexcRest {
         }
     }
 
-    ping (client: Client): any {
+    ping (client: Client) {
         return { 'method': 'ping' };
     }
 }

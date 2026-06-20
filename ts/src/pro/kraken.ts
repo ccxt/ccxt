@@ -1223,7 +1223,7 @@ export default class kraken extends krakenRest {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        let fee: any = undefined;
+        let fee = undefined;
         if ('fees' in trade) {
             const fees = this.safeList (trade, 'fees', []);
             const firstFee = this.safeDict (fees, 0, {});
@@ -1579,7 +1579,7 @@ export default class kraken extends krakenRest {
             const requestId = this.safeString2 (message, 'reqid', 'req_id');
             const broad = this.exceptions['ws']['broad'];
             const broadKey = this.findBroadlyMatchedKey (broad, errorMessage);
-            let exception: any = undefined;
+            let exception = undefined;
             if (broadKey === undefined) {
                 exception = new ExchangeError ((errorMessage as string)); // c# requirement to convert the errorMessage to string
             } else {

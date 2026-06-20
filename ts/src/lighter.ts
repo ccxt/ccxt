@@ -472,7 +472,7 @@ export default class lighter extends Exchange {
 
     handleApiKeyIndex (params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue = undefined): any[] {
         let apiKeyIndex: Int = undefined;
-        [ apiKeyIndex, params ] = this.handleOptionAndParams2 (params, methodName1, optionName1, optionName2, defaultValue) as [any, any];
+        [ apiKeyIndex, params ] = this.handleOptionAndParams2 (params, methodName1, optionName1, optionName2, defaultValue);
         if ((apiKeyIndex === undefined) || (apiKeyIndex < 4) || (apiKeyIndex > 254)) {
             // apiKeyIndex = this.randNumber (2);
             apiKeyIndex = 254;
@@ -483,7 +483,7 @@ export default class lighter extends Exchange {
 
     async handleAccountIndex (params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue = undefined): Promise<any[]> {
         let accountIndex: Int = undefined;
-        [ accountIndex, params ] = this.handleOptionAndParams2 (params, methodName1, optionName1, optionName2, defaultValue) as [any, any];
+        [ accountIndex, params ] = this.handleOptionAndParams2 (params, methodName1, optionName1, optionName2, defaultValue);
         if (accountIndex === undefined) {
             let walletAddress = this.walletAddress;
             if (this.privateKey !== undefined) {
@@ -748,7 +748,7 @@ export default class lighter extends Exchange {
         let accountIndex: Int = undefined;
         let orderExpiry: Int = undefined;
         [ apiKeyIndex, params ] = this.handleApiKeyIndex (params, 'createOrder', 'apiKeyIndex', 'api_key_index');
-        [ accountIndex, params ] = this.handleOptionAndParams2 (params, 'createOrder', 'accountIndex', 'account_index') as [any, any];
+        [ accountIndex, params ] = this.handleOptionAndParams2 (params, 'createOrder', 'accountIndex', 'account_index');
         [ nonce, params ] = this.handleOptionAndParams (params, 'createOrder', 'nonce');
         [ orderExpiry, params ] = this.handleOptionAndParams (params, 'createOrder', 'orderExpiry', 0);
         if (nonce !== undefined) {
@@ -2455,7 +2455,7 @@ export default class lighter extends Exchange {
         let accountIndex: Int = undefined;
         [ accountIndex, params ] = await this.handleAccountIndex (params, 'transfer', 'accountIndex', 'account_index');
         let toAccountIndex: Int = undefined;
-        [ toAccountIndex, params ] = this.handleOptionAndParams2 (params, 'transfer', 'toAccountIndex', 'to_account_index', accountIndex) as [any, any];
+        [ toAccountIndex, params ] = this.handleOptionAndParams2 (params, 'transfer', 'toAccountIndex', 'to_account_index', accountIndex);
         const strAccountIndex = this.numberToString (accountIndex) as string;
         const strApiKeyIndex = this.numberToString (apiKeyIndex) as string;
         const signer = await this.loadAccount (this.options['chainId'], this.getLighterPrivateKey (strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params);
@@ -2618,7 +2618,7 @@ export default class lighter extends Exchange {
             return await this.fetchPaginatedCallCursor ('fetchDeposits', code, since, limit, params, 'cursor', 'cursor', undefined, 50) as Transaction[];
         }
         let address: Str = undefined;
-        [ address, params ] = this.handleOptionAndParams2 (params, 'fetchDeposits', 'address', 'l1_address') as [any, any];
+        [ address, params ] = this.handleOptionAndParams2 (params, 'fetchDeposits', 'address', 'l1_address');
         if (address === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDeposits() requires an address parameter');
         }
@@ -2878,7 +2878,7 @@ export default class lighter extends Exchange {
             request['limit'] = Math.min (limit, 100);
         }
         let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams2 (params, 'fetchMyTrades', 'until', 'from') as [any, any];
+        [ until, params ] = this.handleOptionAndParams2 (params, 'fetchMyTrades', 'until', 'from');
         if (until !== undefined) {
             request['from'] = until;
         }
@@ -3015,7 +3015,7 @@ export default class lighter extends Exchange {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
         let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleOptionAndParams2 (params, 'setLeverage', 'marginMode', 'margin_mode') as [any, any];
+        [ marginMode, params ] = this.handleOptionAndParams2 (params, 'setLeverage', 'marginMode', 'margin_mode');
         if (marginMode === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires an marginMode parameter');
         }
@@ -3298,7 +3298,7 @@ export default class lighter extends Exchange {
         };
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url: Str = undefined;
         if (api === 'root') {
             url = this.implodeHostname (this.urls['api']['public']);

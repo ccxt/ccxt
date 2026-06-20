@@ -3271,7 +3271,7 @@ export default class bingx extends Exchange {
         const test = this.safeBool (params, 'test', false);
         params = this.omit (params, 'test');
         const request = this.createOrderRequest (symbol, type, side, amount, price, params);
-        let response: any = undefined;
+        let response = undefined;
         if (market['swap']) {
             if (test) {
                 response = await this.swapV2PrivatePostTradeOrderTest (request);
@@ -3401,7 +3401,7 @@ export default class bingx extends Exchange {
         const symbolsLength = symbols.length;
         const market = this.market (symbols[0]);
         const request: Dict = {};
-        let response: any = undefined;
+        let response = undefined;
         if (market['swap']) {
             if (symbolsLength > 5) {
                 throw new InvalidOrder (this.id + ' createOrders() can not create more than 5 orders at once for swap markets');

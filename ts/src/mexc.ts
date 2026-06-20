@@ -1276,7 +1276,7 @@ export default class mexc extends Exchange {
         // - 'quoteAssetPrecision' & 'baseAssetPrecision' are not currency's real blockchain precision (to view currency's actual individual precision, refer to fetchCurrencies() method).
         //
         const data = this.safeValue (response, 'symbols', []);
-        const result: any[] = [];
+        const result = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
             const id = this.safeString (market, 'symbol');
@@ -1408,7 +1408,7 @@ export default class mexc extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const result: any[] = [];
+        const result = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
             const id = this.safeString (market, 'symbol');
@@ -1950,7 +1950,7 @@ export default class mexc extends Exchange {
             market = this.market (firstSymbol);
         }
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-        let tickers: any = undefined;
+        let tickers = undefined;
         if (isSingularMarket) {
             request['symbol'] = market['id'];
         }
@@ -2229,7 +2229,7 @@ export default class mexc extends Exchange {
             market = this.market (symbols[0]);
         }
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBidsAsks', market, params);
-        let tickers: any = undefined;
+        let tickers = undefined;
         if (marketType === 'spot') {
             tickers = await this.spotPublicGetTickerBookTicker (query);
             //
@@ -2603,7 +2603,7 @@ export default class mexc extends Exchange {
      */
     async createOrders (orders: OrderRequest[], params = {}) {
         await this.loadMarkets ();
-        const ordersRequests: any[] = [];
+        const ordersRequests = [];
         let symbol: Str = undefined;
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
@@ -3781,7 +3781,7 @@ export default class mexc extends Exchange {
         await this.loadMarkets ();
         const response = await this.fetchAccountHelper (marketType, query);
         const data = this.safeValue (response, 'balances', []);
-        const result: any[] = [];
+        const result = [];
         for (let i = 0; i < data.length; i++) {
             const account = data[i];
             const currencyId = this.safeString2 (account, 'asset', 'currency');
@@ -3898,7 +3898,7 @@ export default class mexc extends Exchange {
         //         "tradeEnabled": true
         //     }
         //
-        let wallet: any = undefined;
+        let wallet = undefined;
         if (marketType === 'margin') {
             wallet = this.safeValue (response, 'assets', []);
         } else if (marketType === 'swap') {
@@ -4412,7 +4412,7 @@ export default class mexc extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const resultList = this.safeValue (data, 'resultList', []);
-        const result: any[] = [];
+        const result = [];
         for (let i = 0; i < resultList.length; i++) {
             const entry = resultList[i];
             const timestamp = this.safeInteger (entry, 'settleTime');
@@ -4581,7 +4581,7 @@ export default class mexc extends Exchange {
         //
         const data = this.safeValue (response, 'data');
         const result = this.safeValue (data, 'resultList', []);
-        const rates: any[] = [];
+        const rates = [];
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
             const marketId = this.safeString (entry, 'symbol');
@@ -4708,7 +4708,7 @@ export default class mexc extends Exchange {
         const riskIncrMmr = this.safeString (info, 'riskIncrMmr');
         const riskIncrImr = this.safeString (info, 'riskIncrImr');
         let floor = '0';
-        const tiers: any[] = [];
+        const tiers = [];
         const quoteId = this.safeString (info, 'quoteCoin');
         if (riskIncrVol === '0') {
             return [
@@ -6021,7 +6021,7 @@ export default class mexc extends Exchange {
          */
         const defaultType = this.safeString (this.options, 'defaultType');
         const isMargin = this.safeBool (params, 'margin', false);
-        let marginMode: any = undefined;
+        let marginMode = undefined;
         [ marginMode, params ] = super.handleMarginModeAndParams (methodName, params, defaultValue);
         if ((defaultType === 'margin') || (isMargin === true)) {
             marginMode = 'isolated';
@@ -6152,7 +6152,7 @@ export default class mexc extends Exchange {
         return this.milliseconds () - this.safeInteger (this.options, 'timeDifference', 0);
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const section = this.safeString (api, 0);
         const access = this.safeString (api, 1);
         [ path, params ] = this.resolvePath (path, params);

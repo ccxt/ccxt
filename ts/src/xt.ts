@@ -5082,7 +5082,7 @@ export default class xt extends Exchange {
         return undefined;
     }
 
-    sign (path, api = [], method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const signed = api[0] === 'private';
         const endpoint = api[1];
         const request = '/' + this.implodeParams (path, params);

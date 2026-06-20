@@ -74,8 +74,8 @@ export default class bithumb extends bithumbRest {
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         const url = this.urls['api']['ws']['public'];
-        const marketIds: any[] = [];
-        const messageHashes: any[] = [];
+        const marketIds = [];
+        const messageHashes = [];
         symbols = this.marketSymbols (symbols, undefined, false, true, true) ?? [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
@@ -319,7 +319,7 @@ export default class bithumb extends bithumbRest {
         //    }
         //
         const content = this.safeDict (message, 'content', {});
-        const rawTrades = this.safeList (content, 'list', []) as any[];
+        const rawTrades = this.safeList (content, 'list', []);
         for (let i = 0; i < rawTrades.length; i++) {
             const rawTrade = rawTrades[i];
             const marketId = this.safeString (rawTrade, 'symbol');
@@ -432,7 +432,7 @@ export default class bithumb extends bithumbRest {
         //    }
         //
         const messageHash = 'myAsset';
-        const assets = this.safeList (message, 'assets', []) as any[];
+        const assets = this.safeList (message, 'assets', []);
         if (this.balance === undefined) {
             this.balance = {};
         }

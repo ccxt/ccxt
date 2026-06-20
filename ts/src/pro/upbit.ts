@@ -53,7 +53,7 @@ export default class upbit extends upbitRest {
             client.subscriptions[subscriptionsKey] = {};
         }
         const subscriptions = client.subscriptions[subscriptionsKey];
-        const messageHashes: any[] = [];
+        const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
             const marketId = marketIds[i];
             const symbol = symbols[i];
@@ -390,7 +390,7 @@ export default class upbit extends upbitRest {
         }
         // Build subscription message with all requested private channels
         // Format: [{'ticket': uuid}, {'type': 'myOrder'}, {'type': 'myAsset'}, ...]
-        const requests: any[] = [];
+        const requests = [];
         const channelKeys = Object.keys (subscriptions);
         for (let i = 0; i < channelKeys.length; i++) {
             requests.push (subscriptions[channelKeys[i]]);

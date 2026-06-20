@@ -804,7 +804,7 @@ export default class hitbtc extends Exchange {
         //         },
         //     }
         //
-        const result: any[] = [];
+        const result = [];
         const ids = Object.keys (response);
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
@@ -2928,7 +2928,7 @@ export default class hitbtc extends Exchange {
         //    }
         //
         const contracts = Object.keys (response);
-        const rates: any[] = [];
+        const rates = [];
         for (let i = 0; i < contracts.length; i++) {
             const marketId = contracts[i];
             const marketInner = this.safeMarket (marketId);
@@ -3018,7 +3018,7 @@ export default class hitbtc extends Exchange {
         //         },
         //     ]
         //
-        const result: any[] = [];
+        const result = [];
         for (let i = 0; i < response.length; i++) {
             result.push (this.parsePosition (response[i]));
         }
@@ -3246,7 +3246,7 @@ export default class hitbtc extends Exchange {
         //         }
         //     }
         //
-        const results: any[] = [];
+        const results = [];
         const markets = Object.keys (response);
         for (let i = 0; i < markets.length; i++) {
             const marketId = markets[i];
@@ -3803,7 +3803,7 @@ export default class hitbtc extends Exchange {
         return undefined;
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
         const implodedPath = this.implodeParams (path, params);
         let url = this.urls['api'][api] + '/' + implodedPath;

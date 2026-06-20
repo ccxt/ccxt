@@ -436,7 +436,7 @@ export default class coinmetro extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        const promises: Promise<any>[] = [];
+        const promises = [];
         promises.push (this.publicGetMarkets (params));
         const responses = await Promise.all (promises);
         const response = responses[0];
@@ -905,7 +905,7 @@ export default class coinmetro extends Exchange {
             const priceString = this.safeString (prices, i);
             const price = this.safeNumber (prices, i);
             const volume = this.safeNumber (bidasks, priceString!);
-            (result as any[]).push ([ price, volume ]);
+            (result).push ([ price, volume ]);
         }
         return result;
     }
@@ -1231,7 +1231,7 @@ export default class coinmetro extends Exchange {
         //     }
         //
         const ledgerByCurrencies = this.safeValue (response, 'list', []);
-        const ledger: any[] = [];
+        const ledger = [];
         for (let i = 0; i < ledgerByCurrencies.length; i++) {
             const currencyLedger = ledgerByCurrencies[i];
             const currencyId = this.safeString (currencyLedger, 'currency');

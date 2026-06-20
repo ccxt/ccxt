@@ -763,7 +763,7 @@ export default class bitfinex extends bitfinexRest {
             return;
         }
         const depth = 25; // covers the first 25 bids and asks
-        const stringArray: any[] = [];
+        const stringArray = [];
         const bids = book['bids'];
         const asks = book['asks'];
         const prec = this.safeString (subscription, 'prec', 'P0');
@@ -1298,7 +1298,7 @@ export default class bitfinex extends bitfinexRest {
                 'ws': this.handleBalance,
                 'tu': this.handleMyTrade,
             };
-            let method: any = undefined;
+            let method = undefined;
             if (channelId === '0') {
                 method = this.safeValue (privateMethods, name);
             } else {

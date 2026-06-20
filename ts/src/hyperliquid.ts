@@ -611,7 +611,7 @@ export default class hyperliquid extends Exchange {
                 fetchDexesList.push (dexName);
             }
         }
-        const rawPromises: Promise<any>[] = [];
+        const rawPromises = [];
         for (let i = 0; i < fetchDexesList.length; i++) {
             const request: Dict = {
                 'type': 'metaAndAssetCtxs',
@@ -4887,7 +4887,7 @@ export default class hyperliquid extends Exchange {
         return undefined;
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const url = this.implodeHostname (this.urls['api'][api]) + '/' + path;
         if (method === 'POST') {
             headers = {

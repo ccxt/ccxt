@@ -103,7 +103,7 @@ export default class hollaex extends hollaexRest {
         const timestamp = this.safeString (data, 'timestamp');
         const timestampMs = this.parse8601 (timestamp);
         const snapshot = this.parseOrderBook (data, symbol, timestampMs);
-        let orderbook: any = undefined;
+        let orderbook = undefined;
         if (!(symbol in this.orderbooks)) {
             orderbook = this.orderBook (snapshot);
             this.orderbooks[symbol] = orderbook;

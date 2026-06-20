@@ -79,7 +79,7 @@ export default class p2b extends p2bRest {
             'id': this.milliseconds (),
         };
         const query = this.extend (subscribe, params);
-        return await this.watch (url, messageHash, query, messageHash as any);
+        return await this.watch (url, messageHash, query, messageHash);
     }
 
     /**
@@ -129,7 +129,7 @@ export default class p2b extends p2bRest {
         await this.loadMarkets ();
         const watchTickerOptions = this.safeDict (this.options, 'watchTicker');
         let name = this.safeString (watchTickerOptions, 'name', 'state');  // or price
-        [ name, params ] = this.handleOptionAndParams (params, 'method', 'name', name as any);
+        [ name, params ] = this.handleOptionAndParams (params, 'method', 'name', name);
         const market = this.market (symbol);
         symbol = market['symbol'];
         this.options['tickerSubs'][market['id'] as string] = true; // we need to re-subscribe to all tickers upon watching a new ticker
@@ -155,7 +155,7 @@ export default class p2b extends p2bRest {
         symbols = this.marketSymbols (symbols, undefined, false);
         const watchTickerOptions = this.safeDict (this.options, 'watchTicker');
         let name = this.safeString (watchTickerOptions, 'name', 'state');  // or price
-        [ name, params ] = this.handleOptionAndParams (params, 'method', 'name', name as any);
+        [ name, params ] = this.handleOptionAndParams (params, 'method', 'name', name);
         const messageHashes: string[] = [];
         const args: List = [];
         for (let i = 0; i < symbols!.length; i++) {
@@ -169,8 +169,8 @@ export default class p2b extends p2bRest {
             'params': args,
             'id': this.milliseconds (),
         };
-        await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes as any);
-        return this.filterByArray (this.tickers, 'symbol', symbols as any);
+        await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
     /**
@@ -216,7 +216,7 @@ export default class p2b extends p2bRest {
             'id': this.milliseconds (),
         };
         const query = this.extend (subscribe, params);
-        const trades = await this.watchMultiple (url, messageHashes, query, messageHashes as any);
+        const trades = await this.watchMultiple (url, messageHashes, query, messageHashes);
         if (this.newUpdates) {
             const first = this.safeValue (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
@@ -281,7 +281,7 @@ export default class p2b extends p2bRest {
         const marketId = this.safeString (data, 7);
         const market = this.safeMarket (marketId);
         const timeframes = this.safeDict (this.options, 'timeframes', {});
-        const timeframe = this.findTimeframe (channel, timeframes as any);
+        const timeframe = this.findTimeframe (channel, timeframes);
         const symbol = this.safeString (market, 'symbol');
         const messageHash = channel + '::' + symbol;
         const parsed = this.parseOHLCV (data, market);
@@ -290,7 +290,7 @@ export default class p2b extends p2bRest {
         if (symbol !== undefined) {
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-                stored = new ArrayCacheByTimestamp (limit as any);
+                stored = new ArrayCacheByTimestamp (limit);
                 this.ohlcvs[symbol as string][timeframe as string] = stored;
             }
             stored.append (parsed);
@@ -327,7 +327,7 @@ export default class p2b extends p2bRest {
         let tradesArray = this.safeValue (this.trades, symbol as string);
         if (tradesArray === undefined) {
             const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            tradesArray = new ArrayCache (tradesLimit as any);
+            tradesArray = new ArrayCache (tradesLimit);
             this.trades[symbol as string] = tradesArray;
         }
         for (let i = 0; i < trades!.length; i++) {
@@ -485,7 +485,7 @@ export default class p2b extends p2bRest {
         return false;
     }
 
-    ping (client: Client): any {
+    ping (client: Client) {
         /**
          * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#ping
          * @param client

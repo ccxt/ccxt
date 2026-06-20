@@ -487,7 +487,7 @@ export default class ascendex extends ascendexRest {
         //     (...)
         //
         const channel = this.safeString (message, 'm');
-        let result: any = undefined;
+        let result = undefined;
         let type: Str = undefined;
         if ((channel === 'order') || (channel === 'futures-order')) {
             const data = this.safeValue (message, 'data');

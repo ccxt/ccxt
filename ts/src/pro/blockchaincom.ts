@@ -581,7 +581,7 @@ export default class blockchaincom extends blockchaincomRest {
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const tradeId = this.safeString (order, 'tradeId');
-        const trades: any[] = [];
+        const trades = [];
         if (tradeId !== '0') {
             trades.push ({ 'id': tradeId });
         }

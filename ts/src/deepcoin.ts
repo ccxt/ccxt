@@ -1865,7 +1865,7 @@ export default class deepcoin extends Exchange {
         const data = this.safeList (response, 'data', []) as List;
         const length = data.length;
         if (length === 0) {
-            return undefined as any;
+            return undefined;
         }
         const entry = this.safeDict (data, 0, {}) as Dict;
         return this.parseOrder (entry, market);
@@ -2993,7 +2993,7 @@ export default class deepcoin extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let requestPath = path;
         if (method === 'GET') {
             const query = this.urlencode (params);

@@ -1603,7 +1603,7 @@ export default class bybit extends Exchange {
         return super.safeMarket (marketId, market, delimiter, marketType);
     }
 
-    getBybitType (method, market, params = {}) {
+    getBybitType (method, market, params = {}): [Str, Dict] {
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams (method, market, params);
         let subType: Str = undefined;
@@ -2087,7 +2087,7 @@ export default class bybit extends Exchange {
             } else if (future) {
                 type = 'future';
             }
-            let expiry: any = undefined;
+            let expiry = undefined;
             // some swaps have deliveryTime meaning delisting time
             if (!swap) {
                 expiry = this.omitZero (this.safeString (market, 'deliveryTime'));

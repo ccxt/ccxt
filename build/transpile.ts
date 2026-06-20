@@ -1562,7 +1562,7 @@ class Transpiler {
                 signature = this.regexAll(signature, this.getTypescripSignaturetRemovalRegexes())
             }
 
-            let methodSignatureRegex = /(async |)(\S+)\s\(([^)]*)\)\s*(?::\s+(\S+))?\s*{/ // signature line
+            let methodSignatureRegex = /(async |)(\S+)\s\(([^)]*)\)\s*(?::\s+(.+?))?\s*{/ // signature line, return type captured non-greedily to allow tuples like [Str, Dict]
             let matches = methodSignatureRegex.exec (signature)
 
             if (!matches) {
@@ -1606,6 +1606,8 @@ class Transpiler {
                 promiseReturnTypeMatch = returnType.match (/^Promise<([^>]+)>$/)
                 syncReturnType = promiseReturnTypeMatch ? promiseReturnTypeMatch[1] : returnType
             }
+            // tuple return types like [Str, Dict] map to array/list (no single-token equivalent)
+            const isTupleReturnType = (syncReturnType !== '') && (syncReturnType[0] === '[')
 
             // python helpers
             const pythonTypes: dict = {
@@ -1683,7 +1685,9 @@ class Transpiler {
                 if (returnType) {
                     // promiseReturnTypeMatch = returnType.match (/^Promise<([^>]+)>$/)
                     // syncReturnType = promiseReturnTypeMatch ? promiseReturnTypeMatch[1] : returnType
-                    if (syncReturnType === 'Currencies') {
+                    if (isTupleReturnType) {
+                        syncPhpReturnType = ': array'; // tuples are returned as arrays in PHP
+                    } else if (syncReturnType === 'Currencies') {
                         syncPhpReturnType = ': ?array'; // since for now `fetchCurrencies` returns null or Currencies
                     } else if (syncReturnType.match (phpArrayRegex)) {
                         syncPhpReturnType = ': array'
@@ -1735,7 +1739,9 @@ class Transpiler {
             if (this.buildPython) {
                 // compile the final Python code for the method signature
                 let pythonReturnType = ''
-                if (syncReturnType) {
+                if (isTupleReturnType) {
+                    pythonReturnType = ' -> list'; // tuples are returned as lists in Python
+                } else if (syncReturnType) {
                     pythonReturnType = ' -> ' + unwrapLists (syncReturnType)
                 }
                 let pythonString = 'def ' + method + '(self' + (pythonArgs.length ? ', ' + pythonArgs : '') + ')' + pythonReturnType + ':'

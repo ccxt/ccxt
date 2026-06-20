@@ -6,7 +6,7 @@ import Exchange from './abstract/delta.js';
 import { ExchangeError, InsufficientFunds, BadRequest, BadSymbol, InvalidOrder, AuthenticationError, OrderNotFound, ExchangeNotAvailable, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type{ Balances, Currency, Greeks, Int, Market, MarketInterface, NullableDict, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num, Option, MarginModification, Currencies, Dict, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, ADL } from './base/types.js';
+import type{ Balances, Currency, Greeks, Int, Market, MarketInterface, MarketType, NullableDict, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num, Option, MarginModification, Currencies, Dict, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, ADL } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -922,7 +922,7 @@ export default class delta extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
-                'type': type as any,
+                'type': type as MarketType,
                 'spot': spot,
                 'margin': false,
                 'swap': swap,
@@ -1409,7 +1409,7 @@ export default class delta extends Exchange {
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return this.filterByArrayTickers (result, 'symbol', symbols as any);
+        return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
     /**
@@ -3322,7 +3322,7 @@ export default class delta extends Exchange {
     }
 
     parseSettlements (settlements, market) {
-        const result: any[] = [];
+        const result = [];
         for (let i = 0; i < settlements.length; i++) {
             result.push (this.parseSettlement (settlements[i], market));
         }

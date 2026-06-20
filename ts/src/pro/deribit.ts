@@ -90,7 +90,7 @@ export default class deribit extends deribitRest {
         const messageHash = 'balance';
         const url = this.urls['api']['ws'];
         const currencies = this.safeValue (this.options, 'currencies', []);
-        const channels: any[] = [];
+        const channels = [];
         for (let i = 0; i < currencies.length; i++) {
             const currencyCode = currencies[i];
             channels.push ('user.portfolio.' + currencyCode);
@@ -215,7 +215,7 @@ export default class deribit extends deribitRest {
         if (interval === 'raw') {
             await this.authenticate ();
         }
-        const channels: any[] = [];
+        const channels = [];
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market (symbols[i]);
             channels.push ('ticker.' + market['id'] + '.' + interval);
@@ -291,7 +291,7 @@ export default class deribit extends deribitRest {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
         const url = this.urls['api']['ws'];
-        const channels: any[] = [];
+        const channels = [];
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market (symbols[i]);
             channels.push ('quote.' + market['id']);
@@ -650,8 +650,8 @@ export default class deribit extends deribitRest {
             this.orderbooks[symbol] = this.countedOrderBook ();
         }
         const storedOrderBook = this.orderbooks[symbol];
-        const asks = this.safeList (data, 'asks', []) as any[];
-        const bids = this.safeList (data, 'bids', []) as any[];
+        const asks = this.safeList (data, 'asks', []);
+        const bids = this.safeList (data, 'bids', []);
         this.handleDeltas (storedOrderBook['asks'], asks);
         this.handleDeltas (storedOrderBook['bids'], bids);
         storedOrderBook['nonce'] = timestamp;
@@ -664,13 +664,13 @@ export default class deribit extends deribitRest {
     }
 
     cleanOrderBook (data) {
-        const bids = this.safeList (data, 'bids', []) as any[];
-        const asks = this.safeList (data, 'asks', []) as any[];
-        const cleanedBids: any[] = [];
+        const bids = this.safeList (data, 'bids', []);
+        const asks = this.safeList (data, 'asks', []);
+        const cleanedBids = [];
         for (let i = 0; i < bids.length; i++) {
             cleanedBids.push ([ bids[i][1], bids[i][2] ]);
         }
-        const cleanedAsks: any[] = [];
+        const cleanedAsks = [];
         for (let i = 0; i < asks.length; i++) {
             cleanedAsks.push ([ asks[i][1], asks[i][2] ]);
         }
@@ -776,7 +776,7 @@ export default class deribit extends deribitRest {
         const params = this.safeValue (message, 'params', {});
         const channel = this.safeString (params, 'channel', '');
         const data = this.safeValue (params, 'data', {});
-        let orders: any[] = [];
+        let orders = [];
         if (Array.isArray (data)) {
             orders = this.parseOrders (data);
         } else {
@@ -900,11 +900,11 @@ export default class deribit extends deribitRest {
         ];
     }
 
-    async watchMultipleWrapper (channelName: string, channelDescriptor: Str, symbolsArray: any = undefined, params = {}) {
+    async watchMultipleWrapper (channelName: string, channelDescriptor: Str, symbolsArray = undefined, params = {}) {
         await this.loadMarkets ();
         const url = this.urls['api']['ws'];
-        const rawSubscriptions: any[] = [];
-        const messageHashes: any[] = [];
+        const rawSubscriptions = [];
+        const messageHashes = [];
         const isOHLCV = (channelName === 'chart.trades');
         const symbols = isOHLCV ? this.getListFromObjectValues (symbolsArray, 0) : symbolsArray;
         this.marketSymbols (symbols, undefined, false);

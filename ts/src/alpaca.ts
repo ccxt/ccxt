@@ -598,7 +598,7 @@ export default class alpaca extends Exchange {
             'loc': loc,
         };
         params = this.omit (params, [ 'loc', 'method' ]);
-        let symbolTrades: any = undefined;
+        let symbolTrades = undefined;
         if (method === 'marketPublicGetV1beta3CryptoLocTrades') {
             if (since !== undefined) {
                 request['start'] = this.iso8601 (since);
@@ -739,7 +739,7 @@ export default class alpaca extends Exchange {
             'loc': loc,
         };
         params = this.omit (params, [ 'loc', 'method' ]);
-        let ohlcvs: any = undefined;
+        let ohlcvs = undefined;
         if (method === 'marketPublicGetV1beta3CryptoLocBars') {
             if (limit !== undefined) {
                 request['limit'] = limit;
@@ -925,7 +925,7 @@ export default class alpaca extends Exchange {
         //         }
         //     }
         //
-        const results: any[] = [];
+        const results = [];
         const snapshots = this.safeDict (response, 'snapshots', {});
         const marketIds = Object.keys (snapshots);
         for (let i = 0; i < marketIds.length; i++) {
@@ -1690,7 +1690,7 @@ export default class alpaca extends Exchange {
         //         "fees": "0.1"
         //     }
         //
-        const results: any[] = [];
+        const results = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const direction = this.safeString (entry, 'direction');

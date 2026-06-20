@@ -2194,7 +2194,7 @@ export default class kucoin extends Exchange {
         return true;
     }
 
-    handleHfAndParams (params = {}) {
+    handleHfAndParams (params = {}): [Bool, Dict] {
         const migrated: Bool = this.safeBool (this.options, 'hf', false);
         let loadedHf: Bool = undefined;
         if (migrated !== undefined) {
@@ -5833,7 +5833,7 @@ export default class kucoin extends Exchange {
                 response = await this.privateGetOrdersOrderId (this.extend (request, params));
             }
         }
-        let responseData: any = this.safeDict (response, 'data', {});
+        let responseData = this.safeDict (response, 'data', {});
         if (Array.isArray (responseData)) {
             responseData = this.safeValue (responseData, 0);
         }
@@ -6655,7 +6655,7 @@ export default class kucoin extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        let trades: any = undefined;
+        let trades = undefined;
         if (parseResponseData) {
             trades = data;
         } else {
@@ -7986,7 +7986,7 @@ export default class kucoin extends Exchange {
         //        }
         //    }
         //
-        let data: any = undefined;
+        let data = undefined;
         const result: Dict = {
             'info': response,
             'timestamp': undefined,
@@ -11222,7 +11222,7 @@ export default class kucoin extends Exchange {
         return this.safeBool (this.options, 'uta', false);
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         //
         // the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
         //                                ↑                 ↑

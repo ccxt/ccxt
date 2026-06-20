@@ -516,8 +516,8 @@ export default class bitso extends Exchange {
                 'percentage': true,
                 'tierBased': true,
             };
-            const takerFees: any[] = [];
-            const makerFees: any[] = [];
+            const takerFees = [];
+            const makerFees = [];
             for (let j = 0; j < feeTiers.length; j++) {
                 const tier = feeTiers[j];
                 const volume = this.safeNumber (tier, 'volume');

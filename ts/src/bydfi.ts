@@ -1715,7 +1715,7 @@ export default class bydfi extends Exchange {
 
     handleSinceAndUntil (methodName: string, since: Int = undefined, params = {}): Dict {
         let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams2 (params, methodName, 'until', 'endTime') as [any, any];
+        [ until, params ] = this.handleOptionAndParams2 (params, methodName, 'until', 'endTime');
         const now = this.milliseconds ();
         const sevenDays = 7 * 24 * 60 * 60 * 1000; // the maximum range is 7 days
         let startTime = since;
@@ -2620,7 +2620,7 @@ export default class bydfi extends Exchange {
             'asset': currency['id'],
         };
         let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams2 (params, 'fetchTransfers', 'until', 'endTime') as [any, any];
+        [ until, params ] = this.handleOptionAndParams2 (params, 'fetchTransfers', 'until', 'endTime');
         if (until === undefined) {
             until = this.milliseconds (); // exchange requires endTime
         }
@@ -2756,7 +2756,7 @@ export default class bydfi extends Exchange {
             'asset': currency['id'],
         };
         let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams2 (params, 'fetchTransfers', 'until', 'endTime') as [any, any];
+        [ until, params ] = this.handleOptionAndParams2 (params, 'fetchTransfers', 'until', 'endTime');
         const now = this.milliseconds ();
         const sevenDays = 7 * 24 * 60 * 60 * 1000; // the maximum range is 7 days
         let startTime = since;

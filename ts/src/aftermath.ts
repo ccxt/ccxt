@@ -1031,7 +1031,7 @@ export default class aftermath extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let account: Str = undefined;
-        [ account, params ] = this.handleOptionAndParams2 (params, 'addMargin', 'account', 'accountId') as [any, any];
+        [ account, params ] = this.handleOptionAndParams2 (params, 'addMargin', 'account', 'accountId');
         const txRequest = {
             'accountId': account,
             'chId': market['id'],
@@ -1079,7 +1079,7 @@ export default class aftermath extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let account: Str = undefined;
-        [ account, params ] = this.handleOptionAndParams2 (params, 'reduceMargin', 'account', 'accountId') as [any, any];
+        [ account, params ] = this.handleOptionAndParams2 (params, 'reduceMargin', 'account', 'accountId');
         const txRequest = {
             'accountId': account,
             'chId': market['id'],
@@ -1263,7 +1263,7 @@ export default class aftermath extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let account: Str = undefined;
-        [ account, params ] = this.handleOptionAndParams2 (params, 'setLeverage', 'account', 'accountId') as [any, any];
+        [ account, params ] = this.handleOptionAndParams2 (params, 'setLeverage', 'account', 'accountId');
         const txRequest = {
             'accountId': account,
             'chId': market['id'],
@@ -1344,7 +1344,7 @@ export default class aftermath extends Exchange {
         return undefined;
     }
 
-    sign (path, api = 'public', method = 'POST', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'POST', params = {}, headers = undefined, body = undefined) {
         const url = this.urls['api']['rest'] + '/' + path;
         if (api === 'private') {
             this.checkRequiredCredentials ();

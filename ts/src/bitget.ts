@@ -1874,7 +1874,7 @@ export default class bitget extends Exchange {
         this.setSandboxMode (enabled);
     }
 
-    handleProductTypeAndParams (market: Market = undefined, params = {}) {
+    handleProductTypeAndParams (market: Market = undefined, params = {}): [Str, Dict] {
         let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('handleProductTypeAndParams', undefined, params);
         let defaultProductType: Str = undefined;

@@ -2439,7 +2439,7 @@ export default class dydx extends Exchange {
         throw new ArgumentsRequired (this.id + ' getWalletAddress() requires a wallet address. Set `walletAddress` or `dydxAccount` in exchange options.');
     }
 
-    sign (path, section = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const pathWithParams = this.implodeParams (path, params);
         let url = this.implodeHostname (this.urls['api'][section]);
         params = this.omit (params, this.extractParams (path));

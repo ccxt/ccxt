@@ -990,7 +990,7 @@ export default class bitmart extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const symbols = this.safeList (data, 'symbols', []);
-        const result: any[] = [];
+        const result = [];
         const fees = this.fees['trading'];
         for (let i = 0; i < symbols.length; i++) {
             const market = symbols[i];
@@ -1104,7 +1104,7 @@ export default class bitmart extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const symbols = this.safeList (data, 'symbols', []);
-        const result: any[] = [];
+        const result = [];
         const fees = this.fees['trading'];
         for (let i = 0; i < symbols.length; i++) {
             const market = symbols[i];
@@ -2027,7 +2027,7 @@ export default class bitmart extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []) as any[];
+        const data = this.safeList (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -2317,7 +2317,7 @@ export default class bitmart extends Exchange {
         //         "trace": "4cad855074634097ac6ba5257c47305d.62.16959616054873723"
         //     }
         //
-        const data = this.safeList (response, 'data', []) as any[];
+        const data = this.safeList (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -2340,7 +2340,7 @@ export default class bitmart extends Exchange {
             'orderId': id,
         };
         const response = await this.privatePostSpotV4QueryOrderTrades (this.extend (request, params));
-        const data = this.safeList (response, 'data', []) as any[];
+        const data = this.safeList (response, 'data', []);
         return this.parseTrades (data, undefined, since, limit);
     }
 
@@ -2871,7 +2871,7 @@ export default class bitmart extends Exchange {
      */
     async createOrders (orders: OrderRequest[], params = {}) {
         await this.loadMarkets ();
-        const ordersRequests: any[] = [];
+        const ordersRequests = [];
         let symbol: Str = undefined;
         let market: Market = undefined;
         for (let i = 0; i < orders.length; i++) {
@@ -3338,7 +3338,7 @@ export default class bitmart extends Exchange {
         //  }
         //
         const data = this.safeDict (response, 'data', {});
-        const allOrders: any[] = [];
+        const allOrders = [];
         const successIds = this.safeList (data, 'successIds', []);
         for (let i = 0; i < successIds.length; i++) {
             const id = successIds[i];
@@ -3614,7 +3614,7 @@ export default class bitmart extends Exchange {
         //         "trace": "7f9d94g10f9d4513bc08a7rfc3a5559a.71.16957022303515933"
         //     }
         //
-        const data = this.safeList (response, 'data', []) as any[];
+        const data = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -3684,7 +3684,7 @@ export default class bitmart extends Exchange {
         } else {
             response = await this.privateGetContractPrivateOrderHistory (this.extend (request, params));
         }
-        const data = this.safeList (response, 'data', []) as any[];
+        const data = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -4920,7 +4920,7 @@ export default class bitmart extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const result = this.safeList (data, 'list', []);
-        const rates: any[] = [];
+        const rates = [];
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
             const marketId = this.safeString (entry, 'symbol');
@@ -5034,7 +5034,7 @@ export default class bitmart extends Exchange {
         //         "trace":"4cad855074664097ac5ba5257c47305d.67.16963925142065945"
         //     }
         //
-        const data = this.safeList (response, 'data', []) as any[];
+        const data = this.safeList (response, 'data', []);
         const first = this.safeDict (data, 0, {});
         return this.parsePosition (first, market);
     }
@@ -5094,7 +5094,7 @@ export default class bitmart extends Exchange {
         //     }
         //
         const positions = this.safeList (response, 'data', []);
-        const result: any[] = [];
+        const result = [];
         for (let i = 0; i < positions.length; i++) {
             result.push (this.parsePosition (positions[i]));
         }
@@ -5221,8 +5221,8 @@ export default class bitmart extends Exchange {
         //         "trace": "4cad855074664097ac6ba4257c47305d.71.16965658195443021"
         //     }
         //
-        const data = this.safeList (response, 'data', []) as any[];
-        const result: any[] = [];
+        const data = this.safeList (response, 'data', []);
+        const result = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const checkLiquidation = this.safeString (entry, 'type');
@@ -5442,7 +5442,7 @@ export default class bitmart extends Exchange {
         //         "trace": "4cd11f83c71egfhfgh842790f07241e.23.173442343427772866"
         //     }
         //
-        const data = this.safeList (response, 'data', []) as any[];
+        const data = this.safeList (response, 'data', []);
         return this.parseLedger (data, currency, since, limit);
     }
 
@@ -5560,7 +5560,7 @@ export default class bitmart extends Exchange {
         //         "trace": "4cd11f83c71egfhfgh842790f07241e.23.173442343427772866"
         //     }
         //
-        const data = this.safeList (response, 'data', []) as any[];
+        const data = this.safeList (response, 'data', []);
         return this.parseFundingHistories (data, market, since, limit);
     }
 
@@ -5591,7 +5591,7 @@ export default class bitmart extends Exchange {
     }
 
     parseFundingHistories (contracts, market = undefined, since: Int = undefined, limit: Int = undefined): FundingHistory[] {
-        const result: any[] = [];
+        const result = [];
         for (let i = 0; i < contracts.length; i++) {
             const contract = contracts[i];
             result.push (this.parseFundingHistory (contract, market));
@@ -5632,7 +5632,7 @@ export default class bitmart extends Exchange {
         const data = this.safeDict (response, 'data', {});
         const list = this.safeList (data, 'list', []);
         const allAddresses = this.parseDepositAddresses (list, codes, false);
-        const addresses: any[] = [];
+        const addresses = [];
         for (let i = 0; i < allAddresses.length; i++) {
             const address = allAddresses[i];
             const noteMatch = (note === undefined) || (address['note'] === note);
@@ -5711,7 +5711,7 @@ export default class bitmart extends Exchange {
         return this.milliseconds () - this.options['timeDifference'];
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const parts = path.split ('/');
         // to do: refactor api endpoints with spot/swap sections
         const category = this.safeString (parts, 0, 'spot');

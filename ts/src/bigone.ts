@@ -531,7 +531,7 @@ export default class bigone extends Exchange {
         const code = this.safeCurrencyCode (id);
         const name = this.safeString (rawCurrency, 'name');
         const networks: Dict = {};
-        const chains = this.safeList (rawCurrency, 'binding_gateways', []) as any[];
+        const chains = this.safeList (rawCurrency, 'binding_gateways', []);
         const currencyMaxPrecision = this.parsePrecision (this.safeString2 (rawCurrency, 'withdrawal_scale', 'scale'));
         for (let j = 0; j < chains.length; j++) {
             const chain = chains[j];
@@ -668,8 +668,8 @@ export default class bigone extends Exchange {
         //        ...
         //    ]
         //
-        const markets = this.safeList (response, 'data', []) as any[];
-        const result: any[] = [];
+        const markets = this.safeList (response, 'data', []);
+        const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const baseAsset = this.safeDict (market, 'base_asset', {});
@@ -1099,7 +1099,7 @@ export default class bigone extends Exchange {
 
     parseContractBidsAsks (bidsAsks) {
         const bidsAsksKeys = Object.keys (bidsAsks);
-        const result: any[] = [];
+        const result = [];
         for (let i = 0; i < bidsAsksKeys.length; i++) {
             const price = bidsAsksKeys[i];
             const amount = bidsAsks[price];
@@ -1303,7 +1303,7 @@ export default class bigone extends Exchange {
         //         ]
         //     }
         //
-        const trades = this.safeList (response, 'data', []) as any[];
+        const trades = this.safeList (response, 'data', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -1395,7 +1395,7 @@ export default class bigone extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []) as any[];
+        const data = this.safeList (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
@@ -1405,7 +1405,7 @@ export default class bigone extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        const balances = this.safeList (response, 'data', []) as any[];
+        const balances = this.safeList (response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const symbol = this.safeString (balance, 'asset_symbol');
@@ -1724,9 +1724,9 @@ export default class bigone extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const cancelled = this.safeList (data, 'cancelled', []) as any[];
-        const failed = this.safeList (data, 'failed', []) as any[];
-        const result: any[] = [];
+        const cancelled = this.safeList (data, 'cancelled', []);
+        const failed = this.safeList (data, 'failed', []);
+        const result = [];
         for (let i = 0; i < cancelled.length; i++) {
             const orderId = cancelled[i];
             result.push (this.safeOrder ({
@@ -1812,7 +1812,7 @@ export default class bigone extends Exchange {
         //        "page_token":"dxzef",
         //    }
         //
-        const orders = this.safeList (response, 'data', []) as any[];
+        const orders = this.safeList (response, 'data', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -1875,7 +1875,7 @@ export default class bigone extends Exchange {
         //         "page_token":"dxfv"
         //     }
         //
-        const trades = this.safeList (response, 'data', []) as any[];
+        const trades = this.safeList (response, 'data', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -1929,7 +1929,7 @@ export default class bigone extends Exchange {
         return this.sum (this.microseconds () * 1000, exchangeTimeCorrection);
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
         const baseUrl = this.implodeHostname (this.urls['api'][api]);
         let url = baseUrl + '/' + this.implodeParams (path, params);
@@ -1996,7 +1996,7 @@ export default class bigone extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []) as any[];
+        const data = this.safeList (response, 'data', []);
         const dataLength = data.length;
         if (dataLength < 1) {
             throw new ExchangeError (this.id + ' fetchDepositAddress() returned empty address response');

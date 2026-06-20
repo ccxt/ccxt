@@ -3541,7 +3541,7 @@ export default class extended extends Exchange {
         return undefined;
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const version = this.safeString (api, 0);
         const accessibility = this.safeString (api, 1);
         const endpoint = '/' + this.implodeParams (path, params);

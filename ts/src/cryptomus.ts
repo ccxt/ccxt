@@ -540,7 +540,7 @@ export default class cryptomus extends Exchange {
             'currencyPair': market['id'],
         };
         let level = 0;
-        [ level, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'level', level) as any;
+        [ level, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'level', level);
         request['level'] = level;
         const response = await this.publicGetV1ExchangeMarketOrderBookCurrencyPair (this.extend (request, params));
         //
@@ -718,12 +718,12 @@ export default class cryptomus extends Exchange {
         const amountToString = this.numberToString (amount);
         const priceToString = this.numberToString (price);
         let cost: Str = undefined;
-        [ cost, params ] = this.handleParamString (params, 'cost') as any;
+        [ cost, params ] = this.handleParamString (params, 'cost');
         let response: Dict;
         if (type === 'market') {
             if (sideBuy) {
                 let createMarketBuyOrderRequiresPrice = true;
-                [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true) as any;
+                [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
                 if (createMarketBuyOrderRequiresPrice) {
                     if ((price === undefined) && (cost === undefined)) {
                         throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option of param to false and pass the cost to spend in the amount argument');

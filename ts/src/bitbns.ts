@@ -285,7 +285,7 @@ export default class bitbns extends Exchange {
         //         },
         //     ]
         //
-        const result: any[] = [];
+        const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
             const id = this.safeString (market, 'id');
@@ -1243,7 +1243,7 @@ export default class bitbns extends Exchange {
         return this.milliseconds ();
     }
 
-    sign (path, api = 'www', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'www', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const urls = this.urls as any;
         if (!(api in urls['api'])) {
             throw new ExchangeError (this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');

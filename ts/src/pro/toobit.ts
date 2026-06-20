@@ -70,7 +70,7 @@ export default class toobit extends toobitRest {
         });
     }
 
-    ping (client: Client): any {
+    ping (client: Client) {
         return {
             'ping': this.milliseconds (),
         };

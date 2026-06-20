@@ -298,7 +298,7 @@ export default class mercado extends Exchange {
         //         "LINK"
         //     ]
         //
-        const result: any[] = [];
+        const result = [];
         const amountLimits = this.safeValue (this.options, 'limits', {});
         for (let i = 0; i < response.length; i++) {
             const coin = response[i];
@@ -917,7 +917,7 @@ export default class mercado extends Exchange {
         const response = await this.privatePostListOrders (this.extend (request, params));
         const responseData = this.safeValue (response, 'response_data', {});
         const orders = this.safeList (responseData, 'orders', []);
-        return this.parseOrders (orders as any[], market, since, limit);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     /**
@@ -943,7 +943,7 @@ export default class mercado extends Exchange {
         const response = await this.privatePostListOrders (this.extend (request, params));
         const responseData = this.safeValue (response, 'response_data', {});
         const orders = this.safeList (responseData, 'orders', []);
-        return this.parseOrders (orders as any[], market, since, limit);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     /**
@@ -975,7 +975,7 @@ export default class mercado extends Exchange {
     }
 
     ordersToTrades (orders) {
-        const result: any[] = [];
+        const result = [];
         for (let i = 0; i < orders.length; i++) {
             const trades = this.safeValue (orders[i], 'trades', []);
             for (let y = 0; y < trades.length; y++) {

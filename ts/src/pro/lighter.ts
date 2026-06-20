@@ -351,7 +351,7 @@ export default class lighter extends lighterRest {
         const request: Dict = {
             'channel': 'market_stats/all',
         };
-        const messageHashes: any[] = [];
+        const messageHashes = [];
         let symbolsLength = 0;
         if (symbols !== undefined) {
             symbolsLength = symbols.length;
@@ -532,12 +532,12 @@ export default class lighter extends lighterRest {
         //         "type": "subscribed/trade"
         //     }
         //
-        const liquidationData = this.safeList (message, 'liquidation_trades', []) as any[];
+        const liquidationData = this.safeList (message, 'liquidation_trades', []);
         const liquidationDataLength = liquidationData.length;
         if (liquidationDataLength > 0) {
             this.handleLiquidation (client, message);
         }
-        const data = this.safeList (message, 'trades', []) as any[];
+        const data = this.safeList (message, 'trades', []);
         const channel = this.safeString (message, 'channel', '') as string;
         const parts = channel.split (':');
         const marketId = parts[1];
@@ -729,7 +729,7 @@ export default class lighter extends lighterRest {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket (marketId);
-            const trades = this.safeList (data, marketId, []) as any[];
+            const trades = this.safeList (data, marketId, []);
             const tradesLength = trades.length;
             for (let j = 0; j < tradesLength; j++) {
                 const jReversed = tradesLength - 1 - j;
@@ -892,7 +892,7 @@ export default class lighter extends lighterRest {
         //         "type": "subscribed/trade"
         //     }
         //
-        const data = this.safeList (message, 'liquidation_trades', []) as any[];
+        const data = this.safeList (message, 'liquidation_trades', []);
         const channel = this.safeString (message, 'channel', '') as string;
         const parts = channel.split (':');
         const marketId = parts[1];

@@ -1352,7 +1352,7 @@ export default class okx extends okxRest {
         const seqId = this.safeInteger (message, 'seqId');
         const prevSeqId = this.safeInteger (message, 'prevSeqId');
         const nonce = orderbook['nonce'];
-        let error: any = undefined;
+        let error = undefined;
         if (prevSeqId !== undefined && prevSeqId !== -1 && nonce !== prevSeqId) {
             error = new InvalidNonce (this.id + ' watchOrderBook received invalid nonce');
         }
@@ -1754,7 +1754,7 @@ export default class okx extends okxRest {
             'instType': 'ANY',
         };
         const channel = 'positions';
-        let newPositions: any = undefined;
+        let newPositions = undefined;
         if (symbols === undefined) {
             const arg: Dict = {
                 'channel': 'positions',

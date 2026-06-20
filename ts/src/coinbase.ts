@@ -620,7 +620,7 @@ export default class coinbase extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []) as any[];
+        const data = this.safeList (response, 'data', []);
         const pagination = this.safeDict (response, 'pagination', {});
         const cursor = this.safeString (pagination, 'next_starting_after');
         const accounts = this.safeList (response, 'data', []);
@@ -698,7 +698,7 @@ export default class coinbase extends Exchange {
     async fetchPortfolios (params = {}): Promise<Account[]> {
         const response = await this.v3PrivateGetBrokeragePortfolios (params);
         const portfolios = this.safeList (response, 'portfolios', []);
-        const result: any[] = [];
+        const result = [];
         for (let i = 0; i < portfolios.length; i++) {
             const portfolio = portfolios[i];
             result.push ({
@@ -1357,11 +1357,11 @@ export default class coinbase extends Exchange {
         const response = await this.fetchCurrenciesFromCache (params);
         const currencies = this.safeDict (response, 'currencies', {});
         const exchangeRates = this.safeDict (response, 'exchangeRates', {});
-        const data = this.safeList (currencies, 'data', []) as any[];
+        const data = this.safeList (currencies, 'data', []);
         const dataById = this.indexBy (data, 'id');
         const rates = this.safeDict (this.safeDict (exchangeRates, 'data', {}), 'rates', {});
         const baseIds = Object.keys (rates);
-        const result: any[] = [];
+        const result = [];
         for (let i = 0; i < baseIds.length; i++) {
             const baseId = baseIds[i];
             const base = this.safeCurrencyCode (baseId);
@@ -1550,8 +1550,8 @@ export default class coinbase extends Exchange {
         const feeTier = this.safeDict (fees, 'fee_tier', {});
         const expiringFeeTier = this.safeDict (expiringFees, 'fee_tier', {}); // fee tier null?
         const perpetualFeeTier = this.safeDict (perpetualFees, 'fee_tier', {}); // fee tier null?
-        const data = this.safeList (spot, 'products', []) as any[];
-        const result: any[] = [];
+        const data = this.safeList (spot, 'products', []);
+        const result = [];
         for (let i = 0; i < data.length; i++) {
             result.push (this.parseSpotMarket (data[i], feeTier));
         }
@@ -1563,7 +1563,7 @@ export default class coinbase extends Exchange {
         for (let i = 0; i < perpetualData.length; i++) {
             result.push (this.parseContractMarket (perpetualData[i], perpetualFeeTier));
         }
-        const newMarkets: any[] = [];
+        const newMarkets = [];
         for (let i = 0; i < result.length; i++) {
             const market = result[i];
             const info = this.safeValue (market, 'info', {});
@@ -2142,7 +2142,7 @@ export default class coinbase extends Exchange {
         //         "num_products": 549
         //     }
         //
-        const data = this.safeList (response, 'products', []) as any[];
+        const data = this.safeList (response, 'products', []);
         const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
@@ -2236,7 +2236,7 @@ export default class coinbase extends Exchange {
         //         "best_ask": "28208.62"
         //     }
         //
-        const data = this.safeList (response, 'trades', []) as any[];
+        const data = this.safeList (response, 'trades', []);
         const first = this.safeDict (data, 0, {});
         const ticker = this.parseTicker (first, market);
         ticker['bid'] = this.safeNumber (response, 'best_bid');
@@ -4293,7 +4293,7 @@ export default class coinbase extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeList (response, 'data', []) as any[];
+        const data = this.safeList (response, 'data', []);
         const addressStructures = this.parseDepositAddresses (data, undefined, false);
         return this.indexBy (addressStructures, 'network') as DepositAddress[];
     }
@@ -4592,7 +4592,7 @@ export default class coinbase extends Exchange {
     }
 
     parseDepositMethodIds (ids, params = {}) {
-        const result: any[] = [];
+        const result = [];
         for (let i = 0; i < ids.length; i++) {
             const id = this.extend (this.parseDepositMethodId (ids[i]), params);
             result.push (id);
@@ -5045,7 +5045,7 @@ export default class coinbase extends Exchange {
         const portfolioName = this.safeString (portfolioInfo, 'name', 'Unknown');
         const portfolioUuid = this.safeString (portfolioInfo, 'uuid', '');
         const spotPositions = this.safeList (breakdown, 'spot_positions', []);
-        const parsedPositions: any[] = [];
+        const parsedPositions = [];
         for (let i = 0; i < spotPositions.length; i++) {
             const position: Dict = spotPositions[i];
             const currencyCode = this.safeString (position, 'asset', 'Unknown');
@@ -5133,7 +5133,7 @@ export default class coinbase extends Exchange {
         return this.milliseconds () - this.options['timeDifference'];
     }
 
-    sign (path, api = [], method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const version = api[0];
         const signed = api[1] === 'private';
         const isV3 = version === 'v3';
@@ -5319,7 +5319,7 @@ export default class coinbase extends Exchange {
         await this.loadMarkets ();
         const request = this.prepareAccountRequest (undefined, params);
         const response = await this.v2PrivateGetAccountsAccountIdAddresses (this.extend (request, params));
-        const data = this.safeList (response, 'data', []) as any[];
+        const data = this.safeList (response, 'data', []);
         return this.parseDepositAddresses (data, codes, false, {});
     }
 }

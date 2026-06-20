@@ -106,7 +106,7 @@ export default class bingx extends bingxRest {
         let subType: Str = undefined;
         let url: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params);
-        [ subType, params ] = (this.handleSubTypeAndParams as any) (methodName, market, params, 'linear');
+        [ subType, params ] = (this.handleSubTypeAndParams) (methodName, market, params, 'linear');
         if (marketType === 'swap') {
             url = this.safeString (this.urls['api']['ws'], subType);
         } else {
@@ -156,7 +156,7 @@ export default class bingx extends bingxRest {
         let subType: Str = undefined;
         let url: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchTicker', market, params);
-        [ subType, params ] = (this.handleSubTypeAndParams as any) ('watchTicker', market, params, 'linear');
+        [ subType, params ] = (this.handleSubTypeAndParams) ('watchTicker', market, params, 'linear');
         if (marketType === 'swap') {
             url = this.safeString (this.urls['api']['ws'], subType);
         } else {
@@ -369,7 +369,7 @@ export default class bingx extends bingxRest {
         let subType: Str = undefined;
         let url: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchTrades', market, params);
-        [ subType, params ] = (this.handleSubTypeAndParams as any) ('watchTrades', market, params, 'linear');
+        [ subType, params ] = (this.handleSubTypeAndParams) ('watchTrades', market, params, 'linear');
         if (marketType === 'swap') {
             url = this.safeString (this.urls['api']['ws'], subType);
         } else {
@@ -552,7 +552,7 @@ export default class bingx extends bingxRest {
         let subType: Str = undefined;
         let url: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchOrderBook', market, params);
-        [ subType, params ] = (this.handleSubTypeAndParams as any) ('watchOrderBook', market, params, 'linear');
+        [ subType, params ] = (this.handleSubTypeAndParams) ('watchOrderBook', market, params, 'linear');
         if (marketType === 'swap') {
             url = this.safeString (this.urls['api']['ws'], subType);
         } else {
@@ -892,7 +892,7 @@ export default class bingx extends bingxRest {
         let subType: Str = undefined;
         let url: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchOHLCV', market, params);
-        [ subType, params ] = (this.handleSubTypeAndParams as any) ('watchOHLCV', market, params, 'linear');
+        [ subType, params ] = (this.handleSubTypeAndParams) ('watchOHLCV', market, params, 'linear');
         if (marketType === 'swap') {
             url = this.safeString (this.urls['api']['ws'], subType);
         } else {
@@ -979,7 +979,7 @@ export default class bingx extends bingxRest {
             symbol = market['symbol'];
         }
         [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
-        [ subType, params ] = (this.handleSubTypeAndParams as any) ('watchOrders', market, params, 'linear');
+        [ subType, params ] = (this.handleSubTypeAndParams) ('watchOrders', market, params, 'linear');
         const isSpot = (type === 'spot');
         const spotHash = 'spot:private';
         const swapHash = 'swap:private';
@@ -992,7 +992,7 @@ export default class bingx extends bingxRest {
         }
         const uuid = this.uuid ();
         let baseUrl: Str = undefined;
-        let request: any = undefined;
+        let request = undefined;
         if (type === 'swap') {
             if (subType === 'inverse') {
                 throw new NotSupported (this.id + ' watchOrders is not supported for inverse swap markets yet');
@@ -1042,7 +1042,7 @@ export default class bingx extends bingxRest {
             symbol = market['symbol'];
         }
         [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
-        [ subType, params ] = (this.handleSubTypeAndParams as any) ('watchMyTrades', market, params, 'linear');
+        [ subType, params ] = (this.handleSubTypeAndParams) ('watchMyTrades', market, params, 'linear');
         const isSpot = (type === 'spot');
         const spotHash = 'spot:private';
         const swapHash = 'swap:private';
@@ -1055,7 +1055,7 @@ export default class bingx extends bingxRest {
         }
         const uuid = this.uuid ();
         let baseUrl: Str = undefined;
-        let request: any = undefined;
+        let request = undefined;
         if (type === 'swap') {
             if (subType === 'inverse') {
                 throw new NotSupported (this.id + ' watchMyTrades is not supported for inverse swap markets yet');
@@ -1097,7 +1097,7 @@ export default class bingx extends bingxRest {
         let type: Str = undefined;
         let subType: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
-        [ subType, params ] = (this.handleSubTypeAndParams as any) ('watchBalance', undefined, params, 'linear');
+        [ subType, params ] = (this.handleSubTypeAndParams) ('watchBalance', undefined, params, 'linear');
         const isSpot = (type === 'spot');
         const spotSubHash = 'spot:balance';
         const swapSubHash = 'swap:private';
@@ -1105,7 +1105,7 @@ export default class bingx extends bingxRest {
         const swapMessageHash = 'swap:balance';
         const messageHash = isSpot ? spotMessageHash : swapMessageHash;
         const subscriptionHash = isSpot ? spotSubHash : swapSubHash;
-        let request: any = undefined;
+        let request = undefined;
         let baseUrl: Str = undefined;
         const uuid = this.uuid ();
         if (type === 'swap') {
@@ -1188,7 +1188,7 @@ export default class bingx extends bingxRest {
         let type: Str = undefined;
         let subType: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchPositions', market, params, 'swap');
-        [ subType, params ] = (this.handleSubTypeAndParams as any) ('watchPositions', market, params, 'linear');
+        [ subType, params ] = (this.handleSubTypeAndParams) ('watchPositions', market, params, 'linear');
         if (type === 'spot') {
             throw new NotSupported (this.id + ' watchPositions is not supported for spot markets');
         }

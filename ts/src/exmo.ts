@@ -1089,7 +1089,7 @@ export default class exmo extends Exchange {
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
         let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBalance', params) as any;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBalance', params);
         if (marginMode === 'cross') {
             throw new BadRequest (this.id + ' does not support cross margin');
         }
@@ -1443,7 +1443,7 @@ export default class exmo extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
         let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params) as any;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
         if (marginMode === 'cross') {
             throw new BadRequest (this.id + ' only isolated margin is supported');
         }
@@ -1598,7 +1598,7 @@ export default class exmo extends Exchange {
         const market = this.market (symbol);
         const isMarket = (type === 'market') && (price === undefined);
         let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params) as any;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
         if (marginMode === 'cross') {
             throw new BadRequest (this.id + ' only supports isolated margin');
         }
@@ -1710,7 +1710,7 @@ export default class exmo extends Exchange {
         const trigger = this.safeValue2 (params, 'trigger', 'stop');
         params = this.omit (params, [ 'trigger', 'stop' ]);
         let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('cancelOrder', params) as any;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('cancelOrder', params);
         if (marginMode === 'cross') {
             throw new BadRequest (this.id + ' only supports isolated margin');
         }
@@ -1800,7 +1800,7 @@ export default class exmo extends Exchange {
      */
     async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrderTrades', params) as any;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrderTrades', params);
         if (marginMode === 'cross') {
             throw new BadRequest (this.id + ' only supports isolated margin');
         }
@@ -1883,7 +1883,7 @@ export default class exmo extends Exchange {
             symbol = market['symbol'];
         }
         let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOpenOrders', params) as any;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOpenOrders', params);
         const isMargin = ((marginMode === 'cross') || (marginMode === 'isolated'));
         let response: Dict;
         let orders: List = [];
@@ -2142,7 +2142,7 @@ export default class exmo extends Exchange {
     async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrders', params) as any;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrders', params);
         if (marginMode === 'cross') {
             throw new BadRequest (this.id + ' only supports isolated margin');
         }
@@ -2223,7 +2223,7 @@ export default class exmo extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('editOrder', params) as any;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('editOrder', params);
         if (marginMode !== 'isolated') {
             throw new BadRequest (this.id + ' editOrder() can only be used for isolated margin orders');
         }

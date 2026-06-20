@@ -401,7 +401,7 @@ export default class bitmart extends bitmartRest {
         return await this.subscribeMultiple ('trade', channelName, marketType as string, symbols, params);
     }
 
-    getParamsForMultipleSub (methodName: string, symbols: string[], limit: Int = undefined, params = {}) {
+    getParamsForMultipleSub (methodName: string, symbols: string[], limit: Int = undefined, params = {}): [string[], Str, Dict] {
         symbols = this.marketSymbols (symbols, undefined, false, true) as string[];
         const length = symbols.length;
         if (length > 20) {
@@ -536,7 +536,7 @@ export default class bitmart extends bitmartRest {
     handleBidAsk (client: Client, message) {
         const table = this.safeString (message, 'table');
         const isSpot = (table !== undefined);
-        let rawTickers: any[] = [];
+        let rawTickers = [];
         if (isSpot) {
             rawTickers = this.safeList (message, 'data', []);
         } else {
@@ -727,7 +727,7 @@ export default class bitmart extends bitmartRest {
             return;
         }
         const ordersLength = orders.length;
-        const newOrders: any[] = [];
+        const newOrders = [];
         const symbols: Dict = {};
         if (ordersLength > 0) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
@@ -848,7 +848,7 @@ export default class bitmart extends bitmartRest {
             const cachedOrders = this.orders;
             const orders = this.safeValue (cachedOrders.hashmap, symbol, {});
             const cachedOrder = this.safeValue (orders, orderId);
-            let trades: any = undefined;
+            let trades = undefined;
             if (cachedOrder !== undefined) {
                 trades = this.safeValue (order, 'trades');
             }
@@ -1252,7 +1252,7 @@ export default class bitmart extends bitmartRest {
         this.handleBidAsk (client, message);
         const table = this.safeString (message, 'table');
         const isSpot = (table !== undefined);
-        let rawTickers: any[] = [];
+        let rawTickers = [];
         if (isSpot) {
             rawTickers = this.safeList (message, 'data', []);
         } else {
@@ -1637,7 +1637,7 @@ export default class bitmart extends bitmartRest {
         //    }
         //
         const isSpot = ('table' in message);
-        let datas: any[] = [];
+        let datas = [];
         if (isSpot) {
             datas = this.safeList (message, 'data', datas);
         } else {

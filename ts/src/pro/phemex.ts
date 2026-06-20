@@ -321,7 +321,7 @@ export default class phemex extends phemexRest {
     async watchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
         let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params) as any;
+        [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         const usePerpetualApi = this.safeString (params, 'settle') === 'USDT';
         let messageHash = ':balance';
         messageHash = usePerpetualApi ? 'perpetual' + messageHash : type + messageHash;
@@ -813,7 +813,7 @@ export default class phemex extends phemexRest {
                 params['settle'] = 'USDT';
             }
         }
-        [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params) as any;
+        [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
         if (symbol === undefined) {
             const settle = this.safeString (params, 'settle');
             messageHash = (settle === 'USDT') ? (messageHash + 'perpetual') : (messageHash + type);
@@ -978,7 +978,7 @@ export default class phemex extends phemexRest {
                 params['settle'] = 'USDT';
             }
         }
-        [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params) as any;
+        [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         const isUSDTSettled = this.safeString (params, 'settle') === 'USDT';
         if (symbol === undefined) {
             messageHash = (isUSDTSettled) ? (messageHash + 'perpetual') : (messageHash + type);

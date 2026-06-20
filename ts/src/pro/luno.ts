@@ -107,7 +107,7 @@ export default class luno extends lunoRest {
         client.resolve (this.trades[symbol], messageHash);
     }
 
-    parseTrade (trade, market: any = undefined): Trade {
+    parseTrade (trade, market = undefined): Trade {
         //
         // watchTrades (public)
         //

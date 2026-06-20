@@ -1858,7 +1858,7 @@ export default class coinex extends Exchange {
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBalance', params) as any;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBalance', params);
         const isMargin = (marginMode !== undefined) || (marketType === 'margin');
         if (marketType === 'swap') {
             return await this.fetchSwapBalance (params);
@@ -2237,7 +2237,7 @@ export default class coinex extends Exchange {
             }
         } else {
             let marginMode = undefined;
-            [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params) as any;
+            [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
             if (marginMode !== undefined) {
                 request['market_type'] = 'MARGIN';
             } else {
@@ -2944,7 +2944,7 @@ export default class coinex extends Exchange {
             request['order_id'] = this.parseToNumeric (id);
         }
         let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('editOrder', params) as any;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('editOrder', params);
         if (market['spot']) {
             if (marginMode !== undefined) {
                 request['market_type'] = 'MARGIN';
@@ -3068,7 +3068,7 @@ export default class coinex extends Exchange {
             const price = this.safeValue (rawOrder, 'price');
             let orderParams = this.safeDict (rawOrder, 'params', {});
             let marginMode = undefined;
-            [ marginMode, orderParams ] = this.handleMarginModeAndParams ('editOrders', orderParams) as any;
+            [ marginMode, orderParams ] = this.handleMarginModeAndParams ('editOrders', orderParams);
             let market_type = 'SPOT';
             if (market['swap']) {
                 market_type = 'FUTURES';
@@ -3150,7 +3150,7 @@ export default class coinex extends Exchange {
             'market': market['id'],
         };
         let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('cancelOrder', params) as any;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('cancelOrder', params);
         if (swap) {
             request['market_type'] = 'FUTURES';
         } else {
@@ -3443,7 +3443,7 @@ export default class coinex extends Exchange {
             //
         } else {
             let marginMode = undefined;
-            [ marginMode, params ] = this.handleMarginModeAndParams ('cancelAllOrders', params) as any;
+            [ marginMode, params ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
             if (marginMode !== undefined) {
                 request['market_type'] = 'MARGIN';
             } else {
@@ -3720,7 +3720,7 @@ export default class coinex extends Exchange {
             }
         } else {
             let marginMode = undefined;
-            [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrdersByStatus', params) as any;
+            [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrdersByStatus', params);
             if (marginMode !== undefined) {
                 request['market_type'] = 'MARGIN';
             } else {
@@ -4067,7 +4067,7 @@ export default class coinex extends Exchange {
             //
         } else {
             let marginMode = undefined;
-            [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params) as any;
+            [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
             if (marginMode !== undefined) {
                 request['market_type'] = 'MARGIN';
             } else {
@@ -4397,7 +4397,7 @@ export default class coinex extends Exchange {
             throw new BadSymbol (this.id + ' setLeverage() supports swap contracts only');
         }
         let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params, 'cross') as any;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params, 'cross');
         const minLeverage = this.safeInteger (market['limits']['leverage'], 'min', 1);
         const maxLeverage = this.safeInteger (market['limits']['leverage'], 'max', 100);
         if ((leverage < minLeverage) || (leverage > maxLeverage)) {
@@ -5240,7 +5240,7 @@ export default class coinex extends Exchange {
             'ccy': currency['id'],
         };
         let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchTransfers', params) as any;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchTransfers', params);
         if (marginMode !== undefined) {
             request['transfer_type'] = 'MARGIN';
         } else {
@@ -6065,8 +6065,8 @@ export default class coinex extends Exchange {
          */
         const defaultType = this.safeString (this.options, 'defaultType');
         const isMargin = this.safeBool (params, 'margin', false);
-        let marginMode: any = undefined;
-        [ marginMode, params ] = super.handleMarginModeAndParams (methodName, params, defaultValue) as any;
+        let marginMode = undefined;
+        [ marginMode, params ] = super.handleMarginModeAndParams (methodName, params, defaultValue);
         if (marginMode === undefined) {
             if ((defaultType === 'margin') || (isMargin === true)) {
                 marginMode = 'isolated';
@@ -6079,7 +6079,7 @@ export default class coinex extends Exchange {
         return this.milliseconds ();
     }
 
-    sign (path, api = [], method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         path = this.implodeParams (path, params);
         const version = api[0];
         const requestUrl = api[1];

@@ -451,7 +451,7 @@ export default class kucoin extends kucoinRest {
             }
         }
         const url = await this.negotiate (false, isFuturesMethod);
-        let tickers: any = undefined;
+        let tickers = undefined;
         if (symbols === undefined) {
             const allTopic = method + ':all';
             tickers = await this.subscribe (url, messageHash, allTopic, params);
@@ -863,7 +863,7 @@ export default class kucoin extends kucoinRest {
         let messageHash = 'candles:' + symbol + ':' + timeframe;
         let uta = false;
         [ uta, params ] = this.handleOptionAndParams (params, 'watchOHLCV', 'uta', uta);
-        let ohlcv: any = undefined;
+        let ohlcv = undefined;
         if (uta) {
             const channel = 'kline';
             messageHash = 'uta:' + messageHash;
@@ -1889,7 +1889,7 @@ export default class kucoin extends kucoinRest {
             symbol = market['symbol'];
             messageHash = messageHash + ':' + symbol;
         }
-        let orders: any = undefined;
+        let orders = undefined;
         if (uta) {
             params = this.extend (params, {
                 'tradeType': 'UNIFIED',
@@ -2286,7 +2286,7 @@ export default class kucoin extends kucoinRest {
         const isFuturesMethod = ((marketType !== 'spot') && (marketType !== 'margin'));
         let uta = await this.isUTAEnabled ();
         [ uta, params ] = this.handleOptionAndParams (params, 'watchMyTrades', 'uta', uta);
-        let trades: any = undefined;
+        let trades = undefined;
         if (uta) {
             params = this.extend (params, {
                 'tradeType': 'UNIFIED',
