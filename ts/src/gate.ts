@@ -7985,7 +7985,7 @@ export default class gate extends Exchange {
                 return this.parseGreeks (entry, market);
             }
         }
-        return undefined;
+        return undefined as unknown as Greeks;
     }
 
     parseGreeks (greeks: Dict, market: Market = undefined): Greeks {
@@ -8031,7 +8031,7 @@ export default class gate extends Exchange {
             'lastPrice': this.parseNumber (this.safeNumber (greeks, 'last_price')),
             'underlyingPrice': this.parseNumber (market['info']['underlying_price']),
             'info': greeks,
-        };
+        } as unknown as Greeks;
     }
 
     /**
@@ -8410,7 +8410,7 @@ export default class gate extends Exchange {
             'percentage': undefined,
             'baseVolume': undefined,
             'quoteVolume': undefined,
-        };
+        } as unknown as Option;
     }
 
     /**
