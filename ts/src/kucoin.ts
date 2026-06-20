@@ -2194,7 +2194,7 @@ export default class kucoin extends Exchange {
         return true;
     }
 
-    handleHfAndParams (params = {}): [Bool, Dict] {
+    handleHfAndParams (params = {}) {
         const migrated: Bool = this.safeBool (this.options, 'hf', false);
         let loadedHf: Bool = undefined;
         if (migrated !== undefined) {

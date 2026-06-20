@@ -401,7 +401,7 @@ export default class bitmart extends bitmartRest {
         return await this.subscribeMultiple ('trade', channelName, marketType as string, symbols, params);
     }
 
-    getParamsForMultipleSub (methodName: string, symbols: string[], limit: Int = undefined, params = {}): [string[], Str, Dict] {
+    getParamsForMultipleSub (methodName: string, symbols: string[], limit: Int = undefined, params = {}) {
         symbols = this.marketSymbols (symbols, undefined, false, true) as string[];
         const length = symbols.length;
         if (length > 20) {

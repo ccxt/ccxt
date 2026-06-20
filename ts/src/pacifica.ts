@@ -1330,7 +1330,7 @@ export default class pacifica extends Exchange {
         return this.safeOrder ({ 'id': orderId, 'status': status, 'info': response, 'symbol': symbol });
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): [Dict, Str] {
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @ignore
@@ -3144,7 +3144,7 @@ export default class pacifica extends Exchange {
         return await this.privatePostAccountBuilderCodesRevoke (this.extend (request, params));
     }
 
-    handleOriginAndSingleAddress (methodName: string, params: Dict): [Str, Dict] {
+    handleOriginAndSingleAddress (methodName: string, params: Dict) {
         let address: Str = undefined;
         [ address, params ] = this.handleParamString2 (params, 'account', 'address', undefined); // this is for get endpoints that accept account or address
         if (address !== undefined) {

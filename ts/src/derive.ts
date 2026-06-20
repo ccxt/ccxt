@@ -2628,7 +2628,7 @@ export default class derive extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    handleDeriveSubaccountId (methodName: string, params: Dict): [any, Dict] {
+    handleDeriveSubaccountId (methodName: string, params: Dict) {
         let derivesubAccountId = undefined;
         [ derivesubAccountId, params ] = this.handleOptionAndParams (params, methodName, 'subaccount_id');
         if ((derivesubAccountId !== undefined) && (derivesubAccountId !== '')) {
@@ -2642,7 +2642,7 @@ export default class derive extends Exchange {
         throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a subaccount_id parameter inside \'params\' or exchange.options[\'subaccount_id\']=ID.');
     }
 
-    handleDeriveWalletAddress (methodName: string, params: Dict): [any, Dict] {
+    handleDeriveWalletAddress (methodName: string, params: Dict) {
         let deriveWalletAddress = undefined;
         [ deriveWalletAddress, params ] = this.handleOptionAndParams (params, methodName, 'deriveWalletAddress');
         if ((deriveWalletAddress !== undefined) && (deriveWalletAddress !== '')) {
