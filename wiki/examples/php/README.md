@@ -50,8 +50,6 @@ php -f path/to/example.php # substitute for actual filename here
 
 - [Bybit Updated](./examples/php/bybit-updated.md)
 
-- [Bytetrade Create Order](./examples/php/bytetrade-create-order.md)
-
 - [Cache Exchange Instance Reuse](./examples/php/cache-exchange-instance-reuse.md)
 
 - [Cancel Order](./examples/php/cancel-order.md)
