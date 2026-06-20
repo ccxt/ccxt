@@ -1220,7 +1220,7 @@ export default class kraken extends Exchange {
         //         }
         //     }
         const result = this.safeValue (response, 'result', {});
-        const ohlcvs = this.safeList (result, market['id'], []);
+        const ohlcvs: List = this.safeList (result, market['id'], []) as List;
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
@@ -1789,7 +1789,7 @@ export default class kraken extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result', {});
-        return this.parseOrders (this.safeList (result, 'orders'));
+        return this.parseOrders (this.safeList (result, 'orders') as List);
     }
 
     findMarketByAltnameOrId (id) {
@@ -3430,7 +3430,7 @@ export default class kraken extends Exchange {
         //     }
         //
         symbols = this.marketSymbols (symbols);
-        const result = this.safeList (response, 'result');
+        const result: List = this.safeList (response, 'result') as List;
         const results = this.parsePositions (result, symbols);
         return this.filterByArrayPositions (results, 'symbol', symbols, false);
     }
