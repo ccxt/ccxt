@@ -6,7 +6,7 @@ import Exchange from './abstract/coinbaseinternational.js';
 import { ExchangeError, ArgumentsRequired, BadRequest, InvalidOrder, PermissionDenied, DuplicateOrderId, AuthenticationError, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Int, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Bool, Tickers, Strings, Market, Currency, TransferEntry, Position, FundingRateHistory, Currencies, Dict, NullableDict, int, OHLCV, DepositAddress, MarginModification } from './base/types.js';
+import type { Int, Num, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Bool, Tickers, Strings, Market, Currency, TransferEntry, Position, FundingRateHistory, Currencies, Dict, NullableDict, int, OHLCV, DepositAddress, MarginModification } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -1740,7 +1740,7 @@ export default class coinbaseinternational extends Exchange {
      * @param {string} [params.stp_mode] Possible values: [NONE, AGGRESSING, BOTH] Specifies the behavior for self match handling. None disables the functionality, new cancels the newest order, and both cancels both orders.
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let typeId = type.toUpperCase ();
@@ -1961,7 +1961,7 @@ export default class coinbaseinternational extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelAllOrders (symbol: string = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         let portfolio: Str = undefined;
         [ portfolio, params ] = await this.handlePortfolioAndParams ('cancelAllOrders', params);
@@ -1992,7 +1992,7 @@ export default class coinbaseinternational extends Exchange {
      * @param {string} params.clientOrderId client order id
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number = undefined, price: number = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {

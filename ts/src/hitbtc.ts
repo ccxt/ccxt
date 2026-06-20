@@ -2612,7 +2612,7 @@ export default class hitbtc extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    async fetchMarginModes (symbols: Str[] = undefined, params = {}): Promise<MarginModes> {
+    async fetchMarginModes (symbols: Strings = undefined, params = {}): Promise<MarginModes> {
         await this.loadMarkets ();
         let market: Market = undefined;
         if (symbols !== undefined) {
