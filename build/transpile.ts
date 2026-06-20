@@ -172,6 +172,10 @@ class Transpiler {
             [ /([^\(\s]+)\s+instanceof\s+String/g, 'isinstance($1, str)' ],
             [ /([^\(\s]+)\s+instanceof\s+([^\)\s]+)/g, 'isinstance($1, $2)' ],
 
+            // nullish coalescing "a ?? b" -> "a if a is not None else b" (Python has no ??)
+            // ponytail: left operand must be a simple identifier or a single-level call (no nested parens)
+            [ /([\w.]+\s*\([^()]*\)|[\w.]+) \?\? (\[\]|\{\}|[\w.]+\s*\([^()]*\)|'[^']*'|"[^"]*"|[\w.]+)/g, '$1 if $1 is not None else $2' ],
+
             // convert javascript primitive types to python ones
             [ /(^\s+(?:let|const|var)\s+\w+:\s+)string/mg, '$1str' ],
             [ /(^\s+(?:let|const|var)\s+\w+:\s+)Dict/mg, '$1dict' ], // remove from now
@@ -261,8 +265,8 @@ class Transpiler {
             [ /this\./g, 'self.' ],
             [ /([^a-zA-Z\'])this([^a-zA-Z])/g, '$1self$2' ],
             [ /\[\s*([^\]]+)\s\]\s=/g, '$1 =' ],
-            [ /((?:let|const|var) \w+\: )([0-9a-zA-Z]+)\[\]/, '$1List[$2]' ],  // typed variable with list type
-            [ /((?:let|const|var) \w+\: )([0-9a-zA-Z]+)\[\]\[\]/, '$1List[List[$2]]' ],  // typed variables with double list type
+            [ /((?:let|const|var) \w+\: )([0-9a-zA-Z]+)\[\]/g, '$1List[$2]' ],  // typed variable with list type
+            [ /((?:let|const|var) \w+\: )([0-9a-zA-Z]+)\[\]\[\]/g, '$1List[List[$2]]' ],  // typed variables with double list type
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1$2' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}\s\=\s([^\;]+)/g, '$1$2 = (lambda $2: ($2))(**$3)' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s/g, '$1' ],
@@ -416,8 +420,8 @@ class Transpiler {
             [ /Number\.isInteger\s*\(([^\)]+)\)/g, "is_int($1)" ],
             [ /([^\(\s]+)\s+instanceof\s+String/g, 'is_string($1)' ],
             // we want to remove type hinting variable lines
-            [ /^\s+(?:let|const|var)\s+\w+:\s+[^;\s]+;[^\n]*\n/mg, '' ],
-            [ /(^|[^a-zA-Z0-9_])(let|const|var)(\s+\w+):\s+[^\s=]+(\s+=\s+[\w+\{}])/g, '$1$2$3$4' ],
+            [ /^\s+(?:let|const|var)\s+\w+:\s+[^;=\n]+;[^\n]*\n/mg, '' ],
+            [ /(^|[^a-zA-Z0-9_])(let|const|var)(\s+\w+):\s+[^=;\n]+?(\s+=\s+\S)/g, '$1$2$3$4' ],
 
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2] === null' ],
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'undefined\'/g, '$1[$2] !== null' ],
@@ -576,7 +580,7 @@ class Transpiler {
 
     getTypescriptRemovalRegexes() {
         return [
-            [ /\((\w+)\sas\s\w+\)/g, '$1'], // remove (this as any) or (x as number) paren included
+            [ /(?<![a-zA-Z0-9_]\s)\((\w+)\sas\s\w+\)/g, '$1'], // remove parens around a cast like "(x as any)" -> "x"; but NOT when it's a call arg like "foo (x as string)" (handled by the next rule, parens kept)
             [ /\sas (Dictionary<)?\w+(\[])?(>)?/g, ''], // remove any "as any" or "as number" or "as trade[]"
             [ /([let|const][^:]+):([^=]+)(\s+=.*$)/g, '$1$3'], // remove variable type
         ]
@@ -1170,7 +1174,91 @@ class Transpiler {
 
     // ------------------------------------------------------------------------
 
+    removeNonNullAssertions (code: string): string {
+        // Removes TypeScript non-null assertion operators (postfix "!") from code,
+        // while leaving "!" inside string literals and comments untouched, and without
+        // touching "!=" / "!==" or the prefix logical-not "!x".
+        // ponytail: single-pass char scanner; template-literal "${}" interiors and regex
+        // literals are treated as opaque (rare in exchange code) — upgrade to a tokenizer if needed.
+        let out = ''
+        let i = 0
+        const n = code.length
+        let str: string = '' // active string delimiter (' " `)
+        let lineComment = false
+        let blockComment = false
+        while (i < n) {
+            const c = code[i]
+            const nxt = (i + 1 < n) ? code[i + 1] : ''
+            if (lineComment) {
+                out += c
+                if (c === '\n') {
+                    lineComment = false
+                }
+                i++
+                continue
+            }
+            if (blockComment) {
+                out += c
+                if ((c === '*') && (nxt === '/')) {
+                    out += nxt
+                    i += 2
+                    blockComment = false
+                    continue
+                }
+                i++
+                continue
+            }
+            if (str !== '') {
+                out += c
+                if (c === '\\') {
+                    if (nxt !== '') {
+                        out += nxt
+                        i += 2
+                        continue
+                    }
+                } else if (c === str) {
+                    str = ''
+                }
+                i++
+                continue
+            }
+            if ((c === '/') && (nxt === '/')) {
+                out += c
+                lineComment = true
+                i++
+                continue
+            }
+            if ((c === '/') && (nxt === '*')) {
+                out += c
+                blockComment = true
+                i++
+                continue
+            }
+            if ((c === '\'') || (c === '"') || (c === '`')) {
+                str = c
+                out += c
+                i++
+                continue
+            }
+            if (c === '!') {
+                const prev = out.length ? out[out.length - 1] : ''
+                // postfix non-null assertion: preceded by an expression end, not part of "!=" / "!=="
+                if (/[\w\)\]'"`]/.test (prev) && (nxt !== '=')) {
+                    i++
+                    continue
+                }
+            }
+            out += c
+            i++
+        }
+        return out
+    }
+
     transpileJavaScriptToPythonAndPHP (args:any) {
+
+        // strip TypeScript non-null assertions (postfix "!") in a string/comment-aware way,
+        // so they don't survive into Python/PHP (where "x!" would be misread as "not"/syntax error)
+        args.js = this.removeNonNullAssertions (args.js)
 
         // apply common regexes once before branching to language-specific paths
         args.js = this.regexAll (args.js, this.getCommonRegexes ())
@@ -1666,7 +1754,16 @@ class Transpiler {
                         }
                         nullable = nullable || variable.slice (-1) === '?'
                         variable = variable.replace (/\?$/, '')
-                        const type = secondPart[0].trim ()
+                        let type = secondPart[0].trim ()
+                        // handle union types like "Dict | undefined" / "Str | null" -> nullable base type
+                        if (type.indexOf ('|') >= 0) {
+                            const unionParts = type.split ('|').map ((p: string) => p.trim ())
+                            const nonNull = unionParts.filter ((p: string) => (p !== 'undefined') && (p !== 'null'))
+                            if (nonNull.length < unionParts.length) {
+                                nullable = true
+                            }
+                            type = nonNull.length ? nonNull[0] : 'any'
+                        }
                         const phpType = phpTypes[type] ?? type
                         let resolveType = (phpType.match (phpArrayRegex)  && phpType !== 'object[]')? 'array' : phpType // in PHP arrays are not compatible with ArrayCache, so removing this type for now;
                         if (resolveType === 'object[]') {

@@ -1818,7 +1818,7 @@ export default class paradex extends Exchange {
     async createOrders (orders: OrderRequest[], params = {}): Promise<Order[]> {
         await this.authenticateRest ();
         await this.loadMarkets ();
-        const ordersRequests : List = [];
+        const ordersRequests: List = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const symbol = this.safeString (rawOrder, 'symbol');
@@ -1952,7 +1952,7 @@ export default class paradex extends Exchange {
         // }
         //
         const results = this.safeList (response, 'results', []) as List;
-        const orders : List = [];
+        const orders: List = [];
         for (let i = 0; i < results.length; i++) {
             const result = results[i];
             const marketId = this.safeString (result, 'market');
@@ -2534,7 +2534,7 @@ export default class paradex extends Exchange {
         //     }
         //
         const rows = this.safeList (response, 'results', []) as List;
-        const deposits : List = [];
+        const deposits: List = [];
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
             if (row['kind'] === 'DEPOSIT') {
@@ -2596,7 +2596,7 @@ export default class paradex extends Exchange {
         //     }
         //
         const rows = this.safeList (response, 'results', []) as List;
-        const deposits : List = [];
+        const deposits: List = [];
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
             if (row['kind'] === 'WITHDRAWAL') {
@@ -3229,7 +3229,7 @@ export default class paradex extends Exchange {
         // }
         //
         const results = this.safeList (response, 'results', []) as List;
-        const rates : List = [];
+        const rates: List = [];
         for (let i = 0; i < results.length; i++) {
             const rate = results[i];
             const timestamp = this.safeInteger (rate, 'created_at');
