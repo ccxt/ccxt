@@ -1449,7 +1449,7 @@ export default class onetrading extends Exchange {
         } else {
             request['order_id'] = id;
         }
-        let response = undefined;
+        let response: NullableDict = undefined;
         if (method === 'privateDeleteAccountOrdersOrderId') {
             response = await this.privateDeleteAccountOrdersOrderId (this.extend (request, params));
         } else {
@@ -1458,7 +1458,7 @@ export default class onetrading extends Exchange {
         //
         // responds with an empty body
         //
-        return this.parseOrder (response);
+        return this.parseOrder (response as Dict);
     }
 
     /**
@@ -1526,7 +1526,7 @@ export default class onetrading extends Exchange {
         const request: Dict = {
             'order_id': id,
         };
-        const response = await this.privateGetAccountOrdersOrderId (this.extend (request, params));
+        const response: NullableDict = await this.privateGetAccountOrdersOrderId (this.extend (request, params));
         //
         //     {
         //         "order": {
@@ -1568,7 +1568,7 @@ export default class onetrading extends Exchange {
         //         ]
         //     }
         //
-        return this.parseOrder (response);
+        return this.parseOrder (response as Dict);
     }
 
     /**
