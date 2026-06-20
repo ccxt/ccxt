@@ -3507,6 +3507,7 @@ export default class htx extends Exchange {
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-account-information
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19588469969
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] spot, future or swap
      * @param {string} [params.subType] linear or future
      * @param {bool} [params.multiAssetMode] set to true if you are using multi-asset mode for USDT-margined contracts
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
@@ -3522,6 +3523,7 @@ export default class htx extends Exchange {
         const request: Dict = {};
         const spot = (type === 'spot');
         const future = (type === 'future');
+        const swap = (type === 'swap');
         const inverse = (subType === 'inverse');
         const linear = (subType === 'linear');
         let marginMode = undefined;
@@ -3530,7 +3532,7 @@ export default class htx extends Exchange {
         const cross = (marginMode === 'cross');
         const margin = (type === 'margin') || (spot && (cross || isolated));
         let response = undefined;
-        if (isMultiAssetMode) {
+        if ((isMultiAssetMode || (linear && swap))) {
             response = await this.contractPrivateGetV5AccountBalance (this.extend (request, params));
         } else if (spot || margin) {
             if (margin) {
@@ -3545,8 +3547,6 @@ export default class htx extends Exchange {
                 request['account-id'] = accountId;
                 response = await this.spotPrivateGetV1AccountAccountsAccountIdBalance (this.extend (request, params));
             }
-        } else if (linear) {
-            response = await this.contractPrivateGetV5AccountBalance (this.extend (request, params));
         } else if (inverse) {
             if (future) {
                 response = await this.contractPrivatePostApiV1ContractAccountInfo (this.extend (request, params));
@@ -3698,14 +3698,15 @@ export default class htx extends Exchange {
         const finalResponse = response;
         let result: Dict = { 'info': finalResponse } as any;
         const data = this.safeValue (response, 'data');
-        if (isMultiAssetMode) {
+        if ((isMultiAssetMode || (linear && swap))) {
             const details = this.safeList (data, 'details', []);
             for (let i = 0; i < details.length; i++) {
                 const balance = details[i];
                 const currencyId = this.safeString (balance, 'currency');
                 const code = this.safeCurrencyCode (currencyId);
                 const account = this.account ();
-                account['free'] = this.safeString (balance, 'withdraw_available');
+                account['free'] = this.safeString (balance, 'available_margin');
+                account['total'] = this.safeString (balance, 'equity');
                 result[code] = account;
             }
             result = this.safeBalance (result);
@@ -3734,17 +3735,6 @@ export default class htx extends Exchange {
                 }
                 result = this.safeBalance (result);
             }
-        } else if (linear) {
-            const details = this.safeList (data, 'details', []);
-            for (let i = 0; i < details.length; i++) {
-                const balance = details[i];
-                const currencyId = this.safeString (balance, 'currency');
-                const code = this.safeCurrencyCode (currencyId);
-                const account = this.account ();
-                account['free'] = this.safeString (balance, 'withdraw_available');
-                result[code] = account;
-            }
-            result = this.safeBalance (result);
         } else if (inverse) {
             for (let i = 0; i < data.length; i++) {
                 const balance = data[i];
@@ -7692,7 +7682,7 @@ export default class htx extends Exchange {
         let request: Dict = {
             'type': '30,31',
         };
-        [ request, params ] = this.handleUntilOption ('end_time', request, params);
+        [ request, params ] = this.handleUntilOption ('end_time', request, query);
         if (since !== undefined) {
             if (market['linear']) {
                 request['start_time'] = since;
@@ -7704,7 +7694,7 @@ export default class htx extends Exchange {
         if (marketType === 'swap') {
             if (market['linear']) {
                 let marginMode = undefined;
-                [ marginMode, params ] = this.handleMarginModeAndParams ('fetchFundingHistory', params);
+                [ marginMode, params ] = this.handleMarginModeAndParams ('fetchFundingHistory', query);
                 marginMode = (marginMode === undefined) ? 'cross' : marginMode;
                 request['margin_mode'] = marginMode;
                 request['contract_code'] = market['id'];
@@ -9483,6 +9473,7 @@ export default class htx extends Exchange {
         if (!market['linear']) {
             request['trade_type'] = tradeType;
         }
+        params = this.omit (params, [ 'trade_type', 'tradeType' ]);
         if (since !== undefined) {
             request['start_time'] = since;
         }
