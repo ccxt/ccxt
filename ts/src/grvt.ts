@@ -661,7 +661,7 @@ export default class grvt extends Exchange {
         }
         const results = await Promise.all (promises);
         const response = results[0];
-        const result = this.safeList (response, 'result', []);
+        const result = this.safeList (response, 'result', []) as List;
         return this.parseMarkets (result);
     }
 
@@ -1025,7 +1025,7 @@ export default class grvt extends Exchange {
         //            },
         //            ...
         //
-        const result = this.safeList (response, 'result', []);
+        const result = this.safeList (response, 'result', []) as List;
         return this.parseTrades (result, market, since, limit);
     }
 
@@ -1254,7 +1254,7 @@ export default class grvt extends Exchange {
         //        "next": "eyJmdW5kaW5nVGltZSI6MTc2MDQ5NDI2MDAwMDAwMDAwMH0"
         //    }
         //
-        const result = this.safeList (response, 'result', []);
+        const result = this.safeList (response, 'result', []) as List;
         return this.parseFundingRateHistories (result, market);
     }
 
@@ -1432,7 +1432,7 @@ export default class grvt extends Exchange {
             //     "next": "Qw0918="
             // }
             //
-            const result = this.safeList (response, 'result', []);
+            const result = this.safeList (response, 'result', []) as List;
             return this.parseTransactions (result, currency, since, limit);
         }
     }
@@ -1498,7 +1498,7 @@ export default class grvt extends Exchange {
             //     "next": "Qw0918="
             // }
             //
-            const result = this.safeList (response, 'result', []);
+            const result = this.safeList (response, 'result', []) as List;
             return this.parseTransactions (result, currency, since, limit);
         }
     }
@@ -2290,7 +2290,7 @@ export default class grvt extends Exchange {
         //        "next": ""
         //    }
         //
-        const result = this.safeList (response, 'result', []);
+        const result = this.safeList (response, 'result', []) as List;
         return this.parseTrades (result, undefined, since, limit);
     }
 
@@ -2348,7 +2348,7 @@ export default class grvt extends Exchange {
         //        ]
         //    }
         //
-        const result = this.safeList (response, 'result', []);
+        const result = this.safeList (response, 'result', []) as List;
         return this.parsePositions (result, symbols);
     }
 
@@ -2605,7 +2605,7 @@ export default class grvt extends Exchange {
         //        "next": ""
         //    }
         //
-        const result = this.safeList (response, 'result', []);
+        const result = this.safeList (response, 'result', []) as List;
         return this.parseIncomes (result, market, since, limit);
     }
 
@@ -2730,7 +2730,7 @@ export default class grvt extends Exchange {
         //        "next": ""
         //    }
         //
-        const result = this.safeList (response, 'result', []);
+        const result = this.safeList (response, 'result', []) as List;
         return this.parseOrders (result, market, since, limit);
     }
 
@@ -2811,7 +2811,7 @@ export default class grvt extends Exchange {
         //        ]
         //    }
         //
-        const result = this.safeList (response, 'result', []);
+        const result = this.safeList (response, 'result', []) as List;
         return this.parseOrders (result, undefined, since, limit);
     }
 
