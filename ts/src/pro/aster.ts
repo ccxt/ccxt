@@ -532,7 +532,7 @@ export default class aster extends asterRest {
         client.resolve (ticker, messageHash);
     }
 
-    parseWsBidAsk (message, market = undefined) {
+    parseWsBidAsk (message, market: Market = undefined) {
         const timestamp = this.safeInteger (message, 'T');
         return this.safeTicker ({
             'symbol': market['symbol'],
@@ -697,7 +697,7 @@ export default class aster extends asterRest {
         client.resolve (stored, 'trade::' + symbol);
     }
 
-    parseWsTrade (trade, market = undefined): Trade {
+    parseWsTrade (trade, market: Market = undefined): Trade {
         //
         // public watchTrades (spot)
         //
@@ -1195,7 +1195,7 @@ export default class aster extends asterRest {
         client.resolve (resolveData, messageHash);
     }
 
-    parseWsOHLCV (ohlcv, market = undefined): OHLCV {
+    parseWsOHLCV (ohlcv, market: Market = undefined): OHLCV {
         return [
             this.safeInteger (ohlcv, 't'),
             this.safeNumber (ohlcv, 'o'),
@@ -1543,7 +1543,7 @@ export default class aster extends asterRest {
         }
     }
 
-    parseWsPosition (position, market = undefined) {
+    parseWsPosition (position, market: Market = undefined) {
         //
         //     {
         //         "s": "BTCUSDT", // Symbol
@@ -1844,7 +1844,7 @@ export default class aster extends asterRest {
         }
     }
 
-    parseWsOrder (order, market = undefined) {
+    parseWsOrder (order, market: Market = undefined) {
         const executionType = this.safeString (order, 'x');
         const marketId = this.safeString (order, 's');
         market = this.safeMarket (marketId, market);
