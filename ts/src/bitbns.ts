@@ -285,7 +285,7 @@ export default class bitbns extends Exchange {
         //         },
         //     ]
         //
-        const result = [];
+        const result: any[] = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
             const id = this.safeString (market, 'id');
@@ -501,7 +501,7 @@ export default class bitbns extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const timestamp = undefined;
+        const timestamp: Int = undefined;
         const result: Dict = {
             'info': response,
             'timestamp': timestamp,
@@ -911,7 +911,7 @@ export default class bitbns extends Exchange {
             costString = this.safeString (trade, 'quote_volume');
         }
         const symbol = market['symbol'];
-        let fee: Dict = undefined;
+        let fee: Dict;
         const feeCostString = this.safeString (trade, 'fee');
         if (feeCostString !== undefined) {
             const feeCurrencyCode = market['quote'];
@@ -1113,7 +1113,7 @@ export default class bitbns extends Exchange {
         return this.parseTransactions (data, currency, since, limit);
     }
 
-    parseTransactionStatusByType (status, type = undefined) {
+    parseTransactionStatusByType (status, type: Str = undefined) {
         const statusesByType: Dict = {
             'deposit': {
                 '0': 'pending',
@@ -1243,7 +1243,7 @@ export default class bitbns extends Exchange {
         return this.milliseconds ();
     }
 
-    sign (path, api = 'www', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'www', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         const urls = this.urls as any;
         if (!(api in urls['api'])) {
             throw new ExchangeError (this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');
