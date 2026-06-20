@@ -6,7 +6,7 @@ import Exchange from './abstract/bitrue.js';
 import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, Dict, Int, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int, Bool } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, List, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int, Bool } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -832,7 +832,7 @@ export default class bitrue extends Exchange {
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
         const promisesRaw = [];
-        let types = undefined;
+        let types: Strings = undefined;
         const defaultTypes = [ 'spot', 'linear', 'inverse' ];
         const fetchMarketsOptions = this.safeDict (this.options, 'fetchMarkets');
         if (fetchMarketsOptions !== undefined) {
@@ -1122,7 +1122,7 @@ export default class bitrue extends Exchange {
         let subType: Str = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', undefined, params);
         let response: Dict = undefined;
-        let result = undefined;
+        let result: Dict = undefined;
         if (type === 'swap') {
             if (subType !== undefined && subType === 'inverse') {
                 response = await this.dapiV2PrivateGetAccount (params);
@@ -1375,7 +1375,7 @@ export default class bitrue extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let response: Dict = undefined;
-        let data = undefined;
+        let data: Dict = undefined;
         if (market['swap']) {
             const request: Dict = {
                 'contractName': market['id'],
@@ -1644,7 +1644,7 @@ export default class bitrue extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         let response: Dict = undefined;
-        let data = undefined;
+        let data: Dict = undefined;
         const request: Dict = {};
         let type: Str = undefined;
         if (symbols !== undefined) {
@@ -2035,7 +2035,7 @@ export default class bitrue extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let response: Dict = undefined;
-        let data = undefined;
+        let data: Dict = undefined;
         const uppercaseType = type.toUpperCase ();
         const request: Dict = {
             'side': side.toUpperCase (),
@@ -2161,7 +2161,7 @@ export default class bitrue extends Exchange {
         const origClientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
         params = this.omit (params, [ 'origClientOrderId', 'clientOrderId' ]);
         let response: Dict = undefined;
-        let data = undefined;
+        let data: Dict = undefined;
         const request: Dict = {};
         if (origClientOrderId === undefined) {
             request['orderId'] = id;
@@ -2399,7 +2399,7 @@ export default class bitrue extends Exchange {
         const origClientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
         params = this.omit (params, [ 'origClientOrderId', 'clientOrderId' ]);
         let response: Dict = undefined;
-        let data = undefined;
+        let data: Dict = undefined;
         const request: Dict = {};
         if (origClientOrderId === undefined) {
             request['orderId'] = id;
@@ -2463,7 +2463,7 @@ export default class bitrue extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let response: Dict = undefined;
-        let data = undefined;
+        let data: List = undefined;
         if (market['swap']) {
             const request: Dict = {
                 'contractName': market['id'],
@@ -3202,7 +3202,7 @@ export default class bitrue extends Exchange {
         const type = this.safeString (api, 0);
         const version = this.safeString (api, 1);
         const access = this.safeString (api, 2);
-        let url = undefined;
+        let url: Str = undefined;
         if ((type === 'api' && version === 'kline') || (type === 'open' && path.indexOf ('listenKey') >= 0)) {
             url = this.urls['api'][type];
         } else {

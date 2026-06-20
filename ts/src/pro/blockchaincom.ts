@@ -259,7 +259,7 @@ export default class blockchaincom extends blockchaincomRest {
         const marketId = this.safeString (message, 'symbol');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        let ticker = undefined;
+        let ticker: Ticker = undefined;
         if (event === 'subscribed') {
             return;
         } else if (event === 'snapshot') {

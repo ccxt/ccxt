@@ -185,7 +185,7 @@ export default class blofin extends blofinRest {
      */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
-        let callerMethodName = undefined;
+        let callerMethodName: Str = undefined;
         [ callerMethodName, params ] = this.handleParamString (params, 'callerMethodName', 'watchOrderBookForSymbols');
         let channelName = undefined;
         [ channelName, params ] = this.handleOptionAndParams (params, callerMethodName, 'channel', 'books');
@@ -693,7 +693,7 @@ export default class blofin extends blofinRest {
         const isOHLCV = (channelName === 'candle');
         let symbols = isOHLCV ? this.getListFromObjectValues (symbolsArray, 0) : symbolsArray;
         symbols = this.marketSymbols (symbols, undefined, true, true);
-        let firstMarket = undefined;
+        let firstMarket: Market = undefined;
         const firstSymbol = this.safeString (symbols, 0);
         if (firstSymbol !== undefined) {
             firstMarket = this.market (firstSymbol);
@@ -712,7 +712,7 @@ export default class blofin extends blofinRest {
         if (symbolsLength > 0) {
             for (let i = 0; i < symbols.length; i++) {
                 const current = symbols[i];
-                let market = undefined;
+                let market: Market = undefined;
                 let channel = channelName;
                 if (isOHLCV) {
                     market = this.market (current);

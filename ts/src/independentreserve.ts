@@ -464,7 +464,7 @@ export default class independentreserve extends Exchange {
         const timestamp = this.parse8601 (this.safeString (ticker, 'CreatedTimestampUtc'));
         const baseId = this.safeString (ticker, 'PrimaryCurrencyCode');
         const quoteId = this.safeString (ticker, 'SecondaryCurrencyCode');
-        let defaultMarketId = undefined;
+        let defaultMarketId: Str = undefined;
         if ((baseId !== undefined) && (quoteId !== undefined)) {
             defaultMarketId = baseId + '/' + quoteId;
         }
@@ -577,11 +577,11 @@ export default class independentreserve extends Exchange {
         //        "VolumeFilled": 0,
         //        "VolumeOrdered": 0.358
         //    }
-        let symbol = undefined;
+        let symbol: Str = undefined;
         const baseId = this.safeString (order, 'PrimaryCurrencyCode');
         const quoteId = this.safeString (order, 'SecondaryCurrencyCode');
-        let base = undefined;
-        let quote = undefined;
+        let base: Str = undefined;
+        let quote: Str = undefined;
         if ((baseId !== undefined) && (quoteId !== undefined)) {
             base = this.safeCurrencyCode (baseId);
             quote = this.safeCurrencyCode (quoteId);
@@ -592,7 +592,7 @@ export default class independentreserve extends Exchange {
             quote = market['quote'];
         }
         let orderType = this.safeString2 (order, 'Type', 'OrderType');
-        let side = undefined;
+        let side: Str = undefined;
         if (orderType !== undefined) {
             if (orderType.indexOf ('Bid') >= 0) {
                 side = 'buy';
@@ -608,7 +608,7 @@ export default class independentreserve extends Exchange {
         const timestamp = this.parse8601 (this.safeString (order, 'CreatedTimestampUtc'));
         const filled = this.safeString (order, 'VolumeFilled');
         const feeRate = this.safeString (order, 'FeePercent');
-        let feeCost = undefined;
+        let feeCost: Str = undefined;
         if (feeRate !== undefined && filled !== undefined) {
             feeCost = Precise.stringMul (feeRate, filled);
         }
@@ -679,7 +679,7 @@ export default class independentreserve extends Exchange {
         const response = await this.privatePostGetOrderDetails (this.extend ({
             'orderGuid': id,
         }, params));
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -699,7 +699,7 @@ export default class independentreserve extends Exchange {
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         const request = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['primaryCurrencyCode'] = market['baseId'];
@@ -728,7 +728,7 @@ export default class independentreserve extends Exchange {
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         const request = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['primaryCurrencyCode'] = market['baseId'];
@@ -765,7 +765,7 @@ export default class independentreserve extends Exchange {
             'pageSize': limit,
         };
         const response = await this.privatePostGetTrades (this.extend (request, params));
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -783,7 +783,7 @@ export default class independentreserve extends Exchange {
         const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const baseId = this.safeString (trade, 'PrimaryCurrencyCode');
         const quoteId = this.safeString (trade, 'SecondaryCurrencyCode');
-        let marketId = undefined;
+        let marketId: Str = undefined;
         if ((baseId !== undefined) && (quoteId !== undefined)) {
             marketId = baseId + '/' + quoteId;
         }
@@ -904,7 +904,7 @@ export default class independentreserve extends Exchange {
             'secondaryCurrencyCode': market['quoteId'],
             'orderType': orderType,
         };
-        let response = undefined;
+        let response: Dict = undefined;
         request['volume'] = amount;
         if (type === 'limit') {
             request['price'] = price;
@@ -1026,7 +1026,7 @@ export default class independentreserve extends Exchange {
         if (tag !== undefined) {
             request['destinationTag'] = tag;
         }
-        let networkCode = undefined;
+        let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
             throw new BadRequest (this.id + ' withdraw () does not accept params["networkCode"]');

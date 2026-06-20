@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/deepcoin.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Currency, DepositAddress, Dict, FundingRate, FundingRates, int, Int, LedgerEntry, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
+import type { Balances, Bool, Currency, DepositAddress, Dict, FundingRate, FundingRates, int, Int, LedgerEntry, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound, NotSupported, NullResponse } from './base/errors.js';
 
 // ---------------------------------------------------------------------------
@@ -499,12 +499,12 @@ export default class deepcoin extends Exchange {
         const swap = (type === 'swap');
         const baseId = this.safeString (market, 'baseCcy');
         const quoteId = this.safeString (market, 'quoteCcy', '');
-        let settleId = undefined;
-        let settle = undefined;
+        let settleId: Str = undefined;
+        let settle: Str = undefined;
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         let symbol = base + '/' + quote;
-        let isLinear = undefined;
+        let isLinear: Bool = undefined;
         if (swap) {
             isLinear = (quoteId !== 'USD');
             settleId = isLinear ? quoteId : baseId;
@@ -684,7 +684,7 @@ export default class deepcoin extends Exchange {
                 request['after'] = Math.min (endTime, now);
             }
         }
-        let response = undefined;
+        let response: Dict = undefined;
         if (price === 'mark') {
             response = await this.publicGetDeepcoinMarketMarkPriceCandles (this.extend (request, params));
         } else if (price === 'index') {
@@ -735,7 +735,7 @@ export default class deepcoin extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const market = this.getMarketFromSymbols (symbols);
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         const request: Dict = {
             'instType': this.convertToInstrumentType (marketType),
@@ -883,7 +883,7 @@ export default class deepcoin extends Exchange {
         const timestamp = this.safeInteger (trade, 'ts');
         const side = this.safeString (trade, 'side');
         const execType = this.safeString (trade, 'execType');
-        let fee = undefined;
+        let fee: Dict = undefined;
         const feeCost = this.safeString (trade, 'fee');
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'feeCcy');
@@ -929,7 +929,7 @@ export default class deepcoin extends Exchange {
      */
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params, marketType);
         const request: Dict = {
             'instType': this.convertToInstrumentType (marketType),
@@ -993,7 +993,7 @@ export default class deepcoin extends Exchange {
             return await this.fetchPaginatedCallCursor ('fetchDeposits', code, since, limit, params, 'code', undefined, 1, 50) as Transaction[];
         }
         const request: Dict = {};
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['coin'] = currency['id'];
@@ -1039,7 +1039,7 @@ export default class deepcoin extends Exchange {
             return await this.fetchPaginatedCallCursor ('fetchDeposits', code, since, limit, params, 'code', undefined, 1, 50) as Transaction[];
         }
         const request: Dict = {};
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['coin'] = currency['id'];
@@ -1263,7 +1263,7 @@ export default class deepcoin extends Exchange {
         const request: Dict = {
             'instType': this.convertToInstrumentType (marketType),
         };
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['ccy'] = currency['id'];
@@ -1373,7 +1373,7 @@ export default class deepcoin extends Exchange {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
-        let userId = undefined;
+        let userId: Str = undefined;
         [ userId, params ] = this.handleOptionAndParams (params, 'transfer', 'userId');
         userId = userId ? userId : this.safeString (params, 'uid');
         if (userId === undefined) {
@@ -1474,7 +1474,7 @@ export default class deepcoin extends Exchange {
         const market = this.market (symbol);
         const triggerPrice = this.safeString (params, 'triggerPrice');
         const request = this.createOrderRequest (symbol, type, side, amount, price, params);
-        let response = undefined;
+        let response: Dict = undefined;
         if (triggerPrice !== undefined) {
             // trigger orders
             response = await this.privatePostDeepcoinTradeTriggerOrder (request);
@@ -1910,7 +1910,7 @@ export default class deepcoin extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100
         }
-        let response = undefined;
+        let response: Dict = undefined;
         if (trigger) {
             if (methodName !== 'fetchCanceledAndClosedOrders') {
                 throw new BadRequest (this.id + ' ' + methodName + '() does not support trigger orders');
@@ -2068,7 +2068,7 @@ export default class deepcoin extends Exchange {
             request['limit'] = limit;
         }
         const trigger = this.safeBool (params, 'trigger', false);
-        let response = undefined;
+        let response: Dict = undefined;
         if (trigger) {
             params = this.omit (params, 'trigger');
             request['instType'] = this.convertToInstrumentType (market['type']);
@@ -2179,7 +2179,7 @@ export default class deepcoin extends Exchange {
             'instId': market['id'],
             'ordId': id,
         };
-        let response = undefined;
+        let response: Dict = undefined;
         const trigger = this.safeBool (params, 'trigger', false);
         if (trigger) {
             params = this.omit (params, 'trigger');
@@ -2267,7 +2267,7 @@ export default class deepcoin extends Exchange {
         const stopLossPrice = this.safeNumber (params, 'stopLossPrice');
         const takeProfitPrice = this.safeNumber (params, 'takeProfitPrice');
         const isTPSL = (stopLossPrice !== undefined) || (takeProfitPrice !== undefined);
-        let response = undefined;
+        let response: Dict = undefined;
         if (isTPSL) {
             if ((price !== undefined) || (amount !== undefined)) {
                 throw new BadRequest (this.id + ' editOrder() with stopLossPrice or takeProfitPrice cannot have price or amount. Either use stopLossPrice/takeProfitPrice or price/amount to edit order.');
@@ -2408,7 +2408,7 @@ export default class deepcoin extends Exchange {
             average = undefined;
         }
         const feeCurrencyId = this.safeString (order, 'feeCcy');
-        let fee = undefined;
+        let fee: Dict = undefined;
         if (feeCurrencyId !== undefined) {
             const feeCost = this.safeString (order, 'fee');
             fee = {
@@ -2979,7 +2979,7 @@ export default class deepcoin extends Exchange {
             'instId': market['id'],
             'productGroup': productGroup,
         };
-        let response = undefined;
+        let response: Dict = undefined;
         if (positionId === undefined && positionIds === undefined) {
             response = await this.privatePostDeepcoinTradeBatchClosePosition (this.extend (request, params));
         } else {

@@ -1510,7 +1510,7 @@ export default class bybit extends Exchange {
         const optionParts = symbol.split ('-');
         const symbolBase = symbol.split ('/');
         let base: Str = undefined;
-        let expiry = undefined;
+        let expiry: Str = undefined;
         if (symbol.indexOf ('/') > -1) {
             base = this.safeString (symbolBase, 0);
             expiry = this.safeString (optionParts, 1);
@@ -3181,7 +3181,7 @@ export default class bybit extends Exchange {
             orderType = undefined;
         }
         const feeCostString = this.safeString (trade, 'execFee');
-        let fee = undefined;
+        let fee: Dict = undefined;
         if (feeCostString !== undefined) {
             const feeRateString = this.safeString (trade, 'feeRate');
             let feeCurrencyCode: Str = undefined;
@@ -4236,7 +4236,7 @@ export default class bybit extends Exchange {
             // UTA account can specify the cost of the order on both sides
             if ((cost !== undefined) || (price !== undefined)) {
                 request['marketUnit'] = 'quoteCoin';
-                let orderCost = undefined;
+                let orderCost: Str = undefined;
                 if (cost !== undefined) {
                     orderCost = cost;
                 } else {
@@ -6774,7 +6774,7 @@ export default class bybit extends Exchange {
                 side = undefined;
             }
         }
-        let notional = undefined;
+        let notional: Str = undefined;
         const contractSize = this.safeString (market, 'contractSize');
         const markPrice = this.safeString (position, 'markPrice');
         if (market['inverse']) {
@@ -6943,7 +6943,7 @@ export default class bybit extends Exchange {
             } else {
                 let type = undefined;
                 [ type, params ] = this.getBybitType ('setPositionMode', market, params);
-                let tradeMode = undefined;
+                let tradeMode: Int = undefined;
                 if (marginMode === 'cross') {
                     tradeMode = 0;
                 } else if (marginMode === 'isolated') {
@@ -6951,8 +6951,8 @@ export default class bybit extends Exchange {
                 } else {
                     throw new NotSupported (this.id + ' setMarginMode() with symbol marginMode must be either [isolated, cross]');
                 }
-                let sellLeverage = undefined;
-                let buyLeverage = undefined;
+                let sellLeverage: Str = undefined;
+                let buyLeverage: Str = undefined;
                 const leverage = this.safeString (params, 'leverage');
                 if (leverage === undefined) {
                     sellLeverage = this.safeString2 (params, 'sell_leverage', 'sellLeverage');
@@ -7042,7 +7042,7 @@ export default class bybit extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let mode = undefined;
+        let mode: Int = undefined;
         if (hedged) {
             mode = 3;
         } else {

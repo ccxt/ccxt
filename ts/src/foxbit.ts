@@ -1778,7 +1778,7 @@ export default class foxbit extends Exchange {
         const filled = this.safeString (order, 'quantity_executed');
         const remaining = this.safeString (order, 'quantity');
         // TODO: validate logic of amount here, should this be calculated?
-        let amount = undefined;
+        let amount: Str = undefined;
         if (remaining !== undefined && filled !== undefined) {
             amount = Precise.stringAdd (remaining, filled);
         }

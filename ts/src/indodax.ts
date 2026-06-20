@@ -802,10 +802,10 @@ export default class indodax extends Exchange {
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status', 'open'));
         let symbol: Str = undefined;
-        let cost = undefined;
+        let cost: Str = undefined;
         const price = this.safeString (order, 'price');
-        let amount = undefined;
-        let remaining = undefined;
+        let amount: Str = undefined;
+        let remaining: Str = undefined;
         const marketId = this.safeString (order, 'pair');
         market = this.safeMarket (marketId, market);
         if (market !== undefined) {
@@ -972,7 +972,7 @@ export default class indodax extends Exchange {
         let quantityIsRequired = false;
         if (type === 'market') {
             if (side === 'buy') {
-                let quoteAmount = undefined;
+                let quoteAmount: Str = undefined;
                 const cost = this.safeNumber (params, 'cost');
                 params = this.omit (params, 'cost');
                 if (cost !== undefined) {

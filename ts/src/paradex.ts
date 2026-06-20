@@ -1588,7 +1588,7 @@ export default class paradex extends Exchange {
             request['client_id'] = clientOrderId;
         }
         let sizeString = '0';
-        let stopPrice = undefined;
+        let stopPrice: Str = undefined;
         if (isStopOrder) {
             // flags: Reduce_Only must be provided for TPSL orders.
             if (isMarket) {

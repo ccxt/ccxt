@@ -6,7 +6,7 @@ import Exchange from './abstract/ascendex.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError, AccountSuspended, InsufficientFunds, InvalidOrder, BadSymbol, PermissionDenied, BadRequest, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { TransferEntry, FundingHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Strings, Num, Currency, Market, Leverage, Leverages, Account, MarginModes, MarginMode, MarginModification, Currencies, TradingFees, Dict, LeverageTier, LeverageTiers, int, FundingRate, FundingRates, DepositAddress, Position, OpenInterests } from './base/types.js';
+import type { TransferEntry, FundingHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Strings, Num, Currency, Market, Leverage, Leverages, Account, MarginModes, MarginMode, MarginModification, Currencies, TradingFees, Dict, LeverageTier, LeverageTiers, int, FundingRate, FundingRates, DepositAddress, Position, OpenInterests, Bool, NullableDict } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1597,12 +1597,12 @@ export default class ascendex extends Exchange {
             };
         }
         const triggerPrice = this.omitZero (this.safeString (order, 'stopPrice'));
-        let reduceOnly = undefined;
+        let reduceOnly: Bool = undefined;
         const execInst = this.safeStringLower (order, 'execInst');
         if (execInst === 'reduceonly') {
             reduceOnly = true;
         }
-        let postOnly = undefined;
+        let postOnly: Bool = undefined;
         if (execInst === 'post') {
             postOnly = true;
         }
@@ -2646,7 +2646,7 @@ export default class ascendex extends Exchange {
         const data = this.safeDict (response, 'data', {});
         const addresses = this.safeList (data, 'address', []);
         const numAddresses = addresses.length;
-        let address = undefined;
+        let address: NullableDict = undefined;
         if (numAddresses > 1) {
             const addressesByChainName = this.indexBy (addresses, 'chainName');
             if (networkId === undefined) {

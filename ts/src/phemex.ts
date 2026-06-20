@@ -1894,7 +1894,7 @@ export default class phemex extends Exchange {
         let side: Str = undefined;
         let costString: Str = undefined;
         let type: Str = undefined;
-        let fee = undefined;
+        let fee: Dict = undefined;
         let feeCostString: Str = undefined;
         let feeRateString: Str = undefined;
         let feeCurrencyCode: Str = undefined;
@@ -2405,7 +2405,7 @@ export default class phemex extends Exchange {
         const side = this.safeStringLower (order, 'side');
         const type = this.parseOrderType (this.safeString (order, 'ordType'));
         const timestamp = this.safeIntegerProduct2 (order, 'actionTimeNs', 'createTimeNs', 0.000001);
-        let fee = undefined;
+        let fee: Dict = undefined;
         const feeCost = this.fromEv (this.safeString (order, 'cumFeeEv'), market);
         if (feeCost !== undefined) {
             fee = {
@@ -2590,7 +2590,7 @@ export default class phemex extends Exchange {
         const stopLoss = this.safeString (order, 'stopLossRp');
         const feeValue = this.omitZero (this.safeString (order, 'execFeeRv'));
         const ptFeeRv = this.omitZero (this.safeString (order, 'ptFeeRv'));
-        let fee = undefined;
+        let fee: Dict = undefined;
         if (feeValue !== undefined) {
             fee = {
                 'cost': feeValue,
@@ -3762,7 +3762,7 @@ export default class phemex extends Exchange {
         if (feeCost === undefined) {
             feeCost = this.safeNumber (transaction, 'feeRv');
         }
-        let fee = undefined;
+        let fee: Dict = undefined;
         if (feeCost !== undefined) {
             type = 'withdrawal';
             fee = {
@@ -4115,7 +4115,7 @@ export default class phemex extends Exchange {
         // Inverse short contract: unRealizedPnl =  (posSize *contractSize) / markPrice - (posSize * contractSize) / avgEntryPrice
         // Linear long contract:  unRealizedPnl = (posSize * contractSize) * markPrice - (posSize * contractSize) * avgEntryPrice
         // Linear short contract:  unRealizedPnl = (posSize * contractSize) * avgEntryPrice - (posSize * contractSize) * markPrice
-        let priceDiff = undefined;
+        let priceDiff: Str = undefined;
         if (market['linear']) {
             if (side === 'long') {
                 priceDiff = Precise.stringSub (markPriceString, entryPriceString);
@@ -4767,7 +4767,7 @@ export default class phemex extends Exchange {
         const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
         const toId = this.safeString (accountsByType, toAccount, toAccount);
         const scaledAmmount = this.toEv (amount, currency);
-        let direction = undefined;
+        let direction: Int = undefined;
         let transfer: TransferEntry = undefined;
         if (fromId === 'spot' && toId === 'future') {
             direction = 2;

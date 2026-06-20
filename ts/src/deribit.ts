@@ -6,7 +6,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, DDoSProtection, NotSupported, ExchangeNotAvailable, InsufficientFunds, BadRequest, InvalidAddress, OnMaintenance } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { totp } from './base/functions/totp.js';
-import type { Balances, Currency, FundingRateHistory, Greeks, Int, Liquidation, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, MarketInterface, Num, Account, Option, OptionChain, Currencies, TradingFees, Dict, int, FundingRate, DepositAddress, Position } from './base/types.js';
+import type { Balances, Bool, Currency, FundingRateHistory, Greeks, Int, Liquidation, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, MarketInterface, Num, Account, Option, OptionChain, Currencies, TradingFees, Dict, int, FundingRate, DepositAddress, Position } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -499,11 +499,11 @@ export default class deribit extends Exchange {
     createExpiredOptionMarket (symbol: string) {
         // support expired option contracts
         let quote = 'USD';
-        let settle = undefined;
+        let settle: Str = undefined;
         const optionParts = symbol.split ('-');
         const symbolBase = symbol.split ('/');
-        let base = undefined;
-        let expiry = undefined;
+        let base: Str = undefined;
+        let expiry: Str = undefined;
         if (symbol.indexOf ('/') > -1) {
             base = this.safeString (symbolBase, 0);
             expiry = this.safeString (optionParts, 1);
@@ -938,8 +938,8 @@ export default class deribit extends Exchange {
                 const option = (kind.indexOf ('option') >= 0);
                 const isComboMarket = kind.indexOf ('combo') >= 0;
                 const expiry = this.safeInteger (market, 'expiration_timestamp');
-                let strike = undefined;
-                let optionType = undefined;
+                let strike: Num = undefined;
+                let optionType: Str = undefined;
                 let symbol = id;
                 let type = 'swap';
                 if (future) {
@@ -949,8 +949,8 @@ export default class deribit extends Exchange {
                 } else if (isSpot) {
                     type = 'spot';
                 }
-                let inverse = undefined;
-                let linear = undefined;
+                let inverse: Bool = undefined;
+                let linear: Bool = undefined;
                 if (isSpot) {
                     symbol = base + '/' + quote;
                 } else if (!isComboMarket) {
@@ -1349,7 +1349,7 @@ export default class deribit extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         let code = this.safeString2 (params, 'code', 'currency');
-        let type = undefined;
+        let type: Str = undefined;
         params = this.omit (params, [ 'code' ]);
         if (symbols !== undefined) {
             for (let i = 0; i < symbols.length; i++) {
@@ -1371,7 +1371,7 @@ export default class deribit extends Exchange {
             'currency': currency['id'],
         };
         if (type !== undefined) {
-            let requestType = undefined;
+            let requestType: Str = undefined;
             if (type === 'spot') {
                 requestType = 'spot';
             } else if (type === 'future' || (type === 'contract')) {
@@ -1555,7 +1555,7 @@ export default class deribit extends Exchange {
             cost = Precise.stringDiv (amount, priceString);
         }
         const liquidity = this.safeString (trade, 'liquidity');
-        let takerOrMaker = undefined;
+        let takerOrMaker: Str = undefined;
         if (liquidity !== undefined) {
             // M = maker, T = taker, MT = both
             takerOrMaker = (liquidity === 'M') ? 'maker' : 'taker';
@@ -1917,7 +1917,7 @@ export default class deribit extends Exchange {
                 cost = Precise.stringDiv (amount, averageString);
             }
         }
-        let lastTradeTimestamp = undefined;
+        let lastTradeTimestamp: Int = undefined;
         if (filledString !== undefined) {
             const isFilledPositive = Precise.stringGt (filledString, '0');
             if (isFilledPositive) {
@@ -1981,7 +1981,7 @@ export default class deribit extends Exchange {
         const request: Dict = {
             'order_id': id,
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -2310,7 +2310,7 @@ export default class deribit extends Exchange {
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         const request: Dict = {};
-        let market = undefined;
+        let market: Market = undefined;
         let response = undefined;
         if (symbol === undefined) {
             const code = this.codeFromOptions ('fetchOpenOrders', params);
@@ -2341,7 +2341,7 @@ export default class deribit extends Exchange {
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         const request: Dict = {};
-        let market = undefined;
+        let market: Market = undefined;
         let response = undefined;
         if (limit !== undefined) {
             request['count'] = limit;
@@ -2436,7 +2436,7 @@ export default class deribit extends Exchange {
         const request: Dict = {
             'include_old': true,
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (limit !== undefined) {
             request['count'] = limit; // default 10
         }
@@ -3857,8 +3857,8 @@ export default class deribit extends Exchange {
         const marketId = this.safeString (interest, 'instrument_name');
         market = this.safeMarket (marketId, market);
         const openInterest = this.safeNumber (interest, 'open_interest');
-        let openInterestAmount = undefined;
-        let openInterestValue = undefined;
+        let openInterestAmount: Num = undefined;
+        let openInterestValue: Num = undefined;
         if (market['option'] || (market['future'] && market['linear'])) {
             openInterestAmount = openInterest;
         } else {

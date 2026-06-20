@@ -647,7 +647,7 @@ export default class exmo extends Exchange {
             const networkCode = this.networkIdToCode (networkId, code);
             const commissionDesc = this.safeString (provider, 'commission_desc');
             let splitCommissionDesc = [];
-            let percentage = undefined;
+            let percentage: Bool = undefined;
             if (commissionDesc !== undefined) {
                 splitCommissionDesc = commissionDesc.split ('%');
                 const splitCommissionDescLength = splitCommissionDesc.length;
@@ -2265,7 +2265,7 @@ export default class exmo extends Exchange {
         //
         const depositAddress = this.safeString (response, code);
         let address: Str = undefined;
-        let tag = undefined;
+        let tag: Str = undefined;
         if (depositAddress) {
             const addressAndTag = depositAddress.split (',');
             address = addressAndTag[0];

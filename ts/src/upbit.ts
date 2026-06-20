@@ -356,7 +356,7 @@ export default class upbit extends Exchange {
         const maxOnetimeWithdrawal = this.safeString (withdrawLimits, 'onetime');
         const maxDailyWithdrawal = this.safeString (withdrawLimits, 'daily', maxOnetimeWithdrawal);
         const remainingDailyWithdrawal = this.safeString (withdrawLimits, 'remaining_daily', maxDailyWithdrawal);
-        let maxWithdrawLimit = undefined;
+        let maxWithdrawLimit: Str = undefined;
         if (Precise.stringGt (remainingDailyWithdrawal, '0')) {
             maxWithdrawLimit = remainingDailyWithdrawal;
         } else {
@@ -889,7 +889,7 @@ export default class upbit extends Exchange {
         if (timestamp === undefined) {
             timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
         }
-        let side = undefined;
+        let side: Str = undefined;
         const askOrBid = this.safeStringLower2 (trade, 'ask_bid', 'side');
         if (askOrBid === 'ask') {
             side = 'sell';
@@ -1163,7 +1163,7 @@ export default class upbit extends Exchange {
     }
 
     calcOrderPrice (symbol: string, amount: number, price: Num = undefined, params = {}): string {
-        let quoteAmount = undefined;
+        let quoteAmount: Str = undefined;
         const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice');
         const cost = this.safeString (params, 'cost');
         if (cost !== undefined) {
@@ -1218,7 +1218,7 @@ export default class upbit extends Exchange {
         if (postOnly && (selfTradePrevention !== undefined)) {
             throw new ExchangeError (this.id + ' createOrder() does not support post_only and selfTradePrevention simultaneously.');
         }
-        let orderSide = undefined;
+        let orderSide: Str = undefined;
         if (side === 'buy') {
             orderSide = 'bid';
         } else if (side === 'sell') {
@@ -1497,7 +1497,7 @@ export default class upbit extends Exchange {
             // 'page': 1,
             // 'order_by': 'asc', // 'desc'
         };
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['currency'] = currency['id'];
@@ -1542,7 +1542,7 @@ export default class upbit extends Exchange {
         const request: Dict = {
             'uuid': id,
         };
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['currency'] = currency['id'];
@@ -1583,7 +1583,7 @@ export default class upbit extends Exchange {
         const request: Dict = {
             // 'state': 'submitting', // 'submitted', 'almost_accepted', 'rejected', 'accepted', 'processing', 'done', 'canceled'
         };
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['currency'] = currency['id'];
@@ -1629,7 +1629,7 @@ export default class upbit extends Exchange {
         const request: Dict = {
             'uuid': id,
         };
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['currency'] = currency['id'];
@@ -1834,13 +1834,13 @@ export default class upbit extends Exchange {
         const amount = this.safeString (order, 'volume');
         const remaining = this.safeString (order, 'remaining_volume');
         const filled = this.safeString (order, 'executed_volume');
-        let cost = undefined;
+        let cost: Str = undefined;
         if (type === 'price') {
             type = 'market';
             cost = price;
             price = undefined;
         }
-        let average = undefined;
+        let average: Str = undefined;
         let fee = undefined;
         let feeCost = this.safeString (order, 'paid_fee');
         const marketId = this.safeString (order, 'market');
@@ -1920,7 +1920,7 @@ export default class upbit extends Exchange {
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         const request: Dict = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['market'] = market['id'];
@@ -1972,7 +1972,7 @@ export default class upbit extends Exchange {
         let request: Dict = {
             'state': 'done',
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['market'] = market['id'];
@@ -2029,7 +2029,7 @@ export default class upbit extends Exchange {
         let request: Dict = {
             'state': 'cancel',
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['market'] = market['id'];
@@ -2204,7 +2204,7 @@ export default class upbit extends Exchange {
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         await this.loadMarkets ();
         const currency = this.currency (code);
-        let networkCode = undefined;
+        let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddress requires params["network"]');
@@ -2345,7 +2345,7 @@ export default class upbit extends Exchange {
                 'nonce': nonce,
             };
             const hasQuery = Object.keys (query).length;
-            let auth = undefined;
+            let auth: Str = undefined;
             if ((method !== 'GET') && (method !== 'DELETE')) {
                 body = this.json (params);
                 headers['Content-Type'] = 'application/json';

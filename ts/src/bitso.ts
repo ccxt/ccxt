@@ -406,8 +406,8 @@ export default class bitso extends Exchange {
         const type = this.parseLedgerEntryType (operation);
         const balanceUpdates = this.safeValue (item, 'balance_updates', []);
         const firstBalance = this.safeValue (balanceUpdates, 0, {});
-        let direction = undefined;
-        let fee = undefined;
+        let direction: Str = undefined;
+        let fee: Dict = undefined;
         const amount = this.safeString (firstBalance, 'amount');
         const currencyId = this.safeString (firstBalance, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
@@ -888,7 +888,7 @@ export default class bitso extends Exchange {
         const symbol = this.safeSymbol (marketId, market, '_');
         let side = this.safeString (trade, 'side');
         const makerSide = this.safeString (trade, 'maker_side');
-        let takerOrMaker = undefined;
+        let takerOrMaker: Str = undefined;
         if (side !== undefined) {
             if (side === makerSide) {
                 takerOrMaker = 'maker';
@@ -906,7 +906,7 @@ export default class bitso extends Exchange {
         if (amount !== undefined) {
             amount = Precise.stringAbs (amount);
         }
-        let fee = undefined;
+        let fee: Dict = undefined;
         const feeCost = this.safeString (trade, 'fees_amount');
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fees_currency');
@@ -1151,7 +1151,7 @@ export default class bitso extends Exchange {
         if (!Array.isArray (ids)) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() ids argument should be an array');
         }
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -1220,7 +1220,7 @@ export default class bitso extends Exchange {
         // canceledOrder
         // yWTQGxDMZ0VimZgZ
         //
-        let id = undefined;
+        let id: Str = undefined;
         if (typeof order === 'string') {
             id = order;
         } else {
@@ -1406,7 +1406,7 @@ export default class bitso extends Exchange {
      */
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         await this.loadMarkets ();
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -1454,7 +1454,7 @@ export default class bitso extends Exchange {
         };
         const response = await this.privateGetFundingDestination (this.extend (request, params));
         let address = this.safeString (response['payload'], 'account_identifier');
-        let tag = undefined;
+        let tag: Str = undefined;
         if (address.indexOf ('?dt=') >= 0) {
             const parts = address.split ('?dt=');
             address = this.safeString (parts, 0);

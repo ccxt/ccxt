@@ -592,7 +592,7 @@ export default class latoken extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        let maxTimestamp = undefined;
+        let maxTimestamp: Int = undefined;
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         const types = this.safeValue (this.options, 'types', {});
@@ -1002,7 +1002,7 @@ export default class latoken extends Exchange {
             // 'from': this.milliseconds (),
             // 'limit': limit, // default '100'
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (limit !== undefined) {
             request['limit'] = limit; // default 100
         }
@@ -1120,7 +1120,7 @@ export default class latoken extends Exchange {
             }
         }
         const orderSide = this.safeString (order, 'side');
-        let side = undefined;
+        let side: Str = undefined;
         if (orderSide !== undefined) {
             const parts = orderSide.split ('_');
             const partsLength = parts.length;
@@ -1247,7 +1247,7 @@ export default class latoken extends Exchange {
             // 'from': this.milliseconds (),
             // 'limit': limit, // default '100'
         };
-        let market = undefined;
+        let market: Market = undefined;
         const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
         params = this.omit (params, [ 'stop', 'trigger' ]);
         if (limit !== undefined) {
@@ -1459,7 +1459,7 @@ export default class latoken extends Exchange {
             // 'currency': market['baseId'],
             // 'quote': market['quoteId'],
         };
-        let market = undefined;
+        let market: Market = undefined;
         const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
         params = this.omit (params, [ 'stop', 'trigger' ]);
         let response = undefined;
@@ -1537,7 +1537,7 @@ export default class latoken extends Exchange {
         //         "pageSize":10
         //     }
         //
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }

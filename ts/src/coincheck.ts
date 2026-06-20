@@ -506,7 +506,7 @@ export default class coincheck extends Exchange {
         let amountString: Str = undefined;
         let costString: Str = undefined;
         let side: Str = undefined;
-        let fee = undefined;
+        let fee: Dict = undefined;
         let orderId: Str = undefined;
         if ('liquidity' in trade) {
             if (this.safeString (trade, 'liquidity') === 'T') {

@@ -900,8 +900,8 @@ export default class luno extends Exchange {
         }
         const feeBaseString = this.safeString (trade, 'fee_base');
         const feeCounterString = this.safeString (trade, 'fee_counter');
-        let feeCurrency = undefined;
-        let feeCost = undefined;
+        let feeCurrency: Str = undefined;
+        let feeCost: Str = undefined;
         if (feeBaseString !== undefined) {
             if (!Precise.stringEquals (feeBaseString, '0.0')) {
                 feeCurrency = market['base'];

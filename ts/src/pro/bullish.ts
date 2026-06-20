@@ -257,7 +257,7 @@ export default class bullish extends bullishRest {
         const marketId = this.safeString (data, 'symbol');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        let parsed = undefined;
+        let parsed: Ticker = undefined;
         if ((updateType === 'snapshot')) {
             parsed = this.parseTicker (data, market);
         } else if (updateType === 'update') {

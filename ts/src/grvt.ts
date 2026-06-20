@@ -2981,11 +2981,11 @@ export default class grvt extends Exchange {
         const isReduceOnly = this.safeBool (order, 'reduce_only');
         const timeInForceRaw = this.safeString (order, 'time_in_force');
         const timeInForce = isPostOnly ? 'PO' : this.parseTimeInForce (timeInForceRaw);
-        let size = undefined;
+        let size: Str = undefined;
         let side: Str = undefined;
-        let price = undefined;
-        let filled = undefined;
-        let avgPrice = undefined;
+        let price: Str = undefined;
+        let filled: Str = undefined;
+        let avgPrice: Str = undefined;
         const legs = this.safeList (order, 'legs');
         const metadata = this.safeDict (order, 'metadata', {});
         const stateObj = this.safeDict (order, 'state', {});

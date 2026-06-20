@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound, BadReque
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { eddsa } from './base/functions/crypto.js';
-import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, int, Transaction, Currency, TradingFeeInterface, LedgerEntry, FundingRates, FundingRate, OpenInterests, Leverage, MarginMode, Tickers, Ticker, FundingHistory } from './base/types.js';
+import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, Bool, int, Transaction, Currency, TradingFeeInterface, LedgerEntry, FundingRates, FundingRate, OpenInterests, Leverage, MarginMode, Tickers, Ticker, FundingHistory } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -662,7 +662,7 @@ export default class pacifica extends Exchange {
         let userAccount = undefined;
         [ userAccount, params ] = this.handleOriginAndSingleAddress ('fetchLeverage', params);
         const cacheAddress = this.walletAddress;
-        let settings = undefined;
+        let settings: Dict = undefined;
         if (userAccount === cacheAddress) {
             settings = this.handleOption ('fetchLeverage', 'settings', undefined);
         } else {
@@ -786,7 +786,7 @@ export default class pacifica extends Exchange {
         let userAccount = undefined;
         [ userAccount, params ] = this.handleOriginAndSingleAddress ('fetchMarginMode', params);
         const cacheAddress = this.walletAddress;
-        let settings = undefined;
+        let settings: Dict = undefined;
         if (userAccount === cacheAddress) {
             settings = this.handleOption ('fetchMarginMode', 'settings', undefined);
         } else {
@@ -849,7 +849,7 @@ export default class pacifica extends Exchange {
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let aggLevel = undefined;
+        let aggLevel: Int = undefined;
         [ aggLevel, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'aggLevel', 1);
         const request: Dict = {
             'symbol': market['id'],
@@ -1140,7 +1140,7 @@ export default class pacifica extends Exchange {
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -1240,7 +1240,7 @@ export default class pacifica extends Exchange {
         }
         const fee = this.safeString (trade, 'fee');
         const orderId = this.safeString (trade, 'order_id');
-        let takerOrMaker = undefined;
+        let takerOrMaker: Str = undefined;
         if (eventType !== undefined) {
             takerOrMaker = (eventType === 'fulfill_maker') ? 'maker' : 'taker';
         }
@@ -1300,7 +1300,7 @@ export default class pacifica extends Exchange {
             'reduceOnly', 'clientOrderId', 'stopLimitPrice', 'timeInForce', 'triggerPrice', 'stopLossCloid',
             'stopLossPrice', 'stopLossLimitPrice', 'takeProfitCloid', 'takeProfitPrice', 'takeProfitLimitPrice', 'expiryWindow',
         ]);
-        let response = undefined;
+        let response: Dict = undefined;
         if (operationType === 'create_market_order') {
             response = await this.privatePostOrdersCreateMarket (this.extend (request, params));
         } else if (operationType === 'create_stop_order') {
@@ -1319,7 +1319,7 @@ export default class pacifica extends Exchange {
         // }
         //
         const success = this.safeBool (response, 'success', false);
-        let status = undefined;
+        let status: Str = undefined;
         if (!success) {
             status = 'rejected';
         } else {
@@ -1550,7 +1550,7 @@ export default class pacifica extends Exchange {
             const order = results[i];
             const error = this.safeString (order, 'error', undefined);
             const success = this.safeBool (order, 'success', false);
-            let status = undefined;
+            let status: Str = undefined;
             if ((error !== undefined) || (!success)) {
                 status = 'rejected';
             } else {
@@ -1609,7 +1609,7 @@ export default class pacifica extends Exchange {
             const order = results[i];
             const error = this.safeString (order, 'error', undefined);
             const success = this.safeBool (order, 'success', false);
-            let status = undefined;
+            let status: Str = undefined;
             if ((error !== undefined) || (!success)) {
                 status = 'closed';
             } else {
@@ -1721,7 +1721,7 @@ export default class pacifica extends Exchange {
         const request = this.cancelOrderRequest (id, symbol, params);
         const isStopOrder = this.safeBool2 (params, 'trigger', 'stop', false);
         params = this.omit (params, [ 'expiryWindow', 'trigger', 'stop', 'clientOrderId' ]);
-        let response = undefined;
+        let response: Dict = undefined;
         if (isStopOrder) {
             response = await this.privatePostOrdersStopCancel (this.extend (request, params));
         } else {
@@ -1742,7 +1742,7 @@ export default class pacifica extends Exchange {
     cancelOrderRequest (id: Str, symbol: Str = undefined, params = {}) {
         const market = this.market (symbol);
         const isStopOrder = this.safeBool2 (params, 'trigger', 'stop', false);
-        let operationType = undefined;
+        let operationType: Str = undefined;
         if (isStopOrder) {
             operationType = 'cancel_stop_order';
         } else {
@@ -2041,7 +2041,7 @@ export default class pacifica extends Exchange {
         const request: Dict = {
             'account': userAddress,
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -2100,7 +2100,7 @@ export default class pacifica extends Exchange {
         }
         let userAddress = undefined;
         [ userAddress, params ] = this.handleOriginAndSingleAddress ('fetchOrders', params);
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -2172,7 +2172,7 @@ export default class pacifica extends Exchange {
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -2257,7 +2257,7 @@ export default class pacifica extends Exchange {
             'TOB': 'TOB',
             'ALO': 'ALO',
         };
-        let tif = undefined;
+        let tif: Str = undefined;
         if (tifRaw !== undefined) {
             tif = tifRaw.toUpperCase ();
         }
@@ -2372,7 +2372,7 @@ export default class pacifica extends Exchange {
         //     }
         //
         const marketId = this.safeString2 (order, 'symbol', 's');
-        let symbol = undefined;
+        let symbol: Str = undefined;
         if (symbol !== undefined) {
             market = this.safeMarket (marketId, market);
             symbol = market['symbol'];
@@ -2738,12 +2738,12 @@ export default class pacifica extends Exchange {
         //     }
         //
         const marketId = this.safeString (interest, 'symbol');
-        let symbol = undefined;
+        let symbol: Str = undefined;
         if (marketId !== undefined) {
             market = this.safeMarket (marketId, market);
             symbol = market['symbol'];
         }
-        let interestValue = undefined;
+        let interestValue: Str = undefined;
         const markPrice = this.safeString (interest, 'mark');
         const openInterest = this.safeString (interest, 'open_interest');
         if ((openInterest !== undefined) && (markPrice !== undefined)) {
@@ -2879,7 +2879,7 @@ export default class pacifica extends Exchange {
      */
     async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -3026,7 +3026,7 @@ export default class pacifica extends Exchange {
      */
     async createSubAccount (name: string, params = {}) {
         const finalHeaders = { };
-        let agentAddress = undefined;
+        let agentAddress: Str = undefined;
         [ agentAddress, params ] = this.handleOption ('createSubAccount', 'agentAddress', undefined);
         let originAddress = undefined;
         [ originAddress, params ] = this.handleOriginAndSingleAddress ('createSubAccount', params);
@@ -3036,9 +3036,9 @@ export default class pacifica extends Exchange {
         if (agentAddress !== undefined) {
             finalHeaders['agent_wallet'] = agentAddress;
         }
-        let subAccountAddress = undefined;
+        let subAccountAddress: Str = undefined;
         [ subAccountAddress, params ] = this.handleOptionAndParams (params, 'createSubAccount', 'subAccountAddress');
-        let subAccountPrivateKey = undefined;
+        let subAccountPrivateKey: Str = undefined;
         [ subAccountPrivateKey, params ] = this.handleOptionAndParams (params, 'createSubAccount', 'subAccountPrivateKey');
         if (subAccountAddress === undefined) {
             throw new ArgumentsRequired (this.id + ' createSubAccount() requires a "subAccountAddress"!');
@@ -3047,7 +3047,7 @@ export default class pacifica extends Exchange {
             throw new ArgumentsRequired (this.id + ' createSubAccount() requires a "subAccountPrivateKey"!');
         }
         const timestamp = this.milliseconds ();
-        let expiryWindow = undefined;
+        let expiryWindow: Int = undefined;
         [ expiryWindow, params ] = this.handleOptionAndParams2 (params, 'createSubAccount', 'expiryWindow', 'expiry_window', 5000);
         const subaccountSignatureHeader = {
             'timestamp': timestamp,
@@ -3168,7 +3168,7 @@ export default class pacifica extends Exchange {
         //
         const inCode = this.safeInteger (response, 'code'); // actually if all ok -> code = undefined or code = 200
         const message = this.safeString (response, 'error');
-        let error = undefined;
+        let error: Bool = undefined;
         if (inCode === undefined || inCode === 200) {
             error = false;
         } else {
@@ -3273,7 +3273,7 @@ export default class pacifica extends Exchange {
         }
         if (!this.isSandboxModeEnabled) { // At this stage, building codes are mostly only on the mainnet.
             const useBuilder = this.handleOption ('postActionRequest', 'builderFee', true);
-            let builderCode = undefined;
+            let builderCode: Str = undefined;
             if (useBuilder) {
                 builderCode = this.handleOption ('postActionRequest', 'builderCode');
             }
@@ -3284,7 +3284,7 @@ export default class pacifica extends Exchange {
                 }
             }
         }
-        let expiryWindow = undefined;
+        let expiryWindow: Int = undefined;
         [ expiryWindow, params ] = this.handleOptionAndParams2 (params, 'postActionRequest', 'expiryWindow', 'expiry_window', 5000);
         const timestamp = this.safeInteger (params, 'timestamp', this.milliseconds ());
         const signatureHeader = {
@@ -3294,7 +3294,7 @@ export default class pacifica extends Exchange {
         };
         const signature = this.signMessage (signatureHeader, sigPayload, this.privateKey);
         const finalHeaders = { };
-        let agentAddress = undefined;
+        let agentAddress: Str = undefined;
         [ agentAddress, params ] = this.handleOptionAndParams (params, 'postActionRequest', 'agentAddress');
         let originAddress = undefined;
         [ originAddress, params ] = this.handleOriginAndSingleAddress ('postActionRequest', params);

@@ -348,7 +348,7 @@ export default class delta extends Exchange {
         const optionParts = symbol.split ('-');
         const symbolBase = symbol.split ('/');
         let base: Str = undefined;
-        let expiry = undefined;
+        let expiry: Str = undefined;
         let optionType: Str = undefined;
         if (symbol.indexOf ('/') > -1) {
             base = this.safeString (symbolBase, 0);
@@ -1527,7 +1527,7 @@ export default class delta extends Exchange {
             type = type.replace ('_order', '');
         }
         const feeCostString = this.safeString (trade, 'commission');
-        let fee = undefined;
+        let fee: Dict = undefined;
         if (feeCostString !== undefined) {
             const settlingAsset = this.safeDict (product, 'settling_asset', {});
             const feeCurrencyId = this.safeString (settlingAsset, 'symbol');
@@ -1953,7 +1953,7 @@ export default class delta extends Exchange {
         const amount = this.safeString (order, 'size');
         const remaining = this.safeString (order, 'unfilled_size');
         const average = this.safeString (order, 'average_fill_price');
-        let fee = undefined;
+        let fee: Dict = undefined;
         const feeCostString = this.safeString (order, 'paid_commission');
         if (feeCostString !== undefined) {
             let feeCurrencyCode: Str = undefined;

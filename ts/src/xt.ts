@@ -2240,7 +2240,7 @@ export default class xt extends Exchange {
         }
         const timestamp = this.safeIntegerN (trade, [ 't', 'time', 'timestamp' ]);
         const quantity = this.safeString2 (trade, 'q', 'quantity');
-        let amount = undefined;
+        let amount: Str = undefined;
         if (marketType === 'spot') {
             amount = quantity;
         } else {

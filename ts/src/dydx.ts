@@ -7,7 +7,7 @@ import Exchange from './abstract/dydx.js';
 import { ArgumentsRequired, NotSupported, ExchangeError, InsufficientFunds, InvalidOrder, BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Account, Balances, Currency, Dict, FundingRateHistory, Int, LedgerEntry, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry, int } from './base/types.js';
+import type { Account, Balances, Currency, Dict, FundingRateHistory, Int, LedgerEntry, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry, int } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 
 // ---------------------------------------------------------------------------
@@ -1327,8 +1327,8 @@ export default class dydx extends Exchange {
         let clientMetadata = 0;
         let conditionalType = 0;
         let conditionalOrderTriggerSubticks = '0';
-        let orderFlag = undefined;
-        let timeInForceNumber = undefined;
+        let orderFlag: Int = undefined;
+        let timeInForceNumber: Int = undefined;
         if (timeInForce === 'FOK') {
             throw new InvalidOrder (this.id + ' timeInForce fok has been deprecated');
         }
@@ -1744,7 +1744,7 @@ export default class dydx extends Exchange {
         const code = this.safeCurrencyCode (currencyId, currency);
         currency = this.safeCurrency (currencyId, currency);
         const type = this.safeStringUpper (item, 'type');
-        let direction = undefined;
+        let direction: Str = undefined;
         if (type !== undefined) {
             if (type === 'TRANSFER_IN' || type === 'DEPOSIT') {
                 direction = 'in';
@@ -1833,8 +1833,8 @@ export default class dydx extends Exchange {
         const defaultFeeDenom = this.safeString (this.options, 'defaultFeeDenom');
         const defaultFeeMultiplier = this.safeString (this.options, 'defaultFeeMultiplier');
         const feeDenom = this.safeDict (this.options, 'feeDenom');
-        let gasPrice = undefined;
-        let denom = undefined;
+        let gasPrice: Str = undefined;
+        let denom: Str = undefined;
         if (defaultFeeDenom === 'uusdc') {
             gasPrice = feeDenom['USDC_GAS_PRICE'];
             denom = feeDenom['USDC_DENOM'];
@@ -1889,8 +1889,8 @@ export default class dydx extends Exchange {
         const credentials = this.retrieveCredentials ();
         const account = await this.fetchDydxAccount ();
         const usd = this.parseToInt (Precise.stringMul (this.numberToString (amount), '1000000'));
-        let payload = undefined;
-        let signingPayload = undefined;
+        let payload: NullableDict = undefined;
+        let signingPayload: NullableDict = undefined;
         if (fromAccount === 'main') {
             // deposit to subaccount
             if (toSubaccountId === undefined) {
@@ -2339,7 +2339,7 @@ export default class dydx extends Exchange {
         await this.loadMarkets ();
         let userAddress: Str = undefined;
         [ userAddress, params ] = this.handlePublicAddress ('fetchAccounts', params);
-        let subaccountNumber = undefined;
+        let subaccountNumber: Int = undefined;
         [ subaccountNumber, params ] = this.handleOptionAndParams (params, 'fetchAccounts', 'subaccountNumber', 0);
         const request: Dict = {
             'address': userAddress,

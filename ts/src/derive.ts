@@ -1206,7 +1206,7 @@ export default class derive extends Exchange {
         if (price === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument');
         }
-        let subaccountId = undefined;
+        let subaccountId: Str = undefined;
         [ subaccountId, params ] = this.handleDeriveSubaccountId ('createOrder', params);
         const test = this.safeBool (params, 'test', false);
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
@@ -1239,7 +1239,7 @@ export default class derive extends Exchange {
             subaccountId,
             orderSide === 'buy',
         ]), keccak, 'binary');
-        let deriveWalletAddress = undefined;
+        let deriveWalletAddress: Str = undefined;
         [ deriveWalletAddress, params ] = this.handleDeriveWalletAddress ('createOrder', params);
         const signature = this.signOrder ([
             ACTION_TYPEHASH,
@@ -1396,7 +1396,7 @@ export default class derive extends Exchange {
     async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let subaccountId = undefined;
+        let subaccountId: Str = undefined;
         [ subaccountId, params ] = this.handleDeriveSubaccountId ('editOrder', params);
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
         const timeInForce = this.safeStringLower2 (params, 'timeInForce', 'time_in_force');
@@ -1423,7 +1423,7 @@ export default class derive extends Exchange {
             subaccountId,
             orderSide === 'buy',
         ]), keccak, 'binary');
-        let deriveWalletAddress = undefined;
+        let deriveWalletAddress: Str = undefined;
         [ deriveWalletAddress, params ] = this.handleDeriveWalletAddress ('editOrder', params);
         const signature = this.signOrder ([
             ACTION_TYPEHASH,
@@ -1565,7 +1565,7 @@ export default class derive extends Exchange {
         await this.loadMarkets ();
         const market: Market = this.market (symbol);
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
-        let subaccountId = undefined;
+        let subaccountId: Str = undefined;
         [ subaccountId, params ] = this.handleDeriveSubaccountId ('cancelOrder', params);
         params = this.omit (params, [ 'trigger', 'stop' ]);
         const request: Dict = {
@@ -1656,7 +1656,7 @@ export default class derive extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let subaccountId = undefined;
+        let subaccountId: Str = undefined;
         [ subaccountId, params ] = this.handleDeriveSubaccountId ('cancelAllOrders', params);
         const request: Dict = {
             'subaccount_id': subaccountId,
@@ -1707,7 +1707,7 @@ export default class derive extends Exchange {
         }
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
         params = this.omit (params, [ 'trigger', 'stop' ]);
-        let subaccountId = undefined;
+        let subaccountId: Str = undefined;
         [ subaccountId, params ] = this.handleDeriveSubaccountId ('fetchOrders', params);
         const request: Dict = {
             'subaccount_id': subaccountId,
@@ -1941,9 +1941,9 @@ export default class derive extends Exchange {
             }
         }
         const triggerType = this.safeString (order, 'trigger_type');
-        let stopLossPrice = undefined;
-        let takeProfitPrice = undefined;
-        let triggerPrice = undefined;
+        let stopLossPrice: Str = undefined;
+        let takeProfitPrice: Str = undefined;
+        let triggerPrice: Str = undefined;
         if (triggerType !== undefined) {
             triggerPrice = this.safeString (order, 'trigger_price');
             if (triggerType === 'stoploss') {
@@ -2002,7 +2002,7 @@ export default class derive extends Exchange {
      */
     async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        let subaccountId = undefined;
+        let subaccountId: Str = undefined;
         [ subaccountId, params ] = this.handleDeriveSubaccountId ('fetchOrderTrades', params);
         const request: Dict = {
             'order_id': id,
@@ -2081,7 +2081,7 @@ export default class derive extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchMyTrades', symbol, since, limit, params, 'page', 500) as Trade[];
         }
-        let subaccountId = undefined;
+        let subaccountId: Str = undefined;
         [ subaccountId, params ] = this.handleDeriveSubaccountId ('fetchMyTrades', params);
         const request: Dict = {
             'subaccount_id': subaccountId,
@@ -2159,7 +2159,7 @@ export default class derive extends Exchange {
      */
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
-        let subaccountId = undefined;
+        let subaccountId: Str = undefined;
         [ subaccountId, params ] = this.handleDeriveSubaccountId ('fetchPositions', params);
         const request: Dict = {
             'subaccount_id': subaccountId,
@@ -2305,7 +2305,7 @@ export default class derive extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchFundingHistory', symbol, since, limit, params, 'page', 500) as FundingHistory[];
         }
-        let subaccountId = undefined;
+        let subaccountId: Str = undefined;
         [ subaccountId, params ] = this.handleDeriveSubaccountId ('fetchFundingHistory', params);
         const request: Dict = {
             'subaccount_id': subaccountId,
@@ -2402,7 +2402,7 @@ export default class derive extends Exchange {
      */
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
-        let deriveWalletAddress = undefined;
+        let deriveWalletAddress: Str = undefined;
         [ deriveWalletAddress, params ] = this.handleDeriveWalletAddress ('fetchBalance', params);
         const request = {
             'wallet': deriveWalletAddress,
@@ -2498,7 +2498,7 @@ export default class derive extends Exchange {
      */
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         await this.loadMarkets ();
-        let subaccountId = undefined;
+        let subaccountId: Str = undefined;
         [ subaccountId, params ] = this.handleDeriveSubaccountId ('fetchDeposits', params);
         const request: Dict = {
             'subaccount_id': subaccountId,
@@ -2545,7 +2545,7 @@ export default class derive extends Exchange {
      */
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         await this.loadMarkets ();
-        let subaccountId = undefined;
+        let subaccountId: Str = undefined;
         [ subaccountId, params ] = this.handleDeriveSubaccountId ('fetchWithdrawals', params);
         const request: Dict = {
             'subaccount_id': subaccountId,

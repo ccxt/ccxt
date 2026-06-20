@@ -5,7 +5,7 @@ import { sha512 } from '@noble/hashes/sha2.js';
 import exmoRest from '../exmo.js';
 import { NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Trade, Ticker, Balances, Market, Dict, Strings, Tickers, Order } from '../base/types.js';
+import type { Int, Str, OrderBook, Trade, Ticker, Balances, Market, Dict, Strings, Tickers, Order, NullableList } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -376,7 +376,7 @@ export default class exmo extends exmoRest {
         await this.authenticate (params);
         const [ type, query ] = this.handleMarketTypeAndParams ('watchMyTrades', undefined, params);
         const url = this.urls['api']['ws'][type];
-        let messageHash = undefined;
+        let messageHash: Str = undefined;
         if (symbol === undefined) {
             messageHash = 'myTrades:' + type;
         } else {
@@ -606,7 +606,7 @@ export default class exmo extends exmoRest {
         await this.authenticate (params);
         const [ type, query ] = this.handleMarketTypeAndParams ('watchOrders', undefined, params);
         const url = this.urls['api']['ws'][type];
-        let messageHash = undefined;
+        let messageHash: Str = undefined;
         if (symbol === undefined) {
             messageHash = 'orders:' + type;
         } else {
@@ -745,11 +745,11 @@ export default class exmo extends exmoRest {
         const price = this.safeString (order, 'price');
         const clientOrderId = this.omitZero (this.safeString (order, 'client_id'));
         const triggerPrice = this.omitZero (this.safeString (order, 'stop_price'));
-        let type = undefined;
+        let type: Str = undefined;
         if ((orderType !== 'buy') && (orderType !== 'sell')) {
             type = orderType;
         }
-        let trades = undefined;
+        let trades: NullableList = undefined;
         if ('last_trade_id' in order) {
             const trade = this.parseWsTrade (order, market);
             trades = [ trade ];
@@ -787,7 +787,7 @@ export default class exmo extends exmoRest {
         const marketId = this.safeString (trade, 'pair');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        let type = undefined;
+        let type: Str = undefined;
         if ((orderType !== 'buy') && (orderType !== 'sell')) {
             type = orderType;
         }

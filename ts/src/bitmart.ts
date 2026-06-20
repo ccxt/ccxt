@@ -1941,8 +1941,8 @@ export default class bitmart extends Exchange {
         const timestamp = this.safeIntegerN (trade, [ 'createTime', 'create_time', 1 ]);
         const isPublic = this.safeString (trade, 0);
         const isPublicTrade = (isPublic !== undefined);
-        let amount = undefined;
-        let cost = undefined;
+        let amount: Str = undefined;
+        let cost: Str = undefined;
         let type: Str = undefined;
         let side: Str = undefined;
         if (isPublicTrade) {

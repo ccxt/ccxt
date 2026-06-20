@@ -864,7 +864,7 @@ export default class btcmarkets extends Exchange {
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
         const orderId = this.safeString (trade, 'orderId');
-        let fee = undefined;
+        let fee: Dict = undefined;
         const feeCostString = this.safeString (trade, 'fee');
         if (feeCostString !== undefined) {
             fee = {
@@ -1102,7 +1102,7 @@ export default class btcmarkets extends Exchange {
          */
         const market = this.markets[symbol];
         let currency: Currency = undefined;
-        let cost = undefined;
+        let cost: Str = undefined;
         if (market['quote'] === 'AUD') {
             currency = market['quote'];
             const amountString = this.numberToString (amount);
