@@ -4,7 +4,7 @@ import { ExchangeError, ArgumentsRequired, InsufficientFunds, AuthenticationErro
 import { Precise } from './base/Precise.js';
 import Exchange from './abstract/bitfinex.js';
 import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest, Num, MarginModification, Currencies, TradingFees, Dict, LedgerEntry, List, FundingRate, FundingRates, DepositAddress, OpenInterests, Position } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest, Num, MarginModification, Currencies, TradingFees, Dict, LedgerEntry, List, FundingRate, FundingRates, DepositAddress, OpenInterests, Position, IndexType } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -591,7 +591,7 @@ export default class bitfinex extends Exchange {
         const response = await this.publicGetPlatformStatus (params);
         const statusRaw = this.safeString (response, 0);
         return {
-            'status': this.safeString ({ '0': 'maintenance', '1': 'ok' }, statusRaw, statusRaw),
+            'status': this.safeString ({ '0': 'maintenance', '1': 'ok' }, statusRaw as IndexType, statusRaw),
             'updated': undefined,
             'eta': undefined,
             'url': undefined,
@@ -624,7 +624,7 @@ export default class bitfinex extends Exchange {
         };
         const [ spotMarketsInfo, futuresMarketsInfo, securitiesMarketsIds, marginIds ] = await this.publicGetConfConfig (this.extend (request, params));
         const markets = this.arrayConcat (spotMarketsInfo, futuresMarketsInfo);
-        const result = [];
+        const result: any[] = [];
         for (let i = 0; i < markets.length; i++) {
             const pairObj = markets[i];
             const id = this.safeStringUpper (pairObj, 0);
@@ -831,16 +831,16 @@ export default class bitfinex extends Exchange {
         //     ]
         //
         const indexed: Dict = {
-            'sym': this.indexBy (this.safeList (response, 1, []), 0),
-            'label': this.indexBy (this.safeList (response, 2, []), 0),
-            'unit': this.indexBy (this.safeList (response, 3, []), 0),
-            'undl': this.indexBy (this.safeList (response, 4, []), 0),
-            'pool': this.indexBy (this.safeList (response, 5, []), 0),
-            'explorer': this.indexBy (this.safeList (response, 6, []), 0),
-            'fees': this.indexBy (this.safeList (response, 7, []), 0),
-            'networks': this.safeList (response, 8, []),
-            'statuses': this.indexBy (this.safeList (response, 9, []), 0),
-            'marginables': this.safeList (response, 10, []),
+            'sym': this.indexBy (this.safeList (response, 1, [])!, 0),
+            'label': this.indexBy (this.safeList (response, 2, [])!, 0),
+            'unit': this.indexBy (this.safeList (response, 3, [])!, 0),
+            'undl': this.indexBy (this.safeList (response, 4, [])!, 0),
+            'pool': this.indexBy (this.safeList (response, 5, [])!, 0),
+            'explorer': this.indexBy (this.safeList (response, 6, [])!, 0),
+            'fees': this.indexBy (this.safeList (response, 7, [])!, 0),
+            'networks': this.safeList (response, 8, [])!,
+            'statuses': this.indexBy (this.safeList (response, 9, [])!, 0),
+            'marginables': this.safeList (response, 10, [])!,
         };
         const indexedNetworks: Dict = {};
         for (let i = 0; i < indexed['networks'].length; i++) {
@@ -849,7 +849,7 @@ export default class bitfinex extends Exchange {
             const valuesList = this.safeList (networkObj, 1);
             const networkName = this.safeString (valuesList, 0);
             // for GOlang transpiler, do with "safe" method
-            const networksList = this.safeList (indexedNetworks, networkName, []);
+            const networksList = this.safeList (indexedNetworks, networkName as IndexType, []);
             networksList.push (networkId);
             indexedNetworks[networkName] = networksList;
         }
@@ -858,7 +858,7 @@ export default class bitfinex extends Exchange {
     }
 
     parseCurrenciesCustom (ids, indexed, indexedNetworks) {
-        const allowedIds = [];
+        const allowedIds: Str[] = [];
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             if (id.endsWith ('F0')) {
@@ -953,7 +953,7 @@ export default class bitfinex extends Exchange {
         await this.loadMarkets ();
         const accountsByType = this.safeValue (this.options, 'v2AccountsByType', {});
         const requestedType = this.safeString (params, 'type', 'exchange');
-        const accountType = this.safeString (accountsByType, requestedType, requestedType);
+        const accountType = this.safeString (accountsByType, requestedType as IndexType, requestedType);
         if (accountType === undefined) {
             const keys = Object.keys (accountsByType);
             throw new ExchangeError (this.id + ' fetchBalance() type parameter must be one of ' + keys.join (', '));
@@ -1106,7 +1106,7 @@ export default class bitfinex extends Exchange {
             'ERROR': 'failed',
             'FAILURE': 'failed',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as IndexType, status);
     }
 
     convertDerivativesId (currency, type) {
@@ -1500,7 +1500,7 @@ export default class bitfinex extends Exchange {
         //     ]
         //
         const trades = this.sortBy (response, 1);
-        const tradesList = [];
+        const tradesList: any[] = [];
         for (let i = 0; i < trades.length; i++) {
             tradesList.push ({ 'result': trades[i] }); // convert to array of dicts to match parseOrder signature
         }
@@ -1526,7 +1526,7 @@ export default class bitfinex extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 10000) as OHLCV[];
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 10000 as any) as OHLCV[];
         }
         const market = this.market (symbol);
         if (limit === undefined) {
@@ -1594,7 +1594,7 @@ export default class bitfinex extends Exchange {
             'IOC CANCELED': 'canceled',
             'FILLORKILL CANCELED': 'canceled',
         };
-        return this.safeString (statuses, state, status);
+        return this.safeString (statuses, state as IndexType, status);
     }
 
     parseOrderFlags (flags) {
@@ -1634,7 +1634,7 @@ export default class bitfinex extends Exchange {
         const amount = Precise.stringAbs (signedAmount);
         const side = Precise.stringLt (signedAmount, '0') ? 'sell' : 'buy';
         const orderType = this.safeString (orderList, 8);
-        const type = this.safeString (this.safeValue (this.options, 'exchangeTypes'), orderType);
+        const type = this.safeString (this.safeValue (this.options, 'exchangeTypes'), orderType as IndexType);
         const timeInForce = this.parseTimeInForce (orderType);
         const rawFlags = this.safeString (orderList, 12);
         const flags = this.parseOrderFlags (rawFlags);
@@ -1877,7 +1877,7 @@ export default class bitfinex extends Exchange {
      */
     async createOrders (orders: OrderRequest[], params = {}) {
         await this.loadMarkets ();
-        const ordersRequests = [];
+        const ordersRequests: any[] = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const symbol = this.safeString (rawOrder, 'symbol');
@@ -1886,7 +1886,7 @@ export default class bitfinex extends Exchange {
             const amount = this.safeNumber (rawOrder, 'amount');
             const price = this.safeNumber (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
-            const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, orderParams);
+            const orderRequest = this.createOrderRequest (symbol, type as OrderType, side as OrderSide, amount, price, orderParams);
             ordersRequests.push ([ 'on', orderRequest ]);
         }
         const request: Dict = {
@@ -1918,7 +1918,7 @@ export default class bitfinex extends Exchange {
         //         "Submitting 2 order operations."
         //     ]
         //
-        const results = [];
+        const results: any[] = [];
         const data = this.safeList (response, 4, []);
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
@@ -1944,7 +1944,7 @@ export default class bitfinex extends Exchange {
         };
         const response = await this.privatePostAuthWOrderCancelMulti (this.extend (request, params));
         const orders = this.safeList (response, 4, []);
-        const ordersList = [];
+        const ordersList: any[] = [];
         for (let i = 0; i < orders.length; i++) {
             ordersList.push ({ 'result': orders[i] });
         }
@@ -2002,7 +2002,7 @@ export default class bitfinex extends Exchange {
      */
     async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        const numericIds = [];
+        const numericIds: any[] = [];
         for (let i = 0; i < ids.length; i++) {
             // numericIds[i] = this.parseToNumeric (ids[i]);
             numericIds.push (this.parseToNumeric (ids[i]));
@@ -2066,7 +2066,7 @@ export default class bitfinex extends Exchange {
         //     ]
         //
         const orders = this.safeList (response, 4, []);
-        const ordersList = [];
+        const ordersList: any[] = [];
         for (let i = 0; i < orders.length; i++) {
             ordersList.push ({ 'result': orders[i] });
         }
@@ -2181,7 +2181,7 @@ export default class bitfinex extends Exchange {
         //          ],
         //      ]
         //
-        const ordersList = [];
+        const ordersList: any[] = [];
         for (let i = 0; i < response.length; i++) {
             ordersList.push ({ 'result': response[i] });
         }
@@ -2265,7 +2265,7 @@ export default class bitfinex extends Exchange {
         //          ]
         //      ]
         //
-        const ordersList = [];
+        const ordersList: any[] = [];
         for (let i = 0; i < response.length; i++) {
             ordersList.push ({ 'result': response[i] });
         }
@@ -2297,7 +2297,7 @@ export default class bitfinex extends Exchange {
         };
         // valid for trades upto 10 days old
         const response = await this.privatePostAuthROrderSymbolIdTrades (this.extend (request, params));
-        const tradesList = [];
+        const tradesList: any[] = [];
         for (let i = 0; i < response.length; i++) {
             tradesList.push ({ 'result': response[i] }); // convert to array of dicts to match parseOrder signature
         }
@@ -2336,7 +2336,7 @@ export default class bitfinex extends Exchange {
         } else {
             response = await this.privatePostAuthRTradesHist (this.extend (request, params));
         }
-        const tradesList = [];
+        const tradesList: any[] = [];
         for (let i = 0; i < response.length; i++) {
             tradesList.push ({ 'result': response[i] }); // convert to array of dicts to match parseOrder signature
         }
@@ -2375,7 +2375,7 @@ export default class bitfinex extends Exchange {
         // if not provided explicitly we will try to match using the currency name
         const network = this.safeString (params, 'network', code);
         const currencyNetworks = this.safeValue (currency, 'networks', {});
-        const currencyNetwork = this.safeValue (currencyNetworks, network);
+        const currencyNetwork = this.safeValue (currencyNetworks, network as IndexType);
         const networkId = this.safeString (currencyNetwork, 'id');
         if (networkId === undefined) {
             throw new ArgumentsRequired (this.id + " fetchDepositAddress() could not find a network for '" + code + "'. You can specify it by providing the 'network' value inside params");
@@ -2435,7 +2435,7 @@ export default class bitfinex extends Exchange {
             'SENDING': 'pending',
             'USER APPROVED': 'pending',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as IndexType, status);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -2773,7 +2773,7 @@ export default class bitfinex extends Exchange {
         const network = this.safeString (params, 'network', code);
         params = this.omit (params, 'network');
         const currencyNetworks = this.safeValue (currency, 'networks', {});
-        const currencyNetwork = this.safeValue (currencyNetworks, network);
+        const currencyNetwork = this.safeValue (currencyNetworks, network as IndexType);
         const networkId = this.safeString (currencyNetwork, 'id');
         if (networkId === undefined) {
             throw new ArgumentsRequired (this.id + " withdraw() could not find a network for '" + code + "'. You can specify it by providing the 'network' value inside params");
@@ -2888,7 +2888,7 @@ export default class bitfinex extends Exchange {
         //         ]
         //     ]
         //
-        const positionsList = [];
+        const positionsList: any[] = [];
         for (let i = 0; i < response.length; i++) {
             positionsList.push ({ 'result': response[i] });
         }
@@ -3151,7 +3151,7 @@ export default class bitfinex extends Exchange {
         //         ]
         //     ]
         //
-        const ledgerObjects = [];
+        const ledgerObjects: any[] = [];
         for (let i = 0; i < response.length; i++) {
             const item = response[i];
             ledgerObjects.push ({ 'result': item });
@@ -3232,7 +3232,7 @@ export default class bitfinex extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params, 5000) as FundingRateHistory[];
+            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params, 5000 as any) as FundingRateHistory[];
         }
         const market = this.market (symbol);
         let request: Dict = {
@@ -3273,13 +3273,13 @@ export default class bitfinex extends Exchange {
         //       ]
         //   ]
         //
-        const rates = [];
+        const rates: any[] = [];
         for (let i = 0; i < response.length; i++) {
             const fr = response[i];
             const rate = this.parseFundingRateHistory (fr, market);
             rates.push (rate);
         }
-        const reversedArray = [];
+        const reversedArray: any[] = [];
         const rawRates = this.filterBySymbolSinceLimit (rates, symbol, since, limit);
         const ratesLength = rawRates.length;
         for (let i = 0; i < ratesLength; i++) {
@@ -3517,7 +3517,7 @@ export default class bitfinex extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOpenInterestHistory', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOpenInterestHistory', symbol, since, limit, '8h', params, 5000) as OpenInterest[];
+            return await this.fetchPaginatedCallDeterministic ('fetchOpenInterestHistory', symbol, since, limit, '8h', params, 5000 as any) as OpenInterest[];
         }
         const market = this.market (symbol);
         let request: Dict = {
@@ -3560,7 +3560,7 @@ export default class bitfinex extends Exchange {
         //         ],
         //     ]
         //
-        return this.parseOpenInterestsHistory (response, market, since, limit);
+        return this.parseOpenInterestsHistory (response, market as any, since, limit);
     }
 
     parseOpenInterest (interest, market: Market = undefined) {
@@ -3654,7 +3654,7 @@ export default class bitfinex extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLiquidations', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchLiquidations', symbol, since, limit, '8h', params, 500) as Liquidation[];
+            return await this.fetchPaginatedCallDeterministic ('fetchLiquidations', symbol, since, limit, '8h', params, 500 as any) as Liquidation[];
         }
         const market = this.market (symbol);
         let request: Dict = {};
@@ -3760,7 +3760,7 @@ export default class bitfinex extends Exchange {
         //     ]
         //
         const data = this.safeValue (response, 0);
-        return this.parseMarginModification (data, market);
+        return this.parseMarginModification (data, market as any);
     }
 
     parseMarginModification (data, market = undefined): MarginModification {
