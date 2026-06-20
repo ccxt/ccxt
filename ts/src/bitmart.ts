@@ -6,7 +6,7 @@ import Exchange from './abstract/bitmart.js';
 import { AuthenticationError, ExchangeNotAvailable, OnMaintenance, AccountSuspended, PermissionDenied, RateLimitExceeded, InvalidNonce, InvalidAddress, ArgumentsRequired, ExchangeError, InvalidOrder, InsufficientFunds, BadRequest, OrderNotFound, BadSymbol, NotSupported, NetworkError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
-import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, Dict, OrderRequest, int, FundingRate, DepositAddress, BorrowInterest, MarketInterface, FundingRateHistory, FundingHistory, LedgerEntry, Position, Bool, Fee, List } from './base/types.js';
+import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, Dict, NullableDict, OrderRequest, int, FundingRate, DepositAddress, BorrowInterest, MarketInterface, FundingRateHistory, FundingHistory, LedgerEntry, Position, Bool, Fee, NullableList } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 /**
@@ -1607,7 +1607,7 @@ export default class bitmart extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {};
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         if (market['swap']) {
             request['symbol'] = market['id'];
             response = await this.publicGetContractPublicDetails (this.extend (request, params));
@@ -1711,7 +1711,7 @@ export default class bitmart extends Exchange {
             market = this.market (symbol);
         }
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         if (type === 'spot') {
             response = await this.publicGetSpotQuotationV3Tickers (params);
             //
@@ -1820,7 +1820,7 @@ export default class bitmart extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         if (market['spot']) {
             if (limit !== undefined) {
                 request['limit'] = limit; // default 35, max 50
@@ -2155,7 +2155,7 @@ export default class bitmart extends Exchange {
             }
             [ request, params ] = this.handleUntilOption ('end_time', request, params, 0.001);
         }
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         if (market['swap']) {
             const price = this.safeString (params, 'price');
             if (price === 'mark') {
@@ -2228,7 +2228,7 @@ export default class bitmart extends Exchange {
             request['symbol'] = market['id'];
         }
         let type: Str = undefined;
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         const until = this.safeIntegerN (params, [ 'until', 'endTime', 'end_time' ]);
         params = this.omit (params, [ 'until' ]);
@@ -2346,7 +2346,7 @@ export default class bitmart extends Exchange {
 
     customParseBalance (response, marketType): Balances {
         const data = this.safeDict (response, 'data', {});
-        let wallet: List = undefined;
+        let wallet: NullableList = undefined;
         if (marketType === 'swap') {
             wallet = this.safeList (response, 'data', []);
         } else if (marketType === 'margin') {
@@ -2417,7 +2417,7 @@ export default class bitmart extends Exchange {
         if (marginMode !== undefined || isMargin) {
             marketType = 'margin';
         }
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         if (marketType === 'spot') {
             response = await this.privateGetSpotV1Wallet (params);
         } else if (marketType === 'swap') {
@@ -2811,7 +2811,7 @@ export default class bitmart extends Exchange {
         const isStopLoss = stopLossPrice !== undefined;
         const isTakeProfit = takeProfitPrice !== undefined;
         const isTriggerOrder = triggerPrice !== undefined;
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         if (market['spot']) {
             const spotRequest = this.createSpotOrderRequest (symbol, type, side, amount, price, params);
             if (isStopLoss || isTakeProfit || isTriggerOrder) {
@@ -3223,7 +3223,7 @@ export default class bitmart extends Exchange {
         const stopLossTakeProfit = this.safeBool (params, 'stopLossTakeProfit');
         const trailing = this.safeBool (params, 'trailing');
         params = this.omit (params, [ 'clientOrderId', 'stop', 'trigger', 'trailing', 'stopLossTakeProfit' ]);
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         if (market['spot']) {
             if (trigger || stopLossTakeProfit) {
                 if (stopLossTakeProfit) {
@@ -3374,7 +3374,7 @@ export default class bitmart extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         if (type === 'spot') {
@@ -3507,7 +3507,7 @@ export default class bitmart extends Exchange {
             request['symbol'] = market['id'];
         }
         let type: Str = undefined;
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         const isTrigger = this.safeBool2 (params, 'stop', 'trigger');
         const stopLossTakeProfit = this.safeBool (params, 'stopLossTakeProfit');
@@ -3664,7 +3664,7 @@ export default class bitmart extends Exchange {
         const isTrigger = this.safeBool2 (params, 'stop', 'trigger');
         const stopLossTakeProfit = this.safeBool (params, 'stopLossTakeProfit');
         params = this.omit (params, [ 'stop', 'trigger', 'stopLossTakeProfit' ]);
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         if (type === 'spot') {
             let marginMode: Str = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('fetchClosedOrders', params);
@@ -3726,7 +3726,7 @@ export default class bitmart extends Exchange {
         const request: Dict = {};
         let type: Str = undefined;
         let market: Market = undefined;
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -4501,7 +4501,7 @@ export default class bitmart extends Exchange {
         } else {
             throw new ArgumentsRequired (this.id + ' transfer() requires either fromAccount or toAccount to be spot');
         }
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         if ((fromAccount === 'margin') || (toAccount === 'margin')) {
             response = await this.privatePostSpotV1MarginIsolatedTransfer (this.extend (request, params));
         } else if ((fromAccount === 'swap') || (toAccount === 'swap')) {
@@ -5328,7 +5328,7 @@ export default class bitmart extends Exchange {
             request['order_id'] = id;
         }
         params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit' ]);
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         if (isTriggerOrder || isStopLoss || isTakeProfit) {
             request['price_type'] = this.safeInteger (params, 'price_type', 1);
             if (price !== undefined) {
