@@ -1958,7 +1958,7 @@ export default class bitmart extends Exchange {
         const marketId = this.safeString2 (trade, 'symbol', 0);
         market = this.safeMarket (marketId, market);
         const feeCostString = this.safeString2 (trade, 'fee', 'paid_fees');
-        let fee = undefined;
+        let fee: NullableDict = undefined;
         if (feeCostString !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'feeCoinName');
             let feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
