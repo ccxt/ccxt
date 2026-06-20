@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import Precise from '../base/Precise.js';
-import type { Balances, Dict, NullableDict, Int, Liquidation, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Dict, NullableDict, Int, Liquidation, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade, Market } from '../base/types.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 import lighterRest from '../lighter.js';
@@ -443,7 +443,7 @@ export default class lighter extends lighterRest {
         return await this.unWatchTickers (symbols, params);
     }
 
-    parseWsTrade (trade, market = undefined) {
+    parseWsTrade (trade, market: Market = undefined) {
         //
         //     {
         //         "trade_id": 526801155,
@@ -600,7 +600,7 @@ export default class lighter extends lighterRest {
         return await this.unsubscribe (messageHash, this.extend (request, params));
     }
 
-    parseWsOrderTrade (trade, market = undefined) {
+    parseWsOrderTrade (trade, market: Market = undefined) {
         //
         //     {
         //         "trade_id": 526801155,
@@ -804,7 +804,7 @@ export default class lighter extends lighterRest {
         return await this.unsubscribe (messageHash, this.extend (request, params));
     }
 
-    parseWsLiquidation (liquidation, market = undefined) {
+    parseWsLiquidation (liquidation, market: Market = undefined) {
         //
         //     {
         //         "trade_id": 526801155,
