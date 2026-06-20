@@ -211,8 +211,8 @@ export default class backpack extends backpackRest {
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
-        const messageHashes = [];
-        const topics = [];
+        const messageHashes: string[] = [];
+        const topics: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const marketId = this.marketId (symbol);
@@ -235,8 +235,8 @@ export default class backpack extends backpackRest {
     async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
-        const topics = [];
-        const messageHashes = [];
+        const topics: string[] = [];
+        const messageHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const marketId = this.marketId (symbol);
@@ -332,8 +332,8 @@ export default class backpack extends backpackRest {
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
-        const topics = [];
-        const messageHashes = [];
+        const topics: string[] = [];
+        const messageHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const marketId = this.marketId (symbol);
@@ -355,8 +355,8 @@ export default class backpack extends backpackRest {
     async unWatchBidsAsks (symbols: Strings = undefined, params = {}): Promise<any> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
-        const topics = [];
-        const messageHashes = [];
+        const topics: string[] = [];
+        const messageHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const marketId = this.marketId (symbol);
@@ -392,7 +392,7 @@ export default class backpack extends backpackRest {
         client.resolve (parsedBidAsk, messageHash);
     }
 
-    parseWsBidAsk (ticker, market = undefined) {
+    parseWsBidAsk (ticker, market: Market = undefined) {
         //
         //     {
         //         A: '0.4087',
@@ -475,8 +475,8 @@ export default class backpack extends backpackRest {
             throw new ArgumentsRequired (this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']");
         }
         await this.loadMarkets ();
-        const topics = [];
-        const messageHashes = [];
+        const topics: string[] = [];
+        const messageHashes: string[] = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const symbolAndTimeframe = symbolsAndTimeframes[i];
             const marketId = this.safeString (symbolAndTimeframe, 0);
@@ -509,8 +509,8 @@ export default class backpack extends backpackRest {
             throw new ArgumentsRequired (this.id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']");
         }
         await this.loadMarkets ();
-        const topics = [];
-        const messageHashes = [];
+        const topics: string[] = [];
+        const messageHashes: string[] = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const symbolAndTimeframe = symbolsAndTimeframes[i];
             const marketId = this.safeString (symbolAndTimeframe, 0);
@@ -633,13 +633,13 @@ export default class backpack extends backpackRest {
      */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
+        symbols = this.marketSymbols (symbols) ?? [];
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
         }
-        const topics = [];
-        const messageHashes = [];
+        const topics: string[] = [];
+        const messageHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const marketId = this.marketId (symbol);
@@ -667,13 +667,13 @@ export default class backpack extends backpackRest {
      */
     async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
+        symbols = this.marketSymbols (symbols) ?? [];
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' unWatchTradesForSymbols() requires a non-empty array of symbols');
         }
-        const topics = [];
-        const messageHashes = [];
+        const topics: string[] = [];
+        const messageHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const marketId = this.marketId (symbol);
@@ -718,7 +718,7 @@ export default class backpack extends backpackRest {
         client.resolve (cache, 'trades');
     }
 
-    parseWsTrade (trade, market = undefined) {
+    parseWsTrade (trade, market: Market = undefined) {
         //
         //     {
         //         E: '1754601477746429',
@@ -804,10 +804,10 @@ export default class backpack extends backpackRest {
      */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false);
+        symbols = this.marketSymbols (symbols, undefined, false) ?? [];
         const marketIds = this.marketIds (symbols);
-        const messageHashes = [];
-        const topics = [];
+        const messageHashes: string[] = [];
+        const topics: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             messageHashes.push ('orderbook:' + symbol);
@@ -842,10 +842,10 @@ export default class backpack extends backpackRest {
      */
     async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false);
+        symbols = this.marketSymbols (symbols, undefined, false) ?? [];
         const marketIds = this.marketIds (symbols);
-        const messageHashes = [];
-        const topics = [];
+        const messageHashes: string[] = [];
+        const topics: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             messageHashes.push ('unsubscribe:orderbook:' + symbol);
@@ -1041,7 +1041,7 @@ export default class backpack extends backpackRest {
         client.resolve (orders, symbolSpecificMessageHash);
     }
 
-    parseWsOrder (order, market = undefined) {
+    parseWsOrder (order, market: Market = undefined) {
         //
         //     {
         //         E: '1754939110175879',
@@ -1152,8 +1152,8 @@ export default class backpack extends backpackRest {
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const messageHashes = [];
-        const topics = [];
+        const messageHashes: string[] = [];
+        const topics: string[] = [];
         if (symbols !== undefined) {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
@@ -1183,8 +1183,8 @@ export default class backpack extends backpackRest {
     async unWatchPositions (symbols: Strings = undefined, params = {}): Promise<any[]> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const messageHashes = [];
-        const topics = [];
+        const messageHashes: string[] = [];
+        const topics: string[] = [];
         if (symbols !== undefined) {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];

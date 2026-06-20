@@ -7,7 +7,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied, ArgumentsRequired, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { totp } from './base/functions/totp.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, Str, Dict, Transaction, Ticker, Tickers, Market, MarketType, Strings, Currency, Leverage, Leverages, Num, Currencies, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, Position, OpenInterests, ADL, Fee, Bool } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, Str, Dict, Transaction, Ticker, Tickers, Market, MarketType, Strings, Currency, Leverage, Leverages, Num, Currencies, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, Position, OpenInterests, ADL, Fee, Bool, List } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -2132,7 +2132,7 @@ export default class bitmex extends Exchange {
             'ordType': capitalizeOrderType,
             'text': brokerId,
         };
-        const execInstructions = [];
+        const execInstructions: List = [];
         if (reduceOnly === true) {
             execInstructions.push ('ReduceOnly');
         }
@@ -2747,7 +2747,7 @@ export default class bitmex extends Exchange {
         await this.loadMarkets ();
         const response = await this.publicGetInstrumentActiveAndIndices (params);
         // same response as under "fetchMarkets"
-        const filteredResponse = [];
+        const filteredResponse: List = [];
         for (let i = 0; i < response.length; i++) {
             const item = response[i];
             const marketId = this.safeString (item, 'symbol');
@@ -3553,7 +3553,7 @@ export default class bitmex extends Exchange {
     }
 
     parseSettlements (settlements, market = undefined, since = undefined, limit = undefined) {
-        const result = [];
+        const result: List = [];
         for (let i = 0; i < settlements.length; i++) {
             result.push (this.parseSettlement (settlements[i], market));
         }
@@ -3654,7 +3654,7 @@ export default class bitmex extends Exchange {
         return this.milliseconds ();
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         let query = '/api/' + this.version + '/' + path;
         if (method === 'GET') {
             if (Object.keys (params).length) {

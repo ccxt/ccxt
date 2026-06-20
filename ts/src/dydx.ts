@@ -7,7 +7,7 @@ import Exchange from './abstract/dydx.js';
 import { ArgumentsRequired, NotSupported, ExchangeError, InsufficientFunds, InvalidOrder, BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Account, Balances, Currency, Dict, FundingRateHistory, Int, LedgerEntry, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry, int } from './base/types.js';
+import type { Account, Balances, Currency, Dict, FundingRateHistory, Int, LedgerEntry, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry, int } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 
 // ---------------------------------------------------------------------------
@@ -695,7 +695,7 @@ export default class dydx extends Exchange {
         //     ]
         // }
         //
-        const rows = this.safeList (response, 'trades', []);
+        const rows: List = this.safeList (response, 'trades', []) as List;
         return this.parseTrades (rows, market, since, limit);
     }
 
@@ -780,7 +780,7 @@ export default class dydx extends Exchange {
         //     ]
         // }
         //
-        const rows = this.safeList (response, 'candles', []);
+        const rows: List = this.safeList (response, 'candles', []) as List;
         return this.parseOHLCVs (rows, market, timeframe, since, limit);
     }
 
@@ -826,7 +826,7 @@ export default class dydx extends Exchange {
         //     ]
         // }
         //
-        const rates = [];
+        const rates: List = [];
         const rows = this.safeList (response, 'historicalFunding', []);
         for (let i = 0; i < rows.length; i++) {
             const entry = rows[i];
@@ -1186,7 +1186,7 @@ export default class dydx extends Exchange {
         //     ]
         // }
         //
-        const rows = this.safeList (response, 'positions', []);
+        const rows: List = this.safeList (response, 'positions', []) as List;
         return this.parsePositions (rows, symbols);
     }
 
@@ -2015,8 +2015,8 @@ export default class dydx extends Exchange {
             currency = this.currency (code);
         }
         const response = await this.fetchTransactionsHelper (code, since, limit, this.extend (params, { 'methodName': 'fetchTransfers' }));
-        const transferIn = this.filterBy (response, 'type', 'TRANSFER_IN');
-        const transferOut = this.filterBy (response, 'type', 'TRANSFER_OUT');
+        const transferIn: List = this.filterBy (response, 'type', 'TRANSFER_IN') as List;
+        const transferOut: List = this.filterBy (response, 'type', 'TRANSFER_OUT') as List;
         const rows = this.arrayConcat (transferIn, transferOut);
         return this.parseTransfers (rows, currency, since, limit);
     }
@@ -2135,7 +2135,7 @@ export default class dydx extends Exchange {
         //     }
         // }
         //
-        const data = this.safeDict (response, 'result', {});
+        const data: Dict = this.safeDict (response, 'result', {}) as Dict;
         return this.parseTransaction (data, currency);
     }
 
@@ -2159,7 +2159,7 @@ export default class dydx extends Exchange {
             currency = this.currency (code);
         }
         const response = await this.fetchTransactionsHelper (code, since, limit, this.extend (params, { 'methodName': 'fetchWithdrawals' }));
-        const rows = this.filterBy (response, 'type', 'WITHDRAWAL');
+        const rows: List = this.filterBy (response, 'type', 'WITHDRAWAL') as List;
         return this.parseTransactions (rows, currency, since, limit);
     }
 
@@ -2183,7 +2183,7 @@ export default class dydx extends Exchange {
             currency = this.currency (code);
         }
         const response = await this.fetchTransactionsHelper (code, since, limit, this.extend (params, { 'methodName': 'fetchDeposits' }));
-        const rows = this.filterBy (response, 'type', 'DEPOSIT');
+        const rows: List = this.filterBy (response, 'type', 'DEPOSIT') as List;
         return this.parseTransactions (rows, currency, since, limit);
     }
 
@@ -2207,8 +2207,8 @@ export default class dydx extends Exchange {
             currency = this.currency (code);
         }
         const response = await this.fetchTransactionsHelper (code, since, limit, this.extend (params, { 'methodName': 'fetchDepositsWithdrawals' }));
-        const withdrawals = this.filterBy (response, 'type', 'WITHDRAWAL');
-        const deposits = this.filterBy (response, 'type', 'DEPOSIT');
+        const withdrawals: List = this.filterBy (response, 'type', 'WITHDRAWAL') as List;
+        const deposits: List = this.filterBy (response, 'type', 'DEPOSIT') as List;
         const rows = this.arrayConcat (withdrawals, deposits);
         return this.parseTransactions (rows, currency, since, limit);
     }
@@ -2312,7 +2312,7 @@ export default class dydx extends Exchange {
         // }
         //
         const rows = this.safeList (response, 'subaccounts', []);
-        const result = [];
+        const result: List = [];
         for (let i = 0; i < rows.length; i++) {
             const account = rows[i];
             const accountId = this.safeString (account, 'subaccountNumber');
@@ -2439,7 +2439,7 @@ export default class dydx extends Exchange {
         throw new ArgumentsRequired (this.id + ' getWalletAddress() requires a wallet address. Set `walletAddress` or `dydxAccount` in exchange options.');
     }
 
-    sign (path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, section = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         const pathWithParams = this.implodeParams (path, params);
         let url = this.implodeHostname (this.urls['api'][section]);
         params = this.omit (params, this.extractParams (path));

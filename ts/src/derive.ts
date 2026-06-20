@@ -5,7 +5,7 @@ import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/derive.js';
 import { Precise } from './base/Precise.js';
-import type { Dict, Currencies, Transaction, Currency, FundingHistory, Market, MarketType, Bool, Str, Strings, Ticker, Int, int, Trade, OrderType, OrderSide, Num, FundingRateHistory, FundingRate, Balances, Order, Position } from './base/types.js';
+import type { Dict, List, Currencies, Transaction, Currency, FundingHistory, Market, MarketType, Bool, Str, Strings, Ticker, Int, int, Trade, OrderType, OrderSide, Num, FundingRateHistory, FundingRate, Balances, Order, Position } from './base/types.js';
 import { BadRequest, InvalidOrder, ExchangeError, OrderNotFound, ArgumentsRequired, InsufficientFunds, RateLimitExceeded, AuthenticationError } from './base/errors.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { TICK_SIZE } from './base/functions/number.js';
@@ -1068,7 +1068,7 @@ export default class derive extends Exchange {
         //
         const result = this.safeDict (response, 'result', {});
         const data = this.safeList (result, 'funding_rate_history', []);
-        const rates = [];
+        const rates: List = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const timestamp = this.safeInteger (entry, 'timestamp');
@@ -1295,7 +1295,7 @@ export default class derive extends Exchange {
         }
         request['signature'] = signature;
         params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'test', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trigger_price', 'stopLoss', 'takeProfit', 'trigger_price_type' ]);
-        let response: Dict = undefined;
+        let response: Dict;
         if (test) {
             response = await this.privatePostOrderDebug (this.extend (request, params));
         } else {
@@ -1575,7 +1575,7 @@ export default class derive extends Exchange {
         const clientOrderIdUnified = this.safeString (params, 'clientOrderId');
         const clientOrderIdExchangeSpecific = this.safeString (params, 'label', clientOrderIdUnified);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
-        let response: Dict = undefined;
+        let response: Dict;
         if (isByClientOrder) {
             request['label'] = clientOrderIdExchangeSpecific;
             params = this.omit (params, [ 'clientOrderId', 'label' ]);
@@ -1661,7 +1661,7 @@ export default class derive extends Exchange {
         const request: Dict = {
             'subaccount_id': subaccountId,
         };
-        let response: Dict = undefined;
+        let response: Dict;
         if (market !== undefined) {
             request['instrument_name'] = market['id'];
             response = await this.privatePostCancelByInstrument (this.extend (request, params));
@@ -2628,7 +2628,7 @@ export default class derive extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    handleDeriveSubaccountId (methodName: string, params: Dict) {
+    handleDeriveSubaccountId (methodName: string, params: Dict): [any, Dict] {
         let derivesubAccountId = undefined;
         [ derivesubAccountId, params ] = this.handleOptionAndParams (params, methodName, 'subaccount_id');
         if ((derivesubAccountId !== undefined) && (derivesubAccountId !== '')) {
@@ -2642,7 +2642,7 @@ export default class derive extends Exchange {
         throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a subaccount_id parameter inside \'params\' or exchange.options[\'subaccount_id\']=ID.');
     }
 
-    handleDeriveWalletAddress (methodName: string, params: Dict) {
+    handleDeriveWalletAddress (methodName: string, params: Dict): [any, Dict] {
         let deriveWalletAddress = undefined;
         [ deriveWalletAddress, params ] = this.handleOptionAndParams (params, methodName, 'deriveWalletAddress');
         if ((deriveWalletAddress !== undefined) && (deriveWalletAddress !== '')) {

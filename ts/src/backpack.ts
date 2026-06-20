@@ -6,7 +6,7 @@ import Exchange from './abstract/backpack.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, ExchangeNotAvailable, InvalidOrder, InsufficientFunds, NetworkError, OperationFailed, OperationRejected, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Bool, Currencies, Currency, DepositAddress, Dict, Fee, FundingRate, FundingRateHistory, int, Int, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderRequest, OrderType, OrderSide, Position, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, DepositAddress, Dict, Fee, FundingRate, FundingRateHistory, int, Int, List, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderRequest, OrderType, OrderSide, Position, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 import { eddsa } from './base/functions/crypto.js';
 
 // ---------------------------------------------------------------------------
@@ -1142,7 +1142,7 @@ export default class backpack extends Exchange {
         //         }
         //     ]
         //
-        const rates = [];
+        const rates: List = [];
         for (let i = 0; i < response.length; i++) {
             const rate = response[i];
             const datetime = this.safeString (rate, 'intervalEndTimestamp');
@@ -1718,7 +1718,7 @@ export default class backpack extends Exchange {
      */
     async createOrders (orders: OrderRequest[], params = {}) {
         await this.loadMarkets ();
-        const ordersRequests = [];
+        const ordersRequests: List = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const marketId = this.safeString (rawOrder, 'symbol');

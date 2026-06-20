@@ -6,7 +6,7 @@ import Exchange from './abstract/hollaex.js';
 import { BadRequest, AuthenticationError, NetworkError, ArgumentsRequired, OrderNotFound, InsufficientFunds, InvalidNonce, OrderImmediatelyFillable } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, Dict, Dictionary, Int, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, OrderBooks } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Dictionary, Int, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, OrderBooks } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -355,7 +355,7 @@ export default class hollaex extends Exchange {
         //
         const pairs = this.safeValue (response, 'pairs', {});
         const keys = Object.keys (pairs);
-        const result = [];
+        const result: List = [];
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             const market = pairs[key];
@@ -781,7 +781,7 @@ export default class hollaex extends Exchange {
         //         ]
         //     }
         //
-        const trades = this.safeList (response, market['id'], []);
+        const trades = this.safeList (response, market['id'], []) as List;
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -1217,7 +1217,7 @@ export default class hollaex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -1483,7 +1483,7 @@ export default class hollaex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -1639,7 +1639,7 @@ export default class hollaex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseTransactions (data, currency, since, limit);
     }
 
@@ -1749,7 +1749,7 @@ export default class hollaex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseTransactions (data, currency, since, limit);
     }
 
@@ -2015,7 +2015,7 @@ export default class hollaex extends Exchange {
         return this.parseDepositWithdrawFees (coins, codes, 'symbol');
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         const query = this.omit (params, this.extractParams (path));
         path = '/' + this.version + '/' + this.implodeParams (path, params);
         if ((method === 'GET') || (method === 'DELETE')) {

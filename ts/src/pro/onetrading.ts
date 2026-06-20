@@ -4,7 +4,7 @@
 import onetradingRest from '../onetrading.js';
 import { NotSupported, ExchangeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Dict, Bool } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Dict, List, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Precise } from '../base/Precise.js';
 
@@ -1095,7 +1095,7 @@ export default class onetrading extends onetradingRest {
             subscription[marketId] = {};
         }
         subscription[marketId][timeframe] = true;
-        const properties = [];
+        const properties: List = [];
         const marketIds = Object.keys (subscription);
         for (let i = 0; i < marketIds.length; i++) {
             const marketIdtimeframes = Object.keys (subscription[marketIds[i]]);
@@ -1313,7 +1313,7 @@ export default class onetrading extends onetradingRest {
     }
 
     async watchMany (messageHash, request, subscriptionHash, symbols: Strings = [], params = {}) {
-        let marketIds = [];
+        let marketIds: string[] = [];
         const numSymbols = symbols.length;
         if (numSymbols === 0) {
             marketIds = Object.keys (this.markets_by_id);

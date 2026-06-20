@@ -807,7 +807,7 @@ export default class extended extends Exchange {
         return this.filterByArrayTickers (tickers, 'symbol', symbols);
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //     {
         //       "dailyVolume": "231216165.666600",
@@ -1137,7 +1137,7 @@ export default class extended extends Exchange {
         return this.filterBySymbolSinceLimit (result, symbol, since, limit) as FundingHistory[];
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchTrades
         //
@@ -1263,7 +1263,7 @@ export default class extended extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     {
         //       "o": "75657.5",
@@ -2168,7 +2168,7 @@ export default class extended extends Exchange {
         return result;
     }
 
-    parseTradingFee (fee, market = undefined): TradingFeeInterface {
+    parseTradingFee (fee, market: Market = undefined): TradingFeeInterface {
         //
         //     {
         //         "market": "BTC-USD",
@@ -2251,7 +2251,7 @@ export default class extended extends Exchange {
         return this.parseLeverage (data, market);
     }
 
-    parseLeverage (leverage, market = undefined): Leverage {
+    parseLeverage (leverage, market: Market = undefined): Leverage {
         //
         //     {
         //         "market": "BTC-USD",
@@ -2405,7 +2405,7 @@ export default class extended extends Exchange {
         return this.filterBySinceLimit (positions, since, limit, 'timestamp') as Position[];
     }
 
-    parsePosition (position, market = undefined): Position {
+    parsePosition (position, market: Market = undefined): Position {
         //
         //     {
         //         "id": 1,
@@ -3287,7 +3287,7 @@ export default class extended extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         //     {
         //         "id": 1784963886257016832,
@@ -3541,7 +3541,7 @@ export default class extended extends Exchange {
         return undefined;
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         const version = this.safeString (api, 0);
         const accessibility = this.safeString (api, 1);
         const endpoint = '/' + this.implodeParams (path, params);

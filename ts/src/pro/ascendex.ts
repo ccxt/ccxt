@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import ascendexRest from '../ascendex.js';
 import { AuthenticationError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Balances, Bool, Dict, Fee, Int, Market, OHLCV, Order, OrderBook, Str, Trade, NullableList } from '../base/types.js';
+import type { Balances, Bool, Dict, Fee, Int, List, Market, OHLCV, Order, OrderBook, Str, Trade, NullableList } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -186,8 +186,8 @@ export default class ascendex extends ascendexRest {
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false, true, true);
-        const marketIds = [];
-        const messageHashes = [];
+        const marketIds: List = [];
+        const messageHashes: List = [];
         if (symbols !== undefined) {
             for (let i = 0; i < symbols.length; i++) {
                 const market = this.market (symbols[i]);
@@ -487,7 +487,7 @@ export default class ascendex extends ascendexRest {
         //     (...)
         //
         const channel = this.safeString (message, 'm');
-        let result = undefined;
+        let result: any = undefined;
         let type: Str = undefined;
         if ((channel === 'order') || (channel === 'futures-order')) {
             const data = this.safeValue (message, 'data');

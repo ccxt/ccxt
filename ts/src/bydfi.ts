@@ -6,7 +6,7 @@ import Exchange from './abstract/bydfi.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, ExchangeError, InsufficientFunds, NotSupported, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Bool, Currency, Dict, Fee, FundingRate, FundingRateHistory, Int, int, Leverage, MarginMode, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry, Ticker, Tickers } from './base/types.js';
+import type { Balances, Bool, Currency, Dict, Fee, FundingRate, FundingRateHistory, Int, int, Leverage, List, MarginMode, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry, Ticker, Tickers } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -444,7 +444,7 @@ export default class bydfi extends Exchange {
         //         ],
         //         "success": true
         //     }
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseMarkets (data);
     }
 
@@ -663,7 +663,7 @@ export default class bydfi extends Exchange {
         //         "success": true
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -733,7 +733,7 @@ export default class bydfi extends Exchange {
         //         "success": true
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -771,7 +771,7 @@ export default class bydfi extends Exchange {
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (trade, 'time');
-        let fee: Dict = undefined;
+        let fee: Dict | undefined = undefined;
         const rawType = this.safeString (trade, 'type');
         const feeCost = this.safeString (trade, 'fee');
         if (feeCost !== undefined) {
@@ -881,7 +881,7 @@ export default class bydfi extends Exchange {
         //         "success": true
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         const result = this.parseOHLCVs (data, market, timeframe, since, limit);
         return result;
     }
@@ -938,7 +938,7 @@ export default class bydfi extends Exchange {
         //         "success": true
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseTickers (data, symbols);
     }
 
@@ -958,7 +958,7 @@ export default class bydfi extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.publicGetV1FapiMarketTicker24hr (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         const ticker = this.safeDict (data, 0, {});
         return this.parseTicker (ticker, market);
     }
@@ -1122,7 +1122,7 @@ export default class bydfi extends Exchange {
         //         "success": true
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseFundingRateHistories (data, market, since, limit);
     }
 
@@ -1339,7 +1339,7 @@ export default class bydfi extends Exchange {
         if (length > 5) {
             throw new BadRequest (this.id + ' createOrders() accepts a maximum of 5 orders');
         }
-        const ordersRequests = [];
+        const ordersRequests: List = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const symbol = this.safeString (rawOrder, 'symbol');
@@ -1358,7 +1358,7 @@ export default class bydfi extends Exchange {
             'orders': ordersRequests,
         };
         const response = await this.privatePostV1FapiTradeBatchPlaceOrder (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseOrders (data);
     }
 
@@ -1405,7 +1405,7 @@ export default class bydfi extends Exchange {
         if (length > 5) {
             throw new BadRequest (this.id + ' editOrders() accepts a maximum of 5 orders');
         }
-        const ordersRequests = [];
+        const ordersRequests: List = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const id = this.safeString (rawOrder, 'id');
@@ -1424,7 +1424,7 @@ export default class bydfi extends Exchange {
             'editOrders': ordersRequests,
         };
         const response = await this.privatePostV1FapiTradeBatchEditOrder (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseOrders (data);
     }
 
@@ -1505,7 +1505,7 @@ export default class bydfi extends Exchange {
         //         "success": true
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseOrders (data, market);
     }
 
@@ -1535,7 +1535,7 @@ export default class bydfi extends Exchange {
             'symbol': market['id'],
             'wallet': wallet,
         };
-        let response: Dict = undefined;
+        let response: Dict;
         let trigger = false;
         [ trigger, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'trigger', trigger);
         if (!trigger) {
@@ -1575,7 +1575,7 @@ export default class bydfi extends Exchange {
         } else {
             response = await this.privateGetV1FapiTradePlanOrder (this.extend (request, params));
         }
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -1611,7 +1611,7 @@ export default class bydfi extends Exchange {
         let wallet = 'W001';
         [ wallet, params ] = this.handleOptionAndParams (params, 'fetchOpenOrder', 'wallet', wallet);
         request['wallet'] = wallet;
-        let response: Dict = undefined;
+        let response: Dict;
         let trigger = false;
         [ trigger, params ] = this.handleOptionAndParams (params, 'fetchOpenOrder', 'trigger', trigger);
         if (!trigger) {
@@ -1619,7 +1619,7 @@ export default class bydfi extends Exchange {
         } else {
             response = await this.privateGetV1FapiTradePlanOrder (this.extend (request, params));
         }
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         const order = this.safeDict (data, 0, {});
         return this.parseOrder (order, market);
     }
@@ -1709,13 +1709,13 @@ export default class bydfi extends Exchange {
         //         "success": true
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseOrders (data, market, since, limit);
     }
 
     handleSinceAndUntil (methodName: string, since: Int = undefined, params = {}): Dict {
         let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams2 (params, methodName, 'until', 'endTime');
+        [ until, params ] = this.handleOptionAndParams2 (params, methodName, 'until', 'endTime') as [any, any];
         const now = this.milliseconds ();
         const sevenDays = 7 * 24 * 60 * 60 * 1000; // the maximum range is 7 days
         let startTime = since;
@@ -2016,7 +2016,7 @@ export default class bydfi extends Exchange {
         //         "success": true
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parsePositions (data, symbols);
     }
 
@@ -2041,7 +2041,7 @@ export default class bydfi extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.privateGetV1FapiTradePositions (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parsePositions (data, [ market['symbol'] ]);
     }
 
@@ -2188,7 +2188,7 @@ export default class bydfi extends Exchange {
         const response = await this.privateGetV1FapiTradePositionHistory (this.extend (request, params));
         //
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         const positions = this.parsePositions (data);
         return this.filterBySinceLimit (positions, since, limit);
     }
@@ -2261,7 +2261,7 @@ export default class bydfi extends Exchange {
         //         "success": true
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         const positions = this.parsePositions (data, symbols);
         return this.filterBySinceLimit (positions, since, limit);
     }
@@ -2466,7 +2466,7 @@ export default class bydfi extends Exchange {
         let wallet: Str = undefined;
         [ wallet, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'wallet');
         const request: Dict = {};
-        let response: Dict = undefined;
+        let response: Dict;
         if (wallet === undefined) {
             const options = this.safeDict (this.options, 'accountsByType', {});
             const parsedAccountType = this.safeStringUpper (options, type, type);
@@ -2520,7 +2520,7 @@ export default class bydfi extends Exchange {
             //     }
             response = await this.privateGetV1FapiAccountBalance (this.extend (request, params));
         }
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseBalance (data);
     }
 
@@ -2620,7 +2620,7 @@ export default class bydfi extends Exchange {
             'asset': currency['id'],
         };
         let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams2 (params, 'fetchTransfers', 'until', 'endTime');
+        [ until, params ] = this.handleOptionAndParams2 (params, 'fetchTransfers', 'until', 'endTime') as [any, any];
         if (until === undefined) {
             until = this.milliseconds (); // exchange requires endTime
         }
@@ -2652,7 +2652,7 @@ export default class bydfi extends Exchange {
         //         "success": true
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseTransfers (data, currency, since, limit);
     }
 
@@ -2756,7 +2756,7 @@ export default class bydfi extends Exchange {
             'asset': currency['id'],
         };
         let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams2 (params, 'fetchTransfers', 'until', 'endTime');
+        [ until, params ] = this.handleOptionAndParams2 (params, 'fetchTransfers', 'until', 'endTime') as [any, any];
         const now = this.milliseconds ();
         const sevenDays = 7 * 24 * 60 * 60 * 1000; // the maximum range is 7 days
         let startTime = since;
@@ -2783,7 +2783,7 @@ export default class bydfi extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response: Dict = undefined;
+        let response: Dict;
         if (type === 'deposit') {
             //
             //     {
@@ -2813,7 +2813,7 @@ export default class bydfi extends Exchange {
             //
             response = await this.privateGetV1SpotWithdrawRecords (this.extend (request, params));
         }
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         const transactionParams: Dict = {
             'type': type,
         };

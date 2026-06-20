@@ -5,7 +5,7 @@ import { sha512 } from '@noble/hashes/sha2.js';
 import gateRest from '../gate.js';
 import { AuthenticationError, BadRequest, ArgumentsRequired, ChecksumError, ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict, Liquidation, OrderType, OrderSide, Num, Market, MarketType, OrderRequest, Bool } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict, Liquidation, List, OrderType, OrderSide, Num, Market, MarketType, OrderRequest, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Precise } from '../base/Precise.js';
 
@@ -414,7 +414,7 @@ export default class gate extends gateRest {
                 limit = 50; // max 50 for options
             }
         }
-        let payload = [];
+        let payload: List = [];
         let channel = '';
         if (market['spot']) {
             channel = 'spot.obu';
@@ -578,7 +578,7 @@ export default class gate extends gateRest {
         //         }
         //     }
         //
-        const channel = this.safeString (message, 'channel');
+        const channel = this.safeString (message, 'channel') as string;
         if (channel === 'spot.obu') {
             this.handleNewSpotOrderBook (client, message);
             return;
@@ -792,7 +792,7 @@ export default class gate extends gateRest {
     }
 
     handleTickerAndBidAsk (objectName: string, client: Client, message) {
-        const channel = this.safeString (message, 'channel');
+        const channel = this.safeString (message, 'channel') as string;
         const parts = channel.split ('.');
         const rawMarketType = this.safeString (parts, 0);
         const marketType = (rawMarketType === 'futures') ? 'contract' : 'spot';
@@ -1000,7 +1000,7 @@ export default class gate extends gateRest {
         //     }
         //   }
         //
-        const channel = this.safeString (message, 'channel');
+        const channel = this.safeString (message, 'channel') as string;
         const channelParts = channel.split ('.');
         const rawMarketType = this.safeString (channelParts, 0);
         const marketType = (rawMarketType === 'spot') ? 'spot' : 'contract';
@@ -1252,7 +1252,7 @@ export default class gate extends gateRest {
             account['total'] = this.safeString2 (rawBalance, 'total', 'balance');
             this.balance[code] = account;
         }
-        const channel = this.safeString (message, 'channel');
+        const channel = this.safeString (message, 'channel') as string;
         const parts = channel.split ('.');
         const rawType = this.safeString (parts, 0);
         const channelType = this.getSupportedMapping (rawType, {
@@ -1393,7 +1393,7 @@ export default class gate extends gateRest {
         const type = this.getMarketTypeByUrl (client.url);
         const data = this.safeValue (message, 'result', []);
         const cache = this.positions[type];
-        const newPositions = [];
+        const newPositions: Position[] = [];
         for (let i = 0; i < data.length; i++) {
             const rawPosition = data[i];
             const position = this.parsePosition (rawPosition);
@@ -1701,7 +1701,7 @@ export default class gate extends gateRest {
         client.resolve (newLiquidations, 'myLiquidations');
     }
 
-    parseWsLiquidation (liquidation, market = undefined) {
+    parseWsLiquidation (liquidation, market: Market = undefined) {
         //
         // future / delivery
         //    {
@@ -1820,7 +1820,7 @@ export default class gate extends gateRest {
                     delete client.subscriptions[messageHash];
                 }
                 // remove subscriptions for watchSymbols
-                const channel = this.safeString (message, 'channel');
+                const channel = this.safeString (message, 'channel') as string;
                 if ((channel !== undefined) && (channel.indexOf ('.') > 0)) {
                     const parsedChannel = channel.split ('.');
                     const payload = this.safeList (message, 'payload', []);
@@ -1847,7 +1847,7 @@ export default class gate extends gateRest {
     }
 
     handleSubscriptionStatus (client: Client, message) {
-        const channel = this.safeString (message, 'channel');
+        const channel = this.safeString (message, 'channel') as string;
         const methods: Dict = {
             'balance': this.handleBalanceSubscription,
             'spot.order_book_update': this.handleOrderBookSubscription,

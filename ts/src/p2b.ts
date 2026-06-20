@@ -379,8 +379,8 @@ export default class p2b extends Exchange {
         const marketId = this.safeString (market, 'name');
         const baseId = this.safeString (market, 'stock');
         const quoteId = this.safeString (market, 'money');
-        const base = this.safeCurrencyCode (baseId);
-        const quote = this.safeCurrencyCode (quoteId);
+        const base = this.safeCurrencyCode (baseId) as string;
+        const quote = this.safeCurrencyCode (quoteId) as string;
         const limits = this.safeValue (market, 'limits');
         const maxAmount = this.safeString (limits, 'max_amount');
         const maxPrice = this.safeString (limits, 'max_price');
@@ -419,11 +419,11 @@ export default class p2b extends Exchange {
                 },
                 'amount': {
                     'min': this.safeNumber (limits, 'min_amount'),
-                    'max': this.parseNumber (this.omitZero (maxAmount)),
+                    'max': this.parseNumber (this.omitZero (maxAmount as string)),
                 },
                 'price': {
                     'min': this.safeNumber (limits, 'min_price'),
-                    'max': this.parseNumber (this.omitZero (maxPrice)),
+                    'max': this.parseNumber (this.omitZero (maxPrice as string)),
                 },
                 'cost': {
                     'min': undefined,
@@ -681,7 +681,7 @@ export default class p2b extends Exchange {
         //    }
         //
         const result = this.safeList (response, 'result', []);
-        return this.parseTrades (result, market, since, limit);
+        return this.parseTrades (result!, market, since, limit);
     }
 
     parseTrade (trade: Dict, market: Market = undefined) {
@@ -746,7 +746,7 @@ export default class p2b extends Exchange {
             'amount': this.safeString (trade, 'amount'),
             'cost': this.safeString (trade, 'deal'),
             'fee': {
-                'currency': market['quote'],
+                'currency': this.safeString (market, 'quote'),
                 'cost': this.safeString2 (trade, 'fee', 'deal_fee'),
             },
         }, market);
@@ -799,7 +799,7 @@ export default class p2b extends Exchange {
         //    }
         //
         const result = this.safeList (response, 'result', []);
-        return this.parseOHLCVs (result, market, timeframe, since, limit);
+        return this.parseOHLCVs (result!, market, timeframe, since, limit);
     }
 
     parseOHLCV (ohlcv, market: Market = undefined) : OHLCV {
@@ -884,7 +884,7 @@ export default class p2b extends Exchange {
                 'free': available,
                 'used': used,
             };
-            result[code] = account;
+            result[code as string] = account;
         }
         return this.safeBalance (result);
     }
@@ -937,7 +937,7 @@ export default class p2b extends Exchange {
         //        }
         //    }
         //
-        const result = this.safeDict (response, 'result');
+        const result = this.safeDict (response, 'result') as Dict;
         return this.parseOrder (result, market);
     }
 
@@ -984,7 +984,7 @@ export default class p2b extends Exchange {
         //        }
         //    }
         //
-        const result = this.safeDict (response, 'result');
+        const result = this.safeDict (response, 'result') as Dict;
         return this.parseOrder (result);
     }
 
@@ -1041,7 +1041,7 @@ export default class p2b extends Exchange {
         //    }
         //
         const result = this.safeList (response, 'result', []);
-        return this.parseOrders (result, market, since, limit);
+        return this.parseOrders (result!, market, since, limit);
     }
 
     /**
@@ -1094,7 +1094,7 @@ export default class p2b extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const records = this.safeList (result, 'records', []);
-        return this.parseTrades (records, market, since, limit);
+        return this.parseTrades (records!, market, since, limit);
     }
 
     /**
@@ -1172,7 +1172,7 @@ export default class p2b extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const deals = this.safeList (result, 'deals', []);
-        return this.parseTrades (deals, market, since, limit);
+        return this.parseTrades (deals!, market, since, limit);
     }
 
     /**
@@ -1251,7 +1251,7 @@ export default class p2b extends Exchange {
         //    }
         //
         const result = this.safeValue (response, 'result');
-        let orders = [];
+        let orders: Order[] = [];
         const keys = Object.keys (result);
         for (let i = 0; i < keys.length; i++) {
             const marketId = keys[i];
@@ -1331,8 +1331,8 @@ export default class p2b extends Exchange {
         }, market);
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
+    sign (path, api = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+        let url = this.urls['api']![api] + '/' + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
         if (method === 'GET') {
             if (Object.keys (params).length) {

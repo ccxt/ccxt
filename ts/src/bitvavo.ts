@@ -470,7 +470,7 @@ export default class bitvavo extends Exchange {
     }
 
     parseMarkets (markets) {
-        const result = [];
+        const result: any[] = [];
         const fees = this.fees;
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -616,12 +616,12 @@ export default class bitvavo extends Exchange {
         //         },
         //     ]
         //
-        const fiatCurrencies = this.safeList (this.options, 'fiatCurrencies', []);
+        const fiatCurrencies = this.safeList (this.options, 'fiatCurrencies', []) as any[];
         const id = this.safeString (rawCurrency, 'symbol');
         const code = this.safeCurrencyCode (id);
         const isFiat = this.inArray (code, fiatCurrencies);
         const networks: Dict = {};
-        const networksArray = this.safeList (rawCurrency, 'networks', []);
+        const networksArray = this.safeList (rawCurrency, 'networks', []) as any[];
         const deposit = this.safeString (rawCurrency, 'depositStatus') === 'OK';
         const withdrawal = this.safeString (rawCurrency, 'withdrawalStatus') === 'OK';
         const active = deposit && withdrawal;
@@ -917,7 +917,7 @@ export default class bitvavo extends Exchange {
             takerOrMaker = taker ? 'taker' : 'maker';
         }
         const feeCostString = this.safeString (trade, 'fee');
-        let fee: Dict = undefined;
+        let fee: Dict;
         if (feeCostString !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'feeCurrency');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
@@ -967,7 +967,7 @@ export default class bitvavo extends Exchange {
         return this.parseTradingFees (response);
     }
 
-    parseTradingFees (fees, market = undefined) {
+    parseTradingFees (fees, market: Market = undefined) {
         //
         //     {
         //         "fees": {
@@ -1223,7 +1223,7 @@ export default class bitvavo extends Exchange {
         //         "maxItems": 0
         //     }
         //
-        const accounts = this.safeList (response, 'items', []);
+        const accounts = this.safeList (response, 'items', []) as any[];
         return this.parseAccounts (accounts);
     }
 
@@ -1348,7 +1348,7 @@ export default class bitvavo extends Exchange {
         //         "limit": 25
         //     }
         //
-        const items = this.safeList (response, 'items', []);
+        const items = this.safeList (response, 'items', []) as any[];
         return this.parseTransfers (items, currency, since, limit);
     }
 
@@ -1477,7 +1477,7 @@ export default class bitvavo extends Exchange {
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice'); // trigger when price crosses from below to above this value
         params = this.omit (params, [ 'timeInForce', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ]);
         if (isMarketOrder) {
-            let cost = undefined;
+            let cost: any = undefined;
             if (price !== undefined) {
                 const priceString = this.numberToString (price);
                 const amountString = this.numberToString (amount);
@@ -2075,7 +2075,7 @@ export default class bitvavo extends Exchange {
             const amountQuoteRemaining = this.safeString (order, 'amountQuoteRemaining');
             cost = Precise.stringSub (amountQuote, amountQuoteRemaining);
         }
-        let fee: Dict = undefined;
+        let fee: Dict;
         const feeCost = this.safeNumber (order, 'feePaid');
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (order, 'feeCurrency');
@@ -2231,7 +2231,7 @@ export default class bitvavo extends Exchange {
         //         "maxItems": 100
         //     }
         //
-        const items = this.safeList (response, 'items', []);
+        const items = this.safeList (response, 'items', []) as any[];
         return this.parseLedger (items, currency, since, limit);
     }
 
@@ -2262,7 +2262,7 @@ export default class bitvavo extends Exchange {
         const code = this.safeCurrencyCode (currencyId);
         currency = this.safeCurrency (currencyId, currency);
         const timestamp = this.parse8601 (this.safeString (item, 'executedAt'));
-        let fee: Dict = undefined;
+        let fee: Dict;
         const feeCost = this.safeString (item, 'feesAmount');
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (item, 'feesCurrency');
@@ -2504,7 +2504,7 @@ export default class bitvavo extends Exchange {
         const amount = this.safeNumber (transaction, 'amount');
         const address = this.safeString (transaction, 'address');
         const txid = this.safeString (transaction, 'txId');
-        let fee: Dict = undefined;
+        let fee: Dict;
         const feeCost = this.safeNumber (transaction, 'fee');
         if (feeCost !== undefined) {
             fee = {
@@ -2621,7 +2621,7 @@ export default class bitvavo extends Exchange {
         return this.parseDepositWithdrawFees (response, codes, 'symbol');
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         const query = this.omit (params, this.extractParams (path));
         let url = '/' + this.version + '/' + this.implodeParams (path, params);
         const getOrDelete = (method === 'GET') || (method === 'DELETE');

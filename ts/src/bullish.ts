@@ -773,7 +773,7 @@ export default class bullish extends Exchange {
         //         "premiumCapRatio": "0.1000"
         //     }
         //
-        const id = this.safeString (market, 'symbol');
+        const id = this.safeString (market, 'symbol') as string;
         const baseId = this.safeString (market, 'baseSymbol');
         const quoteId = this.safeString (market, 'quoteSymbol');
         const base = this.safeCurrencyCode (baseId);
@@ -819,7 +819,7 @@ export default class bullish extends Exchange {
             } else {
                 expiryDatetime = this.safeString (market, 'expiryDatetime');
                 const idParts = id.split ('-');
-                const datePart = this.safeString (idParts, 2);
+                const datePart = this.safeString (idParts, 2) as string;
                 const dateYmd = datePart.slice (2);
                 symbol += '-' + dateYmd;
                 if (type === 'future') {
@@ -888,7 +888,7 @@ export default class bullish extends Exchange {
         });
     }
 
-    parseMarketType (type: string, defaultType: Str = undefined): string {
+    parseMarketType (type: Str = undefined, defaultType: Str = undefined): Str {
         const types = {
             'SPOT': 'spot',
             'PERPETUAL': 'swap',
@@ -1015,7 +1015,7 @@ export default class bullish extends Exchange {
             request['symbol'] = market['id'];
         }
         const clientOrderId = this.safeString (params, 'clientOrderId');
-        let response: List = undefined;
+        let response: List;
         if (clientOrderId !== undefined) {
             response = await this.privateGetV1TradesClientOrderIdClientOrderId (this.extend (request, params));
         } else {
@@ -1436,7 +1436,7 @@ export default class bullish extends Exchange {
         //         }, ...
         //     ]
         //
-        const rates = [];
+        const rates: any[] = [];
         const result = this.toArray (response);
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
@@ -2939,7 +2939,7 @@ export default class bullish extends Exchange {
         }, market);
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         const request = this.omit (params, this.extractParams (path));
         const endpoint = '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + endpoint;

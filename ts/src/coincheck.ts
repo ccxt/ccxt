@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/coincheck.js';
 import { BadSymbol, ExchangeError, AuthenticationError, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, Fee, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction, int } from './base/types.js';
+import type { Balances, Currency, Dict, Fee, Int, Market, NullableDict, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -315,7 +315,7 @@ export default class coincheck extends Exchange {
         const response = await this.privateGetExchangeOrdersOpens (params);
         const rawOrders = this.safeValue (response, 'orders', []);
         const parsedOrders = this.parseOrders (rawOrders, market, since, limit);
-        const result = [];
+        const result: Order[] = [];
         for (let i = 0; i < parsedOrders.length; i++) {
             result.push (this.extend (parsedOrders[i], { 'status': 'open' }));
         }
@@ -506,7 +506,7 @@ export default class coincheck extends Exchange {
         let amountString: Str = undefined;
         let costString: Str = undefined;
         let side: Str = undefined;
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         let orderId: Str = undefined;
         if ('liquidity' in trade) {
             if (this.safeString (trade, 'liquidity') === 'T') {
@@ -585,7 +585,7 @@ export default class coincheck extends Exchange {
         //                  ]
         //      }
         //
-        const transactions = this.safeList (response, 'data', []);
+        const transactions = this.safeList (response, 'data', []) ?? [];
         return this.parseTrades (transactions, market, since, limit);
     }
 
@@ -620,7 +620,7 @@ export default class coincheck extends Exchange {
         //          "created_at": "2021-12-08T14:10:33.000Z"
         //      }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) ?? [];
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -786,7 +786,7 @@ export default class coincheck extends Exchange {
         //     }
         //   ]
         // }
-        const data = this.safeList (response, 'deposits', []);
+        const data = this.safeList (response, 'deposits', []) ?? [];
         return this.parseTransactions (data, currency, since, limit, { 'type': 'deposit' });
     }
 
@@ -833,7 +833,7 @@ export default class coincheck extends Exchange {
         //     }
         //   ]
         // }
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) ?? [];
         return this.parseTransactions (data, currency, since, limit, { 'type': 'withdrawal' });
     }
 
@@ -922,7 +922,7 @@ export default class coincheck extends Exchange {
         return this.milliseconds ();
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = this.urls['api']['rest'] + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {

@@ -4,7 +4,7 @@ import Exchange from './abstract/alpaca.js';
 import { Precise } from './base/Precise.js';
 import { ExchangeError, BadRequest, PermissionDenied, BadSymbol, NotSupported, InsufficientFunds, InvalidOrder, RateLimitExceeded, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type{ Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Trade, int, Strings, Ticker, Tickers, Currency, DepositAddress, Transaction, Balances } from './base/types.js';
+import type{ Dict, Int, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Trade, int, Strings, Ticker, Tickers, Currency, DepositAddress, Transaction, Balances } from './base/types.js';
 
 //  ---------------------------------------------------------------------------xs
 /**
@@ -598,7 +598,7 @@ export default class alpaca extends Exchange {
             'loc': loc,
         };
         params = this.omit (params, [ 'loc', 'method' ]);
-        let symbolTrades = undefined;
+        let symbolTrades: any = undefined;
         if (method === 'marketPublicGetV1beta3CryptoLocTrades') {
             if (since !== undefined) {
                 request['start'] = this.iso8601 (since);
@@ -710,7 +710,7 @@ export default class alpaca extends Exchange {
         const orderbooks = this.safeDict (response, 'orderbooks', {});
         const rawOrderbook = this.safeDict (orderbooks, id, {});
         const timestamp = this.parse8601 (this.safeString (rawOrderbook, 't'));
-        return this.parseOrderBook (rawOrderbook, market['symbol'], timestamp, 'b', 'a', 'p', 's');
+        return this.parseOrderBook (rawOrderbook as Dict, market['symbol'], timestamp, 'b', 'a', 'p', 's');
     }
 
     /**
@@ -739,7 +739,7 @@ export default class alpaca extends Exchange {
             'loc': loc,
         };
         params = this.omit (params, [ 'loc', 'method' ]);
-        let ohlcvs = undefined;
+        let ohlcvs: any = undefined;
         if (method === 'marketPublicGetV1beta3CryptoLocBars') {
             if (limit !== undefined) {
                 request['limit'] = limit;
@@ -925,7 +925,7 @@ export default class alpaca extends Exchange {
         //         }
         //     }
         //
-        const results = [];
+        const results: any[] = [];
         const snapshots = this.safeDict (response, 'snapshots', {});
         const marketIds = Object.keys (snapshots);
         for (let i = 0; i < marketIds.length; i++) {
@@ -1395,7 +1395,7 @@ export default class alpaca extends Exchange {
         const alpacaStatus = this.safeString (order, 'status');
         const status = this.parseOrderStatus (alpacaStatus);
         const feeValue = this.safeString (order, 'commission');
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         if (feeValue !== undefined) {
             fee = {
                 'cost': feeValue,
@@ -1690,7 +1690,7 @@ export default class alpaca extends Exchange {
         //         "fees": "0.1"
         //     }
         //
-        const results = [];
+        const results: any[] = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const direction = this.safeString (entry, 'direction');

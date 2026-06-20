@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import Precise from '../base/Precise.js';
-import type { Balances, Dict, Int, Liquidation, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Dict, NullableDict, Int, Liquidation, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade, Market } from '../base/types.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 import lighterRest from '../lighter.js';
@@ -160,7 +160,7 @@ export default class lighter extends lighterRest {
         // }
         //
         const data = this.safeDict (message, 'order_book', {});
-        const channel = this.safeString (message, 'channel', '');
+        const channel = this.safeString (message, 'channel', '') as string;
         const parts = channel.split (':');
         const marketId = parts[1];
         const market = this.safeMarket (marketId);
@@ -351,7 +351,7 @@ export default class lighter extends lighterRest {
         const request: Dict = {
             'channel': 'market_stats/all',
         };
-        const messageHashes = [];
+        const messageHashes: any[] = [];
         let symbolsLength = 0;
         if (symbols !== undefined) {
             symbolsLength = symbols.length;
@@ -443,7 +443,7 @@ export default class lighter extends lighterRest {
         return await this.unWatchTickers (symbols, params);
     }
 
-    parseWsTrade (trade, market = undefined) {
+    parseWsTrade (trade, market: Market = undefined) {
         //
         //     {
         //         "trade_id": 526801155,
@@ -532,13 +532,13 @@ export default class lighter extends lighterRest {
         //         "type": "subscribed/trade"
         //     }
         //
-        const liquidationData = this.safeList (message, 'liquidation_trades', []);
+        const liquidationData = this.safeList (message, 'liquidation_trades', []) as any[];
         const liquidationDataLength = liquidationData.length;
         if (liquidationDataLength > 0) {
             this.handleLiquidation (client, message);
         }
-        const data = this.safeList (message, 'trades', []);
-        const channel = this.safeString (message, 'channel', '');
+        const data = this.safeList (message, 'trades', []) as any[];
+        const channel = this.safeString (message, 'channel', '') as string;
         const parts = channel.split (':');
         const marketId = parts[1];
         const market = this.safeMarket (marketId);
@@ -600,7 +600,7 @@ export default class lighter extends lighterRest {
         return await this.unsubscribe (messageHash, this.extend (request, params));
     }
 
-    parseWsOrderTrade (trade, market = undefined) {
+    parseWsOrderTrade (trade, market: Market = undefined) {
         //
         //     {
         //         "trade_id": 526801155,
@@ -648,7 +648,7 @@ export default class lighter extends lighterRest {
                 takerOrMaker = isMakerAsk ? 'maker' : 'taker';
             }
         }
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         if (takerOrMaker !== undefined) {
             const feeRateRaw = (takerOrMaker === 'maker') ? this.safeString (trade, 'maker_fee') : this.safeString (trade, 'taker_fee');
             const feeRate = (feeRateRaw !== undefined) ? Precise.stringDiv (feeRateRaw, '1000000') : '0';
@@ -711,7 +711,7 @@ export default class lighter extends lighterRest {
         //         "type": "update/account_all_trades"
         //     }
         //
-        const channel = this.safeString (message, 'channel', '');
+        const channel = this.safeString (message, 'channel', '') as string;
         const parts = channel.split (':');
         const accountIndex = parts[1];
         const data = this.safeDict (message, 'trades', {});
@@ -729,7 +729,7 @@ export default class lighter extends lighterRest {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket (marketId);
-            const trades = this.safeList (data, marketId, []);
+            const trades = this.safeList (data, marketId, []) as any[];
             const tradesLength = trades.length;
             for (let j = 0; j < tradesLength; j++) {
                 const jReversed = tradesLength - 1 - j;
@@ -804,7 +804,7 @@ export default class lighter extends lighterRest {
         return await this.unsubscribe (messageHash, this.extend (request, params));
     }
 
-    parseWsLiquidation (liquidation, market = undefined) {
+    parseWsLiquidation (liquidation, market: Market = undefined) {
         //
         //     {
         //         "trade_id": 526801155,
@@ -892,8 +892,8 @@ export default class lighter extends lighterRest {
         //         "type": "subscribed/trade"
         //     }
         //
-        const data = this.safeList (message, 'liquidation_trades', []);
-        const channel = this.safeString (message, 'channel', '');
+        const data = this.safeList (message, 'liquidation_trades', []) as any[];
+        const channel = this.safeString (message, 'channel', '') as string;
         const parts = channel.split (':');
         const marketId = parts[1];
         const market = this.safeMarket (marketId);
@@ -1017,7 +1017,7 @@ export default class lighter extends lighterRest {
         //        "type": "update/user_stats"
         //    }
         //
-        const channel = this.safeString (message, 'channel', '');
+        const channel = this.safeString (message, 'channel', '') as string;
         let type = 'spot';
         if (channel.indexOf ('user_stats:') >= 0) {
             type = 'swap';
@@ -1193,7 +1193,7 @@ export default class lighter extends lighterRest {
             this.handlePing (client, message);
             return;
         }
-        const channel = this.safeString (message, 'channel', '');
+        const channel = this.safeString (message, 'channel', '') as string;
         if (channel.indexOf ('order_book:') >= 0) {
             this.handleOrderBook (client, message);
             return;

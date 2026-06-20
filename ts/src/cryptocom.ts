@@ -767,7 +767,7 @@ export default class cryptocom extends Exchange {
         //
         const resultResponse = this.safeDict (response, 'result', {});
         const data = this.safeList (resultResponse, 'data', []);
-        const result = [];
+        const result: any[] = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
             const inst_type = this.safeString (market, 'inst_type');
@@ -1015,7 +1015,7 @@ export default class cryptocom extends Exchange {
         //
         const data = this.safeDict (response, 'result', {});
         const orders = this.safeList (data, 'data', []);
-        return this.parseOrders (orders, market, since, limit);
+        return this.parseOrders (orders as any[], market, since, limit);
     }
 
     /**
@@ -1076,7 +1076,7 @@ export default class cryptocom extends Exchange {
         //
         const result = this.safeDict (response, 'result', {});
         const trades = this.safeList (result, 'data', []);
-        return this.parseTrades (trades, market, since, limit);
+        return this.parseTrades (trades as any[], market, since, limit);
     }
 
     /**
@@ -1325,7 +1325,7 @@ export default class cryptocom extends Exchange {
         //     }
         //
         const order = this.safeDict (response, 'result', {});
-        return this.parseOrder (order, market);
+        return this.parseOrder (order as Dict, market);
     }
 
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -1461,7 +1461,7 @@ export default class cryptocom extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result', {});
-        return this.parseOrder (result, market);
+        return this.parseOrder (result as Dict, market);
     }
 
     /**
@@ -1476,7 +1476,7 @@ export default class cryptocom extends Exchange {
      */
     async createOrders (orders: OrderRequest[], params = {}) {
         await this.loadMarkets ();
-        const ordersRequests = [];
+        const ordersRequests: any[] = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const marketId = this.safeString (rawOrder, 'symbol');
@@ -1678,7 +1678,7 @@ export default class cryptocom extends Exchange {
         const request = this.editOrderRequest (id, symbol, amount, price, params);
         const response = await this.v1PrivatePostPrivateAmendOrder (request);
         const result = this.safeDict (response, 'result', {});
-        return this.parseOrder (result);
+        return this.parseOrder (result as Dict);
     }
 
     editOrderRequest (id: string, symbol: string, amount: number, price: Num = undefined, params = {}) {
@@ -1756,7 +1756,7 @@ export default class cryptocom extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result', {});
-        return this.parseOrder (result, market);
+        return this.parseOrder (result as Dict, market);
     }
 
     /**
@@ -1775,7 +1775,7 @@ export default class cryptocom extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const orderRequests = [];
+        const orderRequests: any[] = [];
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const order: Dict = {
@@ -1790,7 +1790,7 @@ export default class cryptocom extends Exchange {
         };
         const response = await this.v1PrivatePostPrivateCancelOrderList (this.extend (request, params));
         const result = this.safeList (response, 'result', []);
-        return this.parseOrders (result, market, undefined, undefined, params);
+        return this.parseOrders (result as any[], market, undefined, undefined, params);
     }
 
     /**
@@ -1804,7 +1804,7 @@ export default class cryptocom extends Exchange {
      */
     async cancelOrdersForSymbols (orders: CancellationRequest[], params = {}) {
         await this.loadMarkets ();
-        const orderRequests = [];
+        const orderRequests: any[] = [];
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
             const id = this.safeString (order, 'id');
@@ -1822,7 +1822,7 @@ export default class cryptocom extends Exchange {
         };
         const response = await this.v1PrivatePostPrivateCancelOrderList (this.extend (request, params));
         const result = this.safeList (response, 'result', []);
-        return this.parseOrders (result, undefined, undefined, undefined, params);
+        return this.parseOrders (result as any[], undefined, undefined, undefined, params);
     }
 
     /**
@@ -1884,7 +1884,7 @@ export default class cryptocom extends Exchange {
         //
         const data = this.safeDict (response, 'result', {});
         const orders = this.safeList (data, 'data', []);
-        return this.parseOrders (orders, market, since, limit);
+        return this.parseOrders (orders as any[], market, since, limit);
     }
 
     /**
@@ -1956,7 +1956,7 @@ export default class cryptocom extends Exchange {
         //
         const result = this.safeDict (response, 'result', {});
         const trades = this.safeList (result, 'data', []);
-        return this.parseTrades (trades, market, since, limit);
+        return this.parseTrades (trades as any[], market, since, limit);
     }
 
     parseAddress (addressString) {
@@ -2021,7 +2021,7 @@ export default class cryptocom extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result');
-        return this.parseTransaction (result, currency);
+        return this.parseTransaction (result as Dict, currency);
     }
 
     /**
@@ -2163,7 +2163,7 @@ export default class cryptocom extends Exchange {
         //
         const data = this.safeDict (response, 'result', {});
         const depositList = this.safeList (data, 'deposit_list', []);
-        return this.parseTransactions (depositList, currency, since, limit);
+        return this.parseTransactions (depositList as any[], currency, since, limit);
     }
 
     /**
@@ -2225,7 +2225,7 @@ export default class cryptocom extends Exchange {
         //
         const data = this.safeDict (response, 'result', {});
         const withdrawalList = this.safeList (data, 'withdrawal_list', []);
-        return this.parseTransactions (withdrawalList, currency, since, limit);
+        return this.parseTransactions (withdrawalList as any[], currency, since, limit);
     }
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
@@ -2612,7 +2612,7 @@ export default class cryptocom extends Exchange {
         const defaultType = this.safeString (this.options, 'defaultType');
         const isMargin = this.safeBool (params, 'margin', false);
         params = this.omit (params, 'margin');
-        let marginMode = undefined;
+        let marginMode: any = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams (methodName, params);
         if (marginMode !== undefined) {
             if (marginMode !== 'cross') {
@@ -2886,7 +2886,7 @@ export default class cryptocom extends Exchange {
         const masterAccount = this.safeDict (result, 'master_account', {});
         const accounts = this.safeList (result, 'sub_account_list', []);
         accounts.push (masterAccount);
-        return this.parseAccounts (accounts, params);
+        return this.parseAccounts (accounts as any[], params);
     }
 
     parseAccount (account) {
@@ -3006,7 +3006,7 @@ export default class cryptocom extends Exchange {
         //         }
         //     ]
         //
-        const result = [];
+        const result: any[] = [];
         for (let i = 0; i < settlements.length; i++) {
             result.push (this.parseSettlement (settlements[i], market));
         }
@@ -3152,7 +3152,7 @@ export default class cryptocom extends Exchange {
         const result = this.safeDict (response, 'result', {});
         const data = this.safeList (result, 'data', []);
         const marketId = this.safeString (result, 'instrument_name');
-        const rates = [];
+        const rates: any[] = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const timestamp = this.safeInteger (entry, 't');
@@ -3208,7 +3208,7 @@ export default class cryptocom extends Exchange {
         //
         const result = this.safeDict (response, 'result', {});
         const data = this.safeList (result, 'data', []);
-        return this.parsePosition (this.safeDict (data, 0), market);
+        return this.parsePosition (this.safeDict (data, 0) as Dict, market);
     }
 
     /**
@@ -3264,7 +3264,7 @@ export default class cryptocom extends Exchange {
         //
         const responseResult = this.safeDict (response, 'result', {});
         const positions = this.safeList (responseResult, 'data', []);
-        const result = [];
+        const result: any[] = [];
         for (let i = 0; i < positions.length; i++) {
             const entry = positions[i];
             const marketId = this.safeString (entry, 'instrument_name');
@@ -3401,7 +3401,7 @@ export default class cryptocom extends Exchange {
         //    }
         //
         const result = this.safeDict (response, 'result');
-        return this.parseOrder (result, market);
+        return this.parseOrder (result as Dict, market);
     }
 
     /**
@@ -3436,7 +3436,7 @@ export default class cryptocom extends Exchange {
         //    }
         //
         const data = this.safeDict (response, 'result', {});
-        return this.parseTradingFee (data, market);
+        return this.parseTradingFee (data as Dict, market);
     }
 
     /**

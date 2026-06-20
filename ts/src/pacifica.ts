@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound, BadReque
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { eddsa } from './base/functions/crypto.js';
-import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, Bool, int, Transaction, Currency, TradingFeeInterface, LedgerEntry, FundingRates, FundingRate, OpenInterests, Leverage, MarginMode, Tickers, Ticker, FundingHistory } from './base/types.js';
+import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, NullableDict, Num, Bool, int, Transaction, Currency, TradingFeeInterface, LedgerEntry, FundingRates, FundingRate, OpenInterests, Leverage, MarginMode, Tickers, Ticker, FundingHistory } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -599,7 +599,7 @@ export default class pacifica extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
-        let userAccount = undefined;
+        let userAccount: Str = undefined;
         [ userAccount, params ] = this.handleOriginAndSingleAddress ('fetchBalance', params);
         const request = {
             'account': userAccount,
@@ -659,10 +659,10 @@ export default class pacifica extends Exchange {
         await this.loadAccountSettings ();
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let userAccount = undefined;
+        let userAccount: Str = undefined;
         [ userAccount, params ] = this.handleOriginAndSingleAddress ('fetchLeverage', params);
         const cacheAddress = this.walletAddress;
-        let settings: Dict = undefined;
+        let settings: NullableDict = undefined;
         if (userAccount === cacheAddress) {
             settings = this.handleOption ('fetchLeverage', 'settings', undefined);
         } else {
@@ -725,7 +725,7 @@ export default class pacifica extends Exchange {
      * @returns {object} Dict repacked from list by symbol key
      */
     async fetchAccountSettings (params = {}): Promise<Dict> {
-        let userAccount = undefined;
+        let userAccount: Str = undefined;
         [ userAccount, params ] = this.handleOriginAndSingleAddress ('fetchAccountSettings', params);
         const request: Dict = {
             'account': userAccount,
@@ -783,10 +783,10 @@ export default class pacifica extends Exchange {
      */
     async fetchMarginMode (symbol: string, params = {}): Promise<MarginMode> {
         await this.loadAccountSettings ();
-        let userAccount = undefined;
+        let userAccount: Str = undefined;
         [ userAccount, params ] = this.handleOriginAndSingleAddress ('fetchMarginMode', params);
         const cacheAddress = this.walletAddress;
-        let settings: Dict = undefined;
+        let settings: NullableDict = undefined;
         if (userAccount === cacheAddress) {
             settings = this.handleOption ('fetchMarginMode', 'settings', undefined);
         } else {
@@ -1146,7 +1146,7 @@ export default class pacifica extends Exchange {
         }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate', false);
-        let userAddress = undefined;
+        let userAddress: Str = undefined;
         [ userAddress, params ] = this.handleOriginAndSingleAddress ('fetchMyTrades', params);
         const defaultLimit = 100;  // Default max limit
         if (paginate) {
@@ -1300,7 +1300,7 @@ export default class pacifica extends Exchange {
             'reduceOnly', 'clientOrderId', 'stopLimitPrice', 'timeInForce', 'triggerPrice', 'stopLossCloid',
             'stopLossPrice', 'stopLossLimitPrice', 'takeProfitCloid', 'takeProfitPrice', 'takeProfitLimitPrice', 'expiryWindow',
         ]);
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         if (operationType === 'create_market_order') {
             response = await this.privatePostOrdersCreateMarket (this.extend (request, params));
         } else if (operationType === 'create_stop_order') {
@@ -1330,7 +1330,7 @@ export default class pacifica extends Exchange {
         return this.safeOrder ({ 'id': orderId, 'status': status, 'info': response, 'symbol': symbol });
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): [Dict, Str] {
         /**
          * @method
          * @ignore
@@ -1360,7 +1360,7 @@ export default class pacifica extends Exchange {
             'symbol': market['id'],
             'side': this.mapSide (side),
         };
-        let operationType = undefined;
+        let operationType: Str = undefined;
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only', false);
         const orderType = type.toUpperCase ();
         const triggerPrice = this.safeString (params, 'triggerPrice');
@@ -1721,7 +1721,7 @@ export default class pacifica extends Exchange {
         const request = this.cancelOrderRequest (id, symbol, params);
         const isStopOrder = this.safeBool2 (params, 'trigger', 'stop', false);
         params = this.omit (params, [ 'expiryWindow', 'trigger', 'stop', 'clientOrderId' ]);
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         if (isStopOrder) {
             response = await this.privatePostOrdersStopCancel (this.extend (request, params));
         } else {
@@ -2036,7 +2036,7 @@ export default class pacifica extends Exchange {
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        let userAddress = undefined;
+        let userAddress: Str = undefined;
         [ userAddress, params ] = this.handleOriginAndSingleAddress ('fetchOpenOrders', params);
         const request: Dict = {
             'account': userAddress,
@@ -2098,7 +2098,7 @@ export default class pacifica extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchOrders', symbol, since, limit, params, 'next_cursor', 'cursor', undefined, defaultLimit) as Order[];
         }
-        let userAddress = undefined;
+        let userAddress: Str = undefined;
         [ userAddress, params ] = this.handleOriginAndSingleAddress ('fetchOrders', params);
         let market: Market = undefined;
         if (symbol !== undefined) {
@@ -2440,7 +2440,7 @@ export default class pacifica extends Exchange {
      */
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
-        let userAddress = undefined;
+        let userAddress: Str = undefined;
         [ userAddress, params ] = this.handleOriginAndSingleAddress ('fetchPositions', params);
         symbols = this.marketSymbols (symbols);
         const request: Dict = {
@@ -2627,7 +2627,7 @@ export default class pacifica extends Exchange {
      */
     async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
         await this.loadMarkets ();
-        let userAddress = undefined;
+        let userAddress: Str = undefined;
         [ userAddress, params ] = this.handleOriginAndSingleAddress ('fetchTradingFee', params);
         const market = this.market (symbol);
         const request: Dict = {
@@ -2778,7 +2778,7 @@ export default class pacifica extends Exchange {
         await this.loadMarkets ();
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate', false);
-        let userAddress = undefined;
+        let userAddress: Str = undefined;
         [ userAddress, params ] = this.handleOriginAndSingleAddress ('fetchLedger', params);
         const defaultLimit = 100; // Default max limit
         if (paginate) {
@@ -2885,7 +2885,7 @@ export default class pacifica extends Exchange {
         }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate', false);
-        let userAddress = undefined;
+        let userAddress: Str = undefined;
         [ userAddress, params ] = this.handleOriginAndSingleAddress ('fetchFundingHistory', params);
         const request: Dict = {
             'account': userAddress,
@@ -3028,7 +3028,7 @@ export default class pacifica extends Exchange {
         const finalHeaders = { };
         let agentAddress: Str = undefined;
         [ agentAddress, params ] = this.handleOption ('createSubAccount', 'agentAddress', undefined);
-        let originAddress = undefined;
+        let originAddress: Str = undefined;
         [ originAddress, params ] = this.handleOriginAndSingleAddress ('createSubAccount', params);
         if (originAddress === undefined) {
             throw new ArgumentsRequired (this.id + ' createSubAccount() requires "originAddress" in params or "walletAddress" in requiredCredentials');
@@ -3144,8 +3144,8 @@ export default class pacifica extends Exchange {
         return await this.privatePostAccountBuilderCodesRevoke (this.extend (request, params));
     }
 
-    handleOriginAndSingleAddress (methodName: string, params: Dict) {
-        let address = undefined;
+    handleOriginAndSingleAddress (methodName: string, params: Dict): [Str, Dict] {
+        let address: Str = undefined;
         [ address, params ] = this.handleParamString2 (params, 'account', 'address', undefined); // this is for get endpoints that accept account or address
         if (address !== undefined) {
             return [ address, params ];
@@ -3296,7 +3296,7 @@ export default class pacifica extends Exchange {
         const finalHeaders = { };
         let agentAddress: Str = undefined;
         [ agentAddress, params ] = this.handleOptionAndParams (params, 'postActionRequest', 'agentAddress');
-        let originAddress = undefined;
+        let originAddress: Str = undefined;
         [ originAddress, params ] = this.handleOriginAndSingleAddress ('postActionRequest', params);
         if (originAddress === undefined) {
             throw new ArgumentsRequired (this.id + ' action: ' + operationType + ' postActionRequest() requires "originAddress" in params or "walletAddress" in requiredCredentials');

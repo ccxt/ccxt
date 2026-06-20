@@ -6,7 +6,7 @@ import Exchange from './abstract/bitmart.js';
 import { AuthenticationError, ExchangeNotAvailable, OnMaintenance, AccountSuspended, PermissionDenied, RateLimitExceeded, InvalidNonce, InvalidAddress, ArgumentsRequired, ExchangeError, InvalidOrder, InsufficientFunds, BadRequest, OrderNotFound, BadSymbol, NotSupported, NetworkError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
-import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, Dict, OrderRequest, int, FundingRate, DepositAddress, BorrowInterest, MarketInterface, FundingRateHistory, FundingHistory, LedgerEntry, Position, Bool, Fee, List } from './base/types.js';
+import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, Dict, NullableDict, OrderRequest, int, FundingRate, DepositAddress, BorrowInterest, MarketInterface, FundingRateHistory, FundingHistory, LedgerEntry, Position, Bool, Fee, NullableList } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 /**
@@ -990,7 +990,7 @@ export default class bitmart extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const symbols = this.safeList (data, 'symbols', []);
-        const result = [];
+        const result: any[] = [];
         const fees = this.fees['trading'];
         for (let i = 0; i < symbols.length; i++) {
             const market = symbols[i];
@@ -1104,7 +1104,7 @@ export default class bitmart extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const symbols = this.safeList (data, 'symbols', []);
-        const result = [];
+        const result: any[] = [];
         const fees = this.fees['trading'];
         for (let i = 0; i < symbols.length; i++) {
             const market = symbols[i];
@@ -1607,7 +1607,7 @@ export default class bitmart extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {};
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         if (market['swap']) {
             request['symbol'] = market['id'];
             response = await this.publicGetContractPublicDetails (this.extend (request, params));
@@ -1711,7 +1711,7 @@ export default class bitmart extends Exchange {
             market = this.market (symbol);
         }
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         if (type === 'spot') {
             response = await this.publicGetSpotQuotationV3Tickers (params);
             //
@@ -1820,7 +1820,7 @@ export default class bitmart extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         if (market['spot']) {
             if (limit !== undefined) {
                 request['limit'] = limit; // default 35, max 50
@@ -1958,7 +1958,7 @@ export default class bitmart extends Exchange {
         const marketId = this.safeString2 (trade, 'symbol', 0);
         market = this.safeMarket (marketId, market);
         const feeCostString = this.safeString2 (trade, 'fee', 'paid_fees');
-        let fee = undefined;
+        let fee: NullableDict = undefined;
         if (feeCostString !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'feeCoinName');
             let feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
@@ -2027,7 +2027,7 @@ export default class bitmart extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as any[];
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -2155,7 +2155,7 @@ export default class bitmart extends Exchange {
             }
             [ request, params ] = this.handleUntilOption ('end_time', request, params, 0.001);
         }
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         if (market['swap']) {
             const price = this.safeString (params, 'price');
             if (price === 'mark') {
@@ -2228,7 +2228,7 @@ export default class bitmart extends Exchange {
             request['symbol'] = market['id'];
         }
         let type: Str = undefined;
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         const until = this.safeIntegerN (params, [ 'until', 'endTime', 'end_time' ]);
         params = this.omit (params, [ 'until' ]);
@@ -2317,7 +2317,7 @@ export default class bitmart extends Exchange {
         //         "trace": "4cad855074634097ac6ba5257c47305d.62.16959616054873723"
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as any[];
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -2340,13 +2340,13 @@ export default class bitmart extends Exchange {
             'orderId': id,
         };
         const response = await this.privatePostSpotV4QueryOrderTrades (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as any[];
         return this.parseTrades (data, undefined, since, limit);
     }
 
     customParseBalance (response, marketType): Balances {
         const data = this.safeDict (response, 'data', {});
-        let wallet: List = undefined;
+        let wallet: NullableList = undefined;
         if (marketType === 'swap') {
             wallet = this.safeList (response, 'data', []);
         } else if (marketType === 'margin') {
@@ -2417,7 +2417,7 @@ export default class bitmart extends Exchange {
         if (marginMode !== undefined || isMargin) {
             marketType = 'margin';
         }
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         if (marketType === 'spot') {
             response = await this.privateGetSpotV1Wallet (params);
         } else if (marketType === 'swap') {
@@ -2811,7 +2811,7 @@ export default class bitmart extends Exchange {
         const isStopLoss = stopLossPrice !== undefined;
         const isTakeProfit = takeProfitPrice !== undefined;
         const isTriggerOrder = triggerPrice !== undefined;
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         if (market['spot']) {
             const spotRequest = this.createSpotOrderRequest (symbol, type, side, amount, price, params);
             if (isStopLoss || isTakeProfit || isTriggerOrder) {
@@ -2871,7 +2871,7 @@ export default class bitmart extends Exchange {
      */
     async createOrders (orders: OrderRequest[], params = {}) {
         await this.loadMarkets ();
-        const ordersRequests = [];
+        const ordersRequests: any[] = [];
         let symbol: Str = undefined;
         let market: Market = undefined;
         for (let i = 0; i < orders.length; i++) {
@@ -3223,7 +3223,7 @@ export default class bitmart extends Exchange {
         const stopLossTakeProfit = this.safeBool (params, 'stopLossTakeProfit');
         const trailing = this.safeBool (params, 'trailing');
         params = this.omit (params, [ 'clientOrderId', 'stop', 'trigger', 'trailing', 'stopLossTakeProfit' ]);
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         if (market['spot']) {
             if (trigger || stopLossTakeProfit) {
                 if (stopLossTakeProfit) {
@@ -3338,7 +3338,7 @@ export default class bitmart extends Exchange {
         //  }
         //
         const data = this.safeDict (response, 'data', {});
-        const allOrders = [];
+        const allOrders: any[] = [];
         const successIds = this.safeList (data, 'successIds', []);
         for (let i = 0; i < successIds.length; i++) {
             const id = successIds[i];
@@ -3374,7 +3374,7 @@ export default class bitmart extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         if (type === 'spot') {
@@ -3507,7 +3507,7 @@ export default class bitmart extends Exchange {
             request['symbol'] = market['id'];
         }
         let type: Str = undefined;
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         const isTrigger = this.safeBool2 (params, 'stop', 'trigger');
         const stopLossTakeProfit = this.safeBool (params, 'stopLossTakeProfit');
@@ -3614,7 +3614,7 @@ export default class bitmart extends Exchange {
         //         "trace": "7f9d94g10f9d4513bc08a7rfc3a5559a.71.16957022303515933"
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as any[];
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -3664,7 +3664,7 @@ export default class bitmart extends Exchange {
         const isTrigger = this.safeBool2 (params, 'stop', 'trigger');
         const stopLossTakeProfit = this.safeBool (params, 'stopLossTakeProfit');
         params = this.omit (params, [ 'stop', 'trigger', 'stopLossTakeProfit' ]);
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         if (type === 'spot') {
             let marginMode: Str = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('fetchClosedOrders', params);
@@ -3684,7 +3684,7 @@ export default class bitmart extends Exchange {
         } else {
             response = await this.privateGetContractPrivateOrderHistory (this.extend (request, params));
         }
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as any[];
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -3726,7 +3726,7 @@ export default class bitmart extends Exchange {
         const request: Dict = {};
         let type: Str = undefined;
         let market: Market = undefined;
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -4501,7 +4501,7 @@ export default class bitmart extends Exchange {
         } else {
             throw new ArgumentsRequired (this.id + ' transfer() requires either fromAccount or toAccount to be spot');
         }
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         if ((fromAccount === 'margin') || (toAccount === 'margin')) {
             response = await this.privatePostSpotV1MarginIsolatedTransfer (this.extend (request, params));
         } else if ((fromAccount === 'swap') || (toAccount === 'swap')) {
@@ -4920,7 +4920,7 @@ export default class bitmart extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const result = this.safeList (data, 'list', []);
-        const rates = [];
+        const rates: any[] = [];
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
             const marketId = this.safeString (entry, 'symbol');
@@ -5034,7 +5034,7 @@ export default class bitmart extends Exchange {
         //         "trace":"4cad855074664097ac5ba5257c47305d.67.16963925142065945"
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as any[];
         const first = this.safeDict (data, 0, {});
         return this.parsePosition (first, market);
     }
@@ -5094,7 +5094,7 @@ export default class bitmart extends Exchange {
         //     }
         //
         const positions = this.safeList (response, 'data', []);
-        const result = [];
+        const result: any[] = [];
         for (let i = 0; i < positions.length; i++) {
             result.push (this.parsePosition (positions[i]));
         }
@@ -5221,8 +5221,8 @@ export default class bitmart extends Exchange {
         //         "trace": "4cad855074664097ac6ba4257c47305d.71.16965658195443021"
         //     }
         //
-        const data = this.safeList (response, 'data', []);
-        const result = [];
+        const data = this.safeList (response, 'data', []) as any[];
+        const result: any[] = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const checkLiquidation = this.safeString (entry, 'type');
@@ -5328,7 +5328,7 @@ export default class bitmart extends Exchange {
             request['order_id'] = id;
         }
         params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit' ]);
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         if (isTriggerOrder || isStopLoss || isTakeProfit) {
             request['price_type'] = this.safeInteger (params, 'price_type', 1);
             if (price !== undefined) {
@@ -5442,7 +5442,7 @@ export default class bitmart extends Exchange {
         //         "trace": "4cd11f83c71egfhfgh842790f07241e.23.173442343427772866"
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as any[];
         return this.parseLedger (data, currency, since, limit);
     }
 
@@ -5560,7 +5560,7 @@ export default class bitmart extends Exchange {
         //         "trace": "4cd11f83c71egfhfgh842790f07241e.23.173442343427772866"
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as any[];
         return this.parseFundingHistories (data, market, since, limit);
     }
 
@@ -5591,7 +5591,7 @@ export default class bitmart extends Exchange {
     }
 
     parseFundingHistories (contracts, market = undefined, since: Int = undefined, limit: Int = undefined): FundingHistory[] {
-        const result = [];
+        const result: any[] = [];
         for (let i = 0; i < contracts.length; i++) {
             const contract = contracts[i];
             result.push (this.parseFundingHistory (contract, market));
@@ -5632,7 +5632,7 @@ export default class bitmart extends Exchange {
         const data = this.safeDict (response, 'data', {});
         const list = this.safeList (data, 'list', []);
         const allAddresses = this.parseDepositAddresses (list, codes, false);
-        const addresses = [];
+        const addresses: any[] = [];
         for (let i = 0; i < allAddresses.length; i++) {
             const address = allAddresses[i];
             const noteMatch = (note === undefined) || (address['note'] === note);
@@ -5711,7 +5711,7 @@ export default class bitmart extends Exchange {
         return this.milliseconds () - this.options['timeDifference'];
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         const parts = path.split ('/');
         // to do: refactor api endpoints with spot/swap sections
         const category = this.safeString (parts, 0, 'spot');

@@ -318,7 +318,7 @@ export default class cex extends Exchange {
      * @returns {dict} an associative dictionary of currencies
      */
     async fetchCurrencies (params = {}): Promise<Currencies> {
-        const promises = [];
+        const promises: any[] = [];
         promises.push (this.publicPostGetCurrenciesInfo (params));
         //
         //    {
@@ -357,7 +357,7 @@ export default class cex extends Exchange {
         //            ...
         //
         const responses = await Promise.all (promises);
-        const dataCurrencies = this.safeList (responses[0], 'data', []);
+        const dataCurrencies = this.safeList (responses[0], 'data', []) as any[];
         const dataNetworks = this.safeDict (responses[1], 'data', {});
         const currenciesIndexed = this.indexBy (dataCurrencies, 'currency');
         const data = this.deepExtend (currenciesIndexed, dataNetworks);
@@ -456,7 +456,7 @@ export default class cex extends Exchange {
         //            },
         //            ...
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as any[];
         return this.parseMarkets (data);
     }
 
@@ -677,7 +677,7 @@ export default class cex extends Exchange {
         //                ... followed by older trades
         //
         const data = this.safeDict (response, 'data', {});
-        const trades = this.safeList (data, 'trades', []);
+        const trades = this.safeList (data, 'trades', []) as any[];
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -816,7 +816,7 @@ export default class cex extends Exchange {
         //            },
         //            ...
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as any[];
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
@@ -1079,7 +1079,7 @@ export default class cex extends Exchange {
         //            },
         //            ...
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as any[];
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -1392,8 +1392,8 @@ export default class cex extends Exchange {
         //    }
         //
         const data = this.safeDict (response, 'data', {});
-        const ids = this.safeList (data, 'clientOrderIds', []);
-        const orders = [];
+        const ids = this.safeList (data, 'clientOrderIds', []) as any[];
+        const orders: any[] = [];
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             orders.push ({ 'clientOrderId': id });
@@ -1448,7 +1448,7 @@ export default class cex extends Exchange {
         //            },
         //            ...
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as any[];
         return this.parseLedger (data, currency, since, limit);
     }
 
@@ -1543,7 +1543,7 @@ export default class cex extends Exchange {
         //            },
         //            ...
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as any[];
         return this.parseTransactions (data, currency, since, limit);
     }
 
@@ -1767,7 +1767,7 @@ export default class cex extends Exchange {
         } as DepositAddress;
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {

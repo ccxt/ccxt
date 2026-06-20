@@ -64,7 +64,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         await this.loadMarkets ();
         let market: Market = undefined;
         let messageHash = messageHashStart;
-        const productIds = [];
+        const productIds: any[] = [];
         if (symbol !== undefined) {
             market = this.market (symbol);
             messageHash += ':' + market['id'];
@@ -86,12 +86,12 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    async subscribeMultiple (name, symbols = [], messageHashStart = undefined, params = {}) {
+    async subscribeMultiple (name, symbols: any[] = [], messageHashStart = undefined, params = {}) {
         await this.loadMarkets ();
         let market: Market = undefined;
         symbols = this.marketSymbols (symbols);
-        const messageHashes = [];
-        const productIds = [];
+        const messageHashes: any[] = [];
+        const productIds: any[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             market = this.market (symbol);
@@ -190,7 +190,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
             throw new BadRequest (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
         }
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
+        symbols = this.marketSymbols (symbols) as string[];
         const name = 'matches';
         const trades = await this.subscribeMultiple (name, symbols, name, params);
         if (this.newUpdates) {
@@ -238,7 +238,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        symbols = this.marketSymbols (symbols, undefined, false);
+        symbols = this.marketSymbols (symbols, undefined, false) as string[];
         await this.loadMarkets ();
         const name = 'user';
         const messageHash = 'myTrades';
@@ -264,7 +264,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
      */
     async watchOrdersForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false);
+        symbols = this.marketSymbols (symbols, undefined, false) as string[];
         const name = 'user';
         const messageHash = 'orders';
         const authentication = this.authenticate ();
@@ -319,9 +319,9 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         }
         const name = 'level2';
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
+        symbols = this.marketSymbols (symbols) as string[];
         const marketIds = this.marketIds (symbols);
-        const messageHashes = [];
+        const messageHashes: any[] = [];
         for (let i = 0; i < symbolsLength; i++) {
             const marketId = marketIds[i];
             messageHashes.push (name + ':' + marketId);
@@ -437,7 +437,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         return message;
     }
 
-    parseWsTrade (trade, market = undefined) {
+    parseWsTrade (trade, market: Market = undefined) {
         //
         // private trades
         // {
@@ -700,7 +700,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         }
     }
 
-    parseWsOrder (order, market = undefined) {
+    parseWsOrder (order, market: Market = undefined) {
         const id = this.safeString (order, 'order_id');
         const clientOrderId = this.safeString (order, 'client_oid');
         const marketId = this.safeString (order, 'product_id');
@@ -783,7 +783,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         return message;
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //     {
         //         "type": "ticker",

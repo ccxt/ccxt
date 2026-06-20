@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import bitmexRest from '../bitmex.js';
 import { AuthenticationError, ExchangeError, RateLimitExceeded } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict, Liquidation, Bool } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict, List, Liquidation, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -89,8 +89,8 @@ export default class bitmex extends bitmexRest {
         symbols = this.marketSymbols (symbols, undefined, true);
         const name = 'instrument';
         const url = this.urls['api']['ws'];
-        const messageHashes = [];
-        const rawSubscriptions = [];
+        const messageHashes: List = [];
+        const rawSubscriptions: List = [];
         if (symbols !== undefined) {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
@@ -393,8 +393,8 @@ export default class bitmex extends bitmexRest {
     async watchLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true, true);
-        const messageHashes = [];
-        const subscriptionHashes = [];
+        const messageHashes: List = [];
+        const subscriptionHashes: List = [];
         if (this.isEmpty (symbols)) {
             subscriptionHashes.push ('liquidation');
             messageHashes.push ('liquidations');
@@ -446,7 +446,7 @@ export default class bitmex extends bitmexRest {
         //    }
         //
         const rawLiquidations = this.safeValue (message, 'data', []);
-        const newLiquidations = [];
+        const newLiquidations: List = [];
         if (this.liquidations === undefined) {
             const limit = this.safeInteger (this.options, 'liquidationsLimit', 1000);
             this.liquidations = new ArrayCache (limit);
@@ -921,7 +921,7 @@ export default class bitmex extends bitmexRest {
         }
         const cache = this.positions;
         const rawPositions = this.safeValue (message, 'data', []);
-        const newPositions = [];
+        const newPositions: List = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
             const position = this.parsePosition (rawPosition);
@@ -1317,8 +1317,8 @@ export default class bitmex extends bitmexRest {
         }
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const topics = [];
-        const messageHashes = [];
+        const topics: List = [];
+        const messageHashes: List = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
@@ -1351,8 +1351,8 @@ export default class bitmex extends bitmexRest {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
         const table = 'trade';
-        const topics = [];
-        const messageHashes = [];
+        const topics: List = [];
+        const messageHashes: List = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
@@ -1696,7 +1696,7 @@ export default class bitmex extends bitmexRest {
                 const messageHash = args[0];
                 const broad = this.exceptions['ws']['broad'];
                 const broadKey = this.findBroadlyMatchedKey (broad, error);
-                let exception = undefined;
+                let exception: any = undefined;
                 if (broadKey === undefined) {
                     exception = new ExchangeError ((error as string)); // c# requirement for now
                 } else {

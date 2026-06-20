@@ -5,7 +5,7 @@ import { sha512 } from '@noble/hashes/sha2.js';
 import exmoRest from '../exmo.js';
 import { NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Trade, Ticker, Balances, Market, Dict, Strings, Tickers, Order, NullableList } from '../base/types.js';
+import type { Int, List, Str, OrderBook, Trade, Ticker, Balances, Market, Dict, Strings, Tickers, Order, NullableList } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -245,8 +245,8 @@ export default class exmo extends exmoRest {
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
-        const messageHashes = [];
-        const args = [];
+        const messageHashes: List = [];
+        const args: List = [];
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market (symbols[i]);
             messageHashes.push ('ticker:' + market['symbol']);
@@ -459,8 +459,8 @@ export default class exmo extends exmoRest {
         const type = this.safeString (parts, 0);
         const messageHash = 'myTrades:' + type;
         const event = this.safeString (message, 'event');
-        let rawTrades = [];
-        let myTrades = undefined;
+        let rawTrades: List = [];
+        let myTrades: any = undefined;
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             myTrades = new ArrayCacheBySymbolById (limit);
@@ -692,7 +692,7 @@ export default class exmo extends exmoRest {
             this.orders = new ArrayCacheBySymbolById (limit);
         }
         const cachedOrders = this.orders;
-        let rawOrders = [];
+        let rawOrders: List = [];
         if (event === 'snapshot') {
             rawOrders = this.safeValue (message, 'data', []);
         } else if (event === 'update') {

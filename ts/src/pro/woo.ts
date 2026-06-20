@@ -5,7 +5,7 @@ import wooRest from '../woo.js';
 import { ExchangeError, AuthenticationError, NotSupported } from '../base/errors.js';
 import { ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCache, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Dict, Bool, FundingRate } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Dict, NullableDict, List, Bool, FundingRate, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 // ----------------------------------------------------------------------------
@@ -351,7 +351,7 @@ export default class woo extends wooRest {
         return await this.unwatchPublic (subHash, market['symbol'], topic, params);
     }
 
-    parseWsTicker (ticker, market = undefined) {
+    parseWsTicker (ticker, market: Market = undefined) {
         //
         //     {
         //         "symbol": "PERP_BTC_USDT",
@@ -493,7 +493,7 @@ export default class woo extends wooRest {
         const topic = this.safeValue (message, 'topic');
         const data = this.safeValue (message, 'data');
         const timestamp = this.safeInteger (message, 'ts');
-        const result = [];
+        const result: List = [];
         for (let i = 0; i < data.length; i++) {
             const marketId = this.safeString (data[i], 'symbol');
             const market = this.safeMarket (marketId);
@@ -580,7 +580,7 @@ export default class woo extends wooRest {
         client.resolve (result, topic);
     }
 
-    parseWsBidAsk (ticker, market = undefined) {
+    parseWsBidAsk (ticker, market: Market = undefined) {
         const marketId = this.safeString (ticker, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = this.safeString (market, 'symbol');
@@ -773,7 +773,7 @@ export default class woo extends wooRest {
         client.resolve (tradesArray, topic);
     }
 
-    parseWsTrade (trade, market = undefined) {
+    parseWsTrade (trade, market: Market = undefined) {
         //
         //     {
         //         "symbol":"SPOT_ADA_USDT",
@@ -827,7 +827,7 @@ export default class woo extends wooRest {
             takerOrMaker = maker ? 'maker' : 'taker';
         }
         const type = this.safeStringLower (trade, 'type');
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         const feeCost = this.safeNumber (trade, 'fee');
         if (feeCost !== undefined) {
             fee = {
@@ -983,7 +983,7 @@ export default class woo extends wooRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    parseWsOrder (order, market = undefined) {
+    parseWsOrder (order, market: Market = undefined) {
         //
         //     {
         //         "symbol": "PERP_BTC_USDT",
@@ -1243,7 +1243,7 @@ export default class woo extends wooRest {
      */
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
-        const messageHashes = [];
+        const messageHashes: string[] = [];
         symbols = this.marketSymbols (symbols);
         if (!this.isEmpty (symbols)) {
             for (let i = 0; i < symbols.length; i++) {
@@ -1338,7 +1338,7 @@ export default class woo extends wooRest {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
         const cache = this.positions;
-        const newPositions = [];
+        const newPositions: List = [];
         for (let i = 0; i < postitionsIds.length; i++) {
             const marketId = postitionsIds[i];
             const market = this.safeMarket (marketId);
