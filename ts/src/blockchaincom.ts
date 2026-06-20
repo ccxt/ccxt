@@ -629,7 +629,7 @@ export default class blockchaincom extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const orderType = this.safeString (params, 'ordType', type);
-        const uppercaseOrderType = orderType!.toUpperCase ();
+        const uppercaseOrderType = orderType.toUpperCase ();
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clOrdId', this.uuid16 ());
         params = this.omit (params, [ 'ordType', 'clientOrderId', 'clOrdId' ]);
         const request: Dict = {
@@ -639,7 +639,7 @@ export default class blockchaincom extends Exchange {
             // 'minQty' : The minimum quantity required for an IOC fill
             'ordType': uppercaseOrderType,
             'symbol': market['id'],
-            'side': side!.toUpperCase (),
+            'side': side.toUpperCase (),
             'orderQty': this.amountToPrecision (symbol, amount),
             'clOrdId': clientOrderId,
         };
@@ -748,8 +748,8 @@ export default class blockchaincom extends Exchange {
         const makerFee = this.safeNumber (response, 'makerRate');
         const takerFee = this.safeNumber (response, 'takerRate');
         const result: Dict = {};
-        for (let i = 0; i < this.symbols!.length; i++) {
-            const symbol = this.symbols![i];
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
@@ -1234,7 +1234,7 @@ export default class blockchaincom extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const requestPath = '/' + this.implodeParams (path, params);
-        let url = this.urls['api']![api] + requestPath;
+        let url = this.urls['api'][api] + requestPath;
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
             if (Object.keys (query).length) {

@@ -681,7 +681,7 @@ export default class p2b extends Exchange {
         //    }
         //
         const result = this.safeList (response, 'result', []);
-        return this.parseTrades (result!, market, since, limit);
+        return this.parseTrades (result, market, since, limit);
     }
 
     parseTrade (trade: Dict, market: Market = undefined) {
@@ -799,7 +799,7 @@ export default class p2b extends Exchange {
         //    }
         //
         const result = this.safeList (response, 'result', []);
-        return this.parseOHLCVs (result!, market, timeframe, since, limit);
+        return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
     parseOHLCV (ohlcv, market: Market = undefined) : OHLCV {
@@ -1041,7 +1041,7 @@ export default class p2b extends Exchange {
         //    }
         //
         const result = this.safeList (response, 'result', []);
-        return this.parseOrders (result!, market, since, limit);
+        return this.parseOrders (result, market, since, limit);
     }
 
     /**
@@ -1094,7 +1094,7 @@ export default class p2b extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const records = this.safeList (result, 'records', []);
-        return this.parseTrades (records!, market, since, limit);
+        return this.parseTrades (records, market, since, limit);
     }
 
     /**
@@ -1172,7 +1172,7 @@ export default class p2b extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const deals = this.safeList (result, 'deals', []);
-        return this.parseTrades (deals!, market, since, limit);
+        return this.parseTrades (deals, market, since, limit);
     }
 
     /**
@@ -1332,7 +1332,7 @@ export default class p2b extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api']![api] + '/' + this.implodeParams (path, params);
+        let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
         if (method === 'GET') {
             if (Object.keys (params).length) {

@@ -633,7 +633,7 @@ export default class backpack extends backpackRest {
      */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols) ?? [];
+        symbols = this.marketSymbols (symbols);
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
@@ -667,7 +667,7 @@ export default class backpack extends backpackRest {
      */
     async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols) ?? [];
+        symbols = this.marketSymbols (symbols);
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' unWatchTradesForSymbols() requires a non-empty array of symbols');
@@ -804,7 +804,7 @@ export default class backpack extends backpackRest {
      */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false) ?? [];
+        symbols = this.marketSymbols (symbols, undefined, false);
         const marketIds = this.marketIds (symbols);
         const messageHashes: string[] = [];
         const topics: string[] = [];
@@ -842,7 +842,7 @@ export default class backpack extends backpackRest {
      */
     async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false) ?? [];
+        symbols = this.marketSymbols (symbols, undefined, false);
         const marketIds = this.marketIds (symbols);
         const messageHashes: string[] = [];
         const topics: string[] = [];

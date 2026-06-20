@@ -1713,7 +1713,7 @@ export default class xt extends Exchange {
         let market: Market = undefined;
         if (symbols !== undefined) {
             symbols = this.marketSymbols (symbols);
-            market = this.market (symbols![0]);
+            market = this.market (symbols[0]);
         }
         const request = {};
         let type: Str = undefined;

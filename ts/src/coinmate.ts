@@ -593,7 +593,7 @@ export default class coinmate extends Exchange {
         const timestamp = this.safeTimestamp (ticker, 'timestamp');
         const last = this.safeNumber (ticker, 'last');
         return this.safeTicker ({
-            'symbol': market!['symbol'],
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeNumber (ticker, 'high'),

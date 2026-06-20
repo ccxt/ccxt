@@ -378,7 +378,7 @@ export default class coinmetro extends Exchange {
         const result = this.parseCurrencies (response);
         const currenciesById = this.indexBy (result, 'id');
         this.options['currenciesByIdForParseMarket'] = currenciesById;
-        const currentCurrencyIdsList = this.safeList (this.options, 'currencyIdsListForParseMarket', [])!;
+        const currentCurrencyIdsList = this.safeList (this.options, 'currencyIdsListForParseMarket', []);
         const currencyIdsList = Object.keys (currenciesById);
         for (let i = 0; i < currencyIdsList.length; i++) {
             currentCurrencyIdsList.push (currencyIdsList[i]);
@@ -459,7 +459,7 @@ export default class coinmetro extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const market = this.parseMarket (response[i]);
             // there are several broken (unavailable info) markets
-            if (market!['base'] === undefined || market!['quote'] === undefined) {
+            if (market['base'] === undefined || market['quote'] === undefined) {
                 continue;
             }
             result.push (market);
@@ -661,7 +661,7 @@ export default class coinmetro extends Exchange {
         //     }
         //
         const candleHistory = this.safeList (response, 'candleHistory', []);
-        return this.parseOHLCVs (candleHistory!, market, timeframe, since, limit);
+        return this.parseOHLCVs (candleHistory, market, timeframe, since, limit);
     }
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
@@ -728,7 +728,7 @@ export default class coinmetro extends Exchange {
         //     }
         //
         const tickHistory = this.safeList (response, 'tickHistory', []);
-        return this.parseTrades (tickHistory!, market, since, limit);
+        return this.parseTrades (tickHistory, market, since, limit);
     }
 
     /**
@@ -904,7 +904,7 @@ export default class coinmetro extends Exchange {
         for (let i = 0; i < prices.length; i++) {
             const priceString = this.safeString (prices, i);
             const price = this.safeNumber (prices, i);
-            const volume = this.safeNumber (bidasks, priceString!);
+            const volume = this.safeNumber (bidasks, priceString);
             (result).push ([ price, volume ]);
         }
         return result;
@@ -1111,7 +1111,7 @@ export default class coinmetro extends Exchange {
             const account = this.account ();
             account['total'] = this.safeString (balanceEntry, 'balance');
             account['used'] = this.safeString (balanceEntry, 'reserved');
-            result[code!] = account;
+            result[code] = account;
         }
         return this.safeBalance (result);
     }
@@ -1424,7 +1424,7 @@ export default class coinmetro extends Exchange {
         //         "takerQty": 0.002
         //     }
         //
-        return this.parseOrder (response!);
+        return this.parseOrder (response);
     }
 
     handleCreateOrderSide (sellingCurrency, buyingCurrency, sellingQty, buyingQty, request = {}) {
@@ -1495,7 +1495,7 @@ export default class coinmetro extends Exchange {
         //         "completionTime": 1702928369053
         //     }
         //
-        return this.parseOrder (response!);
+        return this.parseOrder (response);
     }
 
     /**
@@ -1863,8 +1863,8 @@ export default class coinmetro extends Exchange {
         }
         const buyingCurrencyId = this.safeString (order, 'buyingCurrency', '');
         const sellingCurrencyId = this.safeString (order, 'sellingCurrency', '');
-        const byuingIdPlusSellingId = buyingCurrencyId! + sellingCurrencyId!;
-        const sellingIdPlusBuyingId = sellingCurrencyId! + buyingCurrencyId!;
+        const byuingIdPlusSellingId = buyingCurrencyId + sellingCurrencyId;
+        const sellingIdPlusBuyingId = sellingCurrencyId + buyingCurrencyId;
         let side: Str = undefined;
         let marketId: Str = undefined;
         let baseAmount = buyingQty;
@@ -1988,7 +1988,7 @@ export default class coinmetro extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers: Dict = {}, body: Str = undefined) {
         const request = this.omit (params, this.extractParams (path));
         const endpoint = '/' + this.implodeParams (path, params);
-        let url = this.urls['api']![api] + endpoint;
+        let url = this.urls['api'][api] + endpoint;
         const query = this.urlencode (request);
         if (headers === undefined) {
             headers = {};

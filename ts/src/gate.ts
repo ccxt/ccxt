@@ -1321,7 +1321,7 @@ export default class gate extends Exchange {
         }
         const rawPromises = [];
         const fetchMarketsOptions = this.safeDict (this.options, 'fetchMarkets');
-        const types = this.safeList (fetchMarketsOptions, 'types', [ 'spot', 'swap', 'future', 'option' ])!;
+        const types = this.safeList (fetchMarketsOptions, 'types', [ 'spot', 'swap', 'future', 'option' ]);
         for (let i = 0; i < types.length; i++) {
             const marketType = types[i];
             if (marketType === 'spot') {
@@ -2006,7 +2006,7 @@ export default class gate extends Exchange {
         const code = this.safeCurrencyCode (currencyId);
         // check leveraged tokens (e.g. BTC3S, ETH5L)
         const type = this.isLeveragedCurrency (currencyId) ? 'leveraged' : 'crypto';
-        const chains = this.safeList (rawCurrency, 'chains', [])!;
+        const chains = this.safeList (rawCurrency, 'chains', []);
         const networks = {};
         for (let j = 0; j < chains.length; j++) {
             const chain = chains[j];
@@ -2430,8 +2430,8 @@ export default class gate extends Exchange {
 
     parseTradingFees (response) {
         const result: Dict = {};
-        for (let i = 0; i < this.symbols!.length; i++) {
-            const symbol = this.symbols![i];
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
             const market = this.market (symbol);
             result[symbol] = this.parseTradingFee (response, market);
         }
@@ -2816,7 +2816,7 @@ export default class gate extends Exchange {
         //
         let timestamp = this.safeInteger (response, 'current');
         if (!market['spot']) {
-            timestamp = timestamp! * 1000;
+            timestamp = timestamp * 1000;
         }
         const priceKey = market['spot'] ? 0 : 'p';
         const amountKey = market['spot'] ? 1 : 's';
@@ -2850,7 +2850,7 @@ export default class gate extends Exchange {
         } else if (market['future']) {
             response = await this.publicDeliveryGetSettleTickers (this.extend (request, query));
         } else if (market['option']) {
-            const marketId = market!['id'];
+            const marketId = market['id'];
             const optionParts = (marketId as string).split ('-');
             request['underlying'] = this.safeString (optionParts, 0);
             response = await this.publicOptionsGetTickers (this.extend (request, query));
@@ -2858,7 +2858,7 @@ export default class gate extends Exchange {
             throw new NotSupported (this.id + ' fetchTicker() not support this market type');
         }
         let ticker: NullableDict = undefined;
-        if (market!['option']) {
+        if (market['option']) {
             for (let i = 0; i < response.length; i++) {
                 const entry = response[i];
                 if (entry['name'] === market['id']) {
@@ -2869,7 +2869,7 @@ export default class gate extends Exchange {
         } else {
             ticker = this.safeValue (response, 0);
         }
-        return this.parseTicker (ticker!, market);
+        return this.parseTicker (ticker, market);
     }
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
@@ -3019,7 +3019,7 @@ export default class gate extends Exchange {
             response = await this.publicDeliveryGetSettleTickers (this.extend (request, requestParams));
         } else if (type === 'option') {
             this.checkRequiredArgument ('fetchTickers', symbols, 'symbols');
-            const marketId = market!['id'];
+            const marketId = market['id'];
             const optionParts = (marketId as string).split ('-');
             request['underlying'] = this.safeString (optionParts, 0);
             response = await this.publicOptionsGetTickers (this.extend (request, requestParams));
@@ -4421,7 +4421,7 @@ export default class gate extends Exchange {
             const orderRequest = this.createOrderRequest (marketId as string, type as OrderType, side as OrderSide, amount, price, extendedParams);
             ordersRequests.push (orderRequest);
         }
-        const symbols = this.marketSymbols (orderSymbols, undefined, false, true, true)!;
+        const symbols = this.marketSymbols (orderSymbols, undefined, false, true, true);
         const market = this.market (symbols[0]);
         if (market['future'] || market['option']) {
             throw new NotSupported (this.id + ' createOrders() does not support futures or options markets');
@@ -4638,7 +4638,7 @@ export default class gate extends Exchange {
                         rule = (side === 'buy') ? 2 : 1;
                         triggerOrderPrice = this.priceToPrecision (symbol, takeProfitPrice);
                     }
-                    const priceType = this.safeInteger (params, 'price_type', 0)!;
+                    const priceType = this.safeInteger (params, 'price_type', 0);
                     if (priceType < 0 || priceType > 2) {
                         throw new BadRequest (this.id + ' createOrder () price_type should be 0 latest deal price, 1 mark price, 2 index price');
                     }
@@ -6323,7 +6323,7 @@ export default class gate extends Exchange {
         }
         if (type === 'option') {
             if (symbols !== undefined) {
-                const marketId = market!['id'];
+                const marketId = market['id'];
                 const optionParts = (marketId as string).split ('-');
                 request['underlying'] = this.safeString (optionParts, 0);
             }
@@ -6611,8 +6611,8 @@ export default class gate extends Exchange {
             const maxNotional = this.safeNumber (item, 'risk_limit');
             tiers.push ({
                 'tier': this.sum (i, 1),
-                'symbol': market!['symbol'],
-                'currency': market!['base'],
+                'symbol': market['symbol'],
+                'currency': market['base'],
                 'minNotional': minNotional,
                 'maxNotional': maxNotional,
                 'maintenanceMarginRate': this.safeNumber (item, 'maintenance_rate'),
@@ -6684,7 +6684,7 @@ export default class gate extends Exchange {
         } else {
             // deprecated and not present in the exchange's docs but still works
             response = await this.privateMarginPostCrossRepayments (this.extend (request, params));
-            response = this.safeDict (response, 0)!;
+            response = this.safeDict (response, 0);
             //
             //     [
             //         {
@@ -6961,7 +6961,7 @@ export default class gate extends Exchange {
         if ((type === 'subAccounts') || (type === 'withdrawals')) {
             entirePath = endPart;
         }
-        let url = this.urls['api']![authentication][type];
+        let url = this.urls['api'][authentication][type];
         if (url === undefined) {
             throw new NotSupported (this.id + ' does not have a testnet for the ' + type + ' market type.');
         }
@@ -7226,7 +7226,7 @@ export default class gate extends Exchange {
         if (type !== 'option') {
             throw new NotSupported (this.id + ' fetchSettlementHistory() supports option markets only');
         }
-        const marketId = market!['id'];
+        const marketId = market['id'];
         const optionParts = (marketId as string).split ('-');
         const request: Dict = {
             'underlying': this.safeString (optionParts, 0),
@@ -7313,7 +7313,7 @@ export default class gate extends Exchange {
                     throw new ArgumentsRequired (this.id + ' fetchMySettlementHistory() requires a symbol argument or an underlying parameter in params');
                 }
             } else {
-                const marketId = market!['id'];
+                const marketId = market['id'];
                 const optionParts = (marketId as string).split ('-');
                 request['underlying'] = this.safeString (optionParts, 0);
             }
@@ -7805,7 +7805,7 @@ export default class gate extends Exchange {
             }
             request['settle'] = market['settleId'];
         } else if (market['option']) {
-            const marketId = market!['id'];
+            const marketId = market['id'];
             const optionParts = (marketId as string).split ('-');
             request['underlying'] = this.safeString (optionParts, 0);
         }
@@ -7976,7 +7976,7 @@ export default class gate extends Exchange {
         //         },
         //     ]
         //
-        const marketId = market!['id'];
+        const marketId = market['id'];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const entryMarketId = this.safeString (entry, 'name');
@@ -8028,7 +8028,7 @@ export default class gate extends Exchange {
             'askPrice': this.parseNumber (this.safeNumber (greeks, 'ask1_price')),
             'markPrice': this.parseNumber (this.safeNumber (greeks, 'mark_price')),
             'lastPrice': this.parseNumber (this.safeNumber (greeks, 'last_price')),
-            'underlyingPrice': this.parseNumber (market!['info']['underlying_price']),
+            'underlyingPrice': this.parseNumber (market['info']['underlying_price']),
             'info': greeks,
         } as unknown as Greeks;
     }
@@ -8078,8 +8078,8 @@ export default class gate extends Exchange {
         let response: Dict;
         const isUnified = this.safeBool (params, 'unified');
         params = this.omit (params, 'unified');
-        if (market!['spot']) {
-            request['currency_pair'] = market!['id'];
+        if (market['spot']) {
+            request['currency_pair'] = market['id'];
             if (isUnified) {
                 response = await this.publicMarginGetUniCurrencyPairsCurrencyPair (this.extend (request, params));
                 //
@@ -8158,7 +8158,7 @@ export default class gate extends Exchange {
             //     }
             //
         } else {
-            throw new NotSupported (this.id + ' fetchLeverage() does not support ' + market!['type'] + ' markets');
+            throw new NotSupported (this.id + ' fetchLeverage() does not support ' + market['type'] + ' markets');
         }
         return this.parseLeverage (response, market);
     }

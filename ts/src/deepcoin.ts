@@ -836,8 +836,8 @@ export default class deepcoin extends Exchange {
 
     getProductGroupFromMarket (market: Market): string {
         let productGroup = 'Spot';
-        if (market!['swap']) {
-            if (market!['linear']) {
+        if (market['swap']) {
+            if (market['linear']) {
                 productGroup = 'SwapU';
             } else {
                 productGroup = 'Swap';
@@ -3001,7 +3001,7 @@ export default class deepcoin extends Exchange {
                 requestPath += '?' + query;
             }
         }
-        const url = this.urls['api']![api] + '/' + requestPath;
+        const url = this.urls['api'][api] + '/' + requestPath;
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ();

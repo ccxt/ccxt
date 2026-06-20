@@ -317,8 +317,8 @@ export default class bitbank extends Exchange {
         return {
             'id': id,
             'symbol': base + '/' + quote,
-            'base': base!,
-            'quote': quote!,
+            'base': base,
+            'quote': quote,
             'settle': undefined,
             'baseId': baseId,
             'quoteId': quoteId,
@@ -412,7 +412,7 @@ export default class bitbank extends Exchange {
         };
         const response = await this.publicGetPairTicker (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
-        return this.parseTicker (data!, market);
+        return this.parseTicker (data, market);
     }
 
     /**
@@ -503,7 +503,7 @@ export default class bitbank extends Exchange {
         const response = await this.publicGetPairTransactions (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});
         const trades = this.safeList (data, 'transactions', []);
-        return this.parseTrades (trades!, market, since, limit);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     /**
@@ -636,7 +636,7 @@ export default class bitbank extends Exchange {
         const candlestick = this.safeValue (data, 'candlestick', []);
         const first = this.safeValue (candlestick, 0, {});
         const ohlcv = this.safeList (first, 'ohlcv', []);
-        return this.parseOHLCVs (ohlcv!, market, timeframe, since, limit);
+        return this.parseOHLCVs (ohlcv, market, timeframe, since, limit);
     }
 
     parseBalance (response): Balances {
@@ -655,7 +655,7 @@ export default class bitbank extends Exchange {
             account['free'] = this.safeString (balance, 'free_amount');
             account['used'] = this.safeString (balance, 'locked_amount');
             account['total'] = this.safeString (balance, 'onhand_amount');
-            result[code!] = account;
+            result[code] = account;
         }
         return this.safeBalance (result);
     }
@@ -715,7 +715,7 @@ export default class bitbank extends Exchange {
             'CANCELED_UNFILLED': 'canceled',
             'CANCELED_PARTIALLY_FILLED': 'canceled',
         };
-        return this.safeString (statuses, status!, status);
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -783,7 +783,7 @@ export default class bitbank extends Exchange {
         }
         const response = await this.privatePostUserSpotOrder (this.extend (request, params));
         const data = this.safeDict (response, 'data');
-        return this.parseOrder (data!, market);
+        return this.parseOrder (data, market);
     }
 
     /**
@@ -798,7 +798,7 @@ export default class bitbank extends Exchange {
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol!);
+        const market = this.market (symbol);
         const request: Dict = {
             'order_id': id,
             'pair': market['id'],
@@ -843,7 +843,7 @@ export default class bitbank extends Exchange {
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol!);
+        const market = this.market (symbol);
         const request: Dict = {
             'order_id': id,
             'pair': market['id'],
@@ -872,7 +872,7 @@ export default class bitbank extends Exchange {
         //    }
         //
         const data = this.safeDict (response, 'data');
-        return this.parseOrder (data!, market);
+        return this.parseOrder (data, market);
     }
 
     /**
@@ -888,7 +888,7 @@ export default class bitbank extends Exchange {
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        const market = this.market (symbol!);
+        const market = this.market (symbol);
         const request: Dict = {
             'pair': market['id'],
         };
@@ -901,7 +901,7 @@ export default class bitbank extends Exchange {
         const response = await this.privateGetUserSpotActiveOrders (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});
         const orders = this.safeList (data, 'orders', []);
-        return this.parseOrders (orders!, market, since, limit);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     /**
@@ -932,7 +932,7 @@ export default class bitbank extends Exchange {
         const response = await this.privateGetUserSpotTradeHistory (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});
         const trades = this.safeList (data, 'trades', []);
-        return this.parseTrades (trades!, market, since, limit);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     /**
@@ -1007,7 +1007,7 @@ export default class bitbank extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        return this.parseTransaction (data!, currency);
+        return this.parseTransaction (data, currency);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -1059,7 +1059,7 @@ export default class bitbank extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers: Dict | undefined = undefined, body: Str = undefined) {
         let query = this.omit (params, this.extractParams (path));
-        let url = this.implodeHostname (this.urls['api']![api]) + '/';
+        let url = this.implodeHostname (this.urls['api'][api]) + '/';
         if ((api === 'public') || (api === 'markets')) {
             url += this.implodeParams (path, params);
             if (Object.keys (query).length) {
@@ -1161,7 +1161,7 @@ export default class bitbank extends Exchange {
                 '70010': 'We are temporarily raising the minimum order quantity as the system load is now rising.',
             };
             const code = this.safeString (data, 'code');
-            const message = this.safeString (errorMessages, code!, 'Error');
+            const message = this.safeString (errorMessages, code, 'Error');
             this.throwExactlyMatchedException (this.exceptions['exact'], code, message);
             throw new ExchangeError (this.id + ' ' + this.json (response));
         }

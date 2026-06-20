@@ -75,7 +75,7 @@ export default class alpaca extends alpacaRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        const url = this.urls['api']!['ws']['crypto'];
+        const url = this.urls['api']['ws']['crypto'];
         await this.authenticate (url);
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -157,7 +157,7 @@ export default class alpaca extends alpacaRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        const url = this.urls['api']!['ws']['crypto'];
+        const url = this.urls['api']['ws']['crypto'];
         await this.authenticate (url);
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -214,7 +214,7 @@ export default class alpaca extends alpacaRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        const url = this.urls['api']!['ws']['crypto'];
+        const url = this.urls['api']['ws']['crypto'];
         await this.authenticate (url);
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -298,7 +298,7 @@ export default class alpaca extends alpacaRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        const url = this.urls['api']!['ws']['crypto'];
+        const url = this.urls['api']['ws']['crypto'];
         await this.authenticate (url);
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -354,7 +354,7 @@ export default class alpaca extends alpacaRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        const url = this.urls['api']!['ws']['trading'];
+        const url = this.urls['api']['ws']['trading'];
         await this.authenticate (url);
         let messageHash = 'myTrades';
         await this.loadMarkets ();
@@ -386,7 +386,7 @@ export default class alpaca extends alpacaRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        const url = this.urls['api']!['ws']['trading'];
+        const url = this.urls['api']['ws']['trading'];
         await this.authenticate (url);
         await this.loadMarkets ();
         let messageHash = 'orders';
@@ -613,7 +613,7 @@ export default class alpaca extends alpacaRest {
                 'key': this.apiKey,
                 'secret': this.secret,
             };
-            if (url === this.urls['api']!['ws']['trading']) {
+            if (url === this.urls['api']['ws']['trading']) {
                 // this auth request is being deprecated in test environment
                 request = {
                     'action': 'authenticate',

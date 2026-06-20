@@ -172,10 +172,6 @@ class Transpiler {
             [ /([^\(\s]+)\s+instanceof\s+String/g, 'isinstance($1, str)' ],
             [ /([^\(\s]+)\s+instanceof\s+([^\)\s]+)/g, 'isinstance($1, $2)' ],
 
-            // nullish coalescing "a ?? b" -> "a if a is not None else b" (Python has no ??)
-            // ponytail: left operand must be a simple identifier or a single-level call (no nested parens)
-            [ /([\w.]+\s*\([^()]*\)|[\w.]+) \?\? (\[\]|\{\}|[\w.]+\s*\([^()]*\)|'[^']*'|"[^"]*"|[\w.]+)/g, '$1 if $1 is not None else $2' ],
-
             // convert javascript primitive types to python ones
             [ /(^\s+(?:let|const|var)\s+\w+:\s+)string/mg, '$1str' ],
             [ /(^\s+(?:let|const|var)\s+\w+:\s+)Dict/mg, '$1dict' ], // remove from now
@@ -1174,91 +1170,7 @@ class Transpiler {
 
     // ------------------------------------------------------------------------
 
-    removeNonNullAssertions (code: string): string {
-        // Removes TypeScript non-null assertion operators (postfix "!") from code,
-        // while leaving "!" inside string literals and comments untouched, and without
-        // touching "!=" / "!==" or the prefix logical-not "!x".
-        // ponytail: single-pass char scanner; template-literal "${}" interiors and regex
-        // literals are treated as opaque (rare in exchange code) — upgrade to a tokenizer if needed.
-        let out = ''
-        let i = 0
-        const n = code.length
-        let str: string = '' // active string delimiter (' " `)
-        let lineComment = false
-        let blockComment = false
-        while (i < n) {
-            const c = code[i]
-            const nxt = (i + 1 < n) ? code[i + 1] : ''
-            if (lineComment) {
-                out += c
-                if (c === '\n') {
-                    lineComment = false
-                }
-                i++
-                continue
-            }
-            if (blockComment) {
-                out += c
-                if ((c === '*') && (nxt === '/')) {
-                    out += nxt
-                    i += 2
-                    blockComment = false
-                    continue
-                }
-                i++
-                continue
-            }
-            if (str !== '') {
-                out += c
-                if (c === '\\') {
-                    if (nxt !== '') {
-                        out += nxt
-                        i += 2
-                        continue
-                    }
-                } else if (c === str) {
-                    str = ''
-                }
-                i++
-                continue
-            }
-            if ((c === '/') && (nxt === '/')) {
-                out += c
-                lineComment = true
-                i++
-                continue
-            }
-            if ((c === '/') && (nxt === '*')) {
-                out += c
-                blockComment = true
-                i++
-                continue
-            }
-            if ((c === '\'') || (c === '"') || (c === '`')) {
-                str = c
-                out += c
-                i++
-                continue
-            }
-            if (c === '!') {
-                const prev = out.length ? out[out.length - 1] : ''
-                // postfix non-null assertion: preceded by an expression end, not part of "!=" / "!=="
-                if (/[\w\)\]'"`]/.test (prev) && (nxt !== '=')) {
-                    i++
-                    continue
-                }
-            }
-            out += c
-            i++
-        }
-        return out
-    }
-
     transpileJavaScriptToPythonAndPHP (args:any) {
-
-        // strip TypeScript non-null assertions (postfix "!") in a string/comment-aware way,
-        // so they don't survive into Python/PHP (where "x!" would be misread as "not"/syntax error)
-        args.js = this.removeNonNullAssertions (args.js)
 
         // apply common regexes once before branching to language-specific paths
         args.js = this.regexAll (args.js, this.getCommonRegexes ())

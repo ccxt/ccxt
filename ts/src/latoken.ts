@@ -407,7 +407,7 @@ export default class latoken extends Exchange {
             await this.loadTimeDifference ();
         }
         const currencies = this.safeDict (this.options, 'cachedCurrencies', {});
-        const currenciesById = this.indexBy (currencies!, 'id');
+        const currenciesById = this.indexBy (currencies, 'id');
         const result: List = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
@@ -415,14 +415,14 @@ export default class latoken extends Exchange {
             // the exchange shows them inverted
             const baseId = this.safeString (market, 'baseCurrency');
             const quoteId = this.safeString (market, 'quoteCurrency');
-            const baseCurrency = this.safeDict (currenciesById, baseId!);
-            const quoteCurrency = this.safeDict (currenciesById, quoteId!);
+            const baseCurrency = this.safeDict (currenciesById, baseId);
+            const quoteCurrency = this.safeDict (currenciesById, quoteId);
             const baseCurrencyInfo = this.safeDict (baseCurrency, 'info');
             const quoteCurrencyInfo = this.safeDict (quoteCurrency, 'info');
             if (baseCurrencyInfo !== undefined && quoteCurrencyInfo !== undefined) {
                 const base = this.safeCurrencyCode (this.safeString (baseCurrencyInfo, 'tag'));
                 const quote = this.safeCurrencyCode (this.safeString (quoteCurrencyInfo, 'tag'));
-                const lowercaseQuote = quote!.toLowerCase ();
+                const lowercaseQuote = quote.toLowerCase ();
                 const capitalizedQuote = this.capitalize (lowercaseQuote);
                 const status = this.safeString (market, 'status');
                 result.push ({
@@ -596,9 +596,9 @@ export default class latoken extends Exchange {
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         const types = this.safeValue (this.options, 'types', {});
-        const accountType = this.safeString (types, type!, type);
+        const accountType = this.safeString (types, type, type);
         const balancesByType = this.groupBy (response, 'type');
-        const balances = this.safeValue (balancesByType, accountType!, []);
+        const balances = this.safeValue (balancesByType, accountType, []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'currency');
@@ -614,7 +614,7 @@ export default class latoken extends Exchange {
             const account = this.account ();
             account['free'] = this.safeString (balance, 'available');
             account['used'] = this.safeString (balance, 'blocked');
-            result[code!] = account;
+            result[code] = account;
         }
         result['timestamp'] = maxTimestamp;
         result['datetime'] = this.iso8601 (maxTimestamp);
@@ -1042,7 +1042,7 @@ export default class latoken extends Exchange {
             'ORDER_STATUS_CLOSED': 'closed',
             'ORDER_STATUS_CANCELLED': 'canceled',
         };
-        return this.safeString (statuses, status!, status);
+        return this.safeString (statuses, status, status);
     }
 
     parseOrderType (status) {
@@ -1050,7 +1050,7 @@ export default class latoken extends Exchange {
             'ORDER_TYPE_MARKET': 'market',
             'ORDER_TYPE_LIMIT': 'limit',
         };
-        return this.safeString (statuses, status!, status);
+        return this.safeString (statuses, status, status);
     }
 
     parseTimeInForce (timeInForce: Str) {
@@ -1059,7 +1059,7 @@ export default class latoken extends Exchange {
             'ORDER_CONDITION_IMMEDIATE_OR_CANCEL': 'IOC',
             'ORDER_CONDITION_FILL_OR_KILL': 'FOK',
         };
-        return this.safeString (timeInForces, timeInForce!, timeInForce);
+        return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -1369,7 +1369,7 @@ export default class latoken extends Exchange {
         const request: Dict = {
             'baseCurrency': market['baseId'],
             'quoteCurrency': market['quoteId'],
-            'side': side!.toUpperCase (), // "BUY", "BID", "SELL", "ASK"
+            'side': side.toUpperCase (), // "BUY", "BID", "SELL", "ASK"
             'condition': 'GTC', // "GTC", "GOOD_TILL_CANCELLED", "IOC", "IMMEDIATE_OR_CANCEL", "FOK", "FILL_OR_KILL"
             'type': uppercaseType, // "LIMIT", "MARKET"
             'clientOrderId': this.uuid (), // 50 characters max
@@ -1541,7 +1541,7 @@ export default class latoken extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const content = this.safeList (response, 'content', [])!;
+        const content = this.safeList (response, 'content', []);
         return this.parseTransactions (content, currency, since, limit);
     }
 
@@ -1618,7 +1618,7 @@ export default class latoken extends Exchange {
             'TRANSACTION_STATUS_FAILED': 'failed',
             'TRANSACTION_STATUS_REJECTED': 'rejected',
         };
-        return this.safeString (statuses, status!, status);
+        return this.safeString (statuses, status, status);
     }
 
     parseTransactionType (type) {
@@ -1642,7 +1642,7 @@ export default class latoken extends Exchange {
      */
     async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
         await this.loadMarkets ();
-        const currency = this.currency (code!);
+        const currency = this.currency (code);
         const response = await this.privateGetAuthTransfer (params);
         //
         //     {
@@ -1675,7 +1675,7 @@ export default class latoken extends Exchange {
         //         "hasContent": true
         //     }
         //
-        const transfers = this.safeList (response, 'content', [])!;
+        const transfers = this.safeList (response, 'content', []);
         return this.parseTransfers (transfers, currency, since, limit);
     }
 
@@ -1695,7 +1695,7 @@ export default class latoken extends Exchange {
      */
     async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         await this.loadMarkets ();
-        const currency = this.currency (code!);
+        const currency = this.currency (code);
         const request: Dict = {
             'currency': currency['id'],
             'recipient': toAccount,
@@ -1781,7 +1781,7 @@ export default class latoken extends Exchange {
             'TRANSFER_STATUS_UNVERIFIED': 'pending',
             'TRANSFER_STATUS_CANCELLED': 'canceled',
         };
-        return this.safeString (statuses, status!, status);
+        return this.safeString (statuses, status, status);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {

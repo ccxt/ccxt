@@ -831,16 +831,16 @@ export default class bitfinex extends Exchange {
         //     ]
         //
         const indexed: Dict = {
-            'sym': this.indexBy (this.safeList (response, 1, [])!, 0),
-            'label': this.indexBy (this.safeList (response, 2, [])!, 0),
-            'unit': this.indexBy (this.safeList (response, 3, [])!, 0),
-            'undl': this.indexBy (this.safeList (response, 4, [])!, 0),
-            'pool': this.indexBy (this.safeList (response, 5, [])!, 0),
-            'explorer': this.indexBy (this.safeList (response, 6, [])!, 0),
-            'fees': this.indexBy (this.safeList (response, 7, [])!, 0),
-            'networks': this.safeList (response, 8, [])!,
-            'statuses': this.indexBy (this.safeList (response, 9, [])!, 0),
-            'marginables': this.safeList (response, 10, [])!,
+            'sym': this.indexBy (this.safeList (response, 1, []), 0),
+            'label': this.indexBy (this.safeList (response, 2, []), 0),
+            'unit': this.indexBy (this.safeList (response, 3, []), 0),
+            'undl': this.indexBy (this.safeList (response, 4, []), 0),
+            'pool': this.indexBy (this.safeList (response, 5, []), 0),
+            'explorer': this.indexBy (this.safeList (response, 6, []), 0),
+            'fees': this.indexBy (this.safeList (response, 7, []), 0),
+            'networks': this.safeList (response, 8, []),
+            'statuses': this.indexBy (this.safeList (response, 9, []), 0),
+            'marginables': this.safeList (response, 10, []),
         };
         const indexedNetworks: Dict = {};
         for (let i = 0; i < indexed['networks'].length; i++) {
@@ -849,7 +849,7 @@ export default class bitfinex extends Exchange {
             const valuesList = this.safeList (networkObj, 1);
             const networkName = this.safeString (valuesList, 0);
             // for GOlang transpiler, do with "safe" method
-            const networksList = this.safeList (indexedNetworks, networkName as IndexType, [])!;
+            const networksList = this.safeList (indexedNetworks, networkName as IndexType, []);
             networksList.push (networkId);
             indexedNetworks[networkName] = networksList;
         }
@@ -870,7 +870,7 @@ export default class bitfinex extends Exchange {
         const result = {};
         const arr = this.toArray (allowedIds);
         for (let i = 0; i < arr.length; i++) {
-            const parsed = this.parseCurrencyCustom (arr[i], indexed, indexedNetworks)!;
+            const parsed = this.parseCurrencyCustom (arr[i], indexed, indexedNetworks);
             const code = parsed['code'];
             result[code] = parsed;
         }
@@ -891,7 +891,7 @@ export default class bitfinex extends Exchange {
         const undl = this.safeList (indexed['undl'], id, []);
         const precision = this.safeString (this.options, 'defaultCurrencyPrecision', '8');
         const networks: Dict = {};
-        const networkIds = this.safeList (indexedNetworks, id, [])!;
+        const networkIds = this.safeList (indexedNetworks, id, []);
         for (let j = 0; j < networkIds.length; j++) {
             const networkId = networkIds[j];
             const network = this.networkIdToCode (networkId, code);
@@ -1303,7 +1303,7 @@ export default class bitfinex extends Exchange {
         symbols = this.marketSymbols (symbols);
         const request: Dict = {};
         if (symbols !== undefined) {
-            const ids = this.marketIds (symbols)!;
+            const ids = this.marketIds (symbols);
             request['symbols'] = ids.join (',');
         } else {
             request['symbols'] = 'ALL';
@@ -1398,7 +1398,7 @@ export default class bitfinex extends Exchange {
         //         ...
         //     ]
         //
-        const tradeList = this.safeList (trade, 'result', [])!;
+        const tradeList = this.safeList (trade, 'result', []);
         const tradeLength = tradeList.length;
         const isPrivate = (tradeLength > 5);
         const id = this.safeString (tradeList, 0);
@@ -1860,7 +1860,7 @@ export default class bitfinex extends Exchange {
             const errorText = response[7];
             throw new ExchangeError (this.id + ' ' + response[6] + ': ' + errorText + ' (#' + errorCode + ')');
         }
-        const orders = this.safeList (response, 4, [])!;
+        const orders = this.safeList (response, 4, []);
         const order = this.safeList (orders, 0);
         const newOrder = { 'result': order };
         return this.parseOrder (newOrder, market);
@@ -1919,7 +1919,7 @@ export default class bitfinex extends Exchange {
         //     ]
         //
         const results = [];
-        const data = this.safeList (response, 4, [])!;
+        const data = this.safeList (response, 4, []);
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const individualOrder = entry[4];
@@ -1943,7 +1943,7 @@ export default class bitfinex extends Exchange {
             'all': 1,
         };
         const response = await this.privatePostAuthWOrderCancelMulti (this.extend (request, params));
-        const orders = this.safeList (response, 4, [])!;
+        const orders = this.safeList (response, 4, []);
         const ordersList = [];
         for (let i = 0; i < orders.length; i++) {
             ordersList.push ({ 'result': orders[i] });
@@ -2065,7 +2065,7 @@ export default class bitfinex extends Exchange {
         //         "Submitting 2 order cancellations."
         //     ]
         //
-        const orders = this.safeList (response, 4, [])!;
+        const orders = this.safeList (response, 4, []);
         const ordersList = [];
         for (let i = 0; i < orders.length; i++) {
             ordersList.push ({ 'result': orders[i] });
@@ -3173,7 +3173,7 @@ export default class bitfinex extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchFundingRates() requires a symbols argument');
         }
         await this.loadMarkets ();
-        const marketIds = this.marketIds (symbols)!;
+        const marketIds = this.marketIds (symbols);
         const request: Dict = {
             'keys': marketIds.join (','),
         };
@@ -3777,7 +3777,7 @@ export default class bitfinex extends Exchange {
         const marginStatus = (marginStatusRaw === 1) ? 'ok' : 'failed';
         return {
             'info': data,
-            'symbol': market!['symbol'],
+            'symbol': market['symbol'],
             'type': undefined,
             'marginMode': 'isolated',
             'amount': undefined,

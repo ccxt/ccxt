@@ -816,7 +816,7 @@ export default class zaif extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
-        let url = this.urls['api']!['rest'] + '/';
+        let url = this.urls['api']['rest'] + '/';
         if (api === 'public') {
             url += 'api/' + this.version + '/' + this.implodeParams (path, params);
         } else if (api === 'fapi') {

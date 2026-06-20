@@ -72,7 +72,7 @@ export default class p2b extends p2bRest {
      * @returns {object} data from the websocket stream
      */
     async subscribe (name: string, messageHash: string, request, params = {}) {
-        const url = this.urls['api']!['ws'];
+        const url = this.urls['api']['ws'];
         const subscribe: Dict = {
             'method': name,
             'params': request,
@@ -158,12 +158,12 @@ export default class p2b extends p2bRest {
         [ name, params ] = this.handleOptionAndParams (params, 'method', 'name', name);
         const messageHashes: string[] = [];
         const args: List = [];
-        for (let i = 0; i < symbols!.length; i++) {
-            const market = this.market (symbols![i]);
+        for (let i = 0; i < symbols.length; i++) {
+            const market = this.market (symbols[i]);
             messageHashes.push (name + '::' + market['symbol']);
             args.push (market['id']);
         }
-        const url = this.urls['api']!['ws'];
+        const url = this.urls['api']['ws'];
         const request: Dict = {
             'method': name + '.subscribe',
             'params': args,
@@ -209,7 +209,7 @@ export default class p2b extends p2bRest {
             }
         }
         const marketIds = this.marketIds (symbols);
-        const url = this.urls['api']!['ws'];
+        const url = this.urls['api']['ws'];
         const subscribe: Dict = {
             'method': 'deals.subscribe',
             'params': marketIds,
@@ -276,7 +276,7 @@ export default class p2b extends p2bRest {
         let data = this.safeList (message, 'params');
         data = this.safeList (data, 0);
         const method = this.safeString (message, 'method');
-        const splitMethod = method!.split ('.');
+        const splitMethod = method.split ('.');
         const channel = this.safeString (splitMethod, 0);
         const marketId = this.safeString (data, 7);
         const market = this.safeMarket (marketId);
@@ -330,8 +330,8 @@ export default class p2b extends p2bRest {
             tradesArray = new ArrayCache (tradesLimit);
             this.trades[symbol as string] = tradesArray;
         }
-        for (let i = 0; i < trades!.length; i++) {
-            const item = trades![i];
+        for (let i = 0; i < trades.length; i++) {
+            const item = trades[i];
             const trade = this.parseTrade (item, market);
             tradesArray.append (trade);
         }
@@ -377,7 +377,7 @@ export default class p2b extends p2bRest {
         const marketId = this.safeString (data, 0);
         const market = this.safeMarket (marketId);
         const method = this.safeString (message, 'method');
-        const splitMethod = method!.split ('.');
+        const splitMethod = method.split ('.');
         const messageHashStart = this.safeString (splitMethod, 0);
         const tickerData = this.safeDict (data, 1);
         let ticker: Ticker;

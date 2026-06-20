@@ -2046,7 +2046,7 @@ export default class bittrade extends Exchange {
                 url += '?' + this.urlencode (params);
             }
         }
-        url = this.implodeParams (this.urls['api']![api], {
+        url = this.implodeParams (this.urls['api'][api], {
             'hostname': this.hostname,
         }) + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

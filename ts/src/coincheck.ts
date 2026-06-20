@@ -585,7 +585,7 @@ export default class coincheck extends Exchange {
         //                  ]
         //      }
         //
-        const transactions = this.safeList (response, 'data', []) ?? [];
+        const transactions = this.safeList (response, 'data', []);
         return this.parseTrades (transactions, market, since, limit);
     }
 
@@ -620,7 +620,7 @@ export default class coincheck extends Exchange {
         //          "created_at": "2021-12-08T14:10:33.000Z"
         //      }
         //
-        const data = this.safeList (response, 'data', []) ?? [];
+        const data = this.safeList (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -786,7 +786,7 @@ export default class coincheck extends Exchange {
         //     }
         //   ]
         // }
-        const data = this.safeList (response, 'deposits', []) ?? [];
+        const data = this.safeList (response, 'deposits', []);
         return this.parseTransactions (data, currency, since, limit, { 'type': 'deposit' });
     }
 
@@ -833,7 +833,7 @@ export default class coincheck extends Exchange {
         //     }
         //   ]
         // }
-        const data = this.safeList (response, 'data', []) ?? [];
+        const data = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit, { 'type': 'withdrawal' });
     }
 

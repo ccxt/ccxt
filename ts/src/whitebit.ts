@@ -521,8 +521,8 @@ export default class whitebit extends Exchange {
         return {
             'id': id,
             'symbol': symbol,
-            'base': base!,
-            'quote': quote!,
+            'base': base,
+            'quote': quote,
             'settle': settle,
             'baseId': baseId,
             'quoteId': quoteId,
@@ -657,8 +657,8 @@ export default class whitebit extends Exchange {
         const hasProvider = ('providers' in rawCurrency);
         const networks = {};
         const rawNetworks = this.safeDict (rawCurrency, 'networks', {});
-        const depositsNetworks = this.safeList (rawNetworks, 'deposits', [])!;
-        const withdrawsNetworks = this.safeList (rawNetworks, 'withdraws', [])!;
+        const depositsNetworks = this.safeList (rawNetworks, 'deposits', []);
+        const withdrawsNetworks = this.safeList (rawNetworks, 'withdraws', []);
         const networkLimits = this.safeDict (rawCurrency, 'limits', {});
         const depositLimits = this.safeDict (networkLimits, 'deposit', {});
         const withdrawLimits = this.safeDict (networkLimits, 'withdraw', {});
@@ -761,7 +761,7 @@ export default class whitebit extends Exchange {
         for (let i = 0; i < currenciesIds.length; i++) {
             const currency = currenciesIds[i];
             const data = response[currency];
-            const code = this.safeCurrencyCode (currency)!;
+            const code = this.safeCurrencyCode (currency);
             const withdraw = this.safeValue (data, 'withdraw', {});
             withdrawFees[code] = this.safeString (withdraw, 'fixed');
             const deposit = this.safeValue (data, 'deposit', {});
@@ -882,7 +882,7 @@ export default class whitebit extends Exchange {
             const splitEntry = entry.split (' ');
             const currencyId = splitEntry[0];
             const feeInfo = response[entry];
-            const code = this.safeCurrencyCode (currencyId)!;
+            const code = this.safeCurrencyCode (currencyId);
             if ((codes === undefined) || (this.inArray (code, codes))) {
                 const depositWithdrawFee = this.safeValue (depositWithdrawFees, code);
                 if (depositWithdrawFee === undefined) {
@@ -954,10 +954,10 @@ export default class whitebit extends Exchange {
         //      }
         //
         const result: Dict = {};
-        for (let i = 0; i < this.symbols!.length; i++) {
-            const symbol = this.symbols![i];
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
             const market = this.market (symbol);
-            const fee = this.safeValue (response, market['baseId']!, {});
+            const fee = this.safeValue (response, market['baseId'], {});
             let makerFee = this.safeString (fee, 'maker_fee');
             let takerFee = this.safeString (fee, 'taker_fee');
             makerFee = Precise.stringDiv (makerFee, '100');
@@ -1268,7 +1268,7 @@ export default class whitebit extends Exchange {
         //         },
         //     }
         //
-        const ticker = this.safeDict (response, 'result', {})!;
+        const ticker = this.safeDict (response, 'result', {});
         return this.parseTicker (ticker, market);
     }
 
@@ -1851,7 +1851,7 @@ export default class whitebit extends Exchange {
         //         ]
         //     }
         //
-        const result = this.safeList (response, 'result', [])!;
+        const result = this.safeList (response, 'result', []);
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
@@ -2253,13 +2253,13 @@ export default class whitebit extends Exchange {
         }
         const market = this.market (symbol);
         params = this.omit (params, 'symbol');
-        const isBiggerThanZero = (timeout! > 0);
+        const isBiggerThanZero = (timeout > 0);
         const request: Dict = {
             'market': market['id'],
             // 'timeout': (timeout > 0) ? this.numberToString (timeout / 1000) : null,
         };
         if (isBiggerThanZero) {
-            request['timeout'] = this.numberToString (timeout! / 1000);
+            request['timeout'] = this.numberToString (timeout / 1000);
         } else {
             request['timeout'] = 'null';
         }
@@ -2280,7 +2280,7 @@ export default class whitebit extends Exchange {
         const result: Dict = {};
         for (let i = 0; i < balanceKeys.length; i++) {
             const id = balanceKeys[i];
-            const code = this.safeCurrencyCode (id)!;
+            const code = this.safeCurrencyCode (id);
             const balance = response[id];
             if (balance !== undefined && this.isDictionary (balance)) {
                 const account = this.account ();
@@ -2462,7 +2462,7 @@ export default class whitebit extends Exchange {
             'margin limit': 'limit',
             'margin market': 'market',
         };
-        return this.safeString (types, type!, type);
+        return this.safeString (types, type, type);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -2570,7 +2570,7 @@ export default class whitebit extends Exchange {
             'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
         };
-        return this.safeStringLower (statuses, status!, status);
+        return this.safeStringLower (statuses, status, status);
     }
 
     /**
@@ -2618,7 +2618,7 @@ export default class whitebit extends Exchange {
         //         "limit": 100
         //     }
         //
-        const data = this.safeList (response, 'records', [])!;
+        const data = this.safeList (response, 'records', []);
         return this.parseTrades (data, market);
     }
 
@@ -2672,7 +2672,7 @@ export default class whitebit extends Exchange {
         //         { ... }                                 // More withdrawal transactions
         //     ]
         //
-        return this.parseTransactions (this.safeList (response, 'records', [])!, currency, since, limit);
+        return this.parseTransactions (this.safeList (response, 'records', []), currency, since, limit);
     }
 
     /**
@@ -3106,7 +3106,7 @@ export default class whitebit extends Exchange {
             '16': 'pending',
             '17': 'pending',
         };
-        return this.safeString (statuses, status!, status);
+        return this.safeString (statuses, status, status);
     }
 
     /**
@@ -3171,7 +3171,7 @@ export default class whitebit extends Exchange {
         //     }
         //
         const records = this.safeValue (response, 'records', []);
-        const first = this.safeDict (records, 0, {})!;
+        const first = this.safeDict (records, 0, {});
         return this.parseTransaction (first, currency);
     }
 
@@ -3239,7 +3239,7 @@ export default class whitebit extends Exchange {
         //         "total": 300                                                                                             // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
         //     }
         //
-        const records = this.safeList (response, 'records', [])!;
+        const records = this.safeList (response, 'records', []);
         return this.parseTransactions (records, currency, since, limit);
     }
 
@@ -3617,7 +3617,7 @@ export default class whitebit extends Exchange {
         //        "total": 300                                                                                    // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
         //    }
         //
-        const records = this.safeList (response, 'records')!;
+        const records = this.safeList (response, 'records');
         return this.parseTransactions (records, currency, since, limit);
     }
 
@@ -3739,7 +3739,7 @@ export default class whitebit extends Exchange {
         //         "offset": 0
         //     }
         //
-        const rows = this.safeList (response, 'records', [])!;
+        const rows = this.safeList (response, 'records', []);
         return this.parseConversions (rows, code, 'fromCurrency', 'toCurrency', since, limit);
     }
 
@@ -3931,7 +3931,7 @@ export default class whitebit extends Exchange {
         //         }
         //     ]
         //
-        const data = this.safeDict (response, 0, {})!;
+        const data = this.safeDict (response, 0, {});
         return this.parsePosition (data, market);
     }
 
@@ -4113,7 +4113,7 @@ export default class whitebit extends Exchange {
         return {
             'info': info,
             'symbol': market['symbol'],
-            'fundingRate': this.safeNumber (info, 'fundingRate')!,
+            'fundingRate': this.safeNumber (info, 'fundingRate'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
@@ -4181,7 +4181,7 @@ export default class whitebit extends Exchange {
                 if (hasErrorStatus) {
                     errorInfo = status;
                 } else {
-                    const errorObject = this.safeDict (response, 'errors', {})!;
+                    const errorObject = this.safeDict (response, 'errors', {});
                     const errorKeys = Object.keys (errorObject);
                     const errorsLength = errorKeys.length;
                     if (errorsLength > 0) {
@@ -4198,13 +4198,13 @@ export default class whitebit extends Exchange {
             // {"success":false,"message":{"limit":["limit must be less than or equal to 100"]},"result":null}
             const success = this.safeBool (response, 'success', true);
             if (!success) {
-                const errMsg = this.safeDict (response, 'message', {})!;
+                const errMsg = this.safeDict (response, 'message', {});
                 const errKeys = Object.keys (errMsg);
                 const errKeysLength = errKeys.length;
                 let errorInfo = body;
                 if (errKeysLength > 0) {
                     const errorKey = errKeys[0];
-                    const errorMessageArray = this.safeList (errMsg, errorKey, [])!;
+                    const errorMessageArray = this.safeList (errMsg, errorKey, []);
                     const errorMessageLength = errorMessageArray.length;
                     errorInfo = (errorMessageLength > 0) ? errorMessageArray[0] : body;
                 }

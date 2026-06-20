@@ -61,7 +61,7 @@ export default class extended extends extendedRest {
         symbol = market['symbol'];
         const messageHash = 'orderbook:' + symbol;
         const query = this.urlencode (params);
-        let url = this.urls['api']!['ws'] + '/orderbooks/' + market['id'];
+        let url = this.urls['api']['ws'] + '/orderbooks/' + market['id'];
         if (query.length > 0) {
             url += '?' + query;
         }
@@ -141,7 +141,7 @@ export default class extended extends extendedRest {
 
     async watchPrivate (messageHash: string, subscription = undefined) {
         this.checkRequiredCredentials ();
-        const url = this.urls['api']!['ws'] + '/account';
+        const url = this.urls['api']['ws'] + '/account';
         if ((this.clients === undefined) || !(url in this.clients)) {
             const defaultOptions = {
                 'ws': {
@@ -523,7 +523,7 @@ export default class extended extends extendedRest {
         symbol = market['symbol'];
         const messageHash = 'fundingRate:' + symbol;
         const query = this.urlencode (params);
-        let url = this.urls['api']!['ws'] + '/funding/' + market['id'];
+        let url = this.urls['api']['ws'] + '/funding/' + market['id'];
         if (query.length > 0) {
             url += '?' + query;
         }
@@ -595,7 +595,7 @@ export default class extended extends extendedRest {
         symbol = market['symbol'];
         const messageHash = 'markPrice:' + symbol;
         const query = this.urlencode (params);
-        let url = this.urls['api']!['ws'] + '/prices/mark/' + market['id'];
+        let url = this.urls['api']['ws'] + '/prices/mark/' + market['id'];
         if (query.length > 0) {
             url += '?' + query;
         }
@@ -656,7 +656,7 @@ export default class extended extends extendedRest {
         symbol = market['symbol'];
         const messageHash = 'trades:' + symbol;
         const query = this.urlencode (params);
-        let url = this.urls['api']!['ws'] + '/publicTrades/' + market['id'];
+        let url = this.urls['api']['ws'] + '/publicTrades/' + market['id'];
         if (query.length > 0) {
             url += '?' + query;
         }
@@ -751,7 +751,7 @@ export default class extended extends extendedRest {
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const messageHash = 'ohlcv:' + symbol + ':' + timeframe + ':' + candleType;
         const query = this.urlencode (this.extend ({ 'interval': interval }, params));
-        const url = this.urls['api']!['ws'] + '/candles/' + market['id'] + '/' + candleType + '?' + query;
+        const url = this.urls['api']['ws'] + '/candles/' + market['id'] + '/' + candleType + '?' + query;
         const ohlcv = await this.watch (url, messageHash, undefined, messageHash, {
             'name': 'ohlcv',
             'symbol': symbol,

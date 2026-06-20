@@ -595,7 +595,7 @@ export default class aster extends asterRest {
      */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, true, true, true) ?? [];
+        symbols = this.marketSymbols (symbols, undefined, true, true, true);
         const firstMarket = this.getMarketFromSymbols (symbols);
         const type = this.safeString (firstMarket, 'type', 'swap');
         const symbolsLength = symbols.length;
@@ -641,7 +641,7 @@ export default class aster extends asterRest {
      */
     async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, true, true, true) ?? [];
+        symbols = this.marketSymbols (symbols, undefined, true, true, true);
         const firstMarket = this.getMarketFromSymbols (symbols);
         const type = this.safeString (firstMarket, 'type', 'swap');
         const symbolsLength = symbols.length;
@@ -897,7 +897,7 @@ export default class aster extends asterRest {
      */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, true, true, true) ?? [];
+        symbols = this.marketSymbols (symbols, undefined, true, true, true);
         const firstMarket = this.getMarketFromSymbols (symbols);
         const type = this.safeString (firstMarket, 'type', 'swap');
         const symbolsLength = symbols.length;
@@ -942,7 +942,7 @@ export default class aster extends asterRest {
      */
     async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, true, true, true) ?? [];
+        symbols = this.marketSymbols (symbols, undefined, true, true, true);
         const firstMarket = this.getMarketFromSymbols (symbols);
         const type = this.safeString (firstMarket, 'type', 'swap');
         const symbolsLength = symbols.length;
