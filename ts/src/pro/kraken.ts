@@ -826,7 +826,7 @@ export default class kraken extends krakenRest {
         let marketsByWsName = this.safeValue (this.options, 'marketsByWsName');
         if ((marketsByWsName === undefined) || reload) {
             marketsByWsName = {};
-            const symbols = this.symbols as string[];
+            const symbols = this.symbols; // do not cast `as string[]`: this.symbols is List<Object> in Java, and List<Object>->List<String> is an illegal cast
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 const market = this.markets[symbol];
