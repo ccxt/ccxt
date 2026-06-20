@@ -3128,7 +3128,7 @@ export default class kucoin extends Exchange {
             //        }
             //    }
             //
-            const data = this.safeDict (response, 'data', {});
+            const data: Dict = this.safeDict (response, 'data', {}) as Dict;
             return this.parseTicker (data, market);
         } else {
             response = await this.publicGetMarketStats (this.extend (request, params));
@@ -3179,11 +3179,11 @@ export default class kucoin extends Exchange {
         let response: NullableDict = undefined;
         if (market['contract']) {
             response = await this.futuresPublicGetMarkPriceSymbolCurrent (this.extend (request, params));
-            const data = this.safeDict (response, 'data', {});
+            const data: Dict = this.safeDict (response, 'data', {}) as Dict;
             return this.parseTicker (data, market);
         } else {
             response = await this.publicGetMarkPriceSymbolCurrent (this.extend (request, params));
-            const data = this.safeDict (response, 'data', {});
+            const data: Dict = this.safeDict (response, 'data', {}) as Dict;
             return this.parseSpotOrUtaTicker (data, market);
         }
     }
@@ -3974,7 +3974,7 @@ export default class kucoin extends Exchange {
         //         }
         //    }
         //
-        const data = this.safeDict (response, 'data', {});
+        const data: Dict = this.safeDict (response, 'data', {}) as Dict;
         return this.parseOrder (data, market);
     }
 
@@ -4115,7 +4115,7 @@ export default class kucoin extends Exchange {
         //        },
         //    }
         //
-        const data = this.safeDict (response, 'data', {});
+        const data: Dict = this.safeDict (response, 'data', {}) as Dict;
         return this.parseOrder (data, market);
     }
 
@@ -4289,7 +4289,7 @@ export default class kucoin extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict (response, 'data', {});
+        const data: Dict = this.safeDict (response, 'data', {}) as Dict;
         return this.parseOrder (data, market);
     }
 
@@ -4718,7 +4718,7 @@ export default class kucoin extends Exchange {
         //     }
         // }
         //
-        const data = this.safeDict (response, 'data', {});
+        const data: Dict = this.safeDict (response, 'data', {}) as Dict;
         return this.parseOrder (data, market);
     }
 
@@ -4866,7 +4866,7 @@ export default class kucoin extends Exchange {
                 //    }
                 //
             }
-            response = this.safeDict (response, 'data');
+            response = this.safeDict (response, 'data') as Dict;
             return this.parseOrder (response);
         } else {
             request['orderId'] = id;
@@ -5013,7 +5013,7 @@ export default class kucoin extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict (response, 'data', {});
+        const data: Dict = this.safeDict (response, 'data', {}) as Dict;
         return this.parseOrder (data, market);
     }
 
@@ -5833,7 +5833,7 @@ export default class kucoin extends Exchange {
                 response = await this.privateGetOrdersOrderId (this.extend (request, params));
             }
         }
-        let responseData = this.safeDict (response, 'data', {});
+        let responseData: any = this.safeDict (response, 'data', {});
         if (Array.isArray (responseData)) {
             responseData = this.safeValue (responseData, 0);
         }
@@ -5996,7 +5996,7 @@ export default class kucoin extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict (response, 'data', {});
+        const data: Dict = this.safeDict (response, 'data', {}) as Dict;
         return this.parseOrder (data, market);
     }
 
@@ -7405,7 +7405,7 @@ export default class kucoin extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict (response, 'data', {});
+        const data: Dict = this.safeDict (response, 'data', {}) as Dict;
         return this.parseTransaction (data, currency);
     }
 
@@ -8325,7 +8325,7 @@ export default class kucoin extends Exchange {
         const response = await this.utaPrivatePostAccountTransfer (this.extend (request, params));
         //
         //
-        const data = this.safeDict (response, 'data');
+        const data: Dict = this.safeDict (response, 'data', {}) as Dict;
         const transfer = this.parseTransfer (data, currency);
         const transferOptions = this.safeDict (this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool (transferOptions, 'fillResponseFromRequest', true);
@@ -8409,7 +8409,7 @@ export default class kucoin extends Exchange {
             //
             response = await this.privatePostAccountsUniversalTransfer (this.extend (request, params));
         }
-        const data = this.safeDict (response, 'data');
+        const data: Dict = this.safeDict (response, 'data', {}) as Dict;
         const transfer = this.parseTransfer (data, currency);
         const transferOptions = this.safeDict (this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool (transferOptions, 'fillResponseFromRequest', true);
@@ -9564,7 +9564,7 @@ export default class kucoin extends Exchange {
         //        }
         //    }
         //
-        const data = this.safeDict (response, 'data', {});
+        const data: Dict = this.safeDict (response, 'data', {}) as Dict;
         const parsed = this.parseLeverage (data, market);
         return this.extend (parsed, {
             'marginMode': marginMode,
@@ -10135,7 +10135,7 @@ export default class kucoin extends Exchange {
             //        }
             //    }
             //
-            position = this.safeDict (response, 'data', {});
+            position = this.safeDict (response, 'data', {}) as Dict;
         }
         return this.parsePosition (position, market);
     }
@@ -10782,7 +10782,7 @@ export default class kucoin extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict (response, 'data', {});
+        const data: Dict = this.safeDict (response, 'data', {}) as Dict;
         return this.parseMarginMode (data, market);
     }
 
@@ -10830,7 +10830,7 @@ export default class kucoin extends Exchange {
         //        }
         //    }
         //
-        const data = this.safeDict (response, 'data', {});
+        const data: Dict = this.safeDict (response, 'data', {}) as Dict;
         return this.parseMarginMode (data, market) as any;
     }
 
@@ -10914,7 +10914,7 @@ export default class kucoin extends Exchange {
         } else {
             response = await this.futuresPrivatePostOrders (this.extend (request, params));
         }
-        return this.parseOrder (response, market);
+        return this.parseOrder (response as Dict, market);
     }
 
     /**
