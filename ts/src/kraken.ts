@@ -590,7 +590,7 @@ export default class kraken extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        const promises = [];
+        const promises: List = [];
         promises.push (this.publicGetAssetPairs (params));
         if (this.options['adjustForTimeDifference']) {
             promises.push (this.loadTimeDifference ());
@@ -647,7 +647,7 @@ export default class kraken extends Exchange {
         const markets = this.safeDict (assetsResponse, 'result', {});
         const cachedCurrencies = this.safeDict (this.options, 'cachedCurrencies', {});
         const keys = Object.keys (markets);
-        const result = [];
+        const result: List = [];
         for (let i = 0; i < keys.length; i++) {
             const id = keys[i];
             let isSynthetic = false;
@@ -1103,7 +1103,7 @@ export default class kraken extends Exchange {
         const request: Dict = {};
         if (symbols !== undefined) {
             symbols = this.marketSymbols (symbols);
-            const marketIds = [];
+            const marketIds: List = [];
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 const market = this.markets[symbol];
@@ -1334,7 +1334,7 @@ export default class kraken extends Exchange {
         const result = this.safeValue (response, 'result', {});
         const ledger = this.safeValue (result, 'ledger', {});
         const keys = Object.keys (ledger);
-        const items = [];
+        const items: List = [];
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             const value = ledger[key];
@@ -1363,7 +1363,7 @@ export default class kraken extends Exchange {
         //                                      "balance": "0.0000051000"           } } }
         const result = response['result'];
         const keys = Object.keys (result);
-        const items = [];
+        const items: List = [];
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             const value = result[key];
@@ -1729,8 +1729,8 @@ export default class kraken extends Exchange {
      */
     async createOrders (orders: OrderRequest[], params = {}) {
         await this.loadMarkets ();
-        const ordersRequests = [];
-        let orderSymbols = [];
+        const ordersRequests: List = [];
+        let orderSymbols: List = [];
         let symbol: Str = undefined;
         let market: Market = undefined;
         for (let i = 0; i < orders.length; i++) {
@@ -2057,7 +2057,7 @@ export default class kraken extends Exchange {
         const userref = this.safeString (order, 'userref');
         const clientOrderId = this.safeString (order, 'cl_ord_id', userref);
         const rawTrades = this.safeValue (order, 'trades', []);
-        const trades = [];
+        const trades: List = [];
         for (let i = 0; i < rawTrades.length; i++) {
             const rawTrade = rawTrades[i];
             if (typeof rawTrade === 'string') {
@@ -2401,7 +2401,7 @@ export default class kraken extends Exchange {
      */
     async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         const orderTrades = this.safeValue (params, 'trades');
-        const tradeIds = [];
+        const tradeIds: List = [];
         if (orderTrades === undefined) {
             throw new ArgumentsRequired (this.id + " fetchOrderTrades() requires a unified order structure in the params argument or a 'trades' param (an array of trade id strings)");
         } else {
@@ -2423,9 +2423,9 @@ export default class kraken extends Exchange {
         const numTradeIds = tradeIds.length;
         let numBatches = this.parseToInt (numTradeIds / batchSize);
         numBatches = this.sum (numBatches, 1);
-        let result = [];
+        let result: List = [];
         for (let j = 0; j < numBatches; j++) {
-            const requestIds = [];
+            const requestIds: List = [];
             for (let k = 0; k < batchSize; k++) {
                 const index = this.sum (j * batchSize, k);
                 if (index < numTradeIds) {
@@ -2486,7 +2486,7 @@ export default class kraken extends Exchange {
             'txid': ids.join (','), // comma delimited list of transaction ids to query info about (20 maximum)
         }, params));
         const result = this.safeValue (response, 'result', {});
-        const orders = [];
+        const orders: List = [];
         const orderIds = Object.keys (result);
         for (let i = 0; i < orderIds.length; i++) {
             const id = orderIds[i];
@@ -2778,7 +2778,7 @@ export default class kraken extends Exchange {
         }
         const result = this.safeDict (response, 'result', {});
         const open = this.safeDict (result, 'open', {});
-        const orders = [];
+        const orders: List = [];
         const orderIds = Object.keys (open);
         for (let i = 0; i < orderIds.length; i++) {
             const id = orderIds[i];
@@ -2865,7 +2865,7 @@ export default class kraken extends Exchange {
         }
         const result = this.safeDict (response, 'result', {});
         const closed = this.safeDict (result, 'closed', {});
-        const orders = [];
+        const orders: List = [];
         const orderIds = Object.keys (closed);
         for (let i = 0; i < orderIds.length; i++) {
             const id = orderIds[i];
@@ -3004,7 +3004,7 @@ export default class kraken extends Exchange {
     }
 
     parseTransactionsByType (type, transactions, code: Str = undefined, since: Int = undefined, limit: Int = undefined) {
-        const result = [];
+        const result: List = [];
         for (let i = 0; i < transactions.length; i++) {
             const transaction = this.parseTransaction (this.extend ({
                 'type': type,
