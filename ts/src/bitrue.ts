@@ -6,7 +6,7 @@ import Exchange from './abstract/bitrue.js';
 import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, Dict, Int, List, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int, Bool } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, MarginModification, Market, NullableDict, NullableList, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int, Bool } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -934,7 +934,7 @@ export default class bitrue extends Exchange {
         const id = this.safeString (market, 'symbol');
         const lowercaseId = this.safeStringLower (market, 'symbol');
         const side = this.safeInteger (market, 'side'); // 1 linear, 0 inverse, undefined spot
-        let type = undefined;
+        let type: any = undefined;
         let isLinear: Bool = undefined;
         let isInverse: Bool = undefined;
         if (side === undefined) {
@@ -1121,8 +1121,8 @@ export default class bitrue extends Exchange {
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         let subType: Str = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', undefined, params);
-        let response: Dict = undefined;
-        let result: Dict = undefined;
+        let response: NullableDict = undefined;
+        let result: NullableDict = undefined;
         if (type === 'swap') {
             if (subType !== undefined && subType === 'inverse') {
                 response = await this.dapiV2PrivateGetAccount (params);
@@ -1230,7 +1230,7 @@ export default class bitrue extends Exchange {
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let response: Dict = undefined;
+        let response: any = undefined;
         if (market['swap']) {
             const request: Dict = {
                 'contractName': market['id'],
@@ -1374,8 +1374,8 @@ export default class bitrue extends Exchange {
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let response: Dict = undefined;
-        let data: Dict = undefined;
+        let response: NullableDict = undefined;
+        let data: any = undefined;
         if (market['swap']) {
             const request: Dict = {
                 'contractName': market['id'],
@@ -1454,8 +1454,8 @@ export default class bitrue extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const timeframes = this.safeDict (this.options, 'timeframes', {});
-        let response: Dict = undefined;
-        let data = undefined;
+        let response: NullableDict = undefined;
+        let data: any = undefined;
         if (market['swap']) {
             const timeframesFuture = this.safeDict (timeframes, 'future', {});
             const request: Dict = {
@@ -1582,7 +1582,7 @@ export default class bitrue extends Exchange {
         symbols = this.marketSymbols (symbols, undefined, false);
         const first = this.safeString (symbols, 0);
         const market = this.market (first);
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         if (market['swap']) {
             const request: Dict = {
                 'contractName': market['id'],
@@ -1643,8 +1643,8 @@ export default class bitrue extends Exchange {
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        let response: Dict = undefined;
-        let data: Dict = undefined;
+        let response: NullableDict = undefined;
+        let data: NullableDict = undefined;
         const request: Dict = {};
         let type: Str = undefined;
         if (symbols !== undefined) {
@@ -1781,7 +1781,7 @@ export default class bitrue extends Exchange {
         if (isBuyer !== undefined) {
             side = isBuyer ? 'buy' : 'sell'; // this is a true side
         }
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         if ('commission' in trade) {
             fee = {
                 'cost': this.safeString2 (trade, 'commission', 'fee'),
@@ -1824,7 +1824,7 @@ export default class bitrue extends Exchange {
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let response = undefined;
+        let response: any = undefined;
         if (market['spot']) {
             const request: Dict = {
                 'symbol': market['id'],
@@ -2034,8 +2034,8 @@ export default class bitrue extends Exchange {
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let response: Dict = undefined;
-        let data: Dict = undefined;
+        let response: NullableDict = undefined;
+        let data: any = undefined;
         const uppercaseType = type.toUpperCase ();
         const request: Dict = {
             'side': side.toUpperCase (),
@@ -2160,8 +2160,8 @@ export default class bitrue extends Exchange {
         const market = this.market (symbol);
         const origClientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
         params = this.omit (params, [ 'origClientOrderId', 'clientOrderId' ]);
-        let response: Dict = undefined;
-        let data: Dict = undefined;
+        let response: NullableDict = undefined;
+        let data: any = undefined;
         const request: Dict = {};
         if (origClientOrderId === undefined) {
             request['orderId'] = id;
@@ -2311,8 +2311,8 @@ export default class bitrue extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let response: Dict = undefined;
-        let data = undefined;
+        let response: NullableDict = undefined;
+        let data: any = undefined;
         const request: Dict = {};
         if (market['swap']) {
             request['contractName'] = market['id'];
@@ -2398,8 +2398,8 @@ export default class bitrue extends Exchange {
         const market = this.market (symbol);
         const origClientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
         params = this.omit (params, [ 'origClientOrderId', 'clientOrderId' ]);
-        let response: Dict = undefined;
-        let data: Dict = undefined;
+        let response: NullableDict = undefined;
+        let data: any = undefined;
         const request: Dict = {};
         if (origClientOrderId === undefined) {
             request['orderId'] = id;
@@ -2462,8 +2462,8 @@ export default class bitrue extends Exchange {
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let response: Dict = undefined;
-        let data: List = undefined;
+        let response: NullableDict = undefined;
+        let data: any = undefined;
         if (market['swap']) {
             const request: Dict = {
                 'contractName': market['id'],
@@ -2507,8 +2507,8 @@ export default class bitrue extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
         const market = this.market (symbol);
-        let response: Dict = undefined;
-        let data = undefined;
+        let response: NullableDict = undefined;
+        let data: any = undefined;
         const request: Dict = {};
         if (since !== undefined) {
             request['startTime'] = since;
@@ -2830,7 +2830,7 @@ export default class bitrue extends Exchange {
         }
         const code = this.safeCurrencyCode (currencyId, currency);
         const feeCost = this.safeNumber (transaction, 'fee');
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
@@ -3121,7 +3121,7 @@ export default class bitrue extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         const request: Dict = {
             'contractName': market['id'],
             'leverage': leverage,
@@ -3178,7 +3178,7 @@ export default class bitrue extends Exchange {
         if (!market['swap']) {
             throw new NotSupported (this.id + ' setMargin only support swap markets');
         }
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         const request: Dict = {
             'contractName': market['id'],
             'amount': this.parseToNumeric (amount),
@@ -3301,7 +3301,7 @@ export default class bitrue extends Exchange {
         const success = this.safeBool (response, 'success', true);
         if (!success) {
             const messageInner = this.safeString (response, 'msg');
-            let parsedMessage: Dict = undefined;
+            let parsedMessage: NullableDict = undefined;
             if (messageInner !== undefined) {
                 try {
                     parsedMessage = JSON.parse (messageInner);
