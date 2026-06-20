@@ -1727,7 +1727,7 @@ export default class kucoin extends Exchange {
             promises.push (this.loadMigrationStatus ());
         }
         const responses = await Promise.all (promises);
-        const symbolsData = fetchSpotMarkets ? this.safeList (responses[0], 'data') : [];
+        const symbolsData: List = fetchSpotMarkets ? this.safeList (responses[0], 'data') : [];
         let crossIndex = 0;
         let isolatedIndex = 0;
         let tickersIndex = 0;
@@ -1904,7 +1904,7 @@ export default class kucoin extends Exchange {
         //    }
         //
         const result: List = [];
-        const data = this.safeList (response, 'data', []);
+        const data: List = this.safeList (response, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
             const id = this.safeString (market, 'symbol');
@@ -3048,7 +3048,7 @@ export default class kucoin extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const response = await this.publicGetMarkPriceAllSymbols (params);
-        const data = this.safeList (response, 'data', []);
+        const data: List = this.safeList (response, 'data', []);
         return this.parseTickers (data);
     }
 
@@ -3376,7 +3376,7 @@ export default class kucoin extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: List = this.safeList (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
@@ -3439,7 +3439,7 @@ export default class kucoin extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: List = this.safeList (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
@@ -4672,7 +4672,7 @@ export default class kucoin extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: List = this.safeList (response, 'data', []);
         return this.parseOrders (data);
     }
 
@@ -7325,7 +7325,7 @@ export default class kucoin extends Exchange {
             //         ]
             //     }
             //
-            const data = this.safeList (response, 'data', []);
+            const data: List = this.safeList (response, 'data', []);
             entry = this.safeDict (data, 0);
         } else {
             request['symbol'] = market['id'];
@@ -9527,7 +9527,7 @@ export default class kucoin extends Exchange {
         //      },
         //  ]
         //
-        const data = this.safeList (response, 'data', []);
+        const data: List = this.safeList (response, 'data', []);
         return this.parseDepositWithdrawFees (data, codes, 'currency');
     }
 
@@ -10087,7 +10087,7 @@ export default class kucoin extends Exchange {
             //         ]
             //     }
             //
-            const data = this.safeList (response, 'data', []);
+            const data: List = this.safeList (response, 'data', []);
             position = this.safeDict (data, 0, {});
         } else {
             response = await this.futuresPrivateGetPosition (this.extend (request, params));
@@ -10960,7 +10960,7 @@ export default class kucoin extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: List = this.safeList (response, 'data', []);
         return this.parseMarketLeverageTiers (data, market);
     }
 
@@ -11069,7 +11069,7 @@ export default class kucoin extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: List = this.safeList (response, 'data', []);
         const result = {};
         const tiers = this.parseMarketLeverageTiers (data);
         for (let i = 0; i < tiers.length; i++) {
@@ -11120,7 +11120,7 @@ export default class kucoin extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: List = this.safeList (response, 'data', []);
         return this.parseOpenInterests (data, symbols) as OpenInterests;
     }
 
@@ -11466,7 +11466,7 @@ export default class kucoin extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: List = this.safeList (response, 'data', []);
         return this.parseADLRanks (data, symbols);
     }
 
