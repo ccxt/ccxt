@@ -2326,7 +2326,7 @@ export default class upbit extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
-        let url = this.implodeParams (this.urls['api'][api], {
+        let url = this.implodeParams (this.urls['api']![api], {
             'hostname': this.hostname,
         });
         url += '/' + this.version + '/' + this.implodeParams (path, params);
