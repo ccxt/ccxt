@@ -398,8 +398,8 @@ export default class bitmart extends bitmartRest {
         return await this.subscribeMultiple ('trade', channelName, marketType, symbols, params);
     }
 
-    getParamsForMultipleSub (methodName: string, symbols: string[], limit: Int = undefined, params = {}) {
-        symbols = this.marketSymbols (symbols, undefined, false, true);
+    getParamsForMultipleSub (methodName: string, symbols: string[], limit: Int = undefined, params = {}): [string[], Str, Dict] {
+        symbols = this.marketSymbols (symbols, undefined, false, true) as string[];
         const length = symbols.length;
         if (length > 20) {
             throw new NotSupported (this.id + ' ' + methodName + '() accepts a maximum of 20 symbols in one request');
@@ -551,7 +551,7 @@ export default class bitmart extends bitmartRest {
         }
     }
 
-    parseWsBidAsk (ticker, market = undefined) {
+    parseWsBidAsk (ticker, market: Market = undefined) {
         const marketId = this.safeString (ticker, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = this.safeString (market, 'symbol');
@@ -592,7 +592,7 @@ export default class bitmart extends bitmartRest {
         let type = 'spot';
         [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         await this.authenticate (type, params);
-        let request: Dict = undefined;
+        let request: Dict;
         if (type === 'spot') {
             let argsRequest = 'spot/user/order:';
             if (symbol !== undefined) {
@@ -643,7 +643,7 @@ export default class bitmart extends bitmartRest {
         let type = 'spot';
         [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         await this.authenticate (type, params);
-        let request: Dict = undefined;
+        let request: Dict;
         if (type === 'spot') {
             let argsRequest = 'spot/user/order:';
             if (symbol !== undefined) {
@@ -845,7 +845,7 @@ export default class bitmart extends bitmartRest {
             const cachedOrders = this.orders;
             const orders = this.safeValue (cachedOrders.hashmap, symbol, {});
             const cachedOrder = this.safeValue (orders, orderId);
-            let trades = undefined;
+            let trades: any = undefined;
             if (cachedOrder !== undefined) {
                 trades = this.safeValue (order, 'trades');
             }
@@ -1846,7 +1846,7 @@ export default class bitmart extends bitmartRest {
             const path = 'bitmart.WebSocket';
             const auth = timestamp + '#' + memo + '#' + path;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
-            let request: Dict = undefined;
+            let request: Dict;
             if (type === 'spot') {
                 request = {
                     'op': 'login',
