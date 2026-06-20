@@ -821,7 +821,7 @@ export default class aster extends Exchange {
         //     ]
         //
         //
-        const fapiRowsFiltered = [];
+        const fapiRowsFiltered: List = [];
         for (let i = 0; i < fapiRows.length; i++) {
             const market = fapiRows[i];
             // tmp skip some markets with base = undefined
@@ -1580,7 +1580,7 @@ export default class aster extends Exchange {
         //         ...
         //     ]
         //
-        const results = [];
+        const results: List = [];
         for (let i = 0; i < response.length; i++) {
             const marketId = this.safeString (response[i], 'symbol');
             const safeMarket = this.safeMarket (marketId, undefined, undefined, marketType);
@@ -2517,8 +2517,8 @@ export default class aster extends Exchange {
      */
     async createOrders (orders: OrderRequest[], params = {}) {
         await this.loadMarketsAndSignIn ();
-        const ordersRequests = [];
-        let orderSymbols = [];
+        const ordersRequests: List = [];
+        let orderSymbols: List = [];
         if (orders.length > 5) {
             throw new InvalidOrder (this.id + ' createOrders() order list max 5 orders');
         }
@@ -3590,7 +3590,7 @@ export default class aster extends Exchange {
         //         }
         //     ]
         //
-        const result = [];
+        const result: List = [];
         for (let i = 0; i < response.length; i++) {
             const rawPosition = response[i];
             const entryPriceString = this.safeString (rawPosition, 'entryPrice');
@@ -3647,7 +3647,7 @@ export default class aster extends Exchange {
                 'crossWalletBalance': crossWalletBalance,
             };
         }
-        const result = [];
+        const result: List = [];
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             const marketId = this.safeString (position, 'symbol');
@@ -3895,7 +3895,7 @@ export default class aster extends Exchange {
                 const marketId = this.safeString (entry, 'symbol');
                 const symbol = this.safeSymbol (marketId, undefined, undefined, 'contract');
                 const brackets = this.safeList (entry, 'brackets', []);
-                const result = [];
+                const result: List = [];
                 for (let j = 0; j < brackets.length; j++) {
                     const bracket = brackets[j];
                     const floorValue = this.safeString (bracket, 'notionalFloor');
