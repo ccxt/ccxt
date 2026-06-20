@@ -163,6 +163,7 @@ export default class kalshi extends Exchange {
             },
             'requiredCredentials': {
                 'apiKey': true,   // KALSHI-ACCESS-KEY (UUID)
+                'secret': false,   // not used — signing is RSA with privateKey, override base default
                 'privateKey': true,   // RSA PEM private key for signing
             },
             'fees': {
@@ -1724,7 +1725,8 @@ export default class kalshi extends Exchange {
         const access: string = typeof api === 'string' ? 'public' : api[1];
         const baseUrls = this.urls['api'] as Dict;
         const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['kalshi'] as string);
-        let url = baseUrl + '/' + this.implodeParams (path, params);
+        const implodedPath = this.implodeParams (path, params);
+        let url = baseUrl + '/' + implodedPath;
         const query = this.omit (params, this.extractParams (path));
         const querystring = this.urlencode (query);
         if (method === 'GET' && querystring) {
@@ -1738,8 +1740,11 @@ export default class kalshi extends Exchange {
         if (access === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ().toString ();
-            // Signing payload: {timestamp}{METHOD}/{path_without_base}
-            const pathForSigning = '/' + path;
+            // Signing payload: {timestamp}{METHOD}{path}, where path is the full request path
+            // INCLUDING the /trade-api/v2 prefix and any path params substituted in, but NOT
+            // the query string (e.g. /trade-api/v2/portfolio/orders/{order_id})
+            const versionPrefix = baseUrl.slice (baseUrl.indexOf ('/trade-api'));
+            const pathForSigning = versionPrefix + '/' + implodedPath;
             const payload = timestamp + method + pathForSigning;
             // RSA-PSS SHA-256 signature with the private key PEM
             const keyParts = this.privateKey.split ('\\n');
