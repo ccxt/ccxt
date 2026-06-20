@@ -107,7 +107,7 @@ export default class bitget extends bitgetRest {
     }
 
     getInstType (methodName, market, uta: boolean = false, params = {}) {
-        let instType = undefined;
+        let instType: any = undefined;
         if (market === undefined) {
             [ instType, params ] = this.handleProductTypeAndParams (undefined, params);
         } else if ((market['swap']) || (market['future'])) {
@@ -115,7 +115,7 @@ export default class bitget extends bitgetRest {
         } else {
             instType = 'SPOT';
         }
-        let instypeAux = undefined;
+        let instypeAux: any = undefined;
         [ instypeAux, params ] = this.handleOptionAndParams (params, methodName, 'instType', instType);
         instType = instypeAux;
         if (uta) {
@@ -278,7 +278,7 @@ export default class bitget extends bitgetRest {
         client.resolve (ticker, messageHash);
     }
 
-    parseWsTicker (message, market = undefined) {
+    parseWsTicker (message, market: Market = undefined) {
         //
         // spot
         //
@@ -461,7 +461,7 @@ export default class bitget extends bitgetRest {
         client.resolve (ticker, messageHash);
     }
 
-    parseWsBidAsk (message, market = undefined) {
+    parseWsBidAsk (message, market: Market = undefined) {
         const arg = this.safeValue (message, 'arg', {});
         const data = this.safeValue (message, 'data', []);
         const ticker = this.safeValue (data, 0, {});
@@ -674,7 +674,7 @@ export default class bitget extends bitgetRest {
         client.resolve (stored, messageHash);
     }
 
-    parseWsOHLCV (ohlcv, market = undefined): OHLCV {
+    parseWsOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     [
         //         "1701871620000",  // timestamp
@@ -1128,7 +1128,7 @@ export default class bitget extends bitgetRest {
         client.resolve (stored, messageHash);
     }
 
-    parseWsTrade (trade, market = undefined) {
+    parseWsTrade (trade, market: Market = undefined) {
         //
         //     {
         //         "ts": "1701910980366",
@@ -1424,7 +1424,7 @@ export default class bitget extends bitgetRest {
         client.resolve (newPositions, instType + ':positions');
     }
 
-    parseWsPosition (position, market = undefined) {
+    parseWsPosition (position, market: Market = undefined) {
         //
         //     {
         //         "posId": "926036334386778112",
@@ -1764,7 +1764,7 @@ export default class bitget extends bitgetRest {
         }
     }
 
-    parseWsOrder (order, market = undefined) {
+    parseWsOrder (order, market: Market = undefined) {
         //
         // spot
         //
