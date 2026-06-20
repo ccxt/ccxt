@@ -388,7 +388,6 @@ public partial class bitrue : Exchange
                     { "XML", "Stellar Lumens" },
                     { "XYM", "Symbol" },
                     { "XTZ", "Tezos" },
-                    { "theta", "theta" },
                     { "THETA", "THETA" },
                     { "VECHAIN", "VeChain" },
                     { "WANCHAIN", "Wanchain" },
@@ -539,6 +538,7 @@ public partial class bitrue : Exchange
                     { "You don't have permission.", typeof(PermissionDenied) },
                     { "Market is closed.", typeof(ExchangeNotAvailable) },
                     { "Too many requests. Please try again later.", typeof(DDoSProtection) },
+                    { "quantity less then minQty", typeof(InvalidOrder) },
                     { "-1000", typeof(ExchangeNotAvailable) },
                     { "-1001", typeof(ExchangeNotAvailable) },
                     { "-1002", typeof(AuthenticationError) },
@@ -715,60 +715,59 @@ public partial class bitrue : Exchange
         //         ],
         //     }
         //
-        object result = new Dictionary<string, object>() {};
         object coins = this.safeList(response, "coins", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(coins)); postFixIncrement(ref i))
+        return this.parseCurrencies(coins);
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
+        object id = this.safeString(rawCurrency, "coin");
+        object name = this.safeString(rawCurrency, "coinFulName");
+        object code = this.safeCurrencyCode(id);
+        object networkDetails = this.safeList(rawCurrency, "chainDetail", new List<object>() {});
+        object networks = new Dictionary<string, object>() {};
+        for (object j = 0; isLessThan(j, getArrayLength(networkDetails)); postFixIncrement(ref j))
         {
-            object currency = getValue(coins, i);
-            object id = this.safeString(currency, "coin");
-            object name = this.safeString(currency, "coinFulName");
-            object code = this.safeCurrencyCode(id);
-            object networkDetails = this.safeList(currency, "chainDetail", new List<object>() {});
-            object networks = new Dictionary<string, object>() {};
-            for (object j = 0; isLessThan(j, getArrayLength(networkDetails)); postFixIncrement(ref j))
-            {
-                object entry = getValue(networkDetails, j);
-                object networkId = this.safeString(entry, "chain");
-                object network = this.networkIdToCode(networkId, code);
-                ((IDictionary<string,object>)networks)[(string)network] = new Dictionary<string, object>() {
-                    { "info", entry },
-                    { "id", networkId },
-                    { "network", network },
-                    { "deposit", this.safeBool(entry, "enableDeposit") },
-                    { "withdraw", this.safeBool(entry, "enableWithdraw") },
-                    { "active", null },
-                    { "fee", this.safeNumber(entry, "withdrawFee") },
-                    { "precision", null },
-                    { "limits", new Dictionary<string, object>() {
-                        { "withdraw", new Dictionary<string, object>() {
-                            { "min", this.safeNumber(entry, "minWithdraw") },
-                            { "max", this.safeNumber(entry, "maxWithdraw") },
-                        } },
-                    } },
-                };
-            }
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "id", id },
-                { "name", name },
-                { "code", code },
-                { "precision", null },
-                { "info", currency },
+            object entry = getValue(networkDetails, j);
+            object networkId = this.safeString(entry, "chain");
+            object network = this.networkIdToCode(networkId, code);
+            ((IDictionary<string,object>)networks)[(string)network] = new Dictionary<string, object>() {
+                { "info", entry },
+                { "id", networkId },
+                { "network", network },
+                { "deposit", this.safeBool(entry, "enableDeposit") },
+                { "withdraw", this.safeBool(entry, "enableWithdraw") },
                 { "active", null },
-                { "deposit", null },
-                { "withdraw", null },
-                { "networks", networks },
-                { "fee", null },
-                { "fees", null },
-                { "type", "crypto" },
+                { "fee", this.safeNumber(entry, "withdrawFee") },
+                { "precision", null },
                 { "limits", new Dictionary<string, object>() {
                     { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
+                        { "min", this.safeNumber(entry, "minWithdraw") },
+                        { "max", this.safeNumber(entry, "maxWithdraw") },
                     } },
                 } },
-            });
+            };
         }
-        return result;
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "id", id },
+            { "name", name },
+            { "code", code },
+            { "precision", null },
+            { "info", rawCurrency },
+            { "active", null },
+            { "deposit", null },
+            { "withdraw", null },
+            { "networks", networks },
+            { "fee", null },
+            { "fees", null },
+            { "type", "crypto" },
+            { "limits", new Dictionary<string, object>() {
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+        });
     }
 
     /**
@@ -954,6 +953,7 @@ public partial class bitrue : Exchange
         {
             minCost = this.safeNumber(market, "minOrderMoney");
         }
+        object isSpot = (isEqual(type, "spot"));
         return new Dictionary<string, object>() {
             { "id", id },
             { "lowercaseId", lowercaseId },
@@ -965,7 +965,7 @@ public partial class bitrue : Exchange
             { "quoteId", quoteId },
             { "settleId", settleId },
             { "type", type },
-            { "spot", (isEqual(type, "spot")) },
+            { "spot", isSpot },
             { "margin", false },
             { "swap", isContract },
             { "future", false },
@@ -2936,7 +2936,7 @@ public partial class bitrue : Exchange
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         if (isTrue(!isEqual(networkCode, null)))
         {
-            ((IDictionary<string,object>)request)["chainName"] = this.networkCodeToId(networkCode);
+            ((IDictionary<string,object>)request)["chainName"] = this.networkCodeToId(networkCode, getValue(currency, "code"));
         }
         if (isTrue(!isEqual(tag, null)))
         {

@@ -424,13 +424,11 @@ public partial class aster : ccxt.aster
     public virtual object parseWsTicker(object message, object marketType)
     {
         object eventVar = this.safeString(message, "e");
-        object part = ((string)eventVar).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
-        object channel = this.safeString(part, 1);
         object marketId = this.safeString(message, "s");
         object timestamp = this.safeInteger(message, "E");
         object market = this.safeMarket(marketId, null, null, marketType);
         object last = this.safeString(message, "c");
-        if (isTrue(isEqual(channel, "markPriceUpdate")))
+        if (isTrue(isEqual(eventVar, "markPriceUpdate")))
         {
             return this.safeTicker(new Dictionary<string, object>() {
                 { "symbol", getValue(market, "symbol") },
@@ -1361,7 +1359,13 @@ public partial class aster : ccxt.aster
         }
         try
         {
-            await this.sapiPrivatePutV3ListenKey(); // extend the expiry
+            if (isTrue(isEqual(type, "spot")))
+            {
+                await this.sapiPrivatePutV3ListenKey(); // extend the expiry
+            } else
+            {
+                await this.fapiPrivatePutV3ListenKey(); // extend the expiry
+            }
         } catch(Exception error)
         {
             object url = add(add(getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), type), "/"), listenKey);
@@ -2136,13 +2140,11 @@ public partial class aster : ccxt.aster
         object messageInner = this.safeDict(message, "data", message); // can be either wrapped in 'data' or full object itself
         object eventVar = this.safeString(messageInner, "e");
         object methods = new Dictionary<string, object>() {
-            { "ticker", this.handleTicker },
+            { "24hrTicker", this.handleTicker },
             { "aggTrade", this.handleTrade },
-            { "depth5", this.handleOrderBook },
-            { "depth10", this.handleOrderBook },
-            { "depth20", this.handleOrderBook },
+            { "depthUpdate", this.handleOrderBook },
             { "kline", this.handleOHLCV },
-            { "markPrice", this.handleTicker },
+            { "markPriceUpdate", this.handleTicker },
             { "bookTicker", this.handleBidAsk },
             { "outboundAccountPosition", this.handleBalance },
             { "ACCOUNT_UPDATE", this.handleBalanceAndPosition },

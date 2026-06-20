@@ -380,7 +380,7 @@ public partial class Exchange
         return defaultValue;
     }
 
-    public virtual object safeBool2(object dictionary, object key1, object key2, object defaultValue = null)
+    public virtual object safeBool2(object dictionaryOrList, object key1, object key2, object defaultValue = null)
     {
         /**
          * @ignore
@@ -388,10 +388,20 @@ public partial class Exchange
          * @description safely extract boolean value from dictionary or list
          * @returns {bool | undefined}
          */
-        return this.safeBoolN(dictionary, new List<object>() {key1, key2}, defaultValue);
+        object value = this.safeValue(dictionaryOrList, key1);
+        if (isTrue((value is bool)))
+        {
+            return value;
+        }
+        object value2 = this.safeValue(dictionaryOrList, key2);
+        if (isTrue((value2 is bool)))
+        {
+            return value2;
+        }
+        return defaultValue;
     }
 
-    public virtual object safeBool(object dictionary, object key, object defaultValue = null)
+    public virtual object safeBool(object dictionaryOrList, object key, object defaultValue = null)
     {
         /**
          * @ignore
@@ -399,7 +409,7 @@ public partial class Exchange
          * @description safely extract boolean value from dictionary or list
          * @returns {bool | undefined}
          */
-        object value = this.safeValue(dictionary, key, defaultValue);
+        object value = this.safeValue(dictionaryOrList, key, defaultValue);
         if (isTrue((value is bool)))
         {
             return value;
@@ -427,7 +437,7 @@ public partial class Exchange
         return defaultValue;
     }
 
-    public virtual object safeDict(object dictionary, object key, object defaultValue = null)
+    public virtual object safeDict(object dictionaryOrList, object key, object defaultValue = null)
     {
         /**
          * @ignore
@@ -435,7 +445,7 @@ public partial class Exchange
          * @description safely extract a dictionary from dictionary or list
          * @returns {object | undefined}
          */
-        object value = this.safeValue(dictionary, key, defaultValue);
+        object value = this.safeValue(dictionaryOrList, key, defaultValue);
         if (isTrue(isEqual(value, null)))
         {
             return defaultValue;
@@ -447,7 +457,7 @@ public partial class Exchange
         return defaultValue;
     }
 
-    public virtual object safeDict2(object dictionary, object key1, object key2, object defaultValue = null)
+    public virtual object safeDict2(object dictionaryOrList, object key1, object key2, object defaultValue = null)
     {
         /**
          * @ignore
@@ -455,7 +465,17 @@ public partial class Exchange
          * @description safely extract a dictionary from dictionary or list
          * @returns {object | undefined}
          */
-        return this.safeDictN(dictionary, new List<object>() {key1, key2}, defaultValue);
+        object value = this.safeValue(dictionaryOrList, key1);
+        if (isTrue(this.isDictionary(value)))
+        {
+            return value;
+        }
+        object value2 = this.safeValue(dictionaryOrList, key2);
+        if (isTrue(this.isDictionary(value2)))
+        {
+            return value2;
+        }
+        return defaultValue;
     }
 
     public virtual object safeListN(object dictionaryOrList, object keys, object defaultValue = null)
@@ -491,7 +511,17 @@ public partial class Exchange
          * @description safely extract an Array from dictionary or list
          * @returns {Array | undefined}
          */
-        return this.safeListN(dictionaryOrList, new List<object>() {key1, key2}, defaultValue);
+        object value = this.safeValue(dictionaryOrList, key1);
+        if (isTrue(isTrue((!isEqual(value, null))) && isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
+        {
+            return value;
+        }
+        object value2 = this.safeValue(dictionaryOrList, key2);
+        if (isTrue(isTrue((!isEqual(value2, null))) && isTrue(((value2 is IList<object>) || (value2.GetType().IsGenericType && value2.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
+        {
+            return value2;
+        }
+        return defaultValue;
     }
 
     public virtual object safeList(object dictionaryOrList, object key, object defaultValue = null)
@@ -534,7 +564,7 @@ public partial class Exchange
         countOrIdKey ??= 2;
         for (object i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
         {
-            object bidAsk = this.parseBidAsk(getValue(deltas, i), priceKey, amountKey, countOrIdKey);
+            object bidAsk = this.parseOrderBookBidAsk(getValue(deltas, i), priceKey, amountKey, countOrIdKey);
             (bookSide as ccxt.pro.IOrderBookSide).storeArray(bidAsk);
         }
     }
@@ -1188,6 +1218,10 @@ public partial class Exchange
         for (object i = 0; isLessThan(i, getArrayLength(arr)); postFixIncrement(ref i))
         {
             object parsed = this.parseCurrency(getValue(arr, i));
+            if (isTrue(isEqual(parsed, null)))
+            {
+                continue;
+            }
             object code = getValue(parsed, "code");
             ((IDictionary<string,object>)result)[(string)code] = parsed;
         }
@@ -1620,7 +1654,7 @@ public partial class Exchange
             {
                 if (isTrue(isEqual(marketType, "spot")))
                 {
-                    ((IDictionary<string,object>)this.features)[(string)marketType] = this.featuresMapper(initialFeatures, marketType, null);
+                    ((IDictionary<string,object>)this.features)[(string)marketType] = this.featuresMapper(initialFeatures, marketType);
                 } else
                 {
                     ((IDictionary<string,object>)this.features)[(string)marketType] = new Dictionary<string, object>() {};
@@ -1824,16 +1858,24 @@ public partial class Exchange
         return new Dictionary<string, object>() {
             { "defaultNetworkCodeReplacements", new Dictionary<string, object>() {
                 { "ETH", new Dictionary<string, object>() {
-                    { "ERC20", "ETH" },
-                } },
-                { "TRX", new Dictionary<string, object>() {
-                    { "TRC20", "TRX" },
+                    { "primary", "ETH" },
+                    { "secondary", "ERC20" },
+                    { "default", "secondary" },
                 } },
                 { "CRO", new Dictionary<string, object>() {
-                    { "CRC20", "CRONOS" },
+                    { "primary", "CRONOS" },
+                    { "secondary", "CRC20" },
+                    { "default", "secondary" },
                 } },
-                { "BRC20", new Dictionary<string, object>() {
-                    { "BRC20", "BTC" },
+                { "TRX", new Dictionary<string, object>() {
+                    { "primary", "TRX" },
+                    { "secondary", "TRC20" },
+                    { "default", "secondary" },
+                } },
+                { "BTC", new Dictionary<string, object>() {
+                    { "primary", "BTC" },
+                    { "secondary", "BRC20" },
+                    { "default", "primary" },
                 } },
             } },
         };
@@ -1919,24 +1961,6 @@ public partial class Exchange
                 if (isTrue(isTrue(isEqual(currencyWithdraw, null)) || isTrue(withdraw)))
                 {
                     ((IDictionary<string,object>)currency)["withdraw"] = withdraw;
-                }
-                // set network 'active' to false if D or W is disabled
-                object active = this.safeBool(network, "active");
-                if (isTrue(isEqual(active, null)))
-                {
-                    if (isTrue(isTrue(deposit) && isTrue(withdraw)))
-                    {
-                        ((IDictionary<string,object>)getValue(getValue(currency, "networks"), key))["active"] = true;
-                    } else if (isTrue(isTrue(!isEqual(deposit, null)) && isTrue(!isEqual(withdraw, null))))
-                    {
-                        ((IDictionary<string,object>)getValue(getValue(currency, "networks"), key))["active"] = false;
-                    }
-                }
-                active = this.safeBool(getValue(getValue(currency, "networks"), key), "active"); // dict might have been updated on above lines, so access directly instead of `network` variable
-                object currencyActive = this.safeBool(currency, "active");
-                if (isTrue(isTrue(isEqual(currencyActive, null)) || isTrue(active)))
-                {
-                    ((IDictionary<string,object>)currency)["active"] = active;
                 }
                 // find lowest fee (which is more desired)
                 object fee = this.safeString(network, "fee");
@@ -2939,6 +2963,25 @@ public partial class Exchange
         return getValue(arr, subtract(length, 1));
     }
 
+    public virtual object addKeyInArrayItems(object obj, object keyName)
+    {
+        object result = new List<object>() {};
+        object keys = new List<object>(((IDictionary<string,object>)obj).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        {
+            object key = getValue(keys, i);
+            object item = getValue(obj, key);
+            if (isTrue(isEqual(item, null)))
+            {
+                continue;
+            }
+            object itemWithKey = this.extend(new Dictionary<string, object>() {}, item);
+            ((IDictionary<string,object>)itemWithKey)[(string)keyName] = key;
+            ((IList<object>)result).Add(itemWithKey);
+        }
+        return result;
+    }
+
     public virtual object invertFlatStringDictionary(object dict)
     {
         object reversed = new Dictionary<string, object>() {};
@@ -3497,7 +3540,7 @@ public partial class Exchange
         return result;
     }
 
-    public virtual object parseBidsAsks(object bidasks, object priceKey = null, object amountKey = null, object countOrIdKey = null)
+    public virtual object parseOrderBookBidsAsks(object bidasks, object priceKey = null, object amountKey = null, object countOrIdKey = null)
     {
         priceKey ??= 0;
         amountKey ??= 1;
@@ -3506,7 +3549,7 @@ public partial class Exchange
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(bidasks)); postFixIncrement(ref i))
         {
-            ((IList<object>)result).Add(this.parseBidAsk(getValue(bidasks, i), priceKey, amountKey, countOrIdKey));
+            ((IList<object>)result).Add(this.parseOrderBookBidAsk(getValue(bidasks, i), priceKey, amountKey, countOrIdKey));
         }
         return result;
     }
@@ -3548,6 +3591,95 @@ public partial class Exchange
         return ohlcv;
     }
 
+    public virtual object safeNetwork(object network)
+    {
+        object withdrawEnabled = this.safeBool(network, "withdraw");
+        object depositEnabled = this.safeBool(network, "deposit");
+        object limits = this.safeDict(network, "limits");
+        object withdraw = this.safeDict(limits, "withdraw");
+        object deposit = this.safeDict(limits, "deposit");
+        object isEnabled = (isTrue(withdrawEnabled) && isTrue(depositEnabled));
+        return new Dictionary<string, object>() {
+            { "info", getValue(network, "info") },
+            { "id", this.safeString(network, "id") },
+            { "name", this.safeString(network, "name") },
+            { "network", this.safeString(network, "network") },
+            { "active", this.safeBool(network, "active", isEnabled) },
+            { "deposit", depositEnabled },
+            { "withdraw", withdrawEnabled },
+            { "fee", this.safeNumber(network, "fee") },
+            { "precision", this.safeNumber(network, "precision") },
+            { "limits", new Dictionary<string, object>() {
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", this.safeNumber(withdraw, "min") },
+                    { "max", this.safeNumber(withdraw, "max") },
+                } },
+                { "deposit", new Dictionary<string, object>() {
+                    { "min", this.safeNumber(deposit, "min") },
+                    { "max", this.safeNumber(deposit, "max") },
+                } },
+            } },
+        };
+    }
+
+    public virtual object prioritizedNetworkAliases(object networkCode = null, object currencyCode = null, object allowDefault = null)
+    {
+        /**
+        * @method
+        * @name Exchange#prioritizedNetworkAliases
+        * @description returns the chain pair [preferred, alternative] for the given networkCode & currency, e.g:
+        *   ---------------------------------
+        *   | input          | output       |
+        *   --------------------------------|
+        *   | ETH & USDC     | ERC20, ETH   |
+        *   | ERC20 & USDC   | ERC20, ETH   |
+        *   | ETH & ETH      | ETH, ERC20   |
+        *   | ERC20 & ETH    | ETH, ERC20   |
+        *   | ERC20          | ERC20, ETH   |
+        *   | ETH            | ERC20, ETH   |
+        *   ---------------------------------
+        * @param {string} networkCode unified network-code
+        * @param {string} currencyCode unified currency-code
+        * @param {boolean} allowDefault when currencyCode is undefined, order by replacement's "default" instead of by user input
+        * @returns {string[]} [preferredChain, alternativeChain]
+        */
+        allowDefault ??= false;
+        if (isTrue(isEqual(networkCode, null)))
+        {
+            return null;
+        }
+        object replacements = this.safeDict(this.options, "defaultNetworkCodeReplacements", new Dictionary<string, object>() {});
+        object keys = new List<object>(((IDictionary<string,object>)replacements).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        {
+            object baseCoin = getValue(keys, i);
+            object entry = getValue(replacements, baseCoin);
+            object primary = getValue(entry, "primary");
+            object secondary = getValue(entry, "secondary");
+            if (isTrue(isTrue(!isEqual(networkCode, primary)) && isTrue(!isEqual(networkCode, secondary))))
+            {
+                continue;
+            }
+            // pick which form goes first in the returned pair
+            object preferPrimary = false;
+            if (isTrue(isEqual(currencyCode, baseCoin)))
+            {
+                preferPrimary = true; // mainnet currency uses primary chain
+            } else if (isTrue(!isEqual(currencyCode, null)))
+            {
+                preferPrimary = false; // any other (token) currency uses secondary chain
+            } else if (isTrue(allowDefault))
+            {
+                preferPrimary = (isEqual(getValue(entry, "default"), "primary"));
+            } else
+            {
+                preferPrimary = (isEqual(networkCode, primary)); // keep user input first
+            }
+            return ((bool) isTrue((preferPrimary))) ? new List<object>() {primary, secondary} : new List<object>() {secondary, primary};
+        }
+        return new List<object>() {networkCode, networkCode};
+    }
+
     public virtual object networkCodeToId(object networkCode, object currencyCode = null)
     {
         /**
@@ -3563,61 +3695,34 @@ public partial class Exchange
         {
             return null;
         }
-        object networkIdsByCodes = this.safeValue(this.options, "networks", new Dictionary<string, object>() {});
-        object networkId = this.safeString(networkIdsByCodes, networkCode);
-        // for example, if 'ETH' is passed for networkCode, but 'ETH' key not defined in `options->networks` object
-        if (isTrue(isEqual(networkId, null)))
+        object networkIdsByCodes = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
+        // try the preferred form first, fall back to its alternative (e.g. when only 'ETH' or only 'ERC20' is defined)
+        var preferredChainalternativeChainVariable = this.prioritizedNetworkAliases(networkCode, currencyCode, false);
+        var preferredChain = ((IList<object>) preferredChainalternativeChainVariable)[0];
+        var alternativeChain = ((IList<object>) preferredChainalternativeChainVariable)[1];
+        object networkId = this.safeString2(networkIdsByCodes, preferredChain, alternativeChain);
+        if (isTrue(!isEqual(networkId, null)))
         {
-            if (isTrue(isEqual(currencyCode, null)))
+            return networkId;
+        }
+        // fall back to scanning loaded currencies
+        object currenciesToCheck = new List<object>() {};
+        if (isTrue(isEqual(currencyCode, null)))
+        {
+            currenciesToCheck = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
+        } else
+        {
+            currenciesToCheck = new List<object> {this.safeDict(this.currencies, currencyCode)};
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(currenciesToCheck)); postFixIncrement(ref i))
+        {
+            object networks = this.safeDict(getValue(currenciesToCheck, i), "networks", new Dictionary<string, object>() {});
+            if (isTrue(inOp(networks, networkCode)))
             {
-                object currencies = new List<object>(((IDictionary<string,object>)this.currencies).Values);
-                for (object i = 0; isLessThan(i, getArrayLength(currencies)); postFixIncrement(ref i))
-                {
-                    object currency = getValue(currencies, i);
-                    object networks = this.safeDict(currency, "networks");
-                    object network = this.safeDict(networks, networkCode);
-                    networkId = this.safeString(network, "id");
-                    if (isTrue(!isEqual(networkId, null)))
-                    {
-                        break;
-                    }
-                }
-            } else
-            {
-                // if currencyCode was provided, then we try to find if that currencyCode has a replacement (i.e. ERC20 for ETH) or is in the currency
-                object defaultNetworkCodeReplacements = this.safeValue(this.options, "defaultNetworkCodeReplacements", new Dictionary<string, object>() {});
-                if (isTrue(inOp(defaultNetworkCodeReplacements, currencyCode)))
-                {
-                    // if there is a replacement for the passed networkCode, then we use it to find network-id in `options->networks` object
-                    object replacementObject = getValue(defaultNetworkCodeReplacements, currencyCode); // i.e. { 'ERC20': 'ETH' }
-                    object keys = new List<object>(((IDictionary<string,object>)replacementObject).Keys);
-                    for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
-                    {
-                        object key = getValue(keys, i);
-                        object value = getValue(replacementObject, key);
-                        // if value matches to provided unified networkCode, then we use it's key to find network-id in `options->networks` object
-                        if (isTrue(isEqual(value, networkCode)))
-                        {
-                            networkId = this.safeString(networkIdsByCodes, key);
-                            break;
-                        }
-                    }
-                } else
-                {
-                    // serach for network inside currency
-                    object currency = this.safeDict(this.currencies, currencyCode);
-                    object networks = this.safeDict(currency, "networks");
-                    object network = this.safeDict(networks, networkCode);
-                    networkId = this.safeString(network, "id");
-                }
-            }
-            // if it wasn't found, we just set the provided value to network-id
-            if (isTrue(isEqual(networkId, null)))
-            {
-                networkId = networkCode;
+                return this.safeString(getValue(networks, networkCode), "id");
             }
         }
-        return networkId;
+        return networkCode;
     }
 
     public virtual object networkIdToCode(object networkId = null, object currencyCode = null)
@@ -3637,17 +3742,20 @@ public partial class Exchange
         }
         object networkCodesByIds = this.safeDict(this.options, "networksById", new Dictionary<string, object>() {});
         object networkCode = this.safeString(networkCodesByIds, networkId, networkId);
-        // replace mainnet network-codes (i.e. ERC20->ETH)
-        if (isTrue(!isEqual(currencyCode, null)))
+        var preferredChainalternativeChainVariable = this.prioritizedNetworkAliases(networkCode, currencyCode, true);
+        var preferredChain = ((IList<object>) preferredChainalternativeChainVariable)[0];
+        var alternativeChain = ((IList<object>) preferredChainalternativeChainVariable)[1];
+        // when the exchange explicitly defines both forms in options.networks (e.g. BTC + BRC20),
+        // it disambiguates them — trust the direct id→code inversion instead of guessing
+        if (isTrue(isEqual(currencyCode, null)))
         {
-            object defaultNetworkCodeReplacements = this.safeDict(this.options, "defaultNetworkCodeReplacements", new Dictionary<string, object>() {});
-            if (isTrue(inOp(defaultNetworkCodeReplacements, currencyCode)))
+            object networkIdsByCodes = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
+            if (isTrue(isTrue((inOp(networkIdsByCodes, preferredChain))) && isTrue((inOp(networkIdsByCodes, alternativeChain)))))
             {
-                object replacementObject = this.safeDict(defaultNetworkCodeReplacements, currencyCode, new Dictionary<string, object>() {});
-                networkCode = this.safeString(replacementObject, networkCode, networkCode);
+                return networkCode;
             }
         }
-        return networkCode;
+        return preferredChain;
     }
 
     public virtual object handleNetworkCodeAndParams(object parameters)
@@ -3748,8 +3856,8 @@ public partial class Exchange
         priceKey ??= 0;
         amountKey ??= 1;
         countOrIdKey ??= 2;
-        object bids = this.parseBidsAsks(this.safeValue(orderbook, bidsKey, new List<object>() {}), priceKey, amountKey, countOrIdKey);
-        object asks = this.parseBidsAsks(this.safeValue(orderbook, asksKey, new List<object>() {}), priceKey, amountKey, countOrIdKey);
+        object bids = this.parseOrderBookBidsAsks(this.safeValue(orderbook, bidsKey, new List<object>() {}), priceKey, amountKey, countOrIdKey);
+        object asks = this.parseOrderBookBidsAsks(this.safeValue(orderbook, asksKey, new List<object>() {}), priceKey, amountKey, countOrIdKey);
         return ((object)new Dictionary<string, object>() {
             { "symbol", symbol },
             { "bids", this.sortBy(bids, 0, true) },
@@ -3848,7 +3956,7 @@ public partial class Exchange
         object percentage = this.safeValue(position, "percentage");
         if (isTrue(isTrue(isTrue((isEqual(percentage, null))) && isTrue((!isEqual(unrealizedPnlString, null)))) && isTrue((!isEqual(initialMarginString, null)))))
         {
-            // as it was done in all implementations ( aax, btcex, bybit, deribit, ftx, gate, kucoinfutures, phemex )
+            // as it was done in all implementations ( aax, btcex, bybit, deribit, gate, kucoinfutures, phemex )
             object percentageString = Precise.stringMul(Precise.stringDiv(unrealizedPnlString, initialMarginString, 4), "100");
             ((IDictionary<string,object>)position)["percentage"] = this.parseNumber(percentageString);
         }
@@ -3876,7 +3984,7 @@ public partial class Exchange
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
-            object position = this.extend(this.parsePosition(getValue(positions, i), null), parameters);
+            object position = this.extend(this.parsePosition(getValue(positions, i)), parameters);
             ((IList<object>)result).Add(position);
         }
         return this.filterByArrayPositions(result, "symbol", symbols, false);
@@ -3895,7 +4003,7 @@ public partial class Exchange
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(ranks)); postFixIncrement(ref i))
         {
-            object rank = this.extend(this.parseADLRank(getValue(ranks, i), null), parameters);
+            object rank = this.extend(this.parseADLRank(getValue(ranks, i)), parameters);
             ((IList<object>)result).Add(rank);
         }
         return this.filterByArrayPositions(result, "symbol", symbols, false);
@@ -4258,15 +4366,15 @@ public partial class Exchange
         var retryDelayparametersVariable = this.handleOptionAndParams(parameters, path, "maxRetriesOnFailureDelay", 0);
         retryDelay = ((IList<object>)retryDelayparametersVariable)[0];
         parameters = ((IList<object>)retryDelayparametersVariable)[1];
-        this.lastRestRequestTimestamp = this.milliseconds();
-        object request = this.sign(path, api, method, parameters, headers, body);
-        this.last_request_headers = getValue(request, "headers");
-        this.last_request_body = getValue(request, "body");
-        this.last_request_url = getValue(request, "url");
         for (object i = 0; isLessThan(i, add(retries, 1)); postFixIncrement(ref i))
         {
             try
             {
+                this.lastRestRequestTimestamp = this.milliseconds();
+                object request = this.sign(path, api, method, parameters, headers, body);
+                this.last_request_headers = getValue(request, "headers");
+                this.last_request_body = getValue(request, "body");
+                this.last_request_url = getValue(request, "url");
                 return await this.fetch(getValue(request, "url"), getValue(request, "method"), getValue(request, "headers"), getValue(request, "body"));
             } catch(Exception e)
             {
@@ -4516,7 +4624,7 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " fetchLedgerEntry() is not supported yet")) ;
     }
 
-    public virtual object parseBidAsk(object bidask, object priceKey = null, object amountKey = null, object countOrIdKey = null)
+    public virtual object parseOrderBookBidAsk(object bidask, object priceKey = null, object amountKey = null, object countOrIdKey = null)
     {
         priceKey ??= 0;
         amountKey ??= 1;

@@ -4,4 +4,4 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-export { Unpromise } from "./unpromise";
+export { Unpromise } from "./unpromise.js";

@@ -1169,65 +1169,64 @@ class hashkey extends Exchange {
         //         )
         //     }
         //
-        $result = array();
-        for ($i = 0; $i < count($coins); $i++) {
-            $currecy = $coins[$i];
-            $currencyId = $this->safe_string($currecy, 'coinId');
-            $code = $this->safe_currency_code($currencyId);
-            $networks = $this->safe_list($currecy, 'chainTypes');
-            $parsedNetworks = array();
-            for ($j = 0; $j < count($networks); $j++) {
-                $network = $networks[$j];
-                $networkId = $this->safe_string($network, 'chainType');
-                $networkCode = $this->network_code_to_id($networkId);
-                $parsedNetworks[$networkCode] = array(
-                    'id' => $networkId,
-                    'network' => $networkCode,
-                    'limits' => array(
-                        'withdraw' => array(
-                            'min' => $this->safe_number($network, 'minWithdrawQuantity'),
-                            'max' => $this->parse_number($this->omit_zero($this->safe_string($network, 'maxWithdrawQuantity'))),
-                        ),
-                        'deposit' => array(
-                            'min' => $this->safe_number($network, 'minDepositQuantity'),
-                            'max' => null,
-                        ),
-                    ),
-                    'active' => null,
-                    'deposit' => $this->safe_bool($network, 'allowDeposit'),
-                    'withdraw' => $this->safe_bool($network, 'allowWithdraw'),
-                    'fee' => $this->safe_number($network, 'withdrawFee'),
-                    'precision' => null,
-                    'info' => $network,
-                );
-            }
-            $rawType = $this->safe_string($currecy, 'tokenType');
-            $type = ($rawType === 'REAL_MONEY') ? 'fiat' : 'crypto';
-            $result[$code] = $this->safe_currency_structure(array(
-                'id' => $currencyId,
-                'code' => $code,
-                'precision' => null,
-                'type' => $type,
-                'name' => $this->safe_string($currecy, 'coinFullName'),
-                'active' => null,
-                'deposit' => $this->safe_bool($currecy, 'allowDeposit'),
-                'withdraw' => $this->safe_bool($currecy, 'allowWithdraw'),
-                'fee' => null,
+        return $this->parse_currencies($coins);
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $currencyId = $this->safe_string($rawCurrency, 'coinId');
+        $code = $this->safe_currency_code($currencyId);
+        $networks = $this->safe_list($rawCurrency, 'chainTypes');
+        $parsedNetworks = array();
+        for ($j = 0; $j < count($networks); $j++) {
+            $network = $networks[$j];
+            $networkId = $this->safe_string($network, 'chainType');
+            $networkCode = $this->network_code_to_id($networkId, $code);
+            $parsedNetworks[$networkCode] = array(
+                'id' => $networkId,
+                'network' => $networkCode,
                 'limits' => array(
-                    'deposit' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
                     'withdraw' => array(
-                        'min' => null,
+                        'min' => $this->safe_number($network, 'minWithdrawQuantity'),
+                        'max' => $this->parse_number($this->omit_zero($this->safe_string($network, 'maxWithdrawQuantity'))),
+                    ),
+                    'deposit' => array(
+                        'min' => $this->safe_number($network, 'minDepositQuantity'),
                         'max' => null,
                     ),
                 ),
-                'networks' => $parsedNetworks,
-                'info' => $currecy,
-            ));
+                'active' => null,
+                'deposit' => $this->safe_bool($network, 'allowDeposit'),
+                'withdraw' => $this->safe_bool($network, 'allowWithdraw'),
+                'fee' => $this->safe_number($network, 'withdrawFee'),
+                'precision' => null,
+                'info' => $network,
+            );
         }
-        return $result;
+        $rawType = $this->safe_string($rawCurrency, 'tokenType');
+        $type = ($rawType === 'REAL_MONEY') ? 'fiat' : 'crypto';
+        return $this->safe_currency_structure(array(
+            'id' => $currencyId,
+            'code' => $code,
+            'precision' => null,
+            'type' => $type,
+            'name' => $this->safe_string($rawCurrency, 'coinFullName'),
+            'active' => null,
+            'deposit' => $this->safe_bool($rawCurrency, 'allowDeposit'),
+            'withdraw' => $this->safe_bool($rawCurrency, 'allowWithdraw'),
+            'fee' => null,
+            'limits' => array(
+                'deposit' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'networks' => $parsedNetworks,
+            'info' => $rawCurrency,
+        ));
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
@@ -2067,7 +2066,7 @@ class hashkey extends Exchange {
         $networkCode = null;
         list($networkCode, $params) = $this->handle_network_code_and_params($params);
         if ($networkCode !== null) {
-            $request['chainType'] = $this->network_code_to_id($networkCode);
+            $request['chainType'] = $this->network_code_to_id($networkCode, $currency['code']);
         }
         $response = $this->privatePostApiV1AccountWithdraw ($this->extend($request, $params));
         //
@@ -3063,7 +3062,7 @@ class hashkey extends Exchange {
         list($marketType, $params) = $this->handle_market_type_and_params($methodName, $market, $params, $marketType);
         $response = null;
         if ($marketType === 'spot') {
-            $response = $this->privateDeleteApiV1SpotCancelOrderByIds ($this->extend($request));
+            $response = $this->privateDeleteApiV1SpotCancelOrderByIds ($request);
             //
             //     {
             //         "code" => "0000",
@@ -3071,7 +3070,7 @@ class hashkey extends Exchange {
             //     }
             //
         } elseif ($marketType === 'swap') {
-            $response = $this->privateDeleteApiV1FuturesCancelOrderByIds ($this->extend($request));
+            $response = $this->privateDeleteApiV1FuturesCancelOrderByIds ($request);
         } else {
             throw new NotSupported($this->id . ' ' . $methodName . '() is not supported for ' . $marketType . ' type of markets');
         }
@@ -4361,8 +4360,8 @@ class hashkey extends Exchange {
             return null;
         }
         $errorInArray = false;
-        $responseCodeString = $this->safe_string($response, 'code', null);
-        $responseCodeInteger = $this->safe_integer($response, 'code', null); // some codes in $response are returned as '0000' others
+        $responseCodeString = $this->safe_string($response, 'code');
+        $responseCodeInteger = $this->safe_integer($response, 'code'); // some codes in $response are returned as '0000' others
         if ($responseCodeInteger === 0) {
             $result = $this->safe_list($response, 'result', array()); // for batch methods
             for ($i = 0; $i < count($result); $i++) {

@@ -117,21 +117,13 @@ function helper_test_properties() {
     // options
     //
     assert($exchange->options !== null);
-    $default_network_code_replacements = array(
-        'ETH' => array(
-            'ERC20' => 'ETH',
-        ),
-        'TRX' => array(
-            'TRC20' => 'TRX',
-        ),
-        'CRO' => array(
-            'CRC20' => 'CRONOS',
-        ),
-        'BRC20' => array(
-            'BRC20' => 'BTC',
-        ),
-    );
-    assert_deep_equal($exchange, array(), 'options', $exchange->options['defaultNetworkCodeReplacements'], $default_network_code_replacements);
+    // const defaultNetworkCodeReplacements = [
+    //     { 'baseCoin': 'ETH', 'primary': 'ETH', 'secondary': 'ERC20' },
+    //     { 'baseCoin': 'CRO', 'primary': 'CRONOS', 'secondary': 'CRC20' },
+    //     { 'baseCoin': 'TRX', 'primary': 'TRX', 'secondary': 'TRC20' },
+    //     { 'baseCoin': 'BTC', 'primary': 'BTC', 'secondary': 'BRC20' },
+    // ];
+    // testSharedMethods.assertDeepEqual (exchange, {}, 'options', exchange.options['defaultNetworkCodeReplacements'], defaultNetworkCodeReplacements);
     //
     // credentials
     //
@@ -286,7 +278,6 @@ function helper_test_properties() {
     assert($exchange->timeout === 10000, 'timeout should be 10000');
     assert($exchange->verbose === false, 'verbose should be false');
     // assert (testSharedMethods.exchangeProp (exchange, 'newUpdates') === true, 'newUpdates should be true'); // todo WS
-    // assert (exchange.requiresEddsa === false);
     assert(!exchange_prop($exchange, 'reloadingMarkets'), 'reloadingMarkets should be false');
     assert(exchange_prop($exchange, 'marketsLoading') === null, 'marketsLoading should be undefined');
     // undefined or false

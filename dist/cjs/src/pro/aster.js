@@ -65,16 +65,16 @@ class aster extends aster$1["default"] {
                     'swap': 0,
                 },
                 'listenKeyRefreshRate': {
-                    'spot': 3600000,
+                    'spot': 3600000, // 60 minutes
                     'swap': 3600000,
                 },
                 'watchBalance': {
-                    'fetchBalanceSnapshot': false,
+                    'fetchBalanceSnapshot': false, // or true
                     'awaitBalanceSnapshot': true, // whether to wait for the balance snapshot before providing updates
                 },
-                'wallet': 'wb',
+                'wallet': 'wb', // wb = wallet balance, cw = cross balance
                 'watchPositions': {
-                    'fetchPositionsSnapshot': true,
+                    'fetchPositionsSnapshot': true, // or false
                     'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
                 },
             },
@@ -377,13 +377,11 @@ class aster extends aster$1["default"] {
     }
     parseWsTicker(message, marketType) {
         const event = this.safeString(message, 'e');
-        const part = event.split('@');
-        const channel = this.safeString(part, 1);
         const marketId = this.safeString(message, 's');
         const timestamp = this.safeInteger(message, 'E');
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         const last = this.safeString(message, 'c');
-        if (channel === 'markPriceUpdate') {
+        if (event === 'markPriceUpdate') {
             return this.safeTicker({
                 'symbol': market['symbol'],
                 'timestamp': timestamp,
@@ -1203,7 +1201,12 @@ class aster extends aster$1["default"] {
             return;
         }
         try {
-            await this.sapiPrivatePutV3ListenKey(); // extend the expiry
+            if (type === 'spot') {
+                await this.sapiPrivatePutV3ListenKey(); // extend the expiry
+            }
+            else {
+                await this.fapiPrivatePutV3ListenKey(); // extend the expiry
+            }
         }
         catch (error) {
             const url = this.urls['api']['ws']['private'][type] + '/' + listenKey;
@@ -1880,13 +1883,11 @@ class aster extends aster$1["default"] {
         const messageInner = this.safeDict(message, 'data', message); // can be either wrapped in 'data' or full object itself
         const event = this.safeString(messageInner, 'e');
         const methods = {
-            'ticker': this.handleTicker,
+            '24hrTicker': this.handleTicker,
             'aggTrade': this.handleTrade,
-            'depth5': this.handleOrderBook,
-            'depth10': this.handleOrderBook,
-            'depth20': this.handleOrderBook,
+            'depthUpdate': this.handleOrderBook,
             'kline': this.handleOHLCV,
-            'markPrice': this.handleTicker,
+            'markPriceUpdate': this.handleTicker,
             'bookTicker': this.handleBidAsk,
             'outboundAccountPosition': this.handleBalance,
             'ACCOUNT_UPDATE': this.handleBalanceAndPosition,

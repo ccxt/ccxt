@@ -329,38 +329,19 @@ class luno(Exchange, ImplicitAPI):
         #     }
         #
         currenciesData = self.safe_list(response, 'data', [])
-        result: dict = {}
-        for i in range(0, len(currenciesData)):
-            networkEntry = currenciesData[i]
-            id = self.safe_string(networkEntry, 'native_currency')
-            code = self.safe_currency_code(id)
-            if not (code in result):
-                result[code] = {
-                    'id': id,
-                    'code': code,
-                    'precision': None,
-                    'type': None,
-                    'name': None,
-                    'active': None,
-                    'deposit': None,
-                    'withdraw': None,
-                    'fee': None,
-                    'limits': {
-                        'withdraw': {
-                            'min': None,
-                            'max': None,
-                        },
-                        'deposit': {
-                            'min': None,
-                            'max': None,
-                        },
-                    },
-                    'networks': {},
-                    'info': {},
-                }
+        grouped = self.group_by(currenciesData, 'native_currency')
+        values = list(grouped.values())
+        return self.parse_currencies(values)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        id = self.safe_string(rawCurrency[0], 'native_currency')  # first item is guaranteed
+        code = self.safe_currency_code(id)
+        networks = {}
+        for i in range(0, len(rawCurrency)):
+            networkEntry = rawCurrency[i]
             networkId = self.safe_string(networkEntry, 'name')
-            networkCode = self.network_id_to_code(networkId)
-            result[code]['networks'][networkCode] = {
+            networkCode = self.network_id_to_code(networkId, code)
+            networks[networkCode] = {
                 'id': networkId,
                 'network': networkCode,
                 'limits': {
@@ -380,16 +361,29 @@ class luno(Exchange, ImplicitAPI):
                 'precision': None,
                 'info': networkEntry,
             }
-            # add entry in info
-            info = self.safe_list(result[code], 'info', [])
-            info.append(networkEntry)
-            result[code]['info'] = info
-        # only after all entries are formed in currencies, restructure each entry
-        allKeys = list(result.keys())
-        for i in range(0, len(allKeys)):
-            code = allKeys[i]
-            result[code] = self.safe_currency_structure(result[code])  # self is needed after adding network entry
-        return result
+        return self.safe_currency_structure({
+            'id': id,
+            'code': code,
+            'precision': None,
+            'type': None,
+            'name': None,
+            'active': None,
+            'deposit': None,
+            'withdraw': None,
+            'fee': None,
+            'limits': {
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+                'deposit': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'networks': networks,
+            'info': rawCurrency,
+        })
 
     def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -572,7 +566,7 @@ class luno(Exchange, ImplicitAPI):
         request: dict = {
             'pair': market['id'],
         }
-        response = None
+        response: dict = None
         if limit is not None and limit <= 100:
             response = self.publicGetOrderbookTop(self.extend(request, params))
         else:
@@ -608,7 +602,7 @@ class luno(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(order, 'creation_timestamp')
         status = self.parse_order_status(self.safe_string(order, 'state'))
         status = status if (status == 'open') else status
-        side = None
+        side: Str = None
         orderType = self.safe_string(order, 'type')
         if (orderType == 'ASK') or (orderType == 'SELL'):
             side = 'sell'
@@ -622,7 +616,7 @@ class luno(Exchange, ImplicitAPI):
         baseFee = self.safe_number(order, 'fee_base')
         filled = self.safe_string(order, 'base')
         cost = self.safe_string(order, 'counter')
-        fee = None
+        fee: dict = None
         if quoteFee is not None:
             fee = {
                 'cost': quoteFee,
@@ -679,7 +673,7 @@ class luno(Exchange, ImplicitAPI):
     def fetch_orders_by_state(self, state: Str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         self.load_markets()
         request: dict = {}
-        market = None
+        market: Market = None
         if state is not None:
             request['state'] = state
         if symbol is not None:
@@ -854,8 +848,8 @@ class luno(Exchange, ImplicitAPI):
         # Private trade data includes ID field which public trade data does not.
         orderId = self.safe_string(trade, 'order_id')
         id = self.safe_string(trade, 'sequence')
-        takerOrMaker = None
-        side = None
+        takerOrMaker: Str = None
+        side: Str = None
         if orderId is not None:
             type = self.safe_string(trade, 'type')
             if (type == 'ASK') or (type == 'SELL'):
@@ -1101,7 +1095,7 @@ class luno(Exchange, ImplicitAPI):
         request: dict = {
             'pair': market['id'],
         }
-        response = None
+        response: dict = None
         if type == 'market':
             request['type'] = side.upper()
             # todo add createMarketBuyOrderRequires price logic is implemented in the other exchanges
@@ -1172,7 +1166,7 @@ class luno(Exchange, ImplicitAPI):
         """
         self.load_markets()
         self.load_accounts()
-        currency = None
+        currency: Currency = None
         id = self.safe_string(params, 'id')  # account id
         min_row = self.safe_value(params, 'min_row')
         max_row = self.safe_value(params, 'max_row')
@@ -1221,11 +1215,11 @@ class luno(Exchange, ImplicitAPI):
             'Bought': 'trade',
             'Failure': 'failed',
         }
-        referenceId = None
+        referenceId: Str = None
         firstWord = self.safe_string(words, 0)
         thirdWord = self.safe_string(words, 2)
         fourthWord = self.safe_string(words, 3)
-        type = self.safe_string(types, firstWord, None)
+        type = self.safe_string(types, firstWord)
         if (type is None) and (thirdWord == 'fee'):
             type = 'fee'
         if (type == 'reserved') and (fourthWord == 'order'):
@@ -1252,8 +1246,8 @@ class luno(Exchange, ImplicitAPI):
         result = self.parse_ledger_comment(comment)
         type = result['type']
         referenceId = result['referenceId']
-        direction = None
-        status = None
+        direction: Str = None
+        status: Str = None
         if not Precise.string_equals(balance_delta, '0.0'):
             before = Precise.string_sub(after, balance_delta)
             status = 'ok'

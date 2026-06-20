@@ -1,11 +1,10 @@
 //  ---------------------------------------------------------------------------
 
+import { sha256, sha512 } from '@noble/hashes/sha2.js';
 import krakenfuturesRest from '../krakenfutures.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
 import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances, Dict, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
@@ -277,10 +276,10 @@ export default class krakenfutures extends krakenfuturesRest {
      * @name krakenfutures#watchPositions
      * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-open-positions
      * @description watch all open positions
-     * @param {string[]|undefined} symbols list of unified market symbols
-     * @param since
-     * @param limit
-     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {int} [since] timestamp in ms of the earliest position to fetch
+     * @param {int} [limit] the maximum number of positions to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
@@ -565,6 +564,21 @@ export default class krakenfutures extends krakenfuturesRest {
         //        "price": 34893
         //    }
         //
+        // order update
+        //     {
+        //         "instrument": "PF_DOGEUSD",
+        //         "time": 1778610421471,
+        //         "last_update_time": 1778610444402,
+        //         "qty": 0,
+        //         "filled": 10,
+        //         "limit_price": 0.10912,
+        //         "stop_price": 0,
+        //         "type": "limit",
+        //         "order_id": "a1c3803c-8f3d-4317-a085-8d06e11b1d36",
+        //         "direction": 0,
+        //         "reduce_only": false
+        //     }
+        //
         const marketId = this.safeString (trade, 'product_id');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (trade, 'time');
@@ -578,8 +592,8 @@ export default class krakenfutures extends krakenfuturesRest {
             'type': this.safeString (trade, 'type'),
             'side': this.safeString (trade, 'side'),
             'takerOrMaker': 'taker',
-            'price': this.safeString (trade, 'price'),
-            'amount': this.safeString (trade, 'qty'),
+            'price': this.safeString2 (trade, 'price', 'limit_price'),
+            'amount': this.safeString2 (trade, 'filled', 'qty'),
             'cost': undefined,
             'fee': {
                 'rate': undefined,
@@ -630,7 +644,7 @@ export default class krakenfutures extends krakenfuturesRest {
             'type': this.safeStringLower (trade, 'type'),
             'side': this.safeString (trade, 'side'),
             'takerOrMaker': this.safeString (trade, 'matchRole'),
-            'price': this.safeString (trade, 'price'),
+            'price': this.safeString2 (trade, 'price', 'limit_price'),
             'amount': this.safeString (trade, 'tradeAmount'), // ? tradeQty?
             'cost': undefined,
             'fee': {
@@ -749,13 +763,13 @@ export default class krakenfutures extends krakenfuturesRest {
                     previousOrder['average'] = Precise.stringDiv (totalCost, totalAmount);
                 }
                 previousOrder['cost'] = totalCost;
-                if (previousOrder['filled'] !== undefined) {
-                    const stringOrderFilled = this.numberToString (previousOrder['filled']);
-                    previousOrder['filled'] = Precise.stringAdd (stringOrderFilled, this.numberToString (trade['amount']));
-                    if (previousOrder['amount'] !== undefined) {
-                        previousOrder['remaining'] = Precise.stringSub (this.numberToString (previousOrder['amount']), stringOrderFilled);
-                    }
-                }
+                const filledString = this.numberToString (trade['amount']);
+                const stringOrderFilled = this.safeString (previousOrder, 'filled', '0');
+                const totalFilled = Precise.stringAdd (stringOrderFilled, filledString);
+                previousOrder['filled'] = totalFilled;
+                const prevAmountString = this.safeString (previousOrder, 'amount');
+                const remaining = Precise.stringSub (prevAmountString, totalFilled);
+                previousOrder['remaining'] = remaining;
                 if (previousOrder['fee'] === undefined) {
                     previousOrder['fee'] = {
                         'rate': undefined,
@@ -931,11 +945,11 @@ export default class krakenfutures extends krakenfuturesRest {
             'price': this.safeString (unparsedOrder, 'limit_price'),
             'stopPrice': this.safeString (unparsedOrder, 'stop_price'),
             'triggerPrice': this.safeString (unparsedOrder, 'stop_price'),
-            'amount': this.safeString (unparsedOrder, 'qty'),
+            'amount': undefined,
             'cost': undefined,
             'average': undefined,
             'filled': this.safeString (unparsedOrder, 'filled'),
-            'remaining': undefined,
+            'remaining': this.safeString (unparsedOrder, 'qty'),
             'status': status,
             'fee': {
                 'rate': undefined,
@@ -1555,8 +1569,20 @@ export default class krakenfutures extends krakenfuturesRest {
         //        event: 'alert',
         //        message: 'Failed to subscribe to authenticated feed'
         //    }
+        //    {
+        //        event: 'alert',
+        //        message: 'Already subscribed to feed, re-requesting'
+        //    }
         //
         const errMsg = this.safeString (message, 'message');
+        // Benign "already subscribed" notice: the original subscription is still
+        // active and delivering data on this socket. The generic client.reject
+        // below rejects every pending future on the connection, so a stray
+        // re-subscribe warning would kill unrelated in-flight watch* calls —
+        // mirrors the bitmart 90008 fix.
+        if (errMsg !== undefined && errMsg.indexOf ('Already subscribed') >= 0) {
+            return false;
+        }
         try {
             throw new ExchangeError (this.id + ' ' + errMsg);
         } catch (error) {

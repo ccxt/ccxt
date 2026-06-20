@@ -541,69 +541,68 @@ class backpack(Exchange, ImplicitAPI):
         #         ...
         #     ]
         #
-        result: dict = {}
-        for i in range(0, len(response)):
-            currecy = response[i]
-            currencyId = self.safe_string(currecy, 'symbol')
-            code = self.safe_currency_code(currencyId)
-            networks = self.safe_list(currecy, 'tokens', [])
-            parsedNetworks: dict = {}
-            for j in range(0, len(networks)):
-                network = networks[j]
-                networkId = self.safe_string(network, 'blockchain')
-                networkIdLowerCase = self.safe_string_lower(network, 'blockchain')
-                networkCode = self.network_id_to_code(networkIdLowerCase)
-                parsedNetworks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'limits': {
-                        'withdraw': {
-                            'min': self.safe_number(network, 'minimumWithdrawal'),
-                            'max': self.parse_number(self.omit_zero(self.safe_string(network, 'maximumWithdrawal'))),
-                        },
-                        'deposit': {
-                            'min': self.safe_number(network, 'minimumDeposit'),
-                            'max': None,
-                        },
-                    },
-                    'active': None,
-                    'deposit': self.safe_bool(network, 'depositEnabled'),
-                    'withdraw': self.safe_bool(network, 'withdrawEnabled'),
-                    'fee': self.safe_number(network, 'withdrawalFee'),
-                    'precision': None,
-                    'info': network,
-                }
-            active = None
-            deposit = None
-            withdraw = None
-            if self.is_empty(parsedNetworks):  # if networks are not provided
-                active = False
-                deposit = False
-                withdraw = False
-            result[code] = self.safe_currency_structure({
-                'id': currencyId,
-                'code': code,
-                'precision': None,
-                'type': 'crypto',  # todo check if it is always crypto
-                'name': self.safe_string(currecy, 'displayName'),
-                'active': active,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'fee': None,
+        return self.parse_currencies(response)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        currencyId = self.safe_string(rawCurrency, 'symbol')
+        code = self.safe_currency_code(currencyId)
+        networks = self.safe_list(rawCurrency, 'tokens', [])
+        parsedNetworks: dict = {}
+        for j in range(0, len(networks)):
+            network = networks[j]
+            networkId = self.safe_string(network, 'blockchain')
+            networkIdLowerCase = self.safe_string_lower(network, 'blockchain')
+            networkCode = self.network_id_to_code(networkIdLowerCase, code)
+            parsedNetworks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
                 'limits': {
-                    'deposit': {
-                        'min': None,
-                        'max': None,
-                    },
                     'withdraw': {
-                        'min': None,
+                        'min': self.safe_number(network, 'minimumWithdrawal'),
+                        'max': self.parse_number(self.omit_zero(self.safe_string(network, 'maximumWithdrawal'))),
+                    },
+                    'deposit': {
+                        'min': self.safe_number(network, 'minimumDeposit'),
                         'max': None,
                     },
                 },
-                'networks': parsedNetworks,
-                'info': currecy,
-            })
-        return result
+                'active': None,
+                'deposit': self.safe_bool(network, 'depositEnabled'),
+                'withdraw': self.safe_bool(network, 'withdrawEnabled'),
+                'fee': self.safe_number(network, 'withdrawalFee'),
+                'precision': None,
+                'info': network,
+            }
+        active = None
+        deposit = None
+        withdraw = None
+        if self.is_empty(parsedNetworks):  # if networks are not provided
+            active = False
+            deposit = False
+            withdraw = False
+        return self.safe_currency_structure({
+            'id': currencyId,
+            'code': code,
+            'precision': None,
+            'type': 'crypto',  # todo check if it is always crypto
+            'name': self.safe_string(rawCurrency, 'displayName'),
+            'active': active,
+            'deposit': deposit,
+            'withdraw': withdraw,
+            'fee': None,
+            'limits': {
+                'deposit': {
+                    'min': None,
+                    'max': None,
+                },
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'networks': parsedNetworks,
+            'info': rawCurrency,
+        })
 
     def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -1236,10 +1235,16 @@ class backpack(Exchange, ImplicitAPI):
         market = self.safe_market(marketId, market)
         price = self.safe_string(trade, 'price')
         amount = self.safe_string(trade, 'quantity')
-        isMaker = self.safe_bool(trade, 'isMaker')
-        takerOrMaker = 'maker' if isMaker else 'taker'
-        orderId = self.safe_string(trade, 'orderId')
+        isBuyerMaker = self.safe_bool(trade, 'isBuyerMaker')
         side = self.parse_order_side(self.safe_string(trade, 'side'))
+        isMaker = self.safe_bool(trade, 'isMaker')
+        takerOrMaker: Str = None
+        if isMaker is not None:
+            takerOrMaker = 'maker' if isMaker else 'taker'
+        elif isBuyerMaker is not None:
+            takerOrMaker = 'taker'
+            side = 'sell' if isBuyerMaker else 'buy'
+        orderId = self.safe_string(trade, 'orderId')
         fee = None
         feeAmount = self.safe_string(trade, 'fee')
         timestamp = self.safe_integer(trade, 'timestamp')
@@ -1431,7 +1436,7 @@ class backpack(Exchange, ImplicitAPI):
         if tag is not None:
             request['clientId'] = tag  # memo or tag
         networkCode, query = self.handle_network_code_and_params(params)
-        networkId = self.network_code_to_id(networkCode)
+        networkId = self.network_code_to_id(networkCode, currency['code'])
         if networkId is None:
             raise BadRequest(self.id + ' withdraw() requires a network parameter')
         request['blockchain'] = networkId
@@ -1519,7 +1524,7 @@ class backpack(Exchange, ImplicitAPI):
         timestamp = self.parse8601(self.safe_string(transaction, 'createdAt'))
         amount = self.safe_number(transaction, 'quantity')
         networkId = self.safe_string_lower_2(transaction, 'source', 'blockchain')
-        network = self.network_id_to_code(networkId)
+        network = self.network_id_to_code(networkId, code)
         addressTo = self.safe_string(transaction, 'toAddress')
         addressFrom = self.safe_string(transaction, 'fromAddress')
         tag = self.safe_string(transaction, 'platformMemo')
@@ -1585,7 +1590,7 @@ class backpack(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchDepositAddress() requires a network parameter, see https://docs.ccxt.com/?id=network-codes')
         currency = self.currency(code)
         request: dict = {
-            'blockchain': self.network_code_to_id(networkCode),
+            'blockchain': self.network_code_to_id(networkCode, currency['code']),
         }
         response = self.privateGetWapiV1CapitalDepositAddress(self.extend(request, params))
         return self.parse_deposit_address(response, currency)

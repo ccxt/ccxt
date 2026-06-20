@@ -526,6 +526,8 @@ class deepcoin extends Exchange {
         $maxLimitSize = $this->safe_string($market, 'maxLmtSz');
         $maxAmount = $this->parse_number(Precise::string_max($maxMarketSize, $maxLimitSize));
         $state = $this->safe_string($market, 'state');
+        $isMargin = $spot && (Precise::string_gt($maxLeverage, '1'));
+        $isInverse = $swap ? (!$isLinear) : null;
         return $this->extend($fees, array(
             'id' => $id,
             'symbol' => $symbol,
@@ -537,14 +539,14 @@ class deepcoin extends Exchange {
             'settleId' => $settleId,
             'type' => $type,
             'spot' => $spot,
-            'margin' => $spot && (Precise::string_gt($maxLeverage, '1')),
+            'margin' => $isMargin,
             'swap' => $swap,
             'future' => false,
             'option' => false,
             'active' => $state === 'live',
             'contract' => $swap,
             'linear' => $isLinear,
-            'inverse' => $swap ? (!$isLinear) : null,
+            'inverse' => $isInverse,
             'contractSize' => $swap ? $this->safe_number($market, 'ctVal') : null,
             'expiry' => null,
             'expiryDatetime' => null,
@@ -838,7 +840,7 @@ class deepcoin extends Exchange {
                 'instId' => $market['id'],
             );
             if ($limit !== null) {
-                $request['limit'] = $limit; // default 100, max 500
+                $request['limit'] = min ($limit, 500);
             }
             $productGroup = $this->get_product_group_from_market($market);
             $request['productGroup'] = $productGroup;
@@ -1102,7 +1104,7 @@ class deepcoin extends Exchange {
         $amount = $this->safe_number($transaction, 'amount');
         $timestamp = $this->safe_timestamp($transaction, 'createTime');
         $networkId = $this->safe_string($transaction, 'chainName');
-        $network = $this->network_id_to_code($networkId);
+        $network = $this->network_id_to_code($networkId, $code);
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         return array(
             'info' => $transaction,
@@ -1257,10 +1259,11 @@ class deepcoin extends Exchange {
         $chain = $this->safe_string($response, 'chain');
         $address = $this->safe_string($response, 'address');
         $this->check_address($address);
+        $code = $this->safe_string($currency, 'code');
         return array(
             'info' => $response,
             'currency' => null,
-            'network' => $this->network_id_to_code($chain),
+            'network' => $this->network_id_to_code($chain, $code),
             'address' => $address,
             'tag' => $this->safe_string($response, 'memo'),
         );
@@ -2260,11 +2263,12 @@ class deepcoin extends Exchange {
             }
             $merged = true;
             list($merged, $params) = $this->handle_option_and_params($params, 'cancelAllOrders', 'merged', $merged);
+            $isMergedMode = $merged ? 1 : 0;
             $request = array(
                 'InstrumentID' => $market['id'],
                 'ProductGroup' => $productGroup,
                 'IsCrossMargin' => $encodedMarginMode,
-                'IsMergeMode' => $merged ? 1 : 0,
+                'IsMergeMode' => $isMergedMode,
             );
             $response = Async\await($this->privatePostDeepcoinTradeSwapCancelAll ($this->extend($request, $params)));
             $data = $this->safe_list($response, 'data', array());

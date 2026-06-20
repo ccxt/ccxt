@@ -32,7 +32,7 @@ function example() {
         $order_type = 'market'; // set it to 'market' or 'limit'
         $amount = 1;
         $leverage = 2;
-        Async\await($exchange->load_markets());
+        \React\Async\await($exchange->load_markets());
         $market = $exchange->market($symbol);
         // if order_type is 'market', then price is not needed
         $price = null;
@@ -53,13 +53,13 @@ function example() {
         var_dump($params);
         var_dump('-----------------------------------------------------------------------');
         try {
-            $created_order = Async\await($exchange->create_order($symbol, $order_type, $side, $amount, $price, $params));
+            $created_order = \React\Async\await($exchange->create_order($symbol, $order_type, $side, $amount, $price, $params));
             var_dump('Created an order', $created_order);
             // Fetch all your closed orders for this symbol (because we used market order)
             // - use 'fetchClosedOrders' or 'fetchOrders' and filter with 'closed' status
-            $all_closed_orders = Async\await($exchange->fetch_closed_orders($symbol));
+            $all_closed_orders = \React\Async\await($exchange->fetch_closed_orders($symbol));
             var_dump('Fetched all your closed orders for this symbol', $all_closed_orders);
-            $all_open_positions = Async\await($exchange->fetch_positions($symbol));
+            $all_open_positions = \React\Async\await($exchange->fetch_positions($symbol));
             var_dump('Fetched all your positions for this symbol', $all_open_positions);
         } catch(Exception $e) {
             var_dump(((string) $e));
@@ -68,4 +68,4 @@ function example() {
 }
 
 
-Async\await(example());
+\React\Async\await(example());

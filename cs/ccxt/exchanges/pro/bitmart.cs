@@ -2140,6 +2140,17 @@ public partial class bitmart : ccxt.bitmart
         //
         object errorCode = this.safeString(message, "errorCode");
         object error = this.safeString(message, "error");
+        // Duplicate-subscription notice errorCode 90008: bitmart's WS rejects
+        // a re-subscribe attempt on a topic that's already active on this
+        // connection, but the original subscription keeps delivering data —
+        // so treat it as benign. Without this short-circuit, the generic
+        // ((WebSocketClient)client).reject below kills every unrelated in-flight future —
+        // e.g. a watchOHLCV waiting on its kline subscription gets rejected
+        // by an orderbook 90008 raised on the same socket.
+        if (isTrue(isEqual(errorCode, "90008")))
+        {
+            return false;
+        }
         try
         {
             if (isTrue(isTrue(!isEqual(errorCode, null)) || isTrue(!isEqual(error, null))))
@@ -2393,6 +2404,16 @@ public partial class bitmart : ccxt.bitmart
             if (isTrue(isGreaterThanOrEqual(getIndexOf(channel, "fundingRate"), 0)))
             {
                 this.handleFundingRate(client as WebSocketClient, message);
+                return;
+            }
+            // 'ticker' is a substring of 'bookTicker', so a bookTicker channel could
+            // be wrongly captured by (or double-dispatched with) the 'ticker' key in a
+            // first-match loop (in Go map iteration order is randomized). Check the
+            // bookTicker prefix explicitly, then fall back to a simple first-match.
+            if (isTrue(isGreaterThanOrEqual(getIndexOf(channel, "bookTicker"), 0)))
+            {
+                this.handleBidAsk(client as WebSocketClient, message);
+                return;
             }
             object keys = new List<object>(((IDictionary<string,object>)methods).Keys);
             for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
@@ -2402,6 +2423,7 @@ public partial class bitmart : ccxt.bitmart
                 {
                     object method = this.safeValue(methods, key);
                     DynamicInvoker.InvokeMethod(method, new object[] { client, message});
+                    return;
                 }
             }
         }

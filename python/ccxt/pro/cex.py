@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Any, Balances, Bool, Int, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -789,7 +789,7 @@ class cex(ccxt.async_support.cex):
             quoteId = self.safe_string(order, 'symbol2')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        symbol = None
+        symbol: Str = None
         if base is not None and quote is not None:
             symbol = base + '/' + quote
         market = self.safe_market(symbol, market)
@@ -999,7 +999,7 @@ class cex(ccxt.async_support.cex):
         client.resolve(storedOrderBook, messageHash)
 
     def handle_delta(self, bookside, delta):
-        bidAsk = self.parse_bid_ask(delta, 0, 1)
+        bidAsk = self.parse_order_book_bid_ask(delta, 0, 1)
         bookside.storeArray(bidAsk)
 
     def handle_deltas(self, bookside, deltas):
@@ -1159,7 +1159,7 @@ class cex(ccxt.async_support.cex):
         """
         await self.load_markets()
         await self.authenticate()
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
         data = self.extend({
@@ -1293,7 +1293,7 @@ class cex(ccxt.async_support.cex):
         """
         await self.load_markets()
         await self.authenticate()
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
         data = self.extend({

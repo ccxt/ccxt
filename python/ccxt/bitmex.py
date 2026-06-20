@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitmex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, ADL, Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Leverage, Leverages, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, Transaction
+from ccxt.base.types import Any, ADL, Balances, Bool, Currencies, Currency, DepositAddress, Int, LedgerEntry, Leverage, Leverages, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -474,90 +474,89 @@ class bitmex(Exchange, ImplicitAPI):
         #        },
         #     }
         #
-        result: dict = {}
-        for i in range(0, len(response)):
-            currency = response[i]
-            asset = self.safe_string(currency, 'asset')
-            code = self.safe_currency_code(asset)
-            id = self.safe_string(currency, 'currency')
-            name = self.safe_string(currency, 'name')
-            chains = self.safe_value(currency, 'networks', [])
-            depositEnabled = False
-            withdrawEnabled = False
-            networks: dict = {}
-            scale = self.safe_string(currency, 'scale')
-            precisionString = self.parse_precision(scale)
-            precision = self.parse_number(precisionString)
-            for j in range(0, len(chains)):
-                chain = chains[j]
-                networkId = self.safe_string(chain, 'asset')
-                network = self.network_id_to_code(networkId)
-                withdrawalFeeRaw = self.safe_string(chain, 'withdrawalFee')
-                withdrawalFee = self.parse_number(Precise.string_mul(withdrawalFeeRaw, precisionString))
-                isDepositEnabled = self.safe_bool(chain, 'depositEnabled', False)
-                isWithdrawEnabled = self.safe_bool(chain, 'withdrawalEnabled', False)
-                active = (isDepositEnabled and isWithdrawEnabled)
-                if isDepositEnabled:
-                    depositEnabled = True
-                if isWithdrawEnabled:
-                    withdrawEnabled = True
-                networks[network] = {
-                    'info': chain,
-                    'id': networkId,
-                    'network': network,
-                    'active': active,
-                    'deposit': isDepositEnabled,
-                    'withdraw': isWithdrawEnabled,
-                    'fee': withdrawalFee,
-                    'precision': None,
-                    'limits': {
-                        'withdraw': {
-                            'min': None,
-                            'max': None,
-                        },
-                        'deposit': {
-                            'min': None,
-                            'max': None,
-                        },
-                    },
-                }
-            currencyEnabled = self.safe_value(currency, 'enabled')
-            currencyActive = currencyEnabled or (depositEnabled or withdrawEnabled)
-            minWithdrawalString = self.safe_string(currency, 'minWithdrawalAmount')
-            minWithdrawal = self.parse_number(Precise.string_mul(minWithdrawalString, precisionString))
-            maxWithdrawalString = self.safe_string(currency, 'maxWithdrawalAmount')
-            maxWithdrawal = self.parse_number(Precise.string_mul(maxWithdrawalString, precisionString))
-            minDepositString = self.safe_string(currency, 'minDepositAmount')
-            minDeposit = self.parse_number(Precise.string_mul(minDepositString, precisionString))
-            isCrypto = self.safe_string(currency, 'currencyType') == 'Crypto'
-            result[code] = {
-                'id': id,
-                'code': code,
-                'info': currency,
-                'name': name,
-                'active': currencyActive,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
-                'fee': None,
-                'precision': precision,
+        return self.parse_currencies(response)
+
+    def parse_currency(self, currency: dict) -> Currency:
+        asset = self.safe_string(currency, 'asset')
+        code = self.safe_currency_code(asset)
+        id = self.safe_string(currency, 'currency')
+        name = self.safe_string(currency, 'name')
+        chains = self.safe_value(currency, 'networks', [])
+        depositEnabled = False
+        withdrawEnabled = False
+        networks: dict = {}
+        scale = self.safe_string(currency, 'scale')
+        precisionString = self.parse_precision(scale)
+        precision = self.parse_number(precisionString)
+        for j in range(0, len(chains)):
+            chain = chains[j]
+            networkId = self.safe_string(chain, 'asset')
+            network = self.network_id_to_code(networkId, code)
+            withdrawalFeeRaw = self.safe_string(chain, 'withdrawalFee')
+            withdrawalFee = self.parse_number(Precise.string_mul(withdrawalFeeRaw, precisionString))
+            isDepositEnabled = self.safe_bool(chain, 'depositEnabled', False)
+            isWithdrawEnabled = self.safe_bool(chain, 'withdrawalEnabled', False)
+            active = (isDepositEnabled and isWithdrawEnabled)
+            if isDepositEnabled:
+                depositEnabled = True
+            if isWithdrawEnabled:
+                withdrawEnabled = True
+            networks[network] = {
+                'info': chain,
+                'id': networkId,
+                'network': network,
+                'active': active,
+                'deposit': isDepositEnabled,
+                'withdraw': isWithdrawEnabled,
+                'fee': withdrawalFee,
+                'precision': None,
                 'limits': {
-                    'amount': {
+                    'withdraw': {
                         'min': None,
                         'max': None,
                     },
-                    'withdraw': {
-                        'min': minWithdrawal,
-                        'max': maxWithdrawal,
-                    },
                     'deposit': {
-                        'min': minDeposit,
+                        'min': None,
                         'max': None,
                     },
                 },
-                'networks': networks,
-                'type': 'crypto' if isCrypto else 'other',
             }
-        return result
+        currencyEnabled = self.safe_value(currency, 'enabled')
+        currencyActive = currencyEnabled or (depositEnabled or withdrawEnabled)
+        minWithdrawalString = self.safe_string(currency, 'minWithdrawalAmount')
+        minWithdrawal = self.parse_number(Precise.string_mul(minWithdrawalString, precisionString))
+        maxWithdrawalString = self.safe_string(currency, 'maxWithdrawalAmount')
+        maxWithdrawal = self.parse_number(Precise.string_mul(maxWithdrawalString, precisionString))
+        minDepositString = self.safe_string(currency, 'minDepositAmount')
+        minDeposit = self.parse_number(Precise.string_mul(minDepositString, precisionString))
+        isCrypto = self.safe_string(currency, 'currencyType') == 'Crypto'
+        return self.safe_currency_structure({
+            'id': id,
+            'code': code,
+            'info': currency,
+            'name': name,
+            'active': currencyActive,
+            'deposit': depositEnabled,
+            'withdraw': withdrawEnabled,
+            'fee': None,
+            'precision': precision,
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'withdraw': {
+                    'min': minWithdrawal,
+                    'max': maxWithdrawal,
+                },
+                'deposit': {
+                    'min': minDeposit,
+                    'max': None,
+                },
+            },
+            'networks': networks,
+            'type': 'crypto' if isCrypto else 'other',
+        })
 
     def convert_from_real_amount(self, code, amount):
         currency = self.currency(code)
@@ -716,7 +715,75 @@ class bitmex(Exchange, ImplicitAPI):
         #        "settledPriceAdjustmentRate": null,
         #        "settledPrice": null,
         #        "timestamp": "2022-01-14T17:49:55.000Z"
-        #    }
+        #    },
+        #
+        #    other kind of markets have extra fields
+        #
+        #    {
+        #     "symbol": "XBTUSD-XBTU26",
+        #     "rootSymbol": "XBT",
+        #     "instrumentID": "3059",
+        #     "state": "Open",
+        #     "typ": "FFMCSX",
+        #     "listing": "2026-06-10T08:00:00.000Z",
+        #     "front": "2026-06-10T08:00:00.000Z",
+        #     "expiry": "2026-09-25T12:00:00.000Z",
+        #     "settle": "2026-09-25T12:00:00.000Z",
+        #     "positionCurrency": "USD",
+        #     "underlying": "XBT",
+        #     "quoteCurrency": "USD",
+        #     "underlyingSymbol": "XBT=",
+        #     "referenceSymbol": "XBTUSD",
+        #     "maxOrderQty": "10000000",
+        #     "minPrice": "-1000000",
+        #     "maxPrice": "1000000",
+        #     "lotSize": "100",
+        #     "tickSize": "0.5",
+        #     "multiplier": "1",
+        #     "settlCurrency": "XBt",
+        #     "underlyingToSettleMultiplier": "-100000000",
+        #     "isQuanto": False,
+        #     "isInverse": False,
+        #     "taxed": True,
+        #     "deleverage": True,
+        #     "makerFee": "0.0005",
+        #     "takerFee": "0.0005",
+        #     "limitDownPrice": null,
+        #     "limitUpPrice": null,
+        #     "prevTotalVolume": "300",
+        #     "totalVolume": "300",
+        #     "volume": "0",
+        #     "volume24h": "200",
+        #     "prevTotalTurnover": "460833",
+        #     "totalTurnover": "460833",
+        #     "turnover": "0",
+        #     "turnover24h": "298516",
+        #     "homeNotional24h": "0",
+        #     "foreignNotional24h": "0",
+        #     "prevPrice24h": "0",
+        #     "vwap": "577.5",
+        #     "highPrice": "577.5",
+        #     "lowPrice": "0",
+        #     "lastPrice": "577.5",
+        #     "lastPriceProtected": "577.5",
+        #     "lastTickDirection": "ZeroPlusTick",
+        #     "lastChangePcnt": "0",
+        #     "bidPrice": "566.5",
+        #     "midPrice": "567.25",
+        #     "askPrice": "568",
+        #     "hasLiquidity": False,
+        #     "openInterest": "0",
+        #     "openValue": "0",
+        #     "instantPnl": False,
+        #     "timestamp": "2026-06-17T05:22:50.000Z",
+        #     "capped": False,
+        #     "closingTimestamp": "2026-06-17T06:00:00.000Z",
+        #     "farLegSymbol": "XBTU26",
+        #     "nearLegSymbol": "XBTUSD",
+        #     "openingTimestamp": "2026-06-17T05:00:00.000Z",
+        #     "pool": "Primary",
+        #     "referencePrice": "65728"
+        #     }
         #  ]
         #
         return self.parse_markets(response)
@@ -740,7 +807,7 @@ class bitmex(Exchange, ImplicitAPI):
         elif typ == 'IFXXXP':
             type = 'spot'
             spot = True
-        elif typ == 'FFCCSX':
+        elif typ == 'FFCCSX' or typ == 'FFMCSX':
             type = 'future'
             future = True
         elif typ == 'FFICSX':
@@ -761,20 +828,19 @@ class bitmex(Exchange, ImplicitAPI):
         linear = (not isInverse and not isQuanto) if contract else None
         status = self.safe_string(market, 'state')
         active = status == 'Open'  # Open, Settled, Unlisted
-        expiry = None
-        expiryDatetime = None
-        symbol = None
+        expiry: Int = None
+        expiryDatetime: Str = None
+        symbol: Str = None
         if spot:
             symbol = base + '/' + quote
         elif contract:
             symbol = base + '/' + quote + ':' + settle
             if linear:
                 multiplierString = self.safe_string_2(market, 'underlyingToPositionMultiplier', 'underlyingToSettleMultiplier')
-                contractSize = self.parse_number(Precise.string_div('1', multiplierString))
+                contractSize = Precise.string_abs(Precise.string_div('1', multiplierString))
             else:
-                multiplierString = Precise.string_abs(self.safe_string(market, 'multiplier'))
-                contractSize = self.parse_number(multiplierString)
-            expiryDatetime = self.safe_string(market, 'expiry')
+                contractSize = Precise.string_abs(self.safe_string(market, 'multiplier'))
+            expiryDatetime = self.safe_string_2(market, 'expiry', 'closingTimestamp')
             expiry = self.parse8601(expiryDatetime)
             if expiry is not None:
                 symbol = symbol + '-' + self.yymmdd(expiry)
@@ -814,7 +880,7 @@ class bitmex(Exchange, ImplicitAPI):
             'quanto': isQuanto,
             'taker': self.safe_number(market, 'takerFee'),
             'maker': self.safe_number(market, 'makerFee'),
-            'contractSize': contractSize,
+            'contractSize': self.parse_number(contractSize),
             'expiry': expiry,
             'expiryDatetime': expiryDatetime,
             'strike': self.safe_number(market, 'optionStrikePrice'),
@@ -1052,7 +1118,7 @@ class bitmex(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate')
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchOrders', symbol, since, limit, params, 100)
-        market = None
+        market: Market = None
         request: dict = {}
         if symbol is not None:
             market = self.market(symbol)
@@ -1127,7 +1193,7 @@ class bitmex(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, params, 100)
-        market = None
+        market: Market = None
         request: dict = {}
         if symbol is not None:
             market = self.market(symbol)
@@ -1272,7 +1338,7 @@ class bitmex(Exchange, ImplicitAPI):
             # set the timestamp to zero, 1970 Jan 1 00:00:00
             # for unrealized pnl and other transactions without a timestamp
             timestamp = 0  # see comments above
-        fee = None
+        fee: Fee = None
         feeCost = self.safe_string(item, 'fee')
         if feeCost is not None:
             feeCost = self.convert_to_real_amount(code, feeCost)
@@ -1284,7 +1350,7 @@ class bitmex(Exchange, ImplicitAPI):
         if after is not None:
             after = self.convert_to_real_amount(code, after)
         before = self.parse_number(Precise.string_sub(self.number_to_string(after), self.number_to_string(amount)))
-        direction = None
+        direction: Str = None
         if Precise.string_lt(amountString, '0'):
             direction = 'out'
             amount = self.convert_to_real_amount(code, Precise.string_abs(amountString))
@@ -1332,7 +1398,7 @@ class bitmex(Exchange, ImplicitAPI):
         #
         if limit is not None:
             request['count'] = limit
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
             request['currency'] = currency['id']
@@ -1381,7 +1447,7 @@ class bitmex(Exchange, ImplicitAPI):
         #         # date-based pagination not supported
         #     }
         #
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
             request['currency'] = currency['id']
@@ -1428,9 +1494,9 @@ class bitmex(Exchange, ImplicitAPI):
         timestamp = self.parse8601(self.safe_string(transaction, 'timestamp'))
         type = self.safe_string_lower(transaction, 'transactType')
         # Deposits have no from address or to address, withdrawals have both
-        address = None
-        addressFrom = None
-        addressTo = None
+        address: Str = None
+        addressFrom: Str = None
+        addressTo: Str = None
         if type == 'withdrawal':
             address = self.safe_string(transaction, 'address')
             addressFrom = self.safe_string(transaction, 'tx')
@@ -1446,13 +1512,14 @@ class bitmex(Exchange, ImplicitAPI):
         status = self.safe_string(transaction, 'transactStatus')
         if status is not None:
             status = self.parse_transaction_status(status)
+        code = currency['code']
         return {
             'info': transaction,
             'id': self.safe_string(transaction, 'transactID'),
             'txid': self.safe_string(transaction, 'tx'),
             'type': type,
-            'currency': currency['code'],
-            'network': self.network_id_to_code(self.safe_string(transaction, 'network'), currency['code']),
+            'currency': code,
+            'network': self.network_id_to_code(self.safe_string(transaction, 'network'), code),
             'amount': self.parse_number(amount),
             'status': status,
             'timestamp': transactTime,
@@ -1737,7 +1804,7 @@ class bitmex(Exchange, ImplicitAPI):
             }
         # Trade or Funding
         execType = self.safe_string(trade, 'execType')
-        takerOrMaker = None
+        takerOrMaker: Str = None
         if feeCostString is not None and execType == 'Trade':
             takerOrMaker = 'maker' if Precise.string_lt(feeCostString, '0') else 'taker'
         type = self.safe_string_lower(trade, 'ordType')
@@ -1838,15 +1905,15 @@ class bitmex(Exchange, ImplicitAPI):
         else:
             amount = self.convert_from_raw_quantity(symbol, qty)
         average = self.safe_string(order, 'avgPx')
-        filled = None
+        filled: Str = None
         cumQty = self.number_to_string(self.convert_from_raw_quantity(symbol, self.safe_string(order, 'cumQty')))
         if isInverse:
             filled = Precise.string_div(cumQty, average)
         else:
             filled = cumQty
         execInst = self.safe_string(order, 'execInst', '')
-        postOnly = None
-        reduceOnly = None
+        postOnly: Bool = None
+        reduceOnly: Bool = None
         if len(execInst) > 0:
             postOnly = (execInst.find('ParticipateDoNotInitiate') >= 0)
             reduceOnly = ((execInst.find('ReduceOnly') >= 0) or (execInst.find('Close') >= 0))
@@ -1962,6 +2029,7 @@ class bitmex(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         orderType = self.capitalize(type)
+        capitalizeOrderType = orderType
         reduceOnly = self.safe_value(params, 'reduceOnly')
         if reduceOnly is not None:
             if (not market['swap']) and (not market['future']):
@@ -1974,7 +2042,7 @@ class bitmex(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'side': self.capitalize(side),
             'orderQty': qty,  # lot size multiplied by the number of contracts
-            'ordType': orderType,
+            'ordType': capitalizeOrderType,
             'text': brokerId,
         }
         execInstructions = []
@@ -2038,7 +2106,7 @@ class bitmex(Exchange, ImplicitAPI):
             triggerAbove = ((triggerDirection == 'ascending') or (triggerDirection == 'above'))
             if (type == 'limit') or (type == 'market'):
                 self.check_required_argument('createOrder', triggerDirection, 'triggerDirection', ['above', 'below'])
-            orderType = None
+            orderType: Str = None
             if type == 'limit':
                 if side == 'buy':
                     orderType = 'StopLimit' if triggerAbove else 'LimitIfTouched'
@@ -2138,7 +2206,7 @@ class bitmex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         request: dict = {}
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -2450,7 +2518,7 @@ class bitmex(Exchange, ImplicitAPI):
         unrealisedPnl = self.convert_to_real_amount(settleCurrencyCode, self.safe_string(position, 'unrealisedPnl'))
         contracts = self.parse_number(Precise.string_abs(self.safe_string(position, 'currentQty')))
         contractSize = self.safe_number(market, 'contractSize')
-        side = None
+        side: Str = None
         homeNotional = self.safe_string(position, 'homeNotional')
         if homeNotional is not None:
             if homeNotional[0] == '-':
@@ -2505,7 +2573,7 @@ class bitmex(Exchange, ImplicitAPI):
         self.load_markets()
         currency = self.currency(code)
         qty = self.convert_from_real_amount(code, amount)
-        networkCode = None
+        networkCode: Str = None
         networkCode, params = self.handle_network_code_and_params(params)
         request: dict = {
             'currency': currency['id'],
@@ -2607,7 +2675,7 @@ class bitmex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         request: dict = {}
-        market = None
+        market: Market = None
         if symbol in self.currencies:
             code = self.currency(symbol)
             request['symbol'] = code['id']
@@ -2730,15 +2798,16 @@ class bitmex(Exchange, ImplicitAPI):
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
         self.load_markets()
-        networkCode = None
+        networkCode: Str = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is None:
             raise ArgumentsRequired(self.id + ' fetchDepositAddress requires params["network"]')
         currency = self.currency(code)
         params = self.omit(params, 'network')
+        parsedNetwork = self.network_code_to_id(networkCode, currency['code'])
         request: dict = {
             'currency': currency['id'],
-            'network': self.network_code_to_id(networkCode, currency['code']),
+            'network': parsedNetwork,
         }
         response = self.privateGetUserDepositAddress(self.extend(request, params))
         #
@@ -2867,7 +2936,7 @@ class bitmex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         request: dict = {}
-        response = None
+        response: dict = None
         response = self.publicGetStats(self.extend(request, params))
         #
         #    [
@@ -3284,7 +3353,7 @@ class bitmex(Exchange, ImplicitAPI):
             # startTime string Starting time filter for results.
             # endTime string Ending time filter for results.
         }
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']

@@ -353,7 +353,6 @@ class bitopro extends Exchange {
              * @return {array} an associative dictionary of $currencies
              */
             $response = Async\await($this->publicGetProvisioningCurrencies ($params));
-            $currencies = $this->safe_list($response, 'data', array());
             //
             //     {
             //         "data":array(
@@ -370,45 +369,41 @@ class bitopro extends Exchange {
             //         )
             //     }
             //
-            $result = array();
-            $fiatCurrencies = $this->safe_list($this->options, 'fiatCurrencies', array());
-            for ($i = 0; $i < count($currencies); $i++) {
-                $currency = $currencies[$i];
-                $currencyId = $this->safe_string($currency, 'currency');
-                $code = $this->safe_currency_code($currencyId);
-                $deposit = $this->safe_bool($currency, 'deposit');
-                $withdraw = $this->safe_bool($currency, 'withdraw');
-                $fee = $this->safe_number($currency, 'withdrawFee');
-                $withdrawMin = $this->safe_number($currency, 'minWithdraw');
-                $withdrawMax = $this->safe_number($currency, 'maxWithdraw');
-                $limits = array(
-                    'withdraw' => array(
-                        'min' => $withdrawMin,
-                        'max' => $withdrawMax,
-                    ),
-                    'amount' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                );
-                $isFiat = $this->in_array($code, $fiatCurrencies);
-                $result[$code] = array(
-                    'id' => $currencyId,
-                    'code' => $code,
-                    'info' => $currency,
-                    'type' => $isFiat ? 'fiat' : 'crypto',
-                    'name' => null,
-                    'active' => $deposit && $withdraw,
-                    'deposit' => $deposit,
-                    'withdraw' => $withdraw,
-                    'fee' => $fee,
-                    'precision' => null,
-                    'limits' => $limits,
-                    'networks' => null,
-                );
-            }
-            return $result;
+            $currencies = $this->safe_list($response, 'data', array());
+            return $this->parse_currencies($currencies);
         }) ();
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $fiatCurrencies = $this->safe_list($this->options, 'fiatCurrencies', array());
+        $currencyId = $this->safe_string($rawCurrency, 'currency');
+        $code = $this->safe_currency_code($currencyId);
+        $deposit = $this->safe_bool($rawCurrency, 'deposit');
+        $withdraw = $this->safe_bool($rawCurrency, 'withdraw');
+        $isFiat = $this->in_array($code, $fiatCurrencies);
+        return $this->safe_currency_structure(array(
+            'id' => $currencyId,
+            'code' => $code,
+            'info' => $rawCurrency,
+            'type' => $isFiat ? 'fiat' : 'crypto',
+            'name' => null,
+            'active' => $deposit && $withdraw,
+            'deposit' => $deposit,
+            'withdraw' => $withdraw,
+            'fee' => $this->safe_number($rawCurrency, 'withdrawFee'),
+            'precision' => null,
+            'limits' => array(
+                'withdraw' => array(
+                    'min' => $this->safe_number($rawCurrency, 'minWithdraw'),
+                    'max' => $this->safe_number($rawCurrency, 'maxWithdraw'),
+                ),
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'networks' => null,
+        ));
     }
 
     public function fetch_markets($params = array ()): PromiseInterface {
@@ -1055,7 +1050,7 @@ class bitopro extends Exchange {
             '4' => 'canceled',
             '6' => 'canceled',
         );
-        return $this->safe_string($statuses, $status, null);
+        return $this->safe_string($statuses, $status);
     }
 
     public function parse_order(array $order, ?array $market = null): array {
@@ -1618,7 +1613,7 @@ class bitopro extends Exchange {
             'txid' => $this->safe_string($transaction, 'txid'),
             'type' => null,
             'currency' => $code,
-            'network' => $this->network_id_to_code($networkId),
+            'network' => $this->network_id_to_code($networkId, $code),
             'amount' => $this->safe_number($transaction, 'total'),
             'status' => $this->parse_transaction_status($status),
             'timestamp' => $timestamp,

@@ -1,10 +1,7 @@
-- [Gateio Swaps](./examples/js/)
+```javascript
+import ccxt from '../../js/ccxt.js';
 
-
- ```javascript
- import ccxt from '../../js/ccxt.js';
-
-const exchange = new ccxt.gateio ({
+const exchange = new ccxt.gate ({
     'apiKey': 'YOUR_API_KEY',
     'secret': 'YOUR_SECRET_KEY',
     'options': {
@@ -76,5 +73,5 @@ const exchange = new ccxt.gateio ({
     }
 
 }) ()
- 
+
 ```

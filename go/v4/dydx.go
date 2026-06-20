@@ -140,7 +140,7 @@ func (this *DydxCore) Describe() any {
 			"www":      "https://www.dydx.xyz",
 			"doc":      []any{"https://docs.dydx.xyz"},
 			"fees":     []any{"https://docs.dydx.exchange/introduction-trading_fees"},
-			"referral": "dydx.trade?ref=ccxt",
+			"referral": "https://dydx.trade?ref=ccxt",
 		},
 		"api": map[string]any{
 			"indexer": map[string]any{
@@ -701,7 +701,7 @@ func (this *DydxCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 			"market": GetValue(market, "id"),
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", limit)
+			AddElementToObject(request, "limit", mathMin(limit, 1000))
 		}
 
 		response := (<-this.IndexerGetTradesPerpetualMarketMarket(this.Extend(request, params)))

@@ -67,7 +67,7 @@ the latest known information on the availability of the exchange API
 
 
 ```javascript
-toobit.fetchStatus ([params])
+toobit.fetchStatus (params?)
 ```
 
 
@@ -87,7 +87,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-toobit.fetchTime ([params])
+toobit.fetchTime (params?)
 ```
 
 
@@ -106,7 +106,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-toobit.fetchCurrencies ([params])
+toobit.fetchCurrencies (params?)
 ```
 
 
@@ -130,7 +130,7 @@ retrieves data on all markets for toobit
 
 
 ```javascript
-toobit.fetchMarkets ([params])
+toobit.fetchMarkets (params?)
 ```
 
 
@@ -156,7 +156,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-toobit.fetchOrderBook (symbol[, limit, params])
+toobit.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -183,7 +183,7 @@ get a list of the most recent trades for a particular symbol
 
 
 ```javascript
-toobit.fetchTrades (symbol[, since, limit, params])
+toobit.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -211,7 +211,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-toobit.fetchOHLCV (symbol, timeframe[, since, limit, params])
+toobit.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -236,7 +236,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-toobit.fetchTickers (symbols[, params])
+toobit.fetchTickers (symbols, params?)
 ```
 
 
@@ -261,7 +261,7 @@ fetches the last price for multiple markets
 
 
 ```javascript
-toobit.fetchLastPrices (symbols[, params])
+toobit.fetchLastPrices (symbols, params?)
 ```
 
 
@@ -286,7 +286,7 @@ fetches the bid and ask price and volume for multiple markets
 
 
 ```javascript
-toobit.fetchBidsAsks ([symbols, params])
+toobit.fetchBidsAsks (symbols?, params?)
 ```
 
 
@@ -307,7 +307,7 @@ fetch the funding rate for multiple markets
 
 
 ```javascript
-toobit.fetchFundingRates (symbols[, params])
+toobit.fetchFundingRates (symbols, params?)
 ```
 
 
@@ -332,7 +332,7 @@ fetches historical funding rate prices
 
 
 ```javascript
-toobit.fetchFundingRateHistory (symbol[, since, limit, params])
+toobit.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -356,7 +356,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-toobit.fetchBalance ([params])
+toobit.fetchBalance (params?)
 ```
 
 
@@ -385,7 +385,7 @@ create a trade order
 
 
 ```javascript
-toobit.createOrder (symbol, type, side, amount[, price, params])
+toobit.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -411,7 +411,7 @@ cancels an open order
 
 
 ```javascript
-toobit.cancelOrder (id, symbol[, params])
+toobit.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -436,7 +436,7 @@ cancel all open orders in a market
 
 
 ```javascript
-toobit.cancelAllOrders (symbol[, params])
+toobit.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -462,7 +462,7 @@ cancel multiple orders
 
 
 ```javascript
-toobit.cancelOrders (ids[, symbol, params])
+toobit.cancelOrders (ids, symbol?, params?)
 ```
 
 
@@ -488,7 +488,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-toobit.fetchOrder (id, symbol[, params])
+toobit.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -515,7 +515,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-toobit.fetchOpenOrders (symbol[, since, limit, params])
+toobit.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -538,7 +538,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-toobit.fetchOrders (symbol[, since, limit, params])
+toobit.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -561,7 +561,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-toobit.fetchClosedOrders (symbol[, since, limit, params])
+toobit.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -589,7 +589,7 @@ fetch all trades made by the user
 
 
 ```javascript
-toobit.fetchMyTrades ([symbol, since, limit, params])
+toobit.fetchMyTrades (symbol?, since?, limit?, params?)
 ```
 
 
@@ -613,7 +613,7 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-toobit.transfer (code, amount, fromAccount, toAccount[, params])
+toobit.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -641,7 +641,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-toobit.fetchLedger ([code, since, limit, params])
+toobit.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -661,7 +661,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-toobit.fetchTradingFees ([params])
+toobit.fetchTradingFees (params?)
 ```
 
 
@@ -684,7 +684,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-toobit.fetchDeposits ([code, since, limit, params])
+toobit.fetchDeposits (code?, since?, limit?, params?)
 ```
 
 
@@ -707,7 +707,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-toobit.fetchWithdrawals ([code, since, limit, params])
+toobit.fetchWithdrawals (code?, since?, limit?, params?)
 ```
 
 
@@ -728,7 +728,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-toobit.fetchDepositAddress (code[, params])
+toobit.fetchDepositAddress (code, params?)
 ```
 
 
@@ -752,7 +752,7 @@ make a withdrawal
 
 
 ```javascript
-toobit.withdraw (code, amount, address, tag[, params])
+toobit.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -774,7 +774,7 @@ set margin mode to 'cross' or 'isolated'
 
 
 ```javascript
-toobit.setMarginMode (marginMode, symbol[, params])
+toobit.setMarginMode (marginMode, symbol, params?)
 ```
 
 
@@ -796,7 +796,7 @@ set the level of leverage for a market
 
 
 ```javascript
-toobit.setLeverage (leverage, symbol[, params])
+toobit.setLeverage (leverage, symbol, params?)
 ```
 
 
@@ -817,7 +817,7 @@ fetch the set leverage for a market
 
 
 ```javascript
-toobit.fetchLeverage (symbol[, params])
+toobit.fetchLeverage (symbol, params?)
 ```
 
 
@@ -838,7 +838,7 @@ fetch all open positions
 
 
 ```javascript
-toobit.fetchPositions (symbols[, params])
+toobit.fetchPositions (symbols, params?)
 ```
 
 
@@ -861,7 +861,7 @@ watches information on multiple trades made in a market
 
 
 ```javascript
-toobit.watchTrades (symbol[, since, limit, params])
+toobit.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -885,7 +885,7 @@ get the list of most recent trades for a list of symbols
 
 
 ```javascript
-toobit.watchTradesForSymbols (symbols[, since, limit, params])
+toobit.watchTradesForSymbols (symbols, since?, limit?, params?)
 ```
 
 
@@ -909,7 +909,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-toobit.watchOHLCV (symbol, timeframe[, since, limit, params])
+toobit.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -932,7 +932,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-toobit.watchOHLCVForSymbols (symbolsAndTimeframes[, since, limit, params])
+toobit.watchOHLCVForSymbols (symbolsAndTimeframes, since?, limit?, params?)
 ```
 
 
@@ -953,7 +953,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-toobit.watchTicker (symbol[, params])
+toobit.watchTicker (symbol, params?)
 ```
 
 
@@ -974,7 +974,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-toobit.watchTickers (symbols[, params])
+toobit.watchTickers (symbols, params?)
 ```
 
 
@@ -996,7 +996,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-toobit.watchOrderBook (symbol[, limit, params])
+toobit.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -1018,7 +1018,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-toobit.watchOrderBookForSymbols (symbols[, limit, params])
+toobit.watchOrderBookForSymbols (symbols, limit?, params?)
 ```
 
 
@@ -1038,7 +1038,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-toobit.watchBalance ([params])
+toobit.watchBalance (params?)
 ```
 
 
@@ -1061,7 +1061,7 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-toobit.watchOrders (symbol[, since, limit, params])
+toobit.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -1085,7 +1085,7 @@ watches information on multiple trades made by the user
 
 
 ```javascript
-toobit.watchMyTrades (symbol[, since, limit, params])
+toobit.watchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1108,6 +1108,6 @@ watch all open positions
 
 
 ```javascript
-toobit.watchPositions ([symbols, since, limit, params])
+toobit.watchPositions (symbols?, since?, limit?, params)
 ```
 

@@ -25,9 +25,14 @@ func TestSleep() <-chan any {
 		// Allow a small margin of error due to execution time
 		var marginOfError any = 20
 		var maxElapsed any = ccxt.Add(sleepAmount, marginOfError)
-		assert(ccxt.IsGreaterThanOrEqual(elapsed, sleepAmount), ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("Elapsed time ", ccxt.ToString(elapsed)), "ms is less than sleep amount "), ccxt.ToString(sleepAmount)), "ms"))
-		assert(ccxt.IsLessThanOrEqual(elapsed, maxElapsed), ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("Elapsed time ", ccxt.ToString(elapsed)), "ms exceeds sleep amount "), ccxt.ToString(maxElapsed)), "ms"))
+		var elapsedBiggerThanSleep any = ccxt.IsGreaterThanOrEqual(elapsed, sleepAmount)
+		var elapsedLessThanMax any = ccxt.IsLessThanOrEqual(elapsed, maxElapsed)
+		assert(elapsedBiggerThanSleep, ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("Elapsed time ", ccxt.ToString(elapsed)), "ms is less than sleep amount "), ccxt.ToString(sleepAmount)), "ms"))
+		assert(elapsedLessThanMax, ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("Elapsed time ", ccxt.ToString(elapsed)), "ms exceeds sleep amount "), ccxt.ToString(maxElapsed)), "ms"))
+
+		ch <- true
 		return nil
+
 	}()
 	return ch
 }

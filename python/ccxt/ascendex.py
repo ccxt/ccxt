@@ -534,51 +534,23 @@ class ascendex(Exchange, ImplicitAPI):
         #    }
         #
         data = self.safe_list(response, 'data', [])
-        result: dict = {}
-        for i in range(0, len(data)):
-            currency = data[i]
-            id = self.safe_string(currency, 'assetCode')
-            code = self.safe_currency_code(id)
-            chains = self.safe_list(currency, 'blockChain', [])
-            precision = self.parse_number(self.parse_precision(self.safe_string(currency, 'nativeScale')))
-            networks = {}
-            for j in range(0, len(chains)):
-                networkEtnry = chains[j]
-                networkId = self.safe_string(networkEtnry, 'chainName')
-                networkCode = self.network_code_to_id(networkId)
-                networks[networkCode] = {
-                    'fee': self.safe_number(networkEtnry, 'withdrawFee'),
-                    'active': None,
-                    'withdraw': self.safe_bool(networkEtnry, 'allowWithdraw'),
-                    'deposit': self.safe_bool(networkEtnry, 'allowDeposit'),
-                    'precision': precision,
-                    'limits': {
-                        'amount': {
-                            'min': None,
-                            'max': None,
-                        },
-                        'withdraw': {
-                            'min': self.safe_number(networkEtnry, 'minWithdrawal'),
-                            'max': None,
-                        },
-                        'deposit': {
-                            'min': self.safe_number(networkEtnry, 'minDepositAmt'),
-                            'max': None,
-                        },
-                    },
-                }
-            # todo type: if chainsLength == 0 and (assetName.endswith(' Staking') or assetName.find(' Reward ') >= 0 or assetName.find('Slot Auction') >= 0 or assetName.find(' Freeze Asset') >= 0):
-            result[code] = self.safe_currency_structure({
-                'id': id,
-                'code': code,
-                'info': currency,
-                'type': None,
-                'margin': None,
-                'name': self.safe_string(currency, 'assetName'),
+        return self.parse_currencies(data)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        id = self.safe_string(rawCurrency, 'assetCode')
+        code = self.safe_currency_code(id)
+        chains = self.safe_list(rawCurrency, 'blockChain', [])
+        precision = self.parse_number(self.parse_precision(self.safe_string(rawCurrency, 'nativeScale')))
+        networks = {}
+        for j in range(0, len(chains)):
+            networkEtnry = chains[j]
+            networkId = self.safe_string(networkEtnry, 'chainName')
+            networkCode = self.network_code_to_id(networkId, code)
+            networks[networkCode] = {
+                'fee': self.safe_number(networkEtnry, 'withdrawFee'),
                 'active': None,
-                'deposit': None,
-                'withdraw': None,
-                'fee': None,
+                'withdraw': self.safe_bool(networkEtnry, 'allowWithdraw'),
+                'deposit': self.safe_bool(networkEtnry, 'allowDeposit'),
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -586,13 +558,40 @@ class ascendex(Exchange, ImplicitAPI):
                         'max': None,
                     },
                     'withdraw': {
-                        'min': self.safe_number(currency, 'minWithdrawalAmt'),
+                        'min': self.safe_number(networkEtnry, 'minWithdrawal'),
+                        'max': None,
+                    },
+                    'deposit': {
+                        'min': self.safe_number(networkEtnry, 'minDepositAmt'),
                         'max': None,
                     },
                 },
-                'networks': networks,
-            })
-        return result
+            }
+        # todo type: if chainsLength == 0 and (assetName.endswith(' Staking') or assetName.find(' Reward ') >= 0 or assetName.find('Slot Auction') >= 0 or assetName.find(' Freeze Asset') >= 0):
+        return self.safe_currency_structure({
+            'id': id,
+            'code': code,
+            'info': rawCurrency,
+            'type': None,
+            'margin': None,
+            'name': self.safe_string(rawCurrency, 'assetName'),
+            'active': None,
+            'deposit': None,
+            'withdraw': None,
+            'fee': None,
+            'precision': precision,
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'withdraw': {
+                    'min': self.safe_number(rawCurrency, 'minWithdrawalAmt'),
+                    'max': None,
+                },
+            },
+            'networks': networks,
+        })
 
     def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -881,7 +880,7 @@ class ascendex(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `account structures <https://docs.ccxt.com/?id=account-structure>` indexed by the account type
         """
         accountGroup = self.safe_string(self.options, 'account-group')
-        response = None
+        response: dict = None
         if accountGroup is None:
             response = self.v1PrivateGetInfo(params)
             #
@@ -903,12 +902,14 @@ class ascendex(Exchange, ImplicitAPI):
             data = self.safe_dict(response, 'data', {})
             accountGroup = self.safe_string(data, 'accountGroup')
             self.options['account-group'] = accountGroup
+        finalResponse = response  # java req
+        finalAccountGroup = accountGroup
         return [
             {
-                'id': accountGroup,
+                'id': finalAccountGroup,
                 'type': None,
                 'code': None,
-                'info': response,
+                'info': finalResponse,
             },
         ]
 
@@ -978,8 +979,8 @@ class ascendex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         self.load_accounts()
-        marketType = None
-        marginMode = None
+        marketType: Str = None
+        marginMode: Str = None
         marketType, params = self.handle_market_type_and_params('fetchBalance', None, params)
         marginMode, params = self.handle_margin_mode_and_params('fetchBalance', params)
         isMargin = self.safe_bool(params, 'margin', False)
@@ -997,7 +998,7 @@ class ascendex(Exchange, ImplicitAPI):
             raise BadRequest(self.id + ' does not supported isolated margin trading')
         if (accountCategory == 'cash') or (accountCategory == 'margin'):
             request['account-category'] = accountCategory
-        response = None
+        response: dict = None
         if (marketType == 'spot') or (marketType == 'margin'):
             response = self.v1PrivateAccountCategoryGetBalance(self.extend(request, params))
         elif marketType == 'swap':
@@ -1189,15 +1190,15 @@ class ascendex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         request: dict = {}
-        market = None
+        market: Market = None
         if symbols is not None:
             symbol = self.safe_string(symbols, 0)
             market = self.market(symbol)
             marketIds = self.market_ids(symbols)
             request['symbol'] = ','.join(marketIds)
-        type = None
+        type: Str = None
         type, params = self.handle_market_type_and_params('fetchTickers', market, params)
-        response = None
+        response: dict = None
         if type == 'spot':
             response = self.v1PublicGetTicker(self.extend(request, params))
         else:
@@ -1532,7 +1533,7 @@ class ascendex(Exchange, ImplicitAPI):
                 type = 'market'
         side = self.safe_string_lower(order, 'side')
         feeCost = self.safe_number_2(order, 'cumFee', 'fee')
-        fee = None
+        fee: dict = None
         if feeCost is not None:
             feeCurrencyId = self.safe_string(order, 'feeAsset')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
@@ -1637,8 +1638,8 @@ class ascendex(Exchange, ImplicitAPI):
         :returns dict: request to be sent to the exchange
         """
         market = self.market(symbol)
-        marginMode = None
-        marketType = None
+        marginMode: Str = None
+        marketType: Str = None
         marginMode, params = self.handle_margin_mode_and_params('createOrderRequest', params)
         marketType, params = self.handle_market_type_and_params('createOrderRequest', market, params)
         accountsByType = self.safe_dict(self.options, 'accountsByType', {})
@@ -1719,7 +1720,7 @@ class ascendex(Exchange, ImplicitAPI):
         self.load_accounts()
         market = self.market(symbol)
         request = self.create_order_request(symbol, type, side, amount, price, params)
-        response = None
+        response: dict = None
         if market['swap']:
             response = self.v2PrivateAccountGroupPostFuturesOrder(request)
         else:
@@ -1808,8 +1809,8 @@ class ascendex(Exchange, ImplicitAPI):
         self.load_markets()
         self.load_accounts()
         ordersRequests = []
-        symbol = None
-        marginMode = None
+        symbol: Str = None
+        marginMode: Str = None
         for i in range(0, len(orders)):
             rawOrder = orders[i]
             marketId = self.safe_string(rawOrder, 'symbol')
@@ -1841,7 +1842,7 @@ class ascendex(Exchange, ImplicitAPI):
         account = self.safe_dict(self.accounts, 0, {})
         accountGroup = self.safe_string(account, 'id')
         request: dict = {}
-        response = None
+        response: dict = None
         if market['swap']:
             raise NotSupported(self.id + ' createOrders() is not currently supported for swap markets on ascendex')
             # request['account-group'] = accountGroup
@@ -1893,7 +1894,7 @@ class ascendex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         self.load_accounts()
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
         type, query = self.handle_market_type_and_params('fetchOrder', market, params)
@@ -1906,7 +1907,7 @@ class ascendex(Exchange, ImplicitAPI):
             'account-category': accountCategory,
             'orderId': id,
         }
-        response = None
+        response: dict = None
         if (type == 'spot') or (type == 'margin'):
             response = self.v1PrivateAccountCategoryGetOrderStatus(self.extend(request, query))
         elif type == 'swap':
@@ -1999,7 +2000,7 @@ class ascendex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         self.load_accounts()
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
@@ -2012,7 +2013,7 @@ class ascendex(Exchange, ImplicitAPI):
             'account-group': accountGroup,
             'account-category': accountCategory,
         }
-        response = None
+        response: dict = None
         if (type == 'spot') or (type == 'margin'):
             response = self.v1PrivateAccountCategoryGetOrderOpen(self.extend(request, query))
         elif type == 'swap':
@@ -2126,7 +2127,7 @@ class ascendex(Exchange, ImplicitAPI):
             # 'page': 1,
             # 'pageSize': 100,
         }
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -2145,7 +2146,7 @@ class ascendex(Exchange, ImplicitAPI):
             request['endTime'] = until
         accountsByType = self.safe_dict(self.options, 'accountsByType', {})
         accountCategory = self.safe_string(accountsByType, type, 'cash')  # margin, futures
-        response = None
+        response: dict = None
         if method == 'v1PrivateAccountCategoryGetOrderHistCurrent':
             request['account-group'] = accountGroup
             request['account-category'] = accountCategory
@@ -2296,7 +2297,7 @@ class ascendex(Exchange, ImplicitAPI):
         else:
             request['id'] = clientOrderId
             params = self.omit(params, ['clientOrderId', 'id'])
-        response = None
+        response: dict = None
         if (type == 'spot') or (type == 'margin'):
             response = self.v1PrivateAccountCategoryDeleteOrder(self.extend(request, query))
         elif type == 'swap':
@@ -2384,7 +2385,7 @@ class ascendex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         self.load_accounts()
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
         type, query = self.handle_market_type_and_params('cancelAllOrders', market, params)
@@ -2399,7 +2400,7 @@ class ascendex(Exchange, ImplicitAPI):
         }
         if symbol is not None:
             request['symbol'] = market['id']
-        response = None
+        response: dict = None
         if (type == 'spot') or (type == 'margin'):
             response = self.v1PrivateAccountCategoryDeleteOrderAll(self.extend(request, query))
         elif type == 'swap':
@@ -2488,7 +2489,7 @@ class ascendex(Exchange, ImplicitAPI):
         self.load_markets()
         currency = self.currency(code)
         networkCode = self.safe_string_2(params, 'network', 'chainName')
-        networkId = self.network_code_to_id(networkCode)
+        networkId = self.network_code_to_id(networkCode, currency['code'])
         params = self.omit(params, ['chainName'])
         request: dict = {
             'asset': currency['id'],
@@ -2593,7 +2594,7 @@ class ascendex(Exchange, ImplicitAPI):
             # 'endTs': self.milliseconds(),
             # 'txType': undefned,  # deposit, withdrawal
         }
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
             request['asset'] = currency['id']
@@ -2787,7 +2788,7 @@ class ascendex(Exchange, ImplicitAPI):
             notional = self.safe_string(position, 'sellOpenOrderNotional')
         marginType = self.safe_string(position, 'marginType')
         marginMode = 'cross' if (marginType == 'crossed') else 'isolated'
-        collateral = None
+        collateral: Str = None
         if marginMode == 'isolated':
             collateral = self.safe_string(position, 'isolatedMargin')
         return self.safe_position({
@@ -2918,8 +2919,9 @@ class ascendex(Exchange, ImplicitAPI):
         #
         if type == 'reduce':
             amount = Precise.string_abs(amount)
+        parsedAmount = self.parse_number(amount)
         return self.extend(self.parse_margin_modification(response, market), {
-            'amount': self.parse_number(amount),
+            'amount': parsedAmount,
             'type': type,
         })
 
@@ -3266,7 +3268,7 @@ class ascendex(Exchange, ImplicitAPI):
         request: dict = {
             'account-group': accountGroup,
         }
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -3460,8 +3462,7 @@ class ascendex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         request: dict = {}
-        response = None
-        response = self.v2PublicGetFuturesPricingData(self.extend(request, params))
+        response: dict = self.v2PublicGetFuturesPricingData(self.extend(request, params))
         #
         #    {
         #        code: '0',

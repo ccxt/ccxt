@@ -95,9 +95,9 @@ public partial class kucoin
         var res = await this.watchBidsAsks(symbols, parameters);
         return new Tickers(res);
     }
-    public async Task<Dictionary<string, object>> WatchMultiHelper(object methodName, string channelName, List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, object>> WatchMultiHelper(object methodName, string channelName, bool isFuturesChannel, List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
-        var res = await this.watchMultiHelper(methodName, channelName, symbols, parameters);
+        var res = await this.watchMultiHelper(methodName, channelName, isFuturesChannel, symbols, parameters);
         return ((Dictionary<string, object>)res);
     }
     /// <summary>

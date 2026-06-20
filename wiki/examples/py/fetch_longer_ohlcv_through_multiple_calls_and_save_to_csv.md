@@ -1,8 +1,5 @@
-- [Fetch_longer_ohlcv_through_multiple_calls_and_save_to_csv](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -14,7 +11,7 @@ from datetime import datetime
 print('CCXT Version:', ccxt.__version__)
 
 # data
-exchange_name = 'ftx'
+exchange_name = 'okx'
 symbol = "BTC/USD"
 max_candles = 5000
 timeframe = '1h'
@@ -36,7 +33,7 @@ now = int(datetime.now().timestamp() * 1000)
 outfile = f"{symbol.replace('/', '-')}_{timeframe}_{exchange_name}_{start}-{now}.csv"
 
 # setup
-exchange = ccxt.ftx()
+exchange = ccxt.okx()
 exchange.load_markets()
 ohlcv = []
 
@@ -53,5 +50,5 @@ np.savetxt(
     delimiter=",",
     fmt='%d,%s,%s,%s,%s,%s'
 )
- 
+
 ```

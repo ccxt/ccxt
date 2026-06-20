@@ -7,6 +7,7 @@ import type { Balances, Currencies, Currency, DepositAddress, Dict, Int, Market,
 export default class foxbit extends Exchange {
     describe(): any;
     fetchCurrencies(params?: {}): Promise<Currencies>;
+    parseCurrency(rawCurrency: Dict): Currency;
     /**
      * @method
      * @name foxbit#fetchMarkets

@@ -1,11 +1,11 @@
 //  ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import { Precise } from './base/Precise.js';
 import Exchange from './abstract/foxbit.js';
 import { AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OnMaintenance, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 import type { Balances, Currencies, Currency, DepositAddress, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int } from './base/types.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -367,83 +367,80 @@ export default class foxbit extends Exchange {
         //   ]
         // }
         const data = this.safeList (response, 'data', []);
-        const result: Dict = {};
-        for (let i = 0; i < data.length; i++) {
-            const currency = data[i];
-            const precision = this.safeInteger (currency, 'precision');
-            const currencyId = this.safeString (currency, 'symbol');
-            const name = this.safeString (currency, 'name');
-            const code = this.safeCurrencyCode (currencyId);
-            const depositInfo = this.safeDict (currency, 'deposit_info');
-            const withdrawInfo = this.safeDict (currency, 'withdraw_info');
-            const networks = this.safeList (currency, 'networks', []);
-            const type = this.safeStringLower (currency, 'type');
-            const parsedNetworks: Dict = {};
-            for (let j = 0; j < networks.length; j++) {
-                const network = networks[j];
-                const networkId = this.safeString (network, 'code');
-                const networkCode = this.networkIdToCode (networkId, code);
-                const networkWithdrawInfo = this.safeDict (network, 'withdraw_info');
-                const networkDepositInfo = this.safeDict (network, 'deposit_info');
-                const isWithdrawEnabled = this.safeString (networkWithdrawInfo, 'status') === 'ENABLED';
-                const isDepositEnabled = this.safeString (networkDepositInfo, 'status') === 'ENABLED';
-                parsedNetworks[networkCode] = {
-                    'info': currency,
-                    'id': networkId,
-                    'network': networkCode,
-                    'name': this.safeString (network, 'name'),
-                    'deposit': isDepositEnabled,
-                    'withdraw': isWithdrawEnabled,
-                    'active': true,
-                    'precision': precision,
-                    'fee': this.safeNumber (networkWithdrawInfo, 'fee'),
-                    'limits': {
-                        'amount': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'deposit': {
-                            'min': this.safeNumber (depositInfo, 'min_amount'),
-                            'max': undefined,
-                        },
-                        'withdraw': {
-                            'min': this.safeNumber (withdrawInfo, 'min_amount'),
-                            'max': undefined,
-                        },
+        return this.parseCurrencies (data);
+    }
+
+    parseCurrency (rawCurrency: Dict): Currency {
+        const precision = this.safeInteger (rawCurrency, 'precision');
+        const currencyId = this.safeString (rawCurrency, 'symbol');
+        const name = this.safeString (rawCurrency, 'name');
+        const code = this.safeCurrencyCode (currencyId);
+        const depositInfo = this.safeDict (rawCurrency, 'deposit_info');
+        const withdrawInfo = this.safeDict (rawCurrency, 'withdraw_info');
+        const networks = this.safeList (rawCurrency, 'networks', []);
+        const type = this.safeStringLower (rawCurrency, 'type');
+        const parsedNetworks: Dict = {};
+        for (let j = 0; j < networks.length; j++) {
+            const network = networks[j];
+            const networkId = this.safeString (network, 'code');
+            const networkCode = this.networkIdToCode (networkId, code);
+            const networkWithdrawInfo = this.safeDict (network, 'withdraw_info');
+            const networkDepositInfo = this.safeDict (network, 'deposit_info');
+            const isWithdrawEnabled = this.safeString (networkWithdrawInfo, 'status') === 'ENABLED';
+            const isDepositEnabled = this.safeString (networkDepositInfo, 'status') === 'ENABLED';
+            parsedNetworks[networkCode] = {
+                'info': rawCurrency,
+                'id': networkId,
+                'network': networkCode,
+                'name': this.safeString (network, 'name'),
+                'deposit': isDepositEnabled,
+                'withdraw': isWithdrawEnabled,
+                'active': true,
+                'precision': precision,
+                'fee': this.safeNumber (networkWithdrawInfo, 'fee'),
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
                     },
-                };
-            }
-            if (this.safeDict (result, code) === undefined) {
-                result[code] = this.safeCurrencyStructure ({
-                    'id': currencyId,
-                    'code': code,
-                    'info': currency,
-                    'name': name,
-                    'active': true,
-                    'type': type,
-                    'deposit': this.safeBool (depositInfo, 'enabled', false),
-                    'withdraw': this.safeBool (withdrawInfo, 'enabled', false),
-                    'fee': this.safeNumber (withdrawInfo, 'fee'),
-                    'precision': precision,
-                    'limits': {
-                        'amount': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'deposit': {
-                            'min': this.safeNumber (depositInfo, 'min_amount'),
-                            'max': undefined,
-                        },
-                        'withdraw': {
-                            'min': this.safeNumber (withdrawInfo, 'min_amount'),
-                            'max': undefined,
-                        },
+                    'deposit': {
+                        'min': this.safeNumber (depositInfo, 'min_amount'),
+                        'max': undefined,
                     },
-                    'networks': parsedNetworks,
-                });
-            }
+                    'withdraw': {
+                        'min': this.safeNumber (withdrawInfo, 'min_amount'),
+                        'max': undefined,
+                    },
+                },
+            };
         }
-        return result;
+        return this.safeCurrencyStructure ({
+            'id': currencyId,
+            'code': code,
+            'info': rawCurrency,
+            'name': name,
+            'active': true,
+            'type': type,
+            'deposit': this.safeBool (depositInfo, 'enabled', false),
+            'withdraw': this.safeBool (withdrawInfo, 'enabled', false),
+            'fee': this.safeNumber (withdrawInfo, 'fee'),
+            'precision': precision,
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'deposit': {
+                    'min': this.safeNumber (depositInfo, 'min_amount'),
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': this.safeNumber (withdrawInfo, 'min_amount'),
+                    'max': undefined,
+                },
+            },
+            'networks': parsedNetworks,
+        });
     }
 
     /**
@@ -884,7 +881,7 @@ export default class foxbit extends Exchange {
 
     async fetchOrdersByStatus (status: Str, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         const request: Dict = {
             'state': status,
         };
@@ -1157,7 +1154,7 @@ export default class foxbit extends Exchange {
         //     "remark": "A remarkable note for the order.",
         //     "funds_received": "290.0"
         // }
-        return this.parseOrder (response, undefined);
+        return this.parseOrder (response);
     }
 
     /**
@@ -1175,7 +1172,7 @@ export default class foxbit extends Exchange {
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1314,7 +1311,7 @@ export default class foxbit extends Exchange {
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         await this.loadMarkets ();
         const request: Dict = {};
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -1362,7 +1359,7 @@ export default class foxbit extends Exchange {
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         await this.loadMarkets ();
         const request: Dict = {};
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -1557,10 +1554,10 @@ export default class foxbit extends Exchange {
         if (tag !== undefined) {
             request['destination_tag'] = tag;
         }
-        let networkCode = undefined;
+        let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
-            request['network_code'] = this.networkCodeToId (networkCode);
+            request['network_code'] = this.networkCodeToId (networkCode, code);
         }
         const response = await this.v3PrivatePostWithdrawals (this.extend (request, params));
         // {

@@ -1,11 +1,11 @@
 
 // ----------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/coinbaseexchange.js';
 import { InsufficientFunds, ArgumentsRequired, ExchangeError, InvalidOrder, InvalidAddress, AuthenticationError, OrderNotFound, OnMaintenance, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, Num, Account, Currencies, TradingFees, Dict, int, LedgerEntry, DepositAddress } from './base/types.js';
 
 // ----------------------------------------------------------------------------
@@ -235,6 +235,7 @@ export default class coinbaseexchange extends Exchange {
                         'funding/repay',
                         'orders',
                         'position/close',
+                        'profiles',
                         'profiles/margin-transfer',
                         'profiles/transfer',
                         'reports',
@@ -250,6 +251,10 @@ export default class coinbaseexchange extends Exchange {
                         'orders',
                         'orders/client:{client_oid}',
                         'orders/{id}',
+                    ],
+                    'put': [
+                        'profiles/{id}/deactivate',
+                        'profiles/{id}',
                     ],
                 },
             },
@@ -514,63 +519,62 @@ export default class coinbaseexchange extends Exchange {
         //     "display_name": "USDT"
         //   }
         //
-        const result: Dict = {};
-        for (let i = 0; i < response.length; i++) {
-            const currency = response[i];
-            const id = this.safeString (currency, 'id');
-            const name = this.safeString (currency, 'name');
-            const code = this.safeCurrencyCode (id);
-            const details = this.safeDict (currency, 'details', {});
-            const networks: Dict = {};
-            const supportedNetworks = this.safeList (currency, 'supported_networks', []);
-            for (let j = 0; j < supportedNetworks.length; j++) {
-                const network = supportedNetworks[j];
-                const networkId = this.safeString (network, 'id');
-                const networkCode = this.networkIdToCode (networkId);
-                networks[networkCode] = {
-                    'id': networkId,
-                    'name': this.safeString (network, 'name'),
-                    'network': networkCode,
-                    'active': this.safeString (network, 'status') === 'online',
-                    'withdraw': undefined,
-                    'deposit': undefined,
-                    'fee': undefined,
-                    'precision': undefined,
-                    'limits': {
-                        'withdraw': {
-                            'min': this.safeNumber (network, 'min_withdrawal_amount'),
-                            'max': this.safeNumber (network, 'max_withdrawal_amount'),
-                        },
-                    },
-                    'contract': this.safeString (network, 'contract_address'),
-                    'info': network,
-                };
-            }
-            result[code] = this.safeCurrencyStructure ({
-                'id': id,
-                'code': code,
-                'info': currency,
-                'type': this.safeString (details, 'type'),
-                'name': name,
-                'active': this.safeString (currency, 'status') === 'online',
-                'deposit': undefined,
+        return this.parseCurrencies (response);
+    }
+
+    parseCurrency (rawCurrency): Currency {
+        const id = this.safeString (rawCurrency, 'id');
+        const name = this.safeString (rawCurrency, 'name');
+        const code = this.safeCurrencyCode (id);
+        const details = this.safeDict (rawCurrency, 'details', {});
+        const networks: Dict = {};
+        const supportedNetworks = this.safeList (rawCurrency, 'supported_networks', []);
+        for (let j = 0; j < supportedNetworks.length; j++) {
+            const network = supportedNetworks[j];
+            const networkId = this.safeString (network, 'id');
+            const networkCode = this.networkIdToCode (networkId, code);
+            networks[networkCode] = {
+                'id': networkId,
+                'name': this.safeString (network, 'name'),
+                'network': networkCode,
+                'active': this.safeString (network, 'status') === 'online',
                 'withdraw': undefined,
+                'deposit': undefined,
                 'fee': undefined,
-                'precision': this.safeNumber (currency, 'max_precision'),
+                'precision': undefined,
                 'limits': {
-                    'amount': {
-                        'min': this.safeNumber (details, 'min_size'),
-                        'max': undefined,
-                    },
                     'withdraw': {
-                        'min': this.safeNumber (details, 'min_withdrawal_amount'),
-                        'max': this.safeNumber (details, 'max_withdrawal_amount'),
+                        'min': this.safeNumber (network, 'min_withdrawal_amount'),
+                        'max': this.safeNumber (network, 'max_withdrawal_amount'),
                     },
                 },
-                'networks': networks,
-            });
+                'contract': this.safeString (network, 'contract_address'),
+                'info': network,
+            };
         }
-        return result;
+        return this.safeCurrencyStructure ({
+            'id': id,
+            'code': code,
+            'info': rawCurrency,
+            'type': this.safeString (details, 'type'),
+            'name': name,
+            'active': this.safeString (rawCurrency, 'status') === 'online',
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'precision': this.safeNumber (rawCurrency, 'max_precision'),
+            'limits': {
+                'amount': {
+                    'min': this.safeNumber (details, 'min_size'),
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': this.safeNumber (details, 'min_withdrawal_amount'),
+                    'max': this.safeNumber (details, 'max_withdrawal_amount'),
+                },
+            },
+            'networks': networks,
+        });
     }
 
     /**
@@ -1046,13 +1050,14 @@ export default class coinbaseexchange extends Exchange {
         }
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'size');
+        const symbol = market['symbol'];
         return this.safeTrade ({
             'id': id,
             'order': orderId,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': undefined,
             'takerOrMaker': takerOrMaker,
             'side': side,
@@ -2043,7 +2048,7 @@ export default class coinbaseexchange extends Exchange {
             'txid': this.safeString (details, 'crypto_transaction_hash'),
             'type': type,
             'currency': code,
-            'network': this.networkIdToCode (networkId),
+            'network': this.networkIdToCode (networkId, code),
             'amount': amount,
             'status': this.parseTransactionStatus (transaction),
             'timestamp': timestamp,

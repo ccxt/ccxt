@@ -1594,7 +1594,7 @@ public partial class grvt : Exchange
 
     /**
      * @method
-     * @name grvrt#fetchWithdrawals
+     * @name grvt#fetchWithdrawals
      * @description fetch all withdrawals made from an account
      * @see https://docs.backpack.exchange/#tag/Capital/operation/get_withdrawals
      * @param {string} [code] unified currency code of the currency transferred
@@ -1780,6 +1780,8 @@ public partial class grvt : Exchange
         object networkCode = null;
         object addressFrom = this.safeString(transaction, "from_account_id");
         object addressTo = this.safeString(transaction, "to_account_id");
+        object currencyId = this.safeString(transaction, "currency");
+        object code = this.safeCurrencyCode(currencyId, currency);
         if (isTrue(inOp(transaction, "transfer_metadata")))
         {
             object metaData = this.omitZero(this.safeString(transaction, "transfer_metadata"));
@@ -1788,7 +1790,7 @@ public partial class grvt : Exchange
                 object parsedMeta = this.parseJson(metaData);
                 direction = this.safeStringLower(parsedMeta, "direction");
                 txId = this.safeString(parsedMeta, "provider_tx_id");
-                networkCode = this.networkIdToCode(this.safeString(parsedMeta, "chainid"));
+                networkCode = this.networkIdToCode(this.safeString(parsedMeta, "chainid"), code);
                 if (isTrue(isEqual(direction, "withdrawal")))
                 {
                     addressTo = this.safeString(parsedMeta, "endpoint");
@@ -1799,8 +1801,6 @@ public partial class grvt : Exchange
             }
         }
         object timestamp = this.safeIntegerProduct2(transaction, "event_time", "initiated_time", 0.000001);
-        object currencyId = this.safeString(transaction, "currency");
-        object code = this.safeCurrencyCode(currencyId, currency);
         return new Dictionary<string, object>() {
             { "info", transaction },
             { "id", null },
@@ -2050,11 +2050,11 @@ public partial class grvt : Exchange
         };
     }
 
-    public async virtual Task loadAccountInfos()
+    public async virtual Task<object> loadAccountInfos()
     {
         if (isTrue(!isEqual(this.safeString(this.options, "userMainAccountId"), null)))
         {
-            return;
+            return false;
         }
         object promises = new List<object>() {};
         ((IList<object>)promises).Add(this.privateTradingPostFullV1AggregatedAccountSummary());
@@ -2111,6 +2111,7 @@ public partial class grvt : Exchange
             object subAccountId = this.safeString(subAccountIds, 0);
             ((IDictionary<string,object>)this.options)["accountId"] = subAccountId;
         }
+        return true;
     }
 
     /**
@@ -2143,7 +2144,7 @@ public partial class grvt : Exchange
         var networkCodequeryVariable = this.handleNetworkCodeAndParams(parameters);
         var networkCode = ((IList<object>) networkCodequeryVariable)[0];
         var query = ((IList<object>) networkCodequeryVariable)[1];
-        object networkId = this.networkCodeToId(networkCode);
+        object networkId = this.networkCodeToId(networkCode, code);
         if (isTrue(isEqual(networkId, null)))
         {
             throw new BadRequest ((string)add(this.id, " withdraw() requires a network parameter")) ;
@@ -2215,8 +2216,10 @@ public partial class grvt : Exchange
         }
         parameters = this.omit(parameters, new List<object>() {"clientOrderId"});
         object isMarketOrder = (isEqual(type, "market"));
+        object subAccountId = this.getSubAccountId(parameters);
+        object isReduceOnly = this.safeBool(parameters, "reduceOnly", false);
         object orderRequest = new Dictionary<string, object>() {
-            { "sub_account_id", this.getSubAccountId(parameters) },
+            { "sub_account_id", subAccountId },
             { "time_in_force", null },
             { "legs", new List<object>() {orderLeg} },
             { "signature", this.defaultSignature() },
@@ -2225,7 +2228,7 @@ public partial class grvt : Exchange
             } },
             { "is_market", isMarketOrder },
             { "post_only", false },
-            { "reduce_only", this.safeBool(parameters, "reduceOnly", false) },
+            { "reduce_only", isReduceOnly },
         };
         object timeInForce = this.safeStringUpper(parameters, "timeInForce", "GOOD_TILL_TIME");
         object postOnly = this.isPostOnly(isMarketOrder, null, parameters);
@@ -2927,8 +2930,9 @@ public partial class grvt : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarketsAndSignIn();
+        object subAccountId = this.getSubAccountId(parameters);
         object request = new Dictionary<string, object>() {
-            { "sub_account_id", this.getSubAccountId(parameters) },
+            { "sub_account_id", subAccountId },
         };
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -3115,8 +3119,9 @@ public partial class grvt : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarketsAndSignIn();
+        object subAccountId = this.getSubAccountId(parameters);
         object request = new Dictionary<string, object>() {
-            { "sub_account_id", this.getSubAccountId(parameters) },
+            { "sub_account_id", subAccountId },
         };
         object clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
         if (isTrue(!isEqual(clientOrderId, null)))
@@ -3393,7 +3398,7 @@ public partial class grvt : Exchange
         //    }
         //
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return this.parseOrders(new List<object>() {result}, null);
+        return this.parseOrders(new List<object>() {result});
     }
 
     /**
@@ -3411,8 +3416,9 @@ public partial class grvt : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarketsAndSignIn();
+        object subAccoubntId = this.getSubAccountId(parameters);
         object request = new Dictionary<string, object>() {
-            { "sub_account_id", this.getSubAccountId(parameters) },
+            { "sub_account_id", subAccoubntId },
         };
         object clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
         if (isTrue(!isEqual(clientOrderId, null)))

@@ -2,12 +2,12 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var ed25519_js = require('@noble/curves/ed25519.js');
 var pacifica$1 = require('./abstract/pacifica.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var crypto = require('./base/functions/crypto.js');
-var ed25519 = require('./static_dependencies/noble-curves/ed25519.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -22,8 +22,8 @@ class pacifica extends pacifica$1["default"] {
             'name': 'Pacifica',
             'countries': [],
             'version': 'v1',
-            'isSandboxModeEnabled': false,
-            'rateLimit': 50,
+            'isSandboxModeEnabled': false, // is testnet api
+            'rateLimit': 50, // 125 requests per minute without api-key (300 with api-key) ~ 2 req/sec = 1 req/500 ms.
             'certified': false,
             'pro': true,
             'dex': true,
@@ -160,7 +160,7 @@ class pacifica extends pacifica$1["default"] {
                         'kline': 12,
                         'kline/mark': 12,
                         'book': 1,
-                        'trades': 1,
+                        'trades': 1, // Recent
                         'funding_rate/history': 1,
                         'account': 1,
                         'account/settings': 1,
@@ -215,7 +215,7 @@ class pacifica extends pacifica$1["default"] {
             'requiredCredentials': {
                 'apiKey': false,
                 'secret': false,
-                'walletAddress': false,
+                'walletAddress': false, // agentAddress, apiKey only in options.
                 'privateKey': true, // base58 solana private key
             },
             'exceptions': {
@@ -249,8 +249,8 @@ class pacifica extends pacifica$1["default"] {
             'options': {
                 'agentAddress': undefined,
                 'apiKey': undefined,
-                'builderCode': 'CCXT',
-                'feeRate': '0.01',
+                'builderCode': 'CCXT', // case sensitive
+                'feeRate': '0.01', // default rate for builder fee approval 0.01%
                 'builderFee': true,
                 'batchOrdersMax': 10,
                 'defaultType': 'swap',
@@ -1000,53 +1000,51 @@ class pacifica extends pacifica$1["default"] {
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, defaultMaxLimit);
         }
-        else {
-            const tf = this.safeString(this.timeframes, timeframe, timeframe);
-            let request = {
-                'symbol': market['id'],
-                'interval': tf,
-                'start_time': since,
-            };
-            [request, params] = this.handleUntilOption('end_time', request, params);
-            const nowMillis = this.milliseconds();
-            let until = this.safeInteger(request, 'end_time');
-            if (until === undefined) {
-                if (limit !== undefined) {
-                    until = since + (limit * (this.parseTimeframe(tf) * 1000)) - 1;
-                }
-                if (until === undefined) {
-                    until = since + (defaultMaxLimit * (this.parseTimeframe(tf) * 1000)) - 1;
-                }
-                if (until > nowMillis) {
-                    until = nowMillis;
-                }
-                request['end_time'] = until;
+        const tf = this.safeString(this.timeframes, timeframe, timeframe);
+        let request = {
+            'symbol': market['id'],
+            'interval': tf,
+            'start_time': since,
+        };
+        [request, params] = this.handleUntilOption('end_time', request, params);
+        const nowMillis = this.milliseconds();
+        let until = this.safeInteger(request, 'end_time');
+        if (until === undefined) {
+            if (limit !== undefined) {
+                until = since + (limit * (this.parseTimeframe(tf) * 1000)) - 1;
             }
-            const response = await this.publicGetKline(this.extend(request, params));
-            //
-            // {
-            //   "success": true,
-            //   "data": [
-            //     {
-            //       "t": 1748954160000,
-            //       "T": 1748954220000,
-            //       "s": "BTC",
-            //       "i": "1m",
-            //       "o": "105376",
-            //       "c": "105376",
-            //       "h": "105376",
-            //       "l": "105376",
-            //       "v": "0.00022",
-            //       "n": 2
-            //     }
-            //   ],
-            //   "error": null,
-            //   "code": null
-            // }
-            //
-            const candles = this.safeList(response, 'data', []);
-            return this.parseOHLCVs(candles, market, timeframe, since, limit);
+            if (until === undefined) {
+                until = since + (defaultMaxLimit * (this.parseTimeframe(tf) * 1000)) - 1;
+            }
+            if (until > nowMillis) {
+                until = nowMillis;
+            }
+            request['end_time'] = until;
         }
+        const response = await this.publicGetKline(this.extend(request, params));
+        //
+        // {
+        //   "success": true,
+        //   "data": [
+        //     {
+        //       "t": 1748954160000,
+        //       "T": 1748954220000,
+        //       "s": "BTC",
+        //       "i": "1m",
+        //       "o": "105376",
+        //       "c": "105376",
+        //       "h": "105376",
+        //       "l": "105376",
+        //       "v": "0.00022",
+        //       "n": 2
+        //     }
+        //   ],
+        //   "error": null,
+        //   "code": null
+        // }
+        //
+        const candles = this.safeList(response, 'data', []);
+        return this.parseOHLCVs(candles, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
         //
@@ -3165,7 +3163,7 @@ class pacifica extends pacifica$1["default"] {
         return costNumber;
     }
     sortJsonKeys(value) {
-        if (typeof value === 'object') {
+        if (this.isDictionary(value)) {
             const result = {};
             const keys = Object.keys(value);
             const sortedKeys = this.sort(keys);
@@ -3199,7 +3197,7 @@ class pacifica extends pacifica$1["default"] {
         const messageBytes = this.encode(message);
         const secretBytes = this.base58ToBinary(privateKey);
         const seed = this.arraySlice(secretBytes, 0, 32);
-        const signatureBase64 = crypto.eddsa(messageBytes, seed, ed25519.ed25519);
+        const signatureBase64 = crypto.eddsa(messageBytes, seed, ed25519_js.ed25519);
         const signatureBinary = this.base64ToBinary(signatureBase64);
         const signatureBase58 = this.binaryToBase58(signatureBinary);
         return signatureBase58;

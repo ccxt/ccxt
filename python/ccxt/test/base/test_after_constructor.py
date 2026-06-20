@@ -117,21 +117,13 @@ def helper_test_properties():
     # options
     #
     assert exchange.options is not None
-    default_network_code_replacements = {
-        'ETH': {
-            'ERC20': 'ETH',
-        },
-        'TRX': {
-            'TRC20': 'TRX',
-        },
-        'CRO': {
-            'CRC20': 'CRONOS',
-        },
-        'BRC20': {
-            'BRC20': 'BTC',
-        },
-    }
-    test_shared_methods.assert_deep_equal(exchange, {}, 'options', exchange.options['defaultNetworkCodeReplacements'], default_network_code_replacements)
+    # const defaultNetworkCodeReplacements = [
+    #     { 'baseCoin': 'ETH', 'primary': 'ETH', 'secondary': 'ERC20' },
+    #     { 'baseCoin': 'CRO', 'primary': 'CRONOS', 'secondary': 'CRC20' },
+    #     { 'baseCoin': 'TRX', 'primary': 'TRX', 'secondary': 'TRC20' },
+    #     { 'baseCoin': 'BTC', 'primary': 'BTC', 'secondary': 'BRC20' },
+    # ];
+    # testSharedMethods.assertDeepEqual (exchange, {}, 'options', exchange.options['defaultNetworkCodeReplacements'], defaultNetworkCodeReplacements);
     #
     # credentials
     #
@@ -286,7 +278,6 @@ def helper_test_properties():
     assert exchange.timeout == 10000, 'timeout should be 10000'
     assert exchange.verbose is False, 'verbose should be false'
     # assert (testSharedMethods.exchangeProp (exchange, 'newUpdates') === true, 'newUpdates should be true'); # todo WS
-    # assert (exchange.requiresEddsa === false);
     assert not test_shared_methods.exchange_prop(exchange, 'reloadingMarkets'), 'reloadingMarkets should be false'
     assert test_shared_methods.exchange_prop(exchange, 'marketsLoading') is None, 'marketsLoading should be undefined'
     # undefined or false

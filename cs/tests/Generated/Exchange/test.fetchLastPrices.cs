@@ -21,7 +21,7 @@ public partial class testMainClass : BaseTest
             response = await exchange.fetchLastPrices(new List<object>() {symbol});
             checkedSymbol = symbol;
         }
-        assert((response is IDictionary<string, object>), add(add(add(add(add(add(exchange.id, " "), method), " "), checkedSymbol), " must return an object. "), exchange.json(response)));
+        assert(exchange.isDictionary(response), add(add(add(add(add(add(exchange.id, " "), method), " "), checkedSymbol), " must return a dict. "), exchange.json(response)));
         object values = new List<object>(((IDictionary<string,object>)response).Values);
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol);
         object atLeastOnePassed = false;

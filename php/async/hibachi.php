@@ -131,7 +131,7 @@ class hibachi extends Exchange {
                 ),
                 'www' => 'https://www.hibachi.xyz/',
                 'referral' => array(
-                    'url' => 'hibachi.xyz/r/ZBL2YFWIHU',
+                    'url' => 'https://hibachi.xyz/r/ZBL2YFWIHU',
                 ),
             ),
             'api' => array(
@@ -769,7 +769,7 @@ class hibachi extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading fee
-             * @param $params extra parameters
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a map of market symbols to ~@link https://docs.ccxt.com/?id=fee-structure fee structures~
              */
             Async\await($this->load_markets());
@@ -841,6 +841,7 @@ class hibachi extends Exchange {
             $priceInternal = Precise::string_div(Precise::string_div(Precise::string_mul(Precise::string_mul($priceStr, $priceFactor), $settlement), $underlying), $one, 0);
             $price16 = $this->int_to_base16($this->parse_to_int($priceInternal));
             $pricePadded = str_pad($price16, 16, '0', STR_PAD_LEFT);
+            // @ts-expect-error
             $encodedPrice = $this->base16_to_binary($pricePadded);
         }
         $message = $this->binary_concat($encodedNonce, $encodedMarketId, $encodedQuantity, $encodedSide, $encodedPrice, $encodedFeeRate);

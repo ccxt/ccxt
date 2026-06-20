@@ -2357,6 +2357,16 @@ func  (this *BitmartCore) HandleErrorMessage(client any, message any) any  {
     //
     var errorCode any = this.SafeString(message, "errorCode")
     var error any = this.SafeString(message, "error")
+    // Duplicate-subscription notice errorCode 90008: bitmart's WS rejects
+    // a re-subscribe attempt on a topic that's already active on this
+    // connection, but the original subscription keeps delivering data —
+    // so treat it as benign. Without this short-circuit, the generic
+    // client.reject below kills every unrelated in-flight future —
+    // e.g. a watchOHLCV waiting on its kline subscription gets rejected
+    // by an orderbook 90008 raised on the same socket.
+    if ccxt.IsTrue(ccxt.IsEqual(errorCode, "90008")) {
+        return false
+    }
     
         {
             ret__ := func(this *BitmartCore) (ret_ any) {
@@ -2598,6 +2608,15 @@ func  (this *BitmartCore) HandleMessage(client any, message any)  {
         }
         if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(channel, "fundingRate"), 0)) {
             this.HandleFundingRate(client, message)
+            return
+        }
+        // 'ticker' is a substring of 'bookTicker', so a bookTicker channel could
+        // be wrongly captured by (or double-dispatched with) the 'ticker' key in a
+        // first-match loop (in Go map iteration order is randomized). Check the
+        // bookTicker prefix explicitly, then fall back to a simple first-match.
+        if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(channel, "bookTicker"), 0)) {
+            this.HandleBidAsk(client, message)
+            return
         }
         var keys any = ccxt.ObjectKeys(methods)
         for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(keys)); i++ {
@@ -2605,6 +2624,7 @@ func  (this *BitmartCore) HandleMessage(client any, message any)  {
             if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(channel, key), 0)) {
                 var method any = this.SafeValue(methods, key)
                 ccxt.CallDynamically(method, client, message)
+                return
             }
         }
     }

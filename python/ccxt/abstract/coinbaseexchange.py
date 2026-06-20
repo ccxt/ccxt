@@ -68,6 +68,7 @@ class ImplicitAPI:
     private_post_funding_repay = privatePostFundingRepay = Entry('funding/repay', 'private', 'POST', {})
     private_post_orders = privatePostOrders = Entry('orders', 'private', 'POST', {})
     private_post_position_close = privatePostPositionClose = Entry('position/close', 'private', 'POST', {})
+    private_post_profiles = privatePostProfiles = Entry('profiles', 'private', 'POST', {})
     private_post_profiles_margin_transfer = privatePostProfilesMarginTransfer = Entry('profiles/margin-transfer', 'private', 'POST', {})
     private_post_profiles_transfer = privatePostProfilesTransfer = Entry('profiles/transfer', 'private', 'POST', {})
     private_post_reports = privatePostReports = Entry('reports', 'private', 'POST', {})
@@ -81,3 +82,5 @@ class ImplicitAPI:
     private_delete_orders = privateDeleteOrders = Entry('orders', 'private', 'DELETE', {})
     private_delete_orders_client_client_oid = privateDeleteOrdersClientClientOid = Entry('orders/client:{client_oid}', 'private', 'DELETE', {})
     private_delete_orders_id = privateDeleteOrdersId = Entry('orders/{id}', 'private', 'DELETE', {})
+    private_put_profiles_id_deactivate = privatePutProfilesIdDeactivate = Entry('profiles/{id}/deactivate', 'private', 'PUT', {})
+    private_put_profiles_id = privatePutProfilesId = Entry('profiles/{id}', 'private', 'PUT', {})

@@ -1,13 +1,13 @@
 //  ---------------------------------------------------------------------------
 
+import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
+import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/aster.js';
 import { AccountNotEnabled, AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSymbol, DuplicateOrderId, ExchangeClosedByUser, ExchangeError, InsufficientFunds, InvalidNonce, InvalidOrder, MarketClosed, NetworkError, NoChange, NotSupported, OperationFailed, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
 import type { Balances, Currencies, Currency, Dict, FundingRate, FundingRates, int, Int, LastPrices, LedgerEntry, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
-import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
-import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 
 //  ---------------------------------------------------------------------------xs
 /**
@@ -660,16 +660,8 @@ export default class aster extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies (params = {}): Promise<Currencies> {
-        const promises = [
-            this.sapiPublicGetV3ExchangeInfo (params),
-            this.fapiPublicGetV3ExchangeInfo (params),
-        ];
-        const results = await Promise.all (promises);
-        const sapiResult = this.safeDict (results, 0, {});
+        const sapiResult = await this.sapiPublicGetV3ExchangeInfo (params);
         const sapiRows = this.safeList (sapiResult, 'assets', []);
-        const fapiResult = this.safeDict (results, 1, {});
-        const fapiRows = this.safeList (fapiResult, 'assets', []);
-        const rows = this.arrayConcat (sapiRows, fapiRows);
         //
         //     [
         //         {
@@ -679,40 +671,40 @@ export default class aster extends Exchange {
         //         }
         //     ]
         //
-        const result: Dict = {};
-        for (let i = 0; i < rows.length; i++) {
-            const currency = rows[i];
-            const currencyId = this.safeString (currency, 'asset');
-            const code = this.safeCurrencyCode (currencyId);
-            result[code] = this.safeCurrencyStructure ({
-                'info': currency,
-                'code': code,
-                'id': currencyId,
-                'name': code,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'precision': undefined,
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
+        return this.parseCurrencies (sapiRows);
+    }
+
+    parseCurrency (rawCurrency: Dict): Currency {
+        const currencyId = this.safeString (rawCurrency, 'asset');
+        const code = this.safeCurrencyCode (currencyId);
+        return this.safeCurrencyStructure ({
+            'info': rawCurrency,
+            'code': code,
+            'id': currencyId,
+            'name': code,
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'precision': undefined,
+            'margin': this.safeBool (rawCurrency, 'marginAvailable'),
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'networks': undefined,
-                'type': 'crypto', // atm exchange api provides only cryptos
-            });
-        }
-        return result;
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': undefined,
+            'type': 'crypto', // atm exchange api provides only cryptos
+        });
     }
 
     /**
@@ -829,7 +821,15 @@ export default class aster extends Exchange {
         //     ]
         //
         //
-        const rows = this.arrayConcat (sapiRows, fapiRows);
+        const fapiRowsFiltered = [];
+        for (let i = 0; i < fapiRows.length; i++) {
+            const market = fapiRows[i];
+            // tmp skip some markets with base = undefined
+            if (this.safeString (market, 'baseAsset')) {
+                fapiRowsFiltered.push (market);
+            }
+        }
+        const rows = this.arrayConcat (sapiRows, fapiRowsFiltered);
         return this.parseMarkets (rows);
     }
 
@@ -1397,8 +1397,7 @@ export default class aster extends Exchange {
         const timestamp = this.safeInteger (ticker, 'closeTime');
         const last = this.safeString (ticker, 'lastPrice');
         const open = this.safeString (ticker, 'openPrice');
-        let percentage = this.safeString (ticker, 'priceChangePercent');
-        percentage = Precise.stringMul (percentage, '100');
+        const percentage = this.safeString (ticker, 'priceChangePercent');
         const quoteVolume = this.safeString (ticker, 'quoteVolume');
         const baseVolume = this.safeString (ticker, 'volume');
         const high = this.safeString (ticker, 'highPrice');
@@ -2132,8 +2131,10 @@ export default class aster extends Exchange {
         //        }
         //
         const info = order;
+        const positionSide = this.safeString (order, 'positionSide');
+        const defaultType = (positionSide !== undefined) ? 'swap' : 'spot';
         const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket (marketId, market);
+        market = this.safeMarket (marketId, market, undefined, defaultType);
         const side = this.safeStringLower (order, 'side');
         const timestamp = this.safeInteger (order, 'time');
         const statusId = this.safeStringUpper (order, 'status');
@@ -3063,7 +3064,7 @@ export default class aster extends Exchange {
         //     }
         //
         const marketId = this.safeString (marginMode, 'symbol');
-        market = this.safeMarket (marketId, market);
+        market = this.safeMarket (marketId, market, undefined, 'swap');
         return {
             'info': marginMode,
             'symbol': market['symbol'],
@@ -4129,7 +4130,8 @@ export default class aster extends Exchange {
             // Sign using EIP-712 typed data per the AsterSignTransaction spec
             const zeroAddress = this.safeString (this.options, 'zeroAddress', '0x0000000000000000000000000000000000000000');
             const v3ChainId = this.safeInteger (this.options, 'v3ChainId', 1666);
-            const signerAddress = this.safeString (this.options, 'signerAddress');
+            const walletAddress = this.ethGetAddressFromPrivateKey (this.privateKey);
+            const signerAddress = this.safeString (this.options, 'signerAddress', walletAddress); // default to user's wallet
             if (signerAddress === undefined) {
                 throw new ArgumentsRequired (this.id + ' requires signerAddress in options when use v3 api');
             }
@@ -4148,7 +4150,7 @@ export default class aster extends Exchange {
             // Note: timestamp and recvWindow are not used for v3; nonce replaces timestamp
             const finalParams = this.extend ({
                 'nonce': nonce.toString (),
-                'user': this.walletAddress,
+                'user': walletAddress,
                 'signer': signerAddress,
             }, params);
             let paramString: Str = undefined;

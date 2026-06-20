@@ -1,8 +1,5 @@
-- [Async Balances](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import asyncio
 import os
@@ -17,20 +14,20 @@ async def test(exchange):
     await exchange.close()
 
 
-kraken = ccxt.kraken({
-    'apiKey': "YOUR_API_KEY",
-    'secret': "YOUR_SECRET",
-    'verbose': True,  # switch it to False if you don't want the HTTP log
-})
-bitfinex = ccxt.bitfinex({
-    'apiKey': "YOUR_API_KEY",
-    'secret': "YOUR_SECRET",
-    'verbose': True,  # switch it to False if you don't want the HTTP log
-})
+async def main():
+    kraken = ccxt.kraken({
+        'apiKey': "YOUR_API_KEY",
+        'secret': "YOUR_SECRET",
+        'verbose': True,  # switch it to False if you don't want the HTTP log
+    })
+    bitfinex = ccxt.bitfinex({
+        'apiKey': "YOUR_API_KEY",
+        'secret': "YOUR_SECRET",
+        'verbose': True,  # switch it to False if you don't want the HTTP log
+    })
+    await asyncio.gather(*[test(exchange) for exchange in [kraken, bitfinex]])
 
-[asyncio.ensure_future(test(exchange)) for exchange in [kraken, bitfinex]]
-pending = asyncio.Task.all_tasks()
-loop = asyncio.get_event_loop()
-loop.run_until_complete(asyncio.gather(*pending))
- 
+
+asyncio.run(main())
+
 ```

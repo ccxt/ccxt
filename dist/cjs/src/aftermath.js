@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var ed25519_js = require('@noble/curves/ed25519.js');
 var aftermath$1 = require('./abstract/aftermath.js');
 var number = require('./base/functions/number.js');
 var crypto = require('./base/functions/crypto.js');
-var ed25519 = require('./static_dependencies/noble-curves/ed25519.js');
 var errors = require('./base/errors.js');
 
 // ----------------------------------------------------------------------------
@@ -16,7 +16,7 @@ class aftermath extends aftermath$1["default"] {
             'name': 'AftermathFinance',
             'countries': [],
             'version': 'v1',
-            'rateLimit': 50,
+            'rateLimit': 50, // 1200 requests per minute, 20 request per second
             'certified': false,
             'pro': true,
             'dex': true,
@@ -822,7 +822,8 @@ class aftermath extends aftermath$1["default"] {
         let account = undefined;
         [account, params] = this.handleOptionAndParams(params, 'createOrder', 'account');
         const order = this.parseCreateEditOrderArgs(undefined, symbol, type, side, amount, price, params);
-        const orders = await this.createOrders([order], { 'account': account });
+        const accountObj = { 'account': account };
+        const orders = await this.createOrders([order], accountObj);
         return orders[0];
     }
     /**
@@ -1181,10 +1182,14 @@ class aftermath extends aftermath$1["default"] {
         //     "collateral": 39.0
         // }
         //
-        return this.extend(this.parseTransaction(response, currency), {
-            'addressFrom': account,
-            'amount': amount,
-        });
+        const parsedTx = this.parseTransaction(response, currency);
+        parsedTx['addressFrom '] = account;
+        parsedTx['amount'] = amount;
+        return parsedTx;
+        // return this.extend (, {
+        //     'addressFrom': account,
+        //     'amount': amount,
+        // });
     }
     parseTransaction(transaction, currency = undefined) {
         return {
@@ -1278,7 +1283,7 @@ class aftermath extends aftermath$1["default"] {
         const signingDigest = this.safeString(tx, 'signingDigest');
         const digest = this.base64ToBinary(signingDigest);
         const privateKey = this.base16ToBinary(this.privateKey);
-        const signature = crypto.eddsa(digest, privateKey, ed25519.ed25519);
+        const signature = crypto.eddsa(digest, privateKey, ed25519_js.ed25519);
         const hexPublicKey = this.safeString(this.options, 'publicKey');
         if (hexPublicKey === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' requires hex encoding public key in options');

@@ -859,7 +859,7 @@ class weex(ccxt.async_support.weex):
         client.resolve(orderbook, messageHash)
 
     def handle_delta(self, bookside, delta):
-        bidAsk = self.parse_bid_ask(delta)
+        bidAsk = self.parse_order_book_bid_ask(delta)
         bookside.storeArray(bidAsk)
 
     async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
@@ -1263,12 +1263,10 @@ class weex(ccxt.async_support.weex):
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)
         orders = self.orders
-        newOrders = []
         for i in range(0, len(data)):
             rawOrder = self.safe_dict(data, i, {})
             parsed = self.parse_ws_order(rawOrder)
             orders.append(parsed)
-            newOrders.append(parsed)
             symbol = parsed['symbol']
             symbols[symbol] = True
         messageHash = 'orders'
@@ -1279,8 +1277,8 @@ class weex(ccxt.async_support.weex):
         for i in range(0, len(symbolKeys)):
             symbol = symbolKeys[i]
             symbolMessageHash = messageHash + '::' + symbol
-            client.resolve(newOrders, symbolMessageHash)
-        client.resolve(newOrders, messageHash)
+            client.resolve(orders, symbolMessageHash)
+        client.resolve(self.orders, messageHash)
 
     def parse_ws_order(self, order, market=None):
         #
@@ -1688,7 +1686,7 @@ class weex(ccxt.async_support.weex):
         data = self.safe_list(message, 'd', [])
         for i in range(0, len(data)):
             rawPosition = self.safe_dict(data, i, {})
-            position = self.parse_position(rawPosition)
+            position = self.parse_ws_position(rawPosition)
             cache.append(position)
             newPositions.append(position)
         messageHashes = self.find_message_hashes(client, 'positions::')
@@ -1701,6 +1699,10 @@ class weex(ccxt.async_support.weex):
             if not self.is_empty(positions):
                 client.resolve(positions, messageHash)
         client.resolve(newPositions, 'positions')
+
+    def parse_ws_position(self, position, market=None):
+        # same api
+        return self.parse_position(position, market)
 
     def get_market_from_client_and_message(self, client: Client, message):
         url = client.url

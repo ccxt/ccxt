@@ -35,12 +35,12 @@ class grvt extends grvt$1["default"] {
             },
             'options': {
                 'watchOrderBookForSymbols': {
-                    'depth': 100,
-                    'interval': 500,
+                    'depth': 100, // 5, 10, 20, 50, 100
+                    'interval': 500, // 100, 200, 500, 1000
                     'channel': 'v1.book.s', // v1.book.s | v1.book.d
                 },
                 'watchTickers': {
-                    'channel': 'v1.ticker.s',
+                    'channel': 'v1.ticker.s', // v1.ticker.s | v1.ticker.d | v1.mini.s | v1.mini.d
                     'interval': 500, // raw, 50, 100, 200, 500, 1000, 5000
                 },
             },
@@ -578,6 +578,14 @@ class grvt extends grvt$1["default"] {
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601(timestamp);
         }
+        // grvt defaults to the delta channel (v1.book.d); if the very first
+        // message is a delta, the freshly-created orderbook has symbol=null
+        // because no snapshot has reset it yet. Set it unconditionally — we
+        // know the symbol from the selector regardless of channel. Java's
+        // typed WsOrderBook surfaces this as `"symbol":null` in the output;
+        // Python/JS dict-backed orderbooks happen to mask it but the
+        // unconditional assignment is correct for every language.
+        orderbook['symbol'] = symbol;
         orderbook['nonce'] = sequenceNumber;
         const messageHash = 'orderbook::' + symbol;
         this.orderbooks[symbol] = orderbook;

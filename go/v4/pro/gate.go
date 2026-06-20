@@ -91,16 +91,16 @@ func  (this *GateCore) Describe() any  {
             },
             "test": map[string]any {
                 "swap": map[string]any {
-                    "usdt": "wss://fx-ws-testnet.gateio.ws/v4/ws/usdt",
+                    "usdt": "wss://ws-testnet.gate.com/v4/ws/futures/usdt",
                     "btc": "wss://fx-ws-testnet.gateio.ws/v4/ws/btc",
                 },
                 "future": map[string]any {
-                    "usdt": "wss://fx-ws-testnet.gateio.ws/v4/ws/usdt",
-                    "btc": "wss://fx-ws-testnet.gateio.ws/v4/ws/btc",
+                    "usdt": "wss://fx-ws-testnet.gateio.ws/v4/ws/delivery/usdt",
+                    "btc": "wss://fx-ws-testnet.gateio.ws/v4/ws/delivery/btc",
                 },
                 "option": map[string]any {
-                    "usdt": "wss://op-ws-testnet.gateio.live/v4/ws/usdt",
-                    "btc": "wss://op-ws-testnet.gateio.live/v4/ws/btc",
+                    "usdt": "wss://ws-testnet.gate.com/v4/ws/options/usdt",
+                    "btc": "wss://ws-testnet.gate.com/v4/ws/options/btc",
                 },
             },
         },
@@ -863,7 +863,7 @@ func  (this *GateCore) HandleBidAsks(bookSide any, bidAsks any)  {
     for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(bidAsks)); i++ {
         var bidAsk any = ccxt.GetValue(bidAsks, i)
         if ccxt.IsTrue(ccxt.IsArray(bidAsk)) {
-            bookSide.(ccxt.IOrderBookSide).StoreArray(this.ParseBidAsk(bidAsk))
+            bookSide.(ccxt.IOrderBookSide).StoreArray(this.ParseOrderBookBidAsk(bidAsk))
         } else {
             var price any = this.SafeFloat(bidAsk, "p")
             var amount any = this.SafeFloat(bidAsk, "s")

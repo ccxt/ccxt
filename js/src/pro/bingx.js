@@ -18,13 +18,13 @@ export default class bingx extends bingxRest {
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
                 'watchOrderBook': true,
-                'watchOrderBookForSymbols': false,
+                'watchOrderBookForSymbols': false, // no longer supported
                 'watchOHLCV': true,
-                'watchOHLCVForSymbols': false,
+                'watchOHLCVForSymbols': false, // no longer supported
                 'watchOrders': true,
                 'watchMyTrades': true,
                 'watchTicker': true,
-                'watchTickers': false,
+                'watchTickers': false, // no longer supported
                 'watchBalance': true,
                 'watchPositions': true,
                 'unWatchOHLCV': true,
@@ -47,7 +47,7 @@ export default class bingx extends bingxRest {
                 },
             },
             'options': {
-                'listenKeyRefreshRate': 3540000,
+                'listenKeyRefreshRate': 3540000, // 1 hour (59 mins so we have 1 min to renew the token)
                 'ws': {
                     'gunzip': true,
                 },
@@ -80,7 +80,7 @@ export default class bingx extends bingxRest {
                     },
                 },
                 'watchBalance': {
-                    'fetchBalanceSnapshot': true,
+                    'fetchBalanceSnapshot': true, // needed to be true to keep track of used and free balance
                     'awaitBalanceSnapshot': true, // whether to wait for the balance snapshot before providing updates
                 },
                 'watchPositions': {
@@ -697,7 +697,9 @@ export default class bingx extends bingxRest {
             // const limit = [ 5, 10, 20, 50, 100 ]
             const subscriptionHash = dataType;
             const subscription = client.subscriptions[subscriptionHash];
-            const limit = this.safeInteger(subscription, 'limit');
+            // see handleOHLCV — subscription.limit may be missing for non-orderbook callers;
+            // default to a reasonable depth instead of throwing NPE in the Java port.
+            const limit = this.safeInteger(subscription, 'limit', 100);
             this.orderbooks[symbol] = this.orderBook({}, limit);
         }
         orderbook = this.orderbooks[symbol];
@@ -843,7 +845,10 @@ export default class bingx extends bingxRest {
         if (this.safeValue(this.ohlcvs[symbol], rawTimeframe) === undefined) {
             const subscriptionHash = dataType;
             const subscription = client.subscriptions[subscriptionHash];
-            const limit = this.safeInteger(subscription, 'limit');
+            // subscription.limit is only set when watchOHLCV registers the subscription;
+            // when handleMessage routes a non-OHLCV-originated subscription here (or the
+            // subscription dict was reset on reconnect), fall back to the OHLCVLimit option.
+            const limit = this.safeInteger(subscription, 'limit', this.safeInteger(this.options, 'OHLCVLimit', 1000));
             this.ohlcvs[symbol][unifiedTimeframe] = new ArrayCacheByTimestamp(limit);
         }
         const stored = this.ohlcvs[symbol][unifiedTimeframe];

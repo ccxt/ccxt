@@ -925,7 +925,7 @@ func  (this *XtCore) LoadPositionsSnapshot(client any, messageHash any) <- chan 
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
                 
-            positions:= (<-this.FetchPositions(nil))
+            positions:= (<-this.FetchPositions())
             ccxt.PanicOnError(positions)
             this.Positions = ccxt.NewArrayCacheBySymbolBySide()
             var cache any = this.Positions

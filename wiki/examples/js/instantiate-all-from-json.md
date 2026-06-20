@@ -1,8 +1,5 @@
-- [Instantiate All From Json](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 
 import ccxt from '../../js/ccxt.js';
 import settings from './credentials.json';
@@ -33,5 +30,5 @@ async function test () {
 }
 
 test ()
- 
+
 ```

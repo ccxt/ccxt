@@ -452,7 +452,6 @@ class bitrue extends Exchange {
                     'XML' => 'Stellar Lumens',
                     'XYM' => 'Symbol',
                     'XTZ' => 'Tezos',
-                    'theta' => 'theta',
                     'THETA' => 'THETA',
                     'VECHAIN' => 'VeChain',
                     'WANCHAIN' => 'Wanchain',
@@ -603,6 +602,7 @@ class bitrue extends Exchange {
                     "You don't have permission." => '\\ccxt\\PermissionDenied', // array("msg":"You don't have permission.","success":false)
                     'Market is closed.' => '\\ccxt\\ExchangeNotAvailable', // array("code":-1013,"msg":"Market is closed.")
                     'Too many requests. Please try again later.' => '\\ccxt\\DDoSProtection', // array("msg":"Too many requests. Please try again later.","success":false)
+                    'quantity less then minQty' => '\\ccxt\\InvalidOrder', // array("code":-1111,"msg":"quantity less then minQty.","data":null)
                     '-1000' => '\\ccxt\\ExchangeNotAvailable', // array("code":-1000,"msg":"An unknown error occured while processing the request.")
                     '-1001' => '\\ccxt\\ExchangeNotAvailable', // 'Internal error; unable to process your request. Please try again.'
                     '-1002' => '\\ccxt\\AuthenticationError', // 'You are not authorized to execute this request.'
@@ -775,59 +775,58 @@ class bitrue extends Exchange {
             //         ),
             //     }
             //
-            $result = array();
             $coins = $this->safe_list($response, 'coins', array());
-            for ($i = 0; $i < count($coins); $i++) {
-                $currency = $coins[$i];
-                $id = $this->safe_string($currency, 'coin');
-                $name = $this->safe_string($currency, 'coinFulName');
-                $code = $this->safe_currency_code($id);
-                $networkDetails = $this->safe_list($currency, 'chainDetail', array());
-                $networks = array();
-                for ($j = 0; $j < count($networkDetails); $j++) {
-                    $entry = $networkDetails[$j];
-                    $networkId = $this->safe_string($entry, 'chain');
-                    $network = $this->network_id_to_code($networkId, $code);
-                    $networks[$network] = array(
-                        'info' => $entry,
-                        'id' => $networkId,
-                        'network' => $network,
-                        'deposit' => $this->safe_bool($entry, 'enableDeposit'),
-                        'withdraw' => $this->safe_bool($entry, 'enableWithdraw'),
-                        'active' => null,
-                        'fee' => $this->safe_number($entry, 'withdrawFee'),
-                        'precision' => null,
-                        'limits' => array(
-                            'withdraw' => array(
-                                'min' => $this->safe_number($entry, 'minWithdraw'),
-                                'max' => $this->safe_number($entry, 'maxWithdraw'),
-                            ),
-                        ),
-                    );
-                }
-                $result[$code] = $this->safe_currency_structure(array(
-                    'id' => $id,
-                    'name' => $name,
-                    'code' => $code,
-                    'precision' => null,
-                    'info' => $currency,
-                    'active' => null,
-                    'deposit' => null,
-                    'withdraw' => null,
-                    'networks' => $networks,
-                    'fee' => null,
-                    'fees' => null,
-                    'type' => 'crypto',
-                    'limits' => array(
-                        'withdraw' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                ));
-            }
-            return $result;
+            return $this->parse_currencies($coins);
         }) ();
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $id = $this->safe_string($rawCurrency, 'coin');
+        $name = $this->safe_string($rawCurrency, 'coinFulName');
+        $code = $this->safe_currency_code($id);
+        $networkDetails = $this->safe_list($rawCurrency, 'chainDetail', array());
+        $networks = array();
+        for ($j = 0; $j < count($networkDetails); $j++) {
+            $entry = $networkDetails[$j];
+            $networkId = $this->safe_string($entry, 'chain');
+            $network = $this->network_id_to_code($networkId, $code);
+            $networks[$network] = array(
+                'info' => $entry,
+                'id' => $networkId,
+                'network' => $network,
+                'deposit' => $this->safe_bool($entry, 'enableDeposit'),
+                'withdraw' => $this->safe_bool($entry, 'enableWithdraw'),
+                'active' => null,
+                'fee' => $this->safe_number($entry, 'withdrawFee'),
+                'precision' => null,
+                'limits' => array(
+                    'withdraw' => array(
+                        'min' => $this->safe_number($entry, 'minWithdraw'),
+                        'max' => $this->safe_number($entry, 'maxWithdraw'),
+                    ),
+                ),
+            );
+        }
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'name' => $name,
+            'code' => $code,
+            'precision' => null,
+            'info' => $rawCurrency,
+            'active' => null,
+            'deposit' => null,
+            'withdraw' => null,
+            'networks' => $networks,
+            'fee' => null,
+            'fees' => null,
+            'type' => 'crypto',
+            'limits' => array(
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+        ));
     }
 
     public function fetch_markets($params = array ()): PromiseInterface {
@@ -996,6 +995,7 @@ class bitrue extends Exchange {
         if ($minCost === null) {
             $minCost = $this->safe_number($market, 'minOrderMoney');
         }
+        $isSpot = ($type === 'spot');
         return array(
             'id' => $id,
             'lowercaseId' => $lowercaseId,
@@ -1007,7 +1007,7 @@ class bitrue extends Exchange {
             'quoteId' => $quoteId,
             'settleId' => $settleId,
             'type' => $type,
-            'spot' => ($type === 'spot'),
+            'spot' => $isSpot,
             'margin' => false,
             'swap' => $isContract,
             'future' => false,
@@ -2933,7 +2933,7 @@ class bitrue extends Exchange {
             $networkCode = null;
             list($networkCode, $params) = $this->handle_network_code_and_params($params);
             if ($networkCode !== null) {
-                $request['chainName'] = $this->network_code_to_id($networkCode);
+                $request['chainName'] = $this->network_code_to_id($networkCode, $currency['code']);
             }
             if ($tag !== null) {
                 $request['tag'] = $tag;

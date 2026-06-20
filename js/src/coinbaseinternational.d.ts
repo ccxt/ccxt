@@ -7,7 +7,7 @@ import type { Int, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction,
 export default class coinbaseinternational extends Exchange {
     describe(): any;
     handlePortfolioAndParams(methodName: string, params?: {}): Promise<any[]>;
-    handleNetworkIdAndParams(currencyCode: string, methodName: string, params: any): Promise<any[]>;
+    handleNetworkIdAndParams(currencyCode: string, methodName: string, params?: {}): Promise<any[]>;
     /**
      * @method
      * @name coinbaseinternational#fetchAccounts
@@ -158,7 +158,7 @@ export default class coinbaseinternational extends Exchange {
     setMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     /**
      * @method
-     * @name exchange#fetchDepositsWithdrawals
+     * @name coinbaseinternational#fetchDepositsWithdrawals
      * @description fetch history of deposits and withdrawals
      * @see https://docs.cloud.coinbase.com/intx/reference/gettransfers
      * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
@@ -412,27 +412,6 @@ export default class coinbaseinternational extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
-    safeNetwork(network: any): {
-        info: any;
-        id: string;
-        name: string;
-        network: string;
-        active: boolean;
-        deposit: boolean;
-        withdraw: boolean;
-        fee: number;
-        precision: number;
-        limits: {
-            withdraw: {
-                min: number;
-                max: number;
-            };
-            deposit: {
-                min: number;
-                max: number;
-            };
-        };
-    };
     sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

@@ -642,7 +642,7 @@ class bydfi(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         if limit is not None:
-            request['limit'] = limit
+            request['limit'] = min(limit, 1000)
         response = await self.publicGetV1FapiMarketTrades(self.extend(request, params))
         #
         #     {
@@ -2726,7 +2726,7 @@ class bydfi(Exchange, ImplicitAPI):
             'txid': self.safe_string(transaction, 'txId'),
             'type': None,
             'currency': code,
-            'network': self.network_id_to_code(self.safe_string(transaction, 'network')),
+            'network': self.network_id_to_code(self.safe_string(transaction, 'network'), code),
             'amount': self.safe_number(transaction, 'amount'),
             'status': self.parse_transaction_status(rawStatus),
             'timestamp': timestamp,

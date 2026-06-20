@@ -100,9 +100,9 @@ func  (this *KrakenfuturesCore) Authenticate(optionalArgs ...any) <- chan any {
                 this.Watch(url, messageHash, message, messageHash)
             }
         
-                retRes9115 := <- future.(*ccxt.Future).Await()
-                ccxt.PanicOnError(retRes9115)
-                ch <- retRes9115
+                retRes9015 := <- future.(*ccxt.Future).Await()
+                ccxt.PanicOnError(retRes9015)
+                ch <- retRes9015
                 return nil
         
             }()
@@ -156,8 +156,8 @@ func  (this *KrakenfuturesCore) SubscribePublic(name any, symbols any, optionalA
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
-            retRes1198 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes1198)
+            retRes1188 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes1188)
             var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
             var subscribe any = map[string]any {
                 "event": "subscribe",
@@ -180,9 +180,9 @@ func  (this *KrakenfuturesCore) SubscribePublic(name any, symbols any, optionalA
             ccxt.AddElementToObject(subscribe, "product_ids", marketIds)
             var request any = this.Extend(subscribe, params)
         
-                retRes14115 :=  (<-this.Watch(url, messageHash, request, messageHash))
-                ccxt.PanicOnError(retRes14115)
-                ch <- retRes14115
+                retRes14015 :=  (<-this.Watch(url, messageHash, request, messageHash))
+                ccxt.PanicOnError(retRes14015)
+                ch <- retRes14015
                 return nil
         
             }()
@@ -205,11 +205,11 @@ func  (this *KrakenfuturesCore) SubscribePrivate(name any, messageHash any, opti
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
-            retRes1548 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes1548)
+            retRes1538 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes1538)
         
-            retRes1558 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes1558)
+            retRes1548 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes1548)
             var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
             var subscribe any = map[string]any {
                 "event": "subscribe",
@@ -220,9 +220,9 @@ func  (this *KrakenfuturesCore) SubscribePrivate(name any, messageHash any, opti
             }
             var request any = this.Extend(subscribe, params)
         
-                retRes16515 :=  (<-this.Watch(url, messageHash, request, messageHash))
-                ccxt.PanicOnError(retRes16515)
-                ch <- retRes16515
+                retRes16415 :=  (<-this.Watch(url, messageHash, request, messageHash))
+                ccxt.PanicOnError(retRes16415)
+                ch <- retRes16415
                 return nil
         
             }()
@@ -245,8 +245,8 @@ func  (this *KrakenfuturesCore) WatchTicker(symbol any, optionalArgs ...any) <- 
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
-            retRes1788 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes1788)
+            retRes1778 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes1778)
             symbol = this.Symbol(symbol)
         
             tickers:= (<-this.WatchTickers([]any{symbol}, params))
@@ -277,8 +277,8 @@ func  (this *KrakenfuturesCore) WatchTickers(optionalArgs ...any) <- chan any {
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-            retRes1948 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes1948)
+            retRes1938 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes1938)
             symbols = this.MarketSymbols(symbols, nil, false)
         
             ticker:= (<-this.WatchMultiHelper("ticker", "ticker", symbols, nil, params))
@@ -355,9 +355,9 @@ func  (this *KrakenfuturesCore) WatchTrades(symbol any, optionalArgs ...any) <- 
             params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
         
-                retRes23615 :=  (<-this.WatchTradesForSymbols([]any{symbol}, since, limit, params))
-                ccxt.PanicOnError(retRes23615)
-                ch <- retRes23615
+                retRes23515 :=  (<-this.WatchTradesForSymbols([]any{symbol}, since, limit, params))
+                ccxt.PanicOnError(retRes23515)
+                ch <- retRes23515
                 return nil
         
             }()
@@ -420,9 +420,9 @@ func  (this *KrakenfuturesCore) WatchOrderBook(symbol any, optionalArgs ...any) 
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-                retRes27115 :=  (<-this.WatchOrderBookForSymbols([]any{symbol}, limit, params))
-                ccxt.PanicOnError(retRes27115)
-                ch <- retRes27115
+                retRes27015 :=  (<-this.WatchOrderBookForSymbols([]any{symbol}, limit, params))
+                ccxt.PanicOnError(retRes27015)
+                ch <- retRes27015
                 return nil
         
             }()
@@ -433,10 +433,10 @@ func  (this *KrakenfuturesCore) WatchOrderBook(symbol any, optionalArgs ...any) 
  * @name krakenfutures#watchPositions
  * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-open-positions
  * @description watch all open positions
- * @param {string[]|undefined} symbols list of unified market symbols
- * @param since
- * @param limit
- * @param {object} params extra parameters specific to the exchange API endpoint
+ * @param {string[]} [symbols] list of unified market symbols
+ * @param {int} [since] timestamp in ms of the earliest position to fetch
+ * @param {int} [limit] the maximum number of positions to fetch
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
  */
 func  (this *KrakenfuturesCore) WatchPositions(optionalArgs ...any) <- chan any {
@@ -453,8 +453,8 @@ func  (this *KrakenfuturesCore) WatchPositions(optionalArgs ...any) <- chan any 
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
         
-            retRes2868 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2868)
+            retRes2858 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes2858)
             var messageHash any = ""
             symbols = this.MarketSymbols(symbols)
             if !ccxt.IsTrue(this.IsEmpty(symbols)) {
@@ -613,8 +613,8 @@ func  (this *KrakenfuturesCore) WatchOrders(optionalArgs ...any) <- chan any {
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
         
-            retRes4248 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes4248)
+            retRes4238 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes4238)
             var name any = "open_orders"
             var messageHash any = "orders"
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
@@ -659,8 +659,8 @@ func  (this *KrakenfuturesCore) WatchMyTrades(optionalArgs ...any) <- chan any {
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
         
-            retRes4508 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes4508)
+            retRes4498 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes4498)
             var name any = "fills"
             var messageHash any = "myTrades"
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
@@ -697,8 +697,8 @@ func  (this *KrakenfuturesCore) WatchBalance(optionalArgs ...any) <- chan any {
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
-            retRes4748 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes4748)
+            retRes4738 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes4738)
             var name any = "balances"
             var messageHash any = name
             var account any = nil
@@ -712,9 +712,9 @@ func  (this *KrakenfuturesCore) WatchBalance(optionalArgs ...any) <- chan any {
                 messageHash = ccxt.Add(messageHash, ccxt.Add(":", account))
             }
         
-                retRes48515 :=  (<-this.SubscribePrivate(name, messageHash, params))
-                ccxt.PanicOnError(retRes48515)
-                ch <- retRes48515
+                retRes48415 :=  (<-this.SubscribePrivate(name, messageHash, params))
+                ccxt.PanicOnError(retRes48415)
+                ch <- retRes48415
                 return nil
         
             }()
@@ -798,6 +798,21 @@ func  (this *KrakenfuturesCore) ParseWsTrade(trade any, optionalArgs ...any) any
     //        "price": 34893
     //    }
     //
+    // order update
+    //     {
+    //         "instrument": "PF_DOGEUSD",
+    //         "time": 1778610421471,
+    //         "last_update_time": 1778610444402,
+    //         "qty": 0,
+    //         "filled": 10,
+    //         "limit_price": 0.10912,
+    //         "stop_price": 0,
+    //         "type": "limit",
+    //         "order_id": "a1c3803c-8f3d-4317-a085-8d06e11b1d36",
+    //         "direction": 0,
+    //         "reduce_only": false
+    //     }
+    //
     market := ccxt.GetArg(optionalArgs, 0, nil)
     _ = market
     var marketId any = this.SafeString(trade, "product_id")
@@ -813,8 +828,8 @@ func  (this *KrakenfuturesCore) ParseWsTrade(trade any, optionalArgs ...any) any
         "type": this.SafeString(trade, "type"),
         "side": this.SafeString(trade, "side"),
         "takerOrMaker": "taker",
-        "price": this.SafeString(trade, "price"),
-        "amount": this.SafeString(trade, "qty"),
+        "price": this.SafeString2(trade, "price", "limit_price"),
+        "amount": this.SafeString2(trade, "filled", "qty"),
         "cost": nil,
         "fee": map[string]any {
             "rate": nil,
@@ -866,7 +881,7 @@ func  (this *KrakenfuturesCore) ParseWsOrderTrade(trade any, optionalArgs ...any
         "type": this.SafeStringLower(trade, "type"),
         "side": this.SafeString(trade, "side"),
         "takerOrMaker": this.SafeString(trade, "matchRole"),
-        "price": this.SafeString(trade, "price"),
+        "price": this.SafeString2(trade, "price", "limit_price"),
         "amount": this.SafeString(trade, "tradeAmount"),
         "cost": nil,
         "fee": map[string]any {
@@ -970,8 +985,8 @@ func  (this *KrakenfuturesCore) HandleOrder(client any, message any) any  {
             if ccxt.IsTrue(ccxt.IsEqual(ccxt.GetValue(previousOrder, "trades"), nil)) {
                 ccxt.AddElementToObject(previousOrder, "trades", []any{})
             }
-            retRes73716 := ccxt.GetValue(previousOrder, "trades")
-            ccxt.AppendToArray(&retRes73716, trade)
+            retRes75116 := ccxt.GetValue(previousOrder, "trades")
+            ccxt.AppendToArray(&retRes75116, trade)
             ccxt.AddElementToObject(previousOrder, "lastTradeTimestamp", ccxt.GetValue(trade, "timestamp"))
             var totalCost any = "0"
             var totalAmount any = "0"
@@ -985,13 +1000,13 @@ func  (this *KrakenfuturesCore) HandleOrder(client any, message any) any  {
                 ccxt.AddElementToObject(previousOrder, "average", ccxt.Precise.StringDiv(totalCost, totalAmount))
             }
             ccxt.AddElementToObject(previousOrder, "cost", totalCost)
-            if ccxt.IsTrue(!ccxt.IsEqual(ccxt.GetValue(previousOrder, "filled"), nil)) {
-                var stringOrderFilled any = this.NumberToString(ccxt.GetValue(previousOrder, "filled"))
-                ccxt.AddElementToObject(previousOrder, "filled", ccxt.Precise.StringAdd(stringOrderFilled, this.NumberToString(ccxt.GetValue(trade, "amount"))))
-                if ccxt.IsTrue(!ccxt.IsEqual(ccxt.GetValue(previousOrder, "amount"), nil)) {
-                    ccxt.AddElementToObject(previousOrder, "remaining", ccxt.Precise.StringSub(this.NumberToString(ccxt.GetValue(previousOrder, "amount")), stringOrderFilled))
-                }
-            }
+            var filledString any = this.NumberToString(ccxt.GetValue(trade, "amount"))
+            var stringOrderFilled any = this.SafeString(previousOrder, "filled", "0")
+            var totalFilled any = ccxt.Precise.StringAdd(stringOrderFilled, filledString)
+            ccxt.AddElementToObject(previousOrder, "filled", totalFilled)
+            var prevAmountString any = this.SafeString(previousOrder, "amount")
+            var remaining any = ccxt.Precise.StringSub(prevAmountString, totalFilled)
+            ccxt.AddElementToObject(previousOrder, "remaining", remaining)
             if ccxt.IsTrue(ccxt.IsEqual(ccxt.GetValue(previousOrder, "fee"), nil)) {
                 ccxt.AddElementToObject(previousOrder, "fee", map[string]any {
     "rate": nil,
@@ -1167,11 +1182,11 @@ func  (this *KrakenfuturesCore) ParseWsOrder(order any, optionalArgs ...any) any
         "price": this.SafeString(unparsedOrder, "limit_price"),
         "stopPrice": this.SafeString(unparsedOrder, "stop_price"),
         "triggerPrice": this.SafeString(unparsedOrder, "stop_price"),
-        "amount": this.SafeString(unparsedOrder, "qty"),
+        "amount": nil,
         "cost": nil,
         "average": nil,
         "filled": this.SafeString(unparsedOrder, "filled"),
-        "remaining": nil,
+        "remaining": this.SafeString(unparsedOrder, "qty"),
         "status": status,
         "fee": map[string]any {
             "rate": nil,
@@ -1744,8 +1759,8 @@ func  (this *KrakenfuturesCore) WatchMultiHelper(unifiedName any, channelName an
             params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
         
-            retRes15048 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes15048)
+            retRes15188 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes15188)
             var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
             // symbols are required
             symbols = this.MarketSymbols(symbols, nil, false, true, false)
@@ -1769,9 +1784,9 @@ func  (this *KrakenfuturesCore) WatchMultiHelper(unifiedName any, channelName an
                 }
             }
         
-                retRes152715 :=  (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes, subscriptionArgs))
-                ccxt.PanicOnError(retRes152715)
-                ch <- retRes152715
+                retRes154115 :=  (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes, subscriptionArgs))
+                ccxt.PanicOnError(retRes154115)
+                ch <- retRes154115
                 return nil
         
             }()
@@ -1806,8 +1821,20 @@ func  (this *KrakenfuturesCore) HandleErrorMessage(client any, message any) any 
     //        event: 'alert',
     //        message: 'Failed to subscribe to authenticated feed'
     //    }
+    //    {
+    //        event: 'alert',
+    //        message: 'Already subscribed to feed, re-requesting'
+    //    }
     //
     var errMsg any = this.SafeString(message, "message")
+    // Benign "already subscribed" notice: the original subscription is still
+    // active and delivering data on this socket. The generic client.reject
+    // below rejects every pending future on the connection, so a stray
+    // re-subscribe warning would kill unrelated in-flight watch* calls —
+    // mirrors the bitmart 90008 fix.
+    if ccxt.IsTrue(ccxt.IsTrue(!ccxt.IsEqual(errMsg, nil)) && ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(errMsg, "Already subscribed"), 0))) {
+        return false
+    }
     
         {
             ret__ := func(this *KrakenfuturesCore) (ret_ any) {

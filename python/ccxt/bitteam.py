@@ -653,74 +653,51 @@ class bitteam(Exchange, ImplicitAPI):
         #     }
         #
         statusesResponse = self.index_by(statusesResponse, 'unified_cryptoasset_id')
-        result: dict = {}
-        for i in range(0, len(currencies)):
-            currency = currencies[i]
-            id = self.safe_string(currency, 'symbol')
-            numericId = self.safe_integer(currency, 'id')
-            code = self.safe_currency_code(id)
-            active = self.safe_bool(currency, 'active', False)
-            precision = self.parse_number(self.parse_precision(self.safe_string(currency, 'precision')))
-            txLimits = self.safe_value(currency, 'txLimits', {})
-            minWithdraw = self.safe_string(txLimits, 'minWithdraw')
-            maxWithdraw = self.safe_string(txLimits, 'maxWithdraw')
-            minDeposit = self.safe_string(txLimits, 'minDeposit')
-            fee = None
-            withdrawCommissionFixed = self.safe_value(txLimits, 'withdrawCommissionFixed', {})
-            feesByNetworkId: dict = {}
-            blockChain = self.safe_string(currency, 'blockChain')
-            # if only one blockChain
-            if (blockChain is not None) and (blockChain != ''):
-                fee = self.parse_number(withdrawCommissionFixed)
-                feesByNetworkId[blockChain] = fee
-            else:
-                feesByNetworkId = withdrawCommissionFixed
-            statuses = self.safe_value(statusesResponse, numericId, {})
-            deposit = self.safe_value(statuses, 'depositStatus')
-            withdraw = self.safe_value(statuses, 'withdrawStatus')
-            networkIds = list(feesByNetworkId.keys())
-            networks: dict = {}
-            networkPrecision = self.parse_number(self.parse_precision(self.safe_string(currency, 'decimals')))
-            typeRaw = self.safe_string(currency, 'type')
-            for j in range(0, len(networkIds)):
-                networkId = networkIds[j]
-                networkCode = self.network_id_to_code(networkId, code)
-                networkFee = self.safe_number(feesByNetworkId, networkId)
-                networks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'deposit': deposit,
-                    'withdraw': withdraw,
-                    'active': active,
-                    'fee': networkFee,
-                    'precision': networkPrecision,
-                    'limits': {
-                        'amount': {
-                            'min': None,
-                            'max': None,
-                        },
-                        'withdraw': {
-                            'min': self.parse_number(minWithdraw),
-                            'max': self.parse_number(maxWithdraw),
-                        },
-                        'deposit': {
-                            'min': self.parse_number(minDeposit),
-                            'max': None,
-                        },
-                    },
-                    'info': currency,
-                }
-            result[code] = {
-                'id': id,
-                'numericId': numericId,
-                'code': code,
-                'name': code,
-                'info': currency,
-                'active': active,
+        self.options['_temp_currencies_statuses'] = statusesResponse
+        result = self.parse_currencies(currencies)
+        del self.options['_temp_currencies_statuses']
+        return result
+
+    def parse_currency(self, currency: dict) -> Currency:
+        statusesResponse = self.safe_value(self.options, '_temp_currencies_statuses', {})
+        id = self.safe_string(currency, 'symbol')
+        numericId = self.safe_integer(currency, 'id')
+        code = self.safe_currency_code(id)
+        active = self.safe_bool(currency, 'active', False)
+        precision = self.parse_number(self.parse_precision(self.safe_string(currency, 'precision')))
+        txLimits = self.safe_value(currency, 'txLimits', {})
+        minWithdraw = self.safe_string(txLimits, 'minWithdraw')
+        maxWithdraw = self.safe_string(txLimits, 'maxWithdraw')
+        minDeposit = self.safe_string(txLimits, 'minDeposit')
+        fee = None
+        withdrawCommissionFixed = self.safe_value(txLimits, 'withdrawCommissionFixed', {})
+        feesByNetworkId: dict = {}
+        blockChain = self.safe_string(currency, 'blockChain')
+        # if only one blockChain
+        if (blockChain is not None) and (blockChain != ''):
+            fee = self.parse_number(withdrawCommissionFixed)
+            feesByNetworkId[blockChain] = fee
+        else:
+            feesByNetworkId = withdrawCommissionFixed
+        statuses = self.safe_value(statusesResponse, numericId, {})
+        deposit = self.safe_value(statuses, 'depositStatus')
+        withdraw = self.safe_value(statuses, 'withdrawStatus')
+        networkIds = list(feesByNetworkId.keys())
+        networks: dict = {}
+        networkPrecision = self.parse_number(self.parse_precision(self.safe_string(currency, 'decimals')))
+        typeRaw = self.safe_string(currency, 'type')
+        for j in range(0, len(networkIds)):
+            networkId = networkIds[j]
+            networkCode = self.network_id_to_code(networkId, code)
+            networkFee = self.safe_number(feesByNetworkId, networkId)
+            networks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
                 'deposit': deposit,
                 'withdraw': withdraw,
-                'fee': fee,
-                'precision': precision,
+                'active': active,
+                'fee': networkFee,
+                'precision': networkPrecision,
                 'limits': {
                     'amount': {
                         'min': None,
@@ -735,10 +712,36 @@ class bitteam(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
-                'type': typeRaw,  # 'crypto' or 'fiat'
-                'networks': networks,
+                'info': currency,
             }
-        return result
+        return self.safe_currency_structure({
+            'id': id,
+            'numericId': numericId,
+            'code': code,
+            'name': code,
+            'info': currency,
+            'active': active,
+            'deposit': deposit,
+            'withdraw': withdraw,
+            'fee': fee,
+            'precision': precision,
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'withdraw': {
+                    'min': self.parse_number(minWithdraw),
+                    'max': self.parse_number(maxWithdraw),
+                },
+                'deposit': {
+                    'min': self.parse_number(minDeposit),
+                    'max': None,
+                },
+            },
+            'type': typeRaw,  # 'crypto' or 'fiat'
+            'networks': networks,
+        })
 
     def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
@@ -2306,7 +2309,7 @@ class bitteam(Exchange, ImplicitAPI):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': self.network_id_to_code(networkId),
+            'network': self.network_id_to_code(networkId, code),
             'addressFrom': addressFrom,
             'address': None,
             'addressTo': addressTo,

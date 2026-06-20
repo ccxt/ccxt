@@ -609,7 +609,7 @@ class toobit extends Exchange {
         for ($j = 0; $j < count($rawNetworks); $j++) {
             $rawNetwork = $rawNetworks[$j];
             $networkId = $this->safe_string($rawNetwork, 'chainType');
-            $networkCode = $this->network_id_to_code($networkId);
+            $networkCode = $this->network_id_to_code($networkId, $code);
             $networks[$networkCode] = array(
                 'id' => $networkId,
                 'network' => $networkCode,
@@ -2535,7 +2535,7 @@ class toobit extends Exchange {
         return $this->fetch_deposits_or_withdrawals_helper('withdrawals', $code, $since, $limit, $params);
     }
 
-    public function fetch_deposits_or_withdrawals_helper($type, $code, $since, $limit, $params) {
+    public function fetch_deposits_or_withdrawals_helper($type, $code, $since, $limit, $params = array ()) {
         $this->load_markets();
         $currency = null;
         $request = array();
@@ -2719,7 +2719,7 @@ class toobit extends Exchange {
         if ($networkCode === null) {
             throw new ArgumentsRequired($this->id . ' fetchDepositAddress() : param["network"] is required');
         }
-        $request['chainType'] = $this->network_code_to_id($networkCode);
+        $request['chainType'] = $this->network_code_to_id($networkCode, $code);
         $response = $this->privateGetApiV1AccountDepositAddress ($this->extend($request, $paramsOmitted));
         //
         //     {

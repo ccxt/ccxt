@@ -149,7 +149,7 @@ class apex extends Exchange {
                     'private' => 'https://testnet.omni.apex.exchange/api',
                 ),
                 'www' => 'https://apex.exchange/',
-                'doc' => 'https://api-docs.pro.apex.exchange',
+                'doc' => 'https://api-docs.omni.apex.exchange',
                 'fees' => 'https://apex-pro.gitbook.io/apex-pro/apex-omni-live-now/trading-perpetual-contracts/trading-fees',
                 'referral' => 'https://omni.apex.exchange/trade',
             ),
@@ -306,7 +306,7 @@ class apex extends Exchange {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *
-         * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-system-time-v3
+         * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-system-time-v3
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
@@ -355,7 +355,7 @@ class apex extends Exchange {
         /**
          * query for account info
          *
-         * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-balance
+         * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-balance
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
@@ -380,7 +380,7 @@ class apex extends Exchange {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
-         * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-$data
+         * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-$data
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
@@ -395,7 +395,7 @@ class apex extends Exchange {
         /**
          * fetches all available currencies on an exchange
          *
-         * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-all-config-$data-v3
+         * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-all-config-$data-v3
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
@@ -412,7 +412,7 @@ class apex extends Exchange {
         //             "displayName" => "Tether USD Coin",
         //             "decimals" => 18,
         //             "showStep" => "0.01",
-        //             "iconUrl" => "https://static-pro.apex.exchange/chains/chain_tokens/Ethereum/Ethereum_USDT.svg",
+        //             "iconUrl" => "https://static-omni.apex.exchange/chains/chain_tokens/Ethereum/Ethereum_USDT.svg",
         //             "l2WithdrawFee" => "0",
         //             "enableCollateral" => true,
         //             "enableCrossCollateral" => false,
@@ -427,7 +427,7 @@ class apex extends Exchange {
         //          "chainId" => "9",
         //          "chainType" => "0",
         //          "l1ChainId" => "42161",
-        //          "chainIconUrl" => "https://static-pro.apex.exchange/chains/chain_logos/Arbitrum.svg",
+        //          "chainIconUrl" => "https://static-omni.apex.exchange/chains/chain_logos/Arbitrum.svg",
         //          "contractAddress" => "0x3169844a120c0f517b4eb4a750c08d8518c8466a",
         //          "swapContractAddress" => "0x9e07b6Aef1bbD9E513fc2Eb8873e311E80B4f855",
         //          "stopDeposit" => false,
@@ -438,10 +438,10 @@ class apex extends Exchange {
         //          "gasTokenDecimals" => 18,
         //          "feeGasLimit" => 300000,
         //          "blockTimeSeconds" => 2,
-        //          "rpcUrl" => "https://arb.pro.apex.exchange",
+        //          "rpcUrl" => "https://arb.omni.apex.exchange",
         //          "minSwapUsdtAmount" => "",
         //          "maxSwapUsdtAmount" => "",
-        //          "webRpcUrl" => "https://arb.pro.apex.exchange",
+        //          "webRpcUrl" => "https://arb.omni.apex.exchange",
         //          "webTxUrl" => "https://arbiscan.io/tx/",
         //          "backupRpcUrl" => "https://arb-mainnet.g.alchemy.com/v2/rGlYUbRHtUav5mfeThCPtsV9GLPt2Xq5",
         //          "txConfirm" => 20,
@@ -449,7 +449,7 @@ class apex extends Exchange {
         //          "tokens" => array(
         //              array(
         //                  "decimals" => 6,
-        //                  "iconUrl" => "https://static-pro.apex.exchange/chains/chain_tokens/Arbitrum/Arbitrum_USDT.svg",
+        //                  "iconUrl" => "https://static-omni.apex.exchange/chains/chain_tokens/Arbitrum/Arbitrum_USDT.svg",
         //                  "token" => "USDT",
         //                  "tokenAddress" => "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
         //                  "pullOff" => false,
@@ -470,7 +470,7 @@ class apex extends Exchange {
         //              ),
         //              {
         //                  "decimals" => 6,
-        //                  "iconUrl" => "https://static-pro.apex.exchange/chains/chain_tokens/Arbitrum/Arbitrum_USDC.svg",
+        //                  "iconUrl" => "https://static-omni.apex.exchange/chains/chain_tokens/Arbitrum/Arbitrum_USDC.svg",
         //                  "token" => "USDC",
         //                  "tokenAddress" => "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
         //                  "pullOff" => false,
@@ -495,85 +495,88 @@ class apex extends Exchange {
         // }
         $rows = $this->safe_list($spotConfig, 'assets', array());
         $chains = $this->safe_list($multiChain, 'chains', array());
-        $result = array();
-        for ($i = 0; $i < count($rows); $i++) {
-            $currency = $rows[$i];
-            $currencyId = $this->safe_string($currency, 'token');
-            $code = $this->safe_currency_code($currencyId);
-            $name = $this->safe_string($currency, 'displayName');
-            $networks = array();
-            for ($j = 0; $j < count($chains); $j++) {
-                $chain = $chains[$j];
-                $tokens = $this->safe_list($chain, 'tokens', array());
-                for ($f = 0; $f < count($tokens); $f++) {
-                    $token = $tokens[$f];
-                    $tokenName = $this->safe_string($token, 'token');
-                    if ($tokenName === $currencyId) {
-                        $networkId = $this->safe_string($chain, 'chainId');
-                        $networkCode = $this->network_id_to_code($networkId);
-                        $networks[$networkCode] = array(
-                            'info' => $chain,
-                            'id' => $networkId,
-                            'network' => $networkCode,
-                            'active' => null,
-                            'deposit' => !$this->safe_bool($chain, 'depositDisable'),
-                            'withdraw' => $this->safe_bool($token, 'withdrawEnable'),
-                            'fee' => $this->safe_number($token, 'minFee'),
-                            'precision' => $this->parse_number($this->parse_precision($this->safe_string($token, 'decimals'))),
-                            'limits' => array(
-                                'withdraw' => array(
-                                    'min' => $this->safe_number($token, 'minWithdraw'),
-                                    'max' => null,
-                                ),
-                                'deposit' => array(
-                                    'min' => $this->safe_number($chain, 'minDeposit'),
-                                    'max' => null,
-                                ),
+        $this->options['_temp_currencies_chains'] = $chains;
+        $result = $this->parse_currencies($rows);
+        unset($this->options['_temp_currencies_chains']);
+        return $result;
+    }
+
+    public function parse_currency(array $currency): array {
+        $currencyId = $this->safe_string($currency, 'token');
+        $code = $this->safe_currency_code($currencyId);
+        $name = $this->safe_string($currency, 'displayName');
+        $networks = array();
+        $chains = $this->options['_temp_currencies_chains'];
+        for ($j = 0; $j < count($chains); $j++) {
+            $chain = $chains[$j];
+            $tokens = $this->safe_list($chain, 'tokens', array());
+            for ($f = 0; $f < count($tokens); $f++) {
+                $token = $tokens[$f];
+                $tokenName = $this->safe_string($token, 'token');
+                if ($tokenName === $currencyId) {
+                    $networkId = $this->safe_string($chain, 'chainId');
+                    $networkCode = $this->network_id_to_code($networkId, $code);
+                    $networks[$networkCode] = array(
+                        'info' => $chain,
+                        'id' => $networkId,
+                        'network' => $networkCode,
+                        'active' => null,
+                        'deposit' => !$this->safe_bool($chain, 'depositDisable'),
+                        'withdraw' => $this->safe_bool($token, 'withdrawEnable'),
+                        'fee' => $this->safe_number($token, 'minFee'),
+                        'precision' => $this->parse_number($this->parse_precision($this->safe_string($token, 'decimals'))),
+                        'limits' => array(
+                            'withdraw' => array(
+                                'min' => $this->safe_number($token, 'minWithdraw'),
+                                'max' => null,
                             ),
-                        );
-                    }
+                            'deposit' => array(
+                                'min' => $this->safe_number($chain, 'minDeposit'),
+                                'max' => null,
+                            ),
+                        ),
+                    );
                 }
             }
-            $networkKeys = is_array($networks) ? array_keys($networks) : array();
-            $networksLength = count($networkKeys);
-            $emptyChains = $networksLength === 0; // non-functional coins
-            $valueForEmpty = $emptyChains ? false : null;
-            $result[$code] = $this->safe_currency_structure(array(
-                'info' => $currency,
-                'code' => $code,
-                'id' => $currencyId,
-                'type' => 'crypto',
-                'name' => $name,
-                'active' => null,
-                'deposit' => $valueForEmpty,
-                'withdraw' => $valueForEmpty,
-                'fee' => null,
-                'precision' => null,
-                'limits' => array(
-                    'amount' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'withdraw' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'deposit' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                ),
-                'networks' => $networks,
-            ));
         }
-        return $result;
+        $networkKeys = is_array($networks) ? array_keys($networks) : array();
+        $networksLength = count($networkKeys);
+        $emptyChains = $networksLength === 0; // non-functional coins
+        $valueForEmpty = $emptyChains ? false : null;
+        return $this->safe_currency_structure(array(
+            'info' => $currency,
+            'code' => $code,
+            'id' => $currencyId,
+            'type' => 'crypto',
+            'name' => $name,
+            'active' => null,
+            'deposit' => $valueForEmpty,
+            'withdraw' => $valueForEmpty,
+            'fee' => null,
+            'precision' => null,
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'deposit' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'networks' => $networks,
+        ));
     }
 
     public function fetch_markets($params = array ()): array {
         /**
          * retrieves $data on all markets for apex
          *
-         * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-all-config-$data-v3
+         * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-all-config-$data-v3
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market $data
@@ -614,7 +617,7 @@ class apex extends Exchange {
         //             "tickSize" => "0.1",
         //             "maxMaintenanceMarginRate" => "0.5000",
         //             "maxPositionValue" => "5000000.0000",
-        //             "tagIconUrl" => "https://static-pro.apex.exchange/icon/LABLE_HOT.svg",
+        //             "tagIconUrl" => "https://static-omni.apex.exchange/icon/LABLE_HOT.svg",
         //             "tag" => "HOT",
         //             "riskTip" => false,
         //             "defaultInitialMarginRate" => "0.05",
@@ -765,7 +768,7 @@ class apex extends Exchange {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
-         * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
+         * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -786,7 +789,7 @@ class apex extends Exchange {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          *
-         * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
+         * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
          *
          * @param {string} $symbols unified symbol of the market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -802,7 +805,7 @@ class apex extends Exchange {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          *
-         * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-candlestick-chart-$data-v3
+         * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-candlestick-chart-$data-v3
          *
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
          * @param {string} $timeframe the length of time each candle represents
@@ -860,7 +863,7 @@ class apex extends Exchange {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
          *
-         * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-$market-depth-v3
+         * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-$market-depth-v3
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
@@ -914,7 +917,7 @@ class apex extends Exchange {
         /**
          * get the list of most recent $trades for a particular $symbol
          *
-         * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-newest-trading-data-v3
+         * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-newest-trading-data-v3
          *
          * @param {string} $symbol unified $symbol of the $market to fetch $trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
@@ -1001,7 +1004,7 @@ class apex extends Exchange {
         /**
          * retrieves the open interest of a contract trading pair
          *
-         * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
+         * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
          *
          * @param {string} $symbol unified CCXT $market $symbol
          * @param {array} [$params] exchange specific parameters
@@ -1055,7 +1058,7 @@ class apex extends Exchange {
         /**
          * fetches historical funding rate prices
          *
-         * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-funding-rate-history-v3
+         * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-funding-rate-history-v3
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
          * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
@@ -1228,7 +1231,7 @@ class apex extends Exchange {
             'IMMEDIATE_OR_CANCEL' => 'IMMEDIATE_OR_CANCEL',
             'POST_ONLY' => 'POST_ONLY',
         );
-        return $this->safe_string($timeInForces, $timeInForce, null);
+        return $this->safe_string($timeInForces, $timeInForce);
     }
 
     public function parse_order_status(?string $status) {
@@ -1316,7 +1319,7 @@ class apex extends Exchange {
         /**
          * create a trade order
          *
-         * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-creating-orders
+         * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-creating-orders
          *
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
@@ -1380,14 +1383,16 @@ class apex extends Exchange {
         if ($clientOrderId === null) {
             $clientOrderId = $this->generate_random_client_id_omni($accountId);
         }
+        $finalClientOrderId = $clientOrderId; // java req
         $params = $this->omit($params, array( 'clientId', 'clientOrderId', 'client_order_id', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice' ));
+        $finalOrderPrice = $orderPrice; // java req
         $orderToSign = array(
             'accountId' => $accountId,
-            'slotId' => $clientOrderId,
-            'nonce' => $clientOrderId,
+            'slotId' => $finalClientOrderId,
+            'nonce' => $finalClientOrderId,
             'pairId' => $market['quoteId'],
             'size' => $orderSize,
-            'price' => $orderPrice,
+            'price' => $finalOrderPrice,
             'direction' => $orderSide,
             'makerFeeRate' => $maker,
             'takerFeeRate' => $taker,
@@ -1401,11 +1406,11 @@ class apex extends Exchange {
             'side' => $orderSide,
             'type' => $orderType, // LIMIT/MARKET/STOP_LIMIT/STOP_MARKET
             'size' => $orderSize,
-            'price' => $orderPrice,
+            'price' => $finalOrderPrice,
             'limitFee' => $limitFee,
             'expiration' => (int) floor($timeNow / 1000 + 30 * 24 * 60 * 60),
             'timeInForce' => $timeInForce,
-            'clientId' => $clientOrderId,
+            'clientId' => $finalClientOrderId,
             'brokerId' => $this->safe_string($this->options, 'brokerId', '6956'),
         );
         if ($triggerPrice !== null) {
@@ -1450,6 +1455,7 @@ class apex extends Exchange {
         if (strlen($subAccounts) > 0) {
             $nonce = $this->safe_string($subAccounts[0], 'nonce', '0');
         }
+        $finalNonce = $nonce; // java req
         $ethAddress = $this->safe_string($accountData, 'ethereumAddress', '');
         $accountId = $this->safe_string($accountData, 'id', '');
         $currency = array();
@@ -1465,12 +1471,15 @@ class apex extends Exchange {
             }
         }
         $tokenId = $this->safe_string($currency, 'tokenId', '');
-        $amountNumber = $this->parse_to_int($amount * (pow(10, $this->safe_number($currency, 'decimals', 0))));
+        $decimalsNum = $this->safe_number($currency, 'decimals', 0);
+        $mathPowResult = (pow(10, $decimalsNum));
+        $amountNumber = $this->parse_to_int($amount * $mathPowResult);
         $timestampSeconds = $this->parse_to_int($this->milliseconds() / 1000);
         $clientOrderId = $this->safe_string_n($params, array( 'clientId', 'clientOrderId', 'client_order_id' ));
         if ($clientOrderId === null) {
             $clientOrderId = $this->generate_random_client_id_omni($this->safe_string($this->options, 'accountId'));
         }
+        $finalClientOrderId = $clientOrderId; // java req
         $params = $this->omit($params, array( 'clientId', 'clientOrderId', 'client_order_id' ));
         if ($fromAccount !== null && strtolower($fromAccount) === 'contract') {
             $formattedUint32 = '4294967295';
@@ -1484,7 +1493,7 @@ class apex extends Exchange {
                 'tokenId' => $tokenId,
                 'amount' => (string) $amountNumber,
                 'fee' => '0',
-                'nonce' => $clientOrderId,
+                'nonce' => $finalClientOrderId,
                 'timestampSeconds' => $expireTime,
                 'isContract' => true,
             );
@@ -1492,7 +1501,7 @@ class apex extends Exchange {
             $request = array(
                 'amount' => $amount,
                 'expireTime' => $expireTime,
-                'clientWithdrawId' => $clientOrderId,
+                'clientWithdrawId' => $finalClientOrderId,
                 'signature' => $signature,
                 'token' => $code,
                 'ethAddress' => $ethAddress,
@@ -1500,10 +1509,11 @@ class apex extends Exchange {
             $response = $this->privatePostV3ContractTransferOut ($this->extend($request, $params));
             $data = $this->safe_dict($response, 'data', array());
             $currentTime = $this->milliseconds();
+            $parsedAmount = $this->parse_number($amount);
             return $this->extend($this->parse_transfer($data, $this->currency($code)), array(
                 'timestamp' => $currentTime,
                 'datetime' => $this->iso8601($currentTime),
-                'amount' => $this->parse_number($amount),
+                'amount' => $parsedAmount,
                 'fromAccount' => 'contract',
                 'toAccount' => 'spot',
             ));
@@ -1516,14 +1526,16 @@ class apex extends Exchange {
                 'tokenId' => $tokenId,
                 'amount' => (string) $amountNumber,
                 'fee' => '0',
-                'nonce' => $nonce,
+                'nonce' => $finalNonce,
                 'timestampSeconds' => $timestampSeconds,
             );
             $signature = $this->get_zk_transfer_signature_obj($this->remove0x_prefix($this->get_seeds()), $orderToSign);
+            $amountStr = (string) $amount;
+            $ts = $timestampSeconds; // java req
             $request = array(
-                'amount' => (string) $amount,
-                'timestamp' => $timestampSeconds,
-                'clientTransferId' => $clientOrderId,
+                'amount' => $amountStr,
+                'timestamp' => $ts,
+                'clientTransferId' => $finalClientOrderId,
                 'signature' => $signature,
                 'zkAccountId' => $zkAccountId,
                 'subAccountId' => $subAccountId,
@@ -1534,7 +1546,7 @@ class apex extends Exchange {
                 'receiverZkAccountId' => $receiverZkAccountId,
                 'receiverSubAccountId' => $receiverSubAccountId,
                 'receiverAddress' => $receiverAddress,
-                'nonce' => $nonce,
+                'nonce' => $finalNonce,
             );
             $response = $this->privatePostV3TransferOut ($this->extend($request, $params));
             $data = $this->safe_dict($response, 'data', array());
@@ -1571,7 +1583,7 @@ class apex extends Exchange {
         /**
          * cancel all open orders in a $market
          *
-         * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-cancel-all-open-orders
+         * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-cancel-all-open-orders
          *
          * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1593,10 +1605,10 @@ class apex extends Exchange {
         /**
          * cancels an open order
          *
-         * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-cancel-order
+         * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-cancel-order
          *
          * @param {string} $id order $id
-         * @param $symbol
+         * @param {string} [$symbol] unified $symbol of the market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
@@ -1619,8 +1631,8 @@ class apex extends Exchange {
         /**
          * fetches information on an order made by the user
          *
-         * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-order-$id
-         * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-order-by-clientorderid
+         * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-order-$id
+         * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-order-by-clientorderid
          *
          * @param {string} $id the order $id
          * @param {string} $symbol unified $symbol of the market the order was made in
@@ -1648,7 +1660,7 @@ class apex extends Exchange {
         /**
          * fetches information on multiple $orders made by the user
          *
-         * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-open-$orders
+         * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-open-$orders
          *
          * @param {string} $symbol unified market $symbol of the market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
@@ -1666,7 +1678,7 @@ class apex extends Exchange {
         /**
          * fetches information on multiple $orders made by the user *classic accounts only*
          *
-         * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-all-order-history
+         * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-all-order-history
          *
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
@@ -1708,7 +1720,7 @@ class apex extends Exchange {
         /**
          * fetch all the trades made from a single order
          *
-         * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-trade-history
+         * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-trade-history
          *
          * @param {string} $id order $id
          * @param {string} $symbol unified market $symbol
@@ -1736,7 +1748,7 @@ class apex extends Exchange {
         /**
          * fetches information on multiple $orders made by the user *classic accounts only*
          *
-         * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-trade-history
+         * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-trade-history
          *
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
@@ -1776,7 +1788,7 @@ class apex extends Exchange {
         /**
          * fetches information on multiple orders made by the user *classic accounts only*
          *
-         * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-funding-rate
+         * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-funding-rate
          *
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
@@ -1846,7 +1858,7 @@ class apex extends Exchange {
         /**
          * set the level of $leverage for a $market
          *
-         * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-sets-the-initial-margin-rate-of-a-contract
+         * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-sets-the-initial-margin-rate-of-a-contract
          *
          * @param {float} $leverage the rate of $leverage
          * @param {string} $symbol unified $market $symbol
@@ -1873,7 +1885,7 @@ class apex extends Exchange {
         /**
          * fetch all open $positions
          *
-         * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-$data
+         * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-$data
          *
          * @param {string[]} [$symbols] list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint

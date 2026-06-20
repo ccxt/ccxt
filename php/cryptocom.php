@@ -476,6 +476,7 @@ class cryptocom extends Exchange {
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
+                    '213' => '\\ccxt\\InvalidOrder', // array( "id" : 1778510838168, "method" : "private/create-order", "code" : 213, "message" : "Invalid quantity format" )
                     '219' => '\\ccxt\\InvalidOrder',
                     '306' => '\\ccxt\\InsufficientFunds', // array( "id" : 1753xxx, "method" : "private/amend-order", "code" : 306, "message" : "INSUFFICIENT_AVAILABLE_BALANCE", "result" : array( "client_oid" : "1753xxx", "order_id" : "6530xxx" ) )
                     '314' => '\\ccxt\\InvalidOrder', // array( "id" : 1700xxx, "method" : "private/create-order", "code" : 314, "message" : "EXCEEDS_MAX_ORDER_SIZE", "result" : array( "client_oid" : "1700xxx", "order_id" : "6530xxx" ) )
@@ -540,7 +541,7 @@ class cryptocom extends Exchange {
         /**
          * fetches all available currencies on an exchange
          *
-         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-$currency-$networks
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-currency-networks
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
@@ -559,7 +560,8 @@ class cryptocom extends Exchange {
         try {
             $response = $this->v1PrivatePostPrivateGetCurrencyNetworks ($params);
         } catch (Exception $e) {
-            if ($e instanceof ExchangeError) {
+            $erString = $this->exception_message($e);
+            if (mb_strpos($erString, 'SYS_ERROR') !== false) {
                 // sub-accounts can't access this endpoint
                 // array("code":"10001","msg":"SYS_ERROR")
                 return array();
@@ -571,7 +573,7 @@ class cryptocom extends Exchange {
         //
         //    {
         //        "id" => "1747502328559",
-        //        "method" => "private/get-$currency-$networks",
+        //        "method" => "private/get-currency-networks",
         //        "code" => "0",
         //        "result" => {
         //            "update_time" => "1747502281000",
@@ -612,57 +614,55 @@ class cryptocom extends Exchange {
         //
         $resultData = $this->safe_dict($response, 'result', array());
         $currencyMap = $this->safe_dict($resultData, 'currency_map', array());
-        $keys = is_array($currencyMap) ? array_keys($currencyMap) : array();
-        $result = array();
-        for ($i = 0; $i < count($keys); $i++) {
-            $key = $keys[$i];
-            $currency = $currencyMap[$key];
-            $id = $key;
-            $code = $this->safe_currency_code($id);
-            $networks = array();
-            $chains = $this->safe_list($currency, 'network_list', array());
-            for ($j = 0; $j < count($chains); $j++) {
-                $chain = $chains[$j];
-                $networkId = $this->safe_string($chain, 'network_id');
-                $network = $this->network_id_to_code($networkId);
-                $networks[$network] = array(
-                    'info' => $chain,
-                    'id' => $networkId,
-                    'network' => $network,
-                    'active' => null,
-                    'deposit' => $this->safe_bool($chain, 'deposit_enabled', false),
-                    'withdraw' => $this->safe_bool($chain, 'withdraw_enabled', false),
-                    'fee' => $this->safe_number($chain, 'withdrawal_fee'),
-                    'precision' => null,
-                    'limits' => array(
-                        'withdraw' => array(
-                            'min' => $this->safe_number($chain, 'min_withdrawal_amount'),
-                            'max' => null,
-                        ),
-                    ),
-                );
-            }
-            $result[$code] = $this->safe_currency_structure(array(
-                'info' => $currency,
-                'id' => $id,
-                'code' => $code,
-                'name' => $this->safe_string($currency, 'full_name'),
+        $enhancedArray = $this->add_key_in_array_items($currencyMap, '_coin_id');
+        return $this->parse_currencies($enhancedArray);
+    }
+
+    public function parse_currency(array $currency): array {
+        $id = $this->safe_string($currency, '_coin_id');
+        $code = $this->safe_currency_code($id);
+        $networks = array();
+        $chains = $this->safe_list($currency, 'network_list', array());
+        for ($j = 0; $j < count($chains); $j++) {
+            $chain = $chains[$j];
+            $networkId = $this->safe_string($chain, 'network_id');
+            $network = $this->network_id_to_code($networkId, $code);
+            $networks[$network] = array(
+                'info' => $chain,
+                'id' => $networkId,
+                'network' => $network,
                 'active' => null,
-                'deposit' => null,
-                'withdraw' => null,
-                'fee' => null,
+                'deposit' => $this->safe_bool($chain, 'deposit_enabled', false),
+                'withdraw' => $this->safe_bool($chain, 'withdraw_enabled', false),
+                'fee' => $this->safe_number($chain, 'withdrawal_fee'),
                 'precision' => null,
                 'limits' => array(
-                    'amount' => array(
-                        'min' => null,
+                    'withdraw' => array(
+                        'min' => $this->safe_number($chain, 'min_withdrawal_amount'),
                         'max' => null,
                     ),
                 ),
-                'type' => 'crypto', // only crypto now
-                'networks' => $networks,
-            ));
+            );
         }
-        return $result;
+        return $this->safe_currency_structure(array(
+            'info' => $currency,
+            'id' => $id,
+            'code' => $code,
+            'name' => $this->safe_string($currency, 'full_name'),
+            'active' => null,
+            'deposit' => null,
+            'withdraw' => null,
+            'fee' => null,
+            'precision' => null,
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'type' => 'crypto', // only crypto now
+            'networks' => $networks,
+        ));
     }
 
     public function fetch_markets($params = array ()): array {
@@ -804,6 +804,8 @@ class cryptocom extends Exchange {
                 $symbol = $symbol . ':' . $quote . '-' . $this->yymmdd($expiry) . '-' . $strike . '-' . $symbolOptionType;
                 $contract = true;
             }
+            $isLinear = ($contract) ? true : null;
+            $isInverse = ($contract) ? false : null;
             $result[] = array(
                 'id' => $this->safe_string($market, 'symbol'),
                 'symbol' => $symbol,
@@ -821,8 +823,8 @@ class cryptocom extends Exchange {
                 'option' => $option,
                 'active' => $this->safe_bool($market, 'tradable'),
                 'contract' => $contract,
-                'linear' => ($contract) ? true : null,
-                'inverse' => ($contract) ? false : null,
+                'linear' => $isLinear,
+                'inverse' => $isInverse,
                 'contractSize' => $this->safe_number($market, 'contract_size'),
                 'expiry' => $expiry,
                 'expiryDatetime' => $this->iso8601($expiry),
@@ -1994,7 +1996,7 @@ class cryptocom extends Exchange {
         }
         $networkCode = null;
         list($networkCode, $params) = $this->handle_network_code_and_params($params);
-        $networkId = $this->network_code_to_id($networkCode);
+        $networkId = $this->network_code_to_id($networkCode, $code);
         if ($networkId !== null) {
             $request['network_id'] = $networkId;
         }
@@ -2096,10 +2098,9 @@ class cryptocom extends Exchange {
         $depositAddresses = $this->fetch_deposit_addresses_by_network($code, $params);
         if (is_array($depositAddresses) && array_key_exists($network, $depositAddresses)) {
             return $depositAddresses[$network];
-        } else {
-            $keys = is_array($depositAddresses) ? array_keys($depositAddresses) : array();
-            return $depositAddresses[$keys[0]];
         }
+        $keys = is_array($depositAddresses) ? array_keys($depositAddresses) : array();
+        return $depositAddresses[$keys[0]];
     }
 
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
@@ -3334,8 +3335,8 @@ class cryptocom extends Exchange {
         if ((gettype($object) === 'array' && array_keys($object) === array_keys(array_keys($object)))) {
             $paramsKeys = $object;
         } else {
-            $sorted = $this->keysort($object);
-            $paramsKeys = is_array($sorted) ? array_keys($sorted) : array();
+            $objectKeys = is_array($object) ? array_keys($object) : array();
+            $paramsKeys = $this->sort($objectKeys);
         }
         for ($i = 0; $i < count($paramsKeys); $i++) {
             $key = $paramsKeys[$i];

@@ -769,9 +769,17 @@ class backpack extends \ccxt\async\backpack {
         $id = $this->safe_string($trade, 't');
         $marketId = $this->safe_string($trade, 's');
         $market = $this->safe_market($marketId, $market);
-        $isMaker = $this->safe_bool($trade, 'm');
-        $side = $isMaker ? 'sell' : 'buy';
-        $takerOrMaker = $isMaker ? 'maker' : 'taker';
+        $isBuyerMaker = $this->safe_bool($trade, 'm');
+        $side = null;
+        $takerOrMaker = null;
+        if ($isBuyerMaker !== null) {
+            $takerOrMaker = 'taker';
+            if ($isBuyerMaker) {
+                $side = 'sell';
+            } else {
+                $side = 'buy';
+            }
+        }
         $price = $this->safe_string($trade, 'p');
         $amount = $this->safe_string($trade, 'q');
         $orderId = null;
@@ -944,7 +952,7 @@ class backpack extends \ccxt\async\backpack {
 
     public function handle_bid_asks($bookSide, $bidAsks) {
         for ($i = 0; $i < count($bidAsks); $i++) {
-            $bidAsk = $this->parse_bid_ask($bidAsks[$i]);
+            $bidAsk = $this->parse_order_book_bid_ask($bidAsks[$i]);
             $bookSide->storeArray ($bidAsk);
         }
     }

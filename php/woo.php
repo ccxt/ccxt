@@ -1025,65 +1025,77 @@ class woo extends Exchange {
         $tokensById = $this->group_by($tokenRows, 'balance_token');
         $currencyIds = is_array($tokensById) ? array_keys($tokensById) : array();
         for ($i = 0; $i < count($currencyIds); $i++) {
-            $currencyId = $currencyIds[$i];
-            $code = $this->safe_currency_code($currencyId);
-            $tokensByNetworkId = $this->index_by($tokensById[$currencyId], 'network');
-            $chainsByNetworkId = $this->index_by($networksById[$currencyId], 'network');
-            $keys = is_array($chainsByNetworkId) ? array_keys($chainsByNetworkId) : array();
-            $resultingNetworks = array();
-            for ($j = 0; $j < count($keys); $j++) {
-                $networkId = $keys[$j];
-                $tokenEntry = $this->safe_dict($tokensByNetworkId, $networkId, array());
-                $networkEntry = $this->safe_dict($chainsByNetworkId, $networkId, array());
-                $networkCode = $this->network_id_to_code($networkId, $code);
-                $specialNetworkId = $this->safe_string($tokenEntry, 'token');
-                $resultingNetworks[$networkCode] = array(
-                    'id' => $networkId,
-                    'currencyNetworkId' => $specialNetworkId, // exchange uses special crrency-ids (coin . network junction)
-                    'network' => $networkCode,
-                    'active' => null,
-                    'deposit' => $this->safe_string($networkEntry, 'allow_deposit') === '1',
-                    'withdraw' => $this->safe_string($networkEntry, 'allow_withdraw') === '1',
-                    'fee' => $this->safe_number($networkEntry, 'withdrawal_fee'),
-                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($tokenEntry, 'decimals'))),
-                    'limits' => array(
-                        'withdraw' => array(
-                            'min' => $this->safe_number($networkEntry, 'minimum_withdrawal'),
-                            'max' => null,
-                        ),
-                        'deposit' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                    'info' => array( $networkEntry, $tokenEntry ),
-                );
-            }
-            $result[$code] = $this->safe_currency_structure(array(
-                'id' => $currencyId,
-                'name' => null,
-                'code' => $code,
-                'precision' => null,
+            $id = $currencyIds[$i];
+            $customCurrency = array(
+                '_coin_id' => $id,
+                '_tokens_by_id' => $tokensById[$id],
+                '_networks_by_id' => $networksById[$id],
+            );
+            $parsed = $this->parse_currency($customCurrency);
+            $code = $parsed['code'];
+            $result[$code] = $parsed;
+        }
+        return $result;
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $currencyId = $this->safe_string($rawCurrency, '_coin_id');
+        $code = $this->safe_currency_code($currencyId);
+        $tokensByNetworkId = $this->index_by($rawCurrency['_tokens_by_id'], 'network');
+        $chainsByNetworkId = $this->index_by($rawCurrency['_networks_by_id'], 'network');
+        $keys = is_array($chainsByNetworkId) ? array_keys($chainsByNetworkId) : array();
+        $resultingNetworks = array();
+        for ($j = 0; $j < count($keys); $j++) {
+            $networkId = $keys[$j];
+            $tokenEntry = $this->safe_dict($tokensByNetworkId, $networkId, array());
+            $networkEntry = $this->safe_dict($chainsByNetworkId, $networkId, array());
+            $networkCode = $this->network_id_to_code($networkId, $code);
+            $specialNetworkId = $this->safe_string($tokenEntry, 'token');
+            $resultingNetworks[$networkCode] = array(
+                'id' => $networkId,
+                'currencyNetworkId' => $specialNetworkId, // exchange uses special crrency-ids (coin . network junction)
+                'network' => $networkCode,
                 'active' => null,
-                'fee' => null,
-                'networks' => $resultingNetworks,
-                'deposit' => null,
-                'withdraw' => null,
-                'type' => 'crypto',
+                'deposit' => $this->safe_string($networkEntry, 'allow_deposit') === '1',
+                'withdraw' => $this->safe_string($networkEntry, 'allow_withdraw') === '1',
+                'fee' => $this->safe_number($networkEntry, 'withdrawal_fee'),
+                'precision' => $this->parse_number($this->parse_precision($this->safe_string($tokenEntry, 'decimals'))),
                 'limits' => array(
+                    'withdraw' => array(
+                        'min' => $this->safe_number($networkEntry, 'minimum_withdrawal'),
+                        'max' => null,
+                    ),
                     'deposit' => array(
                         'min' => null,
                         'max' => null,
                     ),
-                    'withdraw' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
                 ),
-                'info' => array( $tokensByNetworkId, $chainsByNetworkId ),
-            ));
+                'info' => array( 'network' => $networkEntry, 'token' => $tokenEntry ),
+            );
         }
-        return $result;
+        return $this->safe_currency_structure(array(
+            'id' => $currencyId,
+            'name' => null,
+            'code' => $code,
+            'precision' => null,
+            'active' => null,
+            'fee' => null,
+            'networks' => $resultingNetworks,
+            'deposit' => null,
+            'withdraw' => null,
+            'type' => 'crypto',
+            'limits' => array(
+                'deposit' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'info' => $rawCurrency,
+        ));
     }
 
     public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
@@ -1905,7 +1917,7 @@ class woo extends Exchange {
             'fok' => 'FOK',
             'post_only' => 'PO',
         );
-        return $this->safe_string($timeInForces, $timeInForce, null);
+        return $this->safe_string($timeInForces, $timeInForce);
     }
 
     public function parse_order(array $order, ?array $market = null): array {
@@ -2486,7 +2498,7 @@ class woo extends Exchange {
         list($networkCode, $params) = $this->handle_network_code_and_params($params);
         $request = array(
             'token' => $currency['id'],
-            'network' => $this->network_code_to_id($networkCode),
+            'network' => $this->network_code_to_id($networkCode, $currency['code']),
         );
         $response = $this->v3PrivateGetAssetWalletDeposit ($this->extend($request, $params));
         //
@@ -2539,7 +2551,7 @@ class woo extends Exchange {
         $networkCode = null;
         list($networkCode, $params) = $this->handle_network_code_and_params($params);
         if ($networkCode !== null) {
-            $request['network'] = $this->network_code_to_id($networkCode);
+            $request['network'] = $this->network_code_to_id($networkCode, $currency['code']);
         }
         if ($since !== null) {
             $request['startTime'] = $since;
@@ -2561,7 +2573,7 @@ class woo extends Exchange {
         //                 {
         //                     "createdTime" => "1734964440.523",
         //                     "updatedTime" => "1734964614.081",
-        //                     "id" => "24122314340000585",
+        //                     "id" => "24122314340000586",
         //                     "externalId" => "241223143600621",
         //                     "applicationId" => "251bf5c4-f3c8-4544-bb8b-80001007c3c0",
         //                     "token" => "ARB_USDCNATIVE",
@@ -2795,7 +2807,7 @@ class woo extends Exchange {
             'comment' => null,
             'internal' => null,
             'fee' => $fee,
-            'network' => $this->network_id_to_code($this->safe_string($transaction, 'network')),
+            'network' => $this->network_id_to_code($this->safe_string($transaction, 'network'), $code),
         );
     }
 
@@ -3024,7 +3036,7 @@ class woo extends Exchange {
         }
         $params = $this->omit($params, 'network');
         $request['token'] = $currency['id'];
-        $request['network'] = $this->network_code_to_id($network);
+        $request['network'] = $this->network_code_to_id($network, $currency['code']);
         $response = $this->v3PrivatePostAssetWalletWithdraw ($this->extend($request, $params));
         //
         //     {

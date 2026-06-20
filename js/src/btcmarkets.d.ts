@@ -164,7 +164,7 @@ export default class btcmarkets extends Exchange {
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     calculateFee(symbol: any, type: any, side: any, amount: any, price: any, takerOrMaker?: string, params?: {}): {
         type: string;
-        currency: any;
+        currency: import("./base/types.js").CurrencyInterface;
         rate: any;
         cost: number;
     };

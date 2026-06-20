@@ -5,11 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/bitstamp.js';
 import { AccountSuspended, AuthenticationError, BadRequest, ExchangeError, NotSupported, PermissionDenied, InvalidNonce, OrderNotFound, InsufficientFunds, InvalidAddress, InvalidOrder, OnMaintenance, ExchangeNotAvailable } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class bitstamp
@@ -525,16 +525,16 @@ export default class bitstamp extends Exchange {
                     'Your account is frozen': PermissionDenied,
                     'Please update your profile with your FATCA information, before using API.': PermissionDenied,
                     'Order not found.': OrderNotFound,
-                    "Bitstamp.net is under scheduled maintenance. We'll be back soon.": OnMaintenance,
-                    'Order could not be placed.': ExchangeNotAvailable,
+                    "Bitstamp.net is under scheduled maintenance. We'll be back soon.": OnMaintenance, // { "error": "Bitstamp.net is under scheduled maintenance. We'll be back soon." }
+                    'Order could not be placed.': ExchangeNotAvailable, // Order could not be placed (perhaps due to internal error or trade halt). Please retry placing order.
                     'Invalid offset.': BadRequest,
                     'Trading is currently unavailable for your account.': AccountSuspended, // {"status": "error", "reason": {"__all__": ["Trading is currently unavailable for your account."]}, "response_code": "403.004"}
                 },
                 'broad': {
-                    'Minimum order size is': InvalidOrder,
+                    'Minimum order size is': InvalidOrder, // Minimum order size is 5.0 EUR.
                     'Price is more than': InvalidOrder,
-                    'Check your account balance for details.': InsufficientFunds,
-                    'Ensure this value has at least': InvalidAddress,
+                    'Check your account balance for details.': InsufficientFunds, // You have only 0.00100000 BTC available. Check your account balance for details.
+                    'Ensure this value has at least': InvalidAddress, // Ensure this value has at least 25 characters (it has 4).
                     'Ensure that there are no more than': InvalidOrder, // {"status": "error", "reason": {"amount": ["Ensure that there are no more than 0 decimal places."], "__all__": [""]}}
                 },
             },
@@ -683,12 +683,13 @@ export default class bitstamp extends Exchange {
                 }
             }
             const isSpot = (type === 'spot');
+            const settle = settleId ? this.safeCurrencyCode(settleId) : undefined;
             result.push({
                 'id': this.safeString(market, 'market_symbol'),
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'settle': settleId ? this.safeCurrencyCode(settleId) : undefined,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
@@ -746,7 +747,7 @@ export default class bitstamp extends Exchange {
         return {
             'id': id,
             'code': code,
-            'info': originalPayload,
+            'info': originalPayload, // the original payload
             'type': currencyType,
             'name': name,
             'active': true,
@@ -832,27 +833,32 @@ export default class bitstamp extends Exchange {
         //         },
         //     ]
         //
-        const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
-            const [baseId, quoteId] = [this.safeString(market, 'base_currency'), this.safeString(market, 'counter_currency')];
-            const base = this.safeCurrencyCode(baseId);
-            const quote = this.safeCurrencyCode(quoteId);
-            const description = this.safeString(market, 'description');
-            const [baseDescription, quoteDescription] = description.split(' / ');
-            const minimumOrder = this.safeString(market, 'minimum_order_value');
-            const parts = minimumOrder.split(' ');
-            const cost = parts[0];
-            if (!(base in result)) {
-                const baseDecimals = this.safeInteger(market, 'base_decimals');
-                result[base] = this.constructCurrencyObject(baseId, base, baseDescription, baseDecimals, undefined, market);
-            }
-            if (!(quote in result)) {
-                const counterDecimals = this.safeInteger(market, 'counter_decimals');
-                result[quote] = this.constructCurrencyObject(quoteId, quote, quoteDescription, counterDecimals, this.parseNumber(cost), market);
-            }
+        this.options['_temp_currencies_result'] = {};
+        const result = this.parseCurrencies(response);
+        const finalResult = this.deepExtend(result, this.options['_temp_currencies_result']);
+        delete this.options['_temp_currencies_result'];
+        return finalResult;
+    }
+    parseCurrency(rawCurrency) {
+        const market = rawCurrency;
+        const existing = this.safeDict(this.options, '_temp_currencies_result', {});
+        const [baseId, quoteId] = [this.safeString(market, 'base_currency'), this.safeString(market, 'counter_currency')];
+        const base = this.safeCurrencyCode(baseId);
+        const quote = this.safeCurrencyCode(quoteId);
+        const description = this.safeString(market, 'description');
+        const [baseDescription, quoteDescription] = description.split(' / ');
+        const minimumOrder = this.safeString(market, 'minimum_order_value');
+        const parts = minimumOrder.split(' ');
+        const cost = parts[0];
+        if (!(base in existing)) {
+            const baseDecimals = this.safeInteger(market, 'base_decimals');
+            this.options['_temp_currencies_result'][base] = this.constructCurrencyObject(baseId, base, baseDescription, baseDecimals, undefined, market);
         }
-        return result;
+        if (!(quote in existing)) {
+            const counterDecimals = this.safeInteger(market, 'counter_decimals');
+            this.options['_temp_currencies_result'][quote] = this.constructCurrencyObject(quoteId, quote, quoteDescription, counterDecimals, this.parseNumber(cost), market);
+        }
+        return this.options['_temp_currencies_result'][quote];
     }
     /**
      * @method
@@ -911,7 +917,7 @@ export default class bitstamp extends Exchange {
         // }
         //
         const marketId = this.safeString(ticker, 'pair');
-        const symbol = this.safeSymbol(marketId, market, undefined);
+        const symbol = this.safeSymbol(marketId, market);
         const timestamp = this.safeTimestamp(ticker, 'timestamp');
         const vwap = this.safeString(ticker, 'vwap');
         const baseVolume = this.safeString(ticker, 'volume');
@@ -1333,8 +1339,9 @@ export default class bitstamp extends Exchange {
         return this.parseOHLCVs(ohlc, market, timeframe, since, limit);
     }
     parseBalance(response) {
+        const finalResponse = response; // java req
         const result = {
-            'info': response,
+            'info': finalResponse,
             'timestamp': undefined,
             'datetime': undefined,
         };
@@ -1530,10 +1537,11 @@ export default class bitstamp extends Exchange {
     }
     parseDepositWithdrawFee(fee, currency = undefined) {
         const result = this.depositWithdrawFee(fee);
+        const code = this.safeString(currency, 'code');
         for (let j = 0; j < fee.length; j++) {
             const networkEntry = fee[j];
             const networkId = this.safeString(networkEntry, 'network');
-            const networkCode = this.networkIdToCode(networkId);
+            const networkCode = this.networkIdToCode(networkId, code);
             const withdrawFee = this.safeNumber(networkEntry, 'fee');
             result['withdraw'] = {
                 'fee': withdrawFee,
@@ -2112,10 +2120,10 @@ export default class bitstamp extends Exchange {
         //   0 (open), 1 (in process), 2 (finished), 3 (canceled) or 4 (failed).
         //
         const statuses = {
-            '0': 'pending',
-            '1': 'pending',
-            '2': 'ok',
-            '3': 'canceled',
+            '0': 'pending', // Open
+            '1': 'pending', // In process
+            '2': 'ok', // Finished
+            '3': 'canceled', // Canceled
             '4': 'failed', // Failed
         };
         return this.safeString(statuses, status, status);

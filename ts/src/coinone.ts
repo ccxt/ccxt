@@ -1,12 +1,12 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/coinone.js';
 import { BadSymbol, BadRequest, ExchangeError, ArgumentsRequired, OrderNotFound, OnMaintenance } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Balances, Currencies, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int, DepositAddress } from './base/types.js';
+import type { Balances, Currencies, Currency, DepositAddress, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -328,40 +328,39 @@ export default class coinone extends Exchange {
         //         ]
         //     }
         //
-        const result: Dict = {};
         const currencies = this.safeList (response, 'currencies', []);
-        for (let i = 0; i < currencies.length; i++) {
-            const entry = currencies[i];
-            const id = this.safeString (entry, 'symbol');
-            const code = this.safeCurrencyCode (id);
-            const isWithdrawEnabled = this.safeString (entry, 'withdraw_status', '') === 'normal';
-            const isDepositEnabled = this.safeString (entry, 'deposit_status', '') === 'normal';
-            const type = (code !== 'KRW') ? 'crypto' : 'fiat';
-            result[code] = this.safeCurrencyStructure ({
-                'id': id,
-                'code': code,
-                'info': entry,
-                'name': this.safeString (entry, 'name'),
-                'active': undefined,
-                'deposit': isDepositEnabled,
-                'withdraw': isWithdrawEnabled,
-                'fee': this.safeNumber (entry, 'withdrawal_fee'),
-                'precision': this.parseNumber (this.parsePrecision (this.safeString (entry, 'max_precision'))),
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': this.safeNumber (entry, 'withdrawal_min_amount'),
-                        'max': undefined,
-                    },
+        return this.parseCurrencies (currencies);
+    }
+
+    parseCurrency (rawCurrency: Dict): Currency {
+        const id = this.safeString (rawCurrency, 'symbol');
+        const code = this.safeCurrencyCode (id);
+        const isWithdrawEnabled = this.safeString (rawCurrency, 'withdraw_status', '') === 'normal';
+        const isDepositEnabled = this.safeString (rawCurrency, 'deposit_status', '') === 'normal';
+        const type = (code !== 'KRW') ? 'crypto' : 'fiat';
+        return this.safeCurrencyStructure ({
+            'id': id,
+            'code': code,
+            'info': rawCurrency,
+            'name': this.safeString (rawCurrency, 'name'),
+            'active': undefined,
+            'deposit': isDepositEnabled,
+            'withdraw': isWithdrawEnabled,
+            'fee': this.safeNumber (rawCurrency, 'withdrawal_fee'),
+            'precision': this.parseNumber (this.parsePrecision (this.safeString (rawCurrency, 'max_precision'))),
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'networks': {},
-                'type': type,
-            });
-        }
-        return result;
+                'withdraw': {
+                    'min': this.safeNumber (rawCurrency, 'withdrawal_min_amount'),
+                    'max': undefined,
+                },
+            },
+            'networks': {},
+            'type': type,
+        });
     }
 
     /**
@@ -571,7 +570,7 @@ export default class coinone extends Exchange {
         const request: Dict = {
             'quote_currency': 'KRW',
         };
-        let market = undefined;
+        let market: Market = undefined;
         let response = undefined;
         if (symbols !== undefined) {
             const first = this.safeString (symbols, 0);
@@ -760,7 +759,7 @@ export default class coinone extends Exchange {
         const timestamp = this.safeInteger (trade, 'timestamp');
         market = this.safeMarket (undefined, market);
         const isSellerMaker = this.safeBool (trade, 'is_seller_maker');
-        let side = undefined;
+        let side: Str = undefined;
         if (isSellerMaker !== undefined) {
             side = isSellerMaker ? 'sell' : 'buy';
         }
@@ -988,7 +987,7 @@ export default class coinone extends Exchange {
         if (quoteId !== undefined) {
             quote = this.safeCurrencyCode (quoteId);
         }
-        let symbol = undefined;
+        let symbol: Str = undefined;
         if ((base !== undefined) && (quote !== undefined)) {
             symbol = base + '/' + quote;
             market = this.safeMarket (symbol, market, '/');
@@ -1146,14 +1145,12 @@ export default class coinone extends Exchange {
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
-            // eslint-disable-next-line quotes
             throw new ArgumentsRequired (this.id + " cancelOrder() requires a symbol argument. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.");
         }
         const price = this.safeNumber (params, 'price');
         const qty = this.safeNumber (params, 'qty');
         const isAsk = this.safeInteger (params, 'is_ask');
         if ((price === undefined) || (qty === undefined) || (isAsk === undefined)) {
-            // eslint-disable-next-line quotes
             throw new ArgumentsRequired (this.id + " cancelOrder() requires {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument.");
         }
         await this.loadMarkets ();

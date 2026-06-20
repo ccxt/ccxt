@@ -679,7 +679,7 @@ func (this *BydfiCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 			"symbol": GetValue(market, "id"),
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", limit)
+			AddElementToObject(request, "limit", mathMin(limit, 1000))
 		}
 
 		response := (<-this.PublicGetV1FapiMarketTrades(this.Extend(request, params)))
@@ -3530,7 +3530,7 @@ func (this *BydfiCore) ParseTransaction(transaction any, optionalArgs ...any) an
 		"txid":        this.SafeString(transaction, "txId"),
 		"type":        nil,
 		"currency":    code,
-		"network":     this.NetworkIdToCode(this.SafeString(transaction, "network")),
+		"network":     this.NetworkIdToCode(this.SafeString(transaction, "network"), code),
 		"amount":      this.SafeNumber(transaction, "amount"),
 		"status":      this.ParseTransactionStatus(rawStatus),
 		"timestamp":   timestamp,

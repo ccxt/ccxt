@@ -244,7 +244,7 @@ class dydx(ccxt.async_support.dydx):
             amount = self.safe_float(delta, 1)
             bookside.store(price, amount)
         else:
-            bidAsk = self.parse_bid_ask(delta, 'price', 'size')
+            bidAsk = self.parse_order_book_bid_ask(delta, 'price', 'size')
             bookside.storeArray(bidAsk)
 
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:

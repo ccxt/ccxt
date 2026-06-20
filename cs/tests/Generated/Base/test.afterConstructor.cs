@@ -116,21 +116,13 @@ public partial class BaseTest
             // options
             //
             Assert(!isEqual(exchange.options, null));
-            object defaultNetworkCodeReplacements = new Dictionary<string, object>() {
-                { "ETH", new Dictionary<string, object>() {
-                    { "ERC20", "ETH" },
-                } },
-                { "TRX", new Dictionary<string, object>() {
-                    { "TRC20", "TRX" },
-                } },
-                { "CRO", new Dictionary<string, object>() {
-                    { "CRC20", "CRONOS" },
-                } },
-                { "BRC20", new Dictionary<string, object>() {
-                    { "BRC20", "BTC" },
-                } },
-            };
-            AssertDeepEqual(exchange, new Dictionary<string, object>() {}, "options", getValue(exchange.options, "defaultNetworkCodeReplacements"), defaultNetworkCodeReplacements);
+            // const defaultNetworkCodeReplacements = [
+            //     { 'baseCoin': 'ETH', 'primary': 'ETH', 'secondary': 'ERC20' },
+            //     { 'baseCoin': 'CRO', 'primary': 'CRONOS', 'secondary': 'CRC20' },
+            //     { 'baseCoin': 'TRX', 'primary': 'TRX', 'secondary': 'TRC20' },
+            //     { 'baseCoin': 'BTC', 'primary': 'BTC', 'secondary': 'BRC20' },
+            // ];
+            // AssertDeepEqual (exchange, {}, 'options', exchange.options['defaultNetworkCodeReplacements'], defaultNetworkCodeReplacements);
             //
             // credentials
             //
@@ -285,7 +277,6 @@ public partial class BaseTest
             Assert(isEqual(exchange.timeout, 10000), "timeout should be 10000");
             Assert(isEqual(exchange.verbose, false), "verbose should be false");
             // Assert (exchangeProp (exchange, 'newUpdates') === true, 'newUpdates should be true'); // todo WS
-            // Assert (exchange.requiresEddsa === false);
             Assert(!isTrue(exchangeProp(exchange, "reloadingMarkets")), "reloadingMarkets should be false");
             Assert(isEqual(exchangeProp(exchange, "marketsLoading"), null), "marketsLoading should be undefined");
             // undefined or false

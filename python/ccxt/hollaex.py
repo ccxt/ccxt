@@ -497,64 +497,62 @@ class hollaex(Exchange, ImplicitAPI):
         #     }
         #
         coins = self.safe_dict(response, 'coins', {})
-        keys = list(coins.keys())
-        result: dict = {}
-        for i in range(0, len(keys)):
-            key = keys[i]
-            currency = coins[key]
-            id = self.safe_string(currency, 'symbol')
-            code = self.safe_currency_code(id)
-            withdrawalLimits = self.safe_list(currency, 'withdrawal_limits', [])
-            rawType = self.safe_string(currency, 'type')
-            type = 'crypto' if (rawType == 'blockchain') else 'other'
-            rawNetworks = self.safe_dict(currency, 'withdrawal_fees', {})
-            networks = {}
-            networkIds = list(rawNetworks.keys())
-            for j in range(0, len(networkIds)):
-                networkId = networkIds[j]
-                networkEntry = self.safe_dict(rawNetworks, networkId)
-                networkCode = self.network_id_to_code(networkId)
-                networks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'active': self.safe_bool(networkEntry, 'active'),
-                    'deposit': None,
-                    'withdraw': None,
-                    'fee': self.safe_number(networkEntry, 'value'),
-                    'precision': None,
-                    'limits': {
-                        'withdraw': {
-                            'min': None,
-                            'max': None,
-                        },
-                    },
-                    'info': networkEntry,
-                }
-            result[code] = self.safe_currency_structure({
-                'id': id,
-                'numericId': self.safe_integer(currency, 'id'),
-                'code': code,
-                'info': currency,
-                'name': self.safe_string(currency, 'fullname'),
-                'active': self.safe_bool(currency, 'active'),
-                'deposit': self.safe_bool(currency, 'allow_deposit'),
-                'withdraw': self.safe_bool(currency, 'allow_withdrawal'),
-                'fee': self.safe_number(currency, 'withdrawal_fee'),
-                'precision': self.safe_number(currency, 'increment_unit'),
+        values = list(coins.values())
+        return self.parse_currencies(values)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        id = self.safe_string(rawCurrency, 'symbol')
+        code = self.safe_currency_code(id)
+        withdrawalLimits = self.safe_list(rawCurrency, 'withdrawal_limits', [])
+        rawType = self.safe_string(rawCurrency, 'type')
+        type = 'crypto' if (rawType == 'blockchain') else 'other'
+        rawNetworks = self.safe_dict(rawCurrency, 'withdrawal_fees', {})
+        networks = {}
+        networkIds = list(rawNetworks.keys())
+        for j in range(0, len(networkIds)):
+            networkId = networkIds[j]
+            networkEntry = self.safe_dict(rawNetworks, networkId)
+            networkCode = self.network_id_to_code(networkId, code)
+            networks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
+                'active': self.safe_bool(networkEntry, 'active'),
+                'deposit': None,
+                'withdraw': None,
+                'fee': self.safe_number(networkEntry, 'value'),
+                'precision': None,
                 'limits': {
-                    'amount': {
-                        'min': self.safe_number(currency, 'min'),
-                        'max': self.safe_number(currency, 'max'),
-                    },
                     'withdraw': {
                         'min': None,
-                        'max': self.safe_value(withdrawalLimits, 0),
+                        'max': None,
                     },
                 },
-                'networks': networks,
-                'type': type,
-            })
-        return result
+                'info': networkEntry,
+            }
+        return self.safe_currency_structure({
+            'id': id,
+            'numericId': self.safe_integer(rawCurrency, 'id'),
+            'code': code,
+            'info': rawCurrency,
+            'name': self.safe_string(rawCurrency, 'fullname'),
+            'active': self.safe_bool(rawCurrency, 'active'),
+            'deposit': self.safe_bool(rawCurrency, 'allow_deposit'),
+            'withdraw': self.safe_bool(rawCurrency, 'allow_withdrawal'),
+            'fee': self.safe_number(rawCurrency, 'withdrawal_fee'),
+            'precision': self.safe_number(rawCurrency, 'increment_unit'),
+            'limits': {
+                'amount': {
+                    'min': self.safe_number(rawCurrency, 'min'),
+                    'max': self.safe_number(rawCurrency, 'max'),
+                },
+                'withdraw': {
+                    'min': None,
+                    'max': self.safe_value(withdrawalLimits, 0),
+                },
+            },
+            'networks': networks,
+            'type': type,
+        })
 
     def fetch_order_books(self, symbols: Strings = None, limit: Int = None, params={}) -> OrderBooks:
         """
@@ -923,12 +921,9 @@ class hollaex(Exchange, ImplicitAPI):
         timeDelta = self.parse_timeframe(timeframe) * maxLimit * 1000
         start = since
         now = self.milliseconds()
-        if until is None and start is None:
-            until = now
-            start = until - timeDelta
-        elif until is None:
+        if until is None:
             until = now  # the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
-        elif start is None:
+        if start is None:
             start = until - timeDelta
         request['from'] = self.parse_to_int(start / 1000)  # convert to seconds
         request['to'] = self.parse_to_int(until / 1000)  # convert to seconds

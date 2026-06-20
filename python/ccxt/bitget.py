@@ -1968,8 +1968,7 @@ class bitget(Exchange, ImplicitAPI):
         uta, params = self.handle_option_and_params(params, 'fetchMarkets', 'uta', False)
         if uta:
             return self.fetch_uta_markets(params)
-        else:
-            return self.fetch_default_markets(params)
+        return self.fetch_default_markets(params)
 
     def fetch_default_markets(self, params) -> List[Market]:
         types = None
@@ -2494,81 +2493,81 @@ class bitget(Exchange, ImplicitAPI):
         #            },
         #            ...
         #
-        result: dict = {}
         data = self.safe_value(response, 'data', [])
+        return self.parse_currencies(data)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
         fiatCurrencies = self.safe_list(self.options, 'fiatCurrencies', [])
-        for i in range(0, len(data)):
-            entry = data[i]
-            id = self.safe_string(entry, 'coin')  # we don't use 'coinId' has no use. it is 'coin' field that needs to be used in currency related endpoints(deposit, withdraw, etc..)
-            code = self.safe_currency_code(id)
-            chains = self.safe_value(entry, 'chains', [])
-            networks: dict = {}
-            withdraw = None
-            deposit = None
-            chainsLength = len(chains)
-            if chainsLength == 0:
-                withdraw = False
-                deposit = False
-            for j in range(0, chainsLength):
-                chain = chains[j]
-                networkId = self.safe_string(chain, 'chain')
-                network = self.network_id_to_code(networkId, code)
-                network = network.upper()
-                withdrawable = (self.safe_string(chain, 'withdrawable') == 'true')
-                rechargeable = (self.safe_string(chain, 'rechargeable') == 'true')
-                withdraw = withdrawable if (withdraw is None) else (withdraw or withdrawable)
-                deposit = rechargeable if (deposit is None) else (deposit or rechargeable)
-                networks[network] = {
-                    'info': chain,
-                    'id': networkId,
-                    'network': network,
-                    'limits': {
-                        'withdraw': {
-                            'min': self.safe_number(chain, 'minWithdrawAmount'),
-                            'max': None,
-                        },
-                        'deposit': {
-                            'min': self.safe_number(chain, 'minDepositAmount'),
-                            'max': None,
-                        },
-                    },
-                    'active': None,
-                    'withdraw': withdrawable,
-                    'deposit': rechargeable,
-                    'fee': self.safe_number(chain, 'withdrawFee'),
-                    'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'withdrawMinScale'))),
-                }
-            active = withdraw and deposit
-            isFiat = self.in_array(code, fiatCurrencies)
-            result[code] = self.safe_currency_structure({
-                'info': entry,
-                'id': id,
-                'code': code,
-                'networks': networks,
-                'type': 'fiat' if isFiat else 'crypto',
-                'name': None,
-                'active': active,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'fee': None,
-                'precision': None,
+        entry = rawCurrency
+        id = self.safe_string(entry, 'coin')  # we don't use 'coinId' has no use. it is 'coin' field that needs to be used in currency related endpoints(deposit, withdraw, etc..)
+        code = self.safe_currency_code(id)
+        chains = self.safe_list(entry, 'chains', [])
+        networks: dict = {}
+        withdraw = None
+        deposit = None
+        chainsLength = len(chains)
+        if chainsLength == 0:
+            withdraw = False
+            deposit = False
+        for j in range(0, chainsLength):
+            chain = chains[j]
+            networkId = self.safe_string(chain, 'chain')
+            network = self.network_id_to_code(networkId, code)
+            network = network.upper()
+            withdrawable = (self.safe_string(chain, 'withdrawable') == 'true')
+            rechargeable = (self.safe_string(chain, 'rechargeable') == 'true')
+            withdraw = withdrawable if (withdraw is None) else (withdraw or withdrawable)
+            deposit = rechargeable if (deposit is None) else (deposit or rechargeable)
+            networks[network] = {
+                'info': chain,
+                'id': networkId,
+                'network': network,
                 'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
-                    },
                     'withdraw': {
-                        'min': None,
+                        'min': self.safe_number(chain, 'minWithdrawAmount'),
                         'max': None,
                     },
                     'deposit': {
-                        'min': None,
+                        'min': self.safe_number(chain, 'minDepositAmount'),
                         'max': None,
                     },
                 },
-                'created': None,
-            })
-        return result
+                'active': None,
+                'withdraw': withdrawable,
+                'deposit': rechargeable,
+                'fee': self.safe_number(chain, 'withdrawFee'),
+                'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'withdrawMinScale'))),
+            }
+        active = withdraw and deposit
+        isFiat = self.in_array(code, fiatCurrencies)
+        return self.safe_currency_structure({
+            'info': entry,
+            'id': id,
+            'code': code,
+            'networks': networks,
+            'type': 'fiat' if isFiat else 'crypto',
+            'name': None,
+            'active': active,
+            'deposit': deposit,
+            'withdraw': withdraw,
+            'fee': None,
+            'precision': None,
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+                'deposit': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'created': None,
+        })
 
     def fetch_market_leverage_tiers(self, symbol: str, params={}) -> List[LeverageTier]:
         """
@@ -2850,7 +2849,7 @@ class bitget(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' withdraw() requires a "network" parameter')
         self.load_markets()
         currency = self.currency(code)
-        networkId = self.network_code_to_id(networkCode)
+        networkId = self.network_code_to_id(networkCode, code)
         request: dict = {
             'coin': currency['id'],
             'address': address,
@@ -3010,7 +3009,7 @@ class bitget(Exchange, ImplicitAPI):
             'txid': self.safe_string(transaction, 'tradeId'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': self.network_id_to_code(networkId),
+            'network': self.network_id_to_code(networkId, code),
             'addressFrom': self.safe_string(transaction, 'fromAddress'),
             'address': self.safe_string(transaction, 'toAddress'),
             'addressTo': self.safe_string(transaction, 'toAddress'),
@@ -5160,6 +5159,13 @@ class bitget(Exchange, ImplicitAPI):
         trailingTriggerPrice = self.safe_string(params, 'trailingTriggerPrice', self.number_to_string(price))
         trailingPercent = self.safe_string_2(params, 'trailingPercent', 'callbackRatio')
         isTrailingPercentOrder = trailingPercent is not None
+        # multipleTriggers = (isTriggerOrder and (isStopLossTriggerOrder or isTakeProfitTriggerOrder or isTrailingPercentOrder))
+        #     or (isStopLossTriggerOrder and (isTakeProfitTriggerOrder or isTrailingPercentOrder))
+        #     or (isTakeProfitTriggerOrder and isTrailingPercentOrder)
+        # if multipleTriggers:
+        #     raise ExchangeError(self.id + ' createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent')
+        # }
+        #
         if self.sum(isTriggerOrder, isStopLossTriggerOrder, isTakeProfitTriggerOrder, isTrailingPercentOrder) > 1:
             raise ExchangeError(self.id + ' createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent')
         if type == 'limit':
@@ -5509,6 +5515,12 @@ class bitget(Exchange, ImplicitAPI):
         trailingTriggerPrice = self.safe_string(params, 'trailingTriggerPrice', self.number_to_string(price))
         trailingPercent = self.safe_string_2(params, 'trailingPercent', 'newCallbackRatio')
         isTrailingPercentOrder = trailingPercent is not None
+        # multipleTriggers = (isTriggerOrder and (isStopLossOrder or isTakeProfitOrder or isTrailingPercentOrder))
+        #     or (isStopLossOrder and (isTakeProfitOrder or isTrailingPercentOrder))
+        #     or (isTakeProfitOrder and isTrailingPercentOrder)
+        # if multipleTriggers:
+        #     raise ExchangeError(self.id + ' editOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent')
+        # }
         if self.sum(isTriggerOrder, isStopLossOrder, isTakeProfitOrder, isTrailingPercentOrder) > 1:
             raise ExchangeError(self.id + ' editOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent')
         params = self.omit(params, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'clientOrderId', 'trailingTriggerPrice', 'trailingPercent'])
@@ -10612,12 +10624,15 @@ class bitget(Exchange, ImplicitAPI):
                 auth += body
             else:
                 if params:
-                    queryInner = '?' + self.urlencode(self.keysort(params))
+                    sortedParams = self.keysort(params)
+                    queryInner = '?' + self.urlencode(sortedParams, True)
                     # check  #21169 pr
                     if queryInner.find('%24') > -1:
                         queryInner = queryInner.replace('%24', '$')
                     url += queryInner
-                    auth += queryInner
+                    # bitget signs the raw(non-percent-encoded) query string, so the
+                    # signature must use the decoded values(e.g. non-ascii market ids)
+                    auth += '?' + self.rawencode(sortedParams)
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
             broker = self.safe_string(self.options, 'broker')
             headers = {

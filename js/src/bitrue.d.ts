@@ -39,6 +39,7 @@ export default class bitrue extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
+    parseCurrency(rawCurrency: Dict): Currency;
     /**
      * @method
      * @name bitrue#fetchMarkets
@@ -315,8 +316,8 @@ export default class bitrue extends Exchange {
         datetime: string;
         currency: string;
         amount: number;
-        fromAccount: any;
-        toAccount: any;
+        fromAccount: string;
+        toAccount: string;
         status: string;
     };
     /**
@@ -359,7 +360,7 @@ export default class bitrue extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<any>;
+    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<Dict>;
     parseMarginModification(data: any, market?: any): MarginModification;
     /**
      * @method

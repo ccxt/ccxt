@@ -76,7 +76,7 @@ retrieves data on all markets for pacifica
 
 
 ```javascript
-pacifica.fetchMarkets ([params])
+pacifica.fetchMarkets (params?)
 ```
 
 
@@ -96,7 +96,7 @@ retrieves data on all swap markets for pacifica
 
 
 ```javascript
-pacifica.fetchSwapMarkets ([params])
+pacifica.fetchSwapMarkets (params?)
 ```
 
 
@@ -117,7 +117,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-pacifica.fetchBalance ([params])
+pacifica.fetchBalance (params?)
 ```
 
 
@@ -138,7 +138,7 @@ fetch the set leverage for a market
 
 
 ```javascript
-pacifica.fetchLeverage (symbol[, params])
+pacifica.fetchLeverage (symbol, params?)
 ```
 
 
@@ -159,7 +159,7 @@ fetch account's market settings. Settings are cached for walletAddress. To refre
 
 
 ```javascript
-pacifica.fetchAccountSettings ([params])
+pacifica.fetchAccountSettings (params?)
 ```
 
 
@@ -180,7 +180,7 @@ fetches the margin mode of the trading pair
 
 
 ```javascript
-pacifica.fetchMarginMode (symbol[, params])
+pacifica.fetchMarginMode (symbol, params?)
 ```
 
 
@@ -203,7 +203,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-pacifica.fetchOrderBook (symbol[, limit, params])
+pacifica.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -223,7 +223,7 @@ retrieves data on all swap markets for pacifica
 
 
 ```javascript
-pacifica.fetchFundingRates ([symbols, params])
+pacifica.fetchFundingRates (symbols?, params?)
 ```
 
 
@@ -249,7 +249,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-pacifica.fetchOHLCV (symbol, timeframe[, since, limit, params])
+pacifica.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -272,7 +272,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-pacifica.fetchTrades (symbol[, since, limit, params])
+pacifica.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -299,7 +299,7 @@ fetch all trades made by the user
 
 
 ```javascript
-pacifica.fetchMyTrades ([symbol, since, limit, params])
+pacifica.fetchMyTrades (symbol?, since?, limit?, params?)
 ```
 
 
@@ -337,7 +337,7 @@ create a trade order
 
 
 ```javascript
-pacifica.createOrder (symbol, type, side, amount[, price, params])
+pacifica.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -358,7 +358,7 @@ create a list of trade orders. It is supports only limit orders and have a rando
 
 
 ```javascript
-pacifica.createOrders (orders[, params])
+pacifica.createOrders (orders, params?)
 ```
 
 
@@ -382,7 +382,7 @@ cancel multiple orders
 
 
 ```javascript
-pacifica.cancelOrders (ids[, symbol, params])
+pacifica.cancelOrders (ids, symbol?, params?)
 ```
 
 
@@ -405,7 +405,7 @@ cancel all open orders in a market
 
 
 ```javascript
-pacifica.cancelAllOrders (symbol[, params])
+pacifica.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -434,7 +434,7 @@ cancels an open order
 
 
 ```javascript
-pacifica.cancelOrder (id, symbol[, params])
+pacifica.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -462,7 +462,7 @@ edit a trade order
 
 
 ```javascript
-pacifica.editOrder (id, symbol, type, side, amount, price[, params])
+pacifica.editOrder (id, symbol, type, side, amount, price, params?)
 ```
 
 
@@ -487,7 +487,7 @@ fetches historical funding rate prices
 
 
 ```javascript
-pacifica.fetchFundingRateHistory (symbol[, since, limit, params])
+pacifica.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -508,7 +508,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-pacifica.fetchTickers ([symbols, params])
+pacifica.fetchTickers (symbols?, params?)
 ```
 
 
@@ -531,7 +531,7 @@ fetch all unfilled currently closed orders
 
 
 ```javascript
-pacifica.fetchClosedOrders (symbol[, since, limit, params])
+pacifica.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -554,7 +554,7 @@ fetch all canceled orders
 
 
 ```javascript
-pacifica.fetchCanceledOrders (symbol[, since, limit, params])
+pacifica.fetchCanceledOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -577,7 +577,7 @@ fetch all closed and canceled orders
 
 
 ```javascript
-pacifica.fetchCanceledAndClosedOrders (symbol[, since, limit, params])
+pacifica.fetchCanceledAndClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -601,7 +601,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-pacifica.fetchOpenOrders (symbol[, since, limit, params])
+pacifica.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -627,7 +627,7 @@ fetch all orders
 
 
 ```javascript
-pacifica.fetchOrders (symbol[, since, limit, params])
+pacifica.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -649,7 +649,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-pacifica.fetchOrder (id, symbol[, params])
+pacifica.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -671,7 +671,7 @@ fetch data on an open position
 
 
 ```javascript
-pacifica.fetchPosition (symbol[, params])
+pacifica.fetchPosition (symbol, params?)
 ```
 
 
@@ -693,7 +693,7 @@ fetch all open positions
 
 
 ```javascript
-pacifica.fetchPositions ([symbols, params])
+pacifica.fetchPositions (symbols?, params?)
 ```
 
 
@@ -716,7 +716,7 @@ set margin mode (symbol)
 
 
 ```javascript
-pacifica.setMarginMode (marginMode, symbol[, params])
+pacifica.setMarginMode (marginMode, symbol, params?)
 ```
 
 
@@ -739,7 +739,7 @@ set the level of leverage for a market
 
 
 ```javascript
-pacifica.setLeverage (leverage, symbol[, params])
+pacifica.setLeverage (leverage, symbol, params?)
 ```
 
 
@@ -764,7 +764,7 @@ make a withdrawal (only support native USDC)
 
 
 ```javascript
-pacifica.withdraw (code, amount, address, tag[, params])
+pacifica.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -786,7 +786,7 @@ fetch the trading fees for a market
 
 
 ```javascript
-pacifica.fetchTradingFee (symbol[, params])
+pacifica.fetchTradingFee (symbol, params?)
 ```
 
 
@@ -806,7 +806,7 @@ Retrieves the open interest for a list of symbols
 
 
 ```javascript
-pacifica.fetchOpenInterests ([symbols, params])
+pacifica.fetchOpenInterests (symbols?, params?)
 ```
 
 
@@ -826,7 +826,7 @@ retrieves the open interest of a contract trading pair
 
 
 ```javascript
-pacifica.fetchOpenInterest (symbol[, params])
+pacifica.fetchOpenInterest (symbol, params?)
 ```
 
 
@@ -852,7 +852,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-pacifica.fetchLedger ([code, since, limit, params])
+pacifica.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -877,7 +877,7 @@ fetch the history of funding payments paid and received on this account
 
 
 ```javascript
-pacifica.fetchFundingHistory ([symbol, since, limit, params])
+pacifica.fetchFundingHistory (symbol?, since?, limit?, params?)
 ```
 
 
@@ -902,7 +902,7 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-pacifica.transfer (code, amount, fromAccount, toAccount[, params])
+pacifica.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -925,7 +925,7 @@ creates a sub-account under the main account
 
 
 ```javascript
-pacifica.createSubAccount (name[, params])
+pacifica.createSubAccount (name, params?)
 ```
 
 
@@ -963,7 +963,7 @@ create a trade order
 
 
 ```javascript
-pacifica.createOrderWs (symbol, type, side, amount[, price, params])
+pacifica.createOrderWs (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -993,7 +993,7 @@ edit a trade order
 
 
 ```javascript
-pacifica.editOrderWs (id, symbol, type, side, amount, price[, params])
+pacifica.editOrderWs (id, symbol, type, side, amount, price, params?)
 ```
 
 
@@ -1023,7 +1023,7 @@ cancel multiple orders
 
 
 ```javascript
-pacifica.cancelOrdersWs (ids[, symbol, params])
+pacifica.cancelOrdersWs (ids, symbol?, params?)
 ```
 
 
@@ -1050,7 +1050,7 @@ cancels an open order
 
 
 ```javascript
-pacifica.cancelOrderWs (id, symbol[, params])
+pacifica.cancelOrderWs (id, symbol, params?)
 ```
 
 
@@ -1075,7 +1075,7 @@ cancel all open orders in a market
 
 
 ```javascript
-pacifica.cancelAllOrdersWs (symbol[, params])
+pacifica.cancelAllOrdersWs (symbol, params?)
 ```
 
 
@@ -1098,7 +1098,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-pacifica.watchOrderBook (symbol[, limit, params])
+pacifica.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -1120,7 +1120,7 @@ unWatches information on open orders with bid (buy) and ask (sell) prices, volum
 
 
 ```javascript
-pacifica.unWatchOrderBook (symbol[, params])
+pacifica.unWatchOrderBook (symbol, params?)
 ```
 
 
@@ -1141,7 +1141,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-pacifica.watchTicker (symbol[, params])
+pacifica.watchTicker (symbol, params?)
 ```
 
 
@@ -1162,7 +1162,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-pacifica.watchTickers (symbols[, params])
+pacifica.watchTickers (symbols, params?)
 ```
 
 
@@ -1183,7 +1183,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 
 
 ```javascript
-pacifica.unWatchTickers (symbols[, params])
+pacifica.unWatchTickers (symbols, params?)
 ```
 
 
@@ -1207,7 +1207,7 @@ watches information on multiple trades made by the user
 
 
 ```javascript
-pacifica.watchMyTrades (symbol[, since, limit, params])
+pacifica.watchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1229,7 +1229,7 @@ unWatches information on multiple trades made by the user
 
 
 ```javascript
-pacifica.unWatchMyTrades (symbol[, params])
+pacifica.unWatchMyTrades (symbol, params?)
 ```
 
 
@@ -1252,7 +1252,7 @@ watches information on multiple trades made in a market
 
 
 ```javascript
-pacifica.watchTrades (symbol[, since, limit, params])
+pacifica.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1273,7 +1273,7 @@ unWatches information on multiple trades made in a market
 
 
 ```javascript
-pacifica.unWatchTrades (symbol[, params])
+pacifica.unWatchTrades (symbol, params?)
 ```
 
 
@@ -1297,7 +1297,7 @@ watches historical candlestick data containing the open, high, low, close price,
 
 
 ```javascript
-pacifica.watchOHLCV (symbol, timeframe[, since, limit, params])
+pacifica.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -1319,7 +1319,7 @@ watches historical candlestick data containing the open, high, low, close price,
 
 
 ```javascript
-pacifica.unWatchOHLCV (symbol, timeframe[, params])
+pacifica.unWatchOHLCV (symbol, timeframe, params?)
 ```
 
 
@@ -1343,7 +1343,7 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-pacifica.watchOrders (symbol[, since, limit, params])
+pacifica.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -1365,6 +1365,6 @@ unWatches information on multiple orders made by the user
 
 
 ```javascript
-pacifica.unWatchOrders (symbol[, params])
+pacifica.unWatchOrders (symbol, params?)
 ```
 

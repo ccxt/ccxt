@@ -533,73 +533,72 @@ class backpack extends Exchange {
             //         ...
             //     )
             //
-            $result = array();
-            for ($i = 0; $i < count($response); $i++) {
-                $currecy = $response[$i];
-                $currencyId = $this->safe_string($currecy, 'symbol');
-                $code = $this->safe_currency_code($currencyId);
-                $networks = $this->safe_list($currecy, 'tokens', array());
-                $parsedNetworks = array();
-                for ($j = 0; $j < count($networks); $j++) {
-                    $network = $networks[$j];
-                    $networkId = $this->safe_string($network, 'blockchain');
-                    $networkIdLowerCase = $this->safe_string_lower($network, 'blockchain');
-                    $networkCode = $this->network_id_to_code($networkIdLowerCase);
-                    $parsedNetworks[$networkCode] = array(
-                        'id' => $networkId,
-                        'network' => $networkCode,
-                        'limits' => array(
-                            'withdraw' => array(
-                                'min' => $this->safe_number($network, 'minimumWithdrawal'),
-                                'max' => $this->parse_number($this->omit_zero($this->safe_string($network, 'maximumWithdrawal'))),
-                            ),
-                            'deposit' => array(
-                                'min' => $this->safe_number($network, 'minimumDeposit'),
-                                'max' => null,
-                            ),
-                        ),
-                        'active' => null,
-                        'deposit' => $this->safe_bool($network, 'depositEnabled'),
-                        'withdraw' => $this->safe_bool($network, 'withdrawEnabled'),
-                        'fee' => $this->safe_number($network, 'withdrawalFee'),
-                        'precision' => null,
-                        'info' => $network,
-                    );
-                }
-                $active = null;
-                $deposit = null;
-                $withdraw = null;
-                if ($this->is_empty($parsedNetworks)) { // if $networks are not provided
-                    $active = false;
-                    $deposit = false;
-                    $withdraw = false;
-                }
-                $result[$code] = $this->safe_currency_structure(array(
-                    'id' => $currencyId,
-                    'code' => $code,
-                    'precision' => null,
-                    'type' => 'crypto', // todo check if it is always crypto
-                    'name' => $this->safe_string($currecy, 'displayName'),
-                    'active' => $active,
-                    'deposit' => $deposit,
-                    'withdraw' => $withdraw,
-                    'fee' => null,
-                    'limits' => array(
-                        'deposit' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'withdraw' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                    'networks' => $parsedNetworks,
-                    'info' => $currecy,
-                ));
-            }
-            return $result;
+            return $this->parse_currencies($response);
         }) ();
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $currencyId = $this->safe_string($rawCurrency, 'symbol');
+        $code = $this->safe_currency_code($currencyId);
+        $networks = $this->safe_list($rawCurrency, 'tokens', array());
+        $parsedNetworks = array();
+        for ($j = 0; $j < count($networks); $j++) {
+            $network = $networks[$j];
+            $networkId = $this->safe_string($network, 'blockchain');
+            $networkIdLowerCase = $this->safe_string_lower($network, 'blockchain');
+            $networkCode = $this->network_id_to_code($networkIdLowerCase, $code);
+            $parsedNetworks[$networkCode] = array(
+                'id' => $networkId,
+                'network' => $networkCode,
+                'limits' => array(
+                    'withdraw' => array(
+                        'min' => $this->safe_number($network, 'minimumWithdrawal'),
+                        'max' => $this->parse_number($this->omit_zero($this->safe_string($network, 'maximumWithdrawal'))),
+                    ),
+                    'deposit' => array(
+                        'min' => $this->safe_number($network, 'minimumDeposit'),
+                        'max' => null,
+                    ),
+                ),
+                'active' => null,
+                'deposit' => $this->safe_bool($network, 'depositEnabled'),
+                'withdraw' => $this->safe_bool($network, 'withdrawEnabled'),
+                'fee' => $this->safe_number($network, 'withdrawalFee'),
+                'precision' => null,
+                'info' => $network,
+            );
+        }
+        $active = null;
+        $deposit = null;
+        $withdraw = null;
+        if ($this->is_empty($parsedNetworks)) { // if $networks are not provided
+            $active = false;
+            $deposit = false;
+            $withdraw = false;
+        }
+        return $this->safe_currency_structure(array(
+            'id' => $currencyId,
+            'code' => $code,
+            'precision' => null,
+            'type' => 'crypto', // todo check if it is always crypto
+            'name' => $this->safe_string($rawCurrency, 'displayName'),
+            'active' => $active,
+            'deposit' => $deposit,
+            'withdraw' => $withdraw,
+            'fee' => null,
+            'limits' => array(
+                'deposit' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'networks' => $parsedNetworks,
+            'info' => $rawCurrency,
+        ));
     }
 
     public function fetch_markets($params = array ()): PromiseInterface {
@@ -1286,10 +1285,17 @@ class backpack extends Exchange {
         $market = $this->safe_market($marketId, $market);
         $price = $this->safe_string($trade, 'price');
         $amount = $this->safe_string($trade, 'quantity');
-        $isMaker = $this->safe_bool($trade, 'isMaker');
-        $takerOrMaker = $isMaker ? 'maker' : 'taker';
-        $orderId = $this->safe_string($trade, 'orderId');
+        $isBuyerMaker = $this->safe_bool($trade, 'isBuyerMaker');
         $side = $this->parse_order_side($this->safe_string($trade, 'side'));
+        $isMaker = $this->safe_bool($trade, 'isMaker');
+        $takerOrMaker = null;
+        if ($isMaker !== null) {
+            $takerOrMaker = $isMaker ? 'maker' : 'taker';
+        } elseif ($isBuyerMaker !== null) {
+            $takerOrMaker = 'taker';
+            $side = $isBuyerMaker ? 'sell' : 'buy';
+        }
+        $orderId = $this->safe_string($trade, 'orderId');
         $fee = null;
         $feeAmount = $this->safe_string($trade, 'fee');
         $timestamp = $this->safe_integer($trade, 'timestamp');
@@ -1511,7 +1517,7 @@ class backpack extends Exchange {
                 $request['clientId'] = $tag; // memo or $tag
             }
             list($networkCode, $query) = $this->handle_network_code_and_params($params);
-            $networkId = $this->network_code_to_id($networkCode);
+            $networkId = $this->network_code_to_id($networkCode, $currency['code']);
             if ($networkId === null) {
                 throw new BadRequest($this->id . ' withdraw() requires a network parameter');
             }
@@ -1602,7 +1608,7 @@ class backpack extends Exchange {
         $timestamp = $this->parse8601($this->safe_string($transaction, 'createdAt'));
         $amount = $this->safe_number($transaction, 'quantity');
         $networkId = $this->safe_string_lower_2($transaction, 'source', 'blockchain');
-        $network = $this->network_id_to_code($networkId);
+        $network = $this->network_id_to_code($networkId, $code);
         $addressTo = $this->safe_string($transaction, 'toAddress');
         $addressFrom = $this->safe_string($transaction, 'fromAddress');
         $tag = $this->safe_string($transaction, 'platformMemo');
@@ -1673,7 +1679,7 @@ class backpack extends Exchange {
             }
             $currency = $this->currency($code);
             $request = array(
-                'blockchain' => $this->network_code_to_id($networkCode),
+                'blockchain' => $this->network_code_to_id($networkCode, $currency['code']),
             );
             $response = Async\await($this->privateGetWapiV1CapitalDepositAddress ($this->extend($request, $params)));
             return $this->parse_deposit_address($response, $currency);

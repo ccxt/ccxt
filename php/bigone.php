@@ -515,85 +515,84 @@ class bigone extends Exchange {
         // }
         //
         $currenciesData = $this->safe_list($data, 'data', array());
-        $result = array();
-        for ($i = 0; $i < count($currenciesData); $i++) {
-            $currency = $currenciesData[$i];
-            $id = $this->safe_string($currency, 'symbol');
-            $code = $this->safe_currency_code($id);
-            $name = $this->safe_string($currency, 'name');
-            $networks = array();
-            $chains = $this->safe_list($currency, 'binding_gateways', array());
-            $currencyMaxPrecision = $this->parse_precision($this->safe_string_2($currency, 'withdrawal_scale', 'scale'));
-            for ($j = 0; $j < count($chains); $j++) {
-                $chain = $chains[$j];
-                $networkId = $this->safe_string($chain, 'gateway_name');
-                $networkCode = $this->network_id_to_code($networkId);
-                $deposit = $this->safe_bool($chain, 'is_deposit_enabled');
-                $withdraw = $this->safe_bool($chain, 'is_withdrawal_enabled');
-                $minDepositAmount = $this->safe_string($chain, 'min_deposit_amount');
-                $minWithdrawalAmount = $this->safe_string($chain, 'min_withdrawal_amount');
-                $withdrawalFee = $this->safe_string($chain, 'withdrawal_fee');
-                $precision = $this->parse_precision($this->safe_string_2($chain, 'withdrawal_scale', 'scale'));
-                $networks[$networkCode] = array(
-                    'id' => $networkId,
-                    'network' => $networkCode,
-                    'margin' => null,
-                    'deposit' => $deposit,
-                    'withdraw' => $withdraw,
-                    'active' => null,
-                    'fee' => $this->parse_number($withdrawalFee),
-                    'precision' => $this->parse_number($precision),
-                    'limits' => array(
-                        'deposit' => array(
-                            'min' => $minDepositAmount,
-                            'max' => null,
-                        ),
-                        'withdraw' => array(
-                            'min' => $minWithdrawalAmount,
-                            'max' => null,
-                        ),
-                    ),
-                    'info' => $chain,
-                );
-            }
-            $chainLength = count($chains);
-            $type = null;
-            if ($this->safe_bool($currency, 'is_fiat')) {
-                $type = 'fiat';
-            } elseif ($chainLength === 0) {
-                if ($this->is_leveraged_currency($id)) {
-                    $type = 'leveraged';
-                } else {
-                    $type = 'other';
-                }
-            } else {
-                $type = 'crypto';
-            }
-            $result[$code] = $this->safe_currency_structure(array(
-                'id' => $id,
-                'code' => $code,
-                'info' => $currency,
-                'name' => $name,
-                'type' => $type,
+        return $this->parse_currencies($currenciesData);
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $id = $this->safe_string($rawCurrency, 'symbol');
+        $code = $this->safe_currency_code($id);
+        $name = $this->safe_string($rawCurrency, 'name');
+        $networks = array();
+        $chains = $this->safe_list($rawCurrency, 'binding_gateways', array());
+        $currencyMaxPrecision = $this->parse_precision($this->safe_string_2($rawCurrency, 'withdrawal_scale', 'scale'));
+        for ($j = 0; $j < count($chains); $j++) {
+            $chain = $chains[$j];
+            $networkId = $this->safe_string($chain, 'gateway_name');
+            $networkCode = $this->network_id_to_code($networkId, $code);
+            $deposit = $this->safe_bool($chain, 'is_deposit_enabled');
+            $withdraw = $this->safe_bool($chain, 'is_withdrawal_enabled');
+            $minDepositAmount = $this->safe_string($chain, 'min_deposit_amount');
+            $minWithdrawalAmount = $this->safe_string($chain, 'min_withdrawal_amount');
+            $withdrawalFee = $this->safe_string($chain, 'withdrawal_fee');
+            $precision = $this->parse_precision($this->safe_string_2($chain, 'withdrawal_scale', 'scale'));
+            $networks[$networkCode] = array(
+                'id' => $networkId,
+                'network' => $networkCode,
+                'margin' => null,
+                'deposit' => $deposit,
+                'withdraw' => $withdraw,
                 'active' => null,
-                'deposit' => null,
-                'withdraw' => null,
-                'fee' => null,
-                'precision' => $this->parse_number($currencyMaxPrecision),
+                'fee' => $this->parse_number($withdrawalFee),
+                'precision' => $this->parse_number($precision),
                 'limits' => array(
-                    'amount' => array(
-                        'min' => null,
+                    'deposit' => array(
+                        'min' => $minDepositAmount,
                         'max' => null,
                     ),
                     'withdraw' => array(
-                        'min' => null,
+                        'min' => $minWithdrawalAmount,
                         'max' => null,
                     ),
                 ),
-                'networks' => $networks,
-            ));
+                'info' => $chain,
+            );
         }
-        return $result;
+        $chainLength = count($chains);
+        $type = null;
+        if ($this->safe_bool($rawCurrency, 'is_fiat')) {
+            $type = 'fiat';
+        } elseif ($chainLength === 0) {
+            if ($this->is_leveraged_currency($id)) {
+                $type = 'leveraged';
+            } else {
+                $type = 'other';
+            }
+        } else {
+            $type = 'crypto';
+        }
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'code' => $code,
+            'info' => $rawCurrency,
+            'name' => $name,
+            'type' => $type,
+            'active' => null,
+            'deposit' => null,
+            'withdraw' => null,
+            'fee' => null,
+            'precision' => $this->parse_number($currencyMaxPrecision),
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'networks' => $networks,
+        ));
     }
 
     public function fetch_markets($params = array ()): array {
@@ -1233,16 +1232,19 @@ class bigone extends Exchange {
         $makerFeeCost = $this->safe_string($trade, 'maker_fee');
         $takerFeeCost = $this->safe_string($trade, 'taker_fee');
         if ($makerFeeCost !== null) {
+            $makerCode = $makerCurrencyCode;
             if ($takerFeeCost !== null) {
+                $takerCode = $takerCurrencyCode;
                 $result['fees'] = array(
-                    array( 'cost' => $makerFeeCost, 'currency' => $makerCurrencyCode ),
-                    array( 'cost' => $takerFeeCost, 'currency' => $takerCurrencyCode ),
+                    array( 'cost' => $makerFeeCost, 'currency' => $makerCode ),
+                    array( 'cost' => $takerFeeCost, 'currency' => $takerCode ),
                 );
             } else {
-                $result['fee'] = array( 'cost' => $makerFeeCost, 'currency' => $makerCurrencyCode );
+                $result['fee'] = array( 'cost' => $makerFeeCost, 'currency' => $makerCode );
             }
         } elseif ($takerFeeCost !== null) {
-            $result['fee'] = array( 'cost' => $takerFeeCost, 'currency' => $takerCurrencyCode );
+            $takerCode2 = $takerCurrencyCode;
+            $result['fee'] = array( 'cost' => $takerFeeCost, 'currency' => $takerCode2 );
         } else {
             $result['fee'] = null;
         }
@@ -1998,7 +2000,7 @@ class bigone extends Exchange {
         return array(
             'info' => $response,
             'currency' => $code,
-            'network' => $this->network_id_to_code($selectedNetworkId),
+            'network' => $this->network_id_to_code($selectedNetworkId, $code),
             'address' => $address,
             'tag' => $tag,
         );
@@ -2312,7 +2314,7 @@ class bigone extends Exchange {
         $networkCode = null;
         list($networkCode, $params) = $this->handle_network_code_and_params($params);
         if ($networkCode !== null) {
-            $request['gateway_name'] = $this->network_code_to_id($networkCode);
+            $request['gateway_name'] = $this->network_code_to_id($networkCode, $currency['code']);
         }
         // requires write permission on the wallet
         $response = $this->privatePostWithdrawals ($this->extend($request, $params));

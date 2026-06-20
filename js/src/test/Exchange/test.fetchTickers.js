@@ -8,16 +8,16 @@ import assert from 'assert';
 import testTicker from './base/test.ticker.js';
 import testSharedMethods from './base/test.sharedMethods.js';
 async function testFetchTickers(exchange, skippedProperties, symbol) {
-    const withoutSymbol = testFetchTickersHelper(exchange, skippedProperties, undefined);
-    const withSymbol = testFetchTickersHelper(exchange, skippedProperties, [symbol]);
+    const withoutSymbol = fetchTickersHelperTest(exchange, skippedProperties, undefined);
+    const withSymbol = fetchTickersHelperTest(exchange, skippedProperties, [symbol]);
     const results = await Promise.all([withoutSymbol, withSymbol]);
-    testFetchTickersAmounts(exchange, skippedProperties, results[0]);
+    fetchTickersAmountsTest(exchange, skippedProperties, results[0]);
     return results;
 }
-async function testFetchTickersHelper(exchange, skippedProperties, argSymbols, argParams = {}) {
+async function fetchTickersHelperTest(exchange, skippedProperties, argSymbols, argParams = {}) {
     const method = 'fetchTickers';
     const response = await exchange.fetchTickers(argSymbols, argParams);
-    assert(typeof response === 'object', exchange.id + ' ' + method + ' ' + exchange.json(argSymbols) + ' must return an object. ' + exchange.json(response));
+    assert(exchange.isDictionary(response), exchange.id + ' ' + method + ' ' + exchange.json(argSymbols) + ' must return a dict. ' + exchange.json(response));
     const values = Object.values(response);
     let checkedSymbol = undefined;
     if (argSymbols !== undefined && argSymbols.length === 1) {
@@ -31,7 +31,7 @@ async function testFetchTickersHelper(exchange, skippedProperties, argSymbols, a
     }
     return response;
 }
-function testFetchTickersAmounts(exchange, skippedProperties, tickers) {
+function fetchTickersAmountsTest(exchange, skippedProperties, tickers) {
     const tickersValues = Object.values(tickers);
     if (!('checkActiveSymbols' in skippedProperties)) {
         //

@@ -39,7 +39,7 @@ retrieves data on all markets for wavesexchange
 
 
 ```javascript
-wavesexchange.fetchMarkets ([params])
+wavesexchange.fetchMarkets (params?)
 ```
 
 
@@ -61,7 +61,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-wavesexchange.fetchOrderBook (symbol[, limit, params])
+wavesexchange.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -81,7 +81,7 @@ sign in, must be called prior to using other authenticated methods
 
 
 ```javascript
-wavesexchange.signIn ([params])
+wavesexchange.signIn (params?)
 ```
 
 
@@ -102,7 +102,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-wavesexchange.fetchTicker (symbol[, params])
+wavesexchange.fetchTicker (symbol, params?)
 ```
 
 
@@ -122,7 +122,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-wavesexchange.fetchTickers ([symbols, params])
+wavesexchange.fetchTickers (symbols?, params?)
 ```
 
 
@@ -147,7 +147,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-wavesexchange.fetchOHLCV (symbol, timeframe[, since, limit, params])
+wavesexchange.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -167,7 +167,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-wavesexchange.fetchDepositAddress (code[, params])
+wavesexchange.fetchDepositAddress (code, params?)
 ```
 
 
@@ -193,7 +193,7 @@ create a trade order
 
 
 ```javascript
-wavesexchange.createOrder (symbol, type, side, amount[, price, params])
+wavesexchange.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -215,7 +215,7 @@ cancels an open order
 
 
 ```javascript
-wavesexchange.cancelOrder (id, symbol[, params])
+wavesexchange.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -237,7 +237,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-wavesexchange.fetchOrder (id, symbol[, params])
+wavesexchange.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -259,7 +259,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-wavesexchange.fetchOrders (symbol[, since, limit, params])
+wavesexchange.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -281,7 +281,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-wavesexchange.fetchOpenOrders (symbol[, since, limit, params])
+wavesexchange.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -303,7 +303,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-wavesexchange.fetchClosedOrders (symbol[, since, limit, params])
+wavesexchange.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -322,7 +322,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-wavesexchange.fetchBalance ([params])
+wavesexchange.fetchBalance (params?)
 ```
 
 
@@ -345,7 +345,7 @@ fetch all trades made by the user
 
 
 ```javascript
-wavesexchange.fetchMyTrades (symbol[, since, limit, params])
+wavesexchange.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -368,7 +368,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-wavesexchange.fetchTrades (symbol[, since, limit, params])
+wavesexchange.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -393,7 +393,7 @@ fetch deposit and withdraw fees
 
 
 ```javascript
-wavesexchange.fetchDepositWithdrawFees (codes[, params])
+wavesexchange.fetchDepositWithdrawFees (codes, params?)
 ```
 
 
@@ -416,6 +416,6 @@ make a withdrawal
 
 
 ```javascript
-wavesexchange.withdraw (code, amount, address, tag[, params])
+wavesexchange.withdraw (code, amount, address, tag, params?)
 ```
 

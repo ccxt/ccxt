@@ -727,7 +727,7 @@ export default class kucoin extends kucoinRest {
         if (isFuturesMethod) {
             channelName = '/contractMarket/tickerV2:';
         }
-        const ticker = await this.watchMultiHelper ('watchBidsAsks', channelName, symbols, params);
+        const ticker = await this.watchMultiHelper ('watchBidsAsks', channelName, isFuturesMethod, symbols, params);
         if (this.newUpdates) {
             const tickers: Dict = {};
             tickers[ticker['symbol']] = ticker;
@@ -736,7 +736,7 @@ export default class kucoin extends kucoinRest {
         return this.filterByArray (this.bidsasks, 'symbol', symbols);
     }
 
-    async watchMultiHelper (methodName, channelName: string, symbols: Strings = undefined, params = {}) {
+    async watchMultiHelper (methodName, channelName: string, isFuturesChannel: boolean, symbols: Strings = undefined, params = {}) {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false, true, false);
         const length = symbols.length;
@@ -749,7 +749,7 @@ export default class kucoin extends kucoinRest {
             const market = this.market (symbol);
             messageHashes.push ('bidask@' + market['symbol']);
         }
-        const url = await this.negotiate (false);
+        const url = await this.negotiate (false, isFuturesChannel);
         const marketIds = this.marketIds (symbols);
         const joined = marketIds.join (',');
         const requestId = this.requestId ().toString ();
@@ -1719,14 +1719,14 @@ export default class kucoin extends kucoinRest {
     getCacheIndex (orderbook, cache) {
         const firstDelta = this.safeValue (cache, 0);
         const nonce = this.safeInteger (orderbook, 'nonce');
-        const firstDeltaStart = this.safeInteger2 (firstDelta, 'sequenceStart', 'sequence');
+        const firstDeltaStart = this.safeIntegerN (firstDelta, [ 'sequenceStart', 'sequence', 'O' ]);
         if (nonce < firstDeltaStart - 1) {
             return -1;
         }
         for (let i = 0; i < cache.length; i++) {
             const delta = cache[i];
-            const deltaStart = this.safeInteger2 (delta, 'sequenceStart', 'sequence');
-            const deltaEnd = this.safeInteger2 (delta, 'sequenceEnd', 'timestamp'); // todo check
+            const deltaStart = this.safeIntegerN (delta, [ 'sequenceStart', 'sequence', 'O' ]);
+            const deltaEnd = this.safeIntegerN (delta, [ 'sequenceEnd', 'sequence', 'C' ]); // todo check
             if ((nonce >= deltaStart - 1) && (nonce < deltaEnd)) {
                 return i;
             }
@@ -1774,7 +1774,7 @@ export default class kucoin extends kucoinRest {
 
     handleBidAsks (bookSide, bidAsks) {
         for (let i = 0; i < bidAsks.length; i++) {
-            const bidAsk = this.parseBidAsk (bidAsks[i]);
+            const bidAsk = this.parseOrderBookBidAsk (bidAsks[i]);
             bookSide.storeArray (bidAsk);
         }
     }

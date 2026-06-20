@@ -1,7 +1,6 @@
 import apexRest from '../apex.js';
-import type { Int, Trade, OrderBook, Ticker, Strings, Tickers, Bool } from '../base/types.js';
+import type { Bool, Int, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import { OHLCV, Order, Position, Str } from '../base/types.js';
 export default class apex extends apexRest {
     describe(): any;
     /**
@@ -53,6 +52,8 @@ export default class apex extends apexRest {
      */
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
     watchTopics(url: any, messageHashes: any, topics: any, params?: {}): Promise<any>;
+    getWsPublicUrl(): string;
+    getWsPrivateUrl(): string;
     handleOrderBook(client: Client, message: any): void;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;

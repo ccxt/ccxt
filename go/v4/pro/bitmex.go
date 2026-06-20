@@ -1847,7 +1847,7 @@ func  (this *BitmexCore) HandleOrderBook(client any, message any)  {
             if !ccxt.IsTrue((ccxt.InOp(numUpdatesByMarketId, marketId))) {
                 ccxt.AddElementToObject(numUpdatesByMarketId, marketId, 0)
             }
-            ccxt.AddElementToObject(numUpdatesByMarketId, marketId, this.Sum(numUpdatesByMarketId, 1))
+            ccxt.AddElementToObject(numUpdatesByMarketId, marketId, this.Sum(ccxt.GetValue(numUpdatesByMarketId, marketId), 1))
             var market any = this.SafeMarket(marketId)
             var symbol any = ccxt.GetValue(market, "symbol")
             var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)

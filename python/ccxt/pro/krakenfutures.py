@@ -264,10 +264,10 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         https://docs.futures.kraken.com/#websocket-api-private-feeds-open-positions
 
         watch all open positions
-        :param str[]|None symbols: list of unified market symbols
- @param since
- @param limit
-        :param dict params: extra parameters specific to the exchange API endpoint
+        :param str[] [symbols]: list of unified market symbols
+        :param int [since]: timestamp in ms of the earliest position to fetch
+        :param int [limit]: the maximum number of positions to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         await self.load_markets()
@@ -527,6 +527,21 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         #        "price": 34893
         #    }
         #
+        # order update
+        #     {
+        #         "instrument": "PF_DOGEUSD",
+        #         "time": 1778610421471,
+        #         "last_update_time": 1778610444402,
+        #         "qty": 0,
+        #         "filled": 10,
+        #         "limit_price": 0.10912,
+        #         "stop_price": 0,
+        #         "type": "limit",
+        #         "order_id": "a1c3803c-8f3d-4317-a085-8d06e11b1d36",
+        #         "direction": 0,
+        #         "reduce_only": False
+        #     }
+        #
         marketId = self.safe_string(trade, 'product_id')
         market = self.safe_market(marketId, market)
         timestamp = self.safe_integer(trade, 'time')
@@ -540,8 +555,8 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             'type': self.safe_string(trade, 'type'),
             'side': self.safe_string(trade, 'side'),
             'takerOrMaker': 'taker',
-            'price': self.safe_string(trade, 'price'),
-            'amount': self.safe_string(trade, 'qty'),
+            'price': self.safe_string_2(trade, 'price', 'limit_price'),
+            'amount': self.safe_string_2(trade, 'filled', 'qty'),
             'cost': None,
             'fee': {
                 'rate': None,
@@ -591,7 +606,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             'type': self.safe_string_lower(trade, 'type'),
             'side': self.safe_string(trade, 'side'),
             'takerOrMaker': self.safe_string(trade, 'matchRole'),
-            'price': self.safe_string(trade, 'price'),
+            'price': self.safe_string_2(trade, 'price', 'limit_price'),
             'amount': self.safe_string(trade, 'tradeAmount'),  # ? tradeQty?
             'cost': None,
             'fee': {
@@ -705,11 +720,13 @@ class krakenfutures(ccxt.async_support.krakenfutures):
                 if Precise.string_gt(totalAmount, '0'):
                     previousOrder['average'] = Precise.string_div(totalCost, totalAmount)
                 previousOrder['cost'] = totalCost
-                if previousOrder['filled'] is not None:
-                    stringOrderFilled = self.number_to_string(previousOrder['filled'])
-                    previousOrder['filled'] = Precise.string_add(stringOrderFilled, self.number_to_string(trade['amount']))
-                    if previousOrder['amount'] is not None:
-                        previousOrder['remaining'] = Precise.string_sub(self.number_to_string(previousOrder['amount']), stringOrderFilled)
+                filledString = self.number_to_string(trade['amount'])
+                stringOrderFilled = self.safe_string(previousOrder, 'filled', '0')
+                totalFilled = Precise.string_add(stringOrderFilled, filledString)
+                previousOrder['filled'] = totalFilled
+                prevAmountString = self.safe_string(previousOrder, 'amount')
+                remaining = Precise.string_sub(prevAmountString, totalFilled)
+                previousOrder['remaining'] = remaining
                 if previousOrder['fee'] is None:
                     previousOrder['fee'] = {
                         'rate': None,
@@ -871,11 +888,11 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             'price': self.safe_string(unparsedOrder, 'limit_price'),
             'stopPrice': self.safe_string(unparsedOrder, 'stop_price'),
             'triggerPrice': self.safe_string(unparsedOrder, 'stop_price'),
-            'amount': self.safe_string(unparsedOrder, 'qty'),
+            'amount': None,
             'cost': None,
             'average': None,
             'filled': self.safe_string(unparsedOrder, 'filled'),
-            'remaining': None,
+            'remaining': self.safe_string(unparsedOrder, 'qty'),
             'status': status,
             'fee': {
                 'rate': None,
@@ -1464,8 +1481,19 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         #        event: 'alert',
         #        message: 'Failed to subscribe to authenticated feed'
         #    }
+        #    {
+        #        event: 'alert',
+        #        message: 'Already subscribed to feed, re-requesting'
+        #    }
         #
         errMsg = self.safe_string(message, 'message')
+        # Benign "already subscribed" notice: the original subscription is still
+        # active and delivering data on self socket. The generic client.reject
+        # below rejects every pending future on the connection, so a stray
+        # re-subscribe warning would kill unrelated in-flight watch* calls —
+        # mirrors the bitmart 90008 fix.
+        if errMsg is not None and errMsg.find('Already subscribed') >= 0:
+            return False
         try:
             raise ExchangeError(self.id + ' ' + errMsg)
         except Exception as error:

@@ -507,39 +507,38 @@ public partial class bullish : Exchange
         //         }, ...
         //     ]
         //
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
-        {
-            object currency = getValue(response, i);
-            object id = this.safeString(currency, "symbol");
-            object code = this.safeCurrencyCode(id);
-            object name = this.safeString(currency, "name");
-            object precision = this.safeString(currency, "precision");
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
-                { "id", id },
-                { "code", code },
-                { "name", name },
-                { "active", null },
-                { "deposit", null },
-                { "withdraw", null },
-                { "fee", this.safeNumber(currency, "minFee") },
-                { "precision", this.parseNumber(this.parsePrecision(precision)) },
-                { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
+        return this.parseCurrencies(response);
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
+        object id = this.safeString(rawCurrency, "symbol");
+        object code = this.safeCurrencyCode(id);
+        object name = this.safeString(rawCurrency, "name");
+        object precision = this.safeString(rawCurrency, "precision");
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "id", id },
+            { "code", code },
+            { "name", name },
+            { "active", null },
+            { "deposit", null },
+            { "withdraw", null },
+            { "fee", this.safeNumber(rawCurrency, "minFee") },
+            { "precision", this.parseNumber(this.parsePrecision(precision)) },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
                 } },
-                { "networks", new Dictionary<string, object>() {} },
-                { "type", "crypto" },
-                { "info", currency },
-            };
-        }
-        return result;
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+            { "networks", new Dictionary<string, object>() {} },
+            { "type", "crypto" },
+            { "info", rawCurrency },
+        });
     }
 
     /**
@@ -2271,7 +2270,7 @@ public partial class bullish : Exchange
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         if (isTrue(!isEqual(networkCode, null)))
         {
-            ((IDictionary<string,object>)request)["network"] = this.networkCodeToId(networkCode);
+            ((IDictionary<string,object>)request)["network"] = this.networkCodeToId(networkCode, code);
         } else
         {
             throw new ArgumentsRequired ((string)add(this.id, " withdraw() requires a network parameter")) ;
@@ -2348,7 +2347,7 @@ public partial class bullish : Exchange
             { "txid", txid },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "network", this.networkIdToCode(network) },
+            { "network", this.networkIdToCode(network, code) },
             { "addressFrom", sourceAddress },
             { "address", address },
             { "addressTo", address },
@@ -2572,7 +2571,7 @@ public partial class bullish : Exchange
                 {
                     object entry = this.safeDict(safeResponse, i, new Dictionary<string, object>() {});
                     object networkId = this.safeString(entry, "network");
-                    object networkCode = this.networkIdToCode(networkId);
+                    object networkCode = this.networkIdToCode(networkId, code);
                     if (isTrue(isEqual(network, networkCode)))
                     {
                         data = entry;
@@ -2592,10 +2591,11 @@ public partial class bullish : Exchange
     {
         object id = this.safeString(depositAddress, "symbol");
         object network = this.safeString(depositAddress, "network");
+        object code = this.safeCurrencyCode(id, currency);
         return new Dictionary<string, object>() {
             { "info", depositAddress },
-            { "currency", this.safeCurrencyCode(id, currency) },
-            { "network", this.networkIdToCode(network) },
+            { "currency", code },
+            { "network", this.networkIdToCode(network, code) },
             { "address", this.safeString(depositAddress, "address") },
             { "tag", null },
         };

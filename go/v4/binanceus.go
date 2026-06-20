@@ -49,9 +49,10 @@ func (this *BinanceusCore) Describe() any {
 			"fetchMarkets": map[string]any{
 				"types": []any{"spot"},
 			},
-			"defaultType":   "spot",
-			"fetchMargins":  false,
-			"quoteOrderQty": false,
+			"defaultType":     "spot",
+			"fetchMargins":    false,
+			"quoteOrderQty":   false,
+			"fetchCurrencies": false,
 		},
 		"has": map[string]any{
 			"CORS":                       nil,

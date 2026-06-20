@@ -655,16 +655,8 @@ class aster extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
-        $promises = array(
-            $this->sapiPublicGetV3ExchangeInfo ($params),
-            $this->fapiPublicGetV3ExchangeInfo ($params),
-        );
-        $results = $promises;
-        $sapiResult = $this->safe_dict($results, 0, array());
+        $sapiResult = $this->sapiPublicGetV3ExchangeInfo ($params);
         $sapiRows = $this->safe_list($sapiResult, 'assets', array());
-        $fapiResult = $this->safe_dict($results, 1, array());
-        $fapiRows = $this->safe_list($fapiResult, 'assets', array());
-        $rows = $this->array_concat($sapiRows, $fapiRows);
         //
         //     array(
         //         {
@@ -674,40 +666,40 @@ class aster extends Exchange {
         //         }
         //     )
         //
-        $result = array();
-        for ($i = 0; $i < count($rows); $i++) {
-            $currency = $rows[$i];
-            $currencyId = $this->safe_string($currency, 'asset');
-            $code = $this->safe_currency_code($currencyId);
-            $result[$code] = $this->safe_currency_structure(array(
-                'info' => $currency,
-                'code' => $code,
-                'id' => $currencyId,
-                'name' => $code,
-                'active' => null,
-                'deposit' => null,
-                'withdraw' => null,
-                'fee' => null,
-                'precision' => null,
-                'limits' => array(
-                    'amount' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'withdraw' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'deposit' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
+        return $this->parse_currencies($sapiRows);
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $currencyId = $this->safe_string($rawCurrency, 'asset');
+        $code = $this->safe_currency_code($currencyId);
+        return $this->safe_currency_structure(array(
+            'info' => $rawCurrency,
+            'code' => $code,
+            'id' => $currencyId,
+            'name' => $code,
+            'active' => null,
+            'deposit' => null,
+            'withdraw' => null,
+            'fee' => null,
+            'precision' => null,
+            'margin' => $this->safe_bool($rawCurrency, 'marginAvailable'),
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
                 ),
-                'networks' => null,
-                'type' => 'crypto', // atm exchange api provides only cryptos
-            ));
-        }
-        return $result;
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'deposit' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'networks' => null,
+            'type' => 'crypto', // atm exchange api provides only cryptos
+        ));
     }
 
     public function fetch_markets($params = array ()): array {
@@ -718,7 +710,7 @@ class aster extends Exchange {
          * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#exchange-information
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} an array of objects representing market data
+         * @return {array[]} an array of objects representing $market data
          */
         $promises = array(
             $this->sapiPublicGetV3ExchangeInfo ($params),
@@ -824,7 +816,15 @@ class aster extends Exchange {
         //     )
         //
         //
-        $rows = $this->array_concat($sapiRows, $fapiRows);
+        $fapiRowsFiltered = array();
+        for ($i = 0; $i < count($fapiRows); $i++) {
+            $market = $fapiRows[$i];
+            // tmp skip some markets with base = null
+            if ($this->safe_string($market, 'baseAsset')) {
+                $fapiRowsFiltered[] = $market;
+            }
+        }
+        $rows = $this->array_concat($sapiRows, $fapiRowsFiltered);
         return $this->parse_markets($rows);
     }
 
@@ -1393,7 +1393,6 @@ class aster extends Exchange {
         $last = $this->safe_string($ticker, 'lastPrice');
         $open = $this->safe_string($ticker, 'openPrice');
         $percentage = $this->safe_string($ticker, 'priceChangePercent');
-        $percentage = Precise::string_mul($percentage, '100');
         $quoteVolume = $this->safe_string($ticker, 'quoteVolume');
         $baseVolume = $this->safe_string($ticker, 'volume');
         $high = $this->safe_string($ticker, 'highPrice');
@@ -2127,8 +2126,10 @@ class aster extends Exchange {
         //        }
         //
         $info = $order;
+        $positionSide = $this->safe_string($order, 'positionSide');
+        $defaultType = ($positionSide !== null) ? 'swap' : 'spot';
         $marketId = $this->safe_string($order, 'symbol');
-        $market = $this->safe_market($marketId, $market);
+        $market = $this->safe_market($marketId, $market, null, $defaultType);
         $side = $this->safe_string_lower($order, 'side');
         $timestamp = $this->safe_integer($order, 'time');
         $statusId = $this->safe_string_upper($order, 'status');
@@ -3056,7 +3057,7 @@ class aster extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($marginMode, 'symbol');
-        $market = $this->safe_market($marketId, $market);
+        $market = $this->safe_market($marketId, $market, null, 'swap');
         return array(
             'info' => $marginMode,
             'symbol' => $market['symbol'],
@@ -4120,7 +4121,8 @@ class aster extends Exchange {
             // Sign using EIP-712 typed data per the AsterSignTransaction spec
             $zeroAddress = $this->safe_string($this->options, 'zeroAddress', '0x0000000000000000000000000000000000000000');
             $v3ChainId = $this->safe_integer($this->options, 'v3ChainId', 1666);
-            $signerAddress = $this->safe_string($this->options, 'signerAddress');
+            $walletAddress = $this->eth_get_address_from_private_key($this->privateKey);
+            $signerAddress = $this->safe_string($this->options, 'signerAddress', $walletAddress); // default to user's wallet
             if ($signerAddress === null) {
                 throw new ArgumentsRequired($this->id . ' requires $signerAddress in options when use v3 api');
             }
@@ -4139,7 +4141,7 @@ class aster extends Exchange {
             // Note => timestamp and recvWindow are not used for v3; $nonce replaces timestamp
             $finalParams = $this->extend(array(
                 'nonce' => (string) $nonce,
-                'user' => $this->walletAddress,
+                'user' => $walletAddress,
                 'signer' => $signerAddress,
             ), $params);
             $paramString = null;

@@ -653,74 +653,73 @@ class whitebit(Exchange, ImplicitAPI):
         #   }
         # }
         #
-        ids = list(response.keys())
-        result: dict = {}
-        for i in range(0, len(ids)):
-            id = ids[i]
-            currency = response[id]
-            # name = self.safe_string(currency, 'name')  # breaks down in Python due to utf8 encoding issues on the exchange side
-            code = self.safe_currency_code(id)
-            hasProvider = ('providers' in currency)
-            networks = {}
-            rawNetworks = self.safe_dict(currency, 'networks', {})
-            depositsNetworks = self.safe_list(rawNetworks, 'deposits', [])
-            withdrawsNetworks = self.safe_list(rawNetworks, 'withdraws', [])
-            networkLimits = self.safe_dict(currency, 'limits', {})
-            depositLimits = self.safe_dict(networkLimits, 'deposit', {})
-            withdrawLimits = self.safe_dict(networkLimits, 'withdraw', {})
-            allNetworks = self.array_concat(depositsNetworks, withdrawsNetworks)
-            for j in range(0, len(allNetworks)):
-                networkId = allNetworks[j]
-                networkCode = self.network_id_to_code(networkId)
-                networkDepositLimits = self.safe_dict(depositLimits, networkId, {})
-                networkWithdrawLimits = self.safe_dict(withdrawLimits, networkId, {})
-                networks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'active': None,
-                    'deposit': self.in_array(networkId, depositsNetworks),
-                    'withdraw': self.in_array(networkId, withdrawsNetworks),
-                    'fee': None,
-                    'precision': None,
-                    'limits': {
-                        'deposit': {
-                            'min': self.safe_number(networkDepositLimits, 'min'),
-                            'max': self.safe_number(networkDepositLimits, 'max'),
-                        },
-                        'withdraw': {
-                            'min': self.safe_number(networkWithdrawLimits, 'min'),
-                            'max': self.safe_number(networkWithdrawLimits, 'max'),
-                        },
-                    },
-                }
-            result[code] = self.safe_currency_structure({
-                'id': id,
-                'code': code,
-                'info': currency,  # the original payload
-                'name': None,  # see the comment above
+        enhancedArray = self.add_key_in_array_items(response, '_coin_id')
+        return self.parse_currencies(enhancedArray)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        # name = self.safe_string(currency, 'name')  # breaks down in Python due to utf8 encoding issues on the exchange side
+        id = self.safe_string(rawCurrency, '_coin_id')
+        code = self.safe_currency_code(id)
+        hasProvider = ('providers' in rawCurrency)
+        networks = {}
+        rawNetworks = self.safe_dict(rawCurrency, 'networks', {})
+        depositsNetworks = self.safe_list(rawNetworks, 'deposits', [])
+        withdrawsNetworks = self.safe_list(rawNetworks, 'withdraws', [])
+        networkLimits = self.safe_dict(rawCurrency, 'limits', {})
+        depositLimits = self.safe_dict(networkLimits, 'deposit', {})
+        withdrawLimits = self.safe_dict(networkLimits, 'withdraw', {})
+        allNetworks = self.array_concat(depositsNetworks, withdrawsNetworks)
+        for j in range(0, len(allNetworks)):
+            networkId = allNetworks[j]
+            networkCode = self.network_id_to_code(networkId, code)
+            networkDepositLimits = self.safe_dict(depositLimits, networkId, {})
+            networkWithdrawLimits = self.safe_dict(withdrawLimits, networkId, {})
+            networks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
                 'active': None,
-                'deposit': self.safe_bool(currency, 'can_deposit'),
-                'withdraw': self.safe_bool(currency, 'can_withdraw'),
+                'deposit': self.in_array(networkId, depositsNetworks),
+                'withdraw': self.in_array(networkId, withdrawsNetworks),
                 'fee': None,
-                'networks': networks,
-                'type': 'fiat' if hasProvider else 'crypto',
-                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'currency_precision'))),
+                'precision': None,
                 'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
+                    'deposit': {
+                        'min': self.safe_number(networkDepositLimits, 'min'),
+                        'max': self.safe_number(networkDepositLimits, 'max'),
                     },
                     'withdraw': {
-                        'min': self.safe_number(currency, 'min_withdraw'),
-                        'max': self.safe_number(currency, 'max_withdraw'),
-                    },
-                    'deposit': {
-                        'min': self.safe_number(currency, 'min_deposit'),
-                        'max': self.safe_number(currency, 'max_deposit'),
+                        'min': self.safe_number(networkWithdrawLimits, 'min'),
+                        'max': self.safe_number(networkWithdrawLimits, 'max'),
                     },
                 },
-            })
-        return result
+            }
+        return self.safe_currency_structure({
+            'id': id,
+            'code': code,
+            'info': rawCurrency,  # the original payload
+            'name': None,  # see the comment above
+            'active': None,
+            'deposit': self.safe_bool(rawCurrency, 'can_deposit'),
+            'withdraw': self.safe_bool(rawCurrency, 'can_withdraw'),
+            'fee': None,
+            'networks': networks,
+            'type': 'fiat' if hasProvider else 'crypto',
+            'precision': self.parse_number(self.parse_precision(self.safe_string(rawCurrency, 'currency_precision'))),
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'withdraw': {
+                    'min': self.safe_number(rawCurrency, 'min_withdraw'),
+                    'max': self.safe_number(rawCurrency, 'max_withdraw'),
+                },
+                'deposit': {
+                    'min': self.safe_number(rawCurrency, 'min_deposit'),
+                    'max': self.safe_number(rawCurrency, 'max_deposit'),
+                },
+            },
+        })
 
     async def fetch_transaction_fees(self, codes: Strings = None, params={}):
         """
@@ -906,7 +905,7 @@ class whitebit(Exchange, ImplicitAPI):
                 if networkId is not None:
                     networkLength = len(networkId)
                     networkId = networkId[1:networkLength - 1]
-                    networkCode = self.network_id_to_code(networkId)
+                    networkCode = self.network_id_to_code(networkId, code)
                     depositWithdrawFees[code]['networks'][networkCode] = {
                         'withdraw': withdrawResult,
                         'deposit': depositResult,
@@ -1155,7 +1154,7 @@ class whitebit(Exchange, ImplicitAPI):
                 # Skip currency not in requested list silently
                 continue
             # Find corresponding fee data for self currency
-            feeData = None
+            feeData: dict = None
             feeKeys = list(feesData.keys())
             for j in range(0, len(feeKeys)):
                 feeKey = feeKeys[j]
@@ -1381,7 +1380,7 @@ class whitebit(Exchange, ImplicitAPI):
         request: dict = {
             'orderId': id,
         }
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['market'] = market['id']
@@ -1445,9 +1444,9 @@ class whitebit(Exchange, ImplicitAPI):
                     break
         else:
             onlyContractSymbols = False
-        marketType = None
+        marketType: Str = None
         marketType, params = self.handle_market_type_and_params('fetchTickers', None, params)
-        method = None
+        method: Str = None
         method, params = self.handle_option_and_params(params, 'fetchTickers', 'method', method)
         if method is None:
             # if the user did not specify a method, choose it based on market type and symbols
@@ -1455,7 +1454,7 @@ class whitebit(Exchange, ImplicitAPI):
                 method = 'v4PublicGetFutures'
             else:
                 method = 'v4PublicGetTicker'
-        response = None
+        response: dict = None
         if method == 'v4PublicGetTicker':
             #
             #      "BCH_RUB": {
@@ -1936,7 +1935,7 @@ class whitebit(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' createOrder() is only available for cross margin')
         params = self.omit(query, ['postOnly', 'triggerPrice', 'stopPrice'])
         useCollateralEndpoint = marginMode is not None or marketType == 'swap'
-        response = None
+        response: dict = None
         if isStopOrder:
             request['activation_price'] = self.price_to_precision(symbol, triggerPrice)
             if isLimitOrder:
@@ -2079,16 +2078,16 @@ class whitebit(Exchange, ImplicitAPI):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         request: dict = {}
         if symbol is not None:
             market = self.market(symbol)
             request['market'] = market['id']
-        type = None
+        type: Str = None
         type, params = self.handle_market_type_and_params('cancelAllOrders', market, params)
         requestType = []
         if type == 'spot':
-            isMargin = None
+            isMargin: Bool = None
             isMargin, params = self.handle_option_and_params(params, 'cancelAllOrders', 'isMargin', False)
             if isMargin:
                 requestType.append('margin')
@@ -2177,7 +2176,7 @@ class whitebit(Exchange, ImplicitAPI):
             id = balanceKeys[i]
             code = self.safe_currency_code(id)
             balance = response[id]
-            if isinstance(balance, dict) and balance is not None:
+            if balance is not None and self.is_dictionary(balance):
                 account = self.account()
                 account['free'] = self.safe_string_2(balance, 'available', 'main_balance')
                 account['used'] = self.safe_string(balance, 'freeze')
@@ -2200,9 +2199,9 @@ class whitebit(Exchange, ImplicitAPI):
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.load_markets()
-        marketType = None
+        marketType: Str = None
         marketType, params = self.handle_market_type_and_params('fetchBalance', None, params)
-        response = None
+        response: dict = None
         if marketType == 'swap':
             response = await self.v4PrivatePostCollateralAccountBalance(params)
         else:
@@ -2251,7 +2250,7 @@ class whitebit(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         request: dict = {}
         if symbol is not None:
             market = self.market(symbol)
@@ -2295,7 +2294,7 @@ class whitebit(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         request: dict = {}
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
@@ -2406,7 +2405,7 @@ class whitebit(Exchange, ImplicitAPI):
         if (side == 'buy') and ((type == 'market') or (type == 'stop market')):
             amount = filled
         dealFee = self.safe_string(order, 'dealFee')
-        fee = None
+        fee: Fee = None
         if dealFee is not None:
             fee = {
                 'cost': self.parse_number(dealFee),
@@ -2464,7 +2463,7 @@ class whitebit(Exchange, ImplicitAPI):
         request: dict = {
             'orderId': int(id),
         }
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['market'] = market['id']
@@ -2507,7 +2506,7 @@ class whitebit(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         await self.load_markets()
-        currency = None
+        currency: Currency = None
         request: dict = {}
         if code is not None:
             currency = self.currency(code)
@@ -2555,7 +2554,7 @@ class whitebit(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         await self.load_markets()
-        currency = None
+        currency: Currency = None
         request: dict = {}
         if code is not None:
             currency = self.currency(code)
@@ -2604,7 +2603,7 @@ class whitebit(Exchange, ImplicitAPI):
         request: dict = {
             'ticker': currency['id'],
         }
-        response = None
+        response: dict = None
         if self.is_fiat(code):
             provider = self.safe_string(params, 'provider')
             if provider is None:
@@ -2959,7 +2958,7 @@ class whitebit(Exchange, ImplicitAPI):
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         await self.load_markets()
-        currency = None
+        currency: Currency = None
         request: dict = {
             'transactionMethod': 1,
             'uniqueId': id,
@@ -3024,7 +3023,7 @@ class whitebit(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         await self.load_markets()
-        currency = None
+        currency: Currency = None
         request: dict = {
             'transactionMethod': 1,
             'limit': 100,
@@ -3091,7 +3090,7 @@ class whitebit(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         request: dict = {}
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['market'] = market['id']
@@ -3390,7 +3389,7 @@ class whitebit(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         request: dict = {}
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
             request['ticker'] = currency['id']

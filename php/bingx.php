@@ -820,113 +820,102 @@ class bingx extends Exchange {
         $response = $this->walletsV1PrivateGetCapitalConfigGetall ($params);
         //
         //    {
-        //      "code" => 0,
-        //      "timestamp" => 1702623271476,
-        //      "data" => array(
-        //        {
-        //          "coin" => "BTC",
-        //          "name" => "BTC",
-        //          "networkList" => array(
-        //            array(
-        //              "name" => "BTC",
-        //              "network" => "BTC",
-        //              "isDefault" => true,
-        //              "minConfirm" => 2,
-        //              "withdrawEnable" => true,
-        //              "depositEnable" => true,
-        //              "withdrawFee" => "0.0006",
-        //              "withdrawMax" => "1.17522",
-        //              "withdrawMin" => "0.0005",
-        //              "depositMin" => "0.0002"
-        //            ),
+        //        "code" => "0",
+        //        "timestamp" => "1779364918914",
+        //        "data" => array(
         //            {
-        //              "name" => "BTC",
-        //              "network" => "BEP20",
-        //              "isDefault" => false,
-        //              "minConfirm" => 15,
-        //              "withdrawEnable" => true,
-        //              "depositEnable" => true,
-        //              "withdrawFee" => "0.0000066",
-        //              "withdrawMax" => "1.17522",
-        //              "withdrawMin" => "0.0000066",
-        //              "depositMin" => "0.0002"
-        //            }
-        //          )
-        //        }
-        //      )
-        //    }
+        //                "coin" => "BTC",
+        //                "name" => "BTC",
+        //                "networkList" => [
+        //                    array(
+        //                        "name" => "BTC",
+        //                        "network" => "BTC",
+        //                        "isDefault" => true,
+        //                        "minConfirm" => "2",
+        //                        "withdrawEnable" => true,
+        //                        "depositEnable" => true,
+        //                        "withdrawFee" => "0.00004",
+        //                        "withdrawMax" => "64.77131128",
+        //                        "withdrawMin" => "0.000046",
+        //                        "depositMin" => "0.00009",
+        //                        "withdrawPrecision" => "8",
+        //                        "depositPrecision" => "8",
+        //                        "contractAddress" => "",
+        //                        "needTagOrMemo" => "false",
+        //                        "displayName" => "BTC"
+        //                    ),
+        //                    array(
+        //                        "name" => "BTC",
+        //                        "network" => "BEP20",
+        //                        "isDefault" => true,
+        //                        "minConfirm" => "10",
+        //                        "withdrawEnable" => true,
+        //                        "depositEnable" => true,
+        //                        "withdrawFee" => "0.000001",
+        //                        "withdrawMax" => "64.77131128",
+        //                        "withdrawMin" => "0.000065",
+        //                        "depositMin" => "0.000012",
+        //                        "withdrawPrecision" => "8",
+        //                        "depositPrecision" => "18",
+        //                        "contractAddress" => "0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c",
+        //                        "needTagOrMemo" => "false",
+        //                        "displayName" => "BTCBEP20"
+        //                    }
+        //                )
+        //            ),
+        //            ...
         //
         $data = $this->safe_list($response, 'data', array());
-        $result = array();
-        for ($i = 0; $i < count($data); $i++) {
-            $entry = $data[$i];
-            $currencyId = $this->safe_string($entry, 'coin');
-            $code = $this->safe_currency_code($currencyId);
-            $name = $this->safe_string($entry, 'name');
-            $networkList = $this->safe_list($entry, 'networkList');
-            $networks = array();
-            for ($j = 0; $j < count($networkList); $j++) {
-                $rawNetwork = $networkList[$j];
-                $network = $this->safe_string($rawNetwork, 'network');
-                $networkCode = $this->network_id_to_code($network);
-                $limits = array(
-                    'withdraw' => array(
-                        'min' => $this->safe_number($rawNetwork, 'withdrawMin'),
-                        'max' => $this->safe_number($rawNetwork, 'withdrawMax'),
-                    ),
-                    'deposit' => array(
-                        'min' => $this->safe_number($rawNetwork, 'depositMin'),
-                        'max' => null,
-                    ),
-                );
-                $precision = $this->parse_number($this->parse_precision($this->safe_string($rawNetwork, 'withdrawPrecision')));
-                $networks[$networkCode] = array(
-                    'info' => $rawNetwork,
-                    'id' => $network,
-                    'network' => $networkCode,
-                    'fee' => $this->safe_number($rawNetwork, 'withdrawFee'),
-                    'active' => null,
-                    'deposit' => $this->safe_bool($rawNetwork, 'depositEnable'),
-                    'withdraw' => $this->safe_bool($rawNetwork, 'withdrawEnable'),
-                    'precision' => $precision,
-                    'limits' => $limits,
-                );
-            }
-            if (!(is_array($result) && array_key_exists($code, $result))) { // the exchange could return the same $currency with different $networks
-                $result[$code] = array(
-                    'info' => $entry,
-                    'code' => $code,
-                    'id' => $currencyId,
-                    'precision' => null,
-                    'name' => $name,
-                    'active' => null,
-                    'deposit' => null,
-                    'withdraw' => null,
-                    'networks' => $networks,
-                    'fee' => null,
-                    'limits' => null,
-                    'type' => 'crypto', // only cryptos now
-                );
-            } else {
-                $existing = $result[$code];
-                $existingNetworks = $this->safe_dict($existing, 'networks', array());
-                $newNetworkCodes = is_array($networks) ? array_keys($networks) : array();
-                for ($j = 0; $j < count($newNetworkCodes); $j++) {
-                    $newNetworkCode = $newNetworkCodes[$j];
-                    if (!(is_array($existingNetworks) && array_key_exists($newNetworkCode, $existingNetworks))) {
-                        $existingNetworks[$newNetworkCode] = $networks[$newNetworkCode];
-                    }
-                }
-                $result[$code]['networks'] = $existingNetworks;
-            }
+        return $this->parse_currencies($data);
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $currencyId = $this->safe_string($rawCurrency, 'coin');
+        $code = $this->safe_currency_code($currencyId);
+        $name = $this->safe_string($rawCurrency, 'name');
+        $networkList = $this->safe_list($rawCurrency, 'networkList');
+        $networks = array();
+        for ($j = 0; $j < count($networkList); $j++) {
+            $rawNetwork = $networkList[$j];
+            $network = $this->safe_string($rawNetwork, 'network');
+            $networkCode = $this->network_id_to_code($network, $code);
+            $limits = array(
+                'withdraw' => array(
+                    'min' => $this->safe_number($rawNetwork, 'withdrawMin'),
+                    'max' => $this->safe_number($rawNetwork, 'withdrawMax'),
+                ),
+                'deposit' => array(
+                    'min' => $this->safe_number($rawNetwork, 'depositMin'),
+                    'max' => null,
+                ),
+            );
+            $precision = $this->parse_number($this->parse_precision($this->safe_string($rawNetwork, 'withdrawPrecision')));
+            $networks[$networkCode] = array(
+                'info' => $rawNetwork,
+                'id' => $network,
+                'network' => $networkCode,
+                'fee' => $this->safe_number($rawNetwork, 'withdrawFee'),
+                'active' => null,
+                'deposit' => $this->safe_bool($rawNetwork, 'depositEnable'),
+                'withdraw' => $this->safe_bool($rawNetwork, 'withdrawEnable'),
+                'precision' => $precision,
+                'limits' => $limits,
+            );
         }
-        $codes = is_array($result) ? array_keys($result) : array();
-        for ($i = 0; $i < count($codes); $i++) {
-            $code = $codes[$i];
-            $currency = $result[$code];
-            $result[$code] = $this->safe_currency_structure($currency);
-        }
-        return $result;
+        return $this->safe_currency_structure(array(
+            'info' => $rawCurrency,
+            'code' => $code,
+            'id' => $currencyId,
+            'precision' => null,
+            'name' => $name,
+            'active' => null,
+            'deposit' => null,
+            'withdraw' => null,
+            'networks' => $networks,
+            'fee' => null,
+            'limits' => null,
+            'type' => 'crypto', // only cryptos now
+        ));
     }
 
     public function fetch_spot_markets($params): array {
@@ -1717,9 +1706,9 @@ class bingx extends Exchange {
         list($subType, $params) = $this->handle_sub_type_and_params('fetchFundingRates', $firstMarket, $params, $subType);
         $response = null;
         if ($subType === 'inverse') {
-            $response = $this->cswapV1PublicGetMarketPremiumIndex ($this->extend($params));
+            $response = $this->cswapV1PublicGetMarketPremiumIndex ($params);
         } else {
-            $response = $this->swapV2PublicGetQuotePremiumIndex ($this->extend($params));
+            $response = $this->swapV2PublicGetQuotePremiumIndex ($params);
         }
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_funding_rates($data, $symbols);
@@ -5235,7 +5224,7 @@ class bingx extends Exchange {
         $this->load_markets();
         $currency = $this->currency($code);
         $defaultRecvWindow = $this->safe_integer($this->options, 'recvWindow');
-        $recvWindow = $this->safe_integer(array($this, 'parse_params'), 'recvWindow', $defaultRecvWindow);
+        $recvWindow = $this->safe_integer($params, 'recvWindow', $defaultRecvWindow);
         $request = array(
             'coin' => $currency['id'],
             'offset' => 0,
@@ -5493,7 +5482,7 @@ class bingx extends Exchange {
             'txid' => $this->safe_string($transaction, 'txId'),
             'type' => $type,
             'currency' => $code,
-            'network' => $this->network_id_to_code($network),
+            'network' => $this->network_id_to_code($network, $code),
             'amount' => $this->safe_number($transaction, 'amount'),
             'status' => $this->parse_transaction_status($this->safe_string($transaction, 'status')),
             'timestamp' => $timestamp,
@@ -6050,7 +6039,7 @@ class bingx extends Exchange {
         );
         $network = $this->safe_string_upper($params, 'network');
         if ($network !== null) {
-            $request['network'] = $this->network_code_to_id($network);
+            $request['network'] = $this->network_code_to_id($network, $currency['code']);
         }
         if ($tag !== null) {
             $request['addressTag'] = $tag;
@@ -6319,7 +6308,7 @@ class bingx extends Exchange {
          */
         $this->load_markets();
         $defaultRecvWindow = $this->safe_integer($this->options, 'recvWindow');
-        $recvWindow = $this->safe_integer(array($this, 'parse_params'), 'recvWindow', $defaultRecvWindow);
+        $recvWindow = $this->safe_integer($params, 'recvWindow', $defaultRecvWindow);
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('closeAllPositions', null, $params);
         $subType = null;

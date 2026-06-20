@@ -383,53 +383,52 @@ class coinmetro(Exchange, ImplicitAPI):
         #         ...
         #     ]
         #
-        result: dict = {}
-        for i in range(0, len(response)):
-            currency = response[i]
-            id = self.safe_string(currency, 'symbol')
-            code = self.safe_currency_code(id)
-            typeRaw = self.safe_string(currency, 'type')
-            type = None
-            if typeRaw == 'coin' or typeRaw == 'token' or typeRaw == 'erc20' or typeRaw == 'crypto':
-                type = 'crypto'
-            elif typeRaw == 'fiat':
-                type = 'fiat'
-            precisionDigits = self.safe_string_2(currency, 'digits', 'notabeneDecimals')
-            if code == 'RENDER':
-                # RENDER is an exception(with broken info)
-                precisionDigits = '4'
-            result[code] = self.safe_currency_structure({
-                'id': id,
-                'code': code,
-                'name': code,
-                'type': type,
-                'info': currency,
-                'active': self.safe_bool(currency, 'canTrade'),
-                'deposit': self.safe_bool(currency, 'canDeposit'),
-                'withdraw': self.safe_bool(currency, 'canWithdraw'),
-                'fee': None,
-                'precision': self.parse_number(self.parse_precision(precisionDigits)),
-                'limits': {
-                    'amount': {
-                        'min': self.safe_number(currency, 'minQty'),
-                        'max': None,
-                    },
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
-                'networks': {},
-            })
-        if self.safe_value(self.options, 'currenciesByIdForParseMarket') is None:
-            currenciesById = self.index_by(result, 'id')
-            self.options['currenciesByIdForParseMarket'] = currenciesById
-            currentCurrencyIdsList = self.safe_list(self.options, 'currencyIdsListForParseMarket', [])
-            currencyIdsList = list(currenciesById.keys())
-            for i in range(0, len(currencyIdsList)):
-                currentCurrencyIdsList.append(currencyIdsList[i])
-            self.options['currencyIdsListForParseMarket'] = currentCurrencyIdsList
+        result = self.parse_currencies(response)
+        currenciesById = self.index_by(result, 'id')
+        self.options['currenciesByIdForParseMarket'] = currenciesById
+        currentCurrencyIdsList = self.safe_list(self.options, 'currencyIdsListForParseMarket', [])
+        currencyIdsList = list(currenciesById.keys())
+        for i in range(0, len(currencyIdsList)):
+            currentCurrencyIdsList.append(currencyIdsList[i])
+        self.options['currencyIdsListForParseMarket'] = currentCurrencyIdsList
         return result
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        id = self.safe_string(rawCurrency, 'symbol')
+        code = self.safe_currency_code(id)
+        typeRaw = self.safe_string(rawCurrency, 'type')
+        type: Str = None
+        if typeRaw == 'coin' or typeRaw == 'token' or typeRaw == 'erc20' or typeRaw == 'crypto':
+            type = 'crypto'
+        elif typeRaw == 'fiat':
+            type = 'fiat'
+        precisionDigits = self.safe_string_2(rawCurrency, 'digits', 'notabeneDecimals')
+        if code == 'RENDER':
+            # RENDER is an exception(with broken info)
+            precisionDigits = '4'
+        return self.safe_currency_structure({
+            'id': id,
+            'code': code,
+            'name': code,
+            'type': type,
+            'info': rawCurrency,
+            'active': self.safe_bool(rawCurrency, 'canTrade'),
+            'deposit': self.safe_bool(rawCurrency, 'canDeposit'),
+            'withdraw': self.safe_bool(rawCurrency, 'canWithdraw'),
+            'fee': None,
+            'precision': self.parse_number(self.parse_precision(precisionDigits)),
+            'limits': {
+                'amount': {
+                    'min': self.safe_number(rawCurrency, 'minQty'),
+                    'max': None,
+                },
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'networks': {},
+        })
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -442,8 +441,6 @@ class coinmetro(Exchange, ImplicitAPI):
         """
         promises = []
         promises.append(self.publicGetMarkets(params))
-        if self.safe_value(self.options, 'currenciesByIdForParseMarket') is None:
-            promises.append(self.fetch_currencies())
         responses = await asyncio.gather(*promises)
         response = responses[0]
         #
@@ -534,8 +531,8 @@ class coinmetro(Exchange, ImplicitAPI):
         })
 
     def parse_market_id(self, marketId):
-        baseId = None
-        quoteId = None
+        baseId: Str = None
+        quoteId: Str = None
         currencyIds = self.safe_value(self.options, 'currencyIdsListForParseMarket', [])
         # Bubble sort by length(longest first)
         currencyIdsLength = len(currencyIds)
@@ -605,7 +602,7 @@ class coinmetro(Exchange, ImplicitAPI):
             'pair': market['id'],
             'timeframe': self.safe_string(self.timeframes, timeframe, timeframe),
         }
-        until = None
+        until: Int = None
         if since is not None:
             request['from'] = since
             if limit is not None:
@@ -727,7 +724,7 @@ class coinmetro(Exchange, ImplicitAPI):
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
         request: dict = {}
@@ -876,7 +873,7 @@ class coinmetro(Exchange, ImplicitAPI):
         orderbook['nonce'] = self.safe_integer(book, 'seqNumber')
         return orderbook
 
-    def parse_bids_asks(self, bidasks, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
+    def parse_order_book_bids_asks(self, bidasks, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
         prices = list(bidasks.keys())
         result = []
         for i in range(0, len(prices)):
@@ -1102,7 +1099,7 @@ class coinmetro(Exchange, ImplicitAPI):
         else:
             # self endpoint accepts empty since param
             request['since'] = ''
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
         response = await self.privateGetUsersWalletsHistorySince(self.extend(request, params))
@@ -1220,7 +1217,7 @@ class coinmetro(Exchange, ImplicitAPI):
             'currency': None,
         }
         amount = self.safe_string(item, 'amount')
-        direction = None
+        direction: Str = None
         if amount is not None:
             if Precise.string_lt(amount, '0'):
                 direction = 'out'
@@ -1249,8 +1246,8 @@ class coinmetro(Exchange, ImplicitAPI):
         descriptionArray = []
         if description is not None:
             descriptionArray = description.split(' ')
-        type = None
-        referenceId = None
+        type: Str = None
+        referenceId: Str = None
         length = len(descriptionArray)
         if length > 1:
             type = self.parse_ledger_entry_type(descriptionArray[0])
@@ -1296,7 +1293,7 @@ class coinmetro(Exchange, ImplicitAPI):
         request: dict = {
         }
         request['orderType'] = type
-        formattedAmount = None
+        formattedAmount: Str = None
         if amount is not None:
             formattedAmount = self.amount_to_precision(symbol, amount)
         cost = self.safe_value(params, 'cost')
@@ -1307,7 +1304,7 @@ class coinmetro(Exchange, ImplicitAPI):
             elif (price is not None) and (amount is not None):
                 costString = Precise.string_mul(self.number_to_string(price), self.number_to_string(formattedAmount))
                 cost = self.parse_to_numeric(costString)
-        precisedCost = None
+        precisedCost: Str = None
         if cost is not None:
             precisedCost = self.cost_to_precision(symbol, cost)
         if side == 'sell':
@@ -1407,7 +1404,7 @@ class coinmetro(Exchange, ImplicitAPI):
         params, params = self.handle_margin_mode_and_params('cancelOrder', params)
         isMargin = self.safe_bool(params, 'margin', False)
         params = self.omit(params, 'margin')
-        response = None
+        response: dict = None
         if isMargin or (marginMode is not None):
             response = await self.privatePostExchangeOrdersCloseOrderID(self.extend(request, params))
         else:
@@ -1498,7 +1495,7 @@ class coinmetro(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
         response = await self.privateGetExchangeOrdersActive(params)
@@ -1521,7 +1518,7 @@ class coinmetro(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
         request: dict = {}
@@ -1762,7 +1759,7 @@ class coinmetro(Exchange, ImplicitAPI):
         #
         timestamp = self.safe_integer(order, 'creationTime')
         isCanceled = self.safe_value(order, 'canceled')
-        status = None
+        status: Str = None
         if isCanceled is True:
             if timestamp is None:
                 timestamp = self.safe_integer(order, 'completionTime')  # market orders with bad price gain IOC - we mark them as 'rejected'?
@@ -1786,13 +1783,13 @@ class coinmetro(Exchange, ImplicitAPI):
         sellingCurrencyId = self.safe_string(order, 'sellingCurrency', '')
         byuingIdPlusSellingId = buyingCurrencyId + sellingCurrencyId
         sellingIdPlusBuyingId = sellingCurrencyId + buyingCurrencyId
-        side = None
-        marketId = None
+        side: Str = None
+        marketId: Str = None
         baseAmount = buyingQty
         quoteAmount = buyingQty
-        filled = None
-        cost = None
-        feeInBaseOrQuote = None
+        filled: Str = None
+        cost: Str = None
+        feeInBaseOrQuote: Str = None
         marketsById = self.index_by(self.markets, 'id')
         if self.safe_value(marketsById, byuingIdPlusSellingId) is not None:
             side = 'buy'
@@ -1808,7 +1805,7 @@ class coinmetro(Exchange, ImplicitAPI):
             filled = soldQty
             cost = boughtQty
             feeInBaseOrQuote = 'quote'
-        price = None
+        price: Str = None
         if (baseAmount is not None) and (quoteAmount is not None):
             price = Precise.string_div(quoteAmount, baseAmount)
         market = self.safe_market(marketId, market)

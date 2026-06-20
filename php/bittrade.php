@@ -373,7 +373,6 @@ class bittrade extends Exchange {
                     'HECO' => 'hrc20',
                     'HT' => 'hrc20',
                     'ALGO' => 'algo',
-                    'OMNI' => '',
                 ),
                 // https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStatesMethod' => 'private_get_order_orders', // 'private_get_order_history' // https://github.com/ccxt/ccxt/pull/5392
@@ -1073,19 +1072,19 @@ class bittrade extends Exchange {
         //                 "fast-confirms":12,
         //                 "safe-confirms":12,
         //                 "currency-type":"eth",
-        //                 "quote-$currency":true,
+        //                 "quote-currency":true,
         //                 "withdraw-enable-timestamp":1609430400000,
         //                 "deposit-enable-timestamp":1609430400000,
         //                 "currency-partition":"all",
         //                 "support-sites":["OTC","INSTITUTION","MINEPOOL"],
-        //                 "withdraw-$precision":6,
+        //                 "withdraw-precision":6,
         //                 "visible-assets-timestamp":1508839200000,
         //                 "deposit-min-amount":"1",
         //                 "withdraw-min-amount":"10",
-        //                 "show-$precision":"8",
+        //                 "show-precision":"8",
         //                 "tags":"",
         //                 "weight":23,
-        //                 "full-$name":"Tether USDT",
+        //                 "full-name":"Tether USDT",
         //                 "otc-enable":1,
         //                 "visible":true,
         //                 "white-enabled":false,
@@ -1094,62 +1093,61 @@ class bittrade extends Exchange {
         //                 "withdraw-enabled":true,
         //                 "name":"usdt",
         //                 "state":"online",
-        //                 "display-$name":"USDT",
+        //                 "display-name":"USDT",
         //                 "suspend-withdraw-desc":null,
         //                 "withdraw-desc":"Minimum withdrawal amount => 10 USDT (ERC20). !>_<!To ensure the safety of your funds, your withdrawal $request will be manually reviewed if your security strategy or password is changed. Please wait for phone calls or emails from our staff.!>_<!Please make sure that your computer and browser are secure and your information is protected from being tampered or leaked.",
         //                 "suspend-deposit-desc":null,
         //                 "deposit-desc":"Please don’t deposit any other digital assets except USDT to the above address. Otherwise, you may lose your assets permanently. !>_<!Depositing to the above address requires confirmations of the entire network. It will arrive after 12 confirmations, and it will be available to withdraw after 12 confirmations. !>_<!Minimum deposit amount => 1 USDT. Any deposits less than the minimum will not be credited or refunded.!>_<!Your deposit address won’t change often. If there are any changes, we will notify you via announcement or email.!>_<!Please make sure that your computer and browser are secure and your information is protected from being tampered or leaked.",
-        //                 "suspend-$visible-desc":null
+        //                 "suspend-visible-desc":null
         //             }
         //         ]
         //     }
         //
         $currencies = $this->safe_value($response, 'data', array());
-        $result = array();
-        for ($i = 0; $i < count($currencies); $i++) {
-            $currency = $currencies[$i];
-            $id = $this->safe_value($currency, 'name');
-            $code = $this->safe_currency_code($id);
-            $depositEnabled = $this->safe_value($currency, 'deposit-enabled');
-            $withdrawEnabled = $this->safe_value($currency, 'withdraw-enabled');
-            $countryDisabled = $this->safe_value($currency, 'country-disabled');
-            $visible = $this->safe_bool($currency, 'visible', false);
-            $state = $this->safe_string($currency, 'state');
-            $active = $visible && $depositEnabled && $withdrawEnabled && ($state === 'online') && !$countryDisabled;
-            $name = $this->safe_string($currency, 'display-name');
-            $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'withdraw-precision')));
-            $result[$code] = array(
-                'id' => $id,
-                'code' => $code,
-                'type' => 'crypto',
-                // 'payin' => $currency['deposit-enabled'],
-                // 'payout' => $currency['withdraw-enabled'],
-                // 'transfer' => null,
-                'name' => $name,
-                'active' => $active,
-                'deposit' => $depositEnabled,
-                'withdraw' => $withdrawEnabled,
-                'fee' => null, // todo need to fetch from fee endpoint
-                'precision' => $precision,
-                'networks' => null,
-                'limits' => array(
-                    'amount' => array(
-                        'min' => $precision,
-                        'max' => null,
-                    ),
-                    'deposit' => array(
-                        'min' => $this->safe_number($currency, 'deposit-min-amount'),
-                        'max' => null,
-                    ),
-                    'withdraw' => array(
-                        'min' => $this->safe_number($currency, 'withdraw-min-amount'),
-                        'max' => null,
-                    ),
+        return $this->parse_currencies($currencies);
+    }
+
+    public function parse_currency(array $currency): array {
+        $id = $this->safe_value($currency, 'name');
+        $code = $this->safe_currency_code($id);
+        $depositEnabled = $this->safe_value($currency, 'deposit-enabled');
+        $withdrawEnabled = $this->safe_value($currency, 'withdraw-enabled');
+        $countryDisabled = $this->safe_value($currency, 'country-disabled');
+        $visible = $this->safe_bool($currency, 'visible', false);
+        $state = $this->safe_string($currency, 'state');
+        $active = $visible && $depositEnabled && $withdrawEnabled && ($state === 'online') && !$countryDisabled;
+        $name = $this->safe_string($currency, 'display-name');
+        $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'withdraw-precision')));
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'code' => $code,
+            'type' => 'crypto',
+            // 'payin' => $currency['deposit-enabled'],
+            // 'payout' => $currency['withdraw-enabled'],
+            // 'transfer' => null,
+            'name' => $name,
+            'active' => $active,
+            'deposit' => $depositEnabled,
+            'withdraw' => $withdrawEnabled,
+            'fee' => null, // todo need to fetch from fee endpoint
+            'precision' => $precision,
+            'networks' => null,
+            'limits' => array(
+                'amount' => array(
+                    'min' => $precision,
+                    'max' => null,
                 ),
-                'info' => $currency,
-            );
-        }
-        return $result;
+                'deposit' => array(
+                    'min' => $this->safe_number($currency, 'deposit-min-amount'),
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => $this->safe_number($currency, 'withdraw-min-amount'),
+                    'max' => null,
+                ),
+            ),
+            'info' => $currency,
+        ));
     }
 
     public function parse_balance($response): array {
@@ -1974,8 +1972,9 @@ class bittrade extends Exchange {
             $requestSorted = $this->keysort($request);
             $auth = $this->urlencode($requestSorted);
             // unfortunately, PHP demands double quotes for the escaped newline symbol
+            $content = array( $method, $this->hostname, $url, $auth );
             // eslint-disable-next-line quotes
-            $payload = implode("\n", array($method, $this->hostname, $url, $auth));
+            $payload = implode("\n", $content);
             $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
             $auth .= '&' . $this->urlencode(array( 'Signature' => $signature ));
             $url .= '?' . $auth;

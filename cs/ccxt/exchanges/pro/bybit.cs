@@ -9,7 +9,13 @@ public partial class bybit : ccxt.bybit
 {
     public override object describe()
     {
-        return this.deepExtend(base.describe(), new Dictionary<string, object>() {
+        object superDescribe = base.describe();
+        return this.deepExtend(superDescribe, this.describeData());
+    }
+
+    public virtual object describeData()
+    {
+        return new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
                 { "ws", true },
                 { "createOrderWs", true },
@@ -159,7 +165,7 @@ public partial class bybit : ccxt.bybit
                 { "ping", this.ping },
                 { "keepAlive", 18000 },
             } },
-        });
+        };
     }
 
     public virtual object requestId()
@@ -1108,7 +1114,7 @@ public partial class bybit : ccxt.bybit
 
     public override void handleDelta(object bookside, object delta)
     {
-        object bidAsk = this.parseBidAsk(delta, 0, 1);
+        object bidAsk = this.parseOrderBookBidAsk(delta, 0, 1);
         (bookside as IOrderBookSide).storeArray(bidAsk);
     }
 
@@ -2627,7 +2633,7 @@ public partial class bybit : ccxt.bybit
                 }
             } else
             {
-                object messageHash = this.safeString(message, "reqId");
+                object messageHash = this.safeString2(message, "req_id", "reqId");
                 ((WebSocketClient)client).reject(error, messageHash);
             }
             return true;
@@ -2693,11 +2699,20 @@ public partial class bybit : ccxt.bybit
             DynamicInvoker.InvokeMethod(exacMethod, new object[] { client, message});
             return;
         }
+        // 'order' is a substring of 'orderbook', so an orderbook topic like
+        // 'orderbook.50.BTCUSDT' could be wrongly captured by the 'order' key in a
+        // first-match loop (in Go map iteration order is randomized). Check the
+        // orderbook prefix explicitly, then fall back to a simple first-match.
+        if (isTrue(isGreaterThanOrEqual(getIndexOf(topic, "orderbook"), 0)))
+        {
+            this.handleOrderBook(client as WebSocketClient, message);
+            return;
+        }
         object keys = new List<object>(((IDictionary<string,object>)methods).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
-            if (isTrue(isGreaterThanOrEqual(getIndexOf(topic, getValue(keys, i)), 0)))
+            if (isTrue(isGreaterThanOrEqual(getIndexOf(topic, key), 0)))
             {
                 object method = getValue(methods, key);
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});

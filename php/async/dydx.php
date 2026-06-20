@@ -148,7 +148,7 @@ class dydx extends Exchange {
                 'fees' => array(
                     'https://docs.dydx.exchange/introduction-trading_fees',
                 ),
-                'referral' => 'dydx.trade?ref=ccxt',
+                'referral' => 'https://dydx.trade?ref=ccxt',
             ),
             'api' => array(
                 'indexer' => array(
@@ -682,7 +682,7 @@ class dydx extends Exchange {
                 'market' => $market['id'],
             );
             if ($limit !== null) {
-                $request['limit'] = $limit;
+                $request['limit'] = min ($limit, 1000);
             }
             $response = Async\await($this->indexerGetTradesPerpetualMarketMarket ($this->extend($request, $params)));
             //

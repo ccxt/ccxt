@@ -90,8 +90,8 @@ export type {
 } from "./utf8.js";
 
 import { hash } from '../../../base/functions.js';
-import { keccak_256 } from '../../noble-hashes/sha3.js';
-import { sha256 as sha_256 } from '../../noble-hashes/sha256.js';
+import { keccak_256 } from '@noble/hashes/sha3.js';
+import { sha256 as sha_256 } from '@noble/hashes/sha2.js';
 
 export function id(value: any): string {
     return '0x' + hash(value, keccak_256, 'hex');

@@ -14,11 +14,11 @@ class bittrade extends bittrade$1["default"] {
             'has': {
                 'ws': true,
                 'watchOrderBook': true,
-                'watchTickers': false,
+                'watchTickers': false, // for now
                 'watchTicker': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
-                'watchBalance': false,
+                'watchBalance': false, // for now
                 'watchOHLCV': true,
             },
             'urls': {
@@ -34,7 +34,7 @@ class bittrade extends bittrade$1["default"] {
             'options': {
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
-                'api': 'api',
+                'api': 'api', // or api-aws for clients hosted on AWS
                 'ws': {
                     'gunzip': true,
                 },
@@ -581,7 +581,7 @@ class bittrade extends bittrade$1["default"] {
             }
             return false;
         }
-        return message;
+        return true;
     }
     handleMessage(client, message) {
         if (this.handleErrorMessage(client, message)) {

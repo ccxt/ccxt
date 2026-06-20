@@ -139,7 +139,7 @@ export default class bitstamp extends bitstampRest {
 
     handleBidAsks (bookSide, bidAsks) {
         for (let i = 0; i < bidAsks.length; i++) {
-            const bidAsk = this.parseBidAsk (bidAsks[i]);
+            const bidAsk = this.parseOrderBookBidAsk (bidAsks[i]);
             bookSide.storeArray (bidAsk);
         }
     }
@@ -381,7 +381,7 @@ export default class bitstamp extends bitstampRest {
         const amount = this.safeString (order, 'amount_str');
         const filled = this.safeString (order, 'amount_traded');
         const event = this.safeString (order, 'event');
-        let status = undefined;
+        let status: Str = undefined;
         if (Precise.stringEq (filled, amount)) {
             status = 'closed';
         } else if (event === 'order_deleted') {

@@ -392,7 +392,6 @@ class bittrade(Exchange, ImplicitAPI):
                     'HECO': 'hrc20',
                     'HT': 'hrc20',
                     'ALGO': 'algo',
-                    'OMNI': '',
                 },
                 # https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStatesMethod': 'private_get_order_orders',  # 'private_get_order_history'  # https://github.com/ccxt/ccxt/pull/5392
@@ -645,10 +644,10 @@ class bittrade(Exchange, ImplicitAPI):
         #
         symbol = self.safe_symbol(None, market)
         timestamp = self.safe_integer(ticker, 'ts')
-        bid = None
-        bidVolume = None
-        ask = None
-        askVolume = None
+        bid: Str = None
+        bidVolume: Str = None
+        ask: Str = None
+        askVolume: Str = None
         if 'bid' in ticker:
             if isinstance(ticker['bid'], list):
                 bid = self.safe_string(ticker['bid'], 0)
@@ -845,7 +844,7 @@ class bittrade(Exchange, ImplicitAPI):
         price = self.safe_string(trade, 'price')
         amount = self.safe_string_2(trade, 'filled-amount', 'amount')
         cost = Precise.string_mul(price, amount)
-        fee = None
+        fee: dict = None
         feeCost = self.safe_string(trade, 'filled-fees')
         feeCurrency = self.safe_currency_code(self.safe_string(trade, 'fee-currency'))
         filledPoints = self.safe_string(trade, 'filled-points')
@@ -903,7 +902,7 @@ class bittrade(Exchange, ImplicitAPI):
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         request: dict = {}
         if symbol is not None:
             market = self.market(symbol)
@@ -1084,50 +1083,49 @@ class bittrade(Exchange, ImplicitAPI):
         #     }
         #
         currencies = self.safe_value(response, 'data', [])
-        result: dict = {}
-        for i in range(0, len(currencies)):
-            currency = currencies[i]
-            id = self.safe_value(currency, 'name')
-            code = self.safe_currency_code(id)
-            depositEnabled = self.safe_value(currency, 'deposit-enabled')
-            withdrawEnabled = self.safe_value(currency, 'withdraw-enabled')
-            countryDisabled = self.safe_value(currency, 'country-disabled')
-            visible = self.safe_bool(currency, 'visible', False)
-            state = self.safe_string(currency, 'state')
-            active = visible and depositEnabled and withdrawEnabled and (state == 'online') and not countryDisabled
-            name = self.safe_string(currency, 'display-name')
-            precision = self.parse_number(self.parse_precision(self.safe_string(currency, 'withdraw-precision')))
-            result[code] = {
-                'id': id,
-                'code': code,
-                'type': 'crypto',
-                # 'payin': currency['deposit-enabled'],
-                # 'payout': currency['withdraw-enabled'],
-                # 'transfer': None,
-                'name': name,
-                'active': active,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
-                'fee': None,  # todo need to fetch from fee endpoint
-                'precision': precision,
-                'networks': None,
-                'limits': {
-                    'amount': {
-                        'min': precision,
-                        'max': None,
-                    },
-                    'deposit': {
-                        'min': self.safe_number(currency, 'deposit-min-amount'),
-                        'max': None,
-                    },
-                    'withdraw': {
-                        'min': self.safe_number(currency, 'withdraw-min-amount'),
-                        'max': None,
-                    },
+        return self.parse_currencies(currencies)
+
+    def parse_currency(self, currency: dict) -> Currency:
+        id = self.safe_value(currency, 'name')
+        code = self.safe_currency_code(id)
+        depositEnabled = self.safe_value(currency, 'deposit-enabled')
+        withdrawEnabled = self.safe_value(currency, 'withdraw-enabled')
+        countryDisabled = self.safe_value(currency, 'country-disabled')
+        visible = self.safe_bool(currency, 'visible', False)
+        state = self.safe_string(currency, 'state')
+        active = visible and depositEnabled and withdrawEnabled and (state == 'online') and not countryDisabled
+        name = self.safe_string(currency, 'display-name')
+        precision = self.parse_number(self.parse_precision(self.safe_string(currency, 'withdraw-precision')))
+        return self.safe_currency_structure({
+            'id': id,
+            'code': code,
+            'type': 'crypto',
+            # 'payin': currency['deposit-enabled'],
+            # 'payout': currency['withdraw-enabled'],
+            # 'transfer': None,
+            'name': name,
+            'active': active,
+            'deposit': depositEnabled,
+            'withdraw': withdrawEnabled,
+            'fee': None,  # todo need to fetch from fee endpoint
+            'precision': precision,
+            'networks': None,
+            'limits': {
+                'amount': {
+                    'min': precision,
+                    'max': None,
                 },
-                'info': currency,
-            }
-        return result
+                'deposit': {
+                    'min': self.safe_number(currency, 'deposit-min-amount'),
+                    'max': None,
+                },
+                'withdraw': {
+                    'min': self.safe_number(currency, 'withdraw-min-amount'),
+                    'max': None,
+                },
+            },
+            'info': currency,
+        })
 
     def parse_balance(self, response) -> Balances:
         balances = self.safe_value(response['data'], 'list', [])
@@ -1168,7 +1166,7 @@ class bittrade(Exchange, ImplicitAPI):
         request: dict = {
             'states': states,
         }
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -1251,7 +1249,7 @@ class bittrade(Exchange, ImplicitAPI):
     async def fetch_open_orders_v2(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         await self.load_markets()
         request: dict = {}
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -1337,9 +1335,9 @@ class bittrade(Exchange, ImplicitAPI):
         #             "canceled-at":  0                      }
         #
         id = self.safe_string(order, 'id')
-        side = None
-        type = None
-        status = None
+        side: Str = None
+        type: Str = None
+        status: Str = None
         if 'type' in order:
             orderType = order['type'].split('-')
             side = orderType[0]
@@ -1354,7 +1352,7 @@ class bittrade(Exchange, ImplicitAPI):
         price = self.safe_string(order, 'price')
         cost = self.safe_string_2(order, 'filled-cash-amount', 'field-cash-amount')  # same typo
         feeCost = self.safe_string_2(order, 'filled-fees', 'field-fees')  # typo in their API, filled fees
-        fee = None
+        fee: dict = None
         if feeCost is not None:
             feeCurrency = market['quote'] if (side == 'sell') else market['base']
             fee = {
@@ -1428,7 +1426,7 @@ class bittrade(Exchange, ImplicitAPI):
             request['client-order-id'] = clientOrderId
         params = self.omit(params, ['clientOrderId', 'client-order-id'])
         if (type == 'market') and (side == 'buy'):
-            quoteAmount = None
+            quoteAmount: Str = None
             createMarketBuyOrderRequiresPrice = True
             createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
             cost = self.safe_number(params, 'cost')
@@ -1580,7 +1578,7 @@ class bittrade(Exchange, ImplicitAPI):
         #    }
         #
         successes = self.safe_string(orders, 'successes')
-        success = None
+        success: Strings = None
         if successes is not None:
             success = successes.split(',')
         else:
@@ -1619,7 +1617,7 @@ class bittrade(Exchange, ImplicitAPI):
             # 'side': 'buy',  # or 'sell'
             # 'size': 100,  # the number of orders to cancel 1-100
         }
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -1888,8 +1886,9 @@ class bittrade(Exchange, ImplicitAPI):
             requestSorted = self.keysort(request)
             auth = self.urlencode(requestSorted)
             # unfortunately, PHP demands double quotes for the escaped newline symbol
+            content = [method, self.hostname, url, auth]
             # eslint-disable-next-line quotes
-            payload = "\n".join([method, self.hostname, url, auth])
+            payload = "\n".join(content)
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
             auth += '&' + self.urlencode({'Signature': signature})
             url += '?' + auth

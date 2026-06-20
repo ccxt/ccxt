@@ -664,10 +664,10 @@ class lbank extends lbank$1["default"] {
     }
     parseWsOrderStatus(status) {
         const statuses = {
-            '-1': 'canceled',
-            '0': 'open',
-            '1': 'open',
-            '2': 'closed',
+            '-1': 'canceled', // Withdrawn
+            '0': 'open', // Unsettled
+            '1': 'open', // Partial sale
+            '2': 'closed', // Completed
             '4': 'closed', // Withrawing
         };
         return this.safeString(statuses, status, status);

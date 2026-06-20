@@ -1,8 +1,5 @@
-- [Poloniex Fetch Order Books](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 
 // ----------------------------------------------------------------------------
 
@@ -37,5 +34,5 @@ import ccxt from '../../js/ccxt.js';
     }
 
 }) ()
- 
+
 ```

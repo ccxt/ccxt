@@ -1,13 +1,13 @@
 
 //  ---------------------------------------------------------------------------
 
+import { ed25519 } from '@noble/curves/ed25519.js';
 import backpackRest from '../backpack.js';
 import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import type { Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 import { eddsa } from '../base/functions/crypto.js';
-import { ed25519 } from '../static_dependencies/noble-curves/ed25519.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -738,9 +738,17 @@ export default class backpack extends backpackRest {
         const id = this.safeString (trade, 't');
         const marketId = this.safeString (trade, 's');
         market = this.safeMarket (marketId, market);
-        const isMaker = this.safeBool (trade, 'm');
-        const side = isMaker ? 'sell' : 'buy';
-        const takerOrMaker = isMaker ? 'maker' : 'taker';
+        const isBuyerMaker = this.safeBool (trade, 'm');
+        let side: Str = undefined;
+        let takerOrMaker: Str = undefined;
+        if (isBuyerMaker !== undefined) {
+            takerOrMaker = 'taker';
+            if (isBuyerMaker) {
+                side = 'sell';
+            } else {
+                side = 'buy';
+            }
+        }
         const price = this.safeString (trade, 'p');
         const amount = this.safeString (trade, 'q');
         let orderId = undefined;
@@ -909,7 +917,7 @@ export default class backpack extends backpackRest {
 
     handleBidAsks (bookSide, bidAsks) {
         for (let i = 0; i < bidAsks.length; i++) {
-            const bidAsk = this.parseBidAsk (bidAsks[i]);
+            const bidAsk = this.parseOrderBookBidAsk (bidAsks[i]);
             bookSide.storeArray (bidAsk);
         }
     }

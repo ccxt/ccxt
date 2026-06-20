@@ -5,6 +5,771 @@
     "secret": "bSQmK8JSjtExl2iBSi0d9CxZRon4tjWTjFC7HfEhVv+IRkdI74dJ7d7l+MRWHFAZiQpQl76bnzDxBCuiAZYFCQ==",
     "options": {},
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "default",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "coingeckoId": "tether",
+                        "displayName": "Tether",
+                        "symbol": "USDT",
+                        "tokens": [
+                            {
+                                "blockchain": "Solana",
+                                "contractAddress": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+                                "depositEnabled": true,
+                                "displayName": "Tether",
+                                "maximumWithdrawal": null,
+                                "minimumDeposit": "0.7",
+                                "minimumWithdrawal": "1.4",
+                                "nativeDecimals": "6",
+                                "withdrawEnabled": true,
+                                "withdrawalFee": "0.7"
+                            },
+                            {
+                                "blockchain": "Ethereum",
+                                "contractAddress": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+                                "depositEnabled": true,
+                                "displayName": "Tether",
+                                "maximumWithdrawal": null,
+                                "minimumDeposit": "3.1",
+                                "minimumWithdrawal": "6.2",
+                                "nativeDecimals": "6",
+                                "withdrawEnabled": true,
+                                "withdrawalFee": "3.1"
+                            },
+                            {
+                                "blockchain": "Tron",
+                                "contractAddress": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+                                "depositEnabled": true,
+                                "displayName": "Tether USD",
+                                "maximumWithdrawal": null,
+                                "minimumDeposit": "0.6",
+                                "minimumWithdrawal": "1.2",
+                                "nativeDecimals": "6",
+                                "withdrawEnabled": true,
+                                "withdrawalFee": "0.6"
+                            },
+                            {
+                                "blockchain": "Arbitrum",
+                                "contractAddress": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
+                                "depositEnabled": true,
+                                "displayName": "USDT",
+                                "maximumWithdrawal": null,
+                                "minimumDeposit": "0.6",
+                                "minimumWithdrawal": "1.2",
+                                "nativeDecimals": "6",
+                                "withdrawEnabled": true,
+                                "withdrawalFee": "0.6"
+                            },
+                            {
+                                "blockchain": "Optimism",
+                                "contractAddress": "0x01bFF41798a0BcF287b996046Ca68b395DbC1071",
+                                "depositEnabled": true,
+                                "displayName": "USDT",
+                                "maximumWithdrawal": null,
+                                "minimumDeposit": "0.2",
+                                "minimumWithdrawal": "0.4",
+                                "nativeDecimals": "6",
+                                "withdrawEnabled": true,
+                                "withdrawalFee": "0.2"
+                            },
+                            {
+                                "blockchain": "Polygon",
+                                "contractAddress": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
+                                "depositEnabled": true,
+                                "displayName": "USDT",
+                                "maximumWithdrawal": null,
+                                "minimumDeposit": "0.1",
+                                "minimumWithdrawal": "0.2",
+                                "nativeDecimals": "6",
+                                "withdrawEnabled": true,
+                                "withdrawalFee": "0.1"
+                            },
+                            {
+                                "blockchain": "Sei",
+                                "contractAddress": "0x9151434b16b9763660705744891fA906F660EcC5",
+                                "depositEnabled": true,
+                                "displayName": "USDT",
+                                "maximumWithdrawal": null,
+                                "minimumDeposit": "0.6",
+                                "minimumWithdrawal": "1.2",
+                                "nativeDecimals": "6",
+                                "withdrawEnabled": true,
+                                "withdrawalFee": "0.6"
+                            },
+                            {
+                                "blockchain": "Aptos",
+                                "contractAddress": "0x357b0b74bc833e95a115ad22604854d6b0fca151cecd94111770e5d6ffc9dc2b",
+                                "depositEnabled": true,
+                                "displayName": "USDT",
+                                "maximumWithdrawal": null,
+                                "minimumDeposit": "0.2",
+                                "minimumWithdrawal": "0.4",
+                                "nativeDecimals": "6",
+                                "withdrawEnabled": true,
+                                "withdrawalFee": "0.2"
+                            },
+                            {
+                                "blockchain": "Plasma",
+                                "contractAddress": "0xB8CE59FC3717ada4C02eaDF9682A9e934F625ebb",
+                                "depositEnabled": true,
+                                "displayName": "USDT",
+                                "maximumWithdrawal": null,
+                                "minimumDeposit": "0.2",
+                                "minimumWithdrawal": "0.4",
+                                "nativeDecimals": "6",
+                                "withdrawEnabled": true,
+                                "withdrawalFee": "0.2"
+                            },
+                            {
+                                "blockchain": "HyperEVM",
+                                "contractAddress": "0xB8CE59FC3717ada4C02eaDF9682A9e934F625ebb",
+                                "depositEnabled": true,
+                                "displayName": "USDT",
+                                "maximumWithdrawal": null,
+                                "minimumDeposit": "0.2",
+                                "minimumWithdrawal": "0.4",
+                                "nativeDecimals": "6",
+                                "withdrawEnabled": true,
+                                "withdrawalFee": "0.2"
+                            },
+                            {
+                                "blockchain": "Monad",
+                                "contractAddress": "0xe7cd86e13AC4309349F30B3435a9d337750fC82D",
+                                "depositEnabled": true,
+                                "displayName": "Tether",
+                                "maximumWithdrawal": null,
+                                "minimumDeposit": "0.6",
+                                "minimumWithdrawal": "1.2",
+                                "nativeDecimals": "6",
+                                "withdrawEnabled": true,
+                                "withdrawalFee": "0.6"
+                            },
+                            {
+                                "blockchain": "Stable",
+                                "contractAddress": "0x779Ded0c9e1022225f8E0630b35a9b54bE713736",
+                                "depositEnabled": true,
+                                "displayName": "Tether",
+                                "maximumWithdrawal": null,
+                                "minimumDeposit": "0.6",
+                                "minimumWithdrawal": "1.2",
+                                "nativeDecimals": "6",
+                                "withdrawEnabled": true,
+                                "withdrawalFee": "0.6"
+                            },
+                            {
+                                "blockchain": "Bsc",
+                                "contractAddress": "0x55d398326f99059fF775485246999027B3197955",
+                                "depositEnabled": true,
+                                "displayName": "Tether",
+                                "maximumWithdrawal": null,
+                                "minimumDeposit": "0.6",
+                                "minimumWithdrawal": "1.2",
+                                "nativeDecimals": "18",
+                                "withdrawEnabled": true,
+                                "withdrawalFee": "0.6"
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponse": {
+                    "USDT": {
+                        "info": {
+                            "coingeckoId": "tether",
+                            "displayName": "Tether",
+                            "symbol": "USDT",
+                            "tokens": [
+                                {
+                                    "blockchain": "Solana",
+                                    "contractAddress": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+                                    "depositEnabled": true,
+                                    "displayName": "Tether",
+                                    "maximumWithdrawal": null,
+                                    "minimumDeposit": "0.7",
+                                    "minimumWithdrawal": "1.4",
+                                    "nativeDecimals": "6",
+                                    "withdrawEnabled": true,
+                                    "withdrawalFee": "0.7"
+                                },
+                                {
+                                    "blockchain": "Ethereum",
+                                    "contractAddress": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+                                    "depositEnabled": true,
+                                    "displayName": "Tether",
+                                    "maximumWithdrawal": null,
+                                    "minimumDeposit": "3.1",
+                                    "minimumWithdrawal": "6.2",
+                                    "nativeDecimals": "6",
+                                    "withdrawEnabled": true,
+                                    "withdrawalFee": "3.1"
+                                },
+                                {
+                                    "blockchain": "Tron",
+                                    "contractAddress": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+                                    "depositEnabled": true,
+                                    "displayName": "Tether USD",
+                                    "maximumWithdrawal": null,
+                                    "minimumDeposit": "0.6",
+                                    "minimumWithdrawal": "1.2",
+                                    "nativeDecimals": "6",
+                                    "withdrawEnabled": true,
+                                    "withdrawalFee": "0.6"
+                                },
+                                {
+                                    "blockchain": "Arbitrum",
+                                    "contractAddress": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
+                                    "depositEnabled": true,
+                                    "displayName": "USDT",
+                                    "maximumWithdrawal": null,
+                                    "minimumDeposit": "0.6",
+                                    "minimumWithdrawal": "1.2",
+                                    "nativeDecimals": "6",
+                                    "withdrawEnabled": true,
+                                    "withdrawalFee": "0.6"
+                                },
+                                {
+                                    "blockchain": "Optimism",
+                                    "contractAddress": "0x01bFF41798a0BcF287b996046Ca68b395DbC1071",
+                                    "depositEnabled": true,
+                                    "displayName": "USDT",
+                                    "maximumWithdrawal": null,
+                                    "minimumDeposit": "0.2",
+                                    "minimumWithdrawal": "0.4",
+                                    "nativeDecimals": "6",
+                                    "withdrawEnabled": true,
+                                    "withdrawalFee": "0.2"
+                                },
+                                {
+                                    "blockchain": "Polygon",
+                                    "contractAddress": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
+                                    "depositEnabled": true,
+                                    "displayName": "USDT",
+                                    "maximumWithdrawal": null,
+                                    "minimumDeposit": "0.1",
+                                    "minimumWithdrawal": "0.2",
+                                    "nativeDecimals": "6",
+                                    "withdrawEnabled": true,
+                                    "withdrawalFee": "0.1"
+                                },
+                                {
+                                    "blockchain": "Sei",
+                                    "contractAddress": "0x9151434b16b9763660705744891fA906F660EcC5",
+                                    "depositEnabled": true,
+                                    "displayName": "USDT",
+                                    "maximumWithdrawal": null,
+                                    "minimumDeposit": "0.6",
+                                    "minimumWithdrawal": "1.2",
+                                    "nativeDecimals": "6",
+                                    "withdrawEnabled": true,
+                                    "withdrawalFee": "0.6"
+                                },
+                                {
+                                    "blockchain": "Aptos",
+                                    "contractAddress": "0x357b0b74bc833e95a115ad22604854d6b0fca151cecd94111770e5d6ffc9dc2b",
+                                    "depositEnabled": true,
+                                    "displayName": "USDT",
+                                    "maximumWithdrawal": null,
+                                    "minimumDeposit": "0.2",
+                                    "minimumWithdrawal": "0.4",
+                                    "nativeDecimals": "6",
+                                    "withdrawEnabled": true,
+                                    "withdrawalFee": "0.2"
+                                },
+                                {
+                                    "blockchain": "Plasma",
+                                    "contractAddress": "0xB8CE59FC3717ada4C02eaDF9682A9e934F625ebb",
+                                    "depositEnabled": true,
+                                    "displayName": "USDT",
+                                    "maximumWithdrawal": null,
+                                    "minimumDeposit": "0.2",
+                                    "minimumWithdrawal": "0.4",
+                                    "nativeDecimals": "6",
+                                    "withdrawEnabled": true,
+                                    "withdrawalFee": "0.2"
+                                },
+                                {
+                                    "blockchain": "HyperEVM",
+                                    "contractAddress": "0xB8CE59FC3717ada4C02eaDF9682A9e934F625ebb",
+                                    "depositEnabled": true,
+                                    "displayName": "USDT",
+                                    "maximumWithdrawal": null,
+                                    "minimumDeposit": "0.2",
+                                    "minimumWithdrawal": "0.4",
+                                    "nativeDecimals": "6",
+                                    "withdrawEnabled": true,
+                                    "withdrawalFee": "0.2"
+                                },
+                                {
+                                    "blockchain": "Monad",
+                                    "contractAddress": "0xe7cd86e13AC4309349F30B3435a9d337750fC82D",
+                                    "depositEnabled": true,
+                                    "displayName": "Tether",
+                                    "maximumWithdrawal": null,
+                                    "minimumDeposit": "0.6",
+                                    "minimumWithdrawal": "1.2",
+                                    "nativeDecimals": "6",
+                                    "withdrawEnabled": true,
+                                    "withdrawalFee": "0.6"
+                                },
+                                {
+                                    "blockchain": "Stable",
+                                    "contractAddress": "0x779Ded0c9e1022225f8E0630b35a9b54bE713736",
+                                    "depositEnabled": true,
+                                    "displayName": "Tether",
+                                    "maximumWithdrawal": null,
+                                    "minimumDeposit": "0.6",
+                                    "minimumWithdrawal": "1.2",
+                                    "nativeDecimals": "6",
+                                    "withdrawEnabled": true,
+                                    "withdrawalFee": "0.6"
+                                },
+                                {
+                                    "blockchain": "Bsc",
+                                    "contractAddress": "0x55d398326f99059fF775485246999027B3197955",
+                                    "depositEnabled": true,
+                                    "displayName": "Tether",
+                                    "maximumWithdrawal": null,
+                                    "minimumDeposit": "0.6",
+                                    "minimumWithdrawal": "1.2",
+                                    "nativeDecimals": "18",
+                                    "withdrawEnabled": true,
+                                    "withdrawalFee": "0.6"
+                                }
+                            ]
+                        },
+                        "id": "USDT",
+                        "numericId": null,
+                        "code": "USDT",
+                        "precision": null,
+                        "type": "crypto",
+                        "name": "Tether",
+                        "active": null,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": 0.1,
+                        "fees": {},
+                        "networks": {
+                            "SOL": {
+                                "id": "Solana",
+                                "network": "SOL",
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 1.4,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0.7,
+                                        "max": null
+                                    }
+                                },
+                                "active": null,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 0.7,
+                                "precision": null,
+                                "info": {
+                                    "blockchain": "Solana",
+                                    "contractAddress": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+                                    "depositEnabled": true,
+                                    "displayName": "Tether",
+                                    "maximumWithdrawal": null,
+                                    "minimumDeposit": "0.7",
+                                    "minimumWithdrawal": "1.4",
+                                    "nativeDecimals": "6",
+                                    "withdrawEnabled": true,
+                                    "withdrawalFee": "0.7"
+                                }
+                            },
+                            "ERC20": {
+                                "id": "Ethereum",
+                                "network": "ERC20",
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 6.2,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 3.1,
+                                        "max": null
+                                    }
+                                },
+                                "active": null,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 3.1,
+                                "precision": null,
+                                "info": {
+                                    "blockchain": "Ethereum",
+                                    "contractAddress": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+                                    "depositEnabled": true,
+                                    "displayName": "Tether",
+                                    "maximumWithdrawal": null,
+                                    "minimumDeposit": "3.1",
+                                    "minimumWithdrawal": "6.2",
+                                    "nativeDecimals": "6",
+                                    "withdrawEnabled": true,
+                                    "withdrawalFee": "3.1"
+                                }
+                            },
+                            "TRC20": {
+                                "id": "Tron",
+                                "network": "TRC20",
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 1.2,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0.6,
+                                        "max": null
+                                    }
+                                },
+                                "active": null,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 0.6,
+                                "precision": null,
+                                "info": {
+                                    "blockchain": "Tron",
+                                    "contractAddress": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+                                    "depositEnabled": true,
+                                    "displayName": "Tether USD",
+                                    "maximumWithdrawal": null,
+                                    "minimumDeposit": "0.6",
+                                    "minimumWithdrawal": "1.2",
+                                    "nativeDecimals": "6",
+                                    "withdrawEnabled": true,
+                                    "withdrawalFee": "0.6"
+                                }
+                            },
+                            "ARB": {
+                                "id": "Arbitrum",
+                                "network": "ARB",
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 1.2,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0.6,
+                                        "max": null
+                                    }
+                                },
+                                "active": null,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 0.6,
+                                "precision": null,
+                                "info": {
+                                    "blockchain": "Arbitrum",
+                                    "contractAddress": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
+                                    "depositEnabled": true,
+                                    "displayName": "USDT",
+                                    "maximumWithdrawal": null,
+                                    "minimumDeposit": "0.6",
+                                    "minimumWithdrawal": "1.2",
+                                    "nativeDecimals": "6",
+                                    "withdrawEnabled": true,
+                                    "withdrawalFee": "0.6"
+                                }
+                            },
+                            "OPTIMISM": {
+                                "id": "Optimism",
+                                "network": "OPTIMISM",
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 0.4,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0.2,
+                                        "max": null
+                                    }
+                                },
+                                "active": null,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 0.2,
+                                "precision": null,
+                                "info": {
+                                    "blockchain": "Optimism",
+                                    "contractAddress": "0x01bFF41798a0BcF287b996046Ca68b395DbC1071",
+                                    "depositEnabled": true,
+                                    "displayName": "USDT",
+                                    "maximumWithdrawal": null,
+                                    "minimumDeposit": "0.2",
+                                    "minimumWithdrawal": "0.4",
+                                    "nativeDecimals": "6",
+                                    "withdrawEnabled": true,
+                                    "withdrawalFee": "0.2"
+                                }
+                            },
+                            "MATIC": {
+                                "id": "Polygon",
+                                "network": "MATIC",
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 0.2,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0.1,
+                                        "max": null
+                                    }
+                                },
+                                "active": null,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 0.1,
+                                "precision": null,
+                                "info": {
+                                    "blockchain": "Polygon",
+                                    "contractAddress": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
+                                    "depositEnabled": true,
+                                    "displayName": "USDT",
+                                    "maximumWithdrawal": null,
+                                    "minimumDeposit": "0.1",
+                                    "minimumWithdrawal": "0.2",
+                                    "nativeDecimals": "6",
+                                    "withdrawEnabled": true,
+                                    "withdrawalFee": "0.1"
+                                }
+                            },
+                            "SEI": {
+                                "id": "Sei",
+                                "network": "SEI",
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 1.2,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0.6,
+                                        "max": null
+                                    }
+                                },
+                                "active": null,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 0.6,
+                                "precision": null,
+                                "info": {
+                                    "blockchain": "Sei",
+                                    "contractAddress": "0x9151434b16b9763660705744891fA906F660EcC5",
+                                    "depositEnabled": true,
+                                    "displayName": "USDT",
+                                    "maximumWithdrawal": null,
+                                    "minimumDeposit": "0.6",
+                                    "minimumWithdrawal": "1.2",
+                                    "nativeDecimals": "6",
+                                    "withdrawEnabled": true,
+                                    "withdrawalFee": "0.6"
+                                }
+                            },
+                            "APT": {
+                                "id": "Aptos",
+                                "network": "APT",
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 0.4,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0.2,
+                                        "max": null
+                                    }
+                                },
+                                "active": null,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 0.2,
+                                "precision": null,
+                                "info": {
+                                    "blockchain": "Aptos",
+                                    "contractAddress": "0x357b0b74bc833e95a115ad22604854d6b0fca151cecd94111770e5d6ffc9dc2b",
+                                    "depositEnabled": true,
+                                    "displayName": "USDT",
+                                    "maximumWithdrawal": null,
+                                    "minimumDeposit": "0.2",
+                                    "minimumWithdrawal": "0.4",
+                                    "nativeDecimals": "6",
+                                    "withdrawEnabled": true,
+                                    "withdrawalFee": "0.2"
+                                }
+                            },
+                            "plasma": {
+                                "id": "Plasma",
+                                "network": "plasma",
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 0.4,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0.2,
+                                        "max": null
+                                    }
+                                },
+                                "active": null,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 0.2,
+                                "precision": null,
+                                "info": {
+                                    "blockchain": "Plasma",
+                                    "contractAddress": "0xB8CE59FC3717ada4C02eaDF9682A9e934F625ebb",
+                                    "depositEnabled": true,
+                                    "displayName": "USDT",
+                                    "maximumWithdrawal": null,
+                                    "minimumDeposit": "0.2",
+                                    "minimumWithdrawal": "0.4",
+                                    "nativeDecimals": "6",
+                                    "withdrawEnabled": true,
+                                    "withdrawalFee": "0.2"
+                                }
+                            },
+                            "hyperevm": {
+                                "id": "HyperEVM",
+                                "network": "hyperevm",
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 0.4,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0.2,
+                                        "max": null
+                                    }
+                                },
+                                "active": null,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 0.2,
+                                "precision": null,
+                                "info": {
+                                    "blockchain": "HyperEVM",
+                                    "contractAddress": "0xB8CE59FC3717ada4C02eaDF9682A9e934F625ebb",
+                                    "depositEnabled": true,
+                                    "displayName": "USDT",
+                                    "maximumWithdrawal": null,
+                                    "minimumDeposit": "0.2",
+                                    "minimumWithdrawal": "0.4",
+                                    "nativeDecimals": "6",
+                                    "withdrawEnabled": true,
+                                    "withdrawalFee": "0.2"
+                                }
+                            },
+                            "monad": {
+                                "id": "Monad",
+                                "network": "monad",
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 1.2,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0.6,
+                                        "max": null
+                                    }
+                                },
+                                "active": null,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 0.6,
+                                "precision": null,
+                                "info": {
+                                    "blockchain": "Monad",
+                                    "contractAddress": "0xe7cd86e13AC4309349F30B3435a9d337750fC82D",
+                                    "depositEnabled": true,
+                                    "displayName": "Tether",
+                                    "maximumWithdrawal": null,
+                                    "minimumDeposit": "0.6",
+                                    "minimumWithdrawal": "1.2",
+                                    "nativeDecimals": "6",
+                                    "withdrawEnabled": true,
+                                    "withdrawalFee": "0.6"
+                                }
+                            },
+                            "stable": {
+                                "id": "Stable",
+                                "network": "stable",
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 1.2,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0.6,
+                                        "max": null
+                                    }
+                                },
+                                "active": null,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 0.6,
+                                "precision": null,
+                                "info": {
+                                    "blockchain": "Stable",
+                                    "contractAddress": "0x779Ded0c9e1022225f8E0630b35a9b54bE713736",
+                                    "depositEnabled": true,
+                                    "displayName": "Tether",
+                                    "maximumWithdrawal": null,
+                                    "minimumDeposit": "0.6",
+                                    "minimumWithdrawal": "1.2",
+                                    "nativeDecimals": "6",
+                                    "withdrawEnabled": true,
+                                    "withdrawalFee": "0.6"
+                                }
+                            },
+                            "BSC": {
+                                "id": "Bsc",
+                                "network": "BSC",
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 1.2,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0.6,
+                                        "max": null
+                                    }
+                                },
+                                "active": null,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 0.6,
+                                "precision": null,
+                                "info": {
+                                    "blockchain": "Bsc",
+                                    "contractAddress": "0x55d398326f99059fF775485246999027B3197955",
+                                    "depositEnabled": true,
+                                    "displayName": "Tether",
+                                    "maximumWithdrawal": null,
+                                    "minimumDeposit": "0.6",
+                                    "minimumWithdrawal": "1.2",
+                                    "nativeDecimals": "18",
+                                    "withdrawEnabled": true,
+                                    "withdrawalFee": "0.6"
+                                }
+                            }
+                        },
+                        "limits": {
+                            "deposit": {
+                                "min": 0.1,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": 0.2,
+                                "max": null
+                            }
+                        }
+                    }
+                }
+            }
+        ],
         "fetchFundingHistory": [
             {
                 "description": "fetch funding history",
@@ -1341,44 +2106,180 @@
         ],
         "fetchTrades": [
             {
-                "description": "fetch trades with since and limit parameters",
+                "description": "+since +limit",
                 "method": "fetchTrades",
                 "input": [
                     "ETH/USDC",
-                    1757604778000,
-                    1
+                    1770000000000,
+                    5
                 ],
                 "httpResponse": [
                     {
-                        "id": "3530359",
+                        "id": "7558558",
                         "isBuyerMaker": true,
-                        "price": "4423.77",
-                        "quantity": "0.2212",
-                        "quoteQuantity": "978.537924",
-                        "timestamp": "1757619706067"
+                        "price": "1626.15",
+                        "quantity": "0.0333",
+                        "quoteQuantity": "54.150795",
+                        "timestamp": "1781067801978"
+                    },
+                    {
+                        "id": "7558557",
+                        "isBuyerMaker": true,
+                        "price": "1626.24",
+                        "quantity": "0.1311",
+                        "quoteQuantity": "213.200064",
+                        "timestamp": "1781067801927"
+                    },
+                    {
+                        "id": "7558556",
+                        "isBuyerMaker": true,
+                        "price": "1626.3",
+                        "quantity": "0.0005",
+                        "quoteQuantity": "0.81315",
+                        "timestamp": "1781067801813"
+                    },
+                    {
+                        "id": "7558555",
+                        "isBuyerMaker": false,
+                        "price": "1624",
+                        "quantity": "0.0376",
+                        "quoteQuantity": "61.0624",
+                        "timestamp": "1781067762954"
+                    },
+                    {
+                        "id": "7558554",
+                        "isBuyerMaker": false,
+                        "price": "1624",
+                        "quantity": "0.1684",
+                        "quoteQuantity": "273.4816",
+                        "timestamp": "1781067762954"
                     }
                 ],
                 "parsedResponse": [
                     {
                         "info": {
-                            "id": "3530359",
-                            "isBuyerMaker": true,
-                            "price": "4423.77",
-                            "quantity": "0.2212",
-                            "quoteQuantity": "978.537924",
-                            "timestamp": "1757619706067"
+                            "id": "7558554",
+                            "isBuyerMaker": false,
+                            "price": "1624",
+                            "quantity": "0.1684",
+                            "quoteQuantity": "273.4816",
+                            "timestamp": "1781067762954"
                         },
-                        "timestamp": 1757619706067,
-                        "datetime": "2025-09-11T19:41:46.067Z",
+                        "timestamp": 1781067762954,
+                        "datetime": "2026-06-10T05:02:42.954Z",
                         "symbol": "ETH/USDC",
-                        "id": "3530359",
+                        "id": "7558554",
                         "order": null,
                         "type": null,
-                        "side": null,
+                        "side": "buy",
                         "takerOrMaker": "taker",
-                        "price": 4423.77,
-                        "amount": 0.2212,
-                        "cost": 978.537924,
+                        "price": 1624,
+                        "amount": 0.1684,
+                        "cost": 273.4816,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "7558555",
+                            "isBuyerMaker": false,
+                            "price": "1624",
+                            "quantity": "0.0376",
+                            "quoteQuantity": "61.0624",
+                            "timestamp": "1781067762954"
+                        },
+                        "timestamp": 1781067762954,
+                        "datetime": "2026-06-10T05:02:42.954Z",
+                        "symbol": "ETH/USDC",
+                        "id": "7558555",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 1624,
+                        "amount": 0.0376,
+                        "cost": 61.0624,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "7558556",
+                            "isBuyerMaker": true,
+                            "price": "1626.3",
+                            "quantity": "0.0005",
+                            "quoteQuantity": "0.81315",
+                            "timestamp": "1781067801813"
+                        },
+                        "timestamp": 1781067801813,
+                        "datetime": "2026-06-10T05:03:21.813Z",
+                        "symbol": "ETH/USDC",
+                        "id": "7558556",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 1626.3,
+                        "amount": 0.0005,
+                        "cost": 0.81315,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "7558557",
+                            "isBuyerMaker": true,
+                            "price": "1626.24",
+                            "quantity": "0.1311",
+                            "quoteQuantity": "213.200064",
+                            "timestamp": "1781067801927"
+                        },
+                        "timestamp": 1781067801927,
+                        "datetime": "2026-06-10T05:03:21.927Z",
+                        "symbol": "ETH/USDC",
+                        "id": "7558557",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 1626.24,
+                        "amount": 0.1311,
+                        "cost": 213.200064,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "7558558",
+                            "isBuyerMaker": true,
+                            "price": "1626.15",
+                            "quantity": "0.0333",
+                            "quoteQuantity": "54.150795",
+                            "timestamp": "1781067801978"
+                        },
+                        "timestamp": 1781067801978,
+                        "datetime": "2026-06-10T05:03:21.978Z",
+                        "symbol": "ETH/USDC",
+                        "id": "7558558",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 1626.15,
+                        "amount": 0.0333,
+                        "cost": 54.150795,
                         "fee": {
                             "cost": null,
                             "currency": null

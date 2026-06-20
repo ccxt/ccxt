@@ -1,8 +1,5 @@
-- [Async Balance Gdax](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import asyncio
 import os
@@ -25,5 +22,5 @@ async def test():
 
 
 asyncio.run(test())
- 
+
 ```

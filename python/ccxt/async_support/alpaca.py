@@ -1135,7 +1135,7 @@ class alpaca(Exchange, ImplicitAPI):
         await self.load_markets()
         response = await self.traderPrivateDeleteV2Orders(params)
         if isinstance(response, list):
-            return self.parse_orders(response, None)
+            return self.parse_orders(response)
         else:
             return [
                 self.safe_order({
@@ -1180,7 +1180,7 @@ class alpaca(Exchange, ImplicitAPI):
         request: dict = {
             'status': 'all',
         }
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbols'] = market['id']
@@ -1293,7 +1293,7 @@ class alpaca(Exchange, ImplicitAPI):
         request: dict = {
             'order_id': id,
         }
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
         if amount is not None:
@@ -1304,7 +1304,7 @@ class alpaca(Exchange, ImplicitAPI):
             params = self.omit(params, 'triggerPrice')
         if price is not None:
             request['limit_price'] = self.price_to_precision(symbol, price)
-        timeInForce = None
+        timeInForce: Str = None
         timeInForce, params = self.handle_option_and_params_2(params, 'editOrder', 'timeInForce', 'defaultTimeInForce')
         if timeInForce is not None:
             request['time_in_force'] = timeInForce
@@ -1427,7 +1427,7 @@ class alpaca(Exchange, ImplicitAPI):
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         request: dict = {
             'activity_type': 'FILL',
         }
@@ -1556,7 +1556,7 @@ class alpaca(Exchange, ImplicitAPI):
         #         "created_at": "2024-11-03T07:30:05.609976344Z"
         #     }
         #
-        parsedCurrency = None
+        parsedCurrency: Str = None
         if currency is not None:
             parsedCurrency = currency['id']
         return {
@@ -1613,7 +1613,7 @@ class alpaca(Exchange, ImplicitAPI):
 
     async def fetch_transactions_helper(self, type, code, since, limit, params):
         await self.load_markets()
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
         response = await self.traderPrivateGetV2WalletsTransfers(params)
@@ -1852,7 +1852,7 @@ class alpaca(Exchange, ImplicitAPI):
         errorCode = self.safe_string(response, 'code')
         if code is not None:
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
-        message = self.safe_value(response, 'message', None)
+        message = self.safe_value(response, 'message')
         if message is not None:
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)

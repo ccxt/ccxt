@@ -52,7 +52,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-alpaca.fetchTime ([params])
+alpaca.fetchTime (params?)
 ```
 
 
@@ -72,7 +72,7 @@ retrieves data on all markets for alpaca
 
 
 ```javascript
-alpaca.fetchMarkets ([params])
+alpaca.fetchMarkets (params?)
 ```
 
 
@@ -101,7 +101,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-alpaca.fetchTrades (symbol[, since, limit, params])
+alpaca.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -124,7 +124,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-alpaca.fetchOrderBook (symbol[, limit, params])
+alpaca.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -154,7 +154,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-alpaca.fetchOHLCV (symbol, timeframe[, since, limit, params])
+alpaca.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -176,7 +176,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-alpaca.fetchTicker (symbol[, params])
+alpaca.fetchTicker (symbol, params?)
 ```
 
 
@@ -198,7 +198,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-alpaca.fetchTickers (symbols[, params])
+alpaca.fetchTickers (symbols, params?)
 ```
 
 
@@ -221,7 +221,7 @@ create a market order by providing the symbol, side and cost
 
 
 ```javascript
-alpaca.createMarketOrderWithCost (symbol, side, cost[, params])
+alpaca.createMarketOrderWithCost (symbol, side, cost, params?)
 ```
 
 
@@ -243,7 +243,7 @@ create a market buy order by providing the symbol and cost
 
 
 ```javascript
-alpaca.createMarketBuyOrderWithCost (symbol, cost[, params])
+alpaca.createMarketBuyOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -265,7 +265,7 @@ create a market sell order by providing the symbol and cost
 
 
 ```javascript
-alpaca.createMarketSellOrderWithCost (symbol, cost[, params])
+alpaca.createMarketSellOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -292,7 +292,7 @@ create a trade order
 
 
 ```javascript
-alpaca.createOrder (symbol, type, side, amount[, price, params])
+alpaca.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -314,7 +314,7 @@ cancels an open order
 
 
 ```javascript
-alpaca.cancelOrder (id, symbol[, params])
+alpaca.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -335,7 +335,7 @@ cancel all open orders in a market
 
 
 ```javascript
-alpaca.cancelAllOrders (symbol[, params])
+alpaca.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -357,7 +357,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-alpaca.fetchOrder (id, symbol[, params])
+alpaca.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -381,7 +381,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-alpaca.fetchOrders (symbol[, since, limit, params])
+alpaca.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -405,7 +405,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-alpaca.fetchOpenOrders (symbol[, since, limit, params])
+alpaca.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -429,7 +429,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-alpaca.fetchClosedOrders (symbol[, since, limit, params])
+alpaca.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -458,7 +458,7 @@ edit a trade order
 
 
 ```javascript
-alpaca.editOrder (id[, symbol, type, side, amount, price, params])
+alpaca.editOrder (id, symbol?, type?, side?, amount?, price?, params?)
 ```
 
 
@@ -483,7 +483,7 @@ fetch all trades made by the user
 
 
 ```javascript
-alpaca.fetchMyTrades ([symbol, since, limit, params])
+alpaca.fetchMyTrades (symbol?, since?, limit?, params?)
 ```
 
 
@@ -504,7 +504,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-alpaca.fetchDepositAddress (code[, params])
+alpaca.fetchDepositAddress (code, params?)
 ```
 
 
@@ -528,7 +528,7 @@ make a withdrawal
 
 
 ```javascript
-alpaca.withdraw (code, amount, address, tag[, params])
+alpaca.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -551,7 +551,7 @@ fetch history of deposits and withdrawals
 
 
 ```javascript
-alpaca.fetchDepositsWithdrawals ([code, since, limit, params])
+alpaca.fetchDepositsWithdrawals (code?, since?, limit?, params?)
 ```
 
 
@@ -574,7 +574,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-alpaca.fetchDeposits ([code, since, limit, params])
+alpaca.fetchDeposits (code?, since?, limit?, params?)
 ```
 
 
@@ -597,7 +597,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-alpaca.fetchWithdrawals ([code, since, limit, params])
+alpaca.fetchWithdrawals (code?, since?, limit?, params?)
 ```
 
 
@@ -617,7 +617,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-alpaca.fetchBalance ([params])
+alpaca.fetchBalance (params?)
 ```
 
 
@@ -638,7 +638,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-alpaca.watchTicker (symbol[, params])
+alpaca.watchTicker (symbol, params?)
 ```
 
 
@@ -662,7 +662,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-alpaca.watchOHLCV (symbol, timeframe[, since, limit, params])
+alpaca.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -684,7 +684,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-alpaca.watchOrderBook (symbol[, limit, params])
+alpaca.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -707,7 +707,7 @@ watches information on multiple trades made in a market
 
 
 ```javascript
-alpaca.watchTrades (symbol[, since, limit, params])
+alpaca.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -731,7 +731,7 @@ watches information on multiple trades made by the user
 
 
 ```javascript
-alpaca.watchMyTrades (symbol[, since, limit, params])
+alpaca.watchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -753,6 +753,6 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-alpaca.watchOrders (symbol[, since, limit, params])
+alpaca.watchOrders (symbol, since?, limit?, params?)
 ```
 

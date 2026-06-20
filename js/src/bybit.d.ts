@@ -37,7 +37,7 @@ export default class bybit extends Exchange {
     upgradeUnifiedTradeAccount(params?: {}): Promise<any>;
     createExpiredOptionMarket(symbol: string): MarketInterface;
     safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
-    getBybitType(method: any, market: any, params?: {}): any[];
+    getBybitType(method: any, market: any, params?: {}): {}[];
     getAmount(symbol: string, amount: number): string;
     getPrice(symbol: string, price: string): string;
     getCost(symbol: string, cost: string): string;
@@ -70,7 +70,7 @@ export default class bybit extends Exchange {
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
     fetchSpotMarkets(params: any): Promise<Market[]>;
-    fetchFutureMarkets(params: any): Promise<Market[]>;
+    fetchFutureMarkets(params?: {}): Promise<Market[]>;
     fetchOptionMarkets(params: any): Promise<Market[]>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     /**
@@ -680,7 +680,7 @@ export default class bybit extends Exchange {
      * @param {string} [params.leverage] the rate of leverage, is required if setting trade mode (symbol)
      * @returns {object} response from the exchange
      */
-    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
+    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name bybit#setLeverage

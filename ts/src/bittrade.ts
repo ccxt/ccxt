@@ -1,11 +1,11 @@
 
 // ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/bittrade.js';
 import { AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RequestTimeout, NetworkError, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { Account, Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int } from './base/types.js';
 
 // ---------------------------------------------------------------------------
@@ -378,7 +378,6 @@ export default class bittrade extends Exchange {
                     'HECO': 'hrc20',
                     'HT': 'hrc20',
                     'ALGO': 'algo',
-                    'OMNI': '',
                 },
                 // https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStatesMethod': 'private_get_order_orders', // 'private_get_order_history' // https://github.com/ccxt/ccxt/pull/5392
@@ -646,10 +645,10 @@ export default class bittrade extends Exchange {
         //
         const symbol = this.safeSymbol (undefined, market);
         const timestamp = this.safeInteger (ticker, 'ts');
-        let bid = undefined;
-        let bidVolume = undefined;
-        let ask = undefined;
-        let askVolume = undefined;
+        let bid: Str = undefined;
+        let bidVolume: Str = undefined;
+        let ask: Str = undefined;
+        let askVolume: Str = undefined;
         if ('bid' in ticker) {
             if (Array.isArray (ticker['bid'])) {
                 bid = this.safeString (ticker['bid'], 0);
@@ -864,7 +863,7 @@ export default class bittrade extends Exchange {
         const price = this.safeString (trade, 'price');
         const amount = this.safeString2 (trade, 'filled-amount', 'amount');
         const cost = Precise.stringMul (price, amount);
-        let fee = undefined;
+        let fee: Dict = undefined;
         let feeCost = this.safeString (trade, 'filled-fees');
         let feeCurrency = this.safeCurrencyCode (this.safeString (trade, 'fee-currency'));
         const filledPoints = this.safeString (trade, 'filled-points');
@@ -931,7 +930,7 @@ export default class bittrade extends Exchange {
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1132,51 +1131,50 @@ export default class bittrade extends Exchange {
         //     }
         //
         const currencies = this.safeValue (response, 'data', []);
-        const result: Dict = {};
-        for (let i = 0; i < currencies.length; i++) {
-            const currency = currencies[i];
-            const id = this.safeValue (currency, 'name');
-            const code = this.safeCurrencyCode (id);
-            const depositEnabled = this.safeValue (currency, 'deposit-enabled');
-            const withdrawEnabled = this.safeValue (currency, 'withdraw-enabled');
-            const countryDisabled = this.safeValue (currency, 'country-disabled');
-            const visible = this.safeBool (currency, 'visible', false);
-            const state = this.safeString (currency, 'state');
-            const active = visible && depositEnabled && withdrawEnabled && (state === 'online') && !countryDisabled;
-            const name = this.safeString (currency, 'display-name');
-            const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'withdraw-precision')));
-            result[code] = {
-                'id': id,
-                'code': code,
-                'type': 'crypto',
-                // 'payin': currency['deposit-enabled'],
-                // 'payout': currency['withdraw-enabled'],
-                // 'transfer': undefined,
-                'name': name,
-                'active': active,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
-                'fee': undefined, // todo need to fetch from fee endpoint
-                'precision': precision,
-                'networks': undefined,
-                'limits': {
-                    'amount': {
-                        'min': precision,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': this.safeNumber (currency, 'deposit-min-amount'),
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': this.safeNumber (currency, 'withdraw-min-amount'),
-                        'max': undefined,
-                    },
+        return this.parseCurrencies (currencies);
+    }
+
+    parseCurrency (currency: Dict): Currency {
+        const id = this.safeValue (currency, 'name');
+        const code = this.safeCurrencyCode (id);
+        const depositEnabled = this.safeValue (currency, 'deposit-enabled');
+        const withdrawEnabled = this.safeValue (currency, 'withdraw-enabled');
+        const countryDisabled = this.safeValue (currency, 'country-disabled');
+        const visible = this.safeBool (currency, 'visible', false);
+        const state = this.safeString (currency, 'state');
+        const active = visible && depositEnabled && withdrawEnabled && (state === 'online') && !countryDisabled;
+        const name = this.safeString (currency, 'display-name');
+        const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'withdraw-precision')));
+        return this.safeCurrencyStructure ({
+            'id': id,
+            'code': code,
+            'type': 'crypto',
+            // 'payin': currency['deposit-enabled'],
+            // 'payout': currency['withdraw-enabled'],
+            // 'transfer': undefined,
+            'name': name,
+            'active': active,
+            'deposit': depositEnabled,
+            'withdraw': withdrawEnabled,
+            'fee': undefined, // todo need to fetch from fee endpoint
+            'precision': precision,
+            'networks': undefined,
+            'limits': {
+                'amount': {
+                    'min': precision,
+                    'max': undefined,
                 },
-                'info': currency,
-            };
-        }
-        return result;
+                'deposit': {
+                    'min': this.safeNumber (currency, 'deposit-min-amount'),
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': this.safeNumber (currency, 'withdraw-min-amount'),
+                    'max': undefined,
+                },
+            },
+            'info': currency,
+        });
     }
 
     parseBalance (response): Balances {
@@ -1226,7 +1224,7 @@ export default class bittrade extends Exchange {
         const request: Dict = {
             'states': states,
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -1325,7 +1323,7 @@ export default class bittrade extends Exchange {
     async fetchOpenOrdersV2 (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request: Dict = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -1419,9 +1417,9 @@ export default class bittrade extends Exchange {
         //             "canceled-at":  0                      }
         //
         const id = this.safeString (order, 'id');
-        let side = undefined;
-        let type = undefined;
-        let status = undefined;
+        let side: Str = undefined;
+        let type: Str = undefined;
+        let status: Str = undefined;
         if ('type' in order) {
             const orderType = order['type'].split ('-');
             side = orderType[0];
@@ -1437,7 +1435,7 @@ export default class bittrade extends Exchange {
         const price = this.safeString (order, 'price');
         const cost = this.safeString2 (order, 'filled-cash-amount', 'field-cash-amount'); // same typo
         const feeCost = this.safeString2 (order, 'filled-fees', 'field-fees'); // typo in their API, filled fees
-        let fee = undefined;
+        let fee: Dict = undefined;
         if (feeCost !== undefined) {
             const feeCurrency = (side === 'sell') ? market['quote'] : market['base'];
             fee = {
@@ -1520,7 +1518,7 @@ export default class bittrade extends Exchange {
         }
         params = this.omit (params, [ 'clientOrderId', 'client-order-id' ]);
         if ((type === 'market') && (side === 'buy')) {
-            let quoteAmount = undefined;
+            let quoteAmount: Str = undefined;
             let createMarketBuyOrderRequiresPrice = true;
             [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
             const cost = this.safeNumber (params, 'cost');
@@ -1684,7 +1682,7 @@ export default class bittrade extends Exchange {
         //    }
         //
         const successes = this.safeString (orders, 'successes');
-        let success = undefined;
+        let success: Strings = undefined;
         if (successes !== undefined) {
             success = successes.split (',');
         } else {
@@ -1729,7 +1727,7 @@ export default class bittrade extends Exchange {
             // 'side': 'buy', // or 'sell'
             // 'size': 100, // the number of orders to cancel 1-100
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -2027,8 +2025,9 @@ export default class bittrade extends Exchange {
             const requestSorted = this.keysort (request);
             let auth = this.urlencode (requestSorted);
             // unfortunately, PHP demands double quotes for the escaped newline symbol
+            const content = [ method, this.hostname, url, auth ];
             // eslint-disable-next-line quotes
-            const payload = [ method, this.hostname, url, auth ].join ("\n");
+            const payload = content.join ("\n");
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'base64');
             auth += '&' + this.urlencode ({ 'Signature': signature });
             url += '?' + auth;

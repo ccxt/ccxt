@@ -5,12 +5,12 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { ed25519 } from '@noble/curves/ed25519.js';
 import Exchange from './abstract/pacifica.js';
 import { ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound, BadRequest, InsufficientFunds, PermissionDenied, RateLimitExceeded, ExchangeNotAvailable, RequestTimeout, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { eddsa } from './base/functions/crypto.js';
-import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class pacifica
@@ -23,8 +23,8 @@ export default class pacifica extends Exchange {
             'name': 'Pacifica',
             'countries': [],
             'version': 'v1',
-            'isSandboxModeEnabled': false,
-            'rateLimit': 50,
+            'isSandboxModeEnabled': false, // is testnet api
+            'rateLimit': 50, // 125 requests per minute without api-key (300 with api-key) ~ 2 req/sec = 1 req/500 ms.
             'certified': false,
             'pro': true,
             'dex': true,
@@ -161,7 +161,7 @@ export default class pacifica extends Exchange {
                         'kline': 12,
                         'kline/mark': 12,
                         'book': 1,
-                        'trades': 1,
+                        'trades': 1, // Recent
                         'funding_rate/history': 1,
                         'account': 1,
                         'account/settings': 1,
@@ -216,7 +216,7 @@ export default class pacifica extends Exchange {
             'requiredCredentials': {
                 'apiKey': false,
                 'secret': false,
-                'walletAddress': false,
+                'walletAddress': false, // agentAddress, apiKey only in options.
                 'privateKey': true, // base58 solana private key
             },
             'exceptions': {
@@ -250,8 +250,8 @@ export default class pacifica extends Exchange {
             'options': {
                 'agentAddress': undefined,
                 'apiKey': undefined,
-                'builderCode': 'CCXT',
-                'feeRate': '0.01',
+                'builderCode': 'CCXT', // case sensitive
+                'feeRate': '0.01', // default rate for builder fee approval 0.01%
                 'builderFee': true,
                 'batchOrdersMax': 10,
                 'defaultType': 'swap',
@@ -1001,53 +1001,51 @@ export default class pacifica extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, defaultMaxLimit);
         }
-        else {
-            const tf = this.safeString(this.timeframes, timeframe, timeframe);
-            let request = {
-                'symbol': market['id'],
-                'interval': tf,
-                'start_time': since,
-            };
-            [request, params] = this.handleUntilOption('end_time', request, params);
-            const nowMillis = this.milliseconds();
-            let until = this.safeInteger(request, 'end_time');
-            if (until === undefined) {
-                if (limit !== undefined) {
-                    until = since + (limit * (this.parseTimeframe(tf) * 1000)) - 1;
-                }
-                if (until === undefined) {
-                    until = since + (defaultMaxLimit * (this.parseTimeframe(tf) * 1000)) - 1;
-                }
-                if (until > nowMillis) {
-                    until = nowMillis;
-                }
-                request['end_time'] = until;
+        const tf = this.safeString(this.timeframes, timeframe, timeframe);
+        let request = {
+            'symbol': market['id'],
+            'interval': tf,
+            'start_time': since,
+        };
+        [request, params] = this.handleUntilOption('end_time', request, params);
+        const nowMillis = this.milliseconds();
+        let until = this.safeInteger(request, 'end_time');
+        if (until === undefined) {
+            if (limit !== undefined) {
+                until = since + (limit * (this.parseTimeframe(tf) * 1000)) - 1;
             }
-            const response = await this.publicGetKline(this.extend(request, params));
-            //
-            // {
-            //   "success": true,
-            //   "data": [
-            //     {
-            //       "t": 1748954160000,
-            //       "T": 1748954220000,
-            //       "s": "BTC",
-            //       "i": "1m",
-            //       "o": "105376",
-            //       "c": "105376",
-            //       "h": "105376",
-            //       "l": "105376",
-            //       "v": "0.00022",
-            //       "n": 2
-            //     }
-            //   ],
-            //   "error": null,
-            //   "code": null
-            // }
-            //
-            const candles = this.safeList(response, 'data', []);
-            return this.parseOHLCVs(candles, market, timeframe, since, limit);
+            if (until === undefined) {
+                until = since + (defaultMaxLimit * (this.parseTimeframe(tf) * 1000)) - 1;
+            }
+            if (until > nowMillis) {
+                until = nowMillis;
+            }
+            request['end_time'] = until;
         }
+        const response = await this.publicGetKline(this.extend(request, params));
+        //
+        // {
+        //   "success": true,
+        //   "data": [
+        //     {
+        //       "t": 1748954160000,
+        //       "T": 1748954220000,
+        //       "s": "BTC",
+        //       "i": "1m",
+        //       "o": "105376",
+        //       "c": "105376",
+        //       "h": "105376",
+        //       "l": "105376",
+        //       "v": "0.00022",
+        //       "n": 2
+        //     }
+        //   ],
+        //   "error": null,
+        //   "code": null
+        // }
+        //
+        const candles = this.safeList(response, 'data', []);
+        return this.parseOHLCVs(candles, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
         //
@@ -3170,7 +3168,7 @@ export default class pacifica extends Exchange {
         return costNumber;
     }
     sortJsonKeys(value) {
-        if (typeof value === 'object') {
+        if (this.isDictionary(value)) {
             const result = {};
             const keys = Object.keys(value);
             const sortedKeys = this.sort(keys);

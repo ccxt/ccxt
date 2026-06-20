@@ -651,13 +651,8 @@ public partial class aster : Exchange
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object promises = new List<object> {this.sapiPublicGetV3ExchangeInfo(parameters), this.fapiPublicGetV3ExchangeInfo(parameters)};
-        object results = await promiseAll(promises);
-        object sapiResult = this.safeDict(results, 0, new Dictionary<string, object>() {});
+        object sapiResult = await this.sapiPublicGetV3ExchangeInfo(parameters);
         object sapiRows = this.safeList(sapiResult, "assets", new List<object>() {});
-        object fapiResult = this.safeDict(results, 1, new Dictionary<string, object>() {});
-        object fapiRows = this.safeList(fapiResult, "assets", new List<object>() {});
-        object rows = this.arrayConcat(sapiRows, fapiRows);
         //
         //     [
         //         {
@@ -667,41 +662,41 @@ public partial class aster : Exchange
         //         }
         //     ]
         //
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
-        {
-            object currency = getValue(rows, i);
-            object currencyId = this.safeString(currency, "asset");
-            object code = this.safeCurrencyCode(currencyId);
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "info", currency },
-                { "code", code },
-                { "id", currencyId },
-                { "name", code },
-                { "active", null },
-                { "deposit", null },
-                { "withdraw", null },
-                { "fee", null },
-                { "precision", null },
-                { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
+        return this.parseCurrencies(sapiRows);
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
+        object currencyId = this.safeString(rawCurrency, "asset");
+        object code = this.safeCurrencyCode(currencyId);
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "info", rawCurrency },
+            { "code", code },
+            { "id", currencyId },
+            { "name", code },
+            { "active", null },
+            { "deposit", null },
+            { "withdraw", null },
+            { "fee", null },
+            { "precision", null },
+            { "margin", this.safeBool(rawCurrency, "marginAvailable") },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
                 } },
-                { "networks", null },
-                { "type", "crypto" },
-            });
-        }
-        return result;
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "deposit", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+            { "networks", null },
+            { "type", "crypto" },
+        });
     }
 
     /**
@@ -817,7 +812,17 @@ public partial class aster : Exchange
         //     ]
         //
         //
-        object rows = this.arrayConcat(sapiRows, fapiRows);
+        object fapiRowsFiltered = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(fapiRows)); postFixIncrement(ref i))
+        {
+            object market = getValue(fapiRows, i);
+            // tmp skip some markets with base = undefined
+            if (isTrue(this.safeString(market, "baseAsset")))
+            {
+                ((IList<object>)fapiRowsFiltered).Add(market);
+            }
+        }
+        object rows = this.arrayConcat(sapiRows, fapiRowsFiltered);
         return this.parseMarkets(rows);
     }
 
@@ -1386,7 +1391,6 @@ public partial class aster : Exchange
         object last = this.safeString(ticker, "lastPrice");
         object open = this.safeString(ticker, "openPrice");
         object percentage = this.safeString(ticker, "priceChangePercent");
-        percentage = Precise.stringMul(percentage, "100");
         object quoteVolume = this.safeString(ticker, "quoteVolume");
         object baseVolume = this.safeString(ticker, "volume");
         object high = this.safeString(ticker, "highPrice");
@@ -2168,8 +2172,10 @@ public partial class aster : Exchange
         //        }
         //
         object info = order;
+        object positionSide = this.safeString(order, "positionSide");
+        object defaultType = ((bool) isTrue((!isEqual(positionSide, null)))) ? "swap" : "spot";
         object marketId = this.safeString(order, "symbol");
-        market = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market, null, defaultType);
         object side = this.safeStringLower(order, "side");
         object timestamp = this.safeInteger(order, "time");
         object statusId = this.safeStringUpper(order, "status");
@@ -3177,7 +3183,7 @@ public partial class aster : Exchange
         //     }
         //
         object marketId = this.safeString(marginMode, "symbol");
-        market = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market, null, "swap");
         return new Dictionary<string, object>() {
             { "info", marginMode },
             { "symbol", getValue(market, "symbol") },
@@ -4397,7 +4403,8 @@ public partial class aster : Exchange
             // Sign using EIP-712 typed data per the AsterSignTransaction spec
             object zeroAddress = this.safeString(this.options, "zeroAddress", "0x0000000000000000000000000000000000000000");
             object v3ChainId = this.safeInteger(this.options, "v3ChainId", 1666);
-            object signerAddress = this.safeString(this.options, "signerAddress");
+            object walletAddress = this.ethGetAddressFromPrivateKey(this.privateKey);
+            object signerAddress = this.safeString(this.options, "signerAddress", walletAddress); // default to user's wallet
             if (isTrue(isEqual(signerAddress, null)))
             {
                 throw new ArgumentsRequired ((string)add(this.id, " requires signerAddress in options when use v3 api")) ;
@@ -4418,7 +4425,7 @@ public partial class aster : Exchange
             // Note: timestamp and recvWindow are not used for v3; nonce replaces timestamp
             object finalParams = this.extend(new Dictionary<string, object>() {
                 { "nonce", ((object)nonce).ToString() },
-                { "user", this.walletAddress },
+                { "user", walletAddress },
                 { "signer", signerAddress },
             }, parameters);
             object paramString = null;

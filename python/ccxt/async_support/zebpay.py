@@ -8,7 +8,7 @@ from ccxt.abstract.zebpay import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Any, Balances, Currencies, Int, Leverage, Leverages, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees
+from ccxt.base.types import Any, Balances, Currencies, Currency, Int, Leverage, Leverages, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -372,84 +372,83 @@ class zebpay(Exchange, ImplicitAPI):
         #     }
         #
         rows = self.safe_list(response, 'data', [])
-        result: dict = {}
-        for i in range(0, len(rows)):
-            currency = rows[i]
-            currencyId = self.safe_string(currency, 'currency')
-            code = self.safe_currency_code(currencyId)
-            name = self.safe_string(currency, 'name')
-            precision = self.parse_number(self.parse_precision(self.safe_string(currency, 'precision')))
-            chains = self.safe_list(currency, 'chains', [])
-            networks: dict = {}
-            minWithdrawFeeString = None
-            minWithdrawString = None
-            minDepositString = None
-            deposit = False
-            withdraw = False
-            for j in range(0, len(chains)):
-                chain = chains[j]
-                networkId = self.safe_string(chain, 'chainId')
-                networkCode = self.network_id_to_code(networkId)
-                depositAllowed = self.safe_bool(chain, 'isDepositEnabled') is True
-                deposit = depositAllowed if (depositAllowed) else deposit
-                withdrawAllowed = self.safe_bool(chain, 'isWithdrawEnabled') is True
-                withdraw = withdrawAllowed if (withdrawAllowed) else withdraw
-                withdrawFeeString = self.safe_string(chain, 'withdrawalFee')
-                if withdrawFeeString is not None:
-                    minWithdrawFeeString = withdrawFeeString if (minWithdrawFeeString is None) else Precise.string_min(withdrawFeeString, minWithdrawFeeString)
-                minNetworkWithdrawString = self.safe_string(chain, 'withdrawalMinSize')
-                if minNetworkWithdrawString is not None:
-                    minWithdrawString = minNetworkWithdrawString if (minWithdrawString is None) else Precise.string_min(minNetworkWithdrawString, minWithdrawString)
-                minNetworkDepositString = self.safe_string(chain, 'depositMinSize')
-                if minNetworkDepositString is not None:
-                    minDepositString = minNetworkDepositString if (minDepositString is None) else Precise.string_min(minNetworkDepositString, minDepositString)
-                networks[networkCode] = {
-                    'info': chain,
-                    'id': networkId,
-                    'network': networkCode,
-                    'active': depositAllowed and withdrawAllowed,
-                    'deposit': depositAllowed,
-                    'withdraw': withdrawAllowed,
-                    'fee': self.parse_number(withdrawFeeString),
-                    'precision': precision,
-                    'limits': {
-                        'withdraw': {
-                            'min': self.parse_number(minNetworkWithdrawString),
-                            'max': None,
-                        },
-                        'deposit': {
-                            'min': self.parse_number(minNetworkDepositString),
-                            'max': None,
-                        },
-                    },
-                }
-            result[code] = self.safe_currency_structure({
-                'info': currency,
-                'code': code,
-                'id': currencyId,
-                'name': name,
-                'active': deposit and withdraw,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'fee': self.parse_number(minWithdrawFeeString),
+        return self.parse_currencies(rows)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        currencyId = self.safe_string(rawCurrency, 'currency')
+        code = self.safe_currency_code(currencyId)
+        name = self.safe_string(rawCurrency, 'name')
+        precision = self.parse_number(self.parse_precision(self.safe_string(rawCurrency, 'precision')))
+        chains = self.safe_list(rawCurrency, 'chains', [])
+        networks: dict = {}
+        minWithdrawFeeString = None
+        minWithdrawString = None
+        minDepositString = None
+        deposit = False
+        withdraw = False
+        for j in range(0, len(chains)):
+            chain = chains[j]
+            networkId = self.safe_string(chain, 'chainId')
+            networkCode = self.network_id_to_code(networkId, code)
+            depositAllowed = self.safe_bool(chain, 'isDepositEnabled') is True
+            deposit = depositAllowed if (depositAllowed) else deposit
+            withdrawAllowed = self.safe_bool(chain, 'isWithdrawEnabled') is True
+            withdraw = withdrawAllowed if (withdrawAllowed) else withdraw
+            withdrawFeeString = self.safe_string(chain, 'withdrawalFee')
+            if withdrawFeeString is not None:
+                minWithdrawFeeString = withdrawFeeString if (minWithdrawFeeString is None) else Precise.string_min(withdrawFeeString, minWithdrawFeeString)
+            minNetworkWithdrawString = self.safe_string(chain, 'withdrawalMinSize')
+            if minNetworkWithdrawString is not None:
+                minWithdrawString = minNetworkWithdrawString if (minWithdrawString is None) else Precise.string_min(minNetworkWithdrawString, minWithdrawString)
+            minNetworkDepositString = self.safe_string(chain, 'depositMinSize')
+            if minNetworkDepositString is not None:
+                minDepositString = minNetworkDepositString if (minDepositString is None) else Precise.string_min(minNetworkDepositString, minDepositString)
+            networks[networkCode] = {
+                'info': chain,
+                'id': networkId,
+                'network': networkCode,
+                'active': depositAllowed and withdrawAllowed,
+                'deposit': depositAllowed,
+                'withdraw': withdrawAllowed,
+                'fee': self.parse_number(withdrawFeeString),
                 'precision': precision,
                 'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
-                    },
                     'withdraw': {
-                        'min': self.parse_number(minWithdrawString),
+                        'min': self.parse_number(minNetworkWithdrawString),
                         'max': None,
                     },
                     'deposit': {
-                        'min': self.parse_number(minDepositString),
+                        'min': self.parse_number(minNetworkDepositString),
                         'max': None,
                     },
                 },
-                'networks': networks,
-            })
-        return result
+            }
+        return self.safe_currency_structure({
+            'info': rawCurrency,
+            'code': code,
+            'id': currencyId,
+            'name': name,
+            'active': deposit and withdraw,
+            'deposit': deposit,
+            'withdraw': withdraw,
+            'fee': self.parse_number(minWithdrawFeeString),
+            'precision': precision,
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'withdraw': {
+                    'min': self.parse_number(minWithdrawString),
+                    'max': None,
+                },
+                'deposit': {
+                    'min': self.parse_number(minDepositString),
+                    'max': None,
+                },
+            },
+            'networks': networks,
+        })
 
     async def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         """
@@ -1731,11 +1730,11 @@ class zebpay(Exchange, ImplicitAPI):
         #        }
         #     ]
         #
-        timestamp = self.safe_integer_2(ticker, 'timestamp', 'ts', None)
+        timestamp = self.safe_integer_2(ticker, 'timestamp', 'ts')
         marketId = self.safe_string(ticker, 'symbol')
         market = self.safe_market(marketId)
-        close = self.safe_string(ticker, 'close', None)
-        last = self.safe_string(ticker, 'last', None)
+        close = self.safe_string(ticker, 'close')
+        last = self.safe_string(ticker, 'last')
         percentage = self.safe_string(ticker, 'percentage')
         bidVolume = self.safe_string(ticker, 'bidVolume')
         askVolume = self.safe_string(ticker, 'askVolume')

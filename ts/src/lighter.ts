@@ -1,12 +1,12 @@
 //  ---------------------------------------------------------------------------
+import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
+import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/lighter.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, InvalidOrder, NotSupported, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
 import type { Dict, FundingRate, FundingRates, Int, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num, Order, Balances, Position, Str, TransferEntry, Currency, Currencies, Transaction, Trade, Account, MarginModification } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
-import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
-import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -144,7 +144,7 @@ export default class lighter extends Exchange {
             },
             'hostname': 'zklighter.elliot.ai',
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/ff1aaf96-bffb-4545-a750-5eba716e75d0',
+                'logo': 'https://github.com/user-attachments/assets/478f648a-05e4-4b09-a841-e7fced3846c0',
                 'api': {
                     'root': 'https://mainnet.{hostname}',
                     'public': 'https://mainnet.{hostname}',
@@ -159,7 +159,7 @@ export default class lighter extends Exchange {
                 'doc': 'https://apidocs.lighter.xyz/',
                 'fees': 'https://docs.lighter.xyz/perpetual-futures/fees',
                 'referral': {
-                    'url': 'app.lighter.xyz/?referral=715955W9',
+                    'url': 'https://app.lighter.xyz/?referral=715955W9',
                     'discount': 0.1, // user gets 10% of the points
                 },
             },
@@ -386,7 +386,7 @@ export default class lighter extends Exchange {
         if (signer !== undefined) {
             return signer;
         }
-        let libraryPath = undefined;
+        let libraryPath: Str = undefined;
         [ libraryPath, params ] = this.handleOptionAndParams (params, 'loadAccount', 'libraryPath');
         const lighterPrivateKeyIsSet = (privateKey !== undefined) && (privateKey !== '');
         if (lighterPrivateKeyIsSet && (libraryPath !== undefined) && (apiKeyIndex !== undefined) && (accountIndex !== undefined)) {
@@ -447,13 +447,13 @@ export default class lighter extends Exchange {
      * @method
      * @name lighter#preLoadLighterLibrary
      * @description if the required credentials are available in options, it will pre-load the lighter Signer to avoid delaying sensitive calls like createOrder the first time they're executed
-     * @param params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {boolean} true if the signer was loaded, false otherwise
      */
     async preLoadLighterLibrary (params = {}) {
-        let apiKeyIndex = undefined;
+        let apiKeyIndex: Int = undefined;
         [ apiKeyIndex, params ] = this.handleApiKeyIndex (params, 'loadAccount', 'apiKeyIndex', 'api_key_index');
-        let accountIndex = undefined;
+        let accountIndex: Int = undefined;
         [ accountIndex, params ] = await this.handleAccountIndex (params, 'loadAccount', 'accountIndex', 'account_index');
         if (accountIndex === undefined) {
             throw new ArgumentsRequired (this.id + ' requires accountIndex or account_index');
@@ -471,7 +471,7 @@ export default class lighter extends Exchange {
     }
 
     handleApiKeyIndex (params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue = undefined): any[] {
-        let apiKeyIndex = undefined;
+        let apiKeyIndex: Int = undefined;
         [ apiKeyIndex, params ] = this.handleOptionAndParams2 (params, methodName1, optionName1, optionName2, defaultValue);
         if ((apiKeyIndex === undefined) || (apiKeyIndex < 4) || (apiKeyIndex > 254)) {
             // apiKeyIndex = this.randNumber (2);
@@ -482,7 +482,7 @@ export default class lighter extends Exchange {
     }
 
     async handleAccountIndex (params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue = undefined): Promise<any[]> {
-        let accountIndex = undefined;
+        let accountIndex: Int = undefined;
         [ accountIndex, params ] = this.handleOptionAndParams2 (params, methodName1, optionName1, optionName2, defaultValue);
         if (accountIndex === undefined) {
             let walletAddress = this.walletAddress;
@@ -533,9 +533,9 @@ export default class lighter extends Exchange {
     }
 
     async createSubAccount (name: string, params = {}) {
-        let apiKeyIndex = undefined;
+        let apiKeyIndex: Int = undefined;
         [ apiKeyIndex, params ] = this.handleApiKeyIndex (params, 'createSubAccount', 'apiKeyIndex', 'api_key_index');
-        let accountIndex = undefined;
+        let accountIndex: Int = undefined;
         [ accountIndex, params ] = await this.handleAccountIndex (params, 'createSubAccount', 'accountIndex', 'account_index');
         const nonce = await this.fetchNonce (accountIndex, apiKeyIndex, params);
         const signRaw: Dict = {
@@ -679,9 +679,9 @@ export default class lighter extends Exchange {
     }
 
     async changeApiKey (params: object = {}) {
-        let apiKeyIndex = undefined;
+        let apiKeyIndex: Int = undefined;
         [ apiKeyIndex, params ] = this.handleApiKeyIndex (params, 'changeApiKey', 'apiKeyIndex', 'api_key_index');
-        let accountIndex = undefined;
+        let accountIndex: Int = undefined;
         [ accountIndex, params ] = await this.handleAccountIndex (params, 'changeApiKey', 'accountIndex', 'account_index');
         const strAccountIndex = this.numberToString (accountIndex);
         const strApiKeyIndex = this.numberToString (apiKeyIndex);
@@ -743,10 +743,10 @@ export default class lighter extends Exchange {
         const request: Dict = {
             'market_index': this.parseToInt (market['id']),
         };
-        let nonce = undefined;
-        let apiKeyIndex = undefined;
-        let accountIndex = undefined;
-        let orderExpiry = undefined;
+        let nonce: Int = undefined;
+        let apiKeyIndex: Int = undefined;
+        let accountIndex: Int = undefined;
+        let orderExpiry: Int = undefined;
         [ apiKeyIndex, params ] = this.handleApiKeyIndex (params, 'createOrder', 'apiKeyIndex', 'api_key_index');
         [ accountIndex, params ] = this.handleOptionAndParams2 (params, 'createOrder', 'accountIndex', 'account_index');
         [ nonce, params ] = this.handleOptionAndParams (params, 'createOrder', 'nonce');
@@ -768,8 +768,8 @@ export default class lighter extends Exchange {
         const timeInForce = this.safeStringLower (params, 'timeInForce', 'gtt');
         const postOnly = this.isPostOnly (isMarketOrder, undefined, params);
         params = this.omit (params, [ 'stopLoss', 'takeProfit', 'timeInForce' ]);
-        let orderTypeNum = undefined;
-        let timeInForceNum = undefined;
+        let orderTypeNum: Int = undefined;
+        let timeInForceNum: Int = undefined;
         if (isMarketOrder) {
             orderTypeNum = 1;
             timeInForceNum = 0;
@@ -795,7 +795,7 @@ export default class lighter extends Exchange {
             }
         }
         const marketInfo = this.safeDict (market, 'info');
-        let amountStr = undefined;
+        let amountStr: Str = undefined;
         const priceStr = this.priceToPrecision (symbol, price);
         const amountScale = this.pow ('10', marketInfo['size_decimals']);
         const priceScale = this.pow ('10', marketInfo['price_decimals']);
@@ -917,17 +917,17 @@ export default class lighter extends Exchange {
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
-        let accountIndex = undefined;
+        let accountIndex: Int = undefined;
         [ accountIndex, params ] = await this.handleAccountIndex (params, 'createOrder', 'accountIndex', 'account_index');
         params['accountIndex'] = accountIndex;
         const market = this.market (symbol);
-        let groupingType = undefined;
+        let groupingType: Int = undefined;
         [ groupingType, params ] = this.handleOptionAndParams (params, 'createOrder', 'groupingType', 3); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
         const orderRequests = this.createOrderRequest (symbol, type, side, amount, price, params);
         // for php
         const totalOrderRequests = orderRequests.length;
-        let apiKeyIndex = undefined;
-        let order = undefined;
+        let apiKeyIndex: Int = undefined;
+        let order: Dict = undefined;
         if (totalOrderRequests > 0) {
             order = orderRequests[0];
             apiKeyIndex = order['api_key_index'];
@@ -991,9 +991,9 @@ export default class lighter extends Exchange {
      */
     async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
-        let apiKeyIndex = undefined;
+        let apiKeyIndex: Int = undefined;
         [ apiKeyIndex, params ] = this.handleApiKeyIndex (params, 'editOrder', 'apiKeyIndex', 'api_key_index');
-        let accountIndex = undefined;
+        let accountIndex: Int = undefined;
         [ accountIndex, params ] = await this.handleAccountIndex (params, 'editOrder', 'accountIndex', 'account_index');
         const strAccountIndex = this.numberToString (accountIndex);
         const strApiKeyIndex = this.numberToString (apiKeyIndex);
@@ -1004,7 +1004,7 @@ export default class lighter extends Exchange {
         const priceScale = this.pow ('10', marketInfo['price_decimals']);
         const triggerPrice = this.safeStringN (params, [ 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
         params = this.omit (params, [ 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
-        let amountStr = undefined;
+        let amountStr: Str = undefined;
         const priceStr = this.priceToPrecision (symbol, price);
         let triggerPriceStr = '0'; // default is 0
         if (triggerPrice !== undefined) {
@@ -1287,44 +1287,43 @@ export default class lighter extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'asset_details', []);
-        const result: Dict = {};
-        for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
-            const id = this.safeString (entry, 'asset_id');
-            const code = this.safeCurrencyCode (this.safeString (entry, 'symbol'));
-            const decimals = this.safeString (entry, 'decimals');
-            const isUSDC = (code === 'USDC');
-            let depositMin = undefined;
-            let withdrawMin = undefined;
-            if (isUSDC) {
-                depositMin = this.safeNumber (entry, 'min_transfer_amount');
-                withdrawMin = this.safeNumber (entry, 'min_withdrawal_amount');
-            }
-            result[code] = this.safeCurrencyStructure ({
-                'id': id,
-                'name': code,
-                'code': code,
-                'precision': this.parseNumber ('1e-' + decimals),
-                'active': true,
-                'fee': undefined,
-                'networks': {},
-                'deposit': isUSDC,
-                'withdraw': isUSDC,
-                'type': 'crypto',
-                'limits': {
-                    'deposit': {
-                        'min': depositMin,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': withdrawMin,
-                        'max': undefined,
-                    },
-                },
-                'info': entry,
-            });
+        return this.parseCurrencies (data);
+    }
+
+    parseCurrency (rawCurrency: Dict): Currency {
+        const id = this.safeString (rawCurrency, 'asset_id');
+        const code = this.safeCurrencyCode (this.safeString (rawCurrency, 'symbol'));
+        const decimals = this.safeString (rawCurrency, 'decimals');
+        const isUSDC = (code === 'USDC');
+        let depositMin: Num = undefined;
+        let withdrawMin: Num = undefined;
+        if (isUSDC) {
+            depositMin = this.safeNumber (rawCurrency, 'min_transfer_amount');
+            withdrawMin = this.safeNumber (rawCurrency, 'min_withdrawal_amount');
         }
-        return result;
+        return this.safeCurrencyStructure ({
+            'id': id,
+            'name': code,
+            'code': code,
+            'precision': this.parseNumber ('1e-' + decimals),
+            'active': true,
+            'fee': undefined,
+            'networks': {},
+            'deposit': isUSDC,
+            'withdraw': isUSDC,
+            'type': 'crypto',
+            'limits': {
+                'deposit': {
+                    'min': depositMin,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': withdrawMin,
+                    'max': undefined,
+                },
+            },
+            'info': rawCurrency,
+        });
     }
 
     /**
@@ -1620,8 +1619,8 @@ export default class lighter extends Exchange {
         const until = this.safeInteger (params, 'until');
         params = this.omit (params, [ 'until' ]);
         const now = this.milliseconds ();
-        let startTs = undefined;
-        let endTs = undefined;
+        let startTs: Int = undefined;
+        let endTs: Int = undefined;
         if (since !== undefined) {
             startTs = since;
             if (until !== undefined) {
@@ -1756,7 +1755,7 @@ export default class lighter extends Exchange {
      */
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
-        let accountIndex = undefined;
+        let accountIndex: Int = undefined;
         [ accountIndex, params ] = await this.handleAccountIndex (params, 'fetchBalance', 'accountIndex', 'account_index');
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
@@ -1826,10 +1825,12 @@ export default class lighter extends Exchange {
                 }
             } else {
                 const perpBalance = this.safeDict (result, 'USDC', this.account ());
-                const perpUSDCTotal = this.safeString (account, 'collateral');
-                const perpUSDCFree = this.safeString (account, 'available_balance');
-                perpBalance['total'] = Precise.stringAdd (perpBalance['total'], perpUSDCTotal);
-                perpBalance['free'] = Precise.stringAdd (perpBalance['free'], perpUSDCFree);
+                const perpTotal = this.safeString (perpBalance, 'total', '0');
+                const perpFree = this.safeString (perpBalance, 'free', '0');
+                const perpUSDCTotal = this.safeString (account, 'collateral', '0');
+                const perpUSDCFree = this.safeString (account, 'available_balance', '0');
+                perpBalance['total'] = Precise.stringAdd (perpTotal, perpUSDCTotal);
+                perpBalance['free'] = Precise.stringAdd (perpFree, perpUSDCFree);
                 result['USDC'] = perpBalance;
             }
         }
@@ -1865,7 +1866,7 @@ export default class lighter extends Exchange {
      */
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
-        let accountIndex = undefined;
+        let accountIndex: Int = undefined;
         [ accountIndex, params ] = await this.handleAccountIndex (params, 'fetchPositions', 'accountIndex', 'account_index');
         const request: Dict = {
             'by': this.safeString (params, 'by', 'index'),
@@ -1956,17 +1957,17 @@ export default class lighter extends Exchange {
         const marketId = this.safeString (position, 'market_id');
         market = this.safeMarket (marketId, market);
         const sign = this.safeInteger (position, 'sign');
-        let side = undefined;
+        let side: Str = undefined;
         if (sign !== undefined) {
             side = (sign === 1) ? 'long' : 'short';
         }
         const marginModeId = this.safeInteger (position, 'margin_mode');
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         if (marginModeId !== undefined) {
             marginMode = (marginModeId === 0) ? 'cross' : 'isolated';
         }
         const imfStr = this.safeString (position, 'initial_margin_fraction');
-        let leverage = undefined;
+        let leverage: Num = undefined;
         if (imfStr !== undefined) {
             const imf = this.parseToInt (imfStr);
             if (imf > 0) {
@@ -2012,7 +2013,7 @@ export default class lighter extends Exchange {
      */
     async fetchAccounts (params = {}): Promise<Account[]> {
         await this.loadMarkets ();
-        let accountIndex = undefined;
+        let accountIndex: Int = undefined;
         [ accountIndex, params ] = await this.handleAccountIndex (params, 'fetchAccounts', 'accountIndex', 'account_index');
         const request: Dict = {
             'by': this.safeString (params, 'by', 'index'),
@@ -2106,9 +2107,9 @@ export default class lighter extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
-        let accountIndex = undefined;
+        let accountIndex: Int = undefined;
         [ accountIndex, params ] = await this.handleAccountIndex (params, 'fetchOpenOrders', 'accountIndex', 'account_index');
-        let apiKeyIndex = undefined;
+        let apiKeyIndex: Int = undefined;
         [ apiKeyIndex, params ] = this.handleApiKeyIndex (params, 'fetchOpenOrders', 'apiKeyIndex', 'api_key_index');
         const strAccountIndex = this.numberToString (accountIndex);
         const strApiKeyIndex = this.numberToString (apiKeyIndex);
@@ -2182,9 +2183,9 @@ export default class lighter extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
-        let accountIndex = undefined;
+        let accountIndex: Int = undefined;
         [ accountIndex, params ] = await this.handleAccountIndex (params, 'fetchClosedOrders', 'accountIndex', 'account_index');
-        let apiKeyIndex = undefined;
+        let apiKeyIndex: Int = undefined;
         [ apiKeyIndex, params ] = this.handleApiKeyIndex (params, 'fetchClosedOrders', 'apiKeyIndex', 'api_key_index');
         const strAccountIndex = this.numberToString (accountIndex);
         const strApiKeyIndex = this.numberToString (apiKeyIndex);
@@ -2293,7 +2294,7 @@ export default class lighter extends Exchange {
                 isAsk = isAskAsInteger === 1;
             }
         }
-        let side = undefined;
+        let side: Str = undefined;
         if (isAsk !== undefined) {
             side = isAsk ? 'sell' : 'buy';
         }
@@ -2303,8 +2304,8 @@ export default class lighter extends Exchange {
             type = this.parseOrderTypeInteger (typeAsInteger);
         }
         const triggerPrice = this.parseNumber (this.omitZero (this.safeString (order, 'trigger_price')));
-        let stopLossPrice = undefined;
-        let takeProfitPrice = undefined;
+        let stopLossPrice: Num = undefined;
+        let takeProfitPrice: Num = undefined;
         if (type !== undefined) {
             if (type.indexOf ('stop-loss') >= 0) {
                 stopLossPrice = triggerPrice;
@@ -2314,7 +2315,7 @@ export default class lighter extends Exchange {
             }
         }
         // Try to parse to integer first, because parsing an integer to a string wouldn't result in undefined
-        let tif = undefined;
+        let tif: Str = undefined;
         const tifAsInteger = this.safeInteger (order, 'time_in_force');
         if (tifAsInteger !== undefined) {
             tif = this.parseOrderTimeInForceInteger (tifAsInteger);
@@ -2449,11 +2450,11 @@ export default class lighter extends Exchange {
      */
     async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
         await this.loadMarkets ();
-        let apiKeyIndex = undefined;
+        let apiKeyIndex: Int = undefined;
         [ apiKeyIndex, params ] = this.handleApiKeyIndex (params, 'transfer', 'apiKeyIndex', 'api_key_index');
-        let accountIndex = undefined;
+        let accountIndex: Int = undefined;
         [ accountIndex, params ] = await this.handleAccountIndex (params, 'transfer', 'accountIndex', 'account_index');
-        let toAccountIndex = undefined;
+        let toAccountIndex: Int = undefined;
         [ toAccountIndex, params ] = this.handleOptionAndParams2 (params, 'transfer', 'toAccountIndex', 'to_account_index', accountIndex);
         const strAccountIndex = this.numberToString (accountIndex);
         const strApiKeyIndex = this.numberToString (apiKeyIndex);
@@ -2512,17 +2513,17 @@ export default class lighter extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchTransfers', code, since, limit, params, 'cursor', 'cursor', undefined, 50) as TransferEntry[];
         }
-        let accountIndex = undefined;
+        let accountIndex: Int = undefined;
         [ accountIndex, params ] = await this.handleAccountIndex (params, 'fetchTransfers', 'accountIndex', 'account_index');
         const request: Dict = {
             'account_index': accountIndex,
         };
-        let apiKeyIndex = undefined;
+        let apiKeyIndex: Int = undefined;
         [ apiKeyIndex, params ] = this.handleApiKeyIndex (params, 'fetchTransfers', 'apiKeyIndex', 'api_key_index');
         const strAccountIndex = this.numberToString (accountIndex);
         const strApiKeyIndex = this.numberToString (apiKeyIndex);
         await this.loadAccount (this.options['chainId'], this.getLighterPrivateKey (strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params);
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -2616,23 +2617,23 @@ export default class lighter extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchDeposits', code, since, limit, params, 'cursor', 'cursor', undefined, 50) as Transaction[];
         }
-        let address = undefined;
+        let address: Str = undefined;
         [ address, params ] = this.handleOptionAndParams2 (params, 'fetchDeposits', 'address', 'l1_address');
         if (address === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDeposits() requires an address parameter');
         }
-        let accountIndex = undefined;
+        let accountIndex: Int = undefined;
         [ accountIndex, params ] = await this.handleAccountIndex (params, 'fetchDeposits', 'accountIndex', 'account_index');
         const request: Dict = {
             'account_index': accountIndex,
             'l1_address': address,
         };
-        let apiKeyIndex = undefined;
+        let apiKeyIndex: Int = undefined;
         [ apiKeyIndex, params ] = this.handleApiKeyIndex (params, 'fetchDeposits', 'apiKeyIndex', 'api_key_index');
         const strAccountIndex = this.numberToString (accountIndex);
         const strApiKeyIndex = this.numberToString (apiKeyIndex);
         await this.loadAccount (this.options['chainId'], this.getLighterPrivateKey (strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params);
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['coin'] = currency['id'];
@@ -2682,18 +2683,18 @@ export default class lighter extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchWithdrawals', code, since, limit, params, 'cursor', 'cursor', undefined, 50) as Transaction[];
         }
-        let accountIndex = undefined;
+        let accountIndex: Int = undefined;
         [ accountIndex, params ] = await this.handleAccountIndex (params, 'fetchWithdrawals', 'accountIndex', 'account_index');
         await this.loadMarkets ();
         const request: Dict = {
             'account_index': accountIndex,
         };
-        let apiKeyIndex = undefined;
+        let apiKeyIndex: Int = undefined;
         [ apiKeyIndex, params ] = this.handleApiKeyIndex (params, 'fetchWithdrawals', 'apiKeyIndex', 'api_key_index');
         const strAccountIndex = this.numberToString (accountIndex);
         const strApiKeyIndex = this.numberToString (apiKeyIndex);
         await this.loadAccount (this.options['chainId'], this.getLighterPrivateKey (strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params);
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['coin'] = currency['id'];
@@ -2805,9 +2806,9 @@ export default class lighter extends Exchange {
      */
     async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         await this.loadMarkets ();
-        let apiKeyIndex = undefined;
+        let apiKeyIndex: Int = undefined;
         [ apiKeyIndex, params ] = this.handleApiKeyIndex (params, 'withdraw', 'apiKeyIndex', 'api_key_index');
-        let accountIndex = undefined;
+        let accountIndex: Int = undefined;
         [ accountIndex, params ] = await this.handleAccountIndex (params, 'withdraw', 'accountIndex', 'account_index');
         const strAccountIndex = this.numberToString (accountIndex);
         const strApiKeyIndex = this.numberToString (apiKeyIndex);
@@ -2861,9 +2862,9 @@ export default class lighter extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchMyTrades', symbol, since, limit, params, 'next_cursor', 'cursor', undefined, 50) as Trade[];
         }
-        let accountIndex = undefined;
+        let accountIndex: Int = undefined;
         [ accountIndex, params ] = await this.handleAccountIndex (params, 'fetchMyTrades', 'accountIndex', 'account_index');
-        let apiKeyIndex = undefined;
+        let apiKeyIndex: Int = undefined;
         [ apiKeyIndex, params ] = this.handleApiKeyIndex (params, 'fetchMyTrades', 'apiKeyIndex', 'api_key_index');
         const strAccountIndex = this.numberToString (accountIndex);
         const strApiKeyIndex = this.numberToString (apiKeyIndex);
@@ -2876,12 +2877,12 @@ export default class lighter extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 100);
         }
-        let until = undefined;
+        let until: Int = undefined;
         [ until, params ] = this.handleOptionAndParams2 (params, 'fetchMyTrades', 'until', 'from');
         if (until !== undefined) {
             request['from'] = until;
         }
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['market_id'] = market['id'];
@@ -2964,8 +2965,8 @@ export default class lighter extends Exchange {
         const askAccountId = this.safeString (trade, 'ask_account_id');
         const bidAccountId = this.safeString (trade, 'bid_account_id');
         const isMakerAsk = this.safeBool (trade, 'is_maker_ask');
-        let side = undefined;
-        let orderId = undefined;
+        let side: Str = undefined;
+        let orderId: Str = undefined;
         if (accountIndex !== undefined) {
             if (accountIndex === askAccountId) {
                 side = 'sell';
@@ -2975,7 +2976,7 @@ export default class lighter extends Exchange {
                 orderId = this.safeString (trade, 'bid_id');
             }
         }
-        let takerOrMaker = undefined;
+        let takerOrMaker: Str = undefined;
         if (side !== undefined && isMakerAsk !== undefined) {
             const isMaker = (side === 'sell') ? isMakerAsk : !isMakerAsk;
             takerOrMaker = isMaker ? 'maker' : 'taker';
@@ -3013,7 +3014,7 @@ export default class lighter extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleOptionAndParams2 (params, 'setLeverage', 'marginMode', 'margin_mode');
         if (marginMode === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires an marginMode parameter');
@@ -3037,7 +3038,7 @@ export default class lighter extends Exchange {
         if (marginMode === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires an marginMode parameter');
         }
-        let leverage = undefined;
+        let leverage: Int = undefined;
         [ leverage, params ] = this.handleOptionAndParams (params, 'setMarginMode', 'leverage', 'leverage');
         if (leverage === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires an leverage parameter');
@@ -3050,12 +3051,12 @@ export default class lighter extends Exchange {
         if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
             throw new BadRequest (this.id + ' modifyLeverageAndMarginMode() requires a marginMode parameter that must be either cross or isolated');
         }
-        let apiKeyIndex = undefined;
+        let apiKeyIndex: Int = undefined;
         [ apiKeyIndex, params ] = this.handleApiKeyIndex (params, 'modifyLeverageAndMarginMode', 'apiKeyIndex', 'api_key_index');
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' modifyLeverageAndMarginMode() requires a symbol argument');
         }
-        let accountIndex = undefined;
+        let accountIndex: Int = undefined;
         [ accountIndex, params ] = await this.handleAccountIndex (params, 'modifyLeverageAndMarginMode', 'accountIndex', 'account_index');
         const strAccountIndex = this.numberToString (accountIndex);
         const strApiKeyIndex = this.numberToString (apiKeyIndex);
@@ -3091,7 +3092,7 @@ export default class lighter extends Exchange {
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        let apiKeyIndex = undefined;
+        let apiKeyIndex: Int = undefined;
         [ apiKeyIndex, params ] = this.handleApiKeyIndex (params, 'cancelOrder', 'apiKeyIndex', 'api_key_index');
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
@@ -3099,7 +3100,7 @@ export default class lighter extends Exchange {
         const market = this.market (symbol);
         const clientOrderId = this.safeString2 (params, 'client_order_index', 'clientOrderId');
         params = this.omit (params, [ 'client_order_index', 'clientOrderId' ]);
-        let accountIndex = undefined;
+        let accountIndex: Int = undefined;
         [ accountIndex, params ] = await this.handleAccountIndex (params, 'cancelOrder', 'accountIndex', 'account_index');
         const strAccountIndex = this.numberToString (accountIndex);
         const strApiKeyIndex = this.numberToString (apiKeyIndex);
@@ -3139,9 +3140,9 @@ export default class lighter extends Exchange {
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        let apiKeyIndex = undefined;
+        let apiKeyIndex: Int = undefined;
         [ apiKeyIndex, params ] = this.handleApiKeyIndex (params, 'cancelAllOrders', 'apiKeyIndex', 'api_key_index');
-        let accountIndex = undefined;
+        let accountIndex: Int = undefined;
         [ accountIndex, params ] = await this.handleAccountIndex (params, 'cancelAllOrders', 'accountIndex', 'account_index');
         const strAccountIndex = this.numberToString (accountIndex);
         const strApiKeyIndex = this.numberToString (apiKeyIndex);
@@ -3176,9 +3177,9 @@ export default class lighter extends Exchange {
         if ((timeout < 300000) || (timeout > 1296000000)) {
             throw new BadRequest (this.id + ' timeout should be between 5 minutes and 15 days.');
         }
-        let apiKeyIndex = undefined;
+        let apiKeyIndex: Int = undefined;
         [ apiKeyIndex, params ] = this.handleApiKeyIndex (params, 'cancelOrder', 'apiKeyIndex', 'api_key_index');
-        let accountIndex = undefined;
+        let accountIndex: Int = undefined;
         [ accountIndex, params ] = await this.handleAccountIndex (params, 'cancelAllOrdersAfter', 'accountIndex', 'account_index');
         const strAccountIndex = this.numberToString (accountIndex);
         const strApiKeyIndex = this.numberToString (apiKeyIndex);
@@ -3245,7 +3246,7 @@ export default class lighter extends Exchange {
      */
     async setMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         await this.loadMarkets ();
-        let apiKeyIndex = undefined;
+        let apiKeyIndex: Int = undefined;
         [ apiKeyIndex, params ] = this.handleApiKeyIndex (params, 'setMargin', 'apiKeyIndex', 'api_key_index');
         const direction = this.safeInteger (params, 'direction'); // 1 increase margin 0 decrease margin
         if (direction === undefined) {
@@ -3257,7 +3258,7 @@ export default class lighter extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setMargin() requires a symbol argument');
         }
-        let accountIndex = undefined;
+        let accountIndex: Int = undefined;
         [ accountIndex, params ] = await this.handleAccountIndex (params, 'setMargin', 'accountIndex', 'account_index');
         const strAccountIndex = this.numberToString (accountIndex);
         const strApiKeyIndex = this.numberToString (apiKeyIndex);
@@ -3298,7 +3299,7 @@ export default class lighter extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = undefined;
+        let url: Str = undefined;
         if (api === 'root') {
             url = this.implodeHostname (this.urls['api']['public']);
         } else {

@@ -1,11 +1,11 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/bitso.js';
 import { ExchangeError, InvalidNonce, AuthenticationError, OrderNotFound, BadRequest, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFees, Transaction, int, LedgerEntry, DepositAddress } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
@@ -1059,8 +1059,9 @@ export default class bitso extends Exchange {
         }
         // convert it to an integer unconditionally
         if (markerInParams) {
+            const marker = parseInt (params['marker']);
             params = this.extend (params, {
-                'marker': parseInt (params['marker']),
+                'marker': marker,
             });
         }
         const request: Dict = {
@@ -1285,8 +1286,9 @@ export default class bitso extends Exchange {
         }
         // convert it to an integer unconditionally
         if (markerInParams) {
+            const marker = parseInt (params['marker']);
             params = this.extend (params, {
-                'marker': parseInt (params['marker']),
+                'marker': marker,
             });
         }
         const request: Dict = {
@@ -1806,7 +1808,7 @@ export default class bitso extends Exchange {
         const networkId = this.safeString2 (transaction, 'network', 'method');
         const status = this.safeString (transaction, 'status');
         const withdrawId = this.safeString (transaction, 'wid');
-        const networkCode = this.networkIdToCode (networkId);
+        const networkCode = this.networkIdToCode (networkId, currency['code']);
         const networkCodeUpper = (networkCode !== undefined) ? networkCode.toUpperCase () : undefined;
         return {
             'id': this.safeString2 (transaction, 'wid', 'fid'),
@@ -1859,7 +1861,8 @@ export default class bitso extends Exchange {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
             endpoint = '/api' + endpoint;
-            let request = [ nonce, method, endpoint ].join ('');
+            const content = [ nonce, method, endpoint ];
+            let request = content.join ('');
             if (method !== 'GET' && method !== 'DELETE') {
                 if (Object.keys (query).length) {
                     body = this.json (query);

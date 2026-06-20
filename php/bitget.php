@@ -1954,9 +1954,8 @@ class bitget extends Exchange {
         list($uta, $params) = $this->handle_option_and_params($params, 'fetchMarkets', 'uta', false);
         if ($uta) {
             return $this->fetch_uta_markets($params);
-        } else {
-            return $this->fetch_default_markets($params);
         }
+        return $this->fetch_default_markets($params);
     }
 
     public function fetch_default_markets($params): array {
@@ -2505,84 +2504,84 @@ class bitget extends Exchange {
         //            ),
         //            ...
         //
-        $result = array();
         $data = $this->safe_value($response, 'data', array());
+        return $this->parse_currencies($data);
+    }
+
+    public function parse_currency(array $rawCurrency): array {
         $fiatCurrencies = $this->safe_list($this->options, 'fiatCurrencies', array());
-        for ($i = 0; $i < count($data); $i++) {
-            $entry = $data[$i];
-            $id = $this->safe_string($entry, 'coin'); // we don't use 'coinId' has no use. it is 'coin' field that needs to be used in currency related endpoints ($deposit, $withdraw, etc..)
-            $code = $this->safe_currency_code($id);
-            $chains = $this->safe_value($entry, 'chains', array());
-            $networks = array();
-            $withdraw = null;
-            $deposit = null;
-            $chainsLength = count($chains);
-            if ($chainsLength === 0) {
-                $withdraw = false;
-                $deposit = false;
-            }
-            for ($j = 0; $j < $chainsLength; $j++) {
-                $chain = $chains[$j];
-                $networkId = $this->safe_string($chain, 'chain');
-                $network = $this->network_id_to_code($networkId, $code);
-                $network = strtoupper($network);
-                $withdrawable = ($this->safe_string($chain, 'withdrawable') === 'true');
-                $rechargeable = ($this->safe_string($chain, 'rechargeable') === 'true');
-                $withdraw = ($withdraw === null) ? $withdrawable : ($withdraw || $withdrawable);
-                $deposit = ($deposit === null) ? $rechargeable : ($deposit || $rechargeable);
-                $networks[$network] = array(
-                    'info' => $chain,
-                    'id' => $networkId,
-                    'network' => $network,
-                    'limits' => array(
-                        'withdraw' => array(
-                            'min' => $this->safe_number($chain, 'minWithdrawAmount'),
-                            'max' => null,
-                        ),
-                        'deposit' => array(
-                            'min' => $this->safe_number($chain, 'minDepositAmount'),
-                            'max' => null,
-                        ),
-                    ),
-                    'active' => null,
-                    'withdraw' => $withdrawable,
-                    'deposit' => $rechargeable,
-                    'fee' => $this->safe_number($chain, 'withdrawFee'),
-                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($chain, 'withdrawMinScale'))),
-                );
-            }
-            $active = $withdraw && $deposit;
-            $isFiat = $this->in_array($code, $fiatCurrencies);
-            $result[$code] = $this->safe_currency_structure(array(
-                'info' => $entry,
-                'id' => $id,
-                'code' => $code,
-                'networks' => $networks,
-                'type' => $isFiat ? 'fiat' : 'crypto',
-                'name' => null,
-                'active' => $active,
-                'deposit' => $deposit,
-                'withdraw' => $withdraw,
-                'fee' => null,
-                'precision' => null,
+        $entry = $rawCurrency;
+        $id = $this->safe_string($entry, 'coin'); // we don't use 'coinId' has no use. it is 'coin' field that needs to be used in currency related endpoints ($deposit, $withdraw, etc..)
+        $code = $this->safe_currency_code($id);
+        $chains = $this->safe_list($entry, 'chains', array());
+        $networks = array();
+        $withdraw = null;
+        $deposit = null;
+        $chainsLength = count($chains);
+        if ($chainsLength === 0) {
+            $withdraw = false;
+            $deposit = false;
+        }
+        for ($j = 0; $j < $chainsLength; $j++) {
+            $chain = $chains[$j];
+            $networkId = $this->safe_string($chain, 'chain');
+            $network = $this->network_id_to_code($networkId, $code);
+            $network = strtoupper($network);
+            $withdrawable = ($this->safe_string($chain, 'withdrawable') === 'true');
+            $rechargeable = ($this->safe_string($chain, 'rechargeable') === 'true');
+            $withdraw = ($withdraw === null) ? $withdrawable : ($withdraw || $withdrawable);
+            $deposit = ($deposit === null) ? $rechargeable : ($deposit || $rechargeable);
+            $networks[$network] = array(
+                'info' => $chain,
+                'id' => $networkId,
+                'network' => $network,
                 'limits' => array(
-                    'amount' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
                     'withdraw' => array(
-                        'min' => null,
+                        'min' => $this->safe_number($chain, 'minWithdrawAmount'),
                         'max' => null,
                     ),
                     'deposit' => array(
-                        'min' => null,
+                        'min' => $this->safe_number($chain, 'minDepositAmount'),
                         'max' => null,
                     ),
                 ),
-                'created' => null,
-            ));
+                'active' => null,
+                'withdraw' => $withdrawable,
+                'deposit' => $rechargeable,
+                'fee' => $this->safe_number($chain, 'withdrawFee'),
+                'precision' => $this->parse_number($this->parse_precision($this->safe_string($chain, 'withdrawMinScale'))),
+            );
         }
-        return $result;
+        $active = $withdraw && $deposit;
+        $isFiat = $this->in_array($code, $fiatCurrencies);
+        return $this->safe_currency_structure(array(
+            'info' => $entry,
+            'id' => $id,
+            'code' => $code,
+            'networks' => $networks,
+            'type' => $isFiat ? 'fiat' : 'crypto',
+            'name' => null,
+            'active' => $active,
+            'deposit' => $deposit,
+            'withdraw' => $withdraw,
+            'fee' => null,
+            'precision' => null,
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'deposit' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'created' => null,
+        ));
     }
 
     public function fetch_market_leverage_tiers(string $symbol, $params = array ()): array {
@@ -2879,7 +2878,7 @@ class bitget extends Exchange {
         }
         $this->load_markets();
         $currency = $this->currency($code);
-        $networkId = $this->network_code_to_id($networkCode);
+        $networkId = $this->network_code_to_id($networkCode, $code);
         $request = array(
             'coin' => $currency['id'],
             'address' => $address,
@@ -3050,7 +3049,7 @@ class bitget extends Exchange {
             'txid' => $this->safe_string($transaction, 'tradeId'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'network' => $this->network_id_to_code($networkId),
+            'network' => $this->network_id_to_code($networkId, $code),
             'addressFrom' => $this->safe_string($transaction, 'fromAddress'),
             'address' => $this->safe_string($transaction, 'toAddress'),
             'addressTo' => $this->safe_string($transaction, 'toAddress'),
@@ -5315,6 +5314,13 @@ class bitget extends Exchange {
         $trailingTriggerPrice = $this->safe_string($params, 'trailingTriggerPrice', $this->number_to_string($price));
         $trailingPercent = $this->safe_string_2($params, 'trailingPercent', 'callbackRatio');
         $isTrailingPercentOrder = $trailingPercent !== null;
+        // $multipleTriggers = ($isTriggerOrder && ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder || $isTrailingPercentOrder))
+        //     || ($isStopLossTriggerOrder && ($isTakeProfitTriggerOrder || $isTrailingPercentOrder))
+        //     || ($isTakeProfitTriggerOrder && $isTrailingPercentOrder);
+        // if ($multipleTriggers) {
+        //     throw new ExchangeError($this->id . ' createOrder() $params can only contain one of $triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent');
+        // }
+        //
         if ($this->sum($isTriggerOrder, $isStopLossTriggerOrder, $isTakeProfitTriggerOrder, $isTrailingPercentOrder) > 1) {
             throw new ExchangeError($this->id . ' createOrder() $params can only contain one of $triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent');
         }
@@ -5716,6 +5722,12 @@ class bitget extends Exchange {
         $trailingTriggerPrice = $this->safe_string($params, 'trailingTriggerPrice', $this->number_to_string($price));
         $trailingPercent = $this->safe_string_2($params, 'trailingPercent', 'newCallbackRatio');
         $isTrailingPercentOrder = $trailingPercent !== null;
+        // $multipleTriggers = ($isTriggerOrder && ($isStopLossOrder || $isTakeProfitOrder || $isTrailingPercentOrder))
+        //     || ($isStopLossOrder && ($isTakeProfitOrder || $isTrailingPercentOrder))
+        //     || ($isTakeProfitOrder && $isTrailingPercentOrder);
+        // if ($multipleTriggers) {
+        //     throw new ExchangeError($this->id . ' editOrder() $params can only contain one of $triggerPrice, $stopLossPrice, $takeProfitPrice, trailingPercent');
+        // }
         if ($this->sum($isTriggerOrder, $isStopLossOrder, $isTakeProfitOrder, $isTrailingPercentOrder) > 1) {
             throw new ExchangeError($this->id . ' editOrder() $params can only contain one of $triggerPrice, $stopLossPrice, $takeProfitPrice, trailingPercent');
         }
@@ -11122,13 +11134,16 @@ class bitget extends Exchange {
                 $auth .= $body;
             } else {
                 if ($params) {
-                    $queryInner = '?' . $this->urlencode($this->keysort($params));
+                    $sortedParams = $this->keysort($params);
+                    $queryInner = '?' . $this->urlencode($sortedParams, true);
                     // check #21169 pr
                     if (mb_strpos($queryInner, '%24') > -1) {
                         $queryInner = str_replace('%24', '$', $queryInner);
                     }
                     $url .= $queryInner;
-                    $auth .= $queryInner;
+                    // bitget signs the raw (non-percent-encoded) $query string, so the
+                    // $signature must use the decoded values (e.g. non-ascii market ids)
+                    $auth .= '?' . $this->rawencode($sortedParams);
                 }
             }
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');

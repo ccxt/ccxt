@@ -17,7 +17,7 @@ use React\Promise;
 
 
 // AUTO-TRANSPILE //
-// 1) ABOUT CCXT PROXIES, READ MORE AT: https://docs.ccxt.com/#/README?id=proxy
+// 1) ABOUT CCXT PROXIES, READ MORE AT: https://docs.ccxt.com/README?id=proxy
 // 2) in python, uncomment the below:
 // if sys.platform == 'win32':
 //     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
@@ -25,7 +25,7 @@ function example_proxy_url() {
     return Async\async(function () {
         $my_ex = new \ccxt\async\kucoin();
         $my_ex->proxy_url = 'http://188.245.226.105:8090/proxy_url.php?caller=https://ccxt.com&url=';
-        var_dump(Async\await($my_ex->fetch('https://api.ipify.org/')));
+        var_dump(\React\Async\await($my_ex->fetch('https://api.ipify.org/')));
     }) ();
 }
 
@@ -34,7 +34,7 @@ function example_http_proxy() {
     return Async\async(function () {
         $my_ex = new \ccxt\async\kucoin();
         $my_ex->http_proxy = 'http://188.245.226.105:8911'; // "httpProxy" or "httpsProxy" (depending on your proxy protocol)
-        var_dump(Async\await($my_ex->fetch('https://api.ipify.org/')));
+        var_dump(\React\Async\await($my_ex->fetch('https://api.ipify.org/')));
     }) ();
 }
 
@@ -43,7 +43,7 @@ function example_socks_proxy() {
     return Async\async(function () {
         $my_ex = new \ccxt\async\kucoin();
         $my_ex->socks_proxy = 'socks5://127.0.0.1:1080'; // from protocols: socks, socks5, socks5h
-        var_dump(Async\await($my_ex->fetch('https://api.ipify.org/')));
+        var_dump(\React\Async\await($my_ex->fetch('https://api.ipify.org/')));
     }) ();
 }
 
@@ -53,7 +53,7 @@ function example_web_sockets() {
         $my_ex = new \ccxt\pro\kucoin();
         $my_ex->http_proxy = 'http://188.245.226.105:8911'; // even though you are using WebSockets, you might also need to set up proxy for the exchange's REST requests
         $my_ex->ws_proxy = 'http://188.245.226.105:8911'; // "wsProxy" or "wssProxy" or "wsSocksProxy" (depending on your proxy protocol)
-        Async\await($my_ex->load_markets());
+        \React\Async\await($my_ex->load_markets());
         //
         // To ensure your WS proxy works, uncomment below code and watch the log
         //
@@ -61,11 +61,11 @@ function example_web_sockets() {
         // await myEx.loadHttpProxyAgent ();
         // await myEx.watch ('ws://188.245.226.105:9876/', 'myip'); // in the incoming logs, confirm that you see the proxy IP in "hello" message
         //
-        var_dump(Async\await($my_ex->watch_ticker('BTC/USDT')));
-        Async\await($my_ex->close());
+        var_dump(\React\Async\await($my_ex->watch_ticker('BTC/USDT')));
+        \React\Async\await($my_ex->close());
     }) ();
 }
 
 
 // await example_proxyUrl ();
-Async\await(example_http_proxy());
+\React\Async\await(example_http_proxy());

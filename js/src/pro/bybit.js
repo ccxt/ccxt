@@ -5,14 +5,18 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import bybitRest from '../bybit.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError, BadRequest, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 export default class bybit extends bybitRest {
     describe() {
-        return this.deepExtend(super.describe(), {
+        const superDescribe = super.describe();
+        return this.deepExtend(superDescribe, this.describeData());
+    }
+    describeData() {
+        return {
             'has': {
                 'ws': true,
                 'createOrderWs': true,
@@ -117,7 +121,7 @@ export default class bybit extends bybitRest {
                     'name': 'tickers', // 'tickers' for 24hr statistical ticker or 'tickers_lt' for leverage token ticker
                 },
                 'watchPositions': {
-                    'fetchPositionsSnapshot': true,
+                    'fetchPositionsSnapshot': true, // or false
                     'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
                 },
                 'watchMyTrades': {
@@ -165,7 +169,7 @@ export default class bybit extends bybitRest {
                 'ping': this.ping,
                 'keepAlive': 18000,
             },
-        });
+        };
     }
     requestId() {
         this.lockId();
@@ -1021,7 +1025,7 @@ export default class bybit extends bybitRest {
         }
     }
     handleDelta(bookside, delta) {
-        const bidAsk = this.parseBidAsk(delta, 0, 1);
+        const bidAsk = this.parseOrderBookBidAsk(delta, 0, 1);
         bookside.storeArray(bidAsk);
     }
     handleDeltas(bookside, deltas) {
@@ -2380,7 +2384,7 @@ export default class bybit extends bybitRest {
                 }
             }
             else {
-                const messageHash = this.safeString(message, 'reqId');
+                const messageHash = this.safeString2(message, 'req_id', 'reqId');
                 client.reject(error, messageHash);
             }
             return true;
@@ -2439,10 +2443,18 @@ export default class bybit extends bybitRest {
             exacMethod.call(this, client, message);
             return;
         }
+        // 'order' is a substring of 'orderbook', so an orderbook topic like
+        // 'orderbook.50.BTCUSDT' could be wrongly captured by the 'order' key in a
+        // first-match loop (in Go map iteration order is randomized). Check the
+        // orderbook prefix explicitly, then fall back to a simple first-match.
+        if (topic.indexOf('orderbook') >= 0) {
+            this.handleOrderBook(client, message);
+            return;
+        }
         const keys = Object.keys(methods);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            if (topic.indexOf(keys[i]) >= 0) {
+            if (topic.indexOf(key) >= 0) {
                 const method = methods[key];
                 method.call(this, client, message);
                 return;

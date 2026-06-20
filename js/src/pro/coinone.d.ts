@@ -1,5 +1,5 @@
 import coinoneRest from '../coinone.js';
-import type { Int, Market, OrderBook, Ticker, Trade, Dict, Bool } from '../base/types.js';
+import type { Bool, Dict, Int, Market, OrderBook, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class coinone extends coinoneRest {
     describe(): any;

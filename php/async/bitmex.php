@@ -471,95 +471,94 @@ class bitmex extends Exchange {
             //        ),
             //     }
             //
-            $result = array();
-            for ($i = 0; $i < count($response); $i++) {
-                $currency = $response[$i];
-                $asset = $this->safe_string($currency, 'asset');
-                $code = $this->safe_currency_code($asset);
-                $id = $this->safe_string($currency, 'currency');
-                $name = $this->safe_string($currency, 'name');
-                $chains = $this->safe_value($currency, 'networks', array());
-                $depositEnabled = false;
-                $withdrawEnabled = false;
-                $networks = array();
-                $scale = $this->safe_string($currency, 'scale');
-                $precisionString = $this->parse_precision($scale);
-                $precision = $this->parse_number($precisionString);
-                for ($j = 0; $j < count($chains); $j++) {
-                    $chain = $chains[$j];
-                    $networkId = $this->safe_string($chain, 'asset');
-                    $network = $this->network_id_to_code($networkId);
-                    $withdrawalFeeRaw = $this->safe_string($chain, 'withdrawalFee');
-                    $withdrawalFee = $this->parse_number(Precise::string_mul($withdrawalFeeRaw, $precisionString));
-                    $isDepositEnabled = $this->safe_bool($chain, 'depositEnabled', false);
-                    $isWithdrawEnabled = $this->safe_bool($chain, 'withdrawalEnabled', false);
-                    $active = ($isDepositEnabled && $isWithdrawEnabled);
-                    if ($isDepositEnabled) {
-                        $depositEnabled = true;
-                    }
-                    if ($isWithdrawEnabled) {
-                        $withdrawEnabled = true;
-                    }
-                    $networks[$network] = array(
-                        'info' => $chain,
-                        'id' => $networkId,
-                        'network' => $network,
-                        'active' => $active,
-                        'deposit' => $isDepositEnabled,
-                        'withdraw' => $isWithdrawEnabled,
-                        'fee' => $withdrawalFee,
-                        'precision' => null,
-                        'limits' => array(
-                            'withdraw' => array(
-                                'min' => null,
-                                'max' => null,
-                            ),
-                            'deposit' => array(
-                                'min' => null,
-                                'max' => null,
-                            ),
-                        ),
-                    );
-                }
-                $currencyEnabled = $this->safe_value($currency, 'enabled');
-                $currencyActive = $currencyEnabled || ($depositEnabled || $withdrawEnabled);
-                $minWithdrawalString = $this->safe_string($currency, 'minWithdrawalAmount');
-                $minWithdrawal = $this->parse_number(Precise::string_mul($minWithdrawalString, $precisionString));
-                $maxWithdrawalString = $this->safe_string($currency, 'maxWithdrawalAmount');
-                $maxWithdrawal = $this->parse_number(Precise::string_mul($maxWithdrawalString, $precisionString));
-                $minDepositString = $this->safe_string($currency, 'minDepositAmount');
-                $minDeposit = $this->parse_number(Precise::string_mul($minDepositString, $precisionString));
-                $isCrypto = $this->safe_string($currency, 'currencyType') === 'Crypto';
-                $result[$code] = array(
-                    'id' => $id,
-                    'code' => $code,
-                    'info' => $currency,
-                    'name' => $name,
-                    'active' => $currencyActive,
-                    'deposit' => $depositEnabled,
-                    'withdraw' => $withdrawEnabled,
-                    'fee' => null,
-                    'precision' => $precision,
-                    'limits' => array(
-                        'amount' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'withdraw' => array(
-                            'min' => $minWithdrawal,
-                            'max' => $maxWithdrawal,
-                        ),
-                        'deposit' => array(
-                            'min' => $minDeposit,
-                            'max' => null,
-                        ),
-                    ),
-                    'networks' => $networks,
-                    'type' => $isCrypto ? 'crypto' : 'other',
-                );
-            }
-            return $result;
+            return $this->parse_currencies($response);
         }) ();
+    }
+
+    public function parse_currency(array $currency): array {
+        $asset = $this->safe_string($currency, 'asset');
+        $code = $this->safe_currency_code($asset);
+        $id = $this->safe_string($currency, 'currency');
+        $name = $this->safe_string($currency, 'name');
+        $chains = $this->safe_value($currency, 'networks', array());
+        $depositEnabled = false;
+        $withdrawEnabled = false;
+        $networks = array();
+        $scale = $this->safe_string($currency, 'scale');
+        $precisionString = $this->parse_precision($scale);
+        $precision = $this->parse_number($precisionString);
+        for ($j = 0; $j < count($chains); $j++) {
+            $chain = $chains[$j];
+            $networkId = $this->safe_string($chain, 'asset');
+            $network = $this->network_id_to_code($networkId, $code);
+            $withdrawalFeeRaw = $this->safe_string($chain, 'withdrawalFee');
+            $withdrawalFee = $this->parse_number(Precise::string_mul($withdrawalFeeRaw, $precisionString));
+            $isDepositEnabled = $this->safe_bool($chain, 'depositEnabled', false);
+            $isWithdrawEnabled = $this->safe_bool($chain, 'withdrawalEnabled', false);
+            $active = ($isDepositEnabled && $isWithdrawEnabled);
+            if ($isDepositEnabled) {
+                $depositEnabled = true;
+            }
+            if ($isWithdrawEnabled) {
+                $withdrawEnabled = true;
+            }
+            $networks[$network] = array(
+                'info' => $chain,
+                'id' => $networkId,
+                'network' => $network,
+                'active' => $active,
+                'deposit' => $isDepositEnabled,
+                'withdraw' => $isWithdrawEnabled,
+                'fee' => $withdrawalFee,
+                'precision' => null,
+                'limits' => array(
+                    'withdraw' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'deposit' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
+            );
+        }
+        $currencyEnabled = $this->safe_value($currency, 'enabled');
+        $currencyActive = $currencyEnabled || ($depositEnabled || $withdrawEnabled);
+        $minWithdrawalString = $this->safe_string($currency, 'minWithdrawalAmount');
+        $minWithdrawal = $this->parse_number(Precise::string_mul($minWithdrawalString, $precisionString));
+        $maxWithdrawalString = $this->safe_string($currency, 'maxWithdrawalAmount');
+        $maxWithdrawal = $this->parse_number(Precise::string_mul($maxWithdrawalString, $precisionString));
+        $minDepositString = $this->safe_string($currency, 'minDepositAmount');
+        $minDeposit = $this->parse_number(Precise::string_mul($minDepositString, $precisionString));
+        $isCrypto = $this->safe_string($currency, 'currencyType') === 'Crypto';
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'code' => $code,
+            'info' => $currency,
+            'name' => $name,
+            'active' => $currencyActive,
+            'deposit' => $depositEnabled,
+            'withdraw' => $withdrawEnabled,
+            'fee' => null,
+            'precision' => $precision,
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => $minWithdrawal,
+                    'max' => $maxWithdrawal,
+                ),
+                'deposit' => array(
+                    'min' => $minDeposit,
+                    'max' => null,
+                ),
+            ),
+            'networks' => $networks,
+            'type' => $isCrypto ? 'crypto' : 'other',
+        ));
     }
 
     public function convert_from_real_amount($code, $amount) {
@@ -624,7 +623,7 @@ class bitmex extends Exchange {
             $response = Async\await($this->publicGetInstrumentActive ($params));
             //
             //  array(
-            //    {
+            //    array(
             //        "symbol" => "LTCUSDT",
             //        "rootSymbol" => "LTC",
             //        "state" => "Open",
@@ -730,7 +729,75 @@ class bitmex extends Exchange {
             //        "settledPriceAdjustmentRate" => null,
             //        "settledPrice" => null,
             //        "timestamp" => "2022-01-14T17:49:55.000Z"
-            //    }
+            //    ),
+            //
+            //    other kind of markets have extra fields
+            //
+            //    {
+            //     "symbol" => "XBTUSD-XBTU26",
+            //     "rootSymbol" => "XBT",
+            //     "instrumentID" => "3059",
+            //     "state" => "Open",
+            //     "typ" => "FFMCSX",
+            //     "listing" => "2026-06-10T08:00:00.000Z",
+            //     "front" => "2026-06-10T08:00:00.000Z",
+            //     "expiry" => "2026-09-25T12:00:00.000Z",
+            //     "settle" => "2026-09-25T12:00:00.000Z",
+            //     "positionCurrency" => "USD",
+            //     "underlying" => "XBT",
+            //     "quoteCurrency" => "USD",
+            //     "underlyingSymbol" => "XBT=",
+            //     "referenceSymbol" => "XBTUSD",
+            //     "maxOrderQty" => "10000000",
+            //     "minPrice" => "-1000000",
+            //     "maxPrice" => "1000000",
+            //     "lotSize" => "100",
+            //     "tickSize" => "0.5",
+            //     "multiplier" => "1",
+            //     "settlCurrency" => "XBt",
+            //     "underlyingToSettleMultiplier" => "-100000000",
+            //     "isQuanto" => false,
+            //     "isInverse" => false,
+            //     "taxed" => true,
+            //     "deleverage" => true,
+            //     "makerFee" => "0.0005",
+            //     "takerFee" => "0.0005",
+            //     "limitDownPrice" => null,
+            //     "limitUpPrice" => null,
+            //     "prevTotalVolume" => "300",
+            //     "totalVolume" => "300",
+            //     "volume" => "0",
+            //     "volume24h" => "200",
+            //     "prevTotalTurnover" => "460833",
+            //     "totalTurnover" => "460833",
+            //     "turnover" => "0",
+            //     "turnover24h" => "298516",
+            //     "homeNotional24h" => "0",
+            //     "foreignNotional24h" => "0",
+            //     "prevPrice24h" => "0",
+            //     "vwap" => "577.5",
+            //     "highPrice" => "577.5",
+            //     "lowPrice" => "0",
+            //     "lastPrice" => "577.5",
+            //     "lastPriceProtected" => "577.5",
+            //     "lastTickDirection" => "ZeroPlusTick",
+            //     "lastChangePcnt" => "0",
+            //     "bidPrice" => "566.5",
+            //     "midPrice" => "567.25",
+            //     "askPrice" => "568",
+            //     "hasLiquidity" => false,
+            //     "openInterest" => "0",
+            //     "openValue" => "0",
+            //     "instantPnl" => false,
+            //     "timestamp" => "2026-06-17T05:22:50.000Z",
+            //     "capped" => false,
+            //     "closingTimestamp" => "2026-06-17T06:00:00.000Z",
+            //     "farLegSymbol" => "XBTU26",
+            //     "nearLegSymbol" => "XBTUSD",
+            //     "openingTimestamp" => "2026-06-17T05:00:00.000Z",
+            //     "pool" => "Primary",
+            //     "referencePrice" => "65728"
+            //     }
             //  )
             //
             return $this->parse_markets($response);
@@ -756,7 +823,7 @@ class bitmex extends Exchange {
         } elseif ($typ === 'IFXXXP') {
             $type = 'spot';
             $spot = true;
-        } elseif ($typ === 'FFCCSX') {
+        } elseif ($typ === 'FFCCSX' || $typ === 'FFMCSX') {
             $type = 'future';
             $future = true;
         } elseif ($typ === 'FFICSX') {
@@ -787,12 +854,11 @@ class bitmex extends Exchange {
             $symbol = $base . '/' . $quote . ':' . $settle;
             if ($linear) {
                 $multiplierString = $this->safe_string_2($market, 'underlyingToPositionMultiplier', 'underlyingToSettleMultiplier');
-                $contractSize = $this->parse_number(Precise::string_div('1', $multiplierString));
+                $contractSize = Precise::string_abs(Precise::string_div('1', $multiplierString));
             } else {
-                $multiplierString = Precise::string_abs($this->safe_string($market, 'multiplier'));
-                $contractSize = $this->parse_number($multiplierString);
+                $contractSize = Precise::string_abs($this->safe_string($market, 'multiplier'));
             }
-            $expiryDatetime = $this->safe_string($market, 'expiry');
+            $expiryDatetime = $this->safe_string_2($market, 'expiry', 'closingTimestamp');
             $expiry = $this->parse8601($expiryDatetime);
             if ($expiry !== null) {
                 $symbol = $symbol . '-' . $this->yymmdd($expiry);
@@ -835,7 +901,7 @@ class bitmex extends Exchange {
             'quanto' => $isQuanto,
             'taker' => $this->safe_number($market, 'takerFee'),
             'maker' => $this->safe_number($market, 'makerFee'),
-            'contractSize' => $contractSize,
+            'contractSize' => $this->parse_number($contractSize),
             'expiry' => $expiry,
             'expiryDatetime' => $expiryDatetime,
             'strike' => $this->safe_number($market, 'optionStrikePrice'),
@@ -1526,13 +1592,14 @@ class bitmex extends Exchange {
         if ($status !== null) {
             $status = $this->parse_transaction_status($status);
         }
+        $code = $currency['code'];
         return array(
             'info' => $transaction,
             'id' => $this->safe_string($transaction, 'transactID'),
             'txid' => $this->safe_string($transaction, 'tx'),
             'type' => $type,
-            'currency' => $currency['code'],
-            'network' => $this->network_id_to_code($this->safe_string($transaction, 'network'), $currency['code']),
+            'currency' => $code,
+            'network' => $this->network_id_to_code($this->safe_string($transaction, 'network'), $code),
             'amount' => $this->parse_number($amount),
             'status' => $status,
             'timestamp' => $transactTime,
@@ -2082,6 +2149,7 @@ class bitmex extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $orderType = $this->capitalize($type);
+            $capitalizeOrderType = $orderType;
             $reduceOnly = $this->safe_value($params, 'reduceOnly');
             if ($reduceOnly !== null) {
                 if ((!$market['swap']) && (!$market['future'])) {
@@ -2096,7 +2164,7 @@ class bitmex extends Exchange {
                 'symbol' => $market['id'],
                 'side' => $this->capitalize($side),
                 'orderQty' => $qty, // lot size multiplied by the number of contracts
-                'ordType' => $orderType,
+                'ordType' => $capitalizeOrderType,
                 'text' => $brokerId,
             );
             $execInstructions = array();
@@ -2947,9 +3015,10 @@ class bitmex extends Exchange {
             }
             $currency = $this->currency($code);
             $params = $this->omit($params, 'network');
+            $parsedNetwork = $this->network_code_to_id($networkCode, $currency['code']);
             $request = array(
                 'currency' => $currency['id'],
-                'network' => $this->network_code_to_id($networkCode, $currency['code']),
+                'network' => $parsedNetwork,
             );
             $response = Async\await($this->privateGetUserDepositAddress ($this->extend($request, $params)));
             //

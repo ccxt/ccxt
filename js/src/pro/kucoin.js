@@ -54,7 +54,7 @@ export default class kucoin extends kucoinRest {
             'options': {
                 'utaToken': undefined,
                 'utaTokenLastUpdate': 0,
-                'utaTokenRefreshInterval': 1000 * 60 * 60 * 24,
+                'utaTokenRefreshInterval': 1000 * 60 * 60 * 24, // 24 hours
                 'tradesLimit': 1000,
                 'watchTicker': {
                     'spotMethod': '/market/snapshot', // '/market/ticker'
@@ -62,23 +62,23 @@ export default class kucoin extends kucoinRest {
                 'watchOrderBook': {
                     'snapshotDelay': 5,
                     'snapshotMaxRetries': 3,
-                    'utaDepth': 'increment',
-                    'spotMethod': '/market/level2',
+                    'utaDepth': 'increment', // '1', '5', '50' or 'increment'
+                    'spotMethod': '/market/level2', // '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50'
                     'contractMethod': '/contractMarket/level2', // '/contractMarket/level2Depth5' or '/contractMarket/level2Depth20'
                 },
                 'watchMyTrades': {
                     'spotMethod': '/spotMarket/tradeOrders', // or '/spot/tradeFills'
                 },
                 'watchBalance': {
-                    'fetchBalanceSnapshot': true,
+                    'fetchBalanceSnapshot': true, // or false
                     'awaitBalanceSnapshot': true, // whether to wait for the balance snapshot before providing updates
                 },
                 'watchPosition': {
-                    'fetchPositionSnapshot': true,
+                    'fetchPositionSnapshot': true, // or false
                     'awaitPositionSnapshot': true, // whether to wait for the position snapshot before providing updates
                 },
                 'watchPositions': {
-                    'fetchPositionsSnapshot': true,
+                    'fetchPositionsSnapshot': true, // or false
                     'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
                 },
             },
@@ -719,7 +719,7 @@ export default class kucoin extends kucoinRest {
         if (isFuturesMethod) {
             channelName = '/contractMarket/tickerV2:';
         }
-        const ticker = await this.watchMultiHelper('watchBidsAsks', channelName, symbols, params);
+        const ticker = await this.watchMultiHelper('watchBidsAsks', channelName, isFuturesMethod, symbols, params);
         if (this.newUpdates) {
             const tickers = {};
             tickers[ticker['symbol']] = ticker;
@@ -727,7 +727,7 @@ export default class kucoin extends kucoinRest {
         }
         return this.filterByArray(this.bidsasks, 'symbol', symbols);
     }
-    async watchMultiHelper(methodName, channelName, symbols = undefined, params = {}) {
+    async watchMultiHelper(methodName, channelName, isFuturesChannel, symbols = undefined, params = {}) {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, undefined, false, true, false);
         const length = symbols.length;
@@ -740,7 +740,7 @@ export default class kucoin extends kucoinRest {
             const market = this.market(symbol);
             messageHashes.push('bidask@' + market['symbol']);
         }
-        const url = await this.negotiate(false);
+        const url = await this.negotiate(false, isFuturesChannel);
         const marketIds = this.marketIds(symbols);
         const joined = marketIds.join(',');
         const requestId = this.requestId().toString();
@@ -1698,14 +1698,14 @@ export default class kucoin extends kucoinRest {
     getCacheIndex(orderbook, cache) {
         const firstDelta = this.safeValue(cache, 0);
         const nonce = this.safeInteger(orderbook, 'nonce');
-        const firstDeltaStart = this.safeInteger2(firstDelta, 'sequenceStart', 'sequence');
+        const firstDeltaStart = this.safeIntegerN(firstDelta, ['sequenceStart', 'sequence', 'O']);
         if (nonce < firstDeltaStart - 1) {
             return -1;
         }
         for (let i = 0; i < cache.length; i++) {
             const delta = cache[i];
-            const deltaStart = this.safeInteger2(delta, 'sequenceStart', 'sequence');
-            const deltaEnd = this.safeInteger2(delta, 'sequenceEnd', 'timestamp'); // todo check
+            const deltaStart = this.safeIntegerN(delta, ['sequenceStart', 'sequence', 'O']);
+            const deltaEnd = this.safeIntegerN(delta, ['sequenceEnd', 'sequence', 'C']); // todo check
             if ((nonce >= deltaStart - 1) && (nonce < deltaEnd)) {
                 return i;
             }
@@ -1754,7 +1754,7 @@ export default class kucoin extends kucoinRest {
     }
     handleBidAsks(bookSide, bidAsks) {
         for (let i = 0; i < bidAsks.length; i++) {
-            const bidAsk = this.parseBidAsk(bidAsks[i]);
+            const bidAsk = this.parseOrderBookBidAsk(bidAsks[i]);
             bookSide.storeArray(bidAsk);
         }
     }

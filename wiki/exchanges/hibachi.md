@@ -53,7 +53,7 @@ fetches historical candlestick data containing the close, high, low, open prices
 
 
 ```javascript
-hibachi.fetchOHLCV (symbol, timeframe[, since, limit, params])
+hibachi.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -73,7 +73,7 @@ retrieves data on all markets for hibachi
 
 
 ```javascript
-hibachi.fetchMarkets ([params])
+hibachi.fetchMarkets (params?)
 ```
 
 
@@ -93,7 +93,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-hibachi.fetchBalance ([params])
+hibachi.fetchBalance (params?)
 ```
 
 
@@ -116,7 +116,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-hibachi.fetchTrades (symbol[, since, limit, params])
+hibachi.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -137,7 +137,7 @@ fetches a price ticker and the related information for the past 24h
 
 
 ```javascript
-hibachi.fetchTicker (symbol[, params])
+hibachi.fetchTicker (symbol, params?)
 ```
 
 
@@ -159,7 +159,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-hibachi.fetchOrder (id, symbol[, params])
+hibachi.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -172,13 +172,13 @@ fetch the trading fee
 **Returns**: <code>object</code> - a map of market symbols to [fee structures](https://docs.ccxt.com/?id=fee-structure)
 
 
-| Param | Description |
-| --- | --- |
-| params | extra parameters |
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-hibachi.fetchTradingFees (params, [undefined])
+hibachi.fetchTradingFees (params?)
 ```
 
 
@@ -203,7 +203,7 @@ create a trade order
 
 
 ```javascript
-hibachi.createOrder (symbol, type, side, amount[, price, params])
+hibachi.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -224,7 +224,7 @@ hibachi.createOrder (symbol, type, side, amount[, price, params])
 
 
 ```javascript
-hibachi.createOrders (orders[, params])
+hibachi.createOrders (orders, params?)
 ```
 
 
@@ -250,7 +250,7 @@ edit a limit order that is not matched
 
 
 ```javascript
-hibachi.editOrder (id, symbol, type, side, amount[, price, params])
+hibachi.editOrder (id, symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -271,7 +271,7 @@ edit a list of trade orders
 
 
 ```javascript
-hibachi.editOrders (orders[, params])
+hibachi.editOrders (orders, params?)
 ```
 
 
@@ -293,7 +293,7 @@ cancels an open order
 
 
 ```javascript
-hibachi.cancelOrder (id, symbol[, params])
+hibachi.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -315,7 +315,7 @@ cancel multiple orders
 
 
 ```javascript
-hibachi.cancelOrders (ids[, symbol, params])
+hibachi.cancelOrders (ids, symbol?, params?)
 ```
 
 
@@ -336,7 +336,7 @@ cancel all open orders in a market
 
 
 ```javascript
-hibachi.cancelAllOrders (symbol[, params])
+hibachi.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -360,7 +360,7 @@ make a withdrawal
 
 
 ```javascript
-hibachi.withdraw (code, amount, address, tag[, params])
+hibachi.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -382,7 +382,7 @@ fetches the state of the open orders on the orderbook
 
 
 ```javascript
-hibachi.fetchOrderBook (symbol[, limit, params])
+hibachi.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -405,7 +405,7 @@ fetch all trades made by the user
 
 
 ```javascript
-hibachi.fetchMyTrades (symbol[, since, limit, params])
+hibachi.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -428,7 +428,7 @@ fetches all current open orders
 
 
 ```javascript
-hibachi.fetchOpenOrders ([symbol, since, limit, params])
+hibachi.fetchOpenOrders (symbol?, since?, limit?, params?)
 ```
 
 
@@ -449,7 +449,7 @@ fetch all open positions
 
 
 ```javascript
-hibachi.fetchPositions ([symbols, params])
+hibachi.fetchPositions (symbols?, params?)
 ```
 
 
@@ -472,7 +472,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-hibachi.fetchLedger ([code, since, limit, params])
+hibachi.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -493,7 +493,7 @@ fetch deposit address for given currency and chain. currently, we have a single 
 
 
 ```javascript
-hibachi.fetchDepositAddress (code[, params])
+hibachi.fetchDepositAddress (code, params?)
 ```
 
 
@@ -516,7 +516,7 @@ fetch deposits made to account
 
 
 ```javascript
-hibachi.fetchDeposits ([code, since, limit, params])
+hibachi.fetchDeposits (code?, since?, limit?, params?)
 ```
 
 
@@ -539,7 +539,7 @@ fetch withdrawals made from account
 
 
 ```javascript
-hibachi.fetchWithdrawals ([code, since, limit, params])
+hibachi.fetchWithdrawals (code?, since?, limit?, params?)
 ```
 
 
@@ -559,7 +559,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-hibachi.fetchTime ([params])
+hibachi.fetchTime (params?)
 ```
 
 
@@ -580,7 +580,7 @@ retrieves the open interest of a contract trading pair
 
 
 ```javascript
-hibachi.fetchOpenInterest (symbol[, params])
+hibachi.fetchOpenInterest (symbol, params?)
 ```
 
 
@@ -601,7 +601,7 @@ fetch the current funding rate
 
 
 ```javascript
-hibachi.fetchFundingRate (symbol[, params])
+hibachi.fetchFundingRate (symbol, params?)
 ```
 
 
@@ -624,6 +624,6 @@ fetches historical funding rate prices
 
 
 ```javascript
-hibachi.fetchFundingRateHistory (symbol[, since, limit, params])
+hibachi.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 

@@ -772,6 +772,10 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         //     }
         //
         $entry = $this->safe_list($message, 'data', array());
+        $entryLength = count($entry);
+        if ($entryLength === 0) {
+            return;
+        }
         $first = $this->safe_dict($entry, 0, array());
         $coin = $this->safe_string($first, 'coin');
         $marketId = $this->coinToMarketId ($coin);

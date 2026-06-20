@@ -729,7 +729,7 @@ class bithumb(Exchange, ImplicitAPI):
         #     }
         #
         # a workaround for their bug in date format, hours are not 0-padded
-        timestamp = None
+        timestamp: Int = None
         transactionDatetime = self.safe_string(trade, 'transaction_date')
         if transactionDatetime is not None:
             parts = transactionDatetime.split(' ')
@@ -752,7 +752,7 @@ class bithumb(Exchange, ImplicitAPI):
         priceString = self.safe_string(trade, 'price')
         amountString = self.fix_comma_number(self.safe_string_2(trade, 'units_traded', 'units'))
         costString = self.safe_string(trade, 'total')
-        fee = None
+        fee: dict = None
         feeCostString = self.safe_string(trade, 'fee')
         if feeCostString is not None:
             feeCurrencyId = self.safe_string(trade, 'fee_currency')
@@ -972,7 +972,7 @@ class bithumb(Exchange, ImplicitAPI):
                 remaining = '0'
             elif status != 'canceled':
                 remaining = amount
-        symbol = None
+        symbol: Str = None
         baseId = self.safe_string(order, 'order_currency')
         quoteId = self.safe_string(order, 'payment_currency')
         base = self.safe_currency_code(baseId)

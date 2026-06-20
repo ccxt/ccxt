@@ -1,12 +1,12 @@
 //  ---------------------------------------------------------------------------
 
+import { ed25519 } from '@noble/curves/ed25519.js';
 import Exchange from './abstract/pacifica.js';
 import { ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound, BadRequest, InsufficientFunds, PermissionDenied, RateLimitExceeded, ExchangeNotAvailable, RequestTimeout, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { eddsa } from './base/functions/crypto.js';
 import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, int, Transaction, Currency, TradingFeeInterface, LedgerEntry, FundingRates, FundingRate, OpenInterests, Leverage, MarginMode, Tickers, Ticker, FundingHistory } from './base/types.js';
-import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1010,53 +1010,52 @@ export default class pacifica extends Exchange {
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, defaultMaxLimit) as OHLCV[];
-        } else {
-            const tf = this.safeString (this.timeframes, timeframe, timeframe);
-            let request: Dict = {
-                'symbol': market['id'],
-                'interval': tf,
-                'start_time': since,
-            };
-            [ request, params ] = this.handleUntilOption ('end_time', request, params);
-            const nowMillis = this.milliseconds ();
-            let until = this.safeInteger (request, 'end_time');
-            if (until === undefined) {
-                if (limit !== undefined) {
-                    until = since + (limit * (this.parseTimeframe (tf) * 1000)) - 1;
-                }
-                if (until === undefined) {
-                    until = since + (defaultMaxLimit * (this.parseTimeframe (tf) * 1000)) - 1;
-                }
-                if (until > nowMillis) {
-                    until = nowMillis;
-                }
-                request['end_time'] = until;
-            }
-            const response = await this.publicGetKline (this.extend (request, params));
-            //
-            // {
-            //   "success": true,
-            //   "data": [
-            //     {
-            //       "t": 1748954160000,
-            //       "T": 1748954220000,
-            //       "s": "BTC",
-            //       "i": "1m",
-            //       "o": "105376",
-            //       "c": "105376",
-            //       "h": "105376",
-            //       "l": "105376",
-            //       "v": "0.00022",
-            //       "n": 2
-            //     }
-            //   ],
-            //   "error": null,
-            //   "code": null
-            // }
-            //
-            const candles = this.safeList (response, 'data', []);
-            return this.parseOHLCVs (candles, market, timeframe, since, limit);
         }
+        const tf = this.safeString (this.timeframes, timeframe, timeframe);
+        let request: Dict = {
+            'symbol': market['id'],
+            'interval': tf,
+            'start_time': since,
+        };
+        [ request, params ] = this.handleUntilOption ('end_time', request, params);
+        const nowMillis = this.milliseconds ();
+        let until = this.safeInteger (request, 'end_time');
+        if (until === undefined) {
+            if (limit !== undefined) {
+                until = since + (limit * (this.parseTimeframe (tf) * 1000)) - 1;
+            }
+            if (until === undefined) {
+                until = since + (defaultMaxLimit * (this.parseTimeframe (tf) * 1000)) - 1;
+            }
+            if (until > nowMillis) {
+                until = nowMillis;
+            }
+            request['end_time'] = until;
+        }
+        const response = await this.publicGetKline (this.extend (request, params));
+        //
+        // {
+        //   "success": true,
+        //   "data": [
+        //     {
+        //       "t": 1748954160000,
+        //       "T": 1748954220000,
+        //       "s": "BTC",
+        //       "i": "1m",
+        //       "o": "105376",
+        //       "c": "105376",
+        //       "h": "105376",
+        //       "l": "105376",
+        //       "v": "0.00022",
+        //       "n": 2
+        //     }
+        //   ],
+        //   "error": null,
+        //   "code": null
+        // }
+        //
+        const candles = this.safeList (response, 'data', []);
+        return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
@@ -3227,7 +3226,7 @@ export default class pacifica extends Exchange {
     }
 
     sortJsonKeys (value: any): any {
-        if (typeof value === 'object') {
+        if (this.isDictionary (value)) {
             const result = {};
             const keys = Object.keys (value);
             const sortedKeys = this.sort (keys);

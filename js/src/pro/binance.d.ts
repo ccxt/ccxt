@@ -1,5 +1,5 @@
 import binanceRest from '../binance.js';
-import type { Int, OrderSide, OrderType, Str, Strings, Trade, OrderBook, Order, Ticker, Tickers, OHLCV, Position, Balances, Num, Dict, Liquidation } from '../base/types.js';
+import type { Balances, Dict, Int, Liquidation, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class binance extends binanceRest {
     describe(): any;
@@ -178,7 +178,7 @@ export default class binance extends binanceRest {
     isSpotUrl(client: Client): boolean;
     stream(type: Str, subscriptionHash: Str, numSubscriptions?: number): string;
     getWsUrl(type: any, category: any): any;
-    getFutureWsCategory(channel: any): "public" | "market";
+    getFutureWsCategory(channel: any): "market" | "public";
     getPrivateWsUrl(type: any, listenKey: any): string;
     /**
      * @method
@@ -597,7 +597,7 @@ export default class binance extends binanceRest {
     /**
      * @name binance#ensureUserDataStreamWsSubscribeSignature
      * @description watches best bid & ask for symbols
-     * @param marketType {string} only support on 'spot'
+     * @param {string} [marketType] only supports 'spot'
      * @see {@link https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/user-data-stream-requests#subscribe-to-user-data-stream-through-signature-subscription-user_data Binance User Data Stream Documentation}
      * @returns Promise<number> The subscription ID for the user data stream
      */
@@ -672,7 +672,7 @@ export default class binance extends binanceRest {
     watchBalance(params?: {}): Promise<Balances>;
     handleBalance(client: Client, message: any): void;
     getAccountTypeFromSubscriptions(subscriptions: string[]): string;
-    getMarketType(method: any, market: any, params?: {}): any;
+    getMarketType(method: any, market: any, params?: {}): string;
     /**
      * @method
      * @name binance#createOrderWs

@@ -1,9 +1,9 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import weexRest from '../weex.js';
 import { BadRequest, ExchangeError, NotSupported } from '../base/errors.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -909,7 +909,7 @@ export default class weex extends weexRest {
     }
 
     handleDelta (bookside, delta) {
-        const bidAsk = this.parseBidAsk (delta);
+        const bidAsk = this.parseOrderBookBidAsk (delta);
         bookside.storeArray (bidAsk);
     }
 
@@ -1346,12 +1346,10 @@ export default class weex extends weexRest {
             this.orders = new ArrayCacheBySymbolById (limit);
         }
         const orders = this.orders;
-        const newOrders = [];
         for (let i = 0; i < data.length; i++) {
             const rawOrder = this.safeDict (data, i, {});
             const parsed = this.parseWsOrder (rawOrder);
             orders.append (parsed);
-            newOrders.push (parsed);
             const symbol = parsed['symbol'];
             symbols[symbol] = true;
         }
@@ -1364,9 +1362,9 @@ export default class weex extends weexRest {
         for (let i = 0; i < symbolKeys.length; i++) {
             const symbol = symbolKeys[i];
             const symbolMessageHash = messageHash + '::' + symbol;
-            client.resolve (newOrders, symbolMessageHash);
+            client.resolve (orders, symbolMessageHash);
         }
-        client.resolve (newOrders, messageHash);
+        client.resolve (this.orders, messageHash);
     }
 
     parseWsOrder (order, market = undefined) {
@@ -1805,7 +1803,7 @@ export default class weex extends weexRest {
         const data = this.safeList (message, 'd', []);
         for (let i = 0; i < data.length; i++) {
             const rawPosition = this.safeDict (data, i, {});
-            const position = this.parsePosition (rawPosition);
+            const position = this.parseWsPosition (rawPosition);
             cache.append (position);
             newPositions.push (position);
         }
@@ -1821,6 +1819,11 @@ export default class weex extends weexRest {
             }
         }
         client.resolve (newPositions, 'positions');
+    }
+
+    parseWsPosition (position, market = undefined) {
+        // same as REST api
+        return this.parsePosition (position, market);
     }
 
     getMarketFromClientAndMessage (client: Client, message) {

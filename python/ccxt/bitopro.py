@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitopro import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import Any, Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
+from ccxt.base.types import Any, Balances, Bool, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -356,7 +356,6 @@ class bitopro(Exchange, ImplicitAPI):
         :returns dict: an associative dictionary of currencies
         """
         response = self.publicGetProvisioningCurrencies(params)
-        currencies = self.safe_list(response, 'data', [])
         #
         #     {
         #         "data":[
@@ -373,43 +372,39 @@ class bitopro(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        result: dict = {}
+        currencies = self.safe_list(response, 'data', [])
+        return self.parse_currencies(currencies)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
         fiatCurrencies = self.safe_list(self.options, 'fiatCurrencies', [])
-        for i in range(0, len(currencies)):
-            currency = currencies[i]
-            currencyId = self.safe_string(currency, 'currency')
-            code = self.safe_currency_code(currencyId)
-            deposit = self.safe_bool(currency, 'deposit')
-            withdraw = self.safe_bool(currency, 'withdraw')
-            fee = self.safe_number(currency, 'withdrawFee')
-            withdrawMin = self.safe_number(currency, 'minWithdraw')
-            withdrawMax = self.safe_number(currency, 'maxWithdraw')
-            limits: dict = {
+        currencyId = self.safe_string(rawCurrency, 'currency')
+        code = self.safe_currency_code(currencyId)
+        deposit = self.safe_bool(rawCurrency, 'deposit')
+        withdraw = self.safe_bool(rawCurrency, 'withdraw')
+        isFiat = self.in_array(code, fiatCurrencies)
+        return self.safe_currency_structure({
+            'id': currencyId,
+            'code': code,
+            'info': rawCurrency,
+            'type': 'fiat' if isFiat else 'crypto',
+            'name': None,
+            'active': deposit and withdraw,
+            'deposit': deposit,
+            'withdraw': withdraw,
+            'fee': self.safe_number(rawCurrency, 'withdrawFee'),
+            'precision': None,
+            'limits': {
                 'withdraw': {
-                    'min': withdrawMin,
-                    'max': withdrawMax,
+                    'min': self.safe_number(rawCurrency, 'minWithdraw'),
+                    'max': self.safe_number(rawCurrency, 'maxWithdraw'),
                 },
                 'amount': {
                     'min': None,
                     'max': None,
                 },
-            }
-            isFiat = self.in_array(code, fiatCurrencies)
-            result[code] = {
-                'id': currencyId,
-                'code': code,
-                'info': currency,
-                'type': 'fiat' if isFiat else 'crypto',
-                'name': None,
-                'active': deposit and withdraw,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'fee': fee,
-                'precision': None,
-                'limits': limits,
-                'networks': None,
-            }
-        return result
+            },
+            'networks': None,
+        })
 
     def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -673,7 +668,7 @@ class bitopro(Exchange, ImplicitAPI):
         #
         id = self.safe_string(trade, 'tradeId')
         orderId = self.safe_string(trade, 'orderId')
-        timestamp = None
+        timestamp: Int = None
         if id is None:
             timestamp = self.safe_timestamp(trade, 'timestamp')
         else:
@@ -693,7 +688,7 @@ class bitopro(Exchange, ImplicitAPI):
         amount = self.safe_string(trade, 'amount')
         if amount is None:
             amount = self.safe_string(trade, 'baseAmount')
-        fee = None
+        fee: dict = None
         feeAmount = self.safe_string(trade, 'fee')
         feeSymbol = self.safe_currency_code(self.safe_string(trade, 'feeSymbol'))
         if feeAmount is not None:
@@ -703,7 +698,7 @@ class bitopro(Exchange, ImplicitAPI):
                 'rate': None,
             }
         isTaker = self.safe_bool(trade, 'isTaker')
-        takerOrMaker = None
+        takerOrMaker: Str = None
         if isTaker is not None:
             if isTaker:
                 takerOrMaker = 'taker'
@@ -883,7 +878,7 @@ class bitopro(Exchange, ImplicitAPI):
         else:
             limit = min(limit, 75000)  # supports slightly more than 75k candles atm, but limit here to avoid errors
         timeframeInSeconds = self.parse_timeframe(timeframe)
-        alignedSince = None
+        alignedSince: Int = None
         if since is None:
             request['to'] = self.seconds()
             request['from'] = request['to'] - (limit * timeframeInSeconds)
@@ -919,7 +914,7 @@ class bitopro(Exchange, ImplicitAPI):
             return candles
         result = []
         copyFrom = candles[0]
-        timestamp = None
+        timestamp: Int = None
         if since is None:
             timestamp = copyFrom[0]
         else:
@@ -1009,7 +1004,7 @@ class bitopro(Exchange, ImplicitAPI):
             '4': 'canceled',
             '6': 'canceled',
         }
-        return self.safe_string(statuses, status, None)
+        return self.safe_string(statuses, status)
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
         #
@@ -1062,10 +1057,10 @@ class bitopro(Exchange, ImplicitAPI):
         filled = self.safe_string(order, 'executedAmount')
         remaining = self.safe_string(order, 'remainingAmount')
         timeInForce = self.safe_string(order, 'timeInForce')
-        postOnly = None
+        postOnly: Bool = None
         if timeInForce == 'POST_ONLY':
             postOnly = True
-        fee = None
+        fee: dict = None
         feeAmount = self.safe_string(order, 'fee')
         feeSymbol = self.safe_currency_code(self.safe_string(order, 'feeSymbol'))
         if Precise.string_gt(feeAmount, '0'):
@@ -1244,7 +1239,7 @@ class bitopro(Exchange, ImplicitAPI):
         request: dict = {
             # 'pair': market['id'],  # optional
         }
-        response = None
+        response: dict = None
         if symbol is not None:
             market = self.market(symbol)
             request['pair'] = market['id']
@@ -1382,7 +1377,7 @@ class bitopro(Exchange, ImplicitAPI):
         """
         self.load_markets()
         request: dict = {}
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['pair'] = market['id']
@@ -1523,7 +1518,7 @@ class bitopro(Exchange, ImplicitAPI):
             'txid': self.safe_string(transaction, 'txid'),
             'type': None,
             'currency': code,
-            'network': self.network_id_to_code(networkId),
+            'network': self.network_id_to_code(networkId, code),
             'amount': self.safe_number(transaction, 'total'),
             'status': self.parse_transaction_status(status),
             'timestamp': timestamp,

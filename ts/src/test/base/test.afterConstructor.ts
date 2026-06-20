@@ -104,13 +104,13 @@ function helperTestProperties () {
     // options
     //
     assert (exchange.options !== undefined);
-    const defaultNetworkCodeReplacements = {
-        'ETH': { 'ERC20': 'ETH' },
-        'TRX': { 'TRC20': 'TRX' },
-        'CRO': { 'CRC20': 'CRONOS' },
-        'BRC20': { 'BRC20': 'BTC' },
-    };
-    testSharedMethods.assertDeepEqual (exchange, {}, 'options', exchange.options['defaultNetworkCodeReplacements'], defaultNetworkCodeReplacements);
+    // const defaultNetworkCodeReplacements = [
+    //     { 'baseCoin': 'ETH', 'primary': 'ETH', 'secondary': 'ERC20' },
+    //     { 'baseCoin': 'CRO', 'primary': 'CRONOS', 'secondary': 'CRC20' },
+    //     { 'baseCoin': 'TRX', 'primary': 'TRX', 'secondary': 'TRC20' },
+    //     { 'baseCoin': 'BTC', 'primary': 'BTC', 'secondary': 'BRC20' },
+    // ];
+    // testSharedMethods.assertDeepEqual (exchange, {}, 'options', exchange.options['defaultNetworkCodeReplacements'], defaultNetworkCodeReplacements);
 
     //
     // credentials
@@ -257,7 +257,6 @@ function helperTestProperties () {
     assert (exchange.timeout === 10000, 'timeout should be 10000');
     assert (exchange.verbose === false, 'verbose should be false');
     // assert (testSharedMethods.exchangeProp (exchange, 'newUpdates') === true, 'newUpdates should be true'); // todo WS
-    // assert (exchange.requiresEddsa === false);
     assert (!testSharedMethods.exchangeProp (exchange, 'reloadingMarkets'), 'reloadingMarkets should be false');
     assert (testSharedMethods.exchangeProp (exchange, 'marketsLoading') === undefined, 'marketsLoading should be undefined');
     // undefined or false

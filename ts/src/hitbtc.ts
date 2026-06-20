@@ -1,8 +1,8 @@
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/hitbtc.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { BadSymbol, BadRequest, OnMaintenance, AccountSuspended, PermissionDenied, ExchangeError, RateLimitExceeded, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, AuthenticationError, ArgumentsRequired, NotSupported } from './base/errors.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { TransferEntry, Int, OrderSide, OrderType, FundingRateHistory, OHLCV, Ticker, Order, OrderBook, Dict, Position, Str, Trade, Balances, Transaction, MarginMode, Tickers, Strings, Market, Currency, MarginModes, Leverage, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Dictionary, int, FundingRate, FundingRates, DepositAddress, OrderBooks, OpenInterests } from './base/types.js';
 
 /**
@@ -960,57 +960,57 @@ export default class hitbtc extends Exchange {
         //        },
         //    }
         //
-        const result: Dict = {};
-        const currencies = Object.keys (response);
-        for (let i = 0; i < currencies.length; i++) {
-            const currencyId = currencies[i];
-            const code = this.safeCurrencyCode (currencyId);
-            const entry = response[currencyId];
-            const rawNetworks = this.safeList (entry, 'networks', []);
-            const networks: Dict = {};
-            for (let j = 0; j < rawNetworks.length; j++) {
-                const rawNetwork = rawNetworks[j];
-                const networkId = this.safeString2 (rawNetwork, 'protocol', 'network');
-                let networkCode = this.networkIdToCode (networkId);
-                networkCode = (networkCode !== undefined) ? networkCode.toUpperCase () : code; // as hitbtc is white label, ensure we safeguard from possible bugs
-                networks[networkCode] = {
-                    'info': rawNetwork,
-                    'id': networkId,
-                    'network': networkCode,
-                    'active': undefined,
-                    'fee': this.safeNumber (rawNetwork, 'payout_fee'),
-                    'deposit': this.safeBool (rawNetwork, 'payin_enabled'),
-                    'withdraw': this.safeBool (rawNetwork, 'payout_enabled'),
-                    'precision': this.safeNumber (rawNetwork, 'precision_payout'),
-                    'limits': {
-                        'withdraw': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                    },
-                };
-            }
-            result[code] = this.safeCurrencyStructure ({
-                'info': entry,
-                'code': code,
-                'id': currencyId,
-                'precision': this.safeNumber (entry, 'precision_transfer'),
-                'name': this.safeString (entry, 'full_name'),
-                'active': !this.safeBool (entry, 'delisted'),
-                'deposit': this.safeBool (entry, 'payin_enabled'),
-                'withdraw': this.safeBool (entry, 'payout_enabled'),
-                'networks': networks,
-                'fee': undefined,
+        const enhancedArray = this.addKeyInArrayItems (response, '_coin_id');
+        return this.parseCurrencies (enhancedArray);
+    }
+
+    parseCurrency (currency: Dict): Currency {
+        const currencyId = currency['_coin_id'];
+        const code = this.safeCurrencyCode (currencyId);
+        const entry = currency;
+        const rawNetworks = this.safeList (entry, 'networks', []);
+        const networks: Dict = {};
+        for (let j = 0; j < rawNetworks.length; j++) {
+            const rawNetwork = rawNetworks[j];
+            const networkId = this.safeString2 (rawNetwork, 'protocol', 'network');
+            let networkCode = this.networkIdToCode (networkId, code);
+            networkCode = (networkCode !== undefined) ? networkCode.toUpperCase () : code; // as hitbtc is white label, ensure we safeguard from possible bugs
+            networks[networkCode] = {
+                'info': rawNetwork,
+                'id': networkId,
+                'network': networkCode,
+                'active': undefined,
+                'fee': this.safeNumber (rawNetwork, 'payout_fee'),
+                'deposit': this.safeBool (rawNetwork, 'payin_enabled'),
+                'withdraw': this.safeBool (rawNetwork, 'payout_enabled'),
+                'precision': this.safeNumber (rawNetwork, 'precision_payout'),
                 'limits': {
-                    'amount': {
+                    'withdraw': {
                         'min': undefined,
                         'max': undefined,
                     },
                 },
-                'type': undefined, // 'crypto' field emits incorrect values
-            });
+            };
         }
-        return result;
+        return this.safeCurrencyStructure ({
+            'info': entry,
+            'code': code,
+            'id': currencyId,
+            'precision': this.safeNumber (entry, 'precision_transfer'),
+            'name': this.safeString (entry, 'full_name'),
+            'active': !this.safeBool (entry, 'delisted'),
+            'deposit': this.safeBool (entry, 'payin_enabled'),
+            'withdraw': this.safeBool (entry, 'payout_enabled'),
+            'networks': networks,
+            'fee': undefined,
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'type': undefined, // 'crypto' field emits incorrect values
+        });
     }
 
     /**
@@ -1173,7 +1173,7 @@ export default class hitbtc extends Exchange {
         //         "open": "0.020913",
         //         "volume": "138444.3666",
         //         "volume_quote": "2853.6874972480",
-        //         "timestamp": "2021-06-02T17:52:36.731Z"
+        //         "timestamp": "2021-06-02T17:52:36.732Z"
         //     }
         //
         return this.parseTicker (response, market) as Ticker;
@@ -3424,8 +3424,9 @@ export default class hitbtc extends Exchange {
         //         "positions": null
         //     }
         //
+        const parsedAmount = this.parseNumber (amount);
         return this.extend (this.parseMarginModification (response, market), {
-            'amount': this.parseNumber (amount),
+            'amount': parsedAmount,
             'type': type,
         });
     }
@@ -3690,7 +3691,8 @@ export default class hitbtc extends Exchange {
         for (let j = 0; j < networks.length; j++) {
             const networkEntry = networks[j];
             const networkId = this.safeString (networkEntry, 'network');
-            let networkCode = this.networkIdToCode (networkId);
+            const code = this.safeString (currency, 'code');
+            let networkCode = this.networkIdToCode (networkId, code);
             networkCode = (networkCode !== undefined) ? networkCode.toUpperCase () : undefined;
             const withdrawFee = this.safeNumber (networkEntry, 'payout_fee');
             const isDefault = this.safeValue (networkEntry, 'default');

@@ -1645,7 +1645,7 @@ class bitmex extends \ccxt\async\bitmex {
                 if (!(is_array($numUpdatesByMarketId) && array_key_exists($marketId, $numUpdatesByMarketId))) {
                     $numUpdatesByMarketId[$marketId] = 0;
                 }
-                $numUpdatesByMarketId[$marketId] = $this->sum($numUpdatesByMarketId, 1);
+                $numUpdatesByMarketId[$marketId] = $this->sum($numUpdatesByMarketId[$marketId], 1);
                 $market = $this->safe_market($marketId);
                 $symbol = $market['symbol'];
                 $orderbook = $this->orderbooks[$symbol];

@@ -598,7 +598,7 @@ class aftermath(Exchange, ImplicitAPI):
         :param str [params.account]: account object ID, required
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        account = None
+        account: Str = None
         account, params = self.handle_option_and_params(params, 'fetchBalance', 'account')
         request = {
             'account': account,
@@ -688,7 +688,7 @@ class aftermath(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        accountNumber = None
+        accountNumber: Int = None
         accountNumber, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'accountNumber')
         if accountNumber is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires an accountNumber parameter in params')
@@ -745,7 +745,7 @@ class aftermath(Exchange, ImplicitAPI):
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
         await self.load_markets()
-        accountNumber = None
+        accountNumber: Int = None
         accountNumber, params = self.handle_option_and_params(params, 'fetchPositions', 'accountNumber')
         if accountNumber is None:
             raise ArgumentsRequired(self.id + ' fetchPositions() requires an accountNumber parameter in params')
@@ -816,10 +816,11 @@ class aftermath(Exchange, ImplicitAPI):
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        account = None
+        account: Str = None
         account, params = self.handle_option_and_params(params, 'createOrder', 'account')
         order = self.parse_create_edit_order_args(None, symbol, type, side, amount, price, params)
-        orders = await self.create_orders([order], {'account': account})
+        accountObj = {'account': account}
+        orders = await self.create_orders([order], accountObj)
         return orders[0]
 
     async def create_orders(self, orders: List[OrderRequest], params={}) -> List[Order]:
@@ -853,7 +854,7 @@ class aftermath(Exchange, ImplicitAPI):
                 order['price'] = self.parse_to_numeric(self.price_to_precision(symbol, price))
             order['amount'] = self.parse_to_numeric(self.amount_to_precision(symbol, amount))
             ordersRequest.append(order)
-        account = None
+        account: Str = None
         account, params = self.handle_option_and_params(params, 'createOrders', 'account')
         txRequest = {
             'accountId': account,
@@ -919,7 +920,7 @@ class aftermath(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        account = None
+        account: Str = None
         account, params = self.handle_option_and_params(params, 'cancelOrders', 'account')
         txRequest = {
             'accountId': account,
@@ -1000,7 +1001,7 @@ class aftermath(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        account = None
+        account: Str = None
         account, params = self.handle_option_and_params_2(params, 'addMargin', 'account', 'accountId')
         txRequest = {
             'accountId': account,
@@ -1047,7 +1048,7 @@ class aftermath(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        account = None
+        account: Str = None
         account, params = self.handle_option_and_params_2(params, 'reduceMargin', 'account', 'accountId')
         txRequest = {
             'accountId': account,
@@ -1151,7 +1152,7 @@ class aftermath(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         currency = self.currency(code)
-        account = None
+        account: Str = None
         account, params = self.handle_option_and_params(params, 'withdraw', 'account')
         if account is None:
             raise ArgumentsRequired(self.id + ' withdraw() requires a account parameter in params')
@@ -1174,10 +1175,14 @@ class aftermath(Exchange, ImplicitAPI):
         #     "collateral": 39.0
         # }
         #
-        return self.extend(self.parse_transaction(response, currency), {
-            'addressFrom': account,
-            'amount': amount,
-        })
+        parsedTx = self.parse_transaction(response, currency)
+        parsedTx['addressFrom '] = account
+        parsedTx['amount'] = amount
+        return parsedTx
+        # return self.extend(, {
+        #     'addressFrom': account,
+        #     'amount': amount,
+        # })
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         return {
@@ -1220,7 +1225,7 @@ class aftermath(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        account = None
+        account: Str = None
         account, params = self.handle_option_and_params_2(params, 'setLeverage', 'account', 'accountId')
         txRequest = {
             'accountId': account,

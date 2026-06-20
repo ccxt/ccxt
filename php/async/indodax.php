@@ -1437,16 +1437,17 @@ class indodax extends Exchange {
                             $network = array();
                             $networkIds = explode(',', $networkId);
                             for ($j = 0; $j < count($networkIds); $j++) {
-                                $network[] = strtoupper($this->network_id_to_code($networkIds[$j]));
+                                $network[] = strtoupper($this->network_id_to_code($networkIds[$j], $code));
                             }
                         } else {
-                            $network = strtoupper($this->network_id_to_code($networkId));
+                            $network = strtoupper($this->network_id_to_code($networkId, $code));
                         }
                     }
+                    $finalNetwork = $network; // java req
                     $result[$code] = array(
                         'info' => array(),
                         'currency' => $code,
-                        'network' => $network,
+                        'network' => $finalNetwork,
                         'address' => $address,
                         'tag' => null,
                     );

@@ -1,8 +1,5 @@
-- [Create Orders Example](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 namespace ccxt;
 include_once (__DIR__.'/../../ccxt.php');
 // ----------------------------------------------------------------------------
@@ -28,9 +25,9 @@ function example() {
             'secret' => 'MY_SECRET',
         ));
         $exchange->set_sandbox_mode(true);
-        Async\await($exchange->load_markets());
+        \React\Async\await($exchange->load_markets());
         $exchange->verbose = true; // uncomment for debugging purposes if necessary
-        $orders = Async\await($exchange->create_orders([array(
+        $orders = \React\Async\await($exchange->create_orders([array(
     'symbol' => 'LTC/USDT:USDT',
     'type' => 'limit',
     'side' => 'buy',
@@ -47,6 +44,6 @@ function example() {
 }
 
 
-Async\await(example());
- 
+\React\Async\await(example());
+
 ```

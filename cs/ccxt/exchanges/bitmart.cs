@@ -1187,7 +1187,7 @@ public partial class bitmart : Exchange
                     { "type", ((bool) isTrue(isNtf)) ? "other" : "crypto" },
                 };
             }
-            object networkCode = this.networkIdToCode(networkId);
+            object networkCode = this.networkIdToCode(networkId, currencyCode);
             object withdraw = this.safeBool(currency, "withdraw_enabled");
             object deposit = this.safeBool(currency, "deposit_enabled");
             ((IDictionary<string,object>)getValue(entry, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
@@ -2924,8 +2924,11 @@ public partial class bitmart : Exchange
         }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
-            { "size", parseInt(this.amountToPrecision(symbol, amount)) },
         };
+        if (isTrue(!isEqual(amount, null)))
+        {
+            ((IDictionary<string,object>)request)["size"] = parseInt(this.amountToPrecision(symbol, amount));
+        }
         object timeInForce = this.safeString(parameters, "timeInForce");
         object mode = this.safeInteger(parameters, "mode"); // only for swap
         object isMarketOrder = isEqual(type, "market");
@@ -3002,7 +3005,12 @@ public partial class bitmart : Exchange
         {
             reduceOnly = true;
             ((IDictionary<string,object>)request)["price_type"] = this.safeInteger(parameters, "price_type", 1);
-            ((IDictionary<string,object>)request)["executive_price"] = this.priceToPrecision(symbol, price);
+            if (isTrue(!isEqual(price, null)))
+            {
+                ((IDictionary<string,object>)request)["executive_price"] = this.priceToPrecision(symbol, price);
+            }
+            object marketOrLimitStr = ((bool) isTrue(isLimitOrder)) ? "limit" : "market";
+            ((IDictionary<string,object>)request)["category"] = this.safeString(parameters, "category", marketOrLimitStr);
             if (isTrue(isStopLoss))
             {
                 ((IDictionary<string,object>)request)["trigger_price"] = this.priceToPrecision(symbol, stopLossPrice);
@@ -3301,10 +3309,10 @@ public partial class bitmart : Exchange
         object succeeded = this.safeValue(data, "succeed");
         if (isTrue(!isEqual(succeeded, null)))
         {
-            id = this.safeString(succeeded, 0);
-            if (isTrue(isEqual(id, null)))
+            object id2 = this.safeString(succeeded, 0);
+            if (isTrue(isEqual(id2, null)))
             {
-                throw new InvalidOrder ((string)add(add(add(add(this.id, " cancelOrder() failed to cancel "), symbol), " order id "), id)) ;
+                throw new InvalidOrder ((string)add(add(add(add(this.id, " cancelOrder() failed to cancel "), symbol), " order id "), id2)) ;
             }
         } else
         {
@@ -4025,11 +4033,12 @@ public partial class bitmart : Exchange
         }
         object address = this.safeString(depositAddress, "address");
         currency = this.safeCurrency(currencyId, currency);
+        object code = this.safeString(currency, "code");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
             { "info", depositAddress },
-            { "currency", this.safeString(currency, "code") },
-            { "network", this.networkIdToCode(network) },
+            { "currency", code },
+            { "network", this.networkIdToCode(network, code) },
             { "address", address },
             { "tag", this.safeString2(depositAddress, "address_memo", "memo") },
         };
@@ -4356,7 +4365,7 @@ public partial class bitmart : Exchange
             { "id", id },
             { "currency", code },
             { "amount", amount },
-            { "network", this.networkIdToCode(networkId) },
+            { "network", this.networkIdToCode(networkId, code) },
             { "address", address },
             { "addressFrom", null },
             { "addressTo", null },
@@ -4810,8 +4819,9 @@ public partial class bitmart : Exchange
         {
             limit = 10;
         }
+        object pageNumber = this.safeInteger(parameters, "page", 1);
         object request = new Dictionary<string, object>() {
-            { "page", this.safeInteger(parameters, "page", 1) },
+            { "page", pageNumber },
             { "limit", limit },
         };
         object currency = null;

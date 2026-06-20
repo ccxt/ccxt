@@ -679,16 +679,8 @@ class aster(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
-        promises = [
-            self.sapiPublicGetV3ExchangeInfo(params),
-            self.fapiPublicGetV3ExchangeInfo(params),
-        ]
-        results = promises
-        sapiResult = self.safe_dict(results, 0, {})
+        sapiResult = self.sapiPublicGetV3ExchangeInfo(params)
         sapiRows = self.safe_list(sapiResult, 'assets', [])
-        fapiResult = self.safe_dict(results, 1, {})
-        fapiRows = self.safe_list(fapiResult, 'assets', [])
-        rows = self.array_concat(sapiRows, fapiRows)
         #
         #     [
         #         {
@@ -698,39 +690,39 @@ class aster(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        result: dict = {}
-        for i in range(0, len(rows)):
-            currency = rows[i]
-            currencyId = self.safe_string(currency, 'asset')
-            code = self.safe_currency_code(currencyId)
-            result[code] = self.safe_currency_structure({
-                'info': currency,
-                'code': code,
-                'id': currencyId,
-                'name': code,
-                'active': None,
-                'deposit': None,
-                'withdraw': None,
-                'fee': None,
-                'precision': None,
-                'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'deposit': {
-                        'min': None,
-                        'max': None,
-                    },
+        return self.parse_currencies(sapiRows)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        currencyId = self.safe_string(rawCurrency, 'asset')
+        code = self.safe_currency_code(currencyId)
+        return self.safe_currency_structure({
+            'info': rawCurrency,
+            'code': code,
+            'id': currencyId,
+            'name': code,
+            'active': None,
+            'deposit': None,
+            'withdraw': None,
+            'fee': None,
+            'precision': None,
+            'margin': self.safe_bool(rawCurrency, 'marginAvailable'),
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
                 },
-                'networks': None,
-                'type': 'crypto',  # atm exchange api provides only cryptos
-            })
-        return result
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+                'deposit': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'networks': None,
+            'type': 'crypto',  # atm exchange api provides only cryptos
+        })
 
     def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -846,7 +838,13 @@ class aster(Exchange, ImplicitAPI):
         #     ]
         #
         #
-        rows = self.array_concat(sapiRows, fapiRows)
+        fapiRowsFiltered = []
+        for i in range(0, len(fapiRows)):
+            market = fapiRows[i]
+            # tmp skip some markets with base = None
+            if self.safe_string(market, 'baseAsset'):
+                fapiRowsFiltered.append(market)
+        rows = self.array_concat(sapiRows, fapiRowsFiltered)
         return self.parse_markets(rows)
 
     def parse_market(self, market: dict) -> Market:
@@ -1383,7 +1381,6 @@ class aster(Exchange, ImplicitAPI):
         last = self.safe_string(ticker, 'lastPrice')
         open = self.safe_string(ticker, 'openPrice')
         percentage = self.safe_string(ticker, 'priceChangePercent')
-        percentage = Precise.string_mul(percentage, '100')
         quoteVolume = self.safe_string(ticker, 'quoteVolume')
         baseVolume = self.safe_string(ticker, 'volume')
         high = self.safe_string(ticker, 'highPrice')
@@ -2078,8 +2075,10 @@ class aster(Exchange, ImplicitAPI):
         #        }
         #
         info = order
+        positionSide = self.safe_string(order, 'positionSide')
+        defaultType = 'swap' if (positionSide is not None) else 'spot'
         marketId = self.safe_string(order, 'symbol')
-        market = self.safe_market(marketId, market)
+        market = self.safe_market(marketId, market, None, defaultType)
         side = self.safe_string_lower(order, 'side')
         timestamp = self.safe_integer(order, 'time')
         statusId = self.safe_string_upper(order, 'status')
@@ -2940,7 +2939,7 @@ class aster(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(marginMode, 'symbol')
-        market = self.safe_market(marketId, market)
+        market = self.safe_market(marketId, market, None, 'swap')
         return {
             'info': marginMode,
             'symbol': market['symbol'],
@@ -3910,7 +3909,8 @@ class aster(Exchange, ImplicitAPI):
             # Sign using EIP-712 typed data per the AsterSignTransaction spec
             zeroAddress = self.safe_string(self.options, 'zeroAddress', '0x0000000000000000000000000000000000000000')
             v3ChainId = self.safe_integer(self.options, 'v3ChainId', 1666)
-            signerAddress = self.safe_string(self.options, 'signerAddress')
+            walletAddress = self.eth_get_address_from_private_key(self.privateKey)
+            signerAddress = self.safe_string(self.options, 'signerAddress', walletAddress)  # default to user's wallet
             if signerAddress is None:
                 raise ArgumentsRequired(self.id + ' requires signerAddress in options when use v3 api')
             domain = {
@@ -3928,7 +3928,7 @@ class aster(Exchange, ImplicitAPI):
             # Note: timestamp and recvWindow are not used for v3; nonce replaces timestamp
             finalParams = self.extend({
                 'nonce': str(nonce),
-                'user': self.walletAddress,
+                'user': walletAddress,
                 'signer': signerAddress,
             }, params)
             paramString: Str = None

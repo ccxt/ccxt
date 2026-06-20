@@ -1,8 +1,5 @@
-- [Exchange Save Load Markets Cache](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import asyncio
 import os
@@ -77,5 +74,5 @@ asyncio.run(main())
 # it should output something like this
 # CCXT Version: 4.4.38
 # Time to load markets: 1582 ms
-# Time to load markets with cache: 0 ms 
+# Time to load markets with cache: 0 ms
 ```

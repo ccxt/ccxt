@@ -636,12 +636,11 @@ class modetrade extends Exchange {
             /**
              * fetches all available currencies on an exchange
              *
-             * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-$token-info
+             * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-token-info
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of currencies
              */
-            $result = array();
             $response = Async\await($this->v1PublicGetPublicToken ($params));
             //
             // {
@@ -667,67 +666,67 @@ class modetrade extends Exchange {
             //
             $data = $this->safe_dict($response, 'data', array());
             $tokenRows = $this->safe_list($data, 'rows', array());
-            for ($i = 0; $i < count($tokenRows); $i++) {
-                $token = $tokenRows[$i];
-                $currencyId = $this->safe_string($token, 'token');
-                $networks = $this->safe_list($token, 'chain_details');
-                $code = $this->safe_currency_code($currencyId);
-                $minPrecision = null;
-                $resultingNetworks = array();
-                for ($j = 0; $j < count($networks); $j++) {
-                    $network = $networks[$j];
-                    // TODO => transform chain id to human readable name
-                    $networkId = $this->safe_string($network, 'chain_id');
-                    $precision = $this->parse_precision($this->safe_string($network, 'decimals'));
-                    if ($precision !== null) {
-                        $minPrecision = ($minPrecision === null) ? $precision : Precise::string_min($precision, $minPrecision);
-                    }
-                    $resultingNetworks[$networkId] = array(
-                        'id' => $networkId,
-                        'network' => $networkId,
-                        'limits' => array(
-                            'withdraw' => array(
-                                'min' => null,
-                                'max' => null,
-                            ),
-                            'deposit' => array(
-                                'min' => null,
-                                'max' => null,
-                            ),
-                        ),
-                        'active' => null,
-                        'deposit' => null,
-                        'withdraw' => null,
-                        'fee' => $this->safe_number($network, 'withdrawal_fee'),
-                        'precision' => $this->parse_number($precision),
-                        'info' => $network,
-                    );
-                }
-                $result[$code] = $this->safe_currency_structure(array(
-                    'id' => $currencyId,
-                    'name' => $currencyId,
-                    'code' => $code,
-                    'precision' => $this->parse_number($minPrecision),
-                    'active' => null,
-                    'fee' => null,
-                    'networks' => $resultingNetworks,
-                    'deposit' => null,
-                    'withdraw' => null,
-                    'limits' => array(
-                        'deposit' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'withdraw' => array(
-                            'min' => $this->safe_number($token, 'minimum_withdraw_amount'),
-                            'max' => null,
-                        ),
-                    ),
-                    'info' => $token,
-                ));
-            }
-            return $result;
+            return $this->parse_currencies($tokenRows);
         }) ();
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $currencyId = $this->safe_string($rawCurrency, 'token');
+        $networks = $this->safe_list($rawCurrency, 'chain_details');
+        $code = $this->safe_currency_code($currencyId);
+        $minPrecision = null;
+        $resultingNetworks = array();
+        for ($j = 0; $j < count($networks); $j++) {
+            $network = $networks[$j];
+            // TODO => transform chain id to human readable name
+            $networkId = $this->safe_string($network, 'chain_id');
+            $precision = $this->parse_precision($this->safe_string($network, 'decimals'));
+            if ($precision !== null) {
+                $minPrecision = ($minPrecision === null) ? $precision : Precise::string_min($precision, $minPrecision);
+            }
+            $resultingNetworks[$networkId] = array(
+                'id' => $networkId,
+                'network' => $networkId,
+                'limits' => array(
+                    'withdraw' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'deposit' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
+                'active' => null,
+                'deposit' => null,
+                'withdraw' => null,
+                'fee' => $this->safe_number($network, 'withdrawal_fee'),
+                'precision' => $this->parse_number($precision),
+                'info' => $network,
+            );
+        }
+        return $this->safe_currency_structure(array(
+            'id' => $currencyId,
+            'name' => $currencyId,
+            'code' => $code,
+            'precision' => $this->parse_number($minPrecision),
+            'active' => null,
+            'fee' => null,
+            'networks' => $resultingNetworks,
+            'deposit' => null,
+            'withdraw' => null,
+            'limits' => array(
+                'deposit' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => $this->safe_number($rawCurrency, 'minimum_withdraw_amount'),
+                    'max' => null,
+                ),
+            ),
+            'info' => $rawCurrency,
+        ));
     }
 
     public function parse_token_and_fee_temp($item, $feeTokenKey, $feeAmountKey) {
@@ -1452,7 +1451,7 @@ class modetrade extends Exchange {
             'fok' => 'FOK',
             'post_only' => 'PO',
         );
-        return $this->safe_string($timeInForces, $timeInForce, null);
+        return $this->safe_string($timeInForces, $timeInForce);
     }
 
     public function parse_order_status(?string $status) {
@@ -1691,7 +1690,7 @@ class modetrade extends Exchange {
             //
             //     {
             //         "success" => true,
-            //         "timestamp" => 1702989203989,
+            //         "timestamp" => 1702989203988,
             //         "data" => {
             //             "rows" => [array(
             //                 "order_id" => 13,

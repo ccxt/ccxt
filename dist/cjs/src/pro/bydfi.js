@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var bydfi$1 = require('../bydfi.js');
 var Precise = require('../base/Precise.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
-var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -49,11 +49,11 @@ class bydfi extends bydfi$1["default"] {
             },
             'options': {
                 'watchOrderBookForSymbols': {
-                    'depth': '100',
+                    'depth': '100', // 10, 50, 100
                     'frequency': '1000ms', // 100ms, 1000ms
                 },
                 'watchBalance': {
-                    'fetchBalanceSnapshot': false,
+                    'fetchBalanceSnapshot': false, // or true
                     'awaitBalanceSnapshot': true, // whether to wait for the balance snapshot before providing updates
                 },
                 'timeframes': {
@@ -124,7 +124,7 @@ class bydfi extends bydfi$1["default"] {
             const id = this.requestId();
             const timestamp = this.milliseconds().toString();
             const payload = this.apiKey + timestamp;
-            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256, 'hex');
+            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha256, 'hex');
             const request = {
                 'id': id,
                 'method': 'LOGIN',

@@ -328,6 +328,7 @@ class mexc extends Exchange {
                             'position/funding_records' => 2,
                             'position/position_mode' => 2,
                             'order/list/open_orders/{symbol}' => 2,
+                            'order/list/open_orders' => 2,
                             'order/list/history_orders' => 2,
                             'order/list/order_deals/v3' => 2,
                             'order/external/{symbol}/{external_oid}' => 2,
@@ -1111,7 +1112,7 @@ class mexc extends Exchange {
             /**
              * fetches all available currencies on an exchange
              *
-             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-$currency-information
+             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of currencies
@@ -1162,57 +1163,56 @@ class mexc extends Exchange {
             //     )
             //   }
             //
-            $result = array();
-            for ($i = 0; $i < count($response); $i++) {
-                $currency = $response[$i];
-                $id = $this->safe_string($currency, 'coin');
-                $code = $this->safe_currency_code($id);
-                $networks = array();
-                $chains = $this->safe_value($currency, 'networkList', array());
-                for ($j = 0; $j < count($chains); $j++) {
-                    $chain = $chains[$j];
-                    $networkId = $this->safe_string_2($chain, 'netWork', 'network');
-                    $network = $this->network_id_to_code($networkId);
-                    $networks[$network] = array(
-                        'info' => $chain,
-                        'id' => $networkId,
-                        'network' => $network,
-                        'active' => null,
-                        'deposit' => $this->safe_bool($chain, 'depositEnable', false),
-                        'withdraw' => $this->safe_bool($chain, 'withdrawEnable', false),
-                        'fee' => $this->safe_number($chain, 'withdrawFee'),
-                        'precision' => null,
-                        'limits' => array(
-                            'withdraw' => array(
-                                'min' => $this->safe_string($chain, 'withdrawMin'),
-                                'max' => $this->safe_string($chain, 'withdrawMax'),
-                            ),
-                        ),
-                        'contract' => $this->safe_string($chain, 'contract'),
-                    );
-                }
-                $result[$code] = $this->safe_currency_structure(array(
-                    'info' => $currency,
-                    'id' => $id,
-                    'code' => $code,
-                    'name' => $this->safe_string($currency, 'name'),
-                    'active' => null,
-                    'deposit' => null,
-                    'withdraw' => null,
-                    'fee' => null,
-                    'precision' => null,
-                    'limits' => array(
-                        'amount' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                    'type' => 'crypto',
-                    'networks' => $networks,
-                ));
-            }
-            return $result;
+            return $this->parse_currencies($response);
         }) ();
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $id = $this->safe_string($rawCurrency, 'coin');
+        $code = $this->safe_currency_code($id);
+        $networks = array();
+        $chains = $this->safe_value($rawCurrency, 'networkList', array());
+        for ($j = 0; $j < count($chains); $j++) {
+            $chain = $chains[$j];
+            $networkId = $this->safe_string_2($chain, 'netWork', 'network');
+            $network = $this->network_id_to_code($networkId, $code);
+            $networks[$network] = array(
+                'info' => $chain,
+                'id' => $networkId,
+                'network' => $network,
+                'active' => null,
+                'deposit' => $this->safe_bool($chain, 'depositEnable', false),
+                'withdraw' => $this->safe_bool($chain, 'withdrawEnable', false),
+                'fee' => $this->safe_number($chain, 'withdrawFee'),
+                'precision' => null,
+                'limits' => array(
+                    'withdraw' => array(
+                        'min' => $this->safe_string($chain, 'withdrawMin'),
+                        'max' => $this->safe_string($chain, 'withdrawMax'),
+                    ),
+                ),
+                'contract' => $this->safe_string($chain, 'contract'),
+            );
+        }
+        return $this->safe_currency_structure(array(
+            'info' => $rawCurrency,
+            'id' => $id,
+            'code' => $code,
+            'name' => $this->safe_string($rawCurrency, 'name'),
+            'active' => null,
+            'deposit' => null,
+            'withdraw' => null,
+            'fee' => null,
+            'precision' => null,
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'type' => 'crypto',
+            'networks' => $networks,
+        ));
     }
 
     public function fetch_markets($params = array ()): PromiseInterface {
@@ -1562,7 +1562,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function parse_bid_ask($bidask, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
+    public function parse_order_book_bid_ask($bidask, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
         $countKey = 2;
         $price = $this->safe_number($bidask, $priceKey);
         $amount = $this->safe_number($bidask, $amountKey);
@@ -2616,7 +2616,7 @@ class mexc extends Exchange {
                 $request['orderType'] = $this->safe_integer($params, 'orderType', 1);
                 $response = Async\await($this->contractPrivatePostPlanorderPlace ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->contractPrivatePostOrderSubmit ($this->extend($request, $params)));
+                $response = Async\await($this->contractPrivatePostOrderCreate ($this->extend($request, $params)));
             }
             //
             // Swap
@@ -2625,8 +2625,10 @@ class mexc extends Exchange {
             // Trigger
             //     array("success":true,"code":0,"data":259208506303929856)
             //
-            $data = $this->safe_string($response, 'data');
-            return $this->safe_order(array( 'id' => $data ), $market);
+            // array("success":true,"code":0,"data":array("orderId":"814218083416790528","ts":1779795118533))
+            //
+            $data = $this->safe_dict($response, 'data');
+            return $this->safe_order(array( 'id' => $this->safe_string($data, 'orderId'), 'timestamp' => $this->safe_integer($data, 'ts') ), $market);
         }) ();
     }
 
@@ -3161,8 +3163,12 @@ class mexc extends Exchange {
                 //
                 return $this->parse_orders($response, $market, $since, $limit);
             } else {
-                // TO_DO => another possible way is through => open_orders/{$symbol}, but have same ratelimits, and less granularity, i think historical orders are more convenient, supports more $params (however, theoretically, open-orders endpoint might be sligthly fast)
-                return Async\await($this->fetch_orders_by_state(2, $symbol, $since, $limit, $params));
+                if ($limit === null) {
+                    $request['page_size'] = 100; // max
+                }
+                $swapResponse = Async\await($this->contractPrivateGetOrderListOpenOrders ($this->extend($request, $params)));
+                $data = $this->safe_list($swapResponse, 'data', array());
+                return $this->parse_orders($data, $market, $since, $limit, $params);
             }
         }) ();
     }
@@ -3973,7 +3979,7 @@ class mexc extends Exchange {
             for ($i = 0; $i < count($wallet); $i++) {
                 $entry = $wallet[$i];
                 $marketId = $this->safe_string($entry, 'symbol');
-                $symbol = $this->safe_symbol($marketId, null);
+                $symbol = $this->safe_symbol($marketId);
                 $base = $this->safe_value($entry, 'baseAsset', array());
                 $quote = $this->safe_value($entry, 'quoteAsset', array());
                 $baseCode = $this->safe_currency_code($this->safe_string($base, 'asset'));
@@ -4812,14 +4818,17 @@ class mexc extends Exchange {
         }
         while (Precise::string_lt($floor, $maxVol)) {
             $cap = Precise::string_add($floor, $riskIncrVol);
+            $minNotional = $this->parse_number($floor);
+            $mainMarginRate = $this->parse_number($maintenanceMarginRate);
+            $maxLev = $this->parse_number(Precise::string_div('1', $initialMarginRate));
             $tiers[] = array(
                 'tier' => $this->parse_number(Precise::string_div($cap, $riskIncrVol)),
                 'symbol' => $this->safe_symbol($marketId, $market, null, 'contract'),
                 'currency' => $this->safe_currency_code($quoteId),
-                'minNotional' => $this->parse_number($floor),
+                'minNotional' => $minNotional,
                 'maxNotional' => $this->parse_number($cap),
-                'maintenanceMarginRate' => $this->parse_number($maintenanceMarginRate),
-                'maxLeverage' => $this->parse_number(Precise::string_div('1', $initialMarginRate)),
+                'maintenanceMarginRate' => $mainMarginRate,
+                'maxLeverage' => $maxLev,
                 'info' => $info,
             );
             $initialMarginRate = Precise::string_add($initialMarginRate, $riskIncrImr);
@@ -4840,11 +4849,12 @@ class mexc extends Exchange {
         //
         $address = $this->safe_string($depositAddress, 'address');
         $currencyId = $this->safe_string($depositAddress, 'coin');
+        $code = $this->safe_currency_code($currencyId, $currency);
         $networkId = $this->safe_string($depositAddress, 'netWork');
         return array(
             'info' => $depositAddress,
-            'currency' => $this->safe_currency_code($currencyId, $currency),
-            'network' => $this->network_id_to_code($networkId, $currencyId),
+            'currency' => $code,
+            'network' => $this->network_id_to_code($networkId, $code),
             'address' => $address,
             'tag' => $this->safe_string($depositAddress, 'memo'),
         );
@@ -5175,12 +5185,12 @@ class mexc extends Exchange {
         if ($currencyWithNetwork !== null) {
             $currencyId = explode('-', $currencyWithNetwork)[0];
         }
+        $code = $this->safe_currency_code($currencyId, $currency);
         $network = null;
         $rawNetwork = $this->safe_string($transaction, 'network');
         if ($rawNetwork !== null) {
-            $network = $this->network_id_to_code($rawNetwork);
+            $network = $this->network_id_to_code($rawNetwork, $code);
         }
-        $code = $this->safe_currency_code($currencyId, $currency);
         $status = $this->parse_transaction_status_by_type($this->safe_string($transaction, 'status'), $type);
         $amountString = $this->safe_string($transaction, 'amount');
         $address = $this->safe_string($transaction, 'address');
@@ -5470,9 +5480,9 @@ class mexc extends Exchange {
              *
              * @see https://mexcdevelop.github.io/apidocs/spot_v2_en/#get-internal-assets-transfer-records
              * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-39-s-asset-transfer-records
-             * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints#query-user-universal-transfer-history     * @param {string} $code unified $currency $code of the $currency transferred
+             * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints#query-user-universal-transfer-history
              *
-             * @param $code
+             * @param {string} [$code] unified $currency $code of the $currency transferred
              * @param {int} [$since] the earliest time in ms to fetch transfers for
              * @param {int} [$limit] the maximum number of  transfers structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -6237,8 +6247,8 @@ class mexc extends Exchange {
             if ($market['spot']) {
                 throw new BadSymbol($this->id . ' setMarginMode() supports contract markets only');
             }
-            $marginMode = strtolower($marginMode);
-            if ($marginMode !== 'isolated' && $marginMode !== 'cross') {
+            $marginModeLower = strtolower($marginMode);
+            if ($marginModeLower !== 'isolated' && $marginModeLower !== 'cross') {
                 throw new BadRequest($this->id . ' setMarginMode() $marginMode argument should be isolated or cross');
             }
             $leverage = $this->safe_integer($params, 'leverage');
@@ -6248,7 +6258,7 @@ class mexc extends Exchange {
             $direction = $this->safe_string_lower_2($params, 'direction', 'positionId');
             $request = array(
                 'leverage' => $leverage,
-                'openType' => ($marginMode === 'isolated') ? 1 : 2,
+                'openType' => ($marginModeLower === 'isolated') ? 1 : 2,
             );
             if ($symbol !== null) {
                 $request['symbol'] = $market['id'];
@@ -6363,7 +6373,7 @@ class mexc extends Exchange {
         if ($success === true) {
             return null;
         }
-        $responseCode = $this->safe_string($response, 'code', null);
+        $responseCode = $this->safe_string($response, 'code');
         if (($responseCode !== null) && ($responseCode !== '200') && ($responseCode !== '0')) {
             $feedback = $this->id . ' ' . $body;
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);

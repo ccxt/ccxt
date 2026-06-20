@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bigone import ImplicitAPI
-from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Bool, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -526,81 +526,80 @@ class bigone(Exchange, ImplicitAPI):
         # }
         #
         currenciesData = self.safe_list(data, 'data', [])
-        result: dict = {}
-        for i in range(0, len(currenciesData)):
-            currency = currenciesData[i]
-            id = self.safe_string(currency, 'symbol')
-            code = self.safe_currency_code(id)
-            name = self.safe_string(currency, 'name')
-            networks: dict = {}
-            chains = self.safe_list(currency, 'binding_gateways', [])
-            currencyMaxPrecision = self.parse_precision(self.safe_string_2(currency, 'withdrawal_scale', 'scale'))
-            for j in range(0, len(chains)):
-                chain = chains[j]
-                networkId = self.safe_string(chain, 'gateway_name')
-                networkCode = self.network_id_to_code(networkId)
-                deposit = self.safe_bool(chain, 'is_deposit_enabled')
-                withdraw = self.safe_bool(chain, 'is_withdrawal_enabled')
-                minDepositAmount = self.safe_string(chain, 'min_deposit_amount')
-                minWithdrawalAmount = self.safe_string(chain, 'min_withdrawal_amount')
-                withdrawalFee = self.safe_string(chain, 'withdrawal_fee')
-                precision = self.parse_precision(self.safe_string_2(chain, 'withdrawal_scale', 'scale'))
-                networks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'margin': None,
-                    'deposit': deposit,
-                    'withdraw': withdraw,
-                    'active': None,
-                    'fee': self.parse_number(withdrawalFee),
-                    'precision': self.parse_number(precision),
-                    'limits': {
-                        'deposit': {
-                            'min': minDepositAmount,
-                            'max': None,
-                        },
-                        'withdraw': {
-                            'min': minWithdrawalAmount,
-                            'max': None,
-                        },
-                    },
-                    'info': chain,
-                }
-            chainLength = len(chains)
-            type: Str = None
-            if self.safe_bool(currency, 'is_fiat'):
-                type = 'fiat'
-            elif chainLength == 0:
-                if self.is_leveraged_currency(id):
-                    type = 'leveraged'
-                else:
-                    type = 'other'
-            else:
-                type = 'crypto'
-            result[code] = self.safe_currency_structure({
-                'id': id,
-                'code': code,
-                'info': currency,
-                'name': name,
-                'type': type,
+        return self.parse_currencies(currenciesData)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        id = self.safe_string(rawCurrency, 'symbol')
+        code = self.safe_currency_code(id)
+        name = self.safe_string(rawCurrency, 'name')
+        networks: dict = {}
+        chains = self.safe_list(rawCurrency, 'binding_gateways', [])
+        currencyMaxPrecision = self.parse_precision(self.safe_string_2(rawCurrency, 'withdrawal_scale', 'scale'))
+        for j in range(0, len(chains)):
+            chain = chains[j]
+            networkId = self.safe_string(chain, 'gateway_name')
+            networkCode = self.network_id_to_code(networkId, code)
+            deposit = self.safe_bool(chain, 'is_deposit_enabled')
+            withdraw = self.safe_bool(chain, 'is_withdrawal_enabled')
+            minDepositAmount = self.safe_string(chain, 'min_deposit_amount')
+            minWithdrawalAmount = self.safe_string(chain, 'min_withdrawal_amount')
+            withdrawalFee = self.safe_string(chain, 'withdrawal_fee')
+            precision = self.parse_precision(self.safe_string_2(chain, 'withdrawal_scale', 'scale'))
+            networks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
+                'margin': None,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'active': None,
-                'deposit': None,
-                'withdraw': None,
-                'fee': None,
-                'precision': self.parse_number(currencyMaxPrecision),
+                'fee': self.parse_number(withdrawalFee),
+                'precision': self.parse_number(precision),
                 'limits': {
-                    'amount': {
-                        'min': None,
+                    'deposit': {
+                        'min': minDepositAmount,
                         'max': None,
                     },
                     'withdraw': {
-                        'min': None,
+                        'min': minWithdrawalAmount,
                         'max': None,
                     },
                 },
-                'networks': networks,
-            })
-        return result
+                'info': chain,
+            }
+        chainLength = len(chains)
+        type: Str = None
+        if self.safe_bool(rawCurrency, 'is_fiat'):
+            type = 'fiat'
+        elif chainLength == 0:
+            if self.is_leveraged_currency(id):
+                type = 'leveraged'
+            else:
+                type = 'other'
+        else:
+            type = 'crypto'
+        return self.safe_currency_structure({
+            'id': id,
+            'code': code,
+            'info': rawCurrency,
+            'name': name,
+            'type': type,
+            'active': None,
+            'deposit': None,
+            'withdraw': None,
+            'fee': None,
+            'precision': self.parse_number(currencyMaxPrecision),
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'networks': networks,
+        })
 
     def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -877,7 +876,7 @@ class bigone(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        type = None
+        type: Str = None
         type, params = self.handle_market_type_and_params('fetchTicker', market, params)
         if type == 'spot':
             request: dict = {
@@ -917,11 +916,11 @@ class bigone(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
         self.load_markets()
-        market = None
+        market: Market = None
         symbol = self.safe_string(symbols, 0)
         if symbol is not None:
             market = self.market(symbol)
-        type = None
+        type: Str = None
         type, params = self.handle_market_type_and_params('fetchTickers', market, params)
         isSpot = type == 'spot'
         request: dict = {}
@@ -1024,7 +1023,7 @@ class bigone(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        response = None
+        response: dict = None
         if market['contract']:
             request: dict = {
                 'symbol': market['id'],
@@ -1215,15 +1214,18 @@ class bigone(Exchange, ImplicitAPI):
         makerFeeCost = self.safe_string(trade, 'maker_fee')
         takerFeeCost = self.safe_string(trade, 'taker_fee')
         if makerFeeCost is not None:
+            makerCode = makerCurrencyCode
             if takerFeeCost is not None:
+                takerCode = takerCurrencyCode
                 result['fees'] = [
-                    {'cost': makerFeeCost, 'currency': makerCurrencyCode},
-                    {'cost': takerFeeCost, 'currency': takerCurrencyCode},
+                    {'cost': makerFeeCost, 'currency': makerCode},
+                    {'cost': takerFeeCost, 'currency': takerCode},
                 ]
             else:
-                result['fee'] = {'cost': makerFeeCost, 'currency': makerCurrencyCode}
+                result['fee'] = {'cost': makerFeeCost, 'currency': makerCode}
         elif takerFeeCost is not None:
-            result['fee'] = {'cost': takerFeeCost, 'currency': takerCurrencyCode}
+            takerCode2 = takerCurrencyCode
+            result['fee'] = {'cost': takerFeeCost, 'currency': takerCode2}
         else:
             result['fee'] = None
         return self.safe_trade(result, market)
@@ -1388,7 +1390,7 @@ class bigone(Exchange, ImplicitAPI):
         self.load_markets()
         type = self.safe_string(params, 'type', '')
         params = self.omit(params, 'type')
-        response = None
+        response: dict = None
         if type == 'funding' or type == 'fund':
             response = self.privateGetFundAccounts(params)
         else:
@@ -1447,14 +1449,14 @@ class bigone(Exchange, ImplicitAPI):
         if Precise.string_eq(triggerPrice, '0'):
             triggerPrice = None
         immediateOrCancel = self.safe_bool(order, 'immediate_or_cancel')
-        timeInForce = None
+        timeInForce: Str = None
         if immediateOrCancel:
             timeInForce = 'IOC'
         type = self.parse_type(self.safe_string(order, 'type'))
         price = self.safe_string(order, 'price')
-        amount = None
-        filled = None
-        cost = None
+        amount: Str = None
+        filled: Str = None
+        cost: Str = None
         if type == 'market' and side == 'buy':
             cost = self.safe_string(order, 'filled_amount')
         else:
@@ -1531,7 +1533,7 @@ class bigone(Exchange, ImplicitAPI):
         uppercaseType = type.upper()
         isLimit = uppercaseType == 'LIMIT'
         exchangeSpecificParam = self.safe_bool(params, 'post_only', False)
-        postOnly = None
+        postOnly: Bool = None
         postOnly, params = self.handle_post_only((uppercaseType == 'MARKET'), exchangeSpecificParam, params)
         triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 'stop_price'])
         request: dict = {
@@ -1925,7 +1927,7 @@ class bigone(Exchange, ImplicitAPI):
         return {
             'info': response,
             'currency': code,
-            'network': self.network_id_to_code(selectedNetworkId),
+            'network': self.network_id_to_code(selectedNetworkId, code),
             'address': address,
             'tag': tag,
         }
@@ -2047,7 +2049,7 @@ class bigone(Exchange, ImplicitAPI):
             # 'kind': 'string',  # optional - air_drop, big_holder_dividend, default, eosc_to_eos, internal, equally_airdrop, referral_mining, one_holder_dividend, single_customer, snapshotted_airdrop, trade_mining
             # 'asset_symbol': 'BTC',  # optional
         }
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
             request['asset_symbol'] = currency['id']
@@ -2097,7 +2099,7 @@ class bigone(Exchange, ImplicitAPI):
             # 'kind': 'string',  # optional - air_drop, big_holder_dividend, default, eosc_to_eos, internal, equally_airdrop, referral_mining, one_holder_dividend, single_customer, snapshotted_airdrop, trade_mining
             # 'asset_symbol': 'BTC',  # optional
         }
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
             request['asset_symbol'] = currency['id']
@@ -2222,10 +2224,10 @@ class bigone(Exchange, ImplicitAPI):
         }
         if tag is not None:
             request['memo'] = tag
-        networkCode = None
+        networkCode: Str = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:
-            request['gateway_name'] = self.network_code_to_id(networkCode)
+            request['gateway_name'] = self.network_code_to_id(networkCode, currency['code'])
         # requires write permission on the wallet
         response = self.privatePostWithdrawals(self.extend(request, params))
         #

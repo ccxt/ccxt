@@ -1,6 +1,6 @@
 
 import assert from 'assert';
-import { Exchange } from "../../../../ccxt";
+import { Exchange } from "../../../../ccxt.js";
 import testLiquidation from '../../../test/Exchange/base/test.liquidation.js';
 import { NetworkError } from '../../../base/errors.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
@@ -16,12 +16,14 @@ async function testWatchLiquidations (exchange: Exchange, skippedProperties: obj
     const skippedExchanges = [];
 
     if (exchange.inArray (exchange.id, skippedExchanges)) {
-        console.log (exchange.id, method + '() test skipped');
+        const m1 = (exchange.id + ' ' + method + '() test skipped');
+        console.log (m1);
         return false;
     }
 
     if (!exchange.has[method]) {
-        console.log (exchange.id, 'does not support', method + '() method');
+        const m2 = (exchange.id + ' does not support ' + method + '() method');
+        console.log (m2);
         return false;
     }
 
@@ -41,7 +43,8 @@ async function testWatchLiquidations (exchange: Exchange, skippedProperties: obj
             const isArray = Array.isArray (response);
             assert (isArray, "response must be an array");
 
-            console.log (exchange.iso8601 (now), exchange.id, symbol, method, Object.values (response).length, 'liquidations');
+            const m3 = (exchange.id + ' ' + method + '() returned ' + response.length + ' liquidations');
+            console.log (m3);
 
             // log.noLocate (asTable (response))
 

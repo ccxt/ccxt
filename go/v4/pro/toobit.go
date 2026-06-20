@@ -59,7 +59,7 @@ func  (this *ToobitCore) Describe() any  {
                     "1w": "1w",
                     "1M": "1M",
                 },
-                "watchOrderBook": map[string]any {
+                "watchOrderBookForSymbols": map[string]any {
                     "channel": "depth",
                 },
                 "listenKeyRefreshRate": 1200000,
@@ -659,7 +659,7 @@ func  (this *ToobitCore) WatchOrderBookForSymbols(symbols any, optionalArgs ...a
             ccxt.PanicOnError(retRes5288)
             symbols = this.MarketSymbols(symbols, nil, false)
             var channel any = nil
-            channelparamsVariable := this.HandleOptionAndParams(params, "watchOrderBook", "channel", "depth")
+            channelparamsVariable := this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "channel", "depth")
             channel = ccxt.GetValue(channelparamsVariable,0)
             params = ccxt.GetValue(channelparamsVariable,1)
             var messageHashes any = []any{}
@@ -738,7 +738,7 @@ func  (this *ToobitCore) HandleOrderBook(client any, message any)  {
     }
 }
 func  (this *ToobitCore) HandleDelta(bookside any, delta any)  {
-    var bidAsk any = this.ParseBidAsk(delta)
+    var bidAsk any = this.ParseOrderBookBidAsk(delta)
     bookside.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 }
 func  (this *ToobitCore) HandleOrderBookPartialSnapshot(client any, message any)  {

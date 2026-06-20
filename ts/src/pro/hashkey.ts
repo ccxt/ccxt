@@ -575,13 +575,17 @@ export default class hashkey extends hashkeyRest {
         const marketId = this.safeString (trade, 's');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (trade, 't');
-        const isMaker = this.safeBool (trade, 'm');
+        const isBuyerMaker = this.safeBool (trade, 'm');
+        const isPublicTrade = this.safeString (trade, 'e') === undefined;
+        let side: Str = undefined;
         let takerOrMaker: Str = undefined;
-        if (isMaker !== undefined) {
-            if (isMaker) {
-                takerOrMaker = 'maker';
-            } else {
+        if (isBuyerMaker !== undefined) {
+            if (isPublicTrade) {
                 takerOrMaker = 'taker';
+                side = isBuyerMaker ? 'sell' : 'buy';
+            } else {
+                takerOrMaker = isBuyerMaker ? 'maker' : 'taker';
+                side = this.safeStringLower (trade, 'S');
             }
         }
         return this.safeTrade ({
@@ -589,7 +593,7 @@ export default class hashkey extends hashkeyRest {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
-            'side': this.safeStringLower (trade, 'S'),
+            'side': side,
             'price': this.safeString (trade, 'p'),
             'amount': this.safeString (trade, 'q'),
             'cost': undefined,

@@ -323,40 +323,39 @@ class coinone extends Exchange {
         //         )
         //     }
         //
-        $result = array();
         $currencies = $this->safe_list($response, 'currencies', array());
-        for ($i = 0; $i < count($currencies); $i++) {
-            $entry = $currencies[$i];
-            $id = $this->safe_string($entry, 'symbol');
-            $code = $this->safe_currency_code($id);
-            $isWithdrawEnabled = $this->safe_string($entry, 'withdraw_status', '') === 'normal';
-            $isDepositEnabled = $this->safe_string($entry, 'deposit_status', '') === 'normal';
-            $type = ($code !== 'KRW') ? 'crypto' : 'fiat';
-            $result[$code] = $this->safe_currency_structure(array(
-                'id' => $id,
-                'code' => $code,
-                'info' => $entry,
-                'name' => $this->safe_string($entry, 'name'),
-                'active' => null,
-                'deposit' => $isDepositEnabled,
-                'withdraw' => $isWithdrawEnabled,
-                'fee' => $this->safe_number($entry, 'withdrawal_fee'),
-                'precision' => $this->parse_number($this->parse_precision($this->safe_string($entry, 'max_precision'))),
-                'limits' => array(
-                    'amount' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'withdraw' => array(
-                        'min' => $this->safe_number($entry, 'withdrawal_min_amount'),
-                        'max' => null,
-                    ),
+        return $this->parse_currencies($currencies);
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $id = $this->safe_string($rawCurrency, 'symbol');
+        $code = $this->safe_currency_code($id);
+        $isWithdrawEnabled = $this->safe_string($rawCurrency, 'withdraw_status', '') === 'normal';
+        $isDepositEnabled = $this->safe_string($rawCurrency, 'deposit_status', '') === 'normal';
+        $type = ($code !== 'KRW') ? 'crypto' : 'fiat';
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'code' => $code,
+            'info' => $rawCurrency,
+            'name' => $this->safe_string($rawCurrency, 'name'),
+            'active' => null,
+            'deposit' => $isDepositEnabled,
+            'withdraw' => $isWithdrawEnabled,
+            'fee' => $this->safe_number($rawCurrency, 'withdrawal_fee'),
+            'precision' => $this->parse_number($this->parse_precision($this->safe_string($rawCurrency, 'max_precision'))),
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
                 ),
-                'networks' => array(),
-                'type' => $type,
-            ));
-        }
-        return $result;
+                'withdraw' => array(
+                    'min' => $this->safe_number($rawCurrency, 'withdrawal_min_amount'),
+                    'max' => null,
+                ),
+            ),
+            'networks' => array(),
+            'type' => $type,
+        ));
     }
 
     public function fetch_markets($params = array ()): array {
@@ -1133,14 +1132,12 @@ class coinone extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($symbol === null) {
-            // eslint-disable-next-line quotes
             throw new ArgumentsRequired($this->id . " cancelOrder() requires a $symbol argument. To cancel the order, pass a $symbol argument and array('price' => 12345, 'qty' => 1.2345, 'is_ask' => 0) in the $params argument of cancelOrder.");
         }
         $price = $this->safe_number($params, 'price');
         $qty = $this->safe_number($params, 'qty');
         $isAsk = $this->safe_integer($params, 'is_ask');
         if (($price === null) || ($qty === null) || ($isAsk === null)) {
-            // eslint-disable-next-line quotes
             throw new ArgumentsRequired($this->id . " cancelOrder() requires array('price' => 12345, 'qty' => 1.2345, 'is_ask' => 0) in the $params argument.");
         }
         $this->load_markets();

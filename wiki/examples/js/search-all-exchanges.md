@@ -1,8 +1,5 @@
-- [Search All Exchanges](./examples/js/)
-
-
- ```javascript
- import asTable from 'as-table';
+```javascript
+import asTable from 'as-table';
 import ololog from 'ololog';
 import path from 'path';
 import fs from 'fs';
@@ -168,5 +165,5 @@ const checkAgainst = strict ?
     process.exit ()
 
 }) ()
- 
+
 ```

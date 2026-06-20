@@ -19,7 +19,7 @@ export default class onetrading extends Exchange {
         return this.deepExtend(super.describe(), {
             'id': 'onetrading',
             'name': 'One Trading',
-            'countries': ['AT'],
+            'countries': ['AT'], // Austria
             'rateLimit': 300,
             'version': 'v1',
             'pro': true,
@@ -354,8 +354,8 @@ export default class onetrading extends Exchange {
                     'fetchMyTrades': {
                         'marginMode': false,
                         'limit': 100,
-                        'daysBack': 100000,
-                        'untilDays': 100000,
+                        'daysBack': 100000, // todo
+                        'untilDays': 100000, // todo
                         'symbolRequired': false,
                     },
                     'fetchOrder': {
@@ -371,13 +371,13 @@ export default class onetrading extends Exchange {
                         'trailing': false,
                         'symbolRequired': false,
                     },
-                    'fetchOrders': undefined,
+                    'fetchOrders': undefined, // todo
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 100,
-                        'daysBack': 100000,
-                        'daysBackCanceled': 1 / 12,
-                        'untilDays': 100000,
+                        'daysBack': 100000, // todo
+                        'daysBackCanceled': 1 / 12, // todo
+                        'untilDays': 100000, // todo
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
@@ -436,29 +436,27 @@ export default class onetrading extends Exchange {
         //         },
         //     ]
         //
-        const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const currency = response[i];
-            const id = this.safeString(currency, 'code');
-            const code = this.safeCurrencyCode(id);
-            result[code] = this.safeCurrencyStructure({
-                'id': id,
-                'code': code,
-                'name': this.safeString(currency, 'name'),
-                'info': currency,
-                'active': undefined,
-                'fee': undefined,
-                'precision': this.parseNumber(this.parsePrecision(this.safeString(currency, 'precision'))),
-                'withdraw': undefined,
-                'deposit': undefined,
-                'limits': {
-                    'amount': { 'min': undefined, 'max': undefined },
-                    'withdraw': { 'min': undefined, 'max': undefined },
-                },
-                'networks': {},
-            });
-        }
-        return result;
+        return this.parseCurrencies(response);
+    }
+    parseCurrency(rawCurrency) {
+        const id = this.safeString(rawCurrency, 'code');
+        const code = this.safeCurrencyCode(id);
+        return this.safeCurrencyStructure({
+            'id': id,
+            'code': code,
+            'name': this.safeString(rawCurrency, 'name'),
+            'info': rawCurrency,
+            'active': undefined,
+            'fee': undefined,
+            'precision': this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 'precision'))),
+            'withdraw': undefined,
+            'deposit': undefined,
+            'limits': {
+                'amount': { 'min': undefined, 'max': undefined },
+                'withdraw': { 'min': undefined, 'max': undefined },
+            },
+            'networks': {},
+        });
     }
     /**
      * @method
@@ -1354,8 +1352,8 @@ export default class onetrading extends Exchange {
         const uppercaseType = type.toUpperCase();
         const request = {
             'instrument_code': market['id'],
-            'type': uppercaseType,
-            'side': side.toUpperCase(),
+            'type': uppercaseType, // LIMIT, MARKET, STOP
+            'side': side.toUpperCase(), // or SELL
             'amount': this.amountToPrecision(symbol, amount),
             // "price": "1234.5678", // required for LIMIT and STOP orders
             // "client_id": "d75fb03b-b599-49e9-b926-3f0b6d103206", // optional

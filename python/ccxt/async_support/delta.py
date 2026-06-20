@@ -354,9 +354,9 @@ class delta(Exchange, ImplicitAPI):
         quote = 'USDT'
         optionParts = symbol.split('-')
         symbolBase = symbol.split('/')
-        base = None
+        base: Str = None
         expiry = None
-        optionType = None
+        optionType: Str = None
         if symbol.find('/') > -1:
             base = self.safe_string(symbolBase, 0)
             expiry = self.safe_string(optionParts, 1)
@@ -371,6 +371,7 @@ class delta(Exchange, ImplicitAPI):
         strike = self.safe_string(optionParts, 2)
         datetime = self.convert_expire_date(expiry)
         timestamp = self.parse8601(datetime)
+        optionTypeUnified = 'call' if (optionType == 'C') else 'put'
         return {
             'id': optionType + '-' + base + '-' + strike + '-' + expiry,
             'symbol': base + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
@@ -393,7 +394,7 @@ class delta(Exchange, ImplicitAPI):
             'contractSize': self.parse_number('1'),
             'expiry': timestamp,
             'expiryDatetime': datetime,
-            'optionType': 'call' if (optionType == 'C') else 'put',
+            'optionType': optionTypeUnified,
             'strike': self.parse_number(strike),
             'precision': {
                 'amount': None,
@@ -565,60 +566,59 @@ class delta(Exchange, ImplicitAPI):
         #     }
         #
         currencies = self.safe_list(response, 'result', [])
-        result: dict = {}
-        for i in range(0, len(currencies)):
-            currency = currencies[i]
-            id = self.safe_string(currency, 'symbol')
-            numericId = self.safe_integer(currency, 'id')
-            code = self.safe_currency_code(id)
-            chains = self.safe_list(currency, 'networks', [])
-            networks = {}
-            for j in range(0, len(chains)):
-                chain = chains[j]
-                networkId = self.safe_string(chain, 'network')
-                networkCode = self.network_id_to_code(networkId)
-                networks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'name': self.safe_string(chain, 'name'),
-                    'info': chain,
-                    'active': self.safe_string(chain, 'status') == 'enabled',
-                    'deposit': self.safe_string(chain, 'deposit_status') == 'enabled',
-                    'withdraw': self.safe_string(chain, 'withdrawal_status') == 'enabled',
-                    'fee': self.safe_number(chain, 'base_withdrawal_fee'),
-                    'limits': {
-                        'deposit': {
-                            'min': self.safe_number(chain, 'min_deposit_amount'),
-                            'max': None,
-                        },
-                        'withdraw': {
-                            'min': self.safe_number(chain, 'min_withdrawal_amount'),
-                            'max': None,
-                        },
-                    },
-                }
-            result[code] = self.safe_currency_structure({
-                'id': id,
-                'numericId': numericId,
-                'code': code,
-                'name': self.safe_string(currency, 'name'),
-                'info': currency,  # the original payload
-                'active': None,
-                'deposit': self.safe_string(currency, 'deposit_status') == 'enabled',
-                'withdraw': self.safe_string(currency, 'withdrawal_status') == 'enabled',
-                'fee': self.safe_number(currency, 'base_withdrawal_fee'),
-                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'precision'))),
+        return self.parse_currencies(currencies)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        id = self.safe_string(rawCurrency, 'symbol')
+        numericId = self.safe_integer(rawCurrency, 'id')
+        code = self.safe_currency_code(id)
+        chains = self.safe_list(rawCurrency, 'networks', [])
+        networks = {}
+        for j in range(0, len(chains)):
+            chain = chains[j]
+            networkId = self.safe_string(chain, 'network')
+            networkCode = self.network_id_to_code(networkId, code)
+            networks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
+                'name': self.safe_string(chain, 'name'),
+                'info': chain,
+                'active': self.safe_string(chain, 'status') == 'enabled',
+                'deposit': self.safe_string(chain, 'deposit_status') == 'enabled',
+                'withdraw': self.safe_string(chain, 'withdrawal_status') == 'enabled',
+                'fee': self.safe_number(chain, 'base_withdrawal_fee'),
                 'limits': {
-                    'amount': {'min': None, 'max': None},
+                    'deposit': {
+                        'min': self.safe_number(chain, 'min_deposit_amount'),
+                        'max': None,
+                    },
                     'withdraw': {
-                        'min': self.safe_number(currency, 'min_withdrawal_amount'),
+                        'min': self.safe_number(chain, 'min_withdrawal_amount'),
                         'max': None,
                     },
                 },
-                'networks': networks,
-                'type': 'crypto',
-            })
-        return result
+            }
+        return self.safe_currency_structure({
+            'id': id,
+            'numericId': numericId,
+            'code': code,
+            'name': self.safe_string(rawCurrency, 'name'),
+            'info': rawCurrency,  # the original payload
+            'active': None,
+            'deposit': self.safe_string(rawCurrency, 'deposit_status') == 'enabled',
+            'withdraw': self.safe_string(rawCurrency, 'withdrawal_status') == 'enabled',
+            'fee': self.safe_number(rawCurrency, 'base_withdrawal_fee'),
+            'precision': self.parse_number(self.parse_precision(self.safe_string(rawCurrency, 'precision'))),
+            'limits': {
+                'amount': {'min': None, 'max': None},
+                'withdraw': {
+                    'min': self.safe_number(rawCurrency, 'min_withdrawal_amount'),
+                    'max': None,
+                },
+            },
+            'networks': networks,
+            'type': 'crypto',
+        })
 
     async def load_markets(self, reload=False, params={}):
         markets = await super(delta, self).load_markets(reload, params)
@@ -863,14 +863,14 @@ class delta(Exchange, ImplicitAPI):
             expiryDatetime = self.safe_string(market, 'settlement_time')
             expiry = self.parse8601(expiryDatetime)
             contractSize = self.safe_number(market, 'contract_value')
-            amountPrecision = None
+            amountPrecision: Num = None
             if spot:
                 amountPrecision = self.parse_number(self.parse_precision(self.safe_string(productSpecs, 'underlying_precision')))  # seems inverse of 'impact_size'
             else:
                 # other markets(swap, futures, move, spread, irs) seem to use the step of '1' contract
                 amountPrecision = self.parse_number('1')
             linear = (settle == quote)
-            optionType = None
+            optionType: Str = None
             symbol = base + '/' + quote
             if swap or future or option:
                 symbol = symbol + ':' + settle
@@ -1779,7 +1779,7 @@ class delta(Exchange, ImplicitAPI):
         symbol = market['symbol']
         timestamp = self.safe_integer_product(position, 'timestamp', 0.001)
         sizeString = self.safe_string(position, 'size')
-        side = None
+        side: Str = None
         if sizeString is not None:
             if Precise.string_gt(sizeString, '0'):
                 side = 'buy'
@@ -1883,7 +1883,7 @@ class delta(Exchange, ImplicitAPI):
         id = self.safe_string(order, 'id')
         clientOrderId = self.safe_string(order, 'client_order_id')
         createdAt = self.safe_string(order, 'created_at')
-        timestamp = None
+        timestamp: Int = None
         if createdAt is not None:
             if createdAt.find('-') >= 0:
                 timestamp = self.parse8601(createdAt)
@@ -1905,7 +1905,7 @@ class delta(Exchange, ImplicitAPI):
         fee = None
         feeCostString = self.safe_string(order, 'paid_commission')
         if feeCostString is not None:
-            feeCurrencyCode = None
+            feeCurrencyCode: Str = None
             if market is not None:
                 settlingAsset = self.safe_dict(market['info'], 'settling_asset', {})
                 feeCurrencyId = self.safe_string(settlingAsset, 'symbol')
@@ -2167,13 +2167,13 @@ class delta(Exchange, ImplicitAPI):
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
         clientOrderId = self.safe_string_n(params, ['clientOrderId', 'client_oid', 'clientOid'])
         params = self.omit(params, ['clientOrderId', 'client_oid', 'clientOid'])
         request: dict = {}
-        response = None
+        response: dict = None
         if clientOrderId is not None:
             request['client_oid'] = clientOrderId
             response = await self.privateGetOrdersClientOrderIdClientOid(self.extend(request, params))
@@ -2247,7 +2247,7 @@ class delta(Exchange, ImplicitAPI):
             # 'before',  # before cursor for pagination
             # 'page_size': limit,  # number of records per page
         }
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['product_ids'] = market['numericId']  # accepts a comma-separated list of ids
@@ -2255,7 +2255,7 @@ class delta(Exchange, ImplicitAPI):
             request['start_time'] = str(since) + '000'
         if limit is not None:
             request['page_size'] = limit
-        response = None
+        response: dict = None
         if method == 'privateGetOrders':
             response = await self.privateGetOrders(self.extend(request, params))
         elif method == 'privateGetOrdersHistory':
@@ -2308,7 +2308,7 @@ class delta(Exchange, ImplicitAPI):
             # 'before',  # before cursor for pagination
             # 'page_size': limit,  # number of records per page
         }
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['product_ids'] = market['numericId']  # accepts a comma-separated list of ids
@@ -2385,7 +2385,7 @@ class delta(Exchange, ImplicitAPI):
             # 'before': 'string',  # before cursor for pagination
             # 'page_size': limit,
         }
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
             request['asset_id'] = currency['numericId']
@@ -2448,7 +2448,7 @@ class delta(Exchange, ImplicitAPI):
         #     }
         #
         id = self.safe_string(item, 'uuid')
-        direction = None
+        direction: Str = None
         account = None
         metaData = self.safe_dict(item, 'meta_data', {})
         referenceId = self.safe_string(metaData, 'transaction_id')
@@ -2542,11 +2542,12 @@ class delta(Exchange, ImplicitAPI):
         address = self.safe_string(depositAddress, 'address')
         marketId = self.safe_string(depositAddress, 'asset_symbol')
         networkId = self.safe_string(depositAddress, 'network')
+        code = self.safe_currency_code(marketId, currency)
         self.check_address(address)
         return {
             'info': depositAddress,
-            'currency': self.safe_currency_code(marketId, currency),
-            'network': self.network_id_to_code(networkId),
+            'currency': code,
+            'network': self.network_id_to_code(networkId, code),
             'address': address,
             'tag': self.safe_string(depositAddress, 'memo'),
         }
@@ -3074,7 +3075,7 @@ class delta(Exchange, ImplicitAPI):
         :returns dict[]: a list of `settlement history objects <https://docs.ccxt.com/?id=settlement-history-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
         request: dict = {
@@ -3398,7 +3399,7 @@ class delta(Exchange, ImplicitAPI):
         :returns dict: a `margin mode structure <https://docs.ccxt.com/?id=margin-mode-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
         response = await self.privateGetProfile(params)
@@ -3469,7 +3470,7 @@ class delta(Exchange, ImplicitAPI):
         return self.parse_margin_mode(result, market)
 
     def parse_margin_mode(self, marginMode: dict, market=None) -> MarginMode:
-        symbol = None
+        symbol: Str = None
         if market is not None:
             symbol = market['symbol']
         return {

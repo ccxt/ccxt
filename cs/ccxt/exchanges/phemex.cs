@@ -702,6 +702,7 @@ public partial class phemex : Exchange
             // "1.0"
             contractSize = this.parseNumber(contractSizeString);
         }
+        object isLinear = !isTrue(inverse);
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", add(add(add(add(bs, "/"), quote), ":"), settle) },
@@ -719,7 +720,7 @@ public partial class phemex : Exchange
             { "option", false },
             { "active", isEqual(status, "Listed") },
             { "contract", true },
-            { "linear", !isTrue(inverse) },
+            { "linear", isLinear },
             { "inverse", inverse },
             { "taker", this.parseNumber(this.fromEn(takerFeeRateEr, ratioScale)) },
             { "maker", this.parseNumber(this.fromEn(makerFeeRateEr, ratioScale)) },
@@ -1128,52 +1129,51 @@ public partial class phemex : Exchange
         //     }
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object currencies = this.safeValue(data, "currencies", new List<object>() {});
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(currencies)); postFixIncrement(ref i))
+        return this.parseCurrencies(currencies);
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
+        object id = this.safeString(rawCurrency, "currency");
+        object code = this.safeCurrencyCode(id);
+        object valueScaleString = this.safeString(rawCurrency, "valueScale");
+        object valueScale = parseInt(valueScaleString);
+        object minValueEv = this.safeString(rawCurrency, "minValueEv");
+        object maxValueEv = this.safeString(rawCurrency, "maxValueEv");
+        object minAmount = null;
+        object maxAmount = null;
+        object precision = null;
+        if (isTrue(!isEqual(valueScale, null)))
         {
-            object currency = getValue(currencies, i);
-            object id = this.safeString(currency, "currency");
-            object code = this.safeCurrencyCode(id);
-            object valueScaleString = this.safeString(currency, "valueScale");
-            object valueScale = parseInt(valueScaleString);
-            object minValueEv = this.safeString(currency, "minValueEv");
-            object maxValueEv = this.safeString(currency, "maxValueEv");
-            object minAmount = null;
-            object maxAmount = null;
-            object precision = null;
-            if (isTrue(!isEqual(valueScale, null)))
-            {
-                object precisionString = this.parsePrecision(valueScaleString);
-                precision = this.parseNumber(precisionString);
-                minAmount = this.parseNumber(Precise.stringMul(minValueEv, precisionString));
-                maxAmount = this.parseNumber(Precise.stringMul(maxValueEv, precisionString));
-            }
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "id", id },
-                { "info", currency },
-                { "code", code },
-                { "name", this.safeString(currency, "name") },
-                { "active", isEqual(this.safeString(currency, "status"), "Listed") },
-                { "deposit", null },
-                { "withdraw", null },
-                { "fee", null },
-                { "precision", precision },
-                { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", minAmount },
-                        { "max", maxAmount },
-                    } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                } },
-                { "valueScale", valueScale },
-                { "networks", null },
-                { "type", "crypto" },
-            });
+            object precisionString = this.parsePrecision(valueScaleString);
+            precision = this.parseNumber(precisionString);
+            minAmount = this.parseNumber(Precise.stringMul(minValueEv, precisionString));
+            maxAmount = this.parseNumber(Precise.stringMul(maxValueEv, precisionString));
         }
-        return result;
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "id", id },
+            { "info", rawCurrency },
+            { "code", code },
+            { "name", this.safeString(rawCurrency, "name") },
+            { "active", isEqual(this.safeString(rawCurrency, "status"), "Listed") },
+            { "deposit", null },
+            { "withdraw", null },
+            { "fee", null },
+            { "precision", precision },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", minAmount },
+                    { "max", maxAmount },
+                } },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+            { "valueScale", valueScale },
+            { "networks", null },
+            { "type", "crypto" },
+        });
     }
 
     public virtual object customParseBidAsk(object bidask, object priceKey = null, object amountKey = null, object market = null)
@@ -4004,7 +4004,7 @@ public partial class phemex : Exchange
             { "txid", txid },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "network", this.networkIdToCode(networkId) },
+            { "network", this.networkIdToCode(networkId, code) },
             { "address", address },
             { "addressTo", address },
             { "addressFrom", null },
@@ -4205,7 +4205,7 @@ public partial class phemex : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(200, limit);
         }
-        object response = await ((Task<object>)callDynamically(this, "privateGetApiDataGFuturesClosedPosition", new object[] { this.extend(request, parameters) }));
+        object response = await this.privateGetApiDataGFuturesClosedPosition(this.extend(request, parameters));
         //
         //    {
         //        "code": "0",
@@ -4932,11 +4932,12 @@ public partial class phemex : Exchange
         {
             object tier = getValue(riskLimits, i);
             object maxNotional = this.safeInteger(tier, "limit");
+            object minNotionalResponse = minNotional; // java req
             ((IList<object>)tiers).Add(new Dictionary<string, object>() {
                 { "tier", this.sum(i, 1) },
                 { "symbol", this.safeSymbol(marketId, market) },
                 { "currency", getValue(market, "settle") },
-                { "minNotional", minNotional },
+                { "minNotional", minNotionalResponse },
                 { "maxNotional", maxNotional },
                 { "maintenanceMarginRate", this.safeString(tier, "maintenanceMargin") },
                 { "maxLeverage", null },
@@ -5414,7 +5415,7 @@ public partial class phemex : Exchange
         object networkId = null;
         if (isTrue(!isEqual(networkCode, null)))
         {
-            networkId = this.networkCodeToId(networkCode);
+            networkId = this.networkCodeToId(networkCode, code);
         }
         object stableCoins = this.safeValue(this.options, "stableCoins");
         if (isTrue(isEqual(networkId, null)))

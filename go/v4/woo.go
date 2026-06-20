@@ -1118,63 +1118,15 @@ func (this *WooCore) FetchCurrencies(optionalArgs ...any) <-chan any {
 		var tokensById any = this.GroupBy(tokenRows, "balance_token")
 		var currencyIds any = ObjectKeys(tokensById)
 		for i := 0; IsLessThan(i, GetArrayLength(currencyIds)); i++ {
-			var currencyId any = GetValue(currencyIds, i)
-			var code any = this.SafeCurrencyCode(currencyId)
-			var tokensByNetworkId any = this.IndexBy(GetValue(tokensById, currencyId), "network")
-			var chainsByNetworkId any = this.IndexBy(GetValue(networksById, currencyId), "network")
-			var keys any = ObjectKeys(chainsByNetworkId)
-			var resultingNetworks any = map[string]any{}
-			for j := 0; IsLessThan(j, GetArrayLength(keys)); j++ {
-				var networkId any = GetValue(keys, j)
-				var tokenEntry any = this.SafeDict(tokensByNetworkId, networkId, map[string]any{})
-				var networkEntry any = this.SafeDict(chainsByNetworkId, networkId, map[string]any{})
-				var networkCode any = this.NetworkIdToCode(networkId, code)
-				var specialNetworkId any = this.SafeString(tokenEntry, "token")
-				AddElementToObject(resultingNetworks, networkCode, map[string]any{
-					"id":                networkId,
-					"currencyNetworkId": specialNetworkId,
-					"network":           networkCode,
-					"active":            nil,
-					"deposit":           IsEqual(this.SafeString(networkEntry, "allow_deposit"), "1"),
-					"withdraw":          IsEqual(this.SafeString(networkEntry, "allow_withdraw"), "1"),
-					"fee":               this.SafeNumber(networkEntry, "withdrawal_fee"),
-					"precision":         this.ParseNumber(this.ParsePrecision(this.SafeString(tokenEntry, "decimals"))),
-					"limits": map[string]any{
-						"withdraw": map[string]any{
-							"min": this.SafeNumber(networkEntry, "minimum_withdrawal"),
-							"max": nil,
-						},
-						"deposit": map[string]any{
-							"min": nil,
-							"max": nil,
-						},
-					},
-					"info": []any{networkEntry, tokenEntry},
-				})
+			var id any = GetValue(currencyIds, i)
+			var customCurrency any = map[string]any{
+				"_coin_id":        id,
+				"_tokens_by_id":   GetValue(tokensById, id),
+				"_networks_by_id": GetValue(networksById, id),
 			}
-			AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]any{
-				"id":        currencyId,
-				"name":      nil,
-				"code":      code,
-				"precision": nil,
-				"active":    nil,
-				"fee":       nil,
-				"networks":  resultingNetworks,
-				"deposit":   nil,
-				"withdraw":  nil,
-				"type":      "crypto",
-				"limits": map[string]any{
-					"deposit": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-					"withdraw": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-				},
-				"info": []any{tokensByNetworkId, chainsByNetworkId},
-			}))
+			var parsed any = this.ParseCurrency(customCurrency)
+			var code any = GetValue(parsed, "code")
+			AddElementToObject(result, code, parsed)
 		}
 
 		ch <- result
@@ -1182,6 +1134,68 @@ func (this *WooCore) FetchCurrencies(optionalArgs ...any) <-chan any {
 
 	}()
 	return ch
+}
+func (this *WooCore) ParseCurrency(rawCurrency any) any {
+	var currencyId any = this.SafeString(rawCurrency, "_coin_id")
+	var code any = this.SafeCurrencyCode(currencyId)
+	var tokensByNetworkId any = this.IndexBy(GetValue(rawCurrency, "_tokens_by_id"), "network")
+	var chainsByNetworkId any = this.IndexBy(GetValue(rawCurrency, "_networks_by_id"), "network")
+	var keys any = ObjectKeys(chainsByNetworkId)
+	var resultingNetworks any = map[string]any{}
+	for j := 0; IsLessThan(j, GetArrayLength(keys)); j++ {
+		var networkId any = GetValue(keys, j)
+		var tokenEntry any = this.SafeDict(tokensByNetworkId, networkId, map[string]any{})
+		var networkEntry any = this.SafeDict(chainsByNetworkId, networkId, map[string]any{})
+		var networkCode any = this.NetworkIdToCode(networkId, code)
+		var specialNetworkId any = this.SafeString(tokenEntry, "token")
+		AddElementToObject(resultingNetworks, networkCode, map[string]any{
+			"id":                networkId,
+			"currencyNetworkId": specialNetworkId,
+			"network":           networkCode,
+			"active":            nil,
+			"deposit":           IsEqual(this.SafeString(networkEntry, "allow_deposit"), "1"),
+			"withdraw":          IsEqual(this.SafeString(networkEntry, "allow_withdraw"), "1"),
+			"fee":               this.SafeNumber(networkEntry, "withdrawal_fee"),
+			"precision":         this.ParseNumber(this.ParsePrecision(this.SafeString(tokenEntry, "decimals"))),
+			"limits": map[string]any{
+				"withdraw": map[string]any{
+					"min": this.SafeNumber(networkEntry, "minimum_withdrawal"),
+					"max": nil,
+				},
+				"deposit": map[string]any{
+					"min": nil,
+					"max": nil,
+				},
+			},
+			"info": map[string]any{
+				"network": networkEntry,
+				"token":   tokenEntry,
+			},
+		})
+	}
+	return this.SafeCurrencyStructure(map[string]any{
+		"id":        currencyId,
+		"name":      nil,
+		"code":      code,
+		"precision": nil,
+		"active":    nil,
+		"fee":       nil,
+		"networks":  resultingNetworks,
+		"deposit":   nil,
+		"withdraw":  nil,
+		"type":      "crypto",
+		"limits": map[string]any{
+			"deposit": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+			"withdraw": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+		},
+		"info": rawCurrency,
+	})
 }
 
 /**
@@ -1202,16 +1216,16 @@ func (this *WooCore) CreateMarketBuyOrderWithCost(symbol any, cost any, optional
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes11058 := (<-this.LoadMarkets())
-		PanicOnError(retRes11058)
+		retRes11178 := (<-this.LoadMarkets())
+		PanicOnError(retRes11178)
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "spot")) {
 			panic(NotSupported(Add(this.Id, " createMarketBuyOrderWithCost() supports spot orders only")))
 		}
 
-		retRes111015 := (<-this.CreateOrder(symbol, "market", "buy", cost, 1, params))
-		PanicOnError(retRes111015)
-		ch <- retRes111015
+		retRes112215 := (<-this.CreateOrder(symbol, "market", "buy", cost, 1, params))
+		PanicOnError(retRes112215)
+		ch <- retRes112215
 		return nil
 
 	}()
@@ -1236,16 +1250,16 @@ func (this *WooCore) CreateMarketSellOrderWithCost(symbol any, cost any, optiona
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes11248 := (<-this.LoadMarkets())
-		PanicOnError(retRes11248)
+		retRes11368 := (<-this.LoadMarkets())
+		PanicOnError(retRes11368)
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "spot")) {
 			panic(NotSupported(Add(this.Id, " createMarketSellOrderWithCost() supports spot orders only")))
 		}
 
-		retRes112915 := (<-this.CreateOrder(symbol, "market", "sell", cost, 1, params))
-		PanicOnError(retRes112915)
-		ch <- retRes112915
+		retRes114115 := (<-this.CreateOrder(symbol, "market", "sell", cost, 1, params))
+		PanicOnError(retRes114115)
+		ch <- retRes114115
 		return nil
 
 	}()
@@ -1289,9 +1303,9 @@ func (this *WooCore) CreateTrailingAmountOrder(symbol any, typeVar any, side any
 		AddElementToObject(params, "trailingAmount", trailingAmount)
 		AddElementToObject(params, "trailingTriggerPrice", trailingTriggerPrice)
 
-		retRes115615 := (<-this.CreateOrder(symbol, typeVar, side, amount, price, params))
-		PanicOnError(retRes115615)
-		ch <- retRes115615
+		retRes116815 := (<-this.CreateOrder(symbol, typeVar, side, amount, price, params))
+		PanicOnError(retRes116815)
+		ch <- retRes116815
 		return nil
 
 	}()
@@ -1335,9 +1349,9 @@ func (this *WooCore) CreateTrailingPercentOrder(symbol any, typeVar any, side an
 		AddElementToObject(params, "trailingPercent", trailingPercent)
 		AddElementToObject(params, "trailingTriggerPrice", trailingTriggerPrice)
 
-		retRes118315 := (<-this.CreateOrder(symbol, typeVar, side, amount, price, params))
-		PanicOnError(retRes118315)
-		ch <- retRes118315
+		retRes119515 := (<-this.CreateOrder(symbol, typeVar, side, amount, price, params))
+		PanicOnError(retRes119515)
+		ch <- retRes119515
 		return nil
 
 	}()
@@ -1383,8 +1397,8 @@ func (this *WooCore) CreateOrder(symbol any, typeVar any, side any, amount any, 
 		params = this.Omit(params, []any{"reduceOnly", "reduce_only"})
 		var orderType any = ToUpper(typeVar)
 
-		retRes12168 := (<-this.LoadMarkets())
-		PanicOnError(retRes12168)
+		retRes12288 := (<-this.LoadMarkets())
+		PanicOnError(retRes12288)
 		var market any = this.Market(symbol)
 		var orderSide any = ToUpper(side)
 		var request any = map[string]any{
@@ -1572,8 +1586,8 @@ func (this *WooCore) EditOrder(id any, symbol any, typeVar any, side any, option
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
-		retRes14148 := (<-this.LoadMarkets())
-		PanicOnError(retRes14148)
+		retRes14268 := (<-this.LoadMarkets())
+		PanicOnError(retRes14268)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(price, nil)) {
@@ -1680,8 +1694,8 @@ func (this *WooCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 		}
 
-		retRes15028 := (<-this.LoadMarkets())
-		PanicOnError(retRes15028)
+		retRes15148 := (<-this.LoadMarkets())
+		PanicOnError(retRes15148)
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -1757,8 +1771,8 @@ func (this *WooCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes15608 := (<-this.LoadMarkets())
-		PanicOnError(retRes15608)
+		retRes15728 := (<-this.LoadMarkets())
+		PanicOnError(retRes15728)
 		var trigger any = this.SafeBool2(params, "stop", "trigger")
 		params = this.Omit(params, []any{"stop", "trigger"})
 		var request any = map[string]any{}
@@ -1813,8 +1827,8 @@ func (this *WooCore) CancelAllOrdersAfter(timeout any, optionalArgs ...any) <-ch
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes15978 := (<-this.LoadMarkets())
-		PanicOnError(retRes15978)
+		retRes16098 := (<-this.LoadMarkets())
+		PanicOnError(retRes16098)
 		var request any = map[string]any{
 			"triggerAfter": Ternary(IsTrue((IsGreaterThan(timeout, 0))), mathMin(timeout, 900000), 0),
 		}
@@ -1860,8 +1874,8 @@ func (this *WooCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes16278 := (<-this.LoadMarkets())
-		PanicOnError(retRes16278)
+		retRes16398 := (<-this.LoadMarkets())
+		PanicOnError(retRes16398)
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -1929,17 +1943,17 @@ func (this *WooCore) FetchOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes17408 := (<-this.LoadMarkets())
-		PanicOnError(retRes17408)
+		retRes17528 := (<-this.LoadMarkets())
+		PanicOnError(retRes17528)
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes174419 := (<-this.FetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, params, "page", 500))
-			PanicOnError(retRes174419)
-			ch <- retRes174419
+			retRes175619 := (<-this.FetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, params, "page", 500))
+			PanicOnError(retRes175619)
+			ch <- retRes175619
 			return nil
 		}
 		var request any = map[string]any{}
@@ -2012,15 +2026,15 @@ func (this *WooCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes18798 := (<-this.LoadMarkets())
-		PanicOnError(retRes18798)
+		retRes18918 := (<-this.LoadMarkets())
+		PanicOnError(retRes18918)
 		var extendedParams any = this.Extend(params, map[string]any{
 			"status": "INCOMPLETE",
 		})
 
-		retRes188115 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
-		PanicOnError(retRes188115)
-		ch <- retRes188115
+		retRes189315 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
+		PanicOnError(retRes189315)
+		ch <- retRes189315
 		return nil
 
 	}()
@@ -2058,15 +2072,15 @@ func (this *WooCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes19028 := (<-this.LoadMarkets())
-		PanicOnError(retRes19028)
+		retRes19148 := (<-this.LoadMarkets())
+		PanicOnError(retRes19148)
 		var extendedParams any = this.Extend(params, map[string]any{
 			"status": "COMPLETED",
 		})
 
-		retRes190415 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
-		PanicOnError(retRes190415)
-		ch <- retRes190415
+		retRes191615 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
+		PanicOnError(retRes191615)
+		ch <- retRes191615
 		return nil
 
 	}()
@@ -2078,7 +2092,7 @@ func (this *WooCore) ParseTimeInForce(timeInForce any) any {
 		"fok":       "FOK",
 		"post_only": "PO",
 	}
-	return this.SafeString(timeInForces, timeInForce, nil)
+	return this.SafeString(timeInForces, timeInForce)
 }
 func (this *WooCore) ParseOrder(order any, optionalArgs ...any) any {
 	//
@@ -2271,8 +2285,8 @@ func (this *WooCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any 
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes20978 := (<-this.LoadMarkets())
-		PanicOnError(retRes20978)
+		retRes21098 := (<-this.LoadMarkets())
+		PanicOnError(retRes21098)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -2341,8 +2355,8 @@ func (this *WooCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes21468 := (<-this.LoadMarkets())
-		PanicOnError(retRes21468)
+		retRes21588 := (<-this.LoadMarkets())
+		PanicOnError(retRes21588)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -2425,8 +2439,8 @@ func (this *WooCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes22158 := (<-this.LoadMarkets())
-		PanicOnError(retRes22158)
+		retRes22278 := (<-this.LoadMarkets())
+		PanicOnError(retRes22278)
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -2490,17 +2504,17 @@ func (this *WooCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes22598 := (<-this.LoadMarkets())
-		PanicOnError(retRes22598)
+		retRes22718 := (<-this.LoadMarkets())
+		PanicOnError(retRes22718)
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes226319 := (<-this.FetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, params, "page", 500))
-			PanicOnError(retRes226319)
-			ch <- retRes226319
+			retRes227519 := (<-this.FetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, params, "page", 500))
+			PanicOnError(retRes227519)
+			ch <- retRes227519
 			return nil
 		}
 		var request any = map[string]any{}
@@ -2696,8 +2710,8 @@ func (this *WooCore) FetchBalance(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes24328 := (<-this.LoadMarkets())
-		PanicOnError(retRes24328)
+		retRes24448 := (<-this.LoadMarkets())
+		PanicOnError(retRes24448)
 
 		response := (<-this.V3PrivateGetAssetBalances(params))
 		PanicOnError(response)
@@ -2766,8 +2780,8 @@ func (this *WooCore) FetchDepositAddress(code any, optionalArgs ...any) <-chan a
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes24888 := (<-this.LoadMarkets())
-		PanicOnError(retRes24888)
+		retRes25008 := (<-this.LoadMarkets())
+		PanicOnError(retRes25008)
 		var currency any = this.Currency(code)
 		var networkCode any = nil
 		networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
@@ -2775,7 +2789,7 @@ func (this *WooCore) FetchDepositAddress(code any, optionalArgs ...any) <-chan a
 		params = GetValue(networkCodeparamsVariable, 1)
 		var request any = map[string]any{
 			"token":   GetValue(currency, "id"),
-			"network": this.NetworkCodeToId(networkCode),
+			"network": this.NetworkCodeToId(networkCode, GetValue(currency, "code")),
 		}
 
 		response := (<-this.V3PrivateGetAssetWalletDeposit(this.Extend(request, params)))
@@ -2839,8 +2853,8 @@ func (this *WooCore) GetAssetHistoryRows(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes25378 := (<-this.LoadMarkets())
-		PanicOnError(retRes25378)
+		retRes25498 := (<-this.LoadMarkets())
+		PanicOnError(retRes25498)
 		var request any = map[string]any{}
 		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
@@ -2852,7 +2866,7 @@ func (this *WooCore) GetAssetHistoryRows(optionalArgs ...any) <-chan any {
 		networkCode = GetValue(networkCodeparamsVariable, 0)
 		params = GetValue(networkCodeparamsVariable, 1)
 		if IsTrue(!IsEqual(networkCode, nil)) {
-			AddElementToObject(request, "network", this.NetworkCodeToId(networkCode))
+			AddElementToObject(request, "network", this.NetworkCodeToId(networkCode, GetValue(currency, "code")))
 		}
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "startTime", since)
@@ -2876,7 +2890,7 @@ func (this *WooCore) GetAssetHistoryRows(optionalArgs ...any) <-chan any {
 		//                 {
 		//                     "createdTime": "1734964440.523",
 		//                     "updatedTime": "1734964614.081",
-		//                     "id": "24122314340000585",
+		//                     "id": "24122314340000586",
 		//                     "externalId": "241223143600621",
 		//                     "applicationId": "251bf5c4-f3c8-4544-bb8b-80001007c3c0",
 		//                     "token": "ARB_USDCNATIVE",
@@ -3050,9 +3064,9 @@ func (this *WooCore) FetchDeposits(optionalArgs ...any) <-chan any {
 			"tokenSide": "DEPOSIT",
 		}
 
-		retRes270715 := (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes270715)
-		ch <- retRes270715
+		retRes271915 := (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes271915)
+		ch <- retRes271915
 		return nil
 
 	}()
@@ -3087,9 +3101,9 @@ func (this *WooCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 			"tokenSide": "WITHDRAW",
 		}
 
-		retRes272515 := (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes272515)
-		ch <- retRes272515
+		retRes273715 := (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes273715)
+		ch <- retRes273715
 		return nil
 
 	}()
@@ -3191,7 +3205,7 @@ func (this *WooCore) ParseTransaction(transaction any, optionalArgs ...any) any 
 		"comment":     nil,
 		"internal":    nil,
 		"fee":         fee,
-		"network":     this.NetworkIdToCode(this.SafeString(transaction, "network")),
+		"network":     this.NetworkIdToCode(this.SafeString(transaction, "network"), code),
 	}
 }
 func (this *WooCore) ParseTransactionStatus(status any) any {
@@ -3225,8 +3239,8 @@ func (this *WooCore) Transfer(code any, amount any, fromAccount any, toAccount a
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes28318 := (<-this.LoadMarkets())
-		PanicOnError(retRes28318)
+		retRes28438 := (<-this.LoadMarkets())
+		PanicOnError(retRes28438)
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
 			"token":  GetValue(currency, "id"),
@@ -3448,8 +3462,8 @@ func (this *WooCore) Withdraw(code any, amount any, address any, optionalArgs ..
 		tag = GetValue(tagparamsVariable, 0)
 		params = GetValue(tagparamsVariable, 1)
 
-		retRes30168 := (<-this.LoadMarkets())
-		PanicOnError(retRes30168)
+		retRes30288 := (<-this.LoadMarkets())
+		PanicOnError(retRes30288)
 		this.CheckAddress(address)
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -3465,7 +3479,7 @@ func (this *WooCore) Withdraw(code any, amount any, address any, optionalArgs ..
 		}
 		params = this.Omit(params, "network")
 		AddElementToObject(request, "token", GetValue(currency, "id"))
-		AddElementToObject(request, "network", this.NetworkCodeToId(network))
+		AddElementToObject(request, "network", this.NetworkCodeToId(network, GetValue(currency, "code")))
 
 		response := (<-this.V3PrivatePostAssetWalletWithdraw(this.Extend(request, params)))
 		PanicOnError(response)
@@ -3516,8 +3530,8 @@ func (this *WooCore) RepayMargin(code any, amount any, optionalArgs ...any) <-ch
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes30678 := (<-this.LoadMarkets())
-		PanicOnError(retRes30678)
+		retRes30798 := (<-this.LoadMarkets())
+		PanicOnError(retRes30798)
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -3734,17 +3748,17 @@ func (this *WooCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes32508 := (<-this.LoadMarkets())
-		PanicOnError(retRes32508)
+		retRes32628 := (<-this.LoadMarkets())
+		PanicOnError(retRes32628)
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes325419 := (<-this.FetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, params, "page", 500))
-			PanicOnError(retRes325419)
-			ch <- retRes325419
+			retRes326619 := (<-this.FetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, params, "page", 500))
+			PanicOnError(retRes326619)
+			ch <- retRes326619
 			return nil
 		}
 		var request any = map[string]any{}
@@ -3875,9 +3889,9 @@ func (this *WooCore) FetchFundingInterval(symbol any, optionalArgs ...any) <-cha
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes336915 := (<-this.FetchFundingRate(symbol, params))
-		PanicOnError(retRes336915)
-		ch <- retRes336915
+		retRes338115 := (<-this.FetchFundingRate(symbol, params))
+		PanicOnError(retRes338115)
+		ch <- retRes338115
 		return nil
 
 	}()
@@ -3901,8 +3915,8 @@ func (this *WooCore) FetchFundingRate(symbol any, optionalArgs ...any) <-chan an
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes33828 := (<-this.LoadMarkets())
-		PanicOnError(retRes33828)
+		retRes33948 := (<-this.LoadMarkets())
+		PanicOnError(retRes33948)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -3960,8 +3974,8 @@ func (this *WooCore) FetchFundingRates(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes34248 := (<-this.LoadMarkets())
-		PanicOnError(retRes34248)
+		retRes34368 := (<-this.LoadMarkets())
+		PanicOnError(retRes34368)
 		symbols = this.MarketSymbols(symbols)
 
 		response := (<-this.V3PublicGetFundingRate(params))
@@ -4023,17 +4037,17 @@ func (this *WooCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes34668 := (<-this.LoadMarkets())
-		PanicOnError(retRes34668)
+		retRes34788 := (<-this.LoadMarkets())
+		PanicOnError(retRes34788)
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes347019 := (<-this.FetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, params, "page", 25))
-			PanicOnError(retRes347019)
-			ch <- retRes347019
+			retRes348219 := (<-this.FetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, params, "page", 25))
+			PanicOnError(retRes348219)
+			ch <- retRes348219
 			return nil
 		}
 		if IsTrue(IsEqual(symbol, nil)) {
@@ -4164,8 +4178,8 @@ func (this *WooCore) FetchLeverage(symbol any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes35698 := (<-this.LoadMarkets())
-		PanicOnError(retRes35698)
+		retRes35818 := (<-this.LoadMarkets())
+		PanicOnError(retRes35818)
 		var market any = this.Market(symbol)
 		var response any = nil
 		if IsTrue(GetValue(market, "spot")) {
@@ -4253,8 +4267,8 @@ func (this *WooCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes37058 := (<-this.LoadMarkets())
-		PanicOnError(retRes37058)
+		retRes37178 := (<-this.LoadMarkets())
+		PanicOnError(retRes37178)
 		var request any = map[string]any{
 			"leverage": leverage,
 		}
@@ -4264,9 +4278,9 @@ func (this *WooCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsTrue((IsEqual(symbol, nil))) || IsTrue(GetValue(market, "spot"))) {
 
-			retRes371419 := (<-this.V3PrivatePostSpotMarginLeverage(this.Extend(request, params)))
-			PanicOnError(retRes371419)
-			ch <- retRes371419
+			retRes372619 := (<-this.V3PrivatePostSpotMarginLeverage(this.Extend(request, params)))
+			PanicOnError(retRes372619)
+			ch <- retRes372619
 			return nil
 		} else if IsTrue(GetValue(market, "swap")) {
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -4276,9 +4290,9 @@ func (this *WooCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any {
 			params = GetValue(marginModeparamsVariable, 1)
 			AddElementToObject(request, "marginMode", this.EncodeMarginMode(marginMode))
 
-			retRes372019 := (<-this.V3PrivatePutFuturesLeverage(this.Extend(request, params)))
-			PanicOnError(retRes372019)
-			ch <- retRes372019
+			retRes373219 := (<-this.V3PrivatePutFuturesLeverage(this.Extend(request, params)))
+			PanicOnError(retRes373219)
+			ch <- retRes373219
 			return nil
 		} else {
 			panic(NotSupported(Add(Add(Add(this.Id, " fetchLeverage() is not supported for "), GetValue(market, "type")), " markets")))
@@ -4307,9 +4321,9 @@ func (this *WooCore) AddMargin(symbol any, amount any, optionalArgs ...any) <-ch
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes373815 := (<-this.ModifyMarginHelper(symbol, amount, "ADD", params))
-		PanicOnError(retRes373815)
-		ch <- retRes373815
+		retRes375015 := (<-this.ModifyMarginHelper(symbol, amount, "ADD", params))
+		PanicOnError(retRes375015)
+		ch <- retRes375015
 		return nil
 
 	}()
@@ -4335,9 +4349,9 @@ func (this *WooCore) ReduceMargin(symbol any, amount any, optionalArgs ...any) <
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes375315 := (<-this.ModifyMarginHelper(symbol, amount, "REDUCE", params))
-		PanicOnError(retRes375315)
-		ch <- retRes375315
+		retRes376515 := (<-this.ModifyMarginHelper(symbol, amount, "REDUCE", params))
+		PanicOnError(retRes376515)
+		ch <- retRes376515
 		return nil
 
 	}()
@@ -4351,8 +4365,8 @@ func (this *WooCore) ModifyMarginHelper(symbol any, amount any, typeVar any, opt
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes37578 := (<-this.LoadMarkets())
-		PanicOnError(retRes37578)
+		retRes37698 := (<-this.LoadMarkets())
+		PanicOnError(retRes37698)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol":        GetValue(market, "id"),
@@ -4361,9 +4375,9 @@ func (this *WooCore) ModifyMarginHelper(symbol any, amount any, typeVar any, opt
 			"action":        typeVar,
 		}
 
-		retRes376515 := (<-this.V1PrivatePostClientIsolatedMargin(this.Extend(request, params)))
-		PanicOnError(retRes376515)
-		ch <- retRes376515
+		retRes377715 := (<-this.V1PrivatePostClientIsolatedMargin(this.Extend(request, params)))
+		PanicOnError(retRes377715)
+		ch <- retRes377715
 		return nil
 
 	}()
@@ -4387,8 +4401,8 @@ func (this *WooCore) FetchPosition(symbol any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes37788 := (<-this.LoadMarkets())
-		PanicOnError(retRes37788)
+		retRes37908 := (<-this.LoadMarkets())
+		PanicOnError(retRes37908)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -4457,8 +4471,8 @@ func (this *WooCore) FetchPositions(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes38318 := (<-this.LoadMarkets())
-		PanicOnError(retRes38318)
+		retRes38438 := (<-this.LoadMarkets())
+		PanicOnError(retRes38438)
 
 		response := (<-this.V3PrivateGetFuturesPositions(params))
 		PanicOnError(response)
@@ -4631,8 +4645,8 @@ func (this *WooCore) FetchConvertQuote(fromCode any, toCode any, optionalArgs ..
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes39878 := (<-this.LoadMarkets())
-		PanicOnError(retRes39878)
+		retRes39998 := (<-this.LoadMarkets())
+		PanicOnError(retRes39998)
 		var request any = map[string]any{
 			"sellToken":    ToUpper(fromCode),
 			"buyToken":     ToUpper(toCode),
@@ -4692,8 +4706,8 @@ func (this *WooCore) CreateConvertTrade(id any, fromCode any, toCode any, option
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes40318 := (<-this.LoadMarkets())
-		PanicOnError(retRes40318)
+		retRes40438 := (<-this.LoadMarkets())
+		PanicOnError(retRes40438)
 		var request any = map[string]any{
 			"quoteId": id,
 		}
@@ -4739,8 +4753,8 @@ func (this *WooCore) FetchConvertTrade(id any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes40618 := (<-this.LoadMarkets())
-		PanicOnError(retRes40618)
+		retRes40738 := (<-this.LoadMarkets())
+		PanicOnError(retRes40738)
 		var request any = map[string]any{
 			"quoteId": id,
 		}
@@ -4806,8 +4820,8 @@ func (this *WooCore) FetchConvertTradeHistory(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes41078 := (<-this.LoadMarkets())
-		PanicOnError(retRes41078)
+		retRes41198 := (<-this.LoadMarkets())
+		PanicOnError(retRes41198)
 		var request any = map[string]any{}
 		requestparamsVariable := this.HandleUntilOption("endTime", request, params)
 		request = GetValue(requestparamsVariable, 0)
@@ -4925,8 +4939,8 @@ func (this *WooCore) FetchConvertCurrencies(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes42068 := (<-this.LoadMarkets())
-		PanicOnError(retRes42068)
+		retRes42188 := (<-this.LoadMarkets())
+		PanicOnError(retRes42188)
 
 		response := (<-this.V3PrivateGetConvertAssetInfo(params))
 		PanicOnError(response)
@@ -5005,8 +5019,8 @@ func (this *WooCore) FetchPositionsADLRank(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes42698 := (<-this.LoadMarkets())
-		PanicOnError(retRes42698)
+		retRes42818 := (<-this.LoadMarkets())
+		PanicOnError(retRes42818)
 		symbols = this.MarketSymbols(symbols, nil, true, true, true)
 
 		response := (<-this.V3PrivateGetFuturesPositions(params))

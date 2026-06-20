@@ -1,8 +1,5 @@
-- [Env Variables](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 
 // ----------------------------------------------------------------------------
 
@@ -28,5 +25,5 @@ const log = ololog.configure.handleNodeErrors (), asTable = require("as-table").
     log.green (balance)
 
 })()
- 
+
 ```

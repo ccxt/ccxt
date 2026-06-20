@@ -133,7 +133,7 @@ public partial class dydx : Exchange
                 { "www", "https://www.dydx.xyz" },
                 { "doc", new List<object>() {"https://docs.dydx.xyz"} },
                 { "fees", new List<object>() {"https://docs.dydx.exchange/introduction-trading_fees"} },
-                { "referral", "dydx.trade?ref=ccxt" },
+                { "referral", "https://dydx.trade?ref=ccxt" },
             } },
             { "api", new Dictionary<string, object>() {
                 { "indexer", new Dictionary<string, object>() {
@@ -666,7 +666,7 @@ public partial class dydx : Exchange
         };
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit;
+            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
         }
         object response = await this.indexerGetTradesPerpetualMarketMarket(this.extend(request, parameters));
         //

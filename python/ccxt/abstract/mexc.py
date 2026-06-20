@@ -132,6 +132,7 @@ class ImplicitAPI:
     contract_private_get_position_funding_records = contractPrivateGetPositionFundingRecords = Entry('position/funding_records', ['contract', 'private'], 'GET', {'cost': 2})
     contract_private_get_position_position_mode = contractPrivateGetPositionPositionMode = Entry('position/position_mode', ['contract', 'private'], 'GET', {'cost': 2})
     contract_private_get_order_list_open_orders_symbol = contractPrivateGetOrderListOpenOrdersSymbol = Entry('order/list/open_orders/{symbol}', ['contract', 'private'], 'GET', {'cost': 2})
+    contract_private_get_order_list_open_orders = contractPrivateGetOrderListOpenOrders = Entry('order/list/open_orders', ['contract', 'private'], 'GET', {'cost': 2})
     contract_private_get_order_list_history_orders = contractPrivateGetOrderListHistoryOrders = Entry('order/list/history_orders', ['contract', 'private'], 'GET', {'cost': 2})
     contract_private_get_order_list_order_deals_v3 = contractPrivateGetOrderListOrderDealsV3 = Entry('order/list/order_deals/v3', ['contract', 'private'], 'GET', {'cost': 2})
     contract_private_get_order_external_symbol_external_oid = contractPrivateGetOrderExternalSymbolExternalOid = Entry('order/external/{symbol}/{external_oid}', ['contract', 'private'], 'GET', {'cost': 2})

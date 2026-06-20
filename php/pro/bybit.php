@@ -18,7 +18,12 @@ use \React\Promise\PromiseInterface;
 class bybit extends \ccxt\async\bybit {
 
     public function describe(): mixed {
-        return $this->deep_extend(parent::describe(), array(
+        $superDescribe = parent::describe();
+        return $this->deep_extend($superDescribe, $this->describe_data());
+    }
+
+    public function describe_data(): mixed {
+        return array(
             'has' => array(
                 'ws' => true,
                 'createOrderWs' => true,
@@ -171,7 +176,7 @@ class bybit extends \ccxt\async\bybit {
                 'ping' => array($this, 'ping'),
                 'keepAlive' => 18000,
             ),
-        ));
+        );
     }
 
     public function request_id() {
@@ -1077,7 +1082,7 @@ class bybit extends \ccxt\async\bybit {
     }
 
     public function handle_delta($bookside, $delta) {
-        $bidAsk = $this->parse_bid_ask($delta, 0, 1);
+        $bidAsk = $this->parse_order_book_bid_ask($delta, 0, 1);
         $bookside->storeArray ($bidAsk);
     }
 
@@ -2482,7 +2487,7 @@ class bybit extends \ccxt\async\bybit {
                     unset($client->subscriptions[$messageHash]);
                 }
             } else {
-                $messageHash = $this->safe_string($message, 'reqId');
+                $messageHash = $this->safe_string_2($message, 'req_id', 'reqId');
                 $client->reject ($error, $messageHash);
             }
             return true;
@@ -2542,10 +2547,18 @@ class bybit extends \ccxt\async\bybit {
             $exacMethod($client, $message);
             return;
         }
+        // 'order' is a substring of 'orderbook', so an orderbook $topic like
+        // 'orderbook.50.BTCUSDT' could be wrongly captured by the 'order' $key in a
+        // first-match loop (in Go map iteration order is randomized). Check the
+        // orderbook prefix explicitly, then fall back to a simple first-match.
+        if (mb_strpos($topic, 'orderbook') !== false) {
+            $this->handle_order_book($client, $message);
+            return;
+        }
         $keys = is_array($methods) ? array_keys($methods) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
-            if (mb_strpos($topic, $keys[$i]) !== false) {
+            if (mb_strpos($topic, $key) !== false) {
                 $method = $methods[$key];
                 $method($client, $message);
                 return;

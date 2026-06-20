@@ -1,8 +1,5 @@
-- [Async Multiple Accounts](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import asyncio
 import os
@@ -33,5 +30,5 @@ async def test():
 
 if __name__ == '__main__':
     asyncio.run(test())
- 
+
 ```

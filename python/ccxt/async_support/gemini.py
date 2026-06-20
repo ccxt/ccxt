@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.gemini import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
+from ccxt.base.types import Any, Balances, Bool, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -448,50 +448,28 @@ class gemini(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        result: dict = {}
         self.options['tradingPairs'] = self.safe_list(data, 'tradingPairs')
         currenciesArray = self.safe_value(data, 'currencies', [])
-        for i in range(0, len(currenciesArray)):
-            currency = currenciesArray[i]
-            id = self.safe_string(currency, 0)
-            code = self.safe_currency_code(id)
-            type = 'fiat' if self.safe_string(currency, 7) else 'crypto'
-            precision = self.parse_number(self.parse_precision(self.safe_string(currency, 5)))
-            networks: dict = {}
-            networkId = self.safe_string(currency, 9)
-            networkCode = None
-            if networkId is not None:
-                networkCode = self.network_id_to_code(networkId)
-                networks[networkCode] = {
-                    'info': currency,
-                    'id': networkId,
-                    'network': networkCode,
-                    'active': None,
-                    'deposit': None,
-                    'withdraw': None,
-                    'fee': None,
-                    'precision': precision,
-                    'limits': {
-                        'deposit': {
-                            'min': None,
-                            'max': None,
-                        },
-                        'withdraw': {
-                            'min': None,
-                            'max': None,
-                        },
-                    },
-                }
-            result[code] = self.safe_currency_structure({
-                'info': currency,
-                'id': id,
-                'code': code,
-                'name': self.safe_string(currency, 1),
+        return self.parse_currencies(currenciesArray)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        id = self.safe_string(rawCurrency, 0)
+        code = self.safe_currency_code(id)
+        type = 'fiat' if self.safe_string(rawCurrency, 7) else 'crypto'
+        precision = self.parse_number(self.parse_precision(self.safe_string(rawCurrency, 5)))
+        networks: dict = {}
+        networkId = self.safe_string(rawCurrency, 9)
+        networkCode: Str = None
+        if networkId is not None:
+            networkCode = self.network_id_to_code(networkId, code)
+            networks[networkCode] = {
+                'info': rawCurrency,
+                'id': networkId,
+                'network': networkCode,
                 'active': None,
                 'deposit': None,
                 'withdraw': None,
                 'fee': None,
-                'type': type,
                 'precision': precision,
                 'limits': {
                     'deposit': {
@@ -503,9 +481,30 @@ class gemini(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
-                'networks': networks,
-            })
-        return result
+            }
+        return self.safe_currency_structure({
+            'info': rawCurrency,
+            'id': id,
+            'code': code,
+            'name': self.safe_string(rawCurrency, 1),
+            'active': None,
+            'deposit': None,
+            'withdraw': None,
+            'fee': None,
+            'type': type,
+            'precision': precision,
+            'limits': {
+                'deposit': {
+                    'min': None,
+                    'max': None,
+                },
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'networks': networks,
+        })
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -735,18 +734,18 @@ class gemini(Exchange, ImplicitAPI):
         #         "contract_price_currency": "GUSD"
         #     }
         #
-        marketId = None
-        baseId = None
-        quoteId = None
-        settleId = None
-        tickSize = None
-        amountPrecision = None
-        minSize = None
+        marketId: Str = None
+        baseId: Str = None
+        quoteId: Str = None
+        settleId: Str = None
+        tickSize: Num = None
+        amountPrecision: Num = None
+        minSize: Num = None
         status = None
         swap = False
-        contractSize = None
-        linear = None
-        inverse = None
+        contractSize: Num = None
+        linear: Bool = None
+        inverse: Bool = None
         isString = (isinstance(response, str))
         isArray = (isinstance(response, list))
         if not isString and not isArray:
@@ -800,6 +799,7 @@ class gemini(Exchange, ImplicitAPI):
             linear = True  # always linear
             inverse = False
         type = 'swap' if swap else 'spot'
+        isSpot = not swap
         return {
             'id': marketId,
             'symbol': symbol,
@@ -810,7 +810,7 @@ class gemini(Exchange, ImplicitAPI):
             'quoteId': quoteId,
             'settleId': settleId,
             'type': type,
-            'spot': not swap,
+            'spot': isSpot,
             'margin': False,
             'swap': swap,
             'future': False,
@@ -987,13 +987,13 @@ class gemini(Exchange, ImplicitAPI):
         #
         volume = self.safe_value(ticker, 'volume', {})
         timestamp = self.safe_integer(volume, 'timestamp')
-        symbol = None
+        symbol: Str = None
         marketId = self.safe_string_lower(ticker, 'pair')
         market = self.safe_market(marketId, market)
-        baseId = None
-        quoteId = None
-        base = None
-        quote = None
+        baseId: Str = None
+        quoteId: Str = None
+        base: Str = None
+        quote: Str = None
         if (marketId is not None) and (market is None):
             idLength = len(marketId) - 0
             if idLength == 7:
@@ -1490,7 +1490,7 @@ class gemini(Exchange, ImplicitAPI):
         #          }
         #      ]
         #
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)  # throws on non-existent symbol
         return self.parse_orders(response, market, since, limit)
@@ -1754,7 +1754,7 @@ class gemini(Exchange, ImplicitAPI):
         type = self.safe_string_lower(transaction, 'type')
         # if status field is available, then it's complete
         statusRaw = self.safe_string(transaction, 'status')
-        fee = None
+        fee: Fee = None
         feeAmount = self.safe_number(transaction, 'feeAmount')
         if feeAmount is not None:
             fee = {
@@ -1822,7 +1822,7 @@ class gemini(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         groupedByNetwork = await self.fetch_deposit_addresses_by_network(code, params)
-        networkCode = None
+        networkCode: Str = None
         networkCode, params = self.handle_network_code_and_params(params)
         networkGroup = self.index_by(self.safe_value(groupedByNetwork, networkCode), 'currency')
         return self.safe_value(networkGroup, code)
@@ -1841,11 +1841,11 @@ class gemini(Exchange, ImplicitAPI):
         await self.load_markets()
         currency = self.currency(code)
         code = currency['code']
-        networkCode = None
+        networkCode: Str = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is None:
             raise ArgumentsRequired(self.id + ' fetchDepositAddresses() requires a network parameter')
-        networkId = self.network_code_to_id(networkCode)
+        networkId = self.network_code_to_id(networkCode, currency['code'])
         request: dict = {
             'network': networkId,
         }
@@ -1862,8 +1862,9 @@ class gemini(Exchange, ImplicitAPI):
             if apiKey.find('account') < 0:
                 raise AuthenticationError(self.id + ' sign() requires an account-key, master-keys are not-supported')
             nonce = str(self.nonce())
+            finalUrl = url
             request = self.extend({
-                'request': url,
+                'request': finalUrl,
                 'nonce': nonce,
             }, query)
             payload = self.json(request)
