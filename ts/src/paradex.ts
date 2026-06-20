@@ -7,7 +7,7 @@ import { Precise } from './base/Precise.js';
 import Exchange from './abstract/paradex.js';
 import { ExchangeError, PermissionDenied, AuthenticationError, BadRequest, ArgumentsRequired, OperationRejected, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Str, Num, Dict, Int, Market, OrderType, OrderSide, Order, OrderBook, Strings, Ticker, Tickers, Trade, Balances, Currency, Transaction, OHLCV, Position, int, MarginMode, Leverage, Greeks, FundingRateHistory, FundingHistory, Liquidation, TradingFeeInterface, TradingFees, TransferEntry, OrderRequest, Bool } from './base/types.js';
+import type { Str, Num, Dict, Int, Market, OrderType, OrderSide, Order, OrderBook, Strings, Ticker, Tickers, Trade, Balances, Currency, Transaction, OHLCV, Position, int, MarginMode, Leverage, Greeks, FundingRateHistory, FundingHistory, Liquidation, TradingFeeInterface, TradingFees, TransferEntry, OrderRequest, Bool, List } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 //  ---------------------------------------------------------------------------
 
@@ -793,7 +793,7 @@ export default class paradex extends Exchange {
         //         ]
         //     }
         //
-        const fees = this.safeList (response, 'results', []);
+        const fees = this.safeList (response, 'results', []) as List;
         const result: Dict = {};
         for (let i = 0; i < fees.length; i++) {
             const fee = this.parseTradingFee (fees[i]);
@@ -862,7 +862,7 @@ export default class paradex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'results', []);
+        const data = this.safeList (response, 'results', []) as List;
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
@@ -1114,7 +1114,7 @@ export default class paradex extends Exchange {
         //         ]
         //     }
         //
-        const trades = this.safeList (response, 'results', []);
+        const trades = this.safeList (response, 'results', []) as List;
         for (let i = 0; i < trades.length; i++) {
             trades[i]['next'] = this.safeString (response, 'next');
         }
@@ -1818,7 +1818,7 @@ export default class paradex extends Exchange {
     async createOrders (orders: OrderRequest[], params = {}): Promise<Order[]> {
         await this.authenticateRest ();
         await this.loadMarkets ();
-        const ordersRequests = [];
+        const ordersRequests : List = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const symbol = this.safeString (rawOrder, 'symbol');
@@ -1854,9 +1854,9 @@ export default class paradex extends Exchange {
         //     ]
         // }
         //
-        const responseOrders = this.safeList (response, 'orders', []);
+        const responseOrders = this.safeList (response, 'orders', []) as List;
         const parsedOrders = this.parseOrders (responseOrders);
-        const errors = this.safeList (response, 'errors', []);
+        const errors = this.safeList (response, 'errors', []) as List;
         for (let i = 0; i < errors.length; i++) {
             const error = errors[i];
             parsedOrders.push (this.safeOrder ({
@@ -1884,7 +1884,7 @@ export default class paradex extends Exchange {
         await this.loadMarkets ();
         const request: Dict = {};
         const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
-        let response: Dict = undefined;
+        let response: Dict;
         if (clientOrderId !== undefined) {
             request['client_id'] = clientOrderId;
             response = await this.privateDeleteOrdersByClientIdClientId (this.extend (request, params));
@@ -1951,8 +1951,8 @@ export default class paradex extends Exchange {
         //     ]
         // }
         //
-        const results = this.safeList (response, 'results', []);
-        const orders = [];
+        const results = this.safeList (response, 'results', []) as List;
+        const orders : List = [];
         for (let i = 0; i < results.length; i++) {
             const result = results[i];
             const marketId = this.safeString (result, 'market');
@@ -2021,7 +2021,7 @@ export default class paradex extends Exchange {
         const request: Dict = {};
         const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
         params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
-        let response: Dict = undefined;
+        let response: Dict;
         if (clientOrderId !== undefined) {
             request['client_id'] = clientOrderId;
             response = await this.privateGetOrdersByClientIdClientId (this.extend (request, params));
@@ -2128,7 +2128,7 @@ export default class paradex extends Exchange {
         //     ]
         //   }
         //
-        const orders = this.safeList (response, 'results', []);
+        const orders = this.safeList (response, 'results', []) as List;
         const paginationCursor = this.safeString (response, 'next');
         const ordersLength = orders.length;
         if ((paginationCursor !== undefined) && (ordersLength > 0)) {
@@ -2192,7 +2192,7 @@ export default class paradex extends Exchange {
         //     ]
         //   }
         //
-        const orders = this.safeList (response, 'results', []);
+        const orders = this.safeList (response, 'results', []) as List;
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -2294,7 +2294,7 @@ export default class paradex extends Exchange {
         //         ]
         //     }
         //
-        const trades = this.safeList (response, 'results', []);
+        const trades = this.safeList (response, 'results', []) as List;
         for (let i = 0; i < trades.length; i++) {
             trades[i]['next'] = this.safeString (response, 'next');
         }
@@ -2357,7 +2357,7 @@ export default class paradex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'results', []);
+        const data = this.safeList (response, 'results', []) as List;
         return this.parsePositions (data, symbols);
     }
 
@@ -2456,7 +2456,7 @@ export default class paradex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'results', []);
+        const data = this.safeList (response, 'results', []) as List;
         return this.parseLiquidations (data, market, since, limit);
     }
 
@@ -2533,8 +2533,8 @@ export default class paradex extends Exchange {
         //         ]
         //     }
         //
-        const rows = this.safeList (response, 'results', []);
-        const deposits = [];
+        const rows = this.safeList (response, 'results', []) as List;
+        const deposits : List = [];
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
             if (row['kind'] === 'DEPOSIT') {
@@ -2595,8 +2595,8 @@ export default class paradex extends Exchange {
         //         ]
         //     }
         //
-        const rows = this.safeList (response, 'results', []);
-        const deposits = [];
+        const rows = this.safeList (response, 'results', []) as List;
+        const deposits : List = [];
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
             if (row['kind'] === 'WITHDRAWAL') {
@@ -2661,7 +2661,7 @@ export default class paradex extends Exchange {
         //         ]
         //     }
         //
-        const rows = this.safeList (response, 'results', []);
+        const rows = this.safeList (response, 'results', []) as List;
         return this.parseTransfers (rows, currency, since, limit);
     }
 
@@ -2800,7 +2800,7 @@ export default class paradex extends Exchange {
         // }
         //
         const configs = this.safeList (response, 'configs');
-        return this.parseMarginMode (this.safeDict (configs, 0), market);
+        return this.parseMarginMode (this.safeDict (configs, 0) as Dict, market);
     }
 
     parseMarginMode (rawMarginMode: Dict, market = undefined): MarginMode {
@@ -2870,7 +2870,7 @@ export default class paradex extends Exchange {
         // }
         //
         const configs = this.safeList (response, 'configs');
-        return this.parseLeverage (this.safeDict (configs, 0), market);
+        return this.parseLeverage (this.safeDict (configs, 0) as Dict, market);
     }
 
     parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
@@ -2970,7 +2970,7 @@ export default class paradex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'results', []);
+        const data = this.safeList (response, 'results', []) as List;
         const greeks = this.safeDict (data, 0, {});
         return this.parseGreeks (greeks, market);
     }
@@ -3228,8 +3228,8 @@ export default class paradex extends Exchange {
         //     ]
         // }
         //
-        const results = this.safeList (response, 'results', []);
-        const rates = [];
+        const results = this.safeList (response, 'results', []) as List;
+        const rates : List = [];
         for (let i = 0; i < results.length; i++) {
             const rate = results[i];
             const timestamp = this.safeInteger (rate, 'created_at');
@@ -3246,7 +3246,7 @@ export default class paradex extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         let version = this.version;
         if (path.indexOf ('v2/') === 0) {
             version = 'v2';
