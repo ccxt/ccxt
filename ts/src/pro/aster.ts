@@ -4,7 +4,7 @@
 import asterRest from '../aster.js';
 import { Precise } from '../base/Precise.js';
 import { ArgumentsRequired } from '../base/errors.js';
-import type{ Balances, Str, Strings, Tickers, Dict, Ticker, Int, Trade, Order, OrderBook, OHLCV, Position, Market, NullableDict } from '../base/types.js';
+import type{ Balances, Str, Strings, Tickers, Dict, Ticker, Int, Trade, Order, OrderBook, OHLCV, Position, Market, NullableDict, List } from '../base/types.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 
@@ -161,8 +161,8 @@ export default class aster extends asterRest {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
         const url = this.urls['api']['ws']['public'][type];
-        const subscriptionArgs = [];
-        const messageHashes = [];
+        const subscriptionArgs: string[] = [];
+        const messageHashes: string[] = [];
         const request: Dict = {
             'method': 'SUBSCRIBE',
             'params': subscriptionArgs,
@@ -207,8 +207,8 @@ export default class aster extends asterRest {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
         const url = this.urls['api']['ws']['public'][type];
-        const subscriptionArgs = [];
-        const messageHashes = [];
+        const subscriptionArgs: string[] = [];
+        const messageHashes: string[] = [];
         const request: Dict = {
             'method': 'UNSUBSCRIBE',
             'params': subscriptionArgs,
@@ -281,8 +281,8 @@ export default class aster extends asterRest {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
         const url = this.urls['api']['ws']['public'][type];
-        const subscriptionArgs = [];
-        const messageHashes = [];
+        const subscriptionArgs: string[] = [];
+        const messageHashes: string[] = [];
         const request: Dict = {
             'method': 'SUBSCRIBE',
             'params': subscriptionArgs,
@@ -328,8 +328,8 @@ export default class aster extends asterRest {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
         const url = this.urls['api']['ws']['public'][type];
-        const subscriptionArgs = [];
-        const messageHashes = [];
+        const subscriptionArgs: string[] = [];
+        const messageHashes: string[] = [];
         const request: Dict = {
             'method': 'UNSUBSCRIBE',
             'params': subscriptionArgs,
@@ -449,8 +449,8 @@ export default class aster extends asterRest {
             throw new ArgumentsRequired (this.id + ' watchBidsAsks() requires a non-empty array of symbols');
         }
         const url = this.urls['api']['ws']['public'][type];
-        const subscriptionArgs = [];
-        const messageHashes = [];
+        const subscriptionArgs: string[] = [];
+        const messageHashes: string[] = [];
         const request: Dict = {
             'method': 'SUBSCRIBE',
             'params': subscriptionArgs,
@@ -492,8 +492,8 @@ export default class aster extends asterRest {
             throw new ArgumentsRequired (this.id + ' unWatchBidsAsks() requires a non-empty array of symbols');
         }
         const url = this.urls['api']['ws']['public'][type];
-        const subscriptionArgs = [];
-        const messageHashes = [];
+        const subscriptionArgs: string[] = [];
+        const messageHashes: string[] = [];
         const request: Dict = {
             'method': 'UNSUBSCRIBE',
             'params': subscriptionArgs,
@@ -595,7 +595,7 @@ export default class aster extends asterRest {
      */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, true, true, true);
+        symbols = this.marketSymbols (symbols, undefined, true, true, true) ?? [];
         const firstMarket = this.getMarketFromSymbols (symbols);
         const type = this.safeString (firstMarket, 'type', 'swap');
         const symbolsLength = symbols.length;
@@ -606,8 +606,8 @@ export default class aster extends asterRest {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
         const url = this.urls['api']['ws']['public'][type];
-        const subscriptionArgs = [];
-        const messageHashes = [];
+        const subscriptionArgs: string[] = [];
+        const messageHashes: string[] = [];
         const request: Dict = {
             'method': 'SUBSCRIBE',
             'params': subscriptionArgs,
@@ -641,7 +641,7 @@ export default class aster extends asterRest {
      */
     async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, true, true, true);
+        symbols = this.marketSymbols (symbols, undefined, true, true, true) ?? [];
         const firstMarket = this.getMarketFromSymbols (symbols);
         const type = this.safeString (firstMarket, 'type', 'swap');
         const symbolsLength = symbols.length;
@@ -652,8 +652,8 @@ export default class aster extends asterRest {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
         const url = this.urls['api']['ws']['public'][type];
-        const subscriptionArgs = [];
-        const messageHashes = [];
+        const subscriptionArgs: string[] = [];
+        const messageHashes: string[] = [];
         const request: Dict = {
             'method': 'UNSUBSCRIBE',
             'params': subscriptionArgs,
@@ -897,7 +897,7 @@ export default class aster extends asterRest {
      */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, true, true, true);
+        symbols = this.marketSymbols (symbols, undefined, true, true, true) ?? [];
         const firstMarket = this.getMarketFromSymbols (symbols);
         const type = this.safeString (firstMarket, 'type', 'swap');
         const symbolsLength = symbols.length;
@@ -908,8 +908,8 @@ export default class aster extends asterRest {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
         const url = this.urls['api']['ws']['public'][type];
-        const subscriptionArgs = [];
-        const messageHashes = [];
+        const subscriptionArgs: string[] = [];
+        const messageHashes: string[] = [];
         const request: Dict = {
             'method': 'SUBSCRIBE',
             'params': subscriptionArgs,
@@ -942,7 +942,7 @@ export default class aster extends asterRest {
      */
     async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, true, true, true);
+        symbols = this.marketSymbols (symbols, undefined, true, true, true) ?? [];
         const firstMarket = this.getMarketFromSymbols (symbols);
         const type = this.safeString (firstMarket, 'type', 'swap');
         const symbolsLength = symbols.length;
@@ -953,8 +953,8 @@ export default class aster extends asterRest {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
         const url = this.urls['api']['ws']['public'][type];
-        const subscriptionArgs = [];
-        const messageHashes = [];
+        const subscriptionArgs: string[] = [];
+        const messageHashes: string[] = [];
         const request: Dict = {
             'method': 'UNSUBSCRIBE',
             'params': subscriptionArgs,
@@ -1077,8 +1077,8 @@ export default class aster extends asterRest {
         const firstMarket = this.market (marketSymbols[0]);
         const type = this.safeString (firstMarket, 'type', 'swap');
         const url = this.urls['api']['ws']['public'][type];
-        const subscriptionArgs = [];
-        const messageHashes = [];
+        const subscriptionArgs: string[] = [];
+        const messageHashes: string[] = [];
         const request: Dict = {
             'method': 'SUBSCRIBE',
             'params': subscriptionArgs,
@@ -1125,8 +1125,8 @@ export default class aster extends asterRest {
         const firstMarket = this.market (marketSymbols[0]);
         const type = this.safeString (firstMarket, 'type', 'swap');
         const url = this.urls['api']['ws']['public'][type];
-        const subscriptionArgs = [];
-        const messageHashes = [];
+        const subscriptionArgs: string[] = [];
+        const messageHashes: string[] = [];
         const request: Dict = {
             'method': 'UNSUBSCRIBE',
             'params': subscriptionArgs,
@@ -1422,7 +1422,7 @@ export default class aster extends asterRest {
         const url = this.getPrivateUrl (type);
         const client = this.client (url);
         this.setPositionsCache (client);
-        const messageHashes = [];
+        const messageHashes: string[] = [];
         const messageHash = 'positions';
         symbols = this.marketSymbols (symbols, 'swap', true, true);
         if (symbols === undefined) {
@@ -1521,7 +1521,7 @@ export default class aster extends asterRest {
         const cache = this.positions;
         const data = this.safeDict (message, 'a', {});
         const rawPositions = this.safeList (data, 'P', []);
-        const newPositions = [];
+        const newPositions: List = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
             const position = this.parseWsPosition (rawPosition);
