@@ -1209,7 +1209,10 @@ export default class hyperliquid extends Exchange {
         await this.initializeClient ();
         this.checkEvents (outcome);
         const outcomeObj = this.outcome (outcome);
-        const market = this.market (this.safeString (outcomeObj, 'outcome'));
+        // markets are keyed by the parent market symbol; the outcome handle ("MARKET:LABEL")
+        // is not a market id, so resolve the market and price/amount precision via outcomeObj['market']
+        const marketSymbol = this.safeString (outcomeObj, 'market');
+        const market = this.market (marketSymbol);
         const outcomeInfo = this.safeDict (outcomeObj, 'info', {});
         const nonce = this.milliseconds ();
         const isBuy = (side.toUpperCase () === 'BUY');
@@ -1235,11 +1238,11 @@ export default class hyperliquid extends Exchange {
         if (isMarket) {
             const priceStr = this.numberToString (price);
             px = isBuy ? Precise.stringMul (priceStr, Precise.stringAdd ('1', slippage)) : Precise.stringMul (priceStr, Precise.stringSub ('1', slippage));
-            px = this.priceToPrecision (this.safeString (outcomeObj, 'outcome'), px);
+            px = this.priceToPrecision (marketSymbol, px);
         } else {
-            px = this.priceToPrecision (this.safeString (outcomeObj, 'outcome'), price);
+            px = this.priceToPrecision (marketSymbol, price);
         }
-        const sz = this.amountToPrecision (this.safeString (outcomeObj, 'outcome'), amount);
+        const sz = this.amountToPrecision (marketSymbol, amount);
         const orderType = {
             'limit': { 'tif': tif },
         };
@@ -1978,7 +1981,7 @@ export default class hyperliquid extends Exchange {
     signL1Action (action: Dict, nonce: number, vaultAddress: Str = undefined): Dict {
         this.checkRequiredCredentials ();
         const hash = this.actionHash (action, vaultAddress, nonce);
-        const isTestnet = this.safeBool (this.options, 'sandboxMode', true);
+        const isTestnet = this.safeBool (this.options, 'sandboxMode', false);
         const phantomAgent = this.constructPhantomAgent (hash, isTestnet);
         const zeroAddress = this.safeString (this.options, 'zeroAddress');
         const domain = {
