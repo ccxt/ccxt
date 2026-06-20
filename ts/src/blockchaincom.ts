@@ -3,7 +3,7 @@ import Exchange from './abstract/blockchaincom.js';
 import { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, Fee, Bool } from './base/types.js';
+import type { Balances, Currency, Dict, Int, List, Market, Num, NullableDict, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, Fee, Bool } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -326,7 +326,7 @@ export default class blockchaincom extends Exchange {
         //
         const markets = await this.publicGetSymbols (params);
         const marketIds = Object.keys (markets);
-        const result = [];
+        const result: List = [];
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeValue (markets, marketId);
@@ -359,15 +359,13 @@ export default class blockchaincom extends Exchange {
             const minOrderSizePreciseString = Precise.stringMul (minOrderSizeString, minOrderSizeScalePrecisionString);
             const minOrderSize = this.parseNumber (minOrderSizePreciseString);
             // maximum order size
-            let maxOrderSize = undefined;
-            maxOrderSize = this.safeString (market, 'max_order_size');
-            if (maxOrderSize !== '0') {
+            let maxOrderSize: Num = undefined;
+            const maxOrderSizeRaw = this.safeString (market, 'max_order_size');
+            if (maxOrderSizeRaw !== '0') {
                 const maxOrderSizeScaleString = this.safeString (market, 'max_order_size_scale');
                 const maxOrderSizeScalePrecisionString = this.parsePrecision (maxOrderSizeScaleString);
-                const maxOrderSizeString = Precise.stringMul (maxOrderSize, maxOrderSizeScalePrecisionString);
-                maxOrderSize = this.parseNumber (maxOrderSizeString);
-            } else {
-                maxOrderSize = undefined;
+                const maxOrderSizeValueString = Precise.stringMul (maxOrderSizeRaw, maxOrderSizeScalePrecisionString);
+                maxOrderSize = this.parseNumber (maxOrderSizeValueString);
             }
             result.push ({
                 'info': market,
@@ -631,7 +629,7 @@ export default class blockchaincom extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const orderType = this.safeString (params, 'ordType', type);
-        const uppercaseOrderType = orderType.toUpperCase ();
+        const uppercaseOrderType = orderType!.toUpperCase ();
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clOrdId', this.uuid16 ());
         params = this.omit (params, [ 'ordType', 'clientOrderId', 'clOrdId' ]);
         const request: Dict = {
@@ -641,7 +639,7 @@ export default class blockchaincom extends Exchange {
             // 'minQty' : The minimum quantity required for an IOC fill
             'ordType': uppercaseOrderType,
             'symbol': market['id'],
-            'side': side.toUpperCase (),
+            'side': side!.toUpperCase (),
             'orderQty': this.amountToPrecision (symbol, amount),
             'clOrdId': clientOrderId,
         };
@@ -750,8 +748,8 @@ export default class blockchaincom extends Exchange {
         const makerFee = this.safeNumber (response, 'makerRate');
         const takerFee = this.safeNumber (response, 'takerRate');
         const result: Dict = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        for (let i = 0; i < this.symbols!.length; i++) {
+            const symbol = this.symbols![i];
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
@@ -843,7 +841,7 @@ export default class blockchaincom extends Exchange {
         //
         const orderId = this.safeString (trade, 'exOrdId');
         const tradeId = this.safeString (trade, 'tradeId');
-        const side = this.safeString (trade, 'side').toLowerCase ();
+        const side = this.safeStringLower (trade, 'side');
         const marketId = this.safeString (trade, 'symbol');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'qty');
@@ -851,7 +849,7 @@ export default class blockchaincom extends Exchange {
         const datetime = this.iso8601 (timestamp);
         market = this.safeMarket (marketId, market, '-');
         const symbol = market['symbol'];
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         const feeCostString = this.safeString (trade, 'fee');
         if (feeCostString !== undefined) {
             const feeCurrency = market['quote'];
@@ -1157,7 +1155,7 @@ export default class blockchaincom extends Exchange {
      */
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
-        const accountName = this.safeString (params, 'account', 'primary');
+        const accountName = this.safeString (params, 'account', 'primary') as string;
         params = this.omit (params, 'account');
         const request: Dict = {
             'account': accountName,
@@ -1190,7 +1188,7 @@ export default class blockchaincom extends Exchange {
             const account = this.account ();
             account['free'] = this.safeString (entry, 'available');
             account['total'] = this.safeString (entry, 'balance');
-            result[code] = account;
+            result[code as string] = account;
         }
         return this.safeBalance (result);
     }
@@ -1234,9 +1232,9 @@ export default class blockchaincom extends Exchange {
         return this.parseOrder (response);
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         const requestPath = '/' + this.implodeParams (path, params);
-        let url = this.urls['api'][api] + requestPath;
+        let url = this.urls['api']![api] + requestPath;
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
             if (Object.keys (query).length) {
