@@ -4068,7 +4068,7 @@ export default class bingx extends Exchange {
         //    }
         //
         const data = this.safeDict (response, 'data', {});
-        const order = this.safeDict (data, 'order', data);
+        const order = this.safeDict (data, 'order', data) as Dict;
         return this.parseOrder (order, market);
     }
 
@@ -4216,7 +4216,7 @@ export default class bingx extends Exchange {
             throw new BadRequest (this.id + ' cancelAllOrders is only supported for spot and swap markets.');
         }
         const data = this.safeDict (response, 'data', {});
-        const orders = this.safeList2 (data, 'success', 'orders', []);
+        const orders = this.safeList2 (data, 'success', 'orders', []) as List;
         return this.parseOrders (orders);
     }
 
@@ -4323,7 +4323,7 @@ export default class bingx extends Exchange {
             //
         }
         const data = this.safeDict (response, 'data', {});
-        const success = this.safeList2 (data, 'success', 'orders', []);
+        const success = this.safeList2 (data, 'success', 'orders', []) as List;
         return this.parseOrders (success);
     }
 
@@ -4542,7 +4542,7 @@ export default class bingx extends Exchange {
             }
         }
         const data = this.safeDict (response, 'data', {});
-        const order = this.safeDict (data, 'order', data);
+        const order = this.safeDict (data, 'order', data) as Dict;
         return this.parseOrder (order, market);
     }
 
@@ -4634,7 +4634,7 @@ export default class bingx extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const orders = this.safeList (data, 'orders', []);
+        const orders = this.safeList (data, 'orders', []) as List;
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -4819,7 +4819,7 @@ export default class bingx extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const orders = this.safeList2 (data, 'orders', 'list', []);
+        const orders = this.safeList2 (data, 'orders', 'list', []) as List;
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -5059,7 +5059,7 @@ export default class bingx extends Exchange {
             }
         }
         const data = this.safeDict (response, 'data', {});
-        const orders = this.safeList2 (data, 'orders', 'list', []);
+        const orders = this.safeList2 (data, 'orders', 'list', []) as List;
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -5189,7 +5189,7 @@ export default class bingx extends Exchange {
         //         ]
         //     }
         //
-        const rows = this.safeList (response, 'rows', []);
+        const rows = this.safeList (response, 'rows', []) as List;
         return this.parseTransfers (rows, currency, since, limit);
     }
 
@@ -5848,7 +5848,7 @@ export default class bingx extends Exchange {
                 throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires an orderId argument for inverse swap trades');
             }
             response = await this.cswapV1PrivateGetTradeAllFillOrders (this.extend (request, params));
-            fills = this.safeList (response, 'data', []);
+            fills = this.safeList (response, 'data', []) as Trade[];
             //
             //     {
             //         "code": 0,
@@ -5898,7 +5898,7 @@ export default class bingx extends Exchange {
                 }
                 response = await this.spotV1PrivateGetTradeMyTrades (this.extend (request, params));
                 const data = this.safeDict (response, 'data', {});
-                fills = this.safeList (data, 'fills', []);
+                fills = this.safeList (data, 'fills', []) as Trade[];
                 //
                 //     {
                 //         "code": 0,
@@ -5929,7 +5929,7 @@ export default class bingx extends Exchange {
                 request['tradingUnit'] = tradingUnit;
                 response = await this.swapV2PrivateGetTradeAllFillOrders (this.extend (request, params));
                 const data = this.safeDict (response, 'data', {});
-                fills = this.safeList (data, 'fill_orders', []);
+                fills = this.safeList (data, 'fill_orders', []) as Trade[];
                 //
                 //    {
                 //       "code": "0",
@@ -6662,7 +6662,7 @@ export default class bingx extends Exchange {
             //         }
             //     }
             //
-            commission = data;
+            commission = data as Dict;
         } else {
             if (market['inverse']) {
                 response = await this.cswapV1PrivateGetUserCommissionRate (params);
@@ -6677,7 +6677,7 @@ export default class bingx extends Exchange {
                 //         }
                 //     }
                 //
-                commission = data;
+                commission = data as Dict;
             } else {
                 response = await this.swapV2PrivateGetUserCommissionRate (params);
                 //
@@ -6692,7 +6692,7 @@ export default class bingx extends Exchange {
                 //         }
                 //     }
                 //
-                commission = this.safeDict (data, 'commission', {});
+                commission = this.safeDict (data, 'commission', {}) as Dict;
             }
         }
         return this.parseTradingFee (commission, market);
