@@ -1618,7 +1618,8 @@ class Transpiler {
                 'Int': 'Int',
                 'OHLCV': 'list',
                 'Dictionary<any>': 'dict',
-                'Dict': 'dict'
+                'Dict': 'dict',
+                'NullableDict': 'dict'
             }
             const unwrapLists = (type: string) => {
                 let count = 0
@@ -1647,6 +1648,7 @@ class Transpiler {
                     'OrderSide': 'string',
                     'Dictionary<any>': 'array',
                     'Dict': 'array',
+                    'NullableDict': '?array',
                 }
                 const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|ADL|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRate|IsolatedBorrowRate|FundingRates|FundingRate|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|LongShortRatio|Position|BorrowInterest|OpenInterests?)( \| undefined)?$|\w+\[\]/
 
@@ -1667,15 +1669,6 @@ class Transpiler {
                         nullable = nullable || variable.slice (-1) === '?'
                         variable = variable.replace (/\?$/, '')
                         let type = secondPart[0].trim ()
-                        // handle union types like "Dict | undefined" / "Str | null" -> nullable base type
-                        if (type.indexOf ('|') >= 0) {
-                            const unionParts = type.split ('|').map ((p: string) => p.trim ())
-                            const nonNull = unionParts.filter ((p: string) => (p !== 'undefined') && (p !== 'null'))
-                            if (nonNull.length < unionParts.length) {
-                                nullable = true
-                            }
-                            type = nonNull.length ? nonNull[0] : 'any'
-                        }
                         const phpType = phpTypes[type] ?? type
                         let resolveType = (phpType.match (phpArrayRegex)  && phpType !== 'object[]')? 'array' : phpType // in PHP arrays are not compatible with ArrayCache, so removing this type for now;
                         if (resolveType === 'object[]') {

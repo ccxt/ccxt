@@ -1057,7 +1057,7 @@ export default class bitbank extends Exchange {
         return this.milliseconds ();
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers: Dict | undefined = undefined, body: Str = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let query = this.omit (params, this.extractParams (path));
         let url = this.implodeHostname (this.urls['api'][api]) + '/';
         if ((api === 'public') || (api === 'markets')) {
