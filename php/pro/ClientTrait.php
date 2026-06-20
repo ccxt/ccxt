@@ -221,7 +221,7 @@ trait ClientTrait {
         }
     }
 
-    public function close_clients() {
+    public function close_ws_clients() {
         // make sure to close the exchange once you are finished using the websocket connections
         // so that the event loop can complete it's work and go to sleep
         foreach ($this->clients as $client) {

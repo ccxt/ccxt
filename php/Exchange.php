@@ -2682,14 +2682,16 @@ class Exchange {
         return (int)$number;
     }
 
-    public function close() {
+    public function close($cleanInstanceData = false) {
         // ##### language-specific cleanup of WS & REST resources #####
         // [REST]
         if ($this->curl !== null) {
             curl_close($this->curl);
             $this->curl = null;
         }
-        $this->clean_rest_data();
+        if ($cleanInstanceData) {
+            $this->clean_rest_data();
+        }
    }
 
     public function binary_length($binary) {

@@ -94,19 +94,27 @@ class Exchange extends \ccxt\Exchange {
         // parent::__destruct(); // not needed atm
     }
 
-    public function close() {
+    public function close($cleanInstanceData = false) {
         // ##### language-specific cleanup of WS & REST resources #####
+        // [WS]
+        $this->close_ws_clients();
+        if ($cleanInstanceData) {
+            $this->clean_ws_data();
+        }
         // [REST]
+        if ($cleanInstanceData) {
+            $this->clean_rest_data();
+        }
+    }
+
+    public function clean_rest_data() {
         if ($this->browser) {
             $this->browser = null;
         }
         if ($this->default_connector) {
             $this->default_connector = null;
         }
-        parent::close();
-        // [WS]
-        $this->close_clients();
-        $this->clean_ws_data();
+        parent::clean_rest_data();
     }
 
     private $proxyDictionaries = [];

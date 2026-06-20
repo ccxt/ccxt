@@ -695,7 +695,7 @@ public partial class Exchange
         this.clients.TryRemove(key, out _);
     }
 
-    public async Task Close()
+    public async Task Close(cleanInsatnceCache = false)
     {
         // ##### language-specific cleanup of WS & REST resources #####
         // [WS]
@@ -711,9 +711,13 @@ public partial class Exchange
             }
             await Task.WhenAll(tasks);
         }
-        this.cleanWsData();
+        if (cleanInsatnceCache) {
+            this.cleanWsData();
+        }
         // [REST]
-        this.cleanRestData();
+        if (cleanInsatnceCache) {
+            this.cleanRestData();
+        }
     }
 
     public async Task close()

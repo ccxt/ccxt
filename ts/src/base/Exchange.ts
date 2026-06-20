@@ -1528,9 +1528,7 @@ export default class Exchange {
         }
     }
 
-    async close () {
-        // [REST]
-        this.cleanRestData ();
+    async close (cleanInstanceCache = false) {
         // [WS]
         await this.sleep (0); // allow other futures to run
         const clients = Object.values (this.clients || {});
@@ -1545,9 +1543,14 @@ export default class Exchange {
             delete this.clients[client.url];
             closedClients.push (client.close ());
         }
-        const result = await Promise.all (closedClients);
-        this.cleanWsData ();
-        return result;
+        await Promise.all (closedClients);
+        if (cleanInstanceCache) {
+            this.cleanWsData ();
+        }
+        // [REST]
+        if (cleanInstanceCache) {
+            this.cleanRestData ();
+        }
     }
 
     async loadOrderBook (client, messageHash: string, symbol: string, limit: Int = undefined, params = {}) {
@@ -2607,9 +2610,6 @@ export default class Exchange {
     }
 
     cleanRestData () {
-        if (!this.safeBool (this.options, 'cleanInstanceData', true)) {
-            return;
-        }
         this.ids = undefined;
         this.markets = undefined;
         this.markets_by_id = undefined;
@@ -2626,9 +2626,6 @@ export default class Exchange {
     }
 
     cleanWsData () {
-        if (!this.handleOption ('ws', 'cleanInstanceData', true)) {
-            return;
-        }
         this.balance = this.createSafeDictionary (true);
         this.orderbooks = this.createSafeDictionary ();
         this.tickers = this.createSafeDictionary ();

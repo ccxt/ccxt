@@ -2094,10 +2094,11 @@ class Exchange(object):
     def rand_number(self, size):
         return int(''.join([str(random.randint(0, 9)) for _ in range(size)]))
 
-    def close(self):
+    def close(self, clean_instance_data=False):
         # ##### language-specific cleanup of REST resources #####
         # [REST]
-        self.clean_rest_data()
+        if clean_instance_data:
+            self.clean_rest_data()
         if self.session:
             try:
                 self.session.close()
