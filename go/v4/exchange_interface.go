@@ -54,7 +54,7 @@ type IBaseExchange interface {
 	GetCurrency(currencyId string) Currency
 	GetCurrenciesList() []Currency
 	Throttle(cost any) <-chan any
-	Close() []error
+	Close(cleanInstanceCache ...any) []error
 	ParseTimeframe(timeframe any) any
 	// methods from base
 }
