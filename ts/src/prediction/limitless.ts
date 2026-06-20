@@ -27,7 +27,7 @@ import type {
     Account, fetchEventsParams,
     PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition,
 } from '../base/types.js';
-import { ArgumentsRequired, BadRequest, InvalidAddress, InvalidOrder, OrderNotFound } from '../../ccxt.js';
+import { ArgumentsRequired, BadRequest, ExchangeError, InvalidAddress, InvalidOrder, OrderNotFound } from '../../ccxt.js';
 import { Precise } from '../base/Precise.js';
 import { ecdsa } from '../base/functions.js';
 
@@ -182,6 +182,10 @@ export default class limitless extends Exchange {
                 'usdcDecimals': 6,  // Limitless sizes are 6-decimal USDC
                 'warnOnCancelAllOrdersWithOutcome': true, // cancelAllOrders with an outcome symbol will cancel all orders for the entire slug (both YES and NO outcomes), so we warn by default to prevent mistakes. Set this option to false to suppress the warning.
                 'zeroAddress': '0x0000000000000000000000000000000000000000',
+                'chainId': 8453,  // Base
+                'rpcUrl': 'https://mainnet.base.org',  // Base RPC used by approve() for the on-chain allowance tx
+                'collateralAddress': '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',  // USDC on Base (default approve token)
+                'exchangeAddress': '0x05c748E2f4DcDe0ec9Fa8DDc40DE6b867f923fa5',  // Limitless CTF exchange (default approve spender)
                 'createMarketBuyOrderRequiresPrice': true,
             },
             'exceptions': {
@@ -1930,7 +1934,12 @@ export default class limitless extends Exchange {
         const outcomeObj = this.outcome (outcome);
         const account = this.safeDict (accounts, 0);
         const accountInfo = this.safeDict (account, 'info');
-        const walletFromAccount = this.safeString (accountInfo, 'smartWallet');
+        // the trade wallet is chosen by `tradeWalletOption`: 'smartWallet' profiles trade through
+        // the `smartWallet` address, plain 'eoa' profiles trade directly from `account`. the
+        // smartWallet field can stay populated after switching to eoa, so key off the option here
+        const tradeWalletOption = this.safeString (accountInfo, 'tradeWalletOption');
+        const usesSmartWallet = (tradeWalletOption === 'smartWallet');
+        const walletFromAccount = (usesSmartWallet) ? this.safeString (accountInfo, 'smartWallet') : this.safeString (accountInfo, 'account');
         let maker = this.walletAddress ? this.walletAddress : walletFromAccount;
         [ maker, params ] = this.handleOptionAndParams (params, 'createOrder', 'maker', maker);
         try {
@@ -1942,8 +1951,7 @@ export default class limitless extends Exchange {
         // linked embedded (owner) wallet, not by the smart wallet itself
         const embeddedAddress = this.safeString (accountInfo, 'embeddedAccount');
         const hasEmbedded = (embeddedAddress !== undefined);
-        const tradeWalletOption = this.safeString (accountInfo, 'tradeWalletOption');
-        const isSmartWallet = (tradeWalletOption === 'smartWallet') && hasEmbedded;
+        const isSmartWallet = usesSmartWallet && hasEmbedded;
         let signer = maker;
         if (isSmartWallet) {
             signer = embeddedAddress;
@@ -2110,6 +2118,201 @@ export default class limitless extends Exchange {
         return this.signHash (this.hashMessage (message), privateKey.slice (-64));
     }
 
+    rlpEncodeBytes (hex: string): string {
+        // RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
+        const byteLength = this.parseToInt (hex.length / 2);
+        if (byteLength === 0) {
+            return '80';
+        }
+        if ((byteLength === 1) && (hex < '80')) {
+            return hex;
+        }
+        if (byteLength < 56) {
+            return this.intToBase16 (128 + byteLength) + hex;
+        }
+        let lengthHex = this.intToBase16 (byteLength);
+        if ((lengthHex.length % 2) !== 0) {
+            lengthHex = '0' + lengthHex;
+        }
+        const lengthOfLength = this.parseToInt (lengthHex.length / 2);
+        return this.intToBase16 (183 + lengthOfLength) + lengthHex + hex;
+    }
+
+    rlpEncodeList (items: string[]): string {
+        let concatenated = '';
+        for (let i = 0; i < items.length; i++) {
+            concatenated = concatenated + items[i];
+        }
+        const byteLength = this.parseToInt (concatenated.length / 2);
+        if (byteLength < 56) {
+            return this.intToBase16 (192 + byteLength) + concatenated;
+        }
+        let lengthHex = this.intToBase16 (byteLength);
+        if ((lengthHex.length % 2) !== 0) {
+            lengthHex = '0' + lengthHex;
+        }
+        const lengthOfLength = this.parseToInt (lengthHex.length / 2);
+        return this.intToBase16 (247 + lengthOfLength) + lengthHex + concatenated;
+    }
+
+    intToRlpHex (value: number): string {
+        // an integer as its minimal big-endian byte hex; 0 is the empty byte string
+        if (value === 0) {
+            return '';
+        }
+        let hex = this.intToBase16 (value);
+        if ((hex.length % 2) !== 0) {
+            hex = '0' + hex;
+        }
+        return hex;
+    }
+
+    hexToRlpBytes (hexValue: string): string {
+        // a hex value (e.g. an RPC result) as minimal big-endian byte hex; leading zero bytes
+        // are stripped and 0 becomes the empty byte string (RLP integer encoding)
+        let h = this.remove0xPrefix (hexValue);
+        let start = 0;
+        const total = h.length;
+        while ((start < total) && (h.slice (start, start + 1) === '0')) {
+            start = start + 1;
+        }
+        h = h.slice (start);
+        if (h === '') {
+            return '';
+        }
+        if ((h.length % 2) !== 0) {
+            h = '0' + h;
+        }
+        return h;
+    }
+
+    padHexAddress (address: string): string {
+        // left-pads a 20-byte address to a 32-byte ABI word (24 leading zero bytes)
+        const stripped = this.remove0xPrefix (address);
+        return '000000000000000000000000' + stripped;
+    }
+
+    signEvmTransaction (tx: Dict, privateKey: string): string {
+        // builds and signs an EIP-1559 (type 0x02) transaction, returning the signed raw tx hex
+        const accessList = this.rlpEncodeList ([]);
+        const fields = [
+            this.rlpEncodeBytes (this.intToRlpHex (this.safeInteger (tx, 'chainId'))),
+            this.rlpEncodeBytes (this.hexToRlpBytes (this.safeString (tx, 'nonce'))),
+            this.rlpEncodeBytes (this.hexToRlpBytes (this.safeString (tx, 'maxPriorityFeePerGas'))),
+            this.rlpEncodeBytes (this.hexToRlpBytes (this.safeString (tx, 'maxFeePerGas'))),
+            this.rlpEncodeBytes (this.hexToRlpBytes (this.safeString (tx, 'gasLimit'))),
+            this.rlpEncodeBytes (this.remove0xPrefix (this.safeString (tx, 'to'))),
+            this.rlpEncodeBytes (this.hexToRlpBytes (this.safeString (tx, 'value', '0x0'))),
+            this.rlpEncodeBytes (this.remove0xPrefix (this.safeString (tx, 'data', '0x'))),
+            accessList,
+        ];
+        const payload = '02' + this.rlpEncodeList (fields);
+        const hashHex = this.hash (this.base16ToBinary (payload), keccak, 'hex');
+        const signature = ecdsa (hashHex, this.remove0xPrefix (privateKey), secp256k1, undefined);
+        let rHex = this.safeString (signature, 'r');
+        let sHex = this.safeString (signature, 's');
+        if ((rHex.length % 2) !== 0) {
+            rHex = '0' + rHex;
+        }
+        if ((sHex.length % 2) !== 0) {
+            sHex = '0' + sHex;
+        }
+        const yParity = this.safeInteger (signature, 'v');
+        const signedFields = [];
+        for (let i = 0; i < fields.length; i++) {
+            signedFields.push (fields[i]);
+        }
+        signedFields.push (this.rlpEncodeBytes (this.intToRlpHex (yParity)));
+        signedFields.push (this.rlpEncodeBytes (rHex));
+        signedFields.push (this.rlpEncodeBytes (sHex));
+        return '0x02' + this.rlpEncodeList (signedFields);
+    }
+
+    async ethRpc (rpcUrl: string, method: string, rpcParams: any[]) {
+        const payload: Dict = { 'jsonrpc': '2.0', 'id': 1, 'method': method, 'params': rpcParams };
+        const headers: Dict = { 'Content-Type': 'application/json' };
+        const response = await this.fetch (rpcUrl, 'POST', headers, this.json (payload));
+        const rpcError = this.safeValue (response, 'error');
+        if (rpcError !== undefined) {
+            throw new ExchangeError (this.id + ' rpc ' + method + ' error: ' + this.json (rpcError));
+        }
+        // the result is either a hex string (nonce/gasPrice/txhash) or an object (receipt)
+        return this.safeValue (response, 'result');
+    }
+
+    async sendEvmTransaction (rpcUrl: string, chainId: number, fromAddress: string, to: string, value: string, data: string, gasLimit: string): Promise<string> {
+        const nonce = await this.ethRpc (rpcUrl, 'eth_getTransactionCount', [ fromAddress, 'pending' ]);
+        const gasPrice = await this.ethRpc (rpcUrl, 'eth_gasPrice', []);
+        const tx: Dict = {
+            'chainId': chainId,
+            'nonce': nonce,
+            'maxPriorityFeePerGas': gasPrice,
+            'maxFeePerGas': gasPrice,
+            'gasLimit': gasLimit,
+            'to': to,
+            'value': value,
+            'data': data,
+        };
+        const signed = this.signEvmTransaction (tx, this.privateKey);
+        return await this.ethRpc (rpcUrl, 'eth_sendRawTransaction', [ signed ]);
+    }
+
+    async waitForTransactionReceipt (rpcUrl: string, txHash: string, timeout = 60000): Promise<any> {
+        const start = this.milliseconds ();
+        while ((this.milliseconds () - start) < timeout) {
+            const receipt = await this.ethRpc (rpcUrl, 'eth_getTransactionReceipt', [ txHash ]);
+            if ((receipt !== undefined) && (receipt !== null)) {
+                return receipt;
+            }
+            await this.sleep (2000);
+        }
+        throw new ExchangeError (this.id + ' transaction ' + txHash + ' not mined within timeout');
+    }
+
+    /**
+     * @method
+     * @name limitless#approve
+     * @description sets the on-chain ERC20 collateral (USDC) allowance for the limitless exchange contract on Base, which is required before an EOA maker can place orders ("Insufficient collateral allowance" otherwise). Sends a real on-chain transaction signed with the privateKey and waits for the receipt
+     * @param {object} [params] extra parameters
+     * @param {string} [params.token] the collateral token address (default USDC on Base)
+     * @param {string} [params.spender] the exchange contract to approve (default the limitless CTF exchange); read from a market's venue when omitted
+     * @param {string} [params.owner] the token holder address (default this.walletAddress or the address derived from the privateKey)
+     * @param {float} [params.amount] the allowance in USDC (default: unlimited / maxUint256)
+     * @param {string} [params.rpcUrl] the Base RPC url to broadcast through
+     * @param {string} [params.gasLimit] gas limit hex for the approve tx (default '0x186a0')
+     * @returns {object} the transaction receipt
+     */
+    async approve (params = {}): Promise<any> {
+        this.checkRequiredCredentials ();
+        if (this.privateKey === undefined) {
+            throw new ArgumentsRequired (this.id + ' approve() requires a privateKey to sign the on-chain transaction');
+        }
+        const rpcUrl = this.safeString (params, 'rpcUrl', this.safeString (this.options, 'rpcUrl'));
+        const chainId = this.safeInteger (this.options, 'chainId', 8453);
+        const token = this.safeString (params, 'token', this.safeString (this.options, 'collateralAddress'));
+        const spender = this.safeString (params, 'spender', this.safeString (this.options, 'exchangeAddress'));
+        let owner = this.safeString (params, 'owner', this.walletAddress);
+        if (owner === undefined) {
+            owner = this.ethGetAddressFromPrivateKey (this.privateKey);
+        }
+        const gasLimit = this.safeString (params, 'gasLimit', '0x186a0');
+        const maxUint = 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
+        let amountHex = maxUint;
+        const amount = this.safeString (params, 'amount');
+        if (amount !== undefined) {
+            const decimals = this.safeInteger (this.options, 'usdcDecimals', 6);
+            // scale the human USDC amount to base units (amount / 10^-decimals = amount * 10^decimals)
+            const scaled = Precise.stringDiv (amount, this.parsePrecision (this.numberToString (decimals)));
+            const amountInt = this.parseToInt (scaled);
+            const amountBase16 = this.intToBase16 (amountInt);
+            amountHex = amountBase16.padStart (64, '0');
+        }
+        // approve(spender, amount) -> selector 0x095ea7b3
+        const approveData = '0x095ea7b3' + this.padHexAddress (spender) + amountHex;
+        const txHash = await this.sendEvmTransaction (rpcUrl, chainId, owner, token, '0x0', approveData, gasLimit);
+        return await this.waitForTransactionReceipt (rpcUrl, txHash);
+    }
+
     /**
      * @method
      * @name limitless#cancelOrder
@@ -2127,7 +2330,15 @@ export default class limitless extends Exchange {
             'order_id': id,
         };
         const response = await this.limitlessPrivateDeleteOrdersOrderId (this.extend (request, params));
-        return this.parseOrder (response);
+        // the delete response carries no order body, so backfill the id and the resulting status
+        const order = this.parseOrder (response);
+        if (order['id'] === undefined) {
+            order['id'] = id;
+        }
+        if (order['status'] === undefined) {
+            order['status'] = 'canceled';
+        }
+        return order as PredictionOrder;
     }
 
     /**
