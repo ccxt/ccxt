@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/coincheck.js';
 import { BadSymbol, ExchangeError, AuthenticationError, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, Fee, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction, int } from './base/types.js';
+import type { Balances, Currency, Dict, Fee, Int, Market, NullableDict, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -315,7 +315,7 @@ export default class coincheck extends Exchange {
         const response = await this.privateGetExchangeOrdersOpens (params);
         const rawOrders = this.safeValue (response, 'orders', []);
         const parsedOrders = this.parseOrders (rawOrders, market, since, limit);
-        const result = [];
+        const result: Order[] = [];
         for (let i = 0; i < parsedOrders.length; i++) {
             result.push (this.extend (parsedOrders[i], { 'status': 'open' }));
         }
@@ -506,7 +506,7 @@ export default class coincheck extends Exchange {
         let amountString: Str = undefined;
         let costString: Str = undefined;
         let side: Str = undefined;
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         let orderId: Str = undefined;
         if ('liquidity' in trade) {
             if (this.safeString (trade, 'liquidity') === 'T') {

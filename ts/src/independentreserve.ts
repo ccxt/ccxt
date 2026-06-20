@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/independentreserve.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction, DepositAddress } from './base/types.js';
+import type { Balances, Currency, Dict, Int, List, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction, DepositAddress } from './base/types.js';
 import { BadRequest } from './base/errors.js';
 
 //  ---------------------------------------------------------------------------
@@ -336,7 +336,7 @@ export default class independentreserve extends Exchange {
         //         "Xrp": 1.0,
         //     }
         //
-        const result = [];
+        const result: List = [];
         for (let i = 0; i < baseCurrencies.length; i++) {
             const baseId = baseCurrencies[i];
             const base = this.safeCurrencyCode (baseId);
@@ -904,7 +904,7 @@ export default class independentreserve extends Exchange {
             'secondaryCurrencyCode': market['quoteId'],
             'orderType': orderType,
         };
-        let response: Dict = undefined;
+        let response: Dict;
         request['volume'] = amount;
         if (type === 'limit') {
             request['price'] = price;
