@@ -152,8 +152,8 @@ export default class bithumb extends bithumbRest {
         //        "volumePower" : "60.80"         // 체결강도
         //    }
         //
-        const date = this.safeString (ticker, 'date', '');
-        const time = this.safeString (ticker, 'time', '');
+        const date = this.safeString (ticker, 'date', '') as string;
+        const time = this.safeString (ticker, 'time', '') as string;
         const datetime = date.slice (0, 4) + '-' + date.slice (4, 6) + '-' + date.slice (6, 8) + 'T' + time.slice (0, 2) + ':' + time.slice (2, 4) + ':' + time.slice (4, 6);
         const marketId = this.safeString (ticker, 'symbol');
         return this.safeTicker ({
@@ -233,7 +233,7 @@ export default class bithumb extends bithumbRest {
         const first = this.safeDict (list, 0, {});
         const marketId = this.safeString (first, 'symbol');
         const symbol = this.safeSymbol (marketId, undefined, '_');
-        const timestampStr = this.safeString (content, 'datetime');
+        const timestampStr = this.safeString (content, 'datetime') as string;
         const timestamp = this.parseToInt (timestampStr.slice (0, 13));
         if (!(symbol in this.orderbooks)) {
             const ob = this.orderBook ();
@@ -319,7 +319,7 @@ export default class bithumb extends bithumbRest {
         //    }
         //
         const content = this.safeDict (message, 'content', {});
-        const rawTrades = this.safeList (content, 'list', []);
+        const rawTrades = this.safeList (content, 'list', []) as any[];
         for (let i = 0; i < rawTrades.length; i++) {
             const rawTrade = rawTrades[i];
             const marketId = this.safeString (rawTrade, 'symbol');
@@ -432,7 +432,7 @@ export default class bithumb extends bithumbRest {
         //    }
         //
         const messageHash = 'myAsset';
-        const assets = this.safeList (message, 'assets', []);
+        const assets = this.safeList (message, 'assets', []) as any[];
         if (this.balance === undefined) {
             this.balance = {};
         }
