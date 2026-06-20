@@ -532,12 +532,12 @@ export default class lighter extends lighterRest {
         //         "type": "subscribed/trade"
         //     }
         //
-        const liquidationData = this.safeList (message, 'liquidation_trades', []);
+        const liquidationData = this.safeList (message, 'liquidation_trades', []) as any[];
         const liquidationDataLength = liquidationData.length;
         if (liquidationDataLength > 0) {
             this.handleLiquidation (client, message);
         }
-        const data = this.safeList (message, 'trades', []);
+        const data = this.safeList (message, 'trades', []) as any[];
         const channel = this.safeString (message, 'channel', '') as string;
         const parts = channel.split (':');
         const marketId = parts[1];
@@ -729,7 +729,7 @@ export default class lighter extends lighterRest {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket (marketId);
-            const trades = this.safeList (data, marketId, []);
+            const trades = this.safeList (data, marketId, []) as any[];
             const tradesLength = trades.length;
             for (let j = 0; j < tradesLength; j++) {
                 const jReversed = tradesLength - 1 - j;
@@ -892,7 +892,7 @@ export default class lighter extends lighterRest {
         //         "type": "subscribed/trade"
         //     }
         //
-        const data = this.safeList (message, 'liquidation_trades', []);
+        const data = this.safeList (message, 'liquidation_trades', []) as any[];
         const channel = this.safeString (message, 'channel', '') as string;
         const parts = channel.split (':');
         const marketId = parts[1];
