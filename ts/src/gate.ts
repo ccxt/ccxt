@@ -5,7 +5,7 @@ import Exchange from './abstract/gate.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled, OrderImmediatelyFillable } from './base/errors.js';
-import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, NullableDict, List, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, Dict, LeverageTier, LeverageTiers, int, CancellationRequest, LedgerEntry, FundingRate, FundingRates, DepositAddress, Bool, BorrowInterest, Fee } from './base/types.js';
+import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, NullableDict, List, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, Dict, LeverageTier, LeverageTiers, int, CancellationRequest, LedgerEntry, FundingRate, FundingRates, DepositAddress, Bool, BorrowInterest, Fee, IndexType } from './base/types.js';
 
 /**
  * @class gate
@@ -1243,7 +1243,7 @@ export default class gate extends Exchange {
         }
         const strike = this.safeString (optionParts, 2);
         const optionType = this.safeString (optionParts, 3);
-        const datetime = this.convertExpireDate (expiry);
+        const datetime = this.convertExpireDate (expiry as string);
         const timestamp = this.parse8601 (datetime);
         return {
             'id': base + '_' + quote + '-' + '20' + expiry + '-' + strike + '-' + optionType,
@@ -1387,7 +1387,7 @@ export default class gate extends Exchange {
         for (let i = 0; i < spotMarketsResponse.length; i++) {
             const spotMarket = spotMarketsResponse[i];
             const id = this.safeString (spotMarket, 'id');
-            const marginMarket = this.safeValue (marginMarkets, id);
+            const marginMarket = this.safeValue (marginMarkets, id as IndexType);
             const market = this.deepExtend (marginMarket, spotMarket);
             const [ baseId, quoteId ] = id.split ('_');
             const base = this.safeCurrencyCode (baseId);
@@ -2127,7 +2127,7 @@ export default class gate extends Exchange {
         let market: Market = undefined;
         if (symbols !== undefined) {
             const firstSymbol = this.safeString (symbols, 0);
-            market = this.market (firstSymbol);
+            market = this.market (firstSymbol as string);
         }
         const [ request, query ] = this.prepareRequest (market, 'swap', params);
         const response = await this.publicFuturesGetSettleContracts (this.extend (request, query));
@@ -2560,7 +2560,7 @@ export default class gate extends Exchange {
         //        }
         //    ]
         //
-        return this.parseDepositWithdrawFees (response, codes, 'currency');
+        return this.parseDepositWithdrawFees (response, codes, 'currency' as any);
     }
 
     parseDepositWithdrawFee (fee, currency: Currency = undefined) {
@@ -2670,7 +2670,7 @@ export default class gate extends Exchange {
     }
 
     parseFundingHistories (response, symbol, since, limit): FundingHistory[] {
-        const result: FundingRate[] = [];
+        const result: any[] = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const funding = this.parseFundingHistory (entry);
@@ -3357,7 +3357,7 @@ export default class gate extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 1000) as OHLCV[];
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 1000 as any) as OHLCV[];
         }
         if (market['option']) {
             return await this.fetchOptionOHLCV (symbol, timeframe, since, limit, params);
@@ -4131,7 +4131,7 @@ export default class gate extends Exchange {
             'DONE': 'ok',
             'BCODE': 'ok', // GateCode withdrawal
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as IndexType, status as string);
     }
 
     parseTransactionType (type) {
@@ -4418,10 +4418,10 @@ export default class gate extends Exchange {
                 throw new NotSupported (this.id + ' createOrders() does not support advanced order properties (stopPrice, takeProfitPrice, stopLossPrice)');
             }
             extendedParams['textIsRequired'] = true; // the exchange requires a text parameter for each order here
-            const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, extendedParams);
+            const orderRequest = this.createOrderRequest (marketId as string, type, side, amount, price, extendedParams);
             ordersRequests.push (orderRequest);
         }
-        const symbols = this.marketSymbols (orderSymbols, undefined, false, true, true);
+        const symbols = this.marketSymbols (orderSymbols as any, undefined, false, true, true);
         const market = this.market (symbols[0]);
         if (market['future'] || market['option']) {
             throw new NotSupported (this.id + ' createOrders() does not support futures or options markets');
@@ -4505,7 +4505,7 @@ export default class gate extends Exchange {
             } else {
                 const amountToPrecision = this.amountToPrecision (symbol, amount);
                 const signedAmount = (side === 'sell') ? Precise.stringNeg (amountToPrecision) : amountToPrecision;
-                amount = parseInt (signedAmount);
+                amount = parseInt (signedAmount as string);
             }
         }
         let request: Dict = undefined;
@@ -4555,7 +4555,7 @@ export default class gate extends Exchange {
                 if (isMarketOrder && (side === 'buy')) {
                     let quoteAmount: Str = undefined;
                     let createMarketBuyOrderRequiresPrice = true;
-                    [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                    [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true as any);
                     const cost = this.safeNumber (params, 'cost');
                     params = this.omit (params, 'cost');
                     if (cost !== undefined) {
@@ -4846,7 +4846,7 @@ export default class gate extends Exchange {
             'finish': 'closed',
             'succeeded': 'closed',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as IndexType, status as string);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -5335,7 +5335,7 @@ export default class gate extends Exchange {
         const res = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
         const type = this.safeString (res, 0);
         let useHistorical = false;
-        [ useHistorical, params ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'historical', false);
+        [ useHistorical, params ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'historical', false as any);
         if (!useHistorical && ((since === undefined && until === undefined) || (type !== 'swap'))) {
             return await this.fetchOrdersByStatus ('finished', symbol, since, limit, params) as Order[];
         }
@@ -5801,7 +5801,7 @@ export default class gate extends Exchange {
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
             const symbol = this.safeString (order, 'symbol');
-            const market = this.market (symbol);
+            const market = this.market (symbol as string);
             if (!market['spot']) {
                 throw new NotSupported (this.id + ' cancelOrdersForSymbols() supports only spot markets');
             }
@@ -6518,7 +6518,7 @@ export default class gate extends Exchange {
         //        }
         //    ]
         //
-        return this.parseLeverageTiers (response, symbols, 'name');
+        return this.parseLeverageTiers (response, symbols, 'name' as any);
     }
 
     /**
@@ -6892,7 +6892,7 @@ export default class gate extends Exchange {
         }
         let response: any = undefined;
         let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBorrowInterest', params, 'cross');
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBorrowInterest', params, 'cross' as any);
         if (isUnifiedAccount) {
             response = await this.privateUnifiedGetInterestRecords (this.extend (request, params));
         } else if (marginMode === 'isolated') {
@@ -6905,7 +6905,7 @@ export default class gate extends Exchange {
             response = await this.privateMarginGetCrossInterestRecords (this.extend (request, params));
         }
         const interest = this.parseBorrowInterests (response, market);
-        return this.filterByCurrencySinceLimit (interest, code, since, limit);
+        return this.filterByCurrencySinceLimit (interest, code as any, since, limit);
     }
 
     parseBorrowInterest (info: Dict, market: Market = undefined): BorrowInterest {
@@ -7131,9 +7131,9 @@ export default class gate extends Exchange {
     async fetchOpenInterestHistory (symbol: string, timeframe = '5m', since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOpenInterestHistory', 'paginate', false);
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOpenInterestHistory', 'paginate', false as any);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOpenInterestHistory', symbol, since, limit, timeframe, params, 100) as OpenInterest[];
+            return await this.fetchPaginatedCallDeterministic ('fetchOpenInterestHistory', symbol, since, limit, timeframe, params, 100 as any) as OpenInterest[];
         }
         const market = this.market (symbol);
         if (!market['swap']) {
@@ -7172,7 +7172,7 @@ export default class gate extends Exchange {
         //        ...
         //    ]
         //
-        return this.parseOpenInterestsHistory (response, market, since, limit);
+        return this.parseOpenInterestsHistory (response, market as any, since, limit);
     }
 
     parseOpenInterest (interest, market: Market = undefined) {
@@ -7604,9 +7604,9 @@ export default class gate extends Exchange {
         const rawTimestamp = this.safeString (item, 'time');
         let timestamp: Int = undefined;
         if (rawTimestamp.length > 10) {
-            timestamp = parseInt (rawTimestamp);
+            timestamp = parseInt (rawTimestamp as string);
         } else {
-            timestamp = parseInt (rawTimestamp) * 1000;
+            timestamp = parseInt (rawTimestamp as string) * 1000;
         }
         const balanceString = this.safeString (item, 'balance');
         const changeString = this.safeString (item, 'change');
@@ -8441,7 +8441,7 @@ export default class gate extends Exchange {
             }
         }
         let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchPositionsHistory', market, params, 'swap');
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchPositionsHistory', market, params, 'swap' as any);
         const until = this.safeInteger (params, 'until');
         params = this.omit (params, 'until');
         let request: Dict = {};
