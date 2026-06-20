@@ -633,13 +633,13 @@ export default class phemex extends Exchange {
         });
     }
 
-    parseSafeNumber (value = undefined) {
+    parseSafeNumber (value: Str = undefined) {
         if (value === undefined) {
             return value;
         }
-        let parts = value.split (',');
+        let parts = (value as string).split (',');
         value = parts.join ('');
-        parts = value.split (' ');
+        parts = (value as string).split (' ');
         return this.safeNumber (parts, 0);
     }
 
@@ -699,7 +699,7 @@ export default class phemex extends Exchange {
         const quoteId = this.safeString (market, 'quoteCurrency');
         const settleId = this.safeString (market, 'settleCurrency');
         let base = this.safeCurrencyCode (baseId);
-        base = base.replace (' ', ''); // replace space for junction codes, eg. `1000 SHIB`
+        base = (base as string).replace (' ', ''); // replace space for junction codes, eg. `1000 SHIB`
         const quote = this.safeCurrencyCode (quoteId);
         const settle = this.safeCurrencyCode (settleId);
         let inverse = false;
@@ -718,7 +718,7 @@ export default class phemex extends Exchange {
         const makerFeeRateEr = this.safeString (market, 'makerFeeRateEr');
         const takerFeeRateEr = this.safeString (market, 'takerFeeRateEr');
         const status = this.safeString (market, 'status');
-        const contractSizeString = this.safeString (market, 'contractSize', ' ');
+        const contractSizeString = this.safeString (market, 'contractSize', ' ') as string;
         let contractSize: Num = undefined;
         if (settle === 'USDT') {
             contractSize = this.parseNumber ('1');
@@ -1415,7 +1415,7 @@ export default class phemex extends Exchange {
                     request['from'] = since;
                 } else {
                     // when 'to' is defined since is mandatory
-                    since = (until / 100) - (maxLimit * candleDuration);
+                    since = ((until as number) / 100) - (maxLimit * candleDuration);
                 }
                 if (until !== undefined) {
                     request['to'] = Math.round (until / 1000);
@@ -3310,7 +3310,7 @@ export default class phemex extends Exchange {
         if ((symbol === undefined) || (this.safeString (market, 'settle') === 'USDT')) {
             request['currency'] = this.safeString (params, 'settle', 'USDT');
             response = await this.privateGetExchangeOrderV2OrderList (this.extend (request, params));
-        } else if (market['swap']) {
+        } else if (market !== undefined && market['swap']) {
             response = await this.privateGetExchangeOrderList (this.extend (request, params));
         } else {
             response = await this.privateGetExchangeSpotOrder (this.extend (request, params));
@@ -3393,7 +3393,7 @@ export default class phemex extends Exchange {
             if (limit === undefined) {
                 request['limit'] = 200;
             }
-        } else if (symbol !== undefined) {
+        } else if (symbol !== undefined && market !== undefined) {
             request['symbol'] = market['id'];
         }
         if (since !== undefined) {
@@ -4249,7 +4249,7 @@ export default class phemex extends Exchange {
     }
 
     parseFundingFeeToPrecision (value, market: Market = undefined, currencyCode: Str = undefined) {
-        if (value === undefined || currencyCode === undefined) {
+        if (value === undefined || currencyCode === undefined || market === undefined) {
             return value;
         }
         // it was confirmed by phemex support, that USDT contracts use direct amounts in funding fees, while USD & INVERSE needs 'valueScale'
@@ -4657,7 +4657,7 @@ export default class phemex extends Exchange {
         return tiers as LeverageTier[];
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
         const requestPath = '/' + this.implodeParams (path, params);
         let url = requestPath;
@@ -5171,7 +5171,7 @@ export default class phemex extends Exchange {
         //        volumeRq: '3388.5600312'
         //    }
         //
-        const timestamp = this.safeInteger (interest, 'timestamp') / 1000000;
+        const timestamp = (this.safeInteger (interest, 'timestamp') as number) / 1000000;
         const id = this.safeString (interest, 'symbol');
         return this.safeOpenInterest ({
             'info': interest,
@@ -5404,7 +5404,7 @@ export default class phemex extends Exchange {
             'toAmount': this.parseNumber (toAmount),
             'price': this.safeNumber (quoteArgs, 'price'),
             'fee': undefined,
-        } as Conversion;
+        } as unknown as Conversion;
     }
 
     /**
