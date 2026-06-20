@@ -76,7 +76,7 @@ export default class bithumb extends bithumbRest {
         const url = this.urls['api']['ws']['public'];
         const marketIds: any[] = [];
         const messageHashes: any[] = [];
-        symbols = this.marketSymbols (symbols, undefined, false, true, true);
+        symbols = this.marketSymbols (symbols, undefined, false, true, true) ?? [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
