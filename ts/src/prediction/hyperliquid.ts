@@ -465,8 +465,8 @@ export default class hyperliquid extends Exchange {
             const marketOutcomes = this.safeList (market as any, 'outcomes', []);
             for (let oi = 0; oi < marketOutcomes.length; oi++) {
                 const outcome = this.safeDict (marketOutcomes, oi, {});
-                const outcomeSymbol = this.safeString (outcome, 'symbol');
-                const outcomeId_ = this.safeString (outcome, 'id');
+                const outcomeSymbol = this.safeString2 (outcome, 'outcome', 'symbol');
+                const outcomeId_ = this.safeString2 (outcome, 'outcomeId', 'id');
                 if (outcomeSymbol !== undefined) {
                     this.outcomes[outcomeSymbol] = outcome;
                 }
@@ -749,7 +749,7 @@ export default class hyperliquid extends Exchange {
         const timestamp = this.safeInteger (raw, 'time', now);
         // the 2nd arg carries the outcome object (callers pass the resolved outcome)
         const mkt = this.safeOutcome (undefined, market);
-        const symbol = this.safeString (mkt, 'symbol');
+        const symbol = this.safeString (mkt, 'outcome');
         const levels = this.safeList (raw, 'levels', []);
         const rawBids = this.safeList (levels, 0, []);
         const rawAsks = this.safeList (levels, 1, []);
@@ -770,8 +770,8 @@ export default class hyperliquid extends Exchange {
         const ctx = (parentMarket !== undefined) ? this.safeDict (this.safeDict (parentMarket as any, 'info', {}), 'ctx', {}) : {};
         const dayVolume = this.safeNumber (ctx, 'dayNtlVlm');
         return this.safePredictionTicker ({
-            'symbol': symbol,
-            'outcomeId': this.safeString (mkt, 'id'),
+            'outcome': symbol,
+            'outcomeId': this.safeString2 (mkt, 'outcomeId', 'id'),
             'label': this.safeString (mkt, 'label'),
             'market': this.safeString (mkt, 'outcome'),
             'timestamp': timestamp,
@@ -840,7 +840,7 @@ export default class hyperliquid extends Exchange {
             const entry = rawAsks[i];
             asks.push ([ this.safeNumber (entry, 'px'), this.safeNumber (entry, 'sz') ]);
         }
-        const orderbook = this.parseOrderBook ({ 'bids': bids, 'asks': asks }, this.safeString (outcomeObj, 'symbol', outcome), timestamp);
+        const orderbook = this.parseOrderBook ({ 'bids': bids, 'asks': asks }, this.safeString (outcomeObj, 'outcome', outcome), timestamp);
         orderbook['outcome'] = this.safeString (outcomeObj, 'outcome');
         orderbook['outcomeId'] = this.safeString (outcomeObj, 'outcomeId');
         return orderbook as PredictionOrderBook;
@@ -1060,8 +1060,8 @@ export default class hyperliquid extends Exchange {
         }
         return this.safePredictionPosition ({
             'id': undefined,
-            'symbol': this.safeString (outcomeObj, 'symbol'),
-            'outcomeId': this.safeString (outcomeObj, 'id'),
+            'outcome': this.safeString (outcomeObj, 'outcome'),
+            'outcomeId': this.safeString2 (outcomeObj, 'outcomeId', 'id'),
             'label': this.safeString (outcomeObj, 'label'),
             'market': this.safeString (outcomeObj, 'outcome'),
             'timestamp': undefined,
@@ -1097,7 +1097,7 @@ export default class hyperliquid extends Exchange {
         if (normalizedHint !== undefined) {
             for (let i = 0; i < outcomesList.length; i++) {
                 const oc = this.safeDict (outcomesList, i, {});
-                const ocSymbol = this.safeString (oc, 'symbol', '');
+                const ocSymbol = this.safeString2 (oc, 'outcome', 'symbol', '');
                 const ocLabel = this.safeStringUpper (oc, 'label');
                 if (ocLabel === normalizedHint || ocSymbol.endsWith (':' + normalizedHint)) {
                     return oc;
@@ -1839,7 +1839,7 @@ export default class hyperliquid extends Exchange {
         }
         for (let i = 0; i < events.length; i++) {
             const ev = events[i];
-            this.events[ev['symbol']] = ev;
+            this.events[ev['event']] = ev;
         }
         return this.applyEventFetchParams (events, params, queries);
     }
@@ -1892,7 +1892,7 @@ export default class hyperliquid extends Exchange {
         return this.extend ({
             'id': parentSymbol,
             'slug': parentSymbol,
-            'symbol': parentSymbol,
+            'event': parentSymbol,
             'title': title,
             'markets': markets,
             'underlying': underlying,

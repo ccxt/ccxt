@@ -748,7 +748,7 @@ export default class limitless extends Exchange {
         return this.extend ({
             'id': groupId,
             'slug': groupId,
-            'symbol': groupId ? this.shortenSlug (groupId) : undefined,
+            'event': groupId ? this.shortenSlug (groupId) : undefined,
             'title': title,
             'description': this.safeString (event, 'description'),
             'markets': markets,

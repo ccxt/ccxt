@@ -897,6 +897,10 @@ class Transpiler {
             'PredictionOrder': /-> (?:List\[)?PredictionOrder\b/,
             'PredictionTrade': /-> (?:List\[)?PredictionTrade\b/,
             'PredictionPosition': /-> (?:List\[)?PredictionPosition\b/,
+            'PredictionOrderBook': /-> (?:List\[)?PredictionOrderBook\b/,
+            'PredictionOpenInterest': /-> (?:List\[)?PredictionOpenInterest\b/,
+            'PredictionTradingFee': /-> (?:List\[)?PredictionTradingFee\b/,
+            'fetchEventsParams': /: fetchEventsParams\b/,
         }
         const matches: string[] = []
         let match

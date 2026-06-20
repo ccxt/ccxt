@@ -246,7 +246,7 @@ export default class myriad extends Exchange {
             const m = this.parseMyriadMarket (raw);
             flatMarkets.push (m);
             const ev = this.parseMarketToEvent (raw, m);
-            const evKey = this.safeString (ev, 'symbol');
+            const evKey = this.safeString (ev, 'event');
             if (evKey !== undefined) {
                 eventsDict[evKey] = ev;
             }
@@ -1056,7 +1056,7 @@ export default class myriad extends Exchange {
         const tif = this.safeStringUpper (order, 'timeInForce');
         const isMarketTif = (tif === 'FOK') || (tif === 'FAK');
         // resolve the outcome symbol from market/outcome ids when no market was passed (e.g. fetchOrders without a symbol)
-        let symbol = (market === undefined) ? undefined : this.safeString (market, 'symbol');
+        let symbol = (market === undefined) ? undefined : this.safeString (market, 'outcome');
         let outcomeObj = market;
         if (symbol === undefined) {
             // the REST order has no top-level networkId; order book lives on the default network
@@ -1258,7 +1258,7 @@ export default class myriad extends Exchange {
         if (symbol !== undefined) {
             this.ensureOutcomesLoaded ();
             const outcomeObj = this.outcome (symbol);
-            outcomeSymbol = this.safeString2 (outcomeObj, 'outcome', 'symbol', symbol);
+            outcomeSymbol = this.safeString (outcomeObj, 'outcome', symbol);
         }
         const response = await this.myriadPublicGetOrders (this.extend (request, params));
         const data = this.safeList (response, 'data', []);
@@ -1481,7 +1481,7 @@ export default class myriad extends Exchange {
         return {
             'id': market['id'],
             'slug': slug,
-            'symbol': market['symbol'],
+            'event': market['symbol'],
             'title': this.safeString2 (raw, 'title', 'shortName'),
             'description': this.safeString (raw, 'description'),
             'markets': [ market ],
@@ -2432,7 +2432,7 @@ export default class myriad extends Exchange {
             const m = this.parseMyriadMarket (raw);
             this.markets[m['symbol'] as string] = m;
             const ev = this.parseMarketToEvent (raw, m);
-            const evKey = this.safeString (ev, 'symbol');
+            const evKey = this.safeString (ev, 'event');
             if (evKey !== undefined) {
                 this.events[evKey] = ev;
                 result.push (ev);
@@ -2503,7 +2503,7 @@ export default class myriad extends Exchange {
         return this.extend (rawEvent, {
             'id': this.safeString (rawEvent, 'id'),
             'slug': questionSlug,
-            'symbol': questionSlug ? this.shortenSlug (questionSlug) : undefined,
+            'event': questionSlug ? this.shortenSlug (questionSlug) : undefined,
             'title': this.safeString (rawEvent, 'title'),
             'description': this.safeString (rawEvent, 'description'),
             'markets': marketsList,

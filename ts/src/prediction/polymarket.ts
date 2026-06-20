@@ -2231,7 +2231,7 @@ export default class polymarket extends Exchange {
         return this.extend ({
             'id': this.safeString (rawEvent, 'id'),
             'slug': slug,
-            'symbol': slug ? this.shortenSlug (slug) : undefined,
+            'event': slug ? this.shortenSlug (slug) : undefined,
             'title': this.safeString (rawEvent, 'title'),
             'markets': marketsList,
             'url': this.safeString (rawEvent, 'url'),

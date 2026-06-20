@@ -243,7 +243,7 @@ export default class kalshi extends Exchange {
                             eventsDict[eventKey] = {
                                 'id': eventTicker,
                                 'slug': eventTicker,
-                                'symbol': eventKey,
+                                'event': eventKey,
                                 'title': eventTitle,
                                 'markets': [],
                             };
@@ -1679,7 +1679,7 @@ export default class kalshi extends Exchange {
         return this.extend ({
             'id': ticker,
             'slug': ticker,
-            'symbol': title ? this.shortenSlug (title) : undefined,
+            'event': title ? this.shortenSlug (title) : undefined,
             'title': title,
             'markets': marketsList,
             'volume': totalVolume,
