@@ -3507,8 +3507,8 @@ export default class htx extends Exchange {
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-account-information
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19588469969
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.type] spot, future or swap
-     * @param {string} [params.subType] linear or future
+     * @param {string} [params.type] spot, margin, future or swap
+     * @param {string} [params.subType] linear or inverse
      * @param {bool} [params.multiAssetMode] set to true if you are using multi-asset mode for USDT-margined contracts
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
@@ -7678,11 +7678,12 @@ export default class htx extends Exchange {
     async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchFundingHistory', market, params);
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchFundingHistory', market, params);
         let request: Dict = {
             'type': '30,31',
         };
-        [ request, params ] = this.handleUntilOption ('end_time', request, query);
+        [ request, params ] = this.handleUntilOption ('end_time', request, params);
         if (since !== undefined) {
             if (market['linear']) {
                 request['start_time'] = since;
@@ -7694,14 +7695,14 @@ export default class htx extends Exchange {
         if (marketType === 'swap') {
             if (market['linear']) {
                 let marginMode = undefined;
-                [ marginMode, params ] = this.handleMarginModeAndParams ('fetchFundingHistory', query);
+                [ marginMode, params ] = this.handleMarginModeAndParams ('fetchFundingHistory', params);
                 marginMode = (marginMode === undefined) ? 'cross' : marginMode;
                 request['margin_mode'] = marginMode;
                 request['contract_code'] = market['id'];
                 if (limit !== undefined) {
                     request['limit'] = limit;
                 }
-                response = await this.contractPrivateGetV5AccountBills (this.extend (request, query));
+                response = await this.contractPrivateGetV5AccountBills (this.extend (request, params));
                 //
                 //     {
                 //         "code": 200,
@@ -7742,11 +7743,11 @@ export default class htx extends Exchange {
                 //         "ts": 1604312615051
                 //     }
                 //
-                response = await this.contractPrivatePostSwapApiV3SwapFinancialRecordExact (this.extend (request, query));
+                response = await this.contractPrivatePostSwapApiV3SwapFinancialRecordExact (this.extend (request, params));
             }
         } else {
             request['symbol'] = market['id'];
-            response = await this.contractPrivatePostApiV3ContractFinancialRecordExact (this.extend (request, query));
+            response = await this.contractPrivatePostApiV3ContractFinancialRecordExact (this.extend (request, params));
         }
         const data = this.safeList (response, 'data', []);
         return this.parseIncomes (data, market, since, limit);
