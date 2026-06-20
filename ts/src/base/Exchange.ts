@@ -6264,7 +6264,7 @@ export default class Exchange {
         return this.safeValue (res, 0);
     }
 
-    handleMarketTypeAndParams (methodName: string, market: Market = undefined, params = {}, defaultValue = undefined): any {
+    handleMarketTypeAndParams (methodName: string, market: Market = undefined, params = {}, defaultValue = undefined): [string, object] {
         /**
          * @ignore
          * @method
@@ -6306,7 +6306,7 @@ export default class Exchange {
         return [ defaultType, params ];
     }
 
-    handleSubTypeAndParams (methodName: string, market = undefined, params = {}, defaultValue = undefined) {
+    handleSubTypeAndParams (methodName: string, market = undefined, params = {}, defaultValue = undefined): [string, object] {
         let subType = undefined;
         // if set in params, it takes precedence
         const subTypeInParams = this.safeString2 (params, 'subType', 'defaultSubType');

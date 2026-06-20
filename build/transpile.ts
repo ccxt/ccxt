@@ -1689,8 +1689,6 @@ class Transpiler {
                     // syncReturnType = promiseReturnTypeMatch ? promiseReturnTypeMatch[1] : returnType
                     if (isTupleReturnType) {
                         syncPhpReturnType = ': array'; // tuples are returned as arrays in PHP
-                    } else if (syncReturnType === 'Currencies') {
-                        syncPhpReturnType = ': ?array'; // since for now `fetchCurrencies` returns null or Currencies
                     } else if (syncReturnType.match (phpArrayRegex)) {
                         syncPhpReturnType = ': array'
                     } else {
