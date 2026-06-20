@@ -1015,7 +1015,7 @@ export default class bullish extends Exchange {
             request['symbol'] = market['id'];
         }
         const clientOrderId = this.safeString (params, 'clientOrderId');
-        let response: List = undefined;
+        let response: List;
         if (clientOrderId !== undefined) {
             response = await this.privateGetV1TradesClientOrderIdClientOrderId (this.extend (request, params));
         } else {
