@@ -5065,7 +5065,7 @@ export default class binance extends Exchange {
                 side = trade['isBuyer'] ? 'buy' : 'sell'; // this is a true side
             }
         }
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         if ('commission' in trade) {
             fee = {
                 'cost': this.safeString (trade, 'commission'),
@@ -8451,7 +8451,7 @@ export default class binance extends Exchange {
             return await this.fetchPaginatedCallDynamic ('fetchDeposits', code, since, limit, params);
         }
         let currency: Currency = undefined;
-        let response = undefined;
+        let response: NullableList = undefined;
         const request: Dict = {};
         const legalMoney = this.safeDict (this.options, 'legalMoney', {});
         const fiatOnly = this.safeBool (params, 'fiat', false);
@@ -8572,7 +8572,7 @@ export default class binance extends Exchange {
             params = this.omit (params, 'until');
             request['endTime'] = until;
         }
-        let response = undefined;
+        let response: NullableList = undefined;
         let currency: Currency = undefined;
         if (fiatOnly || (code in legalMoney)) {
             if (code !== undefined) {
@@ -9674,7 +9674,7 @@ export default class binance extends Exchange {
         //         "takerCommissionRate": "0.00040"   // 0.040%
         //     }
         //
-        let data = response;
+        let data: NullableDict = response;
         if (Array.isArray (data)) {
             data = this.safeDict (data, 0, {});
         }
@@ -12067,7 +12067,7 @@ export default class binance extends Exchange {
         return scheme + '//' + domain + '/';
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const urls = this.urls as any;
         if (!(api in urls['api'])) {
             throw new NotSupported (this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');
@@ -14143,7 +14143,7 @@ export default class binance extends Exchange {
             //     }
             //
         }
-        let data = response;
+        let data: NullableDict = response;
         if (code === 'BUSD') {
             const rows = this.safeList (response, 'rows', []);
             data = this.safeDict (rows, 0, {});
