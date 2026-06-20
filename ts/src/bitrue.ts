@@ -2652,7 +2652,7 @@ export default class bitrue extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        return this.parseTransactions (data, currency, since, limit);
+        return this.parseTransactions (data as any[], currency, since, limit);
     }
 
     /**
@@ -2712,7 +2712,7 @@ export default class bitrue extends Exchange {
         //    }
         //
         const data = this.safeList (response, 'data', []);
-        return this.parseTransactions (data, currency);
+        return this.parseTransactions (data as any[], currency);
     }
 
     parseTransactionStatusByType (status, type = undefined) {
@@ -2909,7 +2909,7 @@ export default class bitrue extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        return this.parseTransaction (data, currency);
+        return this.parseTransaction (data as Dict, currency);
     }
 
     parseDepositWithdrawFee (fee, currency: Currency = undefined) {
@@ -3062,7 +3062,7 @@ export default class bitrue extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        return this.parseTransfers (data, currency, since, limit);
+        return this.parseTransfers (data as any[], currency, since, limit);
     }
 
     /**

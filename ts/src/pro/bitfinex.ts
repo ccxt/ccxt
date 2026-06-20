@@ -958,7 +958,7 @@ export default class bitfinex extends bitfinexRest {
             const subHash = subMessageHashes[i];
             this.cleanUnsubscription (client, subHash, messageHash);
         }
-        this.cleanCache (subscription);
+        this.cleanCache (subscription as Dict);
         return true;
     }
 
