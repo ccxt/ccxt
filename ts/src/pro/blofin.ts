@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import blofinRest from '../blofin.js';
 import { NotSupported, ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { Int, Market, Trade, OrderBook, Strings, Ticker, Tickers, OHLCV, Balances, Str, Order, Position, FundingRate } from '../base/types.js';
+import type { Int, Market, Trade, OrderBook, Strings, Ticker, Tickers, OHLCV, Balances, Str, Order, Position, FundingRate, List, IndexType, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -68,7 +68,7 @@ export default class blofin extends blofinRest {
         });
     }
 
-    ping (client) {
+    ping (client: Client): any {
         return 'ping';
     }
 
@@ -133,7 +133,7 @@ export default class blofin extends blofinRest {
         //
         const arg = this.safeDict (message, 'arg');
         const channelName = this.safeString (arg, 'channel');
-        const data = this.safeList (message, 'data');
+        const data = this.safeList (message, 'data') as List;
         if (data === undefined) {
             return;
         }
@@ -141,11 +141,11 @@ export default class blofin extends blofinRest {
             const rawTrade = data[i];
             const trade = this.parseWsTrade (rawTrade);
             const symbol = trade['symbol'];
-            let stored = this.safeValue (this.trades, symbol);
+            let stored = this.safeValue (this.trades, symbol as IndexType);
             if (stored === undefined) {
-                const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-                stored = new ArrayCache (limit);
-                this.trades[symbol] = stored;
+                const limit = this.safeInteger (this.options, 'tradesLimit', 1000 as any);
+                stored = new ArrayCache (limit as any);
+                this.trades[symbol as IndexType] = stored;
             }
             stored.append (trade);
             const messageHash = channelName + ':' + symbol;
@@ -188,7 +188,7 @@ export default class blofin extends blofinRest {
         let callerMethodName: Str = undefined;
         [ callerMethodName, params ] = this.handleParamString (params, 'callerMethodName', 'watchOrderBookForSymbols');
         let channelName = undefined;
-        [ channelName, params ] = this.handleOptionAndParams (params, callerMethodName, 'channel', 'books');
+        [ channelName, params ] = this.handleOptionAndParams (params, callerMethodName, 'channel', 'books' as any);
         // due to some problem, temporarily disable other channels
         if (channelName !== 'books') {
             throw new NotSupported (this.id + ' ' + callerMethodName + '() at this moment ' + channelName + ' is not supported, coming soon');
@@ -228,7 +228,7 @@ export default class blofin extends blofinRest {
         const timestamp = this.safeInteger (data, 'ts');
         const action = this.safeString (message, 'action');
         if (action === 'snapshot') {
-            const orderBookSnapshot = this.parseOrderBook (data, symbol, timestamp);
+            const orderBookSnapshot = this.parseOrderBook (data as Dict, symbol, timestamp);
             orderBookSnapshot['nonce'] = this.safeInteger (data, 'seqId');
             orderbook.reset (orderBookSnapshot);
         } else {
@@ -279,7 +279,7 @@ export default class blofin extends blofinRest {
             tickers[ticker['symbol']] = ticker;
             return tickers;
         }
-        return this.filterByArray (this.tickers, 'symbol', symbols);
+        return this.filterByArray (this.tickers, 'symbol', symbols as any);
     }
 
     handleTicker (client: Client, message) {
@@ -299,7 +299,7 @@ export default class blofin extends blofinRest {
         this.handleBidAsk (client, message);
         const arg = this.safeDict (message, 'arg');
         const channelName = this.safeString (arg, 'channel');
-        const data = this.safeList (message, 'data');
+        const data = this.safeList (message, 'data') as List;
         for (let i = 0; i < data.length; i++) {
             const ticker = this.parseWsTicker (data[i]);
             const symbol = ticker['symbol'];
@@ -325,15 +325,16 @@ export default class blofin extends blofinRest {
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
-        const firstMarket = this.market (symbols[0]);
+        const symbolsList = symbols as any[];
+        const firstMarket = this.market (symbolsList[0]);
         const channel = 'tickers';
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchBidsAsks', firstMarket, params);
-        const url = this.implodeHostname (this.urls['api']['ws'][marketType]['public']);
-        const messageHashes = [];
-        const args = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const market = this.market (symbols[i]);
+        const url = this.implodeHostname ((this.urls['api'] as any)['ws'][marketType as string]['public']);
+        const messageHashes: List = [];
+        const args: List = [];
+        for (let i = 0; i < symbolsList.length; i++) {
+            const market = this.market (symbolsList[i]);
             messageHashes.push ('bidask:' + market['symbol']);
             args.push ({
                 'channel': channel,
@@ -341,17 +342,17 @@ export default class blofin extends blofinRest {
             });
         }
         const request = this.getSubscriptionRequest (args);
-        const ticker = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes);
+        const ticker = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes as any);
         if (this.newUpdates) {
             const tickers = {};
             tickers[ticker['symbol']] = ticker;
             return tickers;
         }
-        return this.filterByArray (this.bidsasks, 'symbol', symbols);
+        return this.filterByArray (this.bidsasks, 'symbol', symbols as any);
     }
 
     handleBidAsk (client: Client, message) {
-        const data = this.safeList (message, 'data');
+        const data = this.safeList (message, 'data') as List;
         for (let i = 0; i < data.length; i++) {
             const ticker = this.parseWsBidAsk (data[i]);
             const symbol = ticker['symbol'];
@@ -361,7 +362,7 @@ export default class blofin extends blofinRest {
         }
     }
 
-    parseWsBidAsk (ticker, market = undefined) {
+    parseWsBidAsk (ticker, market: Market = undefined) {
         const marketId = this.safeString (ticker, 'instId');
         market = this.safeMarket (marketId, market, '-');
         const symbol = this.safeString (market, 'symbol');
@@ -436,18 +437,18 @@ export default class blofin extends blofinRest {
         //
         const arg = this.safeDict (message, 'arg');
         const channelName = this.safeString (arg, 'channel');
-        const data = this.safeList (message, 'data');
+        const data = this.safeList (message, 'data') as List;
         const marketId = this.safeString (arg, 'instId');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        const interval = channelName.replace ('candle', '');
-        const unifiedTimeframe = this.findTimeframe (interval);
-        this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.ohlcvs[symbol], unifiedTimeframe);
+        const interval = (channelName as string).replace ('candle', '');
+        const unifiedTimeframe = this.findTimeframe (interval) as Str;
+        this.ohlcvs[symbol as IndexType] = this.safeDict (this.ohlcvs, symbol as IndexType, {}) as any;
+        let stored = this.safeValue (this.ohlcvs[symbol as IndexType], unifiedTimeframe as IndexType);
         if (stored === undefined) {
-            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][unifiedTimeframe] = stored;
+            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000 as any);
+            stored = new ArrayCacheByTimestamp (limit as any);
+            this.ohlcvs[symbol as IndexType][unifiedTimeframe as IndexType] = stored;
         }
         for (let i = 0; i < data.length; i++) {
             const candle = data[i];
@@ -470,7 +471,7 @@ export default class blofin extends blofinRest {
     async watchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
         await this.authenticate ();
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         if (marketType === 'spot') {
             throw new NotSupported (this.id + ' watchBalance() is not supported for spot markets yet');
@@ -480,8 +481,8 @@ export default class blofin extends blofinRest {
             'channel': 'account',
         };
         const request = this.getSubscriptionRequest ([ sub ]);
-        const url = this.implodeHostname (this.urls['api']['ws'][marketType]['private']);
-        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        const url = this.implodeHostname ((this.urls['api'] as any)['ws'][marketType as string]['private']);
+        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash as any);
     }
 
     handleBalance (client: Client, message) {
@@ -564,13 +565,13 @@ export default class blofin extends blofinRest {
         //     }
         //
         if (this.orders === undefined) {
-            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            this.orders = new ArrayCacheBySymbolById (limit);
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000 as any);
+            this.orders = new ArrayCacheBySymbolById (limit as any);
         }
         const orders = this.orders;
         const arg = this.safeDict (message, 'arg');
         const channelName = this.safeString (arg, 'channel');
-        const data = this.safeList (message, 'data');
+        const data = this.safeList (message, 'data') as List;
         for (let i = 0; i < data.length; i++) {
             const order = this.parseWsOrder (data[i]);
             const symbol = order['symbol'];
@@ -621,8 +622,8 @@ export default class blofin extends blofinRest {
         const cache = this.positions;
         const arg = this.safeDict (message, 'arg');
         const channelName = this.safeString (arg, 'channel');
-        const data = this.safeList (message, 'data');
-        const newPositions = [];
+        const data = this.safeList (message, 'data') as List;
+        const newPositions: List = [];
         for (let i = 0; i < data.length; i++) {
             const position = this.parseWsPosition (data[i]);
             newPositions.push (position);
@@ -648,7 +649,7 @@ export default class blofin extends blofinRest {
     async watchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchFundingRate', market, params);
         const messageHash = 'fundingRate:' + market['symbol'];
         const requestParams = {
@@ -656,8 +657,8 @@ export default class blofin extends blofinRest {
             'instId': market['id'],
         };
         const request = this.getSubscriptionRequest ([ requestParams ]);
-        const url = this.implodeHostname (this.urls['api']['ws'][marketType]['public']);
-        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        const url = this.implodeHostname ((this.urls['api'] as any)['ws'][marketType as string]['public']);
+        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash as any);
     }
 
     handleFundingRate (client: Client, message) {
@@ -685,26 +686,26 @@ export default class blofin extends blofinRest {
         client.resolve (fundingRate, messageHash);
     }
 
-    async watchMultipleWrapper (isPublic: boolean, channelName: string, callerMethodName: string, symbolsArray: any[] = undefined, params = {}) {
+    async watchMultipleWrapper (isPublic: boolean, channelName: string, callerMethodName: string, symbolsArray: any = undefined, params = {}) {
         // underlier method for all watch-multiple symbols
         await this.loadMarkets ();
         [ callerMethodName, params ] = this.handleParamString (params, 'callerMethodName', callerMethodName);
         // if OHLCV method are being called, then symbols would be symbolsAndTimeframes (multi-dimensional) array
         const isOHLCV = (channelName === 'candle');
-        let symbols = isOHLCV ? this.getListFromObjectValues (symbolsArray, 0) : symbolsArray;
+        let symbols: any = isOHLCV ? this.getListFromObjectValues (symbolsArray, 0) : symbolsArray;
         symbols = this.marketSymbols (symbols, undefined, true, true);
         let firstMarket: Market = undefined;
         const firstSymbol = this.safeString (symbols, 0);
         if (firstSymbol !== undefined) {
             firstMarket = this.market (firstSymbol);
         }
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams (callerMethodName, firstMarket, params);
         if (marketType !== 'swap') {
             throw new NotSupported (this.id + ' ' + callerMethodName + '() does not support ' + marketType + ' markets yet');
         }
-        let rawSubscriptions = [];
-        const messageHashes = [];
+        let rawSubscriptions: List = [];
+        const messageHashes: List = [];
         if (symbols === undefined) {
             symbols = [];
         }
@@ -740,8 +741,8 @@ export default class blofin extends blofinRest {
         }
         const request = this.getSubscriptionRequest (rawSubscriptions);
         const privateOrPublic = isPublic ? 'public' : 'private';
-        const url = this.implodeHostname (this.urls['api']['ws'][marketType][privateOrPublic]);
-        return await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes);
+        const url = this.implodeHostname ((this.urls['api'] as any)['ws'][marketType][privateOrPublic]);
+        return await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes as any);
     }
 
     getSubscriptionRequest (args) {
@@ -779,7 +780,7 @@ export default class blofin extends blofinRest {
             'positions': this.handlePositions,
             'funding-rate': this.handleFundingRate,
         };
-        let method = undefined;
+        let method: any = undefined;
         if (message === 'pong') {
             method = this.safeValue (methods, 'pong');
         } else {
@@ -795,8 +796,8 @@ export default class blofin extends blofinRest {
             }
             const arg = this.safeDict (message, 'arg');
             const channelName = this.safeString (arg, 'channel');
-            method = this.safeValue (methods, channelName);
-            if (!method && channelName.indexOf ('candle') >= 0) {
+            method = this.safeValue (methods, channelName as IndexType);
+            if (!method && (channelName as string).indexOf ('candle') >= 0) {
                 method = methods['candle'];
             }
         }
@@ -826,7 +827,7 @@ export default class blofin extends blofinRest {
             ],
         };
         const marketType = 'swap'; // for now
-        const url = this.implodeHostname (this.urls['api']['ws'][marketType]['private']);
-        await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        const url = this.implodeHostname ((this.urls['api'] as any)['ws'][marketType]['private']);
+        await this.watch (url, messageHash, this.deepExtend (request, params), messageHash as any);
     }
 }
