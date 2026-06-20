@@ -58,7 +58,7 @@ class toobit extends toobit$1["default"] {
                 },
             },
             'streaming': {
-                'keepAlive': (60 - 1) * 5 * 1000,
+                'keepAlive': (60 - 1) * 5 * 1000, // every 5 minutes
                 'ping': this.ping,
             },
             'exceptions': {
@@ -577,7 +577,7 @@ class toobit extends toobit$1["default"] {
         }
     }
     handleDelta(bookside, delta) {
-        const bidAsk = this.parseBidAsk(delta);
+        const bidAsk = this.parseOrderBookBidAsk(delta);
         bookside.storeArray(bidAsk);
     }
     handleOrderBookPartialSnapshot(client, message) {

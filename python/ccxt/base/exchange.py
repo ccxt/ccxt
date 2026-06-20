@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.56'
+__version__ = '4.5.59'
 
 # -----------------------------------------------------------------------------
 
@@ -56,12 +56,6 @@ try:
 except ImportError:
     coincurve = None
 
-# eddsa signing
-try:
-    import axolotl_curve25519 as eddsa
-except ImportError:
-    eddsa = None
-
 # eth signing
 from ccxt.static_dependencies.ethereum import abi
 from ccxt.static_dependencies.ethereum import account
@@ -70,6 +64,7 @@ from ccxt.static_dependencies.msgpack import packb
 # starknet
 from ccxt.static_dependencies.starknet.ccxt_utils import get_private_key_from_eth_signature
 from ccxt.static_dependencies.starknet.hash.address import compute_address
+from ccxt.static_dependencies.starknet.hash.poseidon import poseidon_hash_many
 from ccxt.static_dependencies.starknet.hash.selector import get_selector_from_name
 from ccxt.static_dependencies.starknet.hash.utils import message_signature, private_to_stark_key
 from ccxt.static_dependencies.starknet.utils.typed_data import TypedData as TypedDataDataclass
@@ -398,7 +393,6 @@ class Exchange(object):
     last_request_url = None
     last_request_headers = None
 
-    requiresEddsa = False
     base58_encoder = None
     base58_decoder = None
     # no lower case l or upper case I, O
@@ -1513,6 +1507,24 @@ class Exchange(object):
     def eth_get_address_from_private_key(private_key):
         # method returns the Ethereum address from a "0x"-prefixed private key
         # Remove "0x" prefix if present
+        if coincurve is not None:
+            return Exchange.eth_get_address_from_private_key_with_coincurve(private_key)
+        clean_private_key = Exchange.remove0x_prefix(private_key)
+        # Build secp256k1 private key from raw 32-byte hex
+        private_key_bytes = bytes.fromhex(clean_private_key)
+        signing_key = ecdsa.SigningKey.from_string(private_key_bytes, curve=ecdsa.SECP256k1)
+        # 64-byte uncompressed public key (X || Y), no 0x04 prefix
+        public_key_bytes = signing_key.verifying_key.to_string()
+        # Hash the public key with Keccak256
+        address_bytes = keccak.SHA3(public_key_bytes)[-20:]
+        # Convert to hex and add 0x prefix
+        address_hex = '0x' + address_bytes.hex()
+        return address_hex
+
+    @staticmethod
+    def eth_get_address_from_private_key_with_coincurve(private_key):
+        # method returns the Ethereum address from a "0x"-prefixed private key
+        # Remove "0x" prefix if present
         clean_private_key = Exchange.remove0x_prefix(private_key)
         # Use coincurve to get the public key
         private_key_obj = coincurve.PrivateKey(bytes.fromhex(clean_private_key))
@@ -1576,6 +1588,24 @@ class Exchange(object):
             pri = int(pri, 16)
         r, s = message_signature(msg_hash, pri)
         return Exchange.json([hex(r), hex(s)])
+
+    @staticmethod
+    def extended_starknet_sign (msg_hash, pri):
+        if isinstance(msg_hash, str):
+            msg_hash = int(msg_hash, 0)
+        if isinstance(pri, str):
+            pri = int(pri, 16)
+        r, s = message_signature(msg_hash, pri)
+        return Exchange.json([hex(r), hex(s)])
+
+    @staticmethod
+    def extended_starknet_get_selector_from_name (name):
+        return get_selector_from_name(name)
+
+    @staticmethod
+    def extended_starknet_compute_poseidon_hash_on_elements (data):
+        values = [int(x, 0) if isinstance(x, str) else int(x) for x in data]
+        return hex(poseidon_hash_many(values))
 
     @staticmethod
     def packb(o):
@@ -1721,14 +1751,6 @@ class Exchange(object):
             return Exchange.binary_to_urlencoded_base64(signature)
 
         return Exchange.binary_to_base64(signature)
-
-    @staticmethod
-    def axolotl(request, secret, curve='ed25519'):
-        random = b'\x00' * 64
-        request = base64.b16decode(request, casefold=True)
-        secret = base64.b16decode(secret, casefold=True)
-        signature = eddsa.calculateSignature(random, secret, request)
-        return Exchange.binary_to_base58(signature)
 
     @staticmethod
     def json(data, params=None):
@@ -1896,8 +1918,7 @@ class Exchange(object):
         return timestamp - offset + (ms if direction == ROUND_UP else 0)
 
     def check_required_dependencies(self):
-        if self.requiresEddsa and eddsa is None:
-            raise NotSupported(self.id + ' Eddsa functionality requires python-axolotl-curve25519, install with `pip install python-axolotl-curve25519==0.4.1.post2`: https://github.com/tgalal/python-axolotl-curve25519')
+        pass
 
     def privateKeyToAddress(self, privateKey):
         private_key_bytes = base64.b16decode(Exchange.encode(privateKey), True)
@@ -2034,7 +2055,7 @@ class Exchange(object):
     #     obj[prop] = value
 
     def convert_to_big_int(self, value):
-        return int(value) if isinstance(value, str) else value
+        return int(value, 16) if isinstance(value, str) and value.startswith('0x') else int(value) if isinstance(value, str) else value
 
     def string_to_chars_array(self, value):
         return list(value)
@@ -2905,21 +2926,27 @@ class Exchange(object):
             return value
         return defaultValue
 
-    def safe_bool_2(self, dictionary, key1: IndexType, key2: IndexType, defaultValue: bool = None):
+    def safe_bool_2(self, dictionaryOrList, key1: IndexType, key2: IndexType, defaultValue: bool = None):
         """
  @ignore
         safely extract boolean value from dictionary or list
         :returns bool | None:
         """
-        return self.safe_bool_n(dictionary, [key1, key2], defaultValue)
+        value = self.safe_value(dictionaryOrList, key1)
+        if isinstance(value, bool):
+            return value
+        value2 = self.safe_value(dictionaryOrList, key2)
+        if isinstance(value2, bool):
+            return value2
+        return defaultValue
 
-    def safe_bool(self, dictionary, key: IndexType, defaultValue: bool = None):
+    def safe_bool(self, dictionaryOrList, key: IndexType, defaultValue: bool = None):
         """
  @ignore
         safely extract boolean value from dictionary or list
         :returns bool | None:
         """
-        value = self.safe_value(dictionary, key, defaultValue)
+        value = self.safe_value(dictionaryOrList, key, defaultValue)
         if isinstance(value, bool):
             return value
         return defaultValue
@@ -2937,26 +2964,32 @@ class Exchange(object):
             return value
         return defaultValue
 
-    def safe_dict(self, dictionary, key: IndexType, defaultValue: dict = None):
+    def safe_dict(self, dictionaryOrList, key: IndexType, defaultValue: dict = None):
         """
  @ignore
         safely extract a dictionary from dictionary or list
         :returns dict | None:
         """
-        value = self.safe_value(dictionary, key, defaultValue)
+        value = self.safe_value(dictionaryOrList, key, defaultValue)
         if value is None:
             return defaultValue
         if self.is_dictionary(value):
             return value
         return defaultValue
 
-    def safe_dict_2(self, dictionary, key1: IndexType, key2: str, defaultValue: dict = None):
+    def safe_dict_2(self, dictionaryOrList, key1: IndexType, key2: str, defaultValue: dict = None):
         """
  @ignore
         safely extract a dictionary from dictionary or list
         :returns dict | None:
         """
-        return self.safe_dict_n(dictionary, [key1, key2], defaultValue)
+        value = self.safe_value(dictionaryOrList, key1)
+        if self.is_dictionary(value):
+            return value
+        value2 = self.safe_value(dictionaryOrList, key2)
+        if self.is_dictionary(value2):
+            return value2
+        return defaultValue
 
     def safe_list_n(self, dictionaryOrList, keys: List[IndexType], defaultValue: List[Any] = None):
         """
@@ -2980,7 +3013,13 @@ class Exchange(object):
         safely extract an Array from dictionary or list
         :returns Array | None:
         """
-        return self.safe_list_n(dictionaryOrList, [key1, key2], defaultValue)
+        value = self.safe_value(dictionaryOrList, key1)
+        if (value is not None) and isinstance(value, list):
+            return value
+        value2 = self.safe_value(dictionaryOrList, key2)
+        if (value2 is not None) and isinstance(value2, list):
+            return value2
+        return defaultValue
 
     def safe_list(self, dictionaryOrList, key: IndexType, defaultValue: List[Any] = None):
         """
@@ -3004,7 +3043,7 @@ class Exchange(object):
 
     def handle_deltas_with_keys(self, bookSide: Any, deltas, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
         for i in range(0, len(deltas)):
-            bidAsk = self.parse_bid_ask(deltas[i], priceKey, amountKey, countOrIdKey)
+            bidAsk = self.parse_order_book_bid_ask(deltas[i], priceKey, amountKey, countOrIdKey)
             bookSide.storeArray(bidAsk)
 
     def get_cache_index(self, orderbook, deltas):
@@ -3390,6 +3429,8 @@ class Exchange(object):
         arr = self.to_array(rawCurrencies)
         for i in range(0, len(arr)):
             parsed = self.parse_currency(arr[i])
+            if parsed is None:
+                continue
             code = parsed['code']
             result[code] = parsed
         return result
@@ -3853,17 +3894,6 @@ class Exchange(object):
                 currencyWithdraw = self.safe_bool(currency, 'withdraw')
                 if currencyWithdraw is None or withdraw:
                     currency['withdraw'] = withdraw
-                # set network 'active' to False if D or W is disabled
-                active = self.safe_bool(network, 'active')
-                if active is None:
-                    if deposit and withdraw:
-                        currency['networks'][key]['active'] = True
-                    elif deposit is not None and withdraw is not None:
-                        currency['networks'][key]['active'] = False
-                active = self.safe_bool(currency['networks'][key], 'active')  # dict might have been updated on above lines, so access directly instead of `network` variable
-                currencyActive = self.safe_bool(currency, 'active')
-                if currencyActive is None or active:
-                    currency['active'] = active
                 # find lowest fee(which is more desired)
                 fee = self.safe_string(network, 'fee')
                 feeMain = self.safe_string(currency, 'fee')
@@ -4578,6 +4608,19 @@ class Exchange(object):
                 return current
         return arr[length - 1]
 
+    def add_key_in_array_items(self, obj, keyName):
+        result = []
+        keys = list(obj.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            item = obj[key]
+            if item is None:
+                continue
+            itemWithKey = self.extend({}, item)
+            itemWithKey[keyName] = key
+            result.append(itemWithKey)
+        return result
+
     def invert_flat_string_dictionary(self, dict):
         reversed = {}
         keys = list(dict.keys())
@@ -4937,11 +4980,11 @@ class Exchange(object):
             result.append(self.common_currency_code(codes[i]))
         return result
 
-    def parse_bids_asks(self, bidasks, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
+    def parse_order_book_bids_asks(self, bidasks, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
         bidasks = self.to_array(bidasks)
         result = []
         for i in range(0, len(bidasks)):
-            result.append(self.parse_bid_ask(bidasks[i], priceKey, amountKey, countOrIdKey))
+            result.append(self.parse_order_book_bid_ask(bidasks[i], priceKey, amountKey, countOrIdKey))
         return result
 
     def fetch_l2_order_book(self, symbol: str, limit: Int = None, params={}):
@@ -5151,8 +5194,8 @@ class Exchange(object):
         return self.parse_number(value, d)
 
     def parse_order_book(self, orderbook: object, symbol: str, timestamp: Int = None, bidsKey='bids', asksKey='asks', priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
-        bids = self.parse_bids_asks(self.safe_value(orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey)
-        asks = self.parse_bids_asks(self.safe_value(orderbook, asksKey, []), priceKey, amountKey, countOrIdKey)
+        bids = self.parse_order_book_bids_asks(self.safe_value(orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey)
+        asks = self.parse_order_book_bids_asks(self.safe_value(orderbook, asksKey, []), priceKey, amountKey, countOrIdKey)
         return {
             'symbol': symbol,
             'bids': self.sort_by(bids, 0, True),
@@ -5631,7 +5674,7 @@ class Exchange(object):
     def fetch_ledger_entry(self, id: str, code: Str = None, params={}):
         raise NotSupported(self.id + ' fetchLedgerEntry() is not supported yet')
 
-    def parse_bid_ask(self, bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
+    def parse_order_book_bid_ask(self, bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
         price = self.safe_float(bidask, priceKey)
         amount = self.safe_float(bidask, amountKey)
         countOrId = self.safe_integer(bidask, countOrIdKey)

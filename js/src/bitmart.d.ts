@@ -24,9 +24,9 @@ export default class bitmart extends Exchange {
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
     fetchStatus(params?: {}): Promise<{
-        status: any;
+        status: string;
         updated: any;
-        eta: any;
+        eta: number;
         url: any;
         info: any;
     }>;

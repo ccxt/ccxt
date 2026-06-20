@@ -71,7 +71,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-paradex.fetchTime ([params])
+paradex.fetchTime (params?)
 ```
 
 
@@ -91,7 +91,7 @@ the latest known information on the availability of the exchange API
 
 
 ```javascript
-paradex.fetchStatus ([params])
+paradex.fetchStatus (params?)
 ```
 
 
@@ -111,7 +111,7 @@ retrieves data on all markets for paradex
 
 
 ```javascript
-paradex.fetchMarkets ([params])
+paradex.fetchMarkets (params?)
 ```
 
 
@@ -132,7 +132,7 @@ fetch the trading fees for a market
 
 
 ```javascript
-paradex.fetchTradingFee (symbol[, params])
+paradex.fetchTradingFee (symbol, params?)
 ```
 
 
@@ -152,7 +152,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-paradex.fetchTradingFees ([params])
+paradex.fetchTradingFees (params?)
 ```
 
 
@@ -178,7 +178,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-paradex.fetchOHLCV (symbol, timeframe[, since, limit, params])
+paradex.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -199,7 +199,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-paradex.fetchTickers (symbols[, params])
+paradex.fetchTickers (symbols, params?)
 ```
 
 
@@ -220,7 +220,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-paradex.fetchTicker (symbol[, params])
+paradex.fetchTicker (symbol, params?)
 ```
 
 
@@ -242,7 +242,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-paradex.fetchOrderBook (symbol[, limit, params])
+paradex.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -267,7 +267,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-paradex.fetchTrades (symbol[, since, limit, params])
+paradex.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -288,7 +288,7 @@ retrieves the open interest of a contract trading pair
 
 
 ```javascript
-paradex.fetchOpenInterest (symbol[, params])
+paradex.fetchOpenInterest (symbol, params?)
 ```
 
 
@@ -321,7 +321,7 @@ create a trade order
 
 
 ```javascript
-paradex.createOrder (symbol, type, side, amount[, price, params])
+paradex.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -349,7 +349,7 @@ edit an open limit order or TPSL order
 
 
 ```javascript
-paradex.editOrder (id, symbol, type, side, amount, price[, params])
+paradex.editOrder (id, symbol, type, side, amount, price, params?)
 ```
 
 
@@ -370,7 +370,7 @@ create a list of trade orders
 
 
 ```javascript
-paradex.createOrders (orders[, params])
+paradex.createOrders (orders, params?)
 ```
 
 
@@ -397,7 +397,7 @@ cancels an open order
 
 
 ```javascript
-paradex.cancelOrder (id, symbol[, params])
+paradex.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -420,7 +420,7 @@ cancel multiple orders
 
 
 ```javascript
-paradex.cancelOrders (ids[, symbol, params])
+paradex.cancelOrders (ids, symbol?, params?)
 ```
 
 
@@ -441,7 +441,7 @@ cancel all open orders in a market
 
 
 ```javascript
-paradex.cancelAllOrders (symbol[, params])
+paradex.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -468,7 +468,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-paradex.fetchOrder (id, symbol[, params])
+paradex.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -494,7 +494,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-paradex.fetchOrders (symbol[, since, limit, params])
+paradex.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -517,7 +517,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-paradex.fetchOpenOrders (symbol[, since, limit, params])
+paradex.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -537,7 +537,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-paradex.fetchBalance ([params])
+paradex.fetchBalance (params?)
 ```
 
 
@@ -562,7 +562,7 @@ fetch all trades made by the user
 
 
 ```javascript
-paradex.fetchMyTrades (symbol[, since, limit, params])
+paradex.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -583,7 +583,7 @@ fetch data on an open position
 
 
 ```javascript
-paradex.fetchPosition (symbol[, params])
+paradex.fetchPosition (symbol, params?)
 ```
 
 
@@ -604,7 +604,7 @@ fetch all open positions
 
 
 ```javascript
-paradex.fetchPositions ([symbols, params])
+paradex.fetchPositions (symbols?, params?)
 ```
 
 
@@ -628,7 +628,7 @@ retrieves the users liquidated positions
 
 
 ```javascript
-paradex.fetchMyLiquidations ([symbol, since, limit, params])
+paradex.fetchMyLiquidations (symbol?, since?, limit?, params?)
 ```
 
 
@@ -653,7 +653,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-paradex.fetchDeposits (code[, since, limit, params])
+paradex.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -678,7 +678,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-paradex.fetchWithdrawals (code[, since, limit, params])
+paradex.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -703,7 +703,7 @@ fetch a history of transfers made on an account
 
 
 ```javascript
-paradex.fetchTransfers (code[, since, limit, params])
+paradex.fetchTransfers (code, since?, limit?, params?)
 ```
 
 
@@ -724,7 +724,7 @@ fetches the margin mode of a specific symbol
 
 
 ```javascript
-paradex.fetchMarginMode (symbol[, params])
+paradex.fetchMarginMode (symbol, params?)
 ```
 
 
@@ -747,7 +747,7 @@ set margin mode to 'cross' or 'isolated'
 
 
 ```javascript
-paradex.setMarginMode (marginMode, symbol[, params])
+paradex.setMarginMode (marginMode, symbol, params?)
 ```
 
 
@@ -768,7 +768,7 @@ fetch the set leverage for a market
 
 
 ```javascript
-paradex.fetchLeverage (symbol[, params])
+paradex.fetchLeverage (symbol, params?)
 ```
 
 
@@ -791,7 +791,7 @@ set the level of leverage for a market
 
 
 ```javascript
-paradex.setLeverage (leverage[, symbol, params])
+paradex.setLeverage (leverage, symbol?, params?)
 ```
 
 
@@ -812,7 +812,7 @@ fetches an option contracts greeks, financial metrics used to measure the factor
 
 
 ```javascript
-paradex.fetchGreeks (symbol[, params])
+paradex.fetchGreeks (symbol, params?)
 ```
 
 
@@ -833,7 +833,7 @@ fetches all option contracts greeks, financial metrics used to measure the facto
 
 
 ```javascript
-paradex.fetchAllGreeks ([symbols, params])
+paradex.fetchAllGreeks (symbols?, params?)
 ```
 
 
@@ -859,7 +859,7 @@ fetch the history of funding payments paid and received on this account
 
 
 ```javascript
-paradex.fetchFundingHistory (symbol[, since, limit, params])
+paradex.fetchFundingHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -883,6 +883,6 @@ fetches historical funding rate prices
 
 
 ```javascript
-paradex.fetchFundingRateHistory (symbol[, since, limit, params])
+paradex.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 

@@ -529,11 +529,11 @@ class woofipro(ccxt.async_support.woofipro):
         cost = Precise.string_mul(price, amount)
         side = self.safe_string_lower(trade, 'side')
         timestamp = self.safe_integer(trade, 'timestamp')
-        takerOrMaker = None
+        takerOrMaker: Str = None
         maker = self.safe_bool(trade, 'maker')
         if maker is not None:
             takerOrMaker = 'maker' if maker else 'taker'
-        fee = None
+        fee: dict = None
         feeValue = self.safe_string(trade, 'fee')
         if feeValue is not None:
             fee = {

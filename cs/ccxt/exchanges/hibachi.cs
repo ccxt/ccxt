@@ -122,7 +122,7 @@ public partial class hibachi : Exchange
                 } },
                 { "www", "https://www.hibachi.xyz/" },
                 { "referral", new Dictionary<string, object>() {
-                    { "url", "hibachi.xyz/r/ZBL2YFWIHU" },
+                    { "url", "https://hibachi.xyz/r/ZBL2YFWIHU" },
                 } },
             } },
             { "api", new Dictionary<string, object>() {
@@ -856,6 +856,7 @@ public partial class hibachi : Exchange
             object priceInternal = Precise.stringDiv(Precise.stringDiv(Precise.stringMul(Precise.stringMul(priceStr, priceFactor), settlement), underlying), one, 0);
             object price16 = this.intToBase16(this.parseToInt(priceInternal));
             object pricePadded = (price16 as String).PadLeft(Convert.ToInt32(16), Convert.ToChar("0"));
+            // @ts-expect-error
             encodedPrice = this.base16ToBinary(pricePadded);
         }
         object message = this.binaryConcat(encodedNonce, encodedMarketId, encodedQuantity, encodedSide, encodedPrice, encodedFeeRate);

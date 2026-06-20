@@ -94,7 +94,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-bitmart.fetchTime ([params])
+bitmart.fetchTime (params?)
 ```
 
 
@@ -114,7 +114,7 @@ the latest known information on the availability of the exchange API
 
 
 ```javascript
-bitmart.fetchStatus ([params])
+bitmart.fetchStatus (params?)
 ```
 
 
@@ -138,7 +138,7 @@ retrieves data on all markets for bitmart
 
 
 ```javascript
-bitmart.fetchMarkets ([params])
+bitmart.fetchMarkets (params?)
 ```
 
 
@@ -158,7 +158,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-bitmart.fetchCurrencies ([params])
+bitmart.fetchCurrencies (params?)
 ```
 
 
@@ -181,7 +181,7 @@ please use fetchDepositWithdrawFee instead
 
 
 ```javascript
-bitmart.fetchTransactionFee (code[, params])
+bitmart.fetchTransactionFee (code, params?)
 ```
 
 
@@ -203,7 +203,7 @@ fetch the fee for deposits and withdrawals
 
 
 ```javascript
-bitmart.fetchDepositWithdrawFee (code[, params])
+bitmart.fetchDepositWithdrawFee (code, params?)
 ```
 
 
@@ -228,7 +228,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bitmart.fetchTicker (symbol[, params])
+bitmart.fetchTicker (symbol, params?)
 ```
 
 
@@ -253,7 +253,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-bitmart.fetchTickers (symbols[, params])
+bitmart.fetchTickers (symbols, params?)
 ```
 
 
@@ -279,7 +279,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bitmart.fetchOrderBook (symbol[, limit, params])
+bitmart.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -302,7 +302,7 @@ get a list of the most recent trades for a particular symbol
 
 
 ```javascript
-bitmart.fetchTrades (symbol[, since, limit, params])
+bitmart.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -332,7 +332,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-bitmart.fetchOHLCV (symbol, timeframe[, since, limit, params])
+bitmart.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -362,7 +362,7 @@ fetch all trades made by the user
 
 
 ```javascript
-bitmart.fetchMyTrades (symbol[, since, limit, params])
+bitmart.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -387,7 +387,7 @@ fetch all the trades made from a single order
 
 
 ```javascript
-bitmart.fetchOrderTrades (id, symbol[, since, limit, params])
+bitmart.fetchOrderTrades (id, symbol, since?, limit?, params?)
 ```
 
 
@@ -413,7 +413,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-bitmart.fetchBalance ([params])
+bitmart.fetchBalance (params?)
 ```
 
 
@@ -434,7 +434,7 @@ fetch the trading fees for a market
 
 
 ```javascript
-bitmart.fetchTradingFee (symbol[, params])
+bitmart.fetchTradingFee (symbol, params?)
 ```
 
 
@@ -456,7 +456,7 @@ create a market buy order by providing the symbol and cost
 
 
 ```javascript
-bitmart.createMarketBuyOrderWithCost (symbol, cost[, params])
+bitmart.createMarketBuyOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -505,7 +505,7 @@ create a trade order
 
 
 ```javascript
-bitmart.createOrder (symbol, type, side, amount[, price, params])
+bitmart.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -527,7 +527,7 @@ create a list of trade orders
 
 
 ```javascript
-bitmart.createOrders (orders[, params])
+bitmart.createOrders (orders, params?)
 ```
 
 
@@ -561,7 +561,7 @@ cancels an open order
 
 
 ```javascript
-bitmart.cancelOrder (id, symbol[, params])
+bitmart.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -584,7 +584,7 @@ cancel multiple orders
 
 
 ```javascript
-bitmart.cancelOrders (ids, symbol[, params])
+bitmart.cancelOrders (ids, symbol, params?)
 ```
 
 
@@ -613,7 +613,7 @@ cancel all open orders in a market
 
 
 ```javascript
-bitmart.cancelAllOrders (symbol[, params])
+bitmart.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -651,7 +651,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-bitmart.fetchOpenOrders (symbol[, since, limit, params])
+bitmart.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -684,7 +684,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-bitmart.fetchClosedOrders (symbol[, since, limit, params])
+bitmart.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -706,7 +706,7 @@ fetches information on multiple canceled orders made by the user
 
 
 ```javascript
-bitmart.fetchCanceledOrders (symbol[, since, limit, params])
+bitmart.fetchCanceledOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -740,7 +740,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-bitmart.fetchOrder (id, symbol[, params])
+bitmart.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -761,7 +761,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-bitmart.fetchDepositAddress (code[, params])
+bitmart.fetchDepositAddress (code, params?)
 ```
 
 
@@ -786,7 +786,7 @@ make a withdrawal
 
 
 ```javascript
-bitmart.withdraw (code, amount, address, tag[, params])
+bitmart.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -808,7 +808,7 @@ fetch information on a deposit
 
 
 ```javascript
-bitmart.fetchDeposit (id, code[, params])
+bitmart.fetchDeposit (id, code, params?)
 ```
 
 
@@ -831,7 +831,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-bitmart.fetchDeposits (code[, since, limit, params])
+bitmart.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -853,7 +853,7 @@ fetch data on a currency withdrawal via the withdrawal id
 
 
 ```javascript
-bitmart.fetchWithdrawal (id, code[, params])
+bitmart.fetchWithdrawal (id, code, params?)
 ```
 
 
@@ -876,7 +876,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-bitmart.fetchWithdrawals (code[, since, limit, params])
+bitmart.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -899,7 +899,7 @@ repay borrowed margin and interest
 
 
 ```javascript
-bitmart.repayIsolatedMargin (symbol, code, amount[, params])
+bitmart.repayIsolatedMargin (symbol, code, amount, params?)
 ```
 
 
@@ -922,7 +922,7 @@ create a loan to borrow margin
 
 
 ```javascript
-bitmart.borrowIsolatedMargin (symbol, code, amount[, params])
+bitmart.borrowIsolatedMargin (symbol, code, amount, params?)
 ```
 
 
@@ -943,7 +943,7 @@ fetch the rate of interest to borrow a currency for margin trading
 
 
 ```javascript
-bitmart.fetchIsolatedBorrowRate (symbol[, params])
+bitmart.fetchIsolatedBorrowRate (symbol, params?)
 ```
 
 
@@ -963,7 +963,7 @@ fetch the borrow interest rates of all currencies, currently only works for isol
 
 
 ```javascript
-bitmart.fetchIsolatedBorrowRates ([params])
+bitmart.fetchIsolatedBorrowRates (params?)
 ```
 
 
@@ -991,7 +991,7 @@ transfer currency internally between wallets on the same account, currently only
 
 
 ```javascript
-bitmart.transfer (code, amount, fromAccount, toAccount[, params])
+bitmart.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -1016,7 +1016,7 @@ fetch a history of internal transfers made on an account, only transfers between
 
 
 ```javascript
-bitmart.fetchTransfers (code[, since, limit, params])
+bitmart.fetchTransfers (code, since?, limit?, params?)
 ```
 
 
@@ -1040,7 +1040,7 @@ fetch the interest owed by the user for borrowing currency for margin trading
 
 
 ```javascript
-bitmart.fetchBorrowInterest (code, symbol[, since, limit, params])
+bitmart.fetchBorrowInterest (code, symbol, since?, limit?, params?)
 ```
 
 
@@ -1061,7 +1061,7 @@ Retrieves the open interest of a currency
 
 
 ```javascript
-bitmart.fetchOpenInterest (symbol[, params])
+bitmart.fetchOpenInterest (symbol, params?)
 ```
 
 
@@ -1084,7 +1084,7 @@ set the level of leverage for a market
 
 
 ```javascript
-bitmart.setLeverage (leverage, symbol[, params])
+bitmart.setLeverage (leverage, symbol, params?)
 ```
 
 
@@ -1105,7 +1105,7 @@ fetch the current funding rate
 
 
 ```javascript
-bitmart.fetchFundingRate (symbol[, params])
+bitmart.fetchFundingRate (symbol, params?)
 ```
 
 
@@ -1128,7 +1128,7 @@ fetches historical funding rate prices
 
 
 ```javascript
-bitmart.fetchFundingRateHistory (symbol[, since, limit, params])
+bitmart.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -1149,7 +1149,7 @@ fetch data on a single open contract trade position
 
 
 ```javascript
-bitmart.fetchPosition (symbol[, params])
+bitmart.fetchPosition (symbol, params?)
 ```
 
 
@@ -1174,7 +1174,7 @@ fetch all open contract positions
 
 
 ```javascript
-bitmart.fetchPositions (symbols[, params])
+bitmart.fetchPositions (symbols, params?)
 ```
 
 
@@ -1198,7 +1198,7 @@ retrieves the users liquidated positions
 
 
 ```javascript
-bitmart.fetchMyLiquidations (symbol[, since, limit, params])
+bitmart.fetchMyLiquidations (symbol, since?, limit?, params?)
 ```
 
 
@@ -1238,7 +1238,7 @@ edits an open order
 
 
 ```javascript
-bitmart.editOrder (id, symbol, type, side[, amount, price, params])
+bitmart.editOrder (id, symbol, type, side, amount?, price?, params?)
 ```
 
 
@@ -1262,7 +1262,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-bitmart.fetchLedger ([code, since, limit, params])
+bitmart.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -1286,7 +1286,7 @@ fetch the history of funding payments paid and received on this account
 
 
 ```javascript
-bitmart.fetchFundingHistory ([symbol, since, limit, params])
+bitmart.fetchFundingHistory (symbol?, since?, limit?, params?)
 ```
 
 
@@ -1308,7 +1308,7 @@ set hedged to true or false for a market
 
 
 ```javascript
-bitmart.setPositionMode (hedged, symbol[, params])
+bitmart.setPositionMode (hedged, symbol, params?)
 ```
 
 
@@ -1329,7 +1329,7 @@ fetchs the position mode, hedged or one way, hedged for binance is set identical
 
 
 ```javascript
-bitmart.fetchPositionMode (symbol[, params])
+bitmart.fetchPositionMode (symbol, params?)
 ```
 
 
@@ -1353,7 +1353,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-bitmart.watchBalance ([params])
+bitmart.watchBalance (params?)
 ```
 
 
@@ -1380,7 +1380,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bitmart.watchTrades (symbol[, since, limit, params])
+bitmart.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1407,7 +1407,7 @@ get the list of most recent trades for a list of symbols
 
 
 ```javascript
-bitmart.watchTradesForSymbols (symbols[, since, limit, params])
+bitmart.watchTradesForSymbols (symbols, since?, limit?, params?)
 ```
 
 
@@ -1432,7 +1432,7 @@ unWatches from the stream channel
 
 
 ```javascript
-bitmart.unWatchTrades (symbol[, params])
+bitmart.unWatchTrades (symbol, params?)
 ```
 
 
@@ -1457,7 +1457,7 @@ unsubscribes from the trades channel
 
 
 ```javascript
-bitmart.unWatchTradesForSymbols (symbols[, params])
+bitmart.unWatchTradesForSymbols (symbols, params?)
 ```
 
 
@@ -1482,7 +1482,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bitmart.watchTicker (symbol[, params])
+bitmart.watchTicker (symbol, params?)
 ```
 
 
@@ -1507,7 +1507,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bitmart.watchTickers (symbols[, params])
+bitmart.watchTickers (symbols, params?)
 ```
 
 
@@ -1532,7 +1532,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 
 
 ```javascript
-bitmart.unWatchTicker (symbol[, params])
+bitmart.unWatchTicker (symbol, params?)
 ```
 
 
@@ -1557,7 +1557,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 
 
 ```javascript
-bitmart.unWatchTickers (symbols[, params])
+bitmart.unWatchTickers (symbols, params?)
 ```
 
 
@@ -1582,7 +1582,7 @@ watches best bid & ask for symbols
 
 
 ```javascript
-bitmart.watchBidsAsks (symbols[, params])
+bitmart.watchBidsAsks (symbols, params?)
 ```
 
 
@@ -1609,7 +1609,7 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-bitmart.watchOrders (symbol[, since, limit, params])
+bitmart.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -1634,7 +1634,7 @@ unWatches information on multiple orders made by the user
 
 
 ```javascript
-bitmart.unWatchOrders (symbol[, params])
+bitmart.unWatchOrders (symbol, params?)
 ```
 
 
@@ -1657,7 +1657,7 @@ watch all open positions
 
 
 ```javascript
-bitmart.watchPositions (symbols[, since, limit, params])
+bitmart.watchPositions (symbols, since?, limit?, params)
 ```
 
 
@@ -1678,7 +1678,7 @@ unWatches all open positions
 
 
 ```javascript
-bitmart.unWatchPositions ([symbols, params])
+bitmart.unWatchPositions (symbols?, params?)
 ```
 
 
@@ -1706,7 +1706,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-bitmart.watchOHLCV (symbol, timeframe[, since, limit, params])
+bitmart.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -1732,7 +1732,7 @@ unWatches historical candlestick data containing the open, high, low, and close 
 
 
 ```javascript
-bitmart.unWatchOHLCV (symbol, timeframe[, params])
+bitmart.unWatchOHLCV (symbol, timeframe, params?)
 ```
 
 
@@ -1760,7 +1760,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bitmart.watchOrderBook (symbol[, limit, params])
+bitmart.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -1786,7 +1786,7 @@ unWatches information on open orders with bid (buy) and ask (sell) prices, volum
 
 
 ```javascript
-bitmart.unWatchOrderBook (symbol[, params])
+bitmart.unWatchOrderBook (symbol, params?)
 ```
 
 
@@ -1809,7 +1809,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bitmart.watchOrderBookForSymbols (symbols[, limit, params])
+bitmart.watchOrderBookForSymbols (symbols, limit?, params?)
 ```
 
 
@@ -1831,7 +1831,7 @@ unWatches information on open orders with bid (buy) and ask (sell) prices, volum
 
 
 ```javascript
-bitmart.unWatchOrderBookForSymbols (symbols[, params])
+bitmart.unWatchOrderBookForSymbols (symbols, params?)
 ```
 
 
@@ -1852,7 +1852,7 @@ watch the current funding rate
 
 
 ```javascript
-bitmart.watchFundingRate (symbol[, params])
+bitmart.watchFundingRate (symbol, params?)
 ```
 
 
@@ -1873,6 +1873,6 @@ watch the funding rate for multiple markets
 
 
 ```javascript
-bitmart.watchFundingRates (symbols[, params])
+bitmart.watchFundingRates (symbols, params?)
 ```
 

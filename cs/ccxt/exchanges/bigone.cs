@@ -449,7 +449,7 @@ public partial class bigone : Exchange
         {
             object chain = getValue(chains, j);
             object networkId = this.safeString(chain, "gateway_name");
-            object networkCode = this.networkIdToCode(networkId);
+            object networkCode = this.networkIdToCode(networkId, code);
             object deposit = this.safeBool(chain, "is_deposit_enabled");
             object withdraw = this.safeBool(chain, "is_withdrawal_enabled");
             object minDepositAmount = this.safeString(chain, "min_deposit_amount");
@@ -2044,7 +2044,7 @@ public partial class bigone : Exchange
         return new Dictionary<string, object>() {
             { "info", response },
             { "currency", code },
-            { "network", this.networkIdToCode(selectedNetworkId) },
+            { "network", this.networkIdToCode(selectedNetworkId, code) },
             { "address", address },
             { "tag", tag },
         };
@@ -2368,7 +2368,7 @@ public partial class bigone : Exchange
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         if (isTrue(!isEqual(networkCode, null)))
         {
-            ((IDictionary<string,object>)request)["gateway_name"] = this.networkCodeToId(networkCode);
+            ((IDictionary<string,object>)request)["gateway_name"] = this.networkCodeToId(networkCode, getValue(currency, "code"));
         }
         // requires write permission on the wallet
         object response = await this.privatePostWithdrawals(this.extend(request, parameters));

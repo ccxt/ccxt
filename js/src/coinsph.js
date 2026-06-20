@@ -4,11 +4,11 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/coinsph.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSymbol, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InvalidAddress, InvalidOrder, InsufficientFunds, NotSupported, OrderImmediatelyFillable, OrderNotFound, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 /**
  * @class coinsph
  * @augments Exchange
@@ -18,9 +18,9 @@ export default class coinsph extends Exchange {
         return this.deepExtend(super.describe(), {
             'id': 'coinsph',
             'name': 'Coins.ph',
-            'countries': ['PH'],
+            'countries': ['PH'], // Philippines
             'version': 'v1',
-            'rateLimit': 50,
+            'rateLimit': 50, // 1200 per minute
             'certified': false,
             'pro': false,
             'has': {
@@ -207,8 +207,8 @@ export default class coinsph extends Exchange {
                         'openapi/v1/exchangeInfo': 10,
                         // cost 1 if limit <= 100; 5 if limit > 100.
                         'openapi/quote/v1/depth': { 'cost': 1, 'byLimit': [[101, 5], [0, 1]] },
-                        'openapi/quote/v1/klines': 1,
-                        'openapi/quote/v1/trades': 1,
+                        'openapi/quote/v1/klines': 1, // default limit 500; max 1000.
+                        'openapi/quote/v1/trades': 1, // default limit 500; max 1000. if limit <=0 or > 1000 then return 1000
                         'openapi/v1/pairs': 1,
                         'openapi/quote/v1/avgPrice': 1,
                     },
@@ -324,7 +324,7 @@ export default class coinsph extends Exchange {
             'precisionMode': TICK_SIZE,
             // exchange-specific options
             'options': {
-                'createMarketBuyOrderRequiresPrice': true,
+                'createMarketBuyOrderRequiresPrice': true, // true or false
                 'withdraw': {
                     'warning': false,
                 },
@@ -332,9 +332,9 @@ export default class coinsph extends Exchange {
                     'warning': false,
                 },
                 'createOrder': {
-                    'timeInForce': 'GTC',
+                    'timeInForce': 'GTC', // FOK, IOC
                     'newOrderRespType': {
-                        'market': 'FULL',
+                        'market': 'FULL', // FULL, RESULT. ACK
                         'limit': 'FULL', // we change it from 'ACK' by default to 'FULL'
                     },
                 },
@@ -364,8 +364,8 @@ export default class coinsph extends Exchange {
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -378,7 +378,7 @@ export default class coinsph extends Exchange {
                         'leverage': false,
                         'marketBuyByCost': true,
                         'marketBuyRequiresPrice': false,
-                        'selfTradePrevention': true,
+                        'selfTradePrevention': true, // todo implement
                         'iceberg': false,
                     },
                     'createOrders': undefined,
@@ -386,7 +386,7 @@ export default class coinsph extends Exchange {
                         'marginMode': false,
                         'limit': 1000,
                         'daysBack': 100000,
-                        'untilDays': 100000,
+                        'untilDays': 100000, // todo implement
                         'symbolRequired': true,
                     },
                     'fetchOrder': {
@@ -429,116 +429,116 @@ export default class coinsph extends Exchange {
             // https://coins-docs.github.io/errors/
             'exceptions': {
                 'exact': {
-                    '-1000': BadRequest,
-                    '-1001': BadRequest,
-                    '-1002': AuthenticationError,
-                    '-1003': RateLimitExceeded,
-                    '-1004': InvalidOrder,
-                    '-1006': BadResponse,
-                    '-1007': BadResponse,
-                    '-1014': InvalidOrder,
-                    '-1015': RateLimitExceeded,
-                    '-1016': NotSupported,
-                    '-1020': NotSupported,
-                    '-1021': BadRequest,
-                    '-1022': BadRequest,
-                    '-1023': AuthenticationError,
-                    '-1024': BadRequest,
-                    '-1025': BadRequest,
-                    '-1030': ExchangeError,
-                    '-1100': BadRequest,
-                    '-1101': BadRequest,
-                    '-1102': BadRequest,
-                    '-1103': BadRequest,
-                    '-1104': BadRequest,
-                    '-1105': BadRequest,
-                    '-1106': BadRequest,
-                    '-1111': BadRequest,
-                    '-1112': BadResponse,
-                    '-1114': BadRequest,
-                    '-1115': InvalidOrder,
-                    '-1116': InvalidOrder,
-                    '-1117': InvalidOrder,
-                    '-1118': InvalidOrder,
-                    '-1119': InvalidOrder,
-                    '-1120': BadRequest,
-                    '-1121': BadSymbol,
-                    '-1122': InvalidOrder,
-                    '-1125': BadRequest,
-                    '-1127': BadRequest,
-                    '-1128': BadRequest,
-                    '-1130': BadRequest,
-                    '-1131': InsufficientFunds,
-                    '-1132': InvalidOrder,
-                    '-1133': InvalidOrder,
-                    '-1134': InvalidOrder,
-                    '-1135': InvalidOrder,
-                    '-1136': InvalidOrder,
-                    '-1137': InvalidOrder,
-                    '-1138': InvalidOrder,
-                    '-1139': InvalidOrder,
-                    '-1140': InvalidOrder,
-                    '-1141': DuplicateOrderId,
-                    '-1142': InvalidOrder,
-                    '-1143': OrderNotFound,
-                    '-1144': InvalidOrder,
-                    '-1145': InvalidOrder,
-                    '-1146': InvalidOrder,
-                    '-1147': InvalidOrder,
-                    '-1148': InvalidOrder,
-                    '-1149': InvalidOrder,
-                    '-1150': InvalidOrder,
-                    '-1151': BadSymbol,
-                    '-1152': NotSupported,
-                    '-1153': AuthenticationError,
-                    '-1154': BadRequest,
-                    '-1155': BadRequest,
-                    '-1156': InvalidOrder,
-                    '-1157': BadSymbol,
-                    '-1158': InvalidOrder,
-                    '-1159': InvalidOrder,
-                    '-1160': BadRequest,
-                    '-1161': BadRequest,
-                    '-2010': InvalidOrder,
-                    '-2013': OrderNotFound,
-                    '-2011': BadRequest,
-                    '-2014': BadRequest,
-                    '-2015': AuthenticationError,
-                    '-2016': BadResponse,
-                    '-3126': InvalidOrder,
-                    '-3127': InvalidOrder,
-                    '-4001': BadRequest,
-                    '-100011': BadSymbol,
-                    '-100012': BadSymbol,
-                    '-30008': InsufficientFunds,
-                    '-30036': InsufficientFunds,
+                    '-1000': BadRequest, // An unknown error occured while processing the request.
+                    '-1001': BadRequest, // {"code":-1001,"msg":"Internal error."}
+                    '-1002': AuthenticationError, // You are not authorized to execute this request. Request need API Key included in . We suggest that API Key be included in any request.
+                    '-1003': RateLimitExceeded, // Too many requests; please use the websocket for live updates. Too many requests; current limit is %s requests per minute. Please use the websocket for live updates to avoid polling the API. Way too many requests; IP banned until %s. Please use the websocket for live updates to avoid bans.
+                    '-1004': InvalidOrder, // {"code":-1004,"msg":"Missing required parameter \u0027symbol\u0027"}
+                    '-1006': BadResponse, // An unexpected response was received from the message bus. Execution status unknown. OPEN API server find some exception in execute request .Please report to Customer service.
+                    '-1007': BadResponse, // Timeout waiting for response from backend server. Send status unknown; execution status unknown.
+                    '-1014': InvalidOrder, // Unsupported order combination.
+                    '-1015': RateLimitExceeded, // Reach the rate limit .Please slow down your request speed. Too many new orders. Too many new orders; current limit is %s orders per %s.
+                    '-1016': NotSupported, // This service is no longer available.
+                    '-1020': NotSupported, // This operation is not supported.
+                    '-1021': BadRequest, // {"code":-1021,"msg":"Timestamp for this request is outside of the recvWindow."}
+                    '-1022': BadRequest, // {"code":-1022,"msg":"Signature for this request is not valid."}
+                    '-1023': AuthenticationError, // Please set IP whitelist before using API.
+                    '-1024': BadRequest, // {"code":-1024,"msg":"recvWindow is not valid."}
+                    '-1025': BadRequest, // {"code":-1025,"msg":"recvWindow cannot be greater than 60000"}
+                    '-1030': ExchangeError, // Business error.
+                    '-1100': BadRequest, // Illegal characters found in a parameter. Illegal characters found in parameter ‘%s’; legal range is ‘%s’.
+                    '-1101': BadRequest, // Too many parameters sent for this endpoint. Too many parameters; expected ‘%s’ and received ‘%s’. Duplicate values for a parameter detected.
+                    '-1102': BadRequest, // A mandatory parameter was not sent, was empty/null, or malformed. Mandatory parameter ‘%s’ was not sent, was empty/null, or malformed. Param ‘%s’ or ‘%s’ must be sent, but both were empty/null!
+                    '-1103': BadRequest, // An unknown parameter was sent. In BHEx Open Api , each request requires at least one parameter. {Timestamp}.
+                    '-1104': BadRequest, // Not all sent parameters were read. Not all sent parameters were read; read ‘%s’ parameter(s) but was sent ‘%s’.
+                    '-1105': BadRequest, // {"code":-1105,"msg":"Parameter \u0027orderId and origClientOrderId\u0027 is empty."}
+                    '-1106': BadRequest, // A parameter was sent when not required. Parameter ‘%s’ sent when not required.
+                    '-1111': BadRequest, // Precision is over the maximum defined for this asset.
+                    '-1112': BadResponse, // No orders on book for symbol.
+                    '-1114': BadRequest, // TimeInForce parameter sent when not required.
+                    '-1115': InvalidOrder, // {"code":-1115,"msg":"Invalid timeInForce."}
+                    '-1116': InvalidOrder, // {"code":-1116,"msg":"Invalid orderType."}
+                    '-1117': InvalidOrder, // {"code":-1117,"msg":"Invalid side."}
+                    '-1118': InvalidOrder, // New client order ID was empty.
+                    '-1119': InvalidOrder, // Original client order ID was empty.
+                    '-1120': BadRequest, // Invalid interval.
+                    '-1121': BadSymbol, // Invalid symbol.
+                    '-1122': InvalidOrder, // Invalid newOrderRespType.
+                    '-1125': BadRequest, // This listenKey does not exist.
+                    '-1127': BadRequest, // Lookup interval is too big. More than %s hours between startTime and endTime.
+                    '-1128': BadRequest, // Combination of optional parameters invalid.
+                    '-1130': BadRequest, // Invalid data sent for a parameter. Data sent for paramter ‘%s’ is not valid.
+                    '-1131': InsufficientFunds, // {"code":-1131,"msg":"Balance insufficient "}
+                    '-1132': InvalidOrder, // Order price too high.
+                    '-1133': InvalidOrder, // Order price lower than the minimum,please check general broker info.
+                    '-1134': InvalidOrder, // Order price decimal too long,please check general broker info.
+                    '-1135': InvalidOrder, // Order quantity too large.
+                    '-1136': InvalidOrder, // Order quantity lower than the minimum.
+                    '-1137': InvalidOrder, // Order quantity decimal too long.
+                    '-1138': InvalidOrder, // Order price exceeds permissible range.
+                    '-1139': InvalidOrder, // Order has been filled.
+                    '-1140': InvalidOrder, // {"code":-1140,"msg":"Transaction amount lower than the minimum."}
+                    '-1141': DuplicateOrderId, // {"code":-1141,"msg":"Duplicate clientOrderId"}
+                    '-1142': InvalidOrder, // {"code":-1142,"msg":"Order has been canceled"}
+                    '-1143': OrderNotFound, // Cannot be found on order book
+                    '-1144': InvalidOrder, // Order has been locked
+                    '-1145': InvalidOrder, // This order type does not support cancellation
+                    '-1146': InvalidOrder, // Order creation timeout
+                    '-1147': InvalidOrder, // Order cancellation timeout
+                    '-1148': InvalidOrder, // Market order amount decimal too long
+                    '-1149': InvalidOrder, // Create order failed
+                    '-1150': InvalidOrder, // Cancel order failed
+                    '-1151': BadSymbol, // The trading pair is not open yet
+                    '-1152': NotSupported, // Coming soon
+                    '-1153': AuthenticationError, // User not exist
+                    '-1154': BadRequest, // Invalid price type
+                    '-1155': BadRequest, // Invalid position side
+                    '-1156': InvalidOrder, // Order quantity invalid
+                    '-1157': BadSymbol, // The trading pair is not available for api trading
+                    '-1158': InvalidOrder, // create limit maker order failed
+                    '-1159': InvalidOrder, // {"code":-1159,"msg":"STOP_LOSS/TAKE_PROFIT order is not allowed to trade immediately"}
+                    '-1160': BadRequest, // Modify futures margin error
+                    '-1161': BadRequest, // Reduce margin forbidden
+                    '-2010': InvalidOrder, // {"code":-2010,"msg":"New order rejected."}
+                    '-2013': OrderNotFound, // {"code":-2013,"msg":"Order does not exist."}
+                    '-2011': BadRequest, // CANCEL_REJECTED
+                    '-2014': BadRequest, // API-key format invalid.
+                    '-2015': AuthenticationError, // {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
+                    '-2016': BadResponse, // No trading window could be found for the symbol. Try ticker/24hrs instead
+                    '-3126': InvalidOrder, // {"code":-3126,"msg":"Order price lower than 72005.93415"}
+                    '-3127': InvalidOrder, // {"code":-3127,"msg":"Order price higher than 1523.192"}
+                    '-4001': BadRequest, // {"code":-4001,"msg":"start time must less than end time"}
+                    '-100011': BadSymbol, // {"code":-100011,"msg":"Not supported symbols"}
+                    '-100012': BadSymbol, // {"code":-100012,"msg":"Parameter symbol [String] missing!"}
+                    '-30008': InsufficientFunds, // {"code":-30008,"msg":"withdraw balance insufficient"}
+                    '-30036': InsufficientFunds, // {"code":-30036,"msg":"Available balance not enough!"}
                     '403': ExchangeNotAvailable,
                 },
                 'broad': {
-                    'Unknown order sent': OrderNotFound,
-                    'Duplicate order sent': DuplicateOrderId,
-                    'Market is closed': BadSymbol,
-                    'Account has insufficient balance for requested action': InsufficientFunds,
-                    'Market orders are not supported for this symbol': BadSymbol,
-                    'Iceberg orders are not supported for this symbol': BadSymbol,
-                    'Stop loss orders are not supported for this symbol': BadSymbol,
-                    'Stop loss limit orders are not supported for this symbol': BadSymbol,
-                    'Take profit orders are not supported for this symbol': BadSymbol,
-                    'Take profit limit orders are not supported for this symbol': BadSymbol,
-                    'Price* QTY is zero or less': BadRequest,
-                    'IcebergQty exceeds QTY': BadRequest,
-                    'This action disabled is on this account': PermissionDenied,
-                    'Unsupported order combination': InvalidOrder,
-                    'Order would trigger immediately': InvalidOrder,
-                    'Cancel order is invalid. Check origClOrdId and orderId': InvalidOrder,
-                    'Order would immediately match and take': OrderImmediatelyFillable,
-                    'PRICE_FILTER': InvalidOrder,
-                    'LOT_SIZE': InvalidOrder,
-                    'MIN_NOTIONAL': InvalidOrder,
-                    'MAX_NUM_ORDERS': InvalidOrder,
-                    'MAX_ALGO_ORDERS': InvalidOrder,
-                    'BROKER_MAX_NUM_ORDERS': InvalidOrder,
-                    'BROKER_MAX_ALGO_ORDERS': InvalidOrder,
+                    'Unknown order sent': OrderNotFound, // The order (by either orderId, clOrdId, origClOrdId) could not be found
+                    'Duplicate order sent': DuplicateOrderId, // The clOrdId is already in use
+                    'Market is closed': BadSymbol, // The symbol is not trading
+                    'Account has insufficient balance for requested action': InsufficientFunds, // Not enough funds to complete the action
+                    'Market orders are not supported for this symbol': BadSymbol, // MARKET is not enabled on the symbol
+                    'Iceberg orders are not supported for this symbol': BadSymbol, // icebergQty is not enabled on the symbol
+                    'Stop loss orders are not supported for this symbol': BadSymbol, // STOP_LOSS is not enabled on the symbol
+                    'Stop loss limit orders are not supported for this symbol': BadSymbol, // STOP_LOSS_LIMIT is not enabled on the symbol
+                    'Take profit orders are not supported for this symbol': BadSymbol, // TAKE_PROFIT is not enabled on the symbol
+                    'Take profit limit orders are not supported for this symbol': BadSymbol, // TAKE_PROFIT_LIMIT is not enabled on the symbol
+                    'Price* QTY is zero or less': BadRequest, // price* quantity is too low
+                    'IcebergQty exceeds QTY': BadRequest, // icebergQty must be less than the order quantity
+                    'This action disabled is on this account': PermissionDenied, // Contact customer support; some actions have been disabled on the account.
+                    'Unsupported order combination': InvalidOrder, // The orderType, timeInForce, stopPrice, and or icebergQty combination isn’t allowed.
+                    'Order would trigger immediately': InvalidOrder, // The order’s stop price is not valid when compared to the last traded price.
+                    'Cancel order is invalid. Check origClOrdId and orderId': InvalidOrder, // No origClOrdId or orderId was sent in.
+                    'Order would immediately match and take': OrderImmediatelyFillable, // LIMIT_MAKER order type would immediately match and trade, and not be a pure maker order.
+                    'PRICE_FILTER': InvalidOrder, // price is too high, too low, and or not following the tick size rule for the symbol.
+                    'LOT_SIZE': InvalidOrder, // quantity is too high, too low, and or not following the step size rule for the symbol.
+                    'MIN_NOTIONAL': InvalidOrder, // price* quantity is too low to be a valid order for the symbol.
+                    'MAX_NUM_ORDERS': InvalidOrder, // Account has too many open orders on the symbol.
+                    'MAX_ALGO_ORDERS': InvalidOrder, // Account has too many open stop loss and or take profit orders on the symbol.
+                    'BROKER_MAX_NUM_ORDERS': InvalidOrder, // Account has too many open orders on the broker.
+                    'BROKER_MAX_ALGO_ORDERS': InvalidOrder, // Account has too many open stop loss and or take profit orders on the broker.
                     'ICEBERG_PARTS': BadRequest, // Iceberg order would break into too many parts; icebergQty is too small.
                 },
             },
@@ -629,7 +629,7 @@ export default class coinsph extends Exchange {
         for (let j = 0; j < networkList.length; j++) {
             const networkItem = networkList[j];
             const network = this.safeString(networkItem, 'network');
-            const networkCode = this.networkIdToCode(network);
+            const networkCode = this.networkIdToCode(network, code);
             networks[networkCode] = {
                 'info': networkItem,
                 'id': network,
@@ -708,7 +708,7 @@ export default class coinsph extends Exchange {
     async fetchStatus(params = {}) {
         const response = await this.publicGetOpenapiV1Ping(params);
         return {
-            'status': 'ok',
+            'status': 'ok', // if there's no Errors, status = 'ok'
             'updated': undefined,
             'eta': undefined,
             'url': undefined,

@@ -1,8 +1,5 @@
-- [Bitmex Order Value](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -44,5 +41,5 @@ while True:
             print(num_contracts, symbol, 'contracts =', rounded_value, unit, '(' + name + ')')
     except Exception as e:
         pass
- 
+
 ```

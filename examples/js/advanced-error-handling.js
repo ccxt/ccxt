@@ -3,7 +3,7 @@
 const ccxt      = require ('../../ccxt.js');
 
 // instantiate the exchange
-let exchange = new ccxt.coinbasepro  ({
+let exchange = new ccxt.coinbaseexchange  ({
     'apiKey': 'XXXXXXXXXXXXXX',
     'secret': 'YYYYYYYYYYYYYY',
 });

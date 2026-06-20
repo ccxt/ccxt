@@ -298,7 +298,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
         //
         Object sideId = this.safeString(delta, "orderType");
         Object side = ((Helpers.isTrue((Helpers.isEqual(sideId, "bid"))))) ? "bids" : "asks";
-        Object bidAsk = this.parseBidAsk(delta, "price", "quantity");
+        Object bidAsk = this.parseOrderBookBidAsk(delta, "price", "quantity");
         Object orderbookSide = Helpers.GetValue(orderbook, side);
         Helpers.callDynamically(orderbookSide, "storeArray", new Object[]{bidAsk});
     }

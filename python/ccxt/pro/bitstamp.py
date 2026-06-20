@@ -135,7 +135,7 @@ class bitstamp(ccxt.async_support.bitstamp):
 
     def handle_bid_asks(self, bookSide, bidAsks):
         for i in range(0, len(bidAsks)):
-            bidAsk = self.parse_bid_ask(bidAsks[i])
+            bidAsk = self.parse_order_book_bid_ask(bidAsks[i])
             bookSide.storeArray(bidAsk)
 
     def get_cache_index(self, orderbook, deltas):
@@ -356,7 +356,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         amount = self.safe_string(order, 'amount_str')
         filled = self.safe_string(order, 'amount_traded')
         event = self.safe_string(order, 'event')
-        status = None
+        status: Str = None
         if Precise.string_eq(filled, amount):
             status = 'closed'
         elif event == 'order_deleted':

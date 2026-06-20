@@ -13,8 +13,8 @@ require('../../base/functions/platform.js');
 require('../../base/functions/encode.js');
 require('../../base/functions/crypto.js');
 require('../../base/functions/io.js');
-require('../noble-hashes/sha3.js');
-require('../noble-hashes/sha256.js');
+require('@noble/hashes/sha3.js');
+require('@noble/hashes/sha2.js');
 
 // ----------------------------------------------------------------------------
 
@@ -33,18 +33,18 @@ require('../noble-hashes/sha256.js');
  *
  *  @_subsection api/abi/abi-coder:Fragments  [about-fragments]
  */
+var __classPrivateFieldGet = (globalThis && globalThis.__classPrivateFieldGet) || function (receiver, state, kind, f) {
+    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
+    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+};
 var __classPrivateFieldSet = (globalThis && globalThis.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
     if (kind === "m") throw new TypeError("Private method is not writable");
     if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
     return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
 };
-var __classPrivateFieldGet = (globalThis && globalThis.__classPrivateFieldGet) || function (receiver, state, kind, f) {
-    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
-    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
-    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
-};
-var _TokenString_instances, _TokenString_offset, _TokenString_tokens, _TokenString_subTokenString, _ParamType_instances, _ParamType_walkAsync;
+var _TokenString_instances, _a, _TokenString_offset, _TokenString_tokens, _TokenString_subTokenString, _ParamType_instances, _ParamType_walkAsync;
 // [ "a", "b" ] => { "a": 1, "b": 1 }
 function setify(items) {
     const result = new Set();
@@ -78,6 +78,8 @@ const regexIdPrefix = new RegExp("^([a-zA-Z$_][a-zA-Z0-9$_]*)");
 const regexId = new RegExp("^([a-zA-Z$_][a-zA-Z0-9$_]*)$");
 const regexType = new RegExp("^(address|bool|bytes([0-9]*)|string|u?int([0-9]*))$");
 class TokenString {
+    get offset() { return __classPrivateFieldGet(this, _TokenString_offset, "f"); }
+    get length() { return __classPrivateFieldGet(this, _TokenString_tokens, "f").length - __classPrivateFieldGet(this, _TokenString_offset, "f"); }
     constructor(tokens) {
         _TokenString_instances.add(this);
         _TokenString_offset.set(this, void 0);
@@ -85,9 +87,7 @@ class TokenString {
         __classPrivateFieldSet(this, _TokenString_offset, 0, "f");
         __classPrivateFieldSet(this, _TokenString_tokens, tokens.slice(), "f");
     }
-    get offset() { return __classPrivateFieldGet(this, _TokenString_offset, "f"); }
-    get length() { return __classPrivateFieldGet(this, _TokenString_tokens, "f").length - __classPrivateFieldGet(this, _TokenString_offset, "f"); }
-    clone() { return new TokenString(__classPrivateFieldGet(this, _TokenString_tokens, "f")); }
+    clone() { return new _a(__classPrivateFieldGet(this, _TokenString_tokens, "f")); }
     reset() { __classPrivateFieldSet(this, _TokenString_offset, 0, "f"); }
     // Pops and returns the value of the next token, if it is a keyword in allowed; throws if out of tokens
     popKeyword(allowed) {
@@ -151,9 +151,9 @@ class TokenString {
     }
     // Returns the next token; throws if out of tokens
     pop() {
-        var _a;
+        var _b;
         const result = this.peek();
-        __classPrivateFieldSet(this, _TokenString_offset, (_a = __classPrivateFieldGet(this, _TokenString_offset, "f"), _a++, _a), "f");
+        __classPrivateFieldSet(this, _TokenString_offset, (_b = __classPrivateFieldGet(this, _TokenString_offset, "f"), _b++, _b), "f");
         return result;
     }
     toString() {
@@ -165,8 +165,8 @@ class TokenString {
         return `<TokenString ${tokens.join(" ")}>`;
     }
 }
-_TokenString_offset = new WeakMap(), _TokenString_tokens = new WeakMap(), _TokenString_instances = new WeakSet(), _TokenString_subTokenString = function _TokenString_subTokenString(from = 0, to = 0) {
-    return new TokenString(__classPrivateFieldGet(this, _TokenString_tokens, "f").slice(from, to).map((t) => {
+_a = TokenString, _TokenString_offset = new WeakMap(), _TokenString_tokens = new WeakMap(), _TokenString_instances = new WeakSet(), _TokenString_subTokenString = function _TokenString_subTokenString(from = 0, to = 0) {
+    return new _a(__classPrivateFieldGet(this, _TokenString_tokens, "f").slice(from, to).map((t) => {
         return Object.freeze(Object.assign({}, t, {
             match: (t.match - from),
             linkBack: (t.linkBack - from),
@@ -601,8 +601,8 @@ _ParamType_instances = new WeakSet(), _ParamType_walkAsync = function _ParamType
             throw new Error("array is wrong length");
         }
         result.forEach((value, index) => {
-            var _a;
-            __classPrivateFieldGet((_a = components[index]), _ParamType_instances, "m", _ParamType_walkAsync).call(_a, promises, value, process, (value) => {
+            var _b;
+            __classPrivateFieldGet((_b = components[index]), _ParamType_instances, "m", _ParamType_walkAsync).call(_b, promises, value, process, (value) => {
                 result[index] = value;
             });
         });

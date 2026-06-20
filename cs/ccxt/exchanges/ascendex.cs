@@ -529,7 +529,7 @@ public partial class ascendex : Exchange
         {
             object networkEtnry = getValue(chains, j);
             object networkId = this.safeString(networkEtnry, "chainName");
-            object networkCode = this.networkCodeToId(networkId);
+            object networkCode = this.networkCodeToId(networkId, code);
             ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                 { "fee", this.safeNumber(networkEtnry, "withdrawFee") },
                 { "active", null },
@@ -2741,7 +2741,7 @@ public partial class ascendex : Exchange
         await this.loadMarkets();
         object currency = this.currency(code);
         object networkCode = this.safeString2(parameters, "network", "chainName");
-        object networkId = this.networkCodeToId(networkCode);
+        object networkId = this.networkCodeToId(networkCode, getValue(currency, "code"));
         parameters = this.omit(parameters, new List<object>() {"chainName"});
         object request = new Dictionary<string, object>() {
             { "asset", getValue(currency, "id") },
@@ -3857,8 +3857,7 @@ public partial class ascendex : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
-        object response = null;
-        response = await this.v2PublicGetFuturesPricingData(this.extend(request, parameters));
+        object response = await this.v2PublicGetFuturesPricingData(this.extend(request, parameters));
         //
         //    {
         //        code: '0',

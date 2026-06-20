@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var gemini$1 = require('./abstract/gemini.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -229,13 +229,13 @@ class gemini extends gemini$1["default"] {
                 },
             },
             'httpExceptions': {
-                '400': errors.BadRequest,
-                '403': errors.PermissionDenied,
-                '404': errors.OrderNotFound,
-                '406': errors.InsufficientFunds,
-                '429': errors.RateLimitExceeded,
-                '500': errors.ExchangeError,
-                '502': errors.ExchangeNotAvailable,
+                '400': errors.BadRequest, // Auction not open or paused, ineligible timing, market not open, or the request was malformed, in the case of a private API request, missing or malformed Gemini private API authentication headers
+                '403': errors.PermissionDenied, // The API key is missing the role necessary to access this private API endpoint
+                '404': errors.OrderNotFound, // Unknown API entry point or Order not found
+                '406': errors.InsufficientFunds, // Insufficient Funds
+                '429': errors.RateLimitExceeded, // Rate Limiting was applied
+                '500': errors.ExchangeError, // The server encountered an error
+                '502': errors.ExchangeNotAvailable, // Technical issues are preventing the request from being satisfied
                 '503': errors.OnMaintenance, // The exchange is down for maintenance
             },
             'timeframes': {
@@ -249,63 +249,63 @@ class gemini extends gemini$1["default"] {
             },
             'exceptions': {
                 'exact': {
-                    'AuctionNotOpen': errors.BadRequest,
-                    'ClientOrderIdTooLong': errors.BadRequest,
-                    'ClientOrderIdMustBeString': errors.BadRequest,
-                    'ConflictingOptions': errors.BadRequest,
-                    'EndpointMismatch': errors.BadRequest,
-                    'EndpointNotFound': errors.BadRequest,
-                    'IneligibleTiming': errors.BadRequest,
-                    'InsufficientFunds': errors.InsufficientFunds,
-                    'InvalidJson': errors.BadRequest,
-                    'InvalidNonce': errors.InvalidNonce,
-                    'InvalidApiKey': errors.AuthenticationError,
-                    'InvalidOrderType': errors.InvalidOrder,
-                    'InvalidPrice': errors.InvalidOrder,
-                    'InvalidQuantity': errors.InvalidOrder,
-                    'InvalidSide': errors.InvalidOrder,
-                    'InvalidSignature': errors.AuthenticationError,
-                    'InvalidSymbol': errors.BadRequest,
-                    'InvalidTimestampInPayload': errors.BadRequest,
-                    'Maintenance': errors.OnMaintenance,
-                    'MarketNotOpen': errors.InvalidOrder,
-                    'MissingApikeyHeader': errors.AuthenticationError,
-                    'MissingOrderField': errors.InvalidOrder,
-                    'MissingRole': errors.AuthenticationError,
-                    'MissingPayloadHeader': errors.AuthenticationError,
-                    'MissingSignatureHeader': errors.AuthenticationError,
-                    'NoSSL': errors.AuthenticationError,
-                    'OptionsMustBeArray': errors.BadRequest,
-                    'OrderNotFound': errors.OrderNotFound,
-                    'RateLimit': errors.RateLimitExceeded,
-                    'System': errors.ExchangeError,
+                    'AuctionNotOpen': errors.BadRequest, // Failed to place an auction-only order because there is no current auction open for this symbol
+                    'ClientOrderIdTooLong': errors.BadRequest, // The Client Order ID must be under 100 characters
+                    'ClientOrderIdMustBeString': errors.BadRequest, // The Client Order ID must be a string
+                    'ConflictingOptions': errors.BadRequest, // New orders using a combination of order execution options are not supported
+                    'EndpointMismatch': errors.BadRequest, // The request was submitted to an endpoint different than the one in the payload
+                    'EndpointNotFound': errors.BadRequest, // No endpoint was specified
+                    'IneligibleTiming': errors.BadRequest, // Failed to place an auction order for the current auction on this symbol because the timing is not eligible, new orders may only be placed before the auction begins.
+                    'InsufficientFunds': errors.InsufficientFunds, // The order was rejected because of insufficient funds
+                    'InvalidJson': errors.BadRequest, // The JSON provided is invalid
+                    'InvalidNonce': errors.InvalidNonce, // The nonce was not greater than the previously used nonce, or was not present
+                    'InvalidApiKey': errors.AuthenticationError, // Invalid API key
+                    'InvalidOrderType': errors.InvalidOrder, // An unknown order type was provided
+                    'InvalidPrice': errors.InvalidOrder, // For new orders, the price was invalid
+                    'InvalidQuantity': errors.InvalidOrder, // A negative or otherwise invalid quantity was specified
+                    'InvalidSide': errors.InvalidOrder, // For new orders, and invalid side was specified
+                    'InvalidSignature': errors.AuthenticationError, // The signature did not match the expected signature
+                    'InvalidSymbol': errors.BadRequest, // An invalid symbol was specified
+                    'InvalidTimestampInPayload': errors.BadRequest, // The JSON payload contained a timestamp parameter with an unsupported value.
+                    'Maintenance': errors.OnMaintenance, // The system is down for maintenance
+                    'MarketNotOpen': errors.InvalidOrder, // The order was rejected because the market is not accepting new orders
+                    'MissingApikeyHeader': errors.AuthenticationError, // The X-GEMINI-APIKEY header was missing
+                    'MissingOrderField': errors.InvalidOrder, // A required order_id field was not specified
+                    'MissingRole': errors.AuthenticationError, // The API key used to access this endpoint does not have the required role assigned to it
+                    'MissingPayloadHeader': errors.AuthenticationError, // The X-GEMINI-PAYLOAD header was missing
+                    'MissingSignatureHeader': errors.AuthenticationError, // The X-GEMINI-SIGNATURE header was missing
+                    'NoSSL': errors.AuthenticationError, // You must use HTTPS to access the API
+                    'OptionsMustBeArray': errors.BadRequest, // The options parameter must be an array.
+                    'OrderNotFound': errors.OrderNotFound, // The order specified was not found
+                    'RateLimit': errors.RateLimitExceeded, // Requests were made too frequently. See Rate Limits below.
+                    'System': errors.ExchangeError, // We are experiencing technical issues
                     'UnsupportedOption': errors.BadRequest, // This order execution option is not supported.
                 },
                 'broad': {
-                    'The Gemini Exchange is currently undergoing maintenance.': errors.OnMaintenance,
-                    'We are investigating technical issues with the Gemini Exchange.': errors.ExchangeNotAvailable,
+                    'The Gemini Exchange is currently undergoing maintenance.': errors.OnMaintenance, // The Gemini Exchange is currently undergoing maintenance. Please check https://status.gemini.com/ for more information.
+                    'We are investigating technical issues with the Gemini Exchange.': errors.ExchangeNotAvailable, // We are investigating technical issues with the Gemini Exchange. Please check https://status.gemini.com/ for more information.
                     'Internal Server Error': errors.ExchangeNotAvailable,
                 },
             },
             'options': {
-                'fetchMarketsMethod': 'fetch_markets_from_api',
+                'fetchMarketsMethod': 'fetch_markets_from_api', // fetch_markets_from_api, fetch_markets_from_web
                 'fetchMarketFromWebRetries': 10,
                 'fetchMarketsFromAPI': {
                     'fetchDetailsForAllSymbols': false,
                     'quoteCurrencies': ['USDT', 'GUSD', 'USD', 'DAI', 'EUR', 'GBP', 'SGD', 'BTC', 'ETH', 'LTC', 'BCH', 'SOL', 'USDC'],
                 },
                 'fetchMarkets': {
-                    'webApiEnable': true,
+                    'webApiEnable': true, // fetches from WEB
                     'webApiRetries': 10,
                 },
-                'fetchUsdtMarkets': ['btcusdt', 'ethusdt'],
+                'fetchUsdtMarkets': ['btcusdt', 'ethusdt'], // this is only used if markets-fetch is set from "web"; keep this list updated (not available trough web api)
                 'fetchCurrencies': {
-                    'webApiEnable': true,
+                    'webApiEnable': true, // fetches from WEB
                     'webApiRetries': 5,
                     'webApiMuteFailure': true,
                 },
                 // fetchticker should use v1, confirmed that v2 is buggy ( https://github.com/ccxt/ccxt/issues/28077 )
-                'fetchTickerMethod': 'fetchTickerV1',
+                'fetchTickerMethod': 'fetchTickerV1', // fetchTickerV1, fetchTickerV2, fetchTickerV1AndV2
                 'networks': {
                     'BTC': 'bitcoin',
                     'ERC20': 'ethereum',
@@ -320,7 +320,7 @@ class gemini extends gemini$1["default"] {
                     'ATOM': 'cosmos',
                     'DOT': 'polkadot',
                 },
-                'nonce': 'milliseconds',
+                'nonce': 'milliseconds', // if getting a Network 400 error change to seconds,
                 'conflictingMarkets': {
                     'paxgusd': {
                         'base': 'PAXG',
@@ -337,8 +337,8 @@ class gemini extends gemini$1["default"] {
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -376,7 +376,7 @@ class gemini extends gemini$1["default"] {
                         'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
-                    'fetchClosedOrders': undefined,
+                    'fetchClosedOrders': undefined, // todo: implement
                     'fetchOHLCV': {
                         'limit': undefined,
                     },
@@ -440,51 +440,28 @@ class gemini extends gemini$1["default"] {
         //        ]
         //    }
         //
-        const result = {};
         this.options['tradingPairs'] = this.safeList(data, 'tradingPairs');
         const currenciesArray = this.safeValue(data, 'currencies', []);
-        for (let i = 0; i < currenciesArray.length; i++) {
-            const currency = currenciesArray[i];
-            const id = this.safeString(currency, 0);
-            const code = this.safeCurrencyCode(id);
-            const type = this.safeString(currency, 7) ? 'fiat' : 'crypto';
-            const precision = this.parseNumber(this.parsePrecision(this.safeString(currency, 5)));
-            const networks = {};
-            const networkId = this.safeString(currency, 9);
-            let networkCode = undefined;
-            if (networkId !== undefined) {
-                networkCode = this.networkIdToCode(networkId);
-                networks[networkCode] = {
-                    'info': currency,
-                    'id': networkId,
-                    'network': networkCode,
-                    'active': undefined,
-                    'deposit': undefined,
-                    'withdraw': undefined,
-                    'fee': undefined,
-                    'precision': precision,
-                    'limits': {
-                        'deposit': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'withdraw': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                    },
-                };
-            }
-            result[code] = this.safeCurrencyStructure({
-                'info': currency,
-                'id': id,
-                'code': code,
-                'name': this.safeString(currency, 1),
+        return this.parseCurrencies(currenciesArray);
+    }
+    parseCurrency(rawCurrency) {
+        const id = this.safeString(rawCurrency, 0);
+        const code = this.safeCurrencyCode(id);
+        const type = this.safeString(rawCurrency, 7) ? 'fiat' : 'crypto';
+        const precision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 5)));
+        const networks = {};
+        const networkId = this.safeString(rawCurrency, 9);
+        let networkCode = undefined;
+        if (networkId !== undefined) {
+            networkCode = this.networkIdToCode(networkId, code);
+            networks[networkCode] = {
+                'info': rawCurrency,
+                'id': networkId,
+                'network': networkCode,
                 'active': undefined,
                 'deposit': undefined,
                 'withdraw': undefined,
                 'fee': undefined,
-                'type': type,
                 'precision': precision,
                 'limits': {
                     'deposit': {
@@ -496,10 +473,31 @@ class gemini extends gemini$1["default"] {
                         'max': undefined,
                     },
                 },
-                'networks': networks,
-            });
+            };
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'info': rawCurrency,
+            'id': id,
+            'code': code,
+            'name': this.safeString(rawCurrency, 1),
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'type': type,
+            'precision': precision,
+            'limits': {
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': networks,
+        });
     }
     /**
      * @method
@@ -1062,7 +1060,7 @@ class gemini extends gemini$1["default"] {
             'open': open,
             'close': last,
             'last': last,
-            'previousClose': undefined,
+            'previousClose': undefined, // previous day close
             'change': undefined,
             'percentage': percentage,
             'average': undefined,
@@ -1442,7 +1440,7 @@ class gemini extends gemini$1["default"] {
             'status': status,
             'symbol': symbol,
             'type': type,
-            'timeInForce': timeInForce,
+            'timeInForce': timeInForce, // default set to GTC
             'postOnly': postOnly,
             'side': side,
             'price': price,
@@ -1837,10 +1835,10 @@ class gemini extends gemini$1["default"] {
             'address': address,
             'addressTo': undefined,
             'addressFrom': undefined,
-            'tag': undefined,
+            'tag': undefined, // or is it defined?
             'tagTo': undefined,
             'tagFrom': undefined,
-            'type': type,
+            'type': type, // direction of the transaction, ('deposit' | 'withdraw')
             'amount': this.safeNumber(transaction, 'amount'),
             'currency': code,
             'status': this.parseTransactionStatus(statusRaw),
@@ -1912,7 +1910,7 @@ class gemini extends gemini$1["default"] {
         if (networkCode === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchDepositAddresses() requires a network parameter');
         }
-        const networkId = this.networkCodeToId(networkCode);
+        const networkId = this.networkCodeToId(networkCode, currency['code']);
         const request = {
             'network': networkId,
         };
@@ -1937,7 +1935,7 @@ class gemini extends gemini$1["default"] {
             }, query);
             let payload = this.json(request);
             payload = this.stringToBase64(payload);
-            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512.sha384);
+            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha384);
             headers = {
                 'Content-Type': 'text/plain',
                 'X-GEMINI-APIKEY': this.apiKey,

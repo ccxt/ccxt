@@ -1228,7 +1228,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
 
     public void handleDelta(Object bookside, Object delta)
     {
-        Object bidAsk = this.parseBidAsk(delta, 0, 1);
+        Object bidAsk = this.parseOrderBookBidAsk(delta, 0, 1);
         Helpers.callDynamically(bookside, "storeArray", new Object[]{bidAsk});
     }
 
@@ -2919,11 +2919,20 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             Helpers.callDynamically(this, exacMethod, new Object[] {client, message});
             return;
         }
+        // 'order' is a substring of 'orderbook', so an orderbook topic like
+        // 'orderbook.50.BTCUSDT' could be wrongly captured by the 'order' key in a
+        // first-match loop (in Go map iteration order is randomized). Check the
+        // orderbook prefix explicitly, then fall back to a simple first-match.
+        if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(topic, "orderbook"), 0)))
+        {
+            this.handleOrderBook(client, message);
+            return;
+        }
         Object keys = Helpers.objectKeys(methods);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);
-            if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(topic, Helpers.GetValue(keys, i)), 0)))
+            if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(topic, key), 0)))
             {
                 Object method = Helpers.GetValue(methods, key);
                 Helpers.callDynamically(this, method, new Object[] {client, message});

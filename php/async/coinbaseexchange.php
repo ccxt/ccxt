@@ -237,6 +237,7 @@ class coinbaseexchange extends Exchange {
                         'funding/repay',
                         'orders',
                         'position/close',
+                        'profiles',
                         'profiles/margin-transfer',
                         'profiles/transfer',
                         'reports',
@@ -252,6 +253,10 @@ class coinbaseexchange extends Exchange {
                         'orders',
                         'orders/client:{client_oid}',
                         'orders/{id}',
+                    ),
+                    'put' => array(
+                        'profiles/{id}/deactivate',
+                        'profiles/{id}',
                     ),
                 ),
             ),
@@ -531,7 +536,7 @@ class coinbaseexchange extends Exchange {
         for ($j = 0; $j < count($supportedNetworks); $j++) {
             $network = $supportedNetworks[$j];
             $networkId = $this->safe_string($network, 'id');
-            $networkCode = $this->network_id_to_code($networkId);
+            $networkCode = $this->network_id_to_code($networkId, $code);
             $networks[$networkCode] = array(
                 'id' => $networkId,
                 'name' => $this->safe_string($network, 'name'),
@@ -2093,7 +2098,7 @@ class coinbaseexchange extends Exchange {
             'txid' => $this->safe_string($details, 'crypto_transaction_hash'),
             'type' => $type,
             'currency' => $code,
-            'network' => $this->network_id_to_code($networkId),
+            'network' => $this->network_id_to_code($networkId, $code),
             'amount' => $amount,
             'status' => $this->parse_transaction_status($transaction),
             'timestamp' => $timestamp,

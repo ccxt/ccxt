@@ -159,7 +159,7 @@ export default class grvt extends Exchange {
         timestamp: number;
         datetime: string;
     };
-    getSubAccountId(params: any): any;
+    getSubAccountId(params: any): string;
     /**
      * @method
      * @name grvt#fetchBalance
@@ -185,7 +185,7 @@ export default class grvt extends Exchange {
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     /**
      * @method
-     * @name grvrt#fetchWithdrawals
+     * @name grvt#fetchWithdrawals
      * @description fetch all withdrawals made from an account
      * @see https://docs.backpack.exchange/#tag/Capital/operation/get_withdrawals
      * @param {string} [code] unified currency code of the currency transferred

@@ -1,0 +1,237 @@
+name: Deploy Playground
+
+# Builds the CCXT Playground as a container (arm64, matching the docs box) and
+# deploys it as a long-running Next.js server behind nginx at /playground on
+# docs.ccxt.com. Mirrors the Fumadocs flow: build image -> push to GHCR ->
+# box pulls + canary smoke test -> promote (no downtime, auto-abort on failure).
+#
+# Reuses the same DOCS_DEPLOY_* secrets and box as docs-fumadocs.yml.
+# One-time box setup (root): put the OpenRouter key in /root/ccxt-playground.env
+#   OPENROUTER_API_KEY=sk-or-...
+# and add an nginx `location /playground { proxy_pass http://127.0.0.1:3007; }`.
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'playground/**'
+      - '.github/workflows/deploy-playground.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-playground
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  deploy:
+    if: github.repository == 'ccxt/ccxt'
+    runs-on: ubuntu-24.04-arm        # arm64 — native build matching the docs server
+    env:
+      IMAGE: ghcr.io/ccxt/ccxt-playground
+      IMAGE_PROXY: ghcr.io/ccxt/ccxt-playground-egress
+      CONTAINER: ccxt-playground
+      PROXY: egress-proxy             # egress proxy container name (app reaches it by this DNS name)
+      NET_INTERNAL: ccxt-pg-internal  # app network: no internet, no host access
+      NET_EGRESS: ccxt-pg-egress      # proxy-only network: reaches the internet
+      SUBNET: 172.31.0.0/24           # internal subnet (lets us pin static IPs)
+      PROXY_IP: 172.31.0.2
+      APP_IP: 172.31.0.10             # nginx /playground proxy_pass -> http://172.31.0.10:3000
+      CANARY_IP: 172.31.0.11
+      BASE_PATH: /playground
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & push image
+        uses: docker/build-push-action@v7
+        with:
+          context: playground
+          platforms: linux/arm64
+          push: true
+          # Go stays install-only on this 7.5 GB shared box: compiling ccxt-go needs
+          # ~5 GB, which would OOM the host at build and exceed the run container's
+          # 2 GB cap. Drop "go" from PLAYGROUND_DISABLED on a larger dedicated box.
+          build-args: |
+            NEXT_BASE_PATH=${{ env.BASE_PATH }}
+            PLAYGROUND_DISABLED=go
+          # SHA tag enables canary validation + rollback; latest moves only after smoke passes.
+          tags: |
+            ${{ env.IMAGE }}:latest
+            ${{ env.IMAGE }}:${{ github.sha }}
+
+      - name: Build & push egress proxy image
+        uses: docker/build-push-action@v7
+        with:
+          context: playground/proxy
+          platforms: linux/arm64
+          push: true
+          tags: |
+            ${{ env.IMAGE_PROXY }}:latest
+            ${{ env.IMAGE_PROXY }}:${{ github.sha }}
+
+      - name: Configure SSH (pinned host key)
+        env:
+          SSH_KEY: ${{ secrets.DOCS_DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.DOCS_DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+      - name: Deploy with canary smoke test (no-downtime, auto-abort on failure)
+        env:
+          HOST: ${{ secrets.DOCS_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DOCS_DEPLOY_USER }}
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SHA: ${{ github.sha }}
+        run: |
+          ssh -i ~/.ssh/id_deploy "${DEPLOY_USER}@${HOST}" \
+            IMAGE="${IMAGE}" IMAGE_PROXY="${IMAGE_PROXY}" CONTAINER="${CONTAINER}" PROXY="${PROXY}" \
+            NET_INTERNAL="${NET_INTERNAL}" NET_EGRESS="${NET_EGRESS}" SUBNET="${SUBNET}" \
+            PROXY_IP="${PROXY_IP}" APP_IP="${APP_IP}" CANARY_IP="${CANARY_IP}" \
+            BASE_PATH="${BASE_PATH}" SHA="${SHA}" \
+            GHCR_USER="${GHCR_USER}" GHCR_TOKEN="${GHCR_TOKEN}" 'bash -se' <<'EOF'
+          set -e
+          echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+          docker pull "$IMAGE:$SHA"
+          docker pull "$IMAGE_PROXY:$SHA"
+
+          # --- Egress lockdown: an internal (no-internet) network for the app, and a
+          # squid proxy that bridges out but permits only the CCXT exchange allowlist.
+          # The app reaches the proxy as host "egress-proxy"; it has no other route.
+          # The internal network has a fixed subnet so the app gets a stable IP that
+          # nginx points at (publishing -p does NOT work on an internal network). ---
+          docker network create --internal --subnet "$SUBNET" "$NET_INTERNAL" 2>/dev/null || true
+          docker network create "$NET_EGRESS" 2>/dev/null || true
+
+          # --- Durable, size-capped logs. Both the app submission log and the squid
+          # access log are bind-mounted to the host so they survive the daily clean
+          # and container swaps. Ownership matches each container's runtime uid (app
+          # = 1001 playground, squid = 13 proxy). A logrotate config + hourly cron
+          # hard-caps growth (size 25M x rotate 4, compressed) so they can't fill the
+          # disk; Docker's own json stdout logs are capped via --log-opt below. ---
+          LOG_ROOT=/var/log/ccxt-playground
+          mkdir -p "$LOG_ROOT/app" "$LOG_ROOT/proxy"
+          chown 1001:1001 "$LOG_ROOT/app"
+          chown 13:13 "$LOG_ROOT/proxy"
+          chmod 755 "$LOG_ROOT/app" "$LOG_ROOT/proxy"
+          mkdir -p /etc/ccxt-playground
+          printf '%s\n' \
+            '/var/log/ccxt-playground/app/*.log' \
+            '/var/log/ccxt-playground/proxy/*.log' \
+            '{' \
+            '    size 25M' \
+            '    rotate 4' \
+            '    missingok' \
+            '    notifempty' \
+            '    compress' \
+            '    delaycompress' \
+            '    copytruncate' \
+            '}' > /etc/ccxt-playground/logrotate.conf
+          printf '17 * * * * root /usr/sbin/logrotate /etc/ccxt-playground/logrotate.conf --state /var/lib/logrotate/ccxt-playground.state >/dev/null 2>&1\n' > /etc/cron.d/ccxt-playground-logrotate
+          chmod 644 /etc/cron.d/ccxt-playground-logrotate
+
+          # Cap each container's own Docker json stdout log (separate from the bind mounts).
+          LOGOPTS="--log-opt max-size=10m --log-opt max-file=3"
+
+          docker rm -f "$PROXY" 2>/dev/null || true
+          docker run -d --restart=always --name "$PROXY" \
+            --network "$NET_INTERNAL" --ip "$PROXY_IP" \
+            --memory 256m --pids-limit 256 --security-opt no-new-privileges:true \
+            $LOGOPTS -v "$LOG_ROOT/proxy":/var/log/squid \
+            "$IMAGE_PROXY:$SHA"
+          docker network connect "$NET_EGRESS" "$PROXY"
+          docker tag "$IMAGE_PROXY:$SHA" "$IMAGE_PROXY:latest"
+
+          # OpenRouter key lives only on the box (root-only env-file, never in GitHub).
+          ENVFILE_ARG=""
+          [ -f /root/ccxt-playground.env ] && ENVFILE_ARG="--env-file /root/ccxt-playground.env"
+
+          # Force the app's egress through the proxy (it has no other route out).
+          PROXYENV="-e PLAYGROUND_EGRESS_PROXY=http://egress-proxy:3128 \
+            -e HTTP_PROXY=http://egress-proxy:3128 -e HTTPS_PROXY=http://egress-proxy:3128 \
+            -e http_proxy=http://egress-proxy:3128 -e https_proxy=http://egress-proxy:3128 \
+            -e NO_PROXY=localhost,127.0.0.1 -e no_proxy=localhost,127.0.0.1"
+
+          # Hardening flags so a user run can't reach the host or exhaust it.
+          RUNFLAGS="--init --memory 2g --memory-swap 2g --cpus 2 --pids-limit 512 --security-opt no-new-privileges:true --cap-drop ALL"
+
+          # Persistent submission log — only the promoted live app (not the throwaway
+          # canary) writes to the durable host mount; the file is logrotated above.
+          APP_LOG_ARGS="-e PLAYGROUND_LOG_FILE=/var/log/playground/run.log -v $LOG_ROOT/app:/var/log/playground"
+
+          # Validate the new image end-to-end before it goes live: homepage renders
+          # AND every runnable language actually executes (6*7 -> 42, no exchange
+          # needed) — so a silently-broken Python/PHP/C# warm-up can't be promoted.
+          # Install-only languages return a "runs locally" rejection → counted as skip.
+          smoke_lang() { # json-payload
+            local out
+            # no -f: install-only languages reply HTTP 400 with a "runs locally" body we must read
+            out=$(curl -sS --max-time 60 -X POST "${SMOKE_BASE}/api/run" -H 'Content-Type: application/json' -d "$1") \
+              || { echo "smoke[$1]: request failed"; return 1; }
+            echo "$out" | grep -q "runs locally, not in the browser" && { echo "smoke: skip (install-only) $1"; return 0; }
+            # /api/run streams chunks like {"type":"chunk","stream":"stdout","data":"42\n"}
+            echo "$out" | grep -q '"stream":"stdout","data":"42' || { echo "smoke FAIL: $1 -> $out"; return 1; }
+            echo "smoke OK: $1"
+          }
+          smoke() {
+            SMOKE_BASE="http://$1:3000${BASE_PATH}"; local html
+            for i in $(seq 1 30); do curl -fsS -o /dev/null "$SMOKE_BASE" 2>/dev/null && break; sleep 2; done
+            html=$(curl -fsS --max-time 25 "$SMOKE_BASE") || { echo "smoke: homepage not 200"; return 1; }
+            echo "$html" | grep -q "CCXT Playground" || { echo "smoke: homepage content missing"; return 1; }
+            smoke_lang '{"language":"js","code":"console.log(6*7)"}'               || return 1
+            smoke_lang '{"language":"ts","code":"console.log(6*7)"}'               || return 1
+            smoke_lang '{"language":"python","code":"print(6*7)"}'                 || return 1
+            smoke_lang '{"language":"php","code":"<?php echo 6*7;"}'               || return 1
+            smoke_lang '{"language":"csharp","code":"System.Console.Write(6*7);"}' || return 1
+            smoke_lang '{"language":"go","code":"package main\nimport \"fmt\"\nfunc main(){fmt.Print(6*7)}"}' || return 1
+            echo "smoke: OK"
+          }
+
+          # Canary on a temp internal IP (no published port — the app is reached via
+          # its IP on the internal network; the host can route in even though the
+          # container can't route out). Live container is untouched until smoke passes.
+          CANARY="${CONTAINER}-canary"
+          docker rm -f "$CANARY" 2>/dev/null || true
+          docker run -d --network "$NET_INTERNAL" --ip "$CANARY_IP" $PROXYENV $ENVFILE_ARG $RUNFLAGS $LOGOPTS --name "$CANARY" "$IMAGE:$SHA"
+          if smoke "$CANARY_IP"; then
+            docker rm -f "$CANARY"
+            docker rm -f "$CONTAINER" 2>/dev/null || true
+            docker run -d --restart=always --network "$NET_INTERNAL" --ip "$APP_IP" $PROXYENV $ENVFILE_ARG $RUNFLAGS $LOGOPTS $APP_LOG_ARGS --name "$CONTAINER" "$IMAGE:$SHA"
+            docker tag "$IMAGE:$SHA" "$IMAGE:latest"
+            # Reclaim disk: drop dangling layers, then remove OLD playground images.
+            # Each deploy tags a unique :SHA (multi-GB) which `prune -f` won't touch
+            # since it's tagged — without this the shared box's disk fills over time.
+            # Keep only the just-deployed SHA and :latest (same image id).
+            docker image prune -f >/dev/null 2>&1 || true
+            for repo in "$IMAGE" "$IMAGE_PROXY"; do
+              docker images "$repo" --format '{{.ID}} {{.Tag}}' \
+                | awk -v keep="$SHA" '$2!=keep && $2!="latest" && $2!="<none>" {print $1}' \
+                | sort -u | xargs -r docker rmi -f >/dev/null 2>&1 || true
+            done
+            # Daily clean: restart the app to wipe any in-container state (defense in
+            # depth; runs are already killed at their timeout and temp dirs cleaned).
+            printf '0 4 * * * root docker restart %s >/dev/null 2>&1\n' "$CONTAINER" > /etc/cron.d/ccxt-playground-clean
+            chmod 644 /etc/cron.d/ccxt-playground-clean
+            docker logout ghcr.io || true
+            echo "deployed $SHA"
+          else
+            echo "::error::smoke test failed — NOT promoting; live site left on previous image"
+            docker logs "$CANARY" 2>&1 | tail -40 || true
+            docker rm -f "$CANARY" || true
+            docker logout ghcr.io || true
+            exit 1
+          fi
+          EOF

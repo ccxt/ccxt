@@ -1,12 +1,12 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/whitebit.js';
 import { ExchangeNotAvailable, ExchangeError, DDoSProtection, BadSymbol, InvalidOrder, ArgumentsRequired, AuthenticationError, OrderNotFound, PermissionDenied, InsufficientFunds, BadRequest, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Account, Balances, Bool, BorrowInterest, Conversion, CrossBorrowRate, Currency, Currencies, DepositAddress, Dict, int, Int, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry } from './base/types.js';
+import type{ Account, Balances, Bool, BorrowInterest, Conversion, CrossBorrowRate, Currency, Currencies, DepositAddress, Dict, int, Int, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry, Fee } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -646,76 +646,75 @@ export default class whitebit extends Exchange {
         //   }
         // }
         //
-        const ids = Object.keys (response);
-        const result: Dict = {};
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const currency = response[id];
-            // const name = this.safeString (currency, 'name'); // breaks down in Python due to utf8 encoding issues on the exchange side
-            const code = this.safeCurrencyCode (id);
-            const hasProvider = ('providers' in currency);
-            const networks = {};
-            const rawNetworks = this.safeDict (currency, 'networks', {});
-            const depositsNetworks = this.safeList (rawNetworks, 'deposits', []);
-            const withdrawsNetworks = this.safeList (rawNetworks, 'withdraws', []);
-            const networkLimits = this.safeDict (currency, 'limits', {});
-            const depositLimits = this.safeDict (networkLimits, 'deposit', {});
-            const withdrawLimits = this.safeDict (networkLimits, 'withdraw', {});
-            const allNetworks = this.arrayConcat (depositsNetworks, withdrawsNetworks);
-            for (let j = 0; j < allNetworks.length; j++) {
-                const networkId = allNetworks[j];
-                const networkCode = this.networkIdToCode (networkId);
-                const networkDepositLimits = this.safeDict (depositLimits, networkId, {});
-                const networkWithdrawLimits = this.safeDict (withdrawLimits, networkId, {});
-                networks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'active': undefined,
-                    'deposit': this.inArray (networkId, depositsNetworks),
-                    'withdraw': this.inArray (networkId, withdrawsNetworks),
-                    'fee': undefined,
-                    'precision': undefined,
-                    'limits': {
-                        'deposit': {
-                            'min': this.safeNumber (networkDepositLimits, 'min'),
-                            'max': this.safeNumber (networkDepositLimits, 'max'),
-                        },
-                        'withdraw': {
-                            'min': this.safeNumber (networkWithdrawLimits, 'min'),
-                            'max': this.safeNumber (networkWithdrawLimits, 'max'),
-                        },
-                    },
-                };
-            }
-            result[code] = this.safeCurrencyStructure ({
-                'id': id,
-                'code': code,
-                'info': currency, // the original payload
-                'name': undefined, // see the comment above
+        const enhancedArray = this.addKeyInArrayItems (response, '_coin_id');
+        return this.parseCurrencies (enhancedArray);
+    }
+
+    parseCurrency (rawCurrency: Dict): Currency {
+        // const name = this.safeString (currency, 'name'); // breaks down in Python due to utf8 encoding issues on the exchange side
+        const id = this.safeString (rawCurrency, '_coin_id');
+        const code = this.safeCurrencyCode (id);
+        const hasProvider = ('providers' in rawCurrency);
+        const networks = {};
+        const rawNetworks = this.safeDict (rawCurrency, 'networks', {});
+        const depositsNetworks = this.safeList (rawNetworks, 'deposits', []);
+        const withdrawsNetworks = this.safeList (rawNetworks, 'withdraws', []);
+        const networkLimits = this.safeDict (rawCurrency, 'limits', {});
+        const depositLimits = this.safeDict (networkLimits, 'deposit', {});
+        const withdrawLimits = this.safeDict (networkLimits, 'withdraw', {});
+        const allNetworks = this.arrayConcat (depositsNetworks, withdrawsNetworks);
+        for (let j = 0; j < allNetworks.length; j++) {
+            const networkId = allNetworks[j];
+            const networkCode = this.networkIdToCode (networkId, code);
+            const networkDepositLimits = this.safeDict (depositLimits, networkId, {});
+            const networkWithdrawLimits = this.safeDict (withdrawLimits, networkId, {});
+            networks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
                 'active': undefined,
-                'deposit': this.safeBool (currency, 'can_deposit'),
-                'withdraw': this.safeBool (currency, 'can_withdraw'),
+                'deposit': this.inArray (networkId, depositsNetworks),
+                'withdraw': this.inArray (networkId, withdrawsNetworks),
                 'fee': undefined,
-                'networks': networks,
-                'type': hasProvider ? 'fiat' : 'crypto',
-                'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'currency_precision'))),
+                'precision': undefined,
                 'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
+                    'deposit': {
+                        'min': this.safeNumber (networkDepositLimits, 'min'),
+                        'max': this.safeNumber (networkDepositLimits, 'max'),
                     },
                     'withdraw': {
-                        'min': this.safeNumber (currency, 'min_withdraw'),
-                        'max': this.safeNumber (currency, 'max_withdraw'),
-                    },
-                    'deposit': {
-                        'min': this.safeNumber (currency, 'min_deposit'),
-                        'max': this.safeNumber (currency, 'max_deposit'),
+                        'min': this.safeNumber (networkWithdrawLimits, 'min'),
+                        'max': this.safeNumber (networkWithdrawLimits, 'max'),
                     },
                 },
-            });
+            };
         }
-        return result;
+        return this.safeCurrencyStructure ({
+            'id': id,
+            'code': code,
+            'info': rawCurrency, // the original payload
+            'name': undefined, // see the comment above
+            'active': undefined,
+            'deposit': this.safeBool (rawCurrency, 'can_deposit'),
+            'withdraw': this.safeBool (rawCurrency, 'can_withdraw'),
+            'fee': undefined,
+            'networks': networks,
+            'type': hasProvider ? 'fiat' : 'crypto',
+            'precision': this.parseNumber (this.parsePrecision (this.safeString (rawCurrency, 'currency_precision'))),
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': this.safeNumber (rawCurrency, 'min_withdraw'),
+                    'max': this.safeNumber (rawCurrency, 'max_withdraw'),
+                },
+                'deposit': {
+                    'min': this.safeNumber (rawCurrency, 'min_deposit'),
+                    'max': this.safeNumber (rawCurrency, 'max_deposit'),
+                },
+            },
+        });
     }
 
     /**
@@ -906,7 +905,7 @@ export default class whitebit extends Exchange {
                 if (networkId !== undefined) {
                     const networkLength = networkId.length;
                     networkId = networkId.slice (1, networkLength - 1);
-                    const networkCode = this.networkIdToCode (networkId);
+                    const networkCode = this.networkIdToCode (networkId, code);
                     depositWithdrawFees[code]['networks'][networkCode] = {
                         'withdraw': withdrawResult,
                         'deposit': depositResult,
@@ -1172,7 +1171,7 @@ export default class whitebit extends Exchange {
                 continue;
             }
             // Find corresponding fee data for this currency
-            let feeData = undefined;
+            let feeData: Dict = undefined;
             const feeKeys = Object.keys (feesData);
             for (let j = 0; j < feeKeys.length; j++) {
                 const feeKey = feeKeys[j];
@@ -1410,7 +1409,7 @@ export default class whitebit extends Exchange {
         const request: Dict = {
             'orderId': id,
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['market'] = market['id'];
@@ -1490,9 +1489,9 @@ export default class whitebit extends Exchange {
         } else {
             onlyContractSymbols = false;
         }
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
-        let method = undefined;
+        let method: Str = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'fetchTickers', 'method', method);
         if (method === undefined) {
             // if the user did not specify a method, choose it based on market type and symbols
@@ -1502,7 +1501,7 @@ export default class whitebit extends Exchange {
                 method = 'v4PublicGetTicker';
             }
         }
-        let response = undefined;
+        let response: Dict = undefined;
         if (method === 'v4PublicGetTicker') {
             //
             //      "BCH_RUB": {
@@ -2016,7 +2015,7 @@ export default class whitebit extends Exchange {
         }
         params = this.omit (query, [ 'postOnly', 'triggerPrice', 'stopPrice' ]);
         const useCollateralEndpoint = marginMode !== undefined || marketType === 'swap';
-        let response = undefined;
+        let response: Dict = undefined;
         if (isStopOrder) {
             request['activation_price'] = this.priceToPrecision (symbol, triggerPrice);
             if (isLimitOrder) {
@@ -2176,17 +2175,17 @@ export default class whitebit extends Exchange {
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         const requestType = [];
         if (type === 'spot') {
-            let isMargin = undefined;
+            let isMargin: Bool = undefined;
             [ isMargin, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'isMargin', false);
             if (isMargin) {
                 requestType.push ('margin');
@@ -2283,7 +2282,7 @@ export default class whitebit extends Exchange {
             const id = balanceKeys[i];
             const code = this.safeCurrencyCode (id);
             const balance = response[id];
-            if (typeof balance === 'object' && balance !== undefined) {
+            if (balance !== undefined && this.isDictionary (balance)) {
                 const account = this.account ();
                 account['free'] = this.safeString2 (balance, 'available', 'main_balance');
                 account['used'] = this.safeString (balance, 'freeze');
@@ -2309,9 +2308,9 @@ export default class whitebit extends Exchange {
      */
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        let response = undefined;
+        let response: Dict = undefined;
         if (marketType === 'swap') {
             response = await this.v4PrivatePostCollateralAccountBalance (params);
         } else {
@@ -2363,7 +2362,7 @@ export default class whitebit extends Exchange {
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -2410,7 +2409,7 @@ export default class whitebit extends Exchange {
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         const request: Dict = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -2530,7 +2529,7 @@ export default class whitebit extends Exchange {
             amount = filled;
         }
         const dealFee = this.safeString (order, 'dealFee');
-        let fee = undefined;
+        let fee: Fee = undefined;
         if (dealFee !== undefined) {
             fee = {
                 'cost': this.parseNumber (dealFee),
@@ -2591,7 +2590,7 @@ export default class whitebit extends Exchange {
         const request: Dict = {
             'orderId': parseInt (id),
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['market'] = market['id'];
@@ -2637,7 +2636,7 @@ export default class whitebit extends Exchange {
      */
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         await this.loadMarkets ();
-        let currency = undefined;
+        let currency: Currency = undefined;
         const request: Dict = {};
         if (code !== undefined) {
             currency = this.currency (code);
@@ -2690,7 +2689,7 @@ export default class whitebit extends Exchange {
      */
     async fetchTransactions (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         await this.loadMarkets ();
-        let currency = undefined;
+        let currency: Currency = undefined;
         const request: Dict = {};
         if (code !== undefined) {
             currency = this.currency (code);
@@ -2744,7 +2743,7 @@ export default class whitebit extends Exchange {
         const request: Dict = {
             'ticker': currency['id'],
         };
-        let response = undefined;
+        let response: Dict = undefined;
         if (this.isFiat (code)) {
             const provider = this.safeString (params, 'provider');
             if (provider === undefined) {
@@ -3122,7 +3121,7 @@ export default class whitebit extends Exchange {
      */
     async fetchDeposit (id: string, code: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        let currency = undefined;
+        let currency: Currency = undefined;
         const request: Dict = {
             'transactionMethod': 1,
             'uniqueId': id,
@@ -3189,7 +3188,7 @@ export default class whitebit extends Exchange {
      */
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         await this.loadMarkets ();
-        let currency = undefined;
+        let currency: Currency = undefined;
         const request: Dict = {
             'transactionMethod': 1,
             'limit': 100,
@@ -3259,7 +3258,7 @@ export default class whitebit extends Exchange {
     async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<BorrowInterest[]> {
         await this.loadMarkets ();
         const request: Dict = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['market'] = market['id'];
@@ -3571,7 +3570,7 @@ export default class whitebit extends Exchange {
     async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         await this.loadMarkets ();
         const request: Dict = {};
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['ticker'] = currency['id'];

@@ -1,12 +1,12 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/btcmarkets.js';
 import { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds, BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, int } from './base/types.js';
+import type{ Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -309,7 +309,7 @@ export default class btcmarkets extends Exchange {
         if (since !== undefined) {
             request['after'] = since;
         }
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -436,7 +436,7 @@ export default class btcmarkets extends Exchange {
         const cryptoPaymentDetail = this.safeDict (transaction, 'paymentDetail', {});
         const txid = this.safeString (cryptoPaymentDetail, 'txId');
         let address = this.safeString (cryptoPaymentDetail, 'address');
-        let tag = undefined;
+        let tag: Str = undefined;
         if (address !== undefined) {
             const addressParts = address.split ('?dt=');
             const numParts = addressParts.length;
@@ -524,7 +524,7 @@ export default class btcmarkets extends Exchange {
         const minAmount = this.safeNumber (market, 'minOrderAmount');
         const maxAmount = this.safeNumber (market, 'maxOrderAmount');
         const status = this.safeString (market, 'status');
-        let minPrice = undefined;
+        let minPrice: Num = undefined;
         if (quote === 'AUD') {
             minPrice = pricePrecision;
         }
@@ -1101,7 +1101,7 @@ export default class btcmarkets extends Exchange {
          * @returns {object} contains the rate, the percentage multiplied to the order amount to obtain the fee amount, and cost, the total value of the fee in units of the quote currency, for the order
          */
         const market = this.markets[symbol];
-        let currency = undefined;
+        let currency: Currency = undefined;
         let cost = undefined;
         if (market['quote'] === 'AUD') {
             currency = market['quote'];
@@ -1236,7 +1236,7 @@ export default class btcmarkets extends Exchange {
         const request: Dict = {
             'status': 'all',
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['marketId'] = market['id'];
@@ -1297,7 +1297,7 @@ export default class btcmarkets extends Exchange {
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request: Dict = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['marketId'] = market['id'];

@@ -334,7 +334,7 @@ class apex(ccxt.async_support.apex):
         client.resolve(orderbook, messageHash)
 
     def handle_delta(self, bookside, delta):
-        bidAsk = self.parse_bid_ask(delta, 0, 1)
+        bidAsk = self.parse_order_book_bid_ask(delta, 0, 1)
         bookside.storeArray(bidAsk)
 
     def handle_deltas(self, bookside, deltas):
@@ -414,7 +414,7 @@ class apex(ccxt.async_support.apex):
         topic = self.safe_string(message, 'topic', '')
         updateType = self.safe_string(message, 'type', '')
         data = self.safe_dict(message, 'data', {})
-        symbol = None
+        symbol: Str = None
         parsed = None
         if (updateType == 'snapshot'):
             parsed = self.parse_ticker(data)

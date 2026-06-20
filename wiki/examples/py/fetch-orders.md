@@ -1,8 +1,5 @@
-- [Fetch Orders](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -10,7 +7,7 @@ import sys
 
 import ccxt  # noqa: E402
 
-exchange = ccxt.bittrex({
+exchange = ccxt.kucoin({
     "apiKey": "YOUR_API_KEY",
     "secret": "YOUR_API_SECRET",
     "enableRateLimit": True,
@@ -21,5 +18,5 @@ print(orders)
 
 order = exchange.fetch_order(orders[0]['id'])
 print(order)
- 
+
 ```

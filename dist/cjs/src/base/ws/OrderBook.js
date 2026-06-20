@@ -11,7 +11,7 @@ class OrderBook {
     constructor(snapshot = {}, depth = undefined) {
         this.cache = []; // make prop visible so we use typed OrderBooks
         Object.defineProperty(this, 'cache', {
-            __proto__: null,
+            __proto__: null, // make it invisible
             value: [],
             writable: true,
             enumerable: false,

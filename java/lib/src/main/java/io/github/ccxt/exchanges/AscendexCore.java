@@ -546,7 +546,7 @@ public class AscendexCore extends AscendexApi
         {
             Object networkEtnry = Helpers.GetValue(chains, j);
             Object networkId = this.safeString(networkEtnry, "chainName");
-            Object networkCode = this.networkCodeToId(networkId);
+            Object networkCode = this.networkCodeToId(networkId, code);
             Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "fee", AscendexCore.this.safeNumber(networkEtnry, "withdrawFee") );
     put( "active", null );
@@ -2894,7 +2894,7 @@ public class AscendexCore extends AscendexApi
             (this.loadMarkets()).join();
             Object currency = this.currency(code);
             Object networkCode = this.safeString2(parameters, "network", "chainName");
-            Object networkId = this.networkCodeToId(networkCode);
+            Object networkId = this.networkCodeToId(networkCode, Helpers.GetValue(currency, "code"));
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("chainName")));
             final Object finalNetworkId = networkId;
             Object request = new java.util.HashMap<String, Object>() {{
@@ -4141,8 +4141,7 @@ final Object finalI = i;
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             Object request = new java.util.HashMap<String, Object>() {{}};
-            Object response = null;
-            response = (this.v2PublicGetFuturesPricingData(this.extend(request, parameters))).join();
+            Object response = (this.v2PublicGetFuturesPricingData(this.extend(request, parameters))).join();
             //
             //    {
             //        code: '0',

@@ -1,8 +1,6 @@
-- [Custom Proxy Agent For Js](./examples/js/)
-
-
- ```javascript
- // @ts-nocheck
+```javascript
+// @NO_AUTO_TRANSPILE
+// @ts-nocheck
 // to set custom "proxy-agent" for ccxt
 import ccxt from 'ccxt';
 import HttpProxyAgent from 'http-proxy-agent';
@@ -14,5 +12,5 @@ const httpsAgent = new HttpsProxyAgent(proxy);
 const kraken = new ccxt.kraken({ agent: httpAgent /* or httpsAgent */ });
 // or set it later
 kraken.agent = agent;
- 
+
 ```

@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var cex$1 = require('./abstract/cex.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -20,12 +20,12 @@ class cex extends cex$1["default"] {
             'id': 'cex',
             'name': 'CEX.IO',
             'countries': ['GB', 'EU', 'CY', 'RU'],
-            'rateLimit': 300,
+            'rateLimit': 300, // 200 req/min
             'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': false,
+                'margin': false, // has, but not through api
                 'swap': false,
                 'future': false,
                 'option': false,
@@ -182,19 +182,19 @@ class cex extends cex$1["default"] {
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
                             'FOK': true,
-                            'PO': false,
+                            'PO': false, // todo check
                             'GTD': true,
                         },
                         'hedged': false,
                         'leverage': false,
                         'marketBuyRequiresPrice': false,
-                        'marketBuyByCost': true,
+                        'marketBuyByCost': true, // todo check
                         'selfTradePrevention': false,
                         'trailing': false,
                         'iceberg': false,
@@ -243,7 +243,7 @@ class cex extends cex$1["default"] {
                     'check failed': errors.BadRequest,
                     'Insufficient funds': errors.InsufficientFunds,
                     'Get deposit address for main account is not allowed': errors.PermissionDenied,
-                    'Market Trigger orders are not allowed': errors.BadRequest,
+                    'Market Trigger orders are not allowed': errors.BadRequest, // for some reason, triggerPrice does not work for market orders
                     'key not passed or incorrect': errors.AuthenticationError,
                     'API rate limit reached': errors.RateLimitExceeded, // {"error":"API rate limit reached"}
                 },
@@ -274,7 +274,7 @@ class cex extends cex$1["default"] {
                     'THETA': 'theta',
                     'XTZ': 'tezos',
                     'TIA': 'celestia',
-                    'CRONOS': 'cronos',
+                    'CRONOS': 'cronos', // CRC20
                     'MATIC': 'polygon',
                     'TON': 'ton',
                     'TRC20': 'tron',
@@ -373,7 +373,7 @@ class cex extends cex$1["default"] {
         for (let j = 0; j < keys.length; j++) {
             const networkId = keys[j];
             const rawNetwork = rawNetworks[networkId];
-            const networkCode = this.networkIdToCode(networkId);
+            const networkCode = this.networkIdToCode(networkId, code);
             const deposit = this.safeString(rawNetwork, 'deposit') === 'enabled';
             const withdraw = this.safeString(rawNetwork, 'withdrawal') === 'enabled';
             networks[networkCode] = {
@@ -612,7 +612,7 @@ class cex extends cex$1["default"] {
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': this.safeString(ticker, 'last'),
+            'close': this.safeString(ticker, 'last'), // last indicative price per api docs (difference also seen here: https://github.com/ccxt/ccxt/actions/runs/14593899575/job/40935513901?pr=25767#step:11:456 )
             'previousClose': undefined,
             'change': this.safeNumber(ticker, 'priceChange'),
             'percentage': this.safeNumber(ticker, 'priceChangePercentage'),
@@ -1700,8 +1700,8 @@ class cex extends cex$1["default"] {
         const currency = this.currency(code);
         const request = {
             'accountId': accountId,
-            'currency': currency['id'],
-            'blockchain': this.networkCodeToId(networkCode),
+            'currency': currency['id'], // documentation is wrong about this param
+            'blockchain': this.networkCodeToId(networkCode, currency['code']),
         };
         const response = await this.privatePostGetDepositAddress(this.extend(request, params));
         //
@@ -1726,7 +1726,7 @@ class cex extends cex$1["default"] {
         return {
             'info': depositAddress,
             'currency': currency['code'],
-            'network': this.networkIdToCode(this.safeString(depositAddress, 'blockchain')),
+            'network': this.networkIdToCode(this.safeString(depositAddress, 'blockchain'), currency['code']),
             'address': address,
             'tag': undefined,
         };
@@ -1752,7 +1752,7 @@ class cex extends cex$1["default"] {
             const seconds = this.seconds().toString();
             body = this.json(query);
             const auth = path + seconds + body;
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256, 'base64');
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256, 'base64');
             headers = {
                 'Content-Type': 'application/json',
                 'X-AGGR-KEY': this.apiKey,

@@ -1,8 +1,5 @@
-- [Exchange Properties](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 
 include './ccxt.php';
 
@@ -61,5 +58,5 @@ if (count ($argv) > 2) {
 
 }
 
-?> 
+?>
 ```

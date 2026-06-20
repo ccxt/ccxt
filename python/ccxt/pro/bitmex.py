@@ -1254,7 +1254,7 @@ class bitmex(ccxt.async_support.bitmex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
-        table = None
+        table: Str = None
         if limit is None:
             table = self.safe_string(self.options, 'watchOrderBookLevel', 'orderBookL2')
         elif limit == 25:

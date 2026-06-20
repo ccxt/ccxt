@@ -1382,7 +1382,6 @@ class aster(Exchange, ImplicitAPI):
         last = self.safe_string(ticker, 'lastPrice')
         open = self.safe_string(ticker, 'openPrice')
         percentage = self.safe_string(ticker, 'priceChangePercent')
-        percentage = Precise.string_mul(percentage, '100')
         quoteVolume = self.safe_string(ticker, 'quoteVolume')
         baseVolume = self.safe_string(ticker, 'volume')
         high = self.safe_string(ticker, 'highPrice')
@@ -2077,8 +2076,10 @@ class aster(Exchange, ImplicitAPI):
         #        }
         #
         info = order
+        positionSide = self.safe_string(order, 'positionSide')
+        defaultType = 'swap' if (positionSide is not None) else 'spot'
         marketId = self.safe_string(order, 'symbol')
-        market = self.safe_market(marketId, market)
+        market = self.safe_market(marketId, market, None, defaultType)
         side = self.safe_string_lower(order, 'side')
         timestamp = self.safe_integer(order, 'time')
         statusId = self.safe_string_upper(order, 'status')
@@ -2939,7 +2940,7 @@ class aster(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(marginMode, 'symbol')
-        market = self.safe_market(marketId, market)
+        market = self.safe_market(marketId, market, None, 'swap')
         return {
             'info': marginMode,
             'symbol': market['symbol'],
@@ -3909,7 +3910,8 @@ class aster(Exchange, ImplicitAPI):
             # Sign using EIP-712 typed data per the AsterSignTransaction spec
             zeroAddress = self.safe_string(self.options, 'zeroAddress', '0x0000000000000000000000000000000000000000')
             v3ChainId = self.safe_integer(self.options, 'v3ChainId', 1666)
-            signerAddress = self.safe_string(self.options, 'signerAddress')
+            walletAddress = self.eth_get_address_from_private_key(self.privateKey)
+            signerAddress = self.safe_string(self.options, 'signerAddress', walletAddress)  # default to user's wallet
             if signerAddress is None:
                 raise ArgumentsRequired(self.id + ' requires signerAddress in options when use v3 api')
             domain = {
@@ -3927,7 +3929,7 @@ class aster(Exchange, ImplicitAPI):
             # Note: timestamp and recvWindow are not used for v3; nonce replaces timestamp
             finalParams = self.extend({
                 'nonce': str(nonce),
-                'user': self.walletAddress,
+                'user': walletAddress,
                 'signer': signerAddress,
             }, params)
             paramString: Str = None

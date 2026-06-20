@@ -2,15 +2,7 @@
 
 # [<-](Examples?id=typescript)
 
-- [Apex Watch](./examples/ts/apex-watch.md)
-
 - [Benchmark](./examples/ts/benchmark.md)
-
-- [Binance Fetch Balance Snapshot Watch Balance Updates](./examples/ts/binance-fetch-balance-snapshot-watch-balance-updates.md)
-
-- [Binance Https Proxy](./examples/ts/binance-https-proxy.md)
-
-- [Binance Watch Ohlcv Many Symbols Continuously](./examples/ts/binance-watch-ohlcv-many-symbols-continuously.md)
 
 - [Binance Watch Ohlcv Many Symbols](./examples/ts/binance-watch-ohlcv-many-symbols.md)
 
@@ -42,9 +34,11 @@
 
 - [Exchange Close](./examples/ts/exchange-close.md)
 
-- [Exchange Rate Limiter Rollingwindow](./examples/ts/exchange-rate-limiter-rollingWindow.md)
+- [Exchange Rate Limiter RollingWindow](./examples/ts/exchange-rate-limiter-rollingWindow.md)
 
 - [Fetch Balance All Exchanges](./examples/ts/fetch-balance-all-exchanges.md)
+
+- [Fetch Balance Snapshot Watch Balance Updates](./examples/ts/fetch-balance-snapshot-watch-balance-updates.md)
 
 - [Fetch First Ohlcv Timestamp](./examples/ts/fetch-first-ohlcv-timestamp.md)
 
@@ -56,11 +50,11 @@
 
 - [📂 Fetch Tickers](https://github.com/ccxt/ccxt/tree/master/./examples/ts/fetch-tickers)
 
-- [Gateio Swap Watch Many Orderbooks](./examples/ts/gateio-swap-watch-many-orderbooks.md)
+- [Gate Swap Watch Many Orderbooks](./examples/ts/gate-swap-watch-many-orderbooks.md)
 
-- [Gateio Watch Balance](./examples/ts/gateio-watch-balance.md)
+- [Gate Watch Balance](./examples/ts/gate-watch-balance.md)
 
-- [Gateio Watch Order Book](./examples/ts/gateio-watch-order-book.md)
+- [Gate Watch Order Book](./examples/ts/gate-watch-order-book.md)
 
 - [Graceful Shutdown](./examples/ts/graceful-shutdown.md)
 
@@ -78,9 +72,9 @@
 
 - [📂 Nextjs Page Router](https://github.com/ccxt/ccxt/tree/master/./examples/ts/nextjs-page-router)
 
-- [Okex Watch Balance And Create Order](./examples/ts/okex-watch-balance-and-create-order.md)
-
 - [Okx Create Futures Order](./examples/ts/okx-create-futures-order.md)
+
+- [Okx Watch Balance And Create Order](./examples/ts/okx-watch-balance-and-create-order.md)
 
 - [Okx Watch Tickers](./examples/ts/okx-watch-tickers.md)
 
@@ -96,11 +90,11 @@
 
 - [Sample Local Proxy Server With Cors](./examples/ts/sample-local-proxy-server-with-cors.md)
 
-- [Watch Ohlcv For Symbols](./examples/ts/watch-OHLCV-For-Symbols.md)
+- [Watch OHLCV For Symbols](./examples/ts/watch-OHLCV-For-Symbols.md)
 
-- [Watch Ohlcv](./examples/ts/watch-OHLCV.md)
+- [Watch OHLCV](./examples/ts/watch-OHLCV.md)
 
-- [Watch Orderbook For Symbols](./examples/ts/watch-OrderBook-For-Symbols.md)
+- [Watch OrderBook For Symbols](./examples/ts/watch-OrderBook-For-Symbols.md)
 
 - [Watch Trades For Symbols](./examples/ts/watch-Trades-For-Symbols.md)
 
@@ -122,9 +116,9 @@
 
 - [Watch Vs Fetch](./examples/ts/watch-vs-fetch.md)
 
-- [Watchpositions Many Exchanges Continuosly](./examples/ts/watchPositions-many-exchanges-continuosly.md)
+- [WatchPositions Many Exchanges Continuosly](./examples/ts/watchPositions-many-exchanges-continuosly.md)
 
-- [Watchpositions](./examples/ts/watchPositions.md)
+- [WatchPositions](./examples/ts/watchPositions.md)
 
-- [Watchpositionsforsymbols](./examples/ts/watchPositionsForSymbols.md)
+- [WatchPositionsForSymbols](./examples/ts/watchPositionsForSymbols.md)
 

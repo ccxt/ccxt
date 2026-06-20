@@ -909,7 +909,7 @@ func (this *BingxCore) ParseCurrency(rawCurrency any) any {
 	for j := 0; IsLessThan(j, GetArrayLength(networkList)); j++ {
 		var rawNetwork any = GetValue(networkList, j)
 		var network any = this.SafeString(rawNetwork, "network")
-		var networkCode any = this.NetworkIdToCode(network)
+		var networkCode any = this.NetworkIdToCode(network, code)
 		var limits any = map[string]any{
 			"withdraw": map[string]any{
 				"min": this.SafeNumber(rawNetwork, "withdrawMin"),
@@ -5711,7 +5711,7 @@ func (this *BingxCore) ParseTransaction(transaction any, optionalArgs ...any) an
 		"txid":        this.SafeString(transaction, "txId"),
 		"type":        typeVar,
 		"currency":    code,
-		"network":     this.NetworkIdToCode(network),
+		"network":     this.NetworkIdToCode(network, code),
 		"amount":      this.SafeNumber(transaction, "amount"),
 		"status":      this.ParseTransactionStatus(this.SafeString(transaction, "status")),
 		"timestamp":   timestamp,
@@ -6298,7 +6298,7 @@ func (this *BingxCore) Withdraw(code any, amount any, address any, optionalArgs 
 		}
 		var network any = this.SafeStringUpper(params, "network")
 		if IsTrue(!IsEqual(network, nil)) {
-			AddElementToObject(request, "network", this.NetworkCodeToId(network))
+			AddElementToObject(request, "network", this.NetworkCodeToId(network, GetValue(currency, "code")))
 		}
 		if IsTrue(!IsEqual(tag, nil)) {
 			AddElementToObject(request, "addressTag", tag)

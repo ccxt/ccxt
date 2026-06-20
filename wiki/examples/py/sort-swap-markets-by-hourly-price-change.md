@@ -1,15 +1,12 @@
-- [Sort Swap Markets By Hourly Price Change](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
 import asyncio
 import time
 from pprint import pprint
-from datetime import datetime
+from datetime import datetime, timezone
 
 import ccxt.async_support as ccxt  # noqa: E402
 exchange = ccxt.binanceusdm()
@@ -61,7 +58,7 @@ async def main():
 
     end = time.time()
     duration = str(int((end - start) * 1000))
-    now = str(datetime.utcnow().isoformat())
+    now = str(datetime.now(timezone.utc).isoformat())
 
     print('python', sys.version)
     print('CCXT Version:', ccxt.__version__)
@@ -71,5 +68,5 @@ async def main():
 
 
 asyncio.run(main())
- 
+
 ```

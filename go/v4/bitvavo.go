@@ -34,18 +34,23 @@ func (this *BitvavoCore) Describe() any {
 			"borrowIsolatedMargin":                   false,
 			"borrowMargin":                           false,
 			"cancelAllOrders":                        true,
+			"cancelAllOrdersAfter":                   true,
 			"cancelOrder":                            true,
 			"closeAllPositions":                      false,
 			"closePosition":                          false,
+			"createLimitOrder":                       true,
+			"createMarketOrder":                      true,
+			"createMarketOrderWithCost":              true,
 			"createOrder":                            true,
 			"createOrderWithTakeProfitAndStopLoss":   false,
 			"createOrderWithTakeProfitAndStopLossWs": false,
-			"createPostOnlyOrder":                    false,
+			"createPostOnlyOrder":                    true,
 			"createReduceOnlyOrder":                  false,
 			"createStopLimitOrder":                   true,
 			"createStopMarketOrder":                  true,
 			"createStopOrder":                        true,
 			"editOrder":                              true,
+			"fetchAccounts":                          true,
 			"fetchBalance":                           true,
 			"fetchBorrowInterest":                    false,
 			"fetchBorrowRate":                        false,
@@ -73,6 +78,8 @@ func (this *BitvavoCore) Describe() any {
 			"fetchIsolatedBorrowRate":                false,
 			"fetchIsolatedBorrowRates":               false,
 			"fetchIsolatedPositions":                 false,
+			"fetchLedger":                            true,
+			"fetchLedgerEntry":                       false,
 			"fetchLeverage":                          false,
 			"fetchLeverages":                         false,
 			"fetchLeverageTiers":                     false,
@@ -112,10 +119,11 @@ func (this *BitvavoCore) Describe() any {
 			"fetchTickers":                           true,
 			"fetchTime":                              true,
 			"fetchTrades":                            true,
-			"fetchTradingFee":                        false,
+			"fetchTradingFee":                        true,
 			"fetchTradingFees":                       true,
-			"fetchTransfer":                          false,
-			"fetchTransfers":                         false,
+			"fetchTransactions":                      false,
+			"fetchTransfer":                          true,
+			"fetchTransfers":                         true,
 			"fetchVolatilityHistory":                 false,
 			"fetchWithdrawals":                       true,
 			"reduceMargin":                           false,
@@ -126,7 +134,7 @@ func (this *BitvavoCore) Describe() any {
 			"setMargin":                              false,
 			"setMarginMode":                          false,
 			"setPositionMode":                        false,
-			"transfer":                               false,
+			"transfer":                               true,
 			"withdraw":                               true,
 		},
 		"timeframes": map[string]any{
@@ -156,47 +164,54 @@ func (this *BitvavoCore) Describe() any {
 		"api": map[string]any{
 			"public": map[string]any{
 				"get": map[string]any{
-					"time":             1,
-					"markets":          1,
-					"assets":           1,
-					"{market}/book":    1,
-					"{market}/trades":  5,
-					"{market}/candles": 1,
-					"ticker/price":     1,
-					"ticker/book":      1,
+					"{market}/book":          1,
+					"report/{market}/book":   1,
+					"{market}/trades":        5,
+					"report/{market}/trades": 5,
+					"ticker/price":           1,
+					"ticker/book":            1,
+					"{market}/candles":       1,
 					"ticker/24h": map[string]any{
 						"cost":     1,
 						"noMarket": 25,
 					},
+					"time":    1,
+					"markets": 1,
+					"assets":  1,
 				},
 			},
 			"private": map[string]any{
 				"get": map[string]any{
-					"account": 1,
-					"order":   1,
-					"orders":  5,
+					"order": 1,
 					"ordersOpen": map[string]any{
 						"cost":     5,
 						"noMarket": 100,
 					},
 					"trades":                             5,
-					"balance":                            5,
+					"orders":                             5,
 					"deposit":                            1,
 					"depositHistory":                     5,
 					"withdrawalHistory":                  5,
+					"account":                            1,
+					"balance":                            5,
+					"stakingBalance":                     1,
+					"account/fees":                       1,
+					"account/history":                    1,
 					"subaccounts":                        5,
 					"subaccounts/transfers":              5,
 					"subaccounts/transfers/{transferId}": 5,
 					"institutional/subaccounts/balance":  5,
 					"institutional/subaccounts/history":  5,
 					"institutional/subaccounts/orders/open": map[string]any{
-						"cost":     1,
-						"noMarket": 25,
+						"cost":     5,
+						"noMarket": 100,
 					},
 				},
 				"post": map[string]any{
 					"order":                 1,
+					"cancelOrdersAfter":     5,
 					"withdrawal":            1,
+					"crypto/withdrawal":     25,
 					"subaccounts":           5,
 					"subaccounts/transfers": 5,
 				},
@@ -209,6 +224,7 @@ func (this *BitvavoCore) Describe() any {
 						"cost":     25,
 						"noMarket": 100,
 					},
+					"atomic/orders":                   100,
 					"institutional/subaccounts/order": 1,
 					"institutional/subaccounts/orders": map[string]any{
 						"cost":     25,
@@ -400,6 +416,7 @@ func (this *BitvavoCore) Describe() any {
 /**
  * @method
  * @name bitvavo#fetchTime
+ * @see https://docs.bitvavo.com/docs/rest-api/get-server-time/
  * @description fetches the current integer timestamp in milliseconds from the exchange server
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
@@ -428,7 +445,7 @@ func (this *BitvavoCore) FetchTime(optionalArgs ...any) <-chan any {
 /**
  * @method
  * @name bitvavo#fetchMarkets
- * @see https://docs.bitvavo.com/#tag/General/paths/~1markets/get
+ * @see https://docs.bitvavo.com/docs/rest-api/get-markets/
  * @description retrieves data on all markets for bitvavo
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
@@ -539,7 +556,7 @@ func (this *BitvavoCore) ParseMarkets(markets any) any {
 /**
  * @method
  * @name bitvavo#fetchCurrencies
- * @see https://docs.bitvavo.com/#tag/General/paths/~1assets/get
+ * @see https://docs.bitvavo.com/docs/rest-api/get-asset-data/
  * @description fetches all available currencies on an exchange
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
@@ -643,7 +660,7 @@ func (this *BitvavoCore) ParseCurrency(rawCurrency any) any {
 	// btw, absolutely all of them have 1 network atm
 	for j := 0; IsLessThan(j, GetArrayLength(networksArray)); j++ {
 		var networkId any = GetValue(networksArray, j)
-		var networkCode any = this.NetworkIdToCode(networkId)
+		var networkCode any = this.NetworkIdToCode(networkId, code)
 		AddElementToObject(networks, networkCode, map[string]any{
 			"info":      rawCurrency,
 			"id":        networkId,
@@ -693,7 +710,7 @@ func (this *BitvavoCore) ParseCurrency(rawCurrency any) any {
 /**
  * @method
  * @name bitvavo#fetchTicker
- * @see https://docs.bitvavo.com/#tag/Market-Data/paths/~1ticker~124h/get
+ * @see https://docs.bitvavo.com/docs/rest-api/get-candlestick-data-24-h/
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -707,8 +724,8 @@ func (this *BitvavoCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes6738 := (<-this.LoadMarkets())
-		PanicOnError(retRes6738)
+		retRes6908 := (<-this.LoadMarkets())
+		PanicOnError(retRes6908)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"market": GetValue(market, "id"),
@@ -794,6 +811,7 @@ func (this *BitvavoCore) ParseTicker(ticker any, optionalArgs ...any) any {
 /**
  * @method
  * @name bitvavo#fetchTickers
+ * @see https://docs.bitvavo.com/docs/rest-api/get-candlestick-data-24-h/
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -809,8 +827,8 @@ func (this *BitvavoCore) FetchTickers(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes7578 := (<-this.LoadMarkets())
-		PanicOnError(retRes7578)
+		retRes7758 := (<-this.LoadMarkets())
+		PanicOnError(retRes7758)
 
 		response := (<-this.PublicGetTicker24h(params))
 		PanicOnError(response)
@@ -843,7 +861,7 @@ func (this *BitvavoCore) FetchTickers(optionalArgs ...any) <-chan any {
 /**
  * @method
  * @name bitvavo#fetchTrades
- * @see https://docs.bitvavo.com/#tag/Market-Data/paths/~1{market}~1trades/get
+ * @see https://docs.bitvavo.com/docs/rest-api/get-trades/
  * @description get the list of most recent trades for a particular symbol
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -865,8 +883,8 @@ func (this *BitvavoCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
-		retRes7948 := (<-this.LoadMarkets())
-		PanicOnError(retRes7948)
+		retRes8128 := (<-this.LoadMarkets())
+		PanicOnError(retRes8128)
 		var market any = this.Market(symbol)
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTrades", "paginate")
@@ -874,9 +892,9 @@ func (this *BitvavoCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes79919 := (<-this.FetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, params))
-			PanicOnError(retRes79919)
-			ch <- retRes79919
+			retRes81719 := (<-this.FetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, params))
+			PanicOnError(retRes81719)
+			ch <- retRes81719
 			return nil
 		}
 		var request any = map[string]any{
@@ -1014,7 +1032,7 @@ func (this *BitvavoCore) ParseTrade(trade any, optionalArgs ...any) any {
 /**
  * @method
  * @name bitvavo#fetchTradingFees
- * @see https://docs.bitvavo.com/#tag/Account/paths/~1account/get
+ * @see https://docs.bitvavo.com/docs/rest-api/get-account-fees/
  * @description fetch the trading fees for multiple markets
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
@@ -1027,8 +1045,8 @@ func (this *BitvavoCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes9378 := (<-this.LoadMarkets())
-		PanicOnError(retRes9378)
+		retRes9558 := (<-this.LoadMarkets())
+		PanicOnError(retRes9558)
 
 		response := (<-this.PrivateGetAccount(params))
 		PanicOnError(response)
@@ -1080,8 +1098,62 @@ func (this *BitvavoCore) ParseTradingFees(fees any, optionalArgs ...any) any {
 
 /**
  * @method
+ * @name bitvavo#fetchTradingFee
+ * @see https://docs.bitvavo.com/docs/rest-api/get-market-fees/
+ * @description fetch the trading fees for a market
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+ */
+func (this *BitvavoCore) FetchTradingFee(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		params := GetArg(optionalArgs, 0, map[string]any{})
+		_ = params
+
+		retRes10078 := (<-this.LoadMarkets())
+		PanicOnError(retRes10078)
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
+			"market": GetValue(market, "id"),
+		}
+
+		response := (<-this.PrivateGetAccountFees(this.Extend(request, params)))
+		PanicOnError(response)
+
+		//
+		//     {
+		//         "tier": "0",
+		//         "volume": "10000.00",
+		//         "taker": "0.0025",
+		//         "maker": "0.0015"
+		//     }
+		//
+		ch <- this.ParseTradingFee(response, market)
+		return nil
+
+	}()
+	return ch
+}
+func (this *BitvavoCore) ParseTradingFee(fee any, optionalArgs ...any) any {
+	market := GetArg(optionalArgs, 0, nil)
+	_ = market
+	return map[string]any{
+		"info":       fee,
+		"symbol":     this.SafeSymbol(nil, market),
+		"maker":      this.SafeNumber(fee, "maker"),
+		"taker":      this.SafeNumber(fee, "taker"),
+		"percentage": true,
+		"tierBased":  true,
+	}
+}
+
+/**
+ * @method
  * @name bitvavo#fetchOrderBook
- * @see https://docs.bitvavo.com/#tag/Market-Data/paths/~1{market}~1book/get
+ * @see https://docs.bitvavo.com/docs/rest-api/get-order-book/
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
@@ -1098,8 +1170,8 @@ func (this *BitvavoCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan 
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes9908 := (<-this.LoadMarkets())
-		PanicOnError(retRes9908)
+		retRes10468 := (<-this.LoadMarkets())
+		PanicOnError(retRes10468)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"market": GetValue(market, "id"),
@@ -1187,7 +1259,7 @@ func (this *BitvavoCore) FetchOHLCVRequest(symbol any, optionalArgs ...any) any 
 /**
  * @method
  * @name bitvavo#fetchOHLCV
- * @see https://docs.bitvavo.com/#tag/Market-Data/paths/~1{market}~1candles/get
+ * @see https://docs.bitvavo.com/docs/rest-api/get-candlestick-data/
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
@@ -1212,8 +1284,8 @@ func (this *BitvavoCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any 
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes10838 := (<-this.LoadMarkets())
-		PanicOnError(retRes10838)
+		retRes11398 := (<-this.LoadMarkets())
+		PanicOnError(retRes11398)
 		var market any = this.Market(symbol)
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
@@ -1221,9 +1293,9 @@ func (this *BitvavoCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any 
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes108819 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1440))
-			PanicOnError(retRes108819)
-			ch <- retRes108819
+			retRes114419 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1440))
+			PanicOnError(retRes114419)
+			ch <- retRes114419
 			return nil
 		}
 		var request any = this.FetchOHLCVRequest(symbol, timeframe, since, limit, params)
@@ -1265,7 +1337,7 @@ func (this *BitvavoCore) ParseBalance(response any) any {
 /**
  * @method
  * @name bitvavo#fetchBalance
- * @see https://docs.bitvavo.com/#tag/Account/paths/~1balance/get
+ * @see https://docs.bitvavo.com/docs/rest-api/get-account-balance/
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
@@ -1278,8 +1350,8 @@ func (this *BitvavoCore) FetchBalance(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes11298 := (<-this.LoadMarkets())
-		PanicOnError(retRes11298)
+		retRes11858 := (<-this.LoadMarkets())
+		PanicOnError(retRes11858)
 
 		response := (<-this.PrivateGetBalance(params))
 		PanicOnError(response)
@@ -1302,7 +1374,307 @@ func (this *BitvavoCore) FetchBalance(optionalArgs ...any) <-chan any {
 
 /**
  * @method
+ * @name bitvavo#fetchAccounts
+ * @see https://docs.bitvavo.com/docs/institutional-api/get-subaccounts/
+ * @description fetch all the accounts associated with a profile
+ * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/?id=account-structure}
+ */
+func (this *BitvavoCore) FetchAccounts(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		params := GetArg(optionalArgs, 0, map[string]any{})
+		_ = params
+
+		retRes12088 := (<-this.LoadMarkets())
+		PanicOnError(retRes12088)
+
+		response := (<-this.PrivateGetSubaccounts(params))
+		PanicOnError(response)
+		//
+		//     {
+		//         "items": [
+		//             {
+		//                 "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+		//                 "type": "spot",
+		//                 "status": "open",
+		//                 "label": "string"
+		//             }
+		//         ],
+		//         "currentPage": 0,
+		//         "totalPages": 0,
+		//         "maxItems": 0
+		//     }
+		//
+		var accounts any = this.SafeList(response, "items", []any{})
+
+		ch <- this.ParseAccounts(accounts)
+		return nil
+
+	}()
+	return ch
+}
+func (this *BitvavoCore) ParseAccount(account any) any {
+	return map[string]any{
+		"id":   this.SafeString(account, "id"),
+		"type": this.SafeString(account, "type"),
+		"code": nil,
+		"info": account,
+	}
+}
+
+/**
+ * @method
+ * @name bitvavo#transfer
+ * @see https://docs.bitvavo.com/docs/institutional-api/create-transfer/
+ * @description transfer currency internally between the master account and a subaccount
+ * @param {string} code unified currency code
+ * @param {float} amount amount to transfer
+ * @param {string} fromAccount account to transfer from, either 'master' or the subaccount id
+ * @param {string} toAccount account to transfer to, either 'master' or the subaccount id
+ * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @param {string} [params.subaccountId] the unique identifier for the subaccount
+ * @param {string} [params.clientRequestId] client defined unique id
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+ */
+func (this *BitvavoCore) Transfer(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		params := GetArg(optionalArgs, 0, map[string]any{})
+		_ = params
+
+		retRes12538 := (<-this.LoadMarkets())
+		PanicOnError(retRes12538)
+		var currency any = this.Currency(code)
+		var subaccountId any = this.SafeString(params, "subaccountId")
+		params = this.Omit(params, "subaccountId")
+		var direction any = nil
+		if IsTrue(IsTrue((IsEqual(fromAccount, "master"))) && IsTrue((IsEqual(toAccount, "master")))) {
+			panic(ArgumentsRequired(Add(this.Id, " transfer() requires fromAccount and toAccount to be different (one master and one subaccount id)")))
+		} else if IsTrue(IsEqual(fromAccount, "master")) {
+			direction = "masterToSub"
+			if IsTrue(IsEqual(subaccountId, nil)) {
+				subaccountId = toAccount
+			}
+		} else if IsTrue(IsEqual(toAccount, "master")) {
+			direction = "subToMaster"
+			if IsTrue(IsEqual(subaccountId, nil)) {
+				subaccountId = fromAccount
+			}
+		} else {
+			panic(ArgumentsRequired(Add(this.Id, " transfer() requires either fromAccount or toAccount to be master")))
+		}
+		if IsTrue(IsEqual(subaccountId, nil)) {
+			panic(ArgumentsRequired(Add(this.Id, " transfer() requires a subaccount id (provide it as fromAccount/toAccount or params.subaccountId)")))
+		}
+		var request any = map[string]any{
+			"subaccountId": subaccountId,
+			"direction":    direction,
+			"symbol":       GetValue(currency, "id"),
+			"amount":       this.CurrencyToPrecision(code, amount),
+		}
+
+		response := (<-this.PrivatePostSubaccountsTransfers(this.Extend(request, params)))
+		PanicOnError(response)
+
+		//
+		//     {
+		//         "transferId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+		//         "clientRequestId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+		//         "subaccountId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+		//         "direction": "masterToSub",
+		//         "symbol": "BTC",
+		//         "amount": "0.1",
+		//         "status": "completed",
+		//         "createdAt": "1700000000000"
+		//     }
+		//
+		ch <- this.ParseTransfer(response, currency)
+		return nil
+
+	}()
+	return ch
+}
+
+/**
+ * @method
+ * @name bitvavo#fetchTransfers
+ * @see https://docs.bitvavo.com/docs/institutional-api/get-transfers/
+ * @description fetch a history of internal transfers made on an account
+ * @param {string} [code] unified currency code of the currency transferred
+ * @param {int} [since] the earliest time in ms to fetch transfers for
+ * @param {int} [limit] the maximum number of transfers structures to retrieve
+ * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @param {string} [params.subaccountId] the unique identifier for the subaccount
+ * @param {int} [params.until] the latest time in ms to fetch transfers for
+ * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+ */
+func (this *BitvavoCore) FetchTransfers(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		code := GetArg(optionalArgs, 0, nil)
+		_ = code
+		since := GetArg(optionalArgs, 1, nil)
+		_ = since
+		limit := GetArg(optionalArgs, 2, nil)
+		_ = limit
+		params := GetArg(optionalArgs, 3, map[string]any{})
+		_ = params
+
+		retRes13128 := (<-this.LoadMarkets())
+		PanicOnError(retRes13128)
+		var request any = map[string]any{}
+		var currency any = nil
+		if IsTrue(!IsEqual(code, nil)) {
+			currency = this.Currency(code)
+			AddElementToObject(request, "symbol", GetValue(currency, "id"))
+		}
+		var subaccountId any = this.SafeString(params, "subaccountId")
+		if IsTrue(IsEqual(subaccountId, nil)) {
+			panic(ArgumentsRequired(Add(this.Id, " fetchTransfers() requires a subaccountId parameter")))
+		}
+		if IsTrue(!IsEqual(since, nil)) {
+			AddElementToObject(request, "start", since)
+		}
+		if IsTrue(!IsEqual(limit, nil)) {
+			AddElementToObject(request, "limit", limit)
+		}
+		requestparamsVariable := this.HandleUntilOption("end", request, params)
+		request = GetValue(requestparamsVariable, 0)
+		params = GetValue(requestparamsVariable, 1)
+
+		response := (<-this.PrivateGetSubaccountsTransfers(this.Extend(request, params)))
+		PanicOnError(response)
+		//
+		//     {
+		//         "items": [
+		//             {
+		//                 "transferId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+		//                 "clientRequestId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+		//                 "subaccountId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+		//                 "direction": "masterToSub",
+		//                 "symbol": "BTC",
+		//                 "amount": "0.1",
+		//                 "status": "completed",
+		//                 "createdAt": "1700000000000"
+		//             }
+		//         ],
+		//         "start": 0,
+		//         "end": 0,
+		//         "limit": 25
+		//     }
+		//
+		var items any = this.SafeList(response, "items", []any{})
+
+		ch <- this.ParseTransfers(items, currency, since, limit)
+		return nil
+
+	}()
+	return ch
+}
+
+/**
+ * @method
+ * @name bitvavo#fetchTransfer
+ * @see https://docs.bitvavo.com/docs/institutional-api/get-transfer/
+ * @description fetches a transfer
+ * @param {string} id transfer id
+ * @param {string} [code] unified currency code of the currency transferred
+ * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+ */
+func (this *BitvavoCore) FetchTransfer(id any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		code := GetArg(optionalArgs, 0, nil)
+		_ = code
+		params := GetArg(optionalArgs, 1, map[string]any{})
+		_ = params
+
+		retRes13658 := (<-this.LoadMarkets())
+		PanicOnError(retRes13658)
+		var currency any = nil
+		if IsTrue(!IsEqual(code, nil)) {
+			currency = this.Currency(code)
+		}
+		var request any = map[string]any{
+			"transferId": id,
+		}
+
+		response := (<-this.PrivateGetSubaccountsTransfersTransferId(this.Extend(request, params)))
+		PanicOnError(response)
+
+		//
+		//     {
+		//         "transferId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+		//         "clientRequestId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+		//         "subaccountId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+		//         "direction": "masterToSub",
+		//         "symbol": "BTC",
+		//         "amount": "0.1",
+		//         "status": "completed",
+		//         "createdAt": "1700000000000"
+		//     }
+		//
+		ch <- this.ParseTransfer(response, currency)
+		return nil
+
+	}()
+	return ch
+}
+func (this *BitvavoCore) ParseTransferStatus(status any) any {
+	var statuses any = map[string]any{
+		"completed": "ok",
+		"pending":   "pending",
+		"failed":    "failed",
+	}
+	return this.SafeString(statuses, status, status)
+}
+func (this *BitvavoCore) ParseTransfer(transfer any, optionalArgs ...any) any {
+	currency := GetArg(optionalArgs, 0, nil)
+	_ = currency
+	var currencyId any = this.SafeString(transfer, "symbol")
+	var code any = this.SafeCurrencyCode(currencyId, currency)
+	var subaccountId any = this.SafeString(transfer, "subaccountId")
+	var direction any = this.SafeString(transfer, "direction")
+	var fromAccount any = nil
+	var toAccount any = nil
+	if IsTrue(IsEqual(direction, "masterToSub")) {
+		fromAccount = "master"
+		toAccount = subaccountId
+	} else if IsTrue(IsEqual(direction, "subToMaster")) {
+		fromAccount = subaccountId
+		toAccount = "master"
+	}
+	var timestamp any = this.SafeInteger(transfer, "createdAt")
+	if IsTrue(IsEqual(timestamp, nil)) {
+		timestamp = this.Parse8601(this.SafeString(transfer, "createdAt"))
+	}
+	return map[string]any{
+		"info":        transfer,
+		"id":          this.SafeString(transfer, "transferId"),
+		"timestamp":   timestamp,
+		"datetime":    this.Iso8601(timestamp),
+		"currency":    code,
+		"amount":      this.SafeNumber(transfer, "amount"),
+		"fromAccount": fromAccount,
+		"toAccount":   toAccount,
+		"status":      this.ParseTransferStatus(this.SafeString(transfer, "status")),
+	}
+}
+
+/**
+ * @method
  * @name bitvavo#fetchDepositAddress
+ * @see https://docs.bitvavo.com/docs/rest-api/get-deposit-data/
  * @description fetch the deposit address for a currency associated with this account
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1316,8 +1688,8 @@ func (this *BitvavoCore) FetchDepositAddress(code any, optionalArgs ...any) <-ch
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes11528 := (<-this.LoadMarkets())
-		PanicOnError(retRes11528)
+		retRes14398 := (<-this.LoadMarkets())
+		PanicOnError(retRes14398)
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
 			"symbol": GetValue(currency, "id"),
@@ -1438,7 +1810,7 @@ func (this *BitvavoCore) CreateOrderRequest(symbol any, typeVar any, side any, a
  * @method
  * @name bitvavo#createOrder
  * @description create a trade order
- * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/post
+ * @see https://docs.bitvavo.com/docs/rest-api/create-order/
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -1468,8 +1840,8 @@ func (this *BitvavoCore) CreateOrder(symbol any, typeVar any, side any, amount a
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes12808 := (<-this.LoadMarkets())
-		PanicOnError(retRes12808)
+		retRes15678 := (<-this.LoadMarkets())
+		PanicOnError(retRes15678)
 		var market any = this.Market(symbol)
 		var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 
@@ -1571,7 +1943,7 @@ func (this *BitvavoCore) EditOrderRequest(id any, symbol any, typeVar any, side 
  * @method
  * @name bitvavo#editOrder
  * @description edit a trade order
- * @see https://docs.bitvavo.com/#tag/Orders/paths/~1order/put
+ * @see https://docs.bitvavo.com/docs/rest-api/update-order/
  * @param {string} id cancel order id
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
@@ -1593,8 +1965,8 @@ func (this *BitvavoCore) EditOrder(id any, symbol any, typeVar any, side any, op
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
-		retRes13798 := (<-this.LoadMarkets())
-		PanicOnError(retRes13798)
+		retRes16668 := (<-this.LoadMarkets())
+		PanicOnError(retRes16668)
 		var market any = this.Market(symbol)
 		var request any = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, params)
 
@@ -1638,9 +2010,8 @@ func (this *BitvavoCore) CancelOrderRequest(id any, optionalArgs ...any) any {
 /**
  * @method
  * @name bitvavo#cancelOrder
- * @see https://docs.bitvavo.com/#tag/Orders/paths/~1order/delete
  * @description cancels an open order
- * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/delete
+ * @see https://docs.bitvavo.com/docs/rest-api/cancel-order/
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1656,8 +2027,8 @@ func (this *BitvavoCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes14208 := (<-this.LoadMarkets())
-		PanicOnError(retRes14208)
+		retRes17068 := (<-this.LoadMarkets())
+		PanicOnError(retRes17068)
 		var market any = this.Market(symbol)
 		var request any = this.CancelOrderRequest(id, symbol, params)
 
@@ -1679,7 +2050,7 @@ func (this *BitvavoCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 /**
  * @method
  * @name bitvavo#cancelAllOrders
- * @see https://docs.bitvavo.com/#tag/Orders/paths/~1orders/delete
+ * @see https://docs.bitvavo.com/docs/rest-api/cancel-orders/
  * @description cancel all open orders
  * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1695,8 +2066,8 @@ func (this *BitvavoCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes14428 := (<-this.LoadMarkets())
-		PanicOnError(retRes14428)
+		retRes17288 := (<-this.LoadMarkets())
+		PanicOnError(retRes17288)
 		var request any = map[string]any{}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -1732,9 +2103,60 @@ func (this *BitvavoCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 
 /**
  * @method
+ * @name bitvavo#cancelAllOrdersAfter
+ * @description dead man's switch, cancel all orders after the given timeout
+ * @see https://docs.bitvavo.com/docs/rest-api/cancel-orders-after/
+ * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.codGroupId] your identifier for a group of orders, default is 1
+ * @returns {object} the api result
+ */
+func (this *BitvavoCore) CancelAllOrdersAfter(timeout any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		params := GetArg(optionalArgs, 0, map[string]any{})
+		_ = params
+		if IsTrue(IsGreaterThan(timeout, 300000)) {
+			panic(BadRequest(Add(this.Id, " cancelAllOrdersAfter() timeout should be less than or equal to 300000 milliseconds")))
+		}
+		if IsTrue(IsTrue((IsGreaterThan(timeout, 0))) && IsTrue((IsLessThan(timeout, 10000)))) {
+			panic(BadRequest(Add(this.Id, " cancelAllOrdersAfter() timeout should be 0 or greater than or equal to 10000 milliseconds")))
+		}
+
+		retRes17708 := (<-this.LoadMarkets())
+		PanicOnError(retRes17708)
+		var codGroupId any = nil
+		codGroupIdparamsVariable := this.HandleOptionAndParams(params, "cancelAllOrdersAfter", "codGroupId", 1)
+		codGroupId = GetValue(codGroupIdparamsVariable, 0)
+		params = GetValue(codGroupIdparamsVariable, 1)
+		var request any = map[string]any{
+			"codGroupId":         codGroupId,
+			"expiryAfterSeconds": Ternary(IsTrue((IsGreaterThan(timeout, 0))), this.ParseToInt(Divide(timeout, 1000)), 0),
+		}
+
+		response := (<-this.PrivatePostCancelOrdersAfter(this.Extend(request, params)))
+		PanicOnError(response)
+
+		//
+		//     {
+		//         "codGroupId": 1,
+		//         "timeOfExpirySeconds": 17202139111
+		//     }
+		//
+		ch <- response
+		return nil
+
+	}()
+	return ch
+}
+
+/**
+ * @method
  * @name bitvavo#fetchOrder
  * @description fetches information on an order made by the user
- * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/get
+ * @see https://docs.bitvavo.com/docs/rest-api/get-order/
  * @param {string} id the order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1753,8 +2175,8 @@ func (this *BitvavoCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " fetchOrder() requires a symbol argument")))
 		}
 
-		retRes14818 := (<-this.LoadMarkets())
-		PanicOnError(retRes14818)
+		retRes18018 := (<-this.LoadMarkets())
+		PanicOnError(retRes18018)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"market": GetValue(market, "id"),
@@ -1835,7 +2257,7 @@ func (this *BitvavoCore) FetchOrdersRequest(optionalArgs ...any) any {
 /**
  * @method
  * @name bitvavo#fetchOrders
- * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1orders/get
+ * @see https://docs.bitvavo.com/docs/rest-api/get-orders/
  * @description fetches information on multiple orders made by the user
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
@@ -1862,17 +2284,17 @@ func (this *BitvavoCore) FetchOrders(optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " fetchOrders() requires a symbol argument")))
 		}
 
-		retRes15658 := (<-this.LoadMarkets())
-		PanicOnError(retRes15658)
+		retRes18858 := (<-this.LoadMarkets())
+		PanicOnError(retRes18858)
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes156919 := (<-this.FetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, params))
-			PanicOnError(retRes156919)
-			ch <- retRes156919
+			retRes188919 := (<-this.FetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, params))
+			PanicOnError(retRes188919)
+			ch <- retRes188919
 			return nil
 		}
 		var market any = this.Market(symbol)
@@ -1927,7 +2349,7 @@ func (this *BitvavoCore) FetchOrders(optionalArgs ...any) <-chan any {
 /**
  * @method
  * @name bitvavo#fetchOpenOrders
- * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1ordersOpen/get
+ * @see https://docs.bitvavo.com/docs/rest-api/get-open-orders/
  * @description fetch all unfilled currently open orders
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch open orders for
@@ -1949,8 +2371,8 @@ func (this *BitvavoCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes16258 := (<-this.LoadMarkets())
-		PanicOnError(retRes16258)
+		retRes19458 := (<-this.LoadMarkets())
+		PanicOnError(retRes19458)
 		var request any = map[string]any{}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2153,7 +2575,7 @@ func (this *BitvavoCore) FetchMyTradesRequest(optionalArgs ...any) any {
 /**
  * @method
  * @name bitvavo#fetchMyTrades
- * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1trades/get
+ * @see https://docs.bitvavo.com/docs/rest-api/get-trade-history/
  * @description fetch all trades made by the user
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
@@ -2180,17 +2602,17 @@ func (this *BitvavoCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " fetchMyTrades() requires a symbol argument")))
 		}
 
-		retRes18338 := (<-this.LoadMarkets())
-		PanicOnError(retRes18338)
+		retRes21538 := (<-this.LoadMarkets())
+		PanicOnError(retRes21538)
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes183719 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
-			PanicOnError(retRes183719)
-			ch <- retRes183719
+			retRes215719 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
+			PanicOnError(retRes215719)
+			ch <- retRes215719
 			return nil
 		}
 		var market any = this.Market(symbol)
@@ -2222,6 +2644,140 @@ func (this *BitvavoCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 	}()
 	return ch
 }
+
+/**
+ * @method
+ * @name bitvavo#fetchLedger
+ * @see https://docs.bitvavo.com/docs/rest-api/get-transaction-history/
+ * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+ * @param {string} [code] unified currency code
+ * @param {int} [since] timestamp in ms of the earliest ledger entry
+ * @param {int} [limit] max number of ledger entries to return
+ * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @param {int} [params.until] timestamp in ms of the latest ledger entry
+ * @param {int} [params.page] the page number for the transaction history
+ * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/?id=ledger}
+ */
+func (this *BitvavoCore) FetchLedger(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		code := GetArg(optionalArgs, 0, nil)
+		_ = code
+		since := GetArg(optionalArgs, 1, nil)
+		_ = since
+		limit := GetArg(optionalArgs, 2, nil)
+		_ = limit
+		params := GetArg(optionalArgs, 3, map[string]any{})
+		_ = params
+
+		retRes21968 := (<-this.LoadMarkets())
+		PanicOnError(retRes21968)
+		var request any = map[string]any{}
+		var currency any = nil
+		if IsTrue(!IsEqual(code, nil)) {
+			currency = this.Currency(code)
+		}
+		if IsTrue(!IsEqual(since, nil)) {
+			AddElementToObject(request, "fromDate", since)
+		}
+		if IsTrue(!IsEqual(limit, nil)) {
+			AddElementToObject(request, "maxItems", mathMin(limit, 100))
+		}
+		requestparamsVariable := this.HandleUntilOption("toDate", request, params)
+		request = GetValue(requestparamsVariable, 0)
+		params = GetValue(requestparamsVariable, 1)
+
+		response := (<-this.PrivateGetAccountHistory(this.Extend(request, params)))
+		PanicOnError(response)
+		//
+		//     {
+		//         "items": [
+		//             {
+		//                 "transactionId": "5f5e7b3b-4f5b-4b2d-8b2f-4f2b5b3f5e5f",
+		//                 "executedAt": "2021-01-01T00:00:00.000Z",
+		//                 "type": "sell",
+		//                 "priceCurrency": "EUR",
+		//                 "priceAmount": "1000.00",
+		//                 "sentCurrency": "EUR",
+		//                 "sentAmount": "0.1",
+		//                 "receivedCurrency": "BTC",
+		//                 "receivedAmount": "0.0001",
+		//                 "feesCurrency": "EUR",
+		//                 "feesAmount": "0.01",
+		//                 "address": "string"
+		//             }
+		//         ],
+		//         "currentPage": 1,
+		//         "totalPages": 1,
+		//         "maxItems": 100
+		//     }
+		//
+		var items any = this.SafeList(response, "items", []any{})
+
+		ch <- this.ParseLedger(items, currency, since, limit)
+		return nil
+
+	}()
+	return ch
+}
+func (this *BitvavoCore) ParseLedgerEntryType(typeVar any) any {
+	var types any = map[string]any{
+		"buy":                        "trade",
+		"sell":                       "trade",
+		"deposit":                    "transaction",
+		"withdrawal":                 "transaction",
+		"withdrawal_cancelled":       "transaction",
+		"internal_transfer":          "transaction",
+		"external_transferred_funds": "transaction",
+	}
+	return this.SafeString(types, typeVar, typeVar)
+}
+func (this *BitvavoCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
+	currency := GetArg(optionalArgs, 0, nil)
+	_ = currency
+	var rawType any = this.SafeString(item, "type")
+	var typeVar any = this.ParseLedgerEntryType(rawType)
+	var currencyId any = this.SafeString(item, "receivedCurrency")
+	var amount any = this.SafeString(item, "receivedAmount")
+	var direction any = "in"
+	if IsTrue(IsEqual(amount, nil)) {
+		currencyId = this.SafeString(item, "sentCurrency")
+		amount = this.SafeString(item, "sentAmount")
+		direction = "out"
+	}
+	var code any = this.SafeCurrencyCode(currencyId)
+	currency = this.SafeCurrency(currencyId, currency)
+	var timestamp any = this.Parse8601(this.SafeString(item, "executedAt"))
+	var fee any = nil
+	var feeCost any = this.SafeString(item, "feesAmount")
+	if IsTrue(!IsEqual(feeCost, nil)) {
+		var feeCurrencyId any = this.SafeString(item, "feesCurrency")
+		var feeCurrencyCode any = this.SafeCurrencyCode(feeCurrencyId)
+		fee = map[string]any{
+			"cost":     feeCost,
+			"currency": feeCurrencyCode,
+		}
+	}
+	return this.SafeLedgerEntry(map[string]any{
+		"info":             item,
+		"id":               this.SafeString(item, "transactionId"),
+		"direction":        direction,
+		"account":          nil,
+		"referenceId":      this.SafeString(item, "transactionId"),
+		"referenceAccount": this.SafeString(item, "address"),
+		"type":             typeVar,
+		"currency":         code,
+		"amount":           amount,
+		"timestamp":        timestamp,
+		"datetime":         this.Iso8601(timestamp),
+		"before":           nil,
+		"after":            nil,
+		"status":           "ok",
+		"fee":              fee,
+	}, currency)
+}
 func (this *BitvavoCore) WithdrawRequest(code any, amount any, address any, optionalArgs ...any) any {
 	tag := GetArg(optionalArgs, 0, nil)
 	_ = tag
@@ -2242,6 +2798,7 @@ func (this *BitvavoCore) WithdrawRequest(code any, amount any, address any, opti
 /**
  * @method
  * @name bitvavo#withdraw
+ * @see https://docs.bitvavo.com/docs/rest-api/withdraw-assets/
  * @description make a withdrawal
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
@@ -2264,8 +2821,8 @@ func (this *BitvavoCore) Withdraw(code any, amount any, address any, optionalArg
 		params = GetValue(tagparamsVariable, 1)
 		this.CheckAddress(address)
 
-		retRes18918 := (<-this.LoadMarkets())
-		PanicOnError(retRes18918)
+		retRes23238 := (<-this.LoadMarkets())
+		PanicOnError(retRes23238)
 		var currency any = this.Currency(code)
 		var request any = this.WithdrawRequest(code, amount, address, tag, params)
 
@@ -2312,7 +2869,7 @@ func (this *BitvavoCore) FetchWithdrawalsRequest(optionalArgs ...any) any {
 /**
  * @method
  * @name bitvavo#fetchWithdrawals
- * @see https://docs.bitvavo.com/#tag/Account/paths/~1withdrawalHistory/get
+ * @see https://docs.bitvavo.com/docs/rest-api/get-withdrawal-history/
  * @description fetch all withdrawals made from an account
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
@@ -2334,8 +2891,8 @@ func (this *BitvavoCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes19388 := (<-this.LoadMarkets())
-		PanicOnError(retRes19388)
+		retRes23708 := (<-this.LoadMarkets())
+		PanicOnError(retRes23708)
 		var request any = this.FetchWithdrawalsRequest(code, since, limit, params)
 		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
@@ -2394,7 +2951,7 @@ func (this *BitvavoCore) FetchDepositsRequest(optionalArgs ...any) any {
 /**
  * @method
  * @name bitvavo#fetchDeposits
- * @see https://docs.bitvavo.com/#tag/Account/paths/~1depositHistory/get
+ * @see https://docs.bitvavo.com/docs/rest-api/get-deposit-history/
  * @description fetch all deposits made to an account
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
@@ -2416,8 +2973,8 @@ func (this *BitvavoCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes19958 := (<-this.LoadMarkets())
-		PanicOnError(retRes19958)
+		retRes24278 := (<-this.LoadMarkets())
+		PanicOnError(retRes24278)
 		var request any = this.FetchDepositsRequest(code, since, limit, params)
 		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
@@ -2593,7 +3150,7 @@ func (this *BitvavoCore) ParseDepositWithdrawFee(fee any, optionalArgs ...any) a
  * @method
  * @name bitvavo#fetchDepositWithdrawFees
  * @description fetch deposit and withdraw fees
- * @see https://docs.bitvavo.com/#tag/General/paths/~1assets/get
+ * @see https://docs.bitvavo.com/docs/rest-api/get-asset-data/
  * @param {string[]|undefined} codes list of unified currency codes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
@@ -2608,8 +3165,8 @@ func (this *BitvavoCore) FetchDepositWithdrawFees(optionalArgs ...any) <-chan an
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes21678 := (<-this.LoadMarkets())
-		PanicOnError(retRes21678)
+		retRes25998 := (<-this.LoadMarkets())
+		PanicOnError(retRes25998)
 
 		response := (<-this.PublicGetAssets(params))
 		PanicOnError(response)

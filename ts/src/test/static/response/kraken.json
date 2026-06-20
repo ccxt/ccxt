@@ -5,7 +5,7 @@
     "methods": {
         "fetchCurrencies": [
             {
-                "description": "fetchCurrencies",
+                "description": "default",
                 "method": "fetchCurrencies",
                 "input": [],
                 "httpResponse": {

@@ -25,7 +25,7 @@ const isEmpty = (object) => {
     if (Array.isArray(object)) {
         return object.length < 1;
     }
-    if (type.isDictionary(object)) {
+    if (type.isDict(object)) {
         return Object.keys(object).length < 1;
     }
     return false;

@@ -2270,7 +2270,7 @@ public partial class bullish : Exchange
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         if (isTrue(!isEqual(networkCode, null)))
         {
-            ((IDictionary<string,object>)request)["network"] = this.networkCodeToId(networkCode);
+            ((IDictionary<string,object>)request)["network"] = this.networkCodeToId(networkCode, code);
         } else
         {
             throw new ArgumentsRequired ((string)add(this.id, " withdraw() requires a network parameter")) ;
@@ -2347,7 +2347,7 @@ public partial class bullish : Exchange
             { "txid", txid },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "network", this.networkIdToCode(network) },
+            { "network", this.networkIdToCode(network, code) },
             { "addressFrom", sourceAddress },
             { "address", address },
             { "addressTo", address },
@@ -2571,7 +2571,7 @@ public partial class bullish : Exchange
                 {
                     object entry = this.safeDict(safeResponse, i, new Dictionary<string, object>() {});
                     object networkId = this.safeString(entry, "network");
-                    object networkCode = this.networkIdToCode(networkId);
+                    object networkCode = this.networkIdToCode(networkId, code);
                     if (isTrue(isEqual(network, networkCode)))
                     {
                         data = entry;
@@ -2591,10 +2591,11 @@ public partial class bullish : Exchange
     {
         object id = this.safeString(depositAddress, "symbol");
         object network = this.safeString(depositAddress, "network");
+        object code = this.safeCurrencyCode(id, currency);
         return new Dictionary<string, object>() {
             { "info", depositAddress },
-            { "currency", this.safeCurrencyCode(id, currency) },
-            { "network", this.networkIdToCode(network) },
+            { "currency", code },
+            { "network", this.networkIdToCode(network, code) },
             { "address", this.safeString(depositAddress, "address") },
             { "tag", null },
         };

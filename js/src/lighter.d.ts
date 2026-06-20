@@ -110,6 +110,7 @@ export default class lighter extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
+    parseCurrency(rawCurrency: Dict): Currency;
     /**
      * @method
      * @name lighter#fetchOrderBook
@@ -440,7 +441,7 @@ export default class lighter extends Exchange {
     setMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     parseMarginModification(data: Dict, market?: Market): MarginModification;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
-        url: any;
+        url: string;
         method: string;
         body: any;
         headers: any;

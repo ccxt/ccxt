@@ -1465,7 +1465,6 @@ public class AsterCore extends AsterApi
         Object last = this.safeString(ticker, "lastPrice");
         Object open = this.safeString(ticker, "openPrice");
         Object percentage = this.safeString(ticker, "priceChangePercent");
-        percentage = Precise.stringMul(percentage, "100");
         Object quoteVolume = this.safeString(ticker, "quoteVolume");
         Object baseVolume = this.safeString(ticker, "volume");
         Object high = this.safeString(ticker, "highPrice");
@@ -1482,7 +1481,6 @@ public class AsterCore extends AsterApi
         Object marketId = this.safeString(ticker, "symbol");
         market = this.safeMarket(marketId, market, null, marketType);
         final Object finalMarket = market;
-        final Object finalPercentage = percentage;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "timestamp", timestamp );
@@ -1499,7 +1497,7 @@ public class AsterCore extends AsterApi
             put( "last", last );
             put( "previousClose", null );
             put( "change", null );
-            put( "percentage", finalPercentage );
+            put( "percentage", percentage );
             put( "average", null );
             put( "baseVolume", baseVolume );
             put( "quoteVolume", quoteVolume );
@@ -2332,8 +2330,10 @@ public class AsterCore extends AsterApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object info = order;
+        Object positionSide = this.safeString(order, "positionSide");
+        Object defaultType = ((Helpers.isTrue((!Helpers.isEqual(positionSide, null))))) ? "swap" : "spot";
         Object marketId = this.safeString(order, "symbol");
-        market = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market, null, defaultType);
         Object side = this.safeStringLower(order, "side");
         Object timestamp = this.safeInteger(order, "time");
         Object statusId = this.safeStringUpper(order, "status");
@@ -3424,7 +3424,7 @@ public class AsterCore extends AsterApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object marketId = this.safeString(marginMode, "symbol");
-        market = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market, null, "swap");
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
             put( "info", marginMode );
@@ -4754,7 +4754,8 @@ public class AsterCore extends AsterApi
             // Sign using EIP-712 typed data per the AsterSignTransaction spec
             Object zeroAddress = this.safeString(this.options, "zeroAddress", "0x0000000000000000000000000000000000000000");
             Object v3ChainId = this.safeInteger(this.options, "v3ChainId", 1666);
-            Object signerAddress = this.safeString(this.options, "signerAddress");
+            Object walletAddress = this.ethGetAddressFromPrivateKey(this.privateKey);
+            Object signerAddress = this.safeString(this.options, "signerAddress", walletAddress); // default to user's wallet
             if (Helpers.isTrue(Helpers.isEqual(signerAddress, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " requires signerAddress in options when use v3 api")) ;
@@ -4776,7 +4777,7 @@ public class AsterCore extends AsterApi
             final Object finalSignerAddress = signerAddress;
             Object finalParams = this.extend(new java.util.HashMap<String, Object>() {{
                 put( "nonce", String.valueOf(nonce) );
-                put( "user", AsterCore.this.walletAddress );
+                put( "user", walletAddress );
                 put( "signer", finalSignerAddress );
             }}, parameters);
             Object paramString = null;

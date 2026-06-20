@@ -229,9 +229,6 @@ func CreateExchange(exchangeId string, options map[string]any) IExchange {
 	case "apex":
 		itf := NewApex(options)
 		return itf
-	case "arkham":
-		itf := NewArkham(options)
-		return itf
 	case "ascendex":
 		itf := NewAscendex(options)
 		return itf
@@ -343,9 +340,6 @@ func CreateExchange(exchangeId string, options map[string]any) IExchange {
 	case "coinbase":
 		itf := NewCoinbase(options)
 		return itf
-	case "coinbaseadvanced":
-		itf := NewCoinbaseadvanced(options)
-		return itf
 	case "coinbaseexchange":
 		itf := NewCoinbaseexchange(options)
 		return itf
@@ -400,6 +394,9 @@ func CreateExchange(exchangeId string, options map[string]any) IExchange {
 	case "exmo":
 		itf := NewExmo(options)
 		return itf
+	case "extended":
+		itf := NewExtended(options)
+		return itf
 	case "fmfwio":
 		itf := NewFmfwio(options)
 		return itf
@@ -408,9 +405,6 @@ func CreateExchange(exchangeId string, options map[string]any) IExchange {
 		return itf
 	case "gate":
 		itf := NewGate(options)
-		return itf
-	case "gateio":
-		itf := NewGateio(options)
 		return itf
 	case "gemini":
 		itf := NewGemini(options)
@@ -432,9 +426,6 @@ func CreateExchange(exchangeId string, options map[string]any) IExchange {
 		return itf
 	case "htx":
 		itf := NewHtx(options)
-		return itf
-	case "huobi":
-		itf := NewHuobi(options)
 		return itf
 	case "hyperliquid":
 		itf := NewHyperliquid(options)
@@ -496,9 +487,6 @@ func CreateExchange(exchangeId string, options map[string]any) IExchange {
 	case "onetrading":
 		itf := NewOnetrading(options)
 		return itf
-	case "oxfun":
-		itf := NewOxfun(options)
-		return itf
 	case "p2b":
 		itf := NewP2b(options)
 		return itf
@@ -526,9 +514,6 @@ func CreateExchange(exchangeId string, options map[string]any) IExchange {
 	case "upbit":
 		itf := NewUpbit(options)
 		return itf
-	case "wavesexchange":
-		itf := NewWavesexchange(options)
-		return itf
 	case "weex":
 		itf := NewWeex(options)
 		return itf
@@ -543,9 +528,6 @@ func CreateExchange(exchangeId string, options map[string]any) IExchange {
 		return itf
 	case "xt":
 		itf := NewXt(options)
-		return itf
-	case "yobit":
-		itf := NewYobit(options)
 		return itf
 	case "zaif":
 		itf := NewZaif(options)

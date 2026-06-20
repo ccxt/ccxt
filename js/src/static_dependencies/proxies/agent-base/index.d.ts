@@ -1,7 +1,3 @@
-/// <reference types="node" />
-/// <reference types="node" />
-/// <reference types="node" />
-/// <reference types="node" />
 import * as net from 'net';
 import * as tls from 'tls';
 import * as http from 'http';
@@ -16,7 +12,7 @@ interface HttpsConnectOpts extends tls.ConnectionOptions {
     protocol?: string;
     port: number;
 }
-export declare type AgentConnectOpts = HttpConnectOpts | HttpsConnectOpts;
+export type AgentConnectOpts = HttpConnectOpts | HttpsConnectOpts;
 declare const INTERNAL: unique symbol;
 export declare abstract class Agent extends http.Agent {
     private [INTERNAL];

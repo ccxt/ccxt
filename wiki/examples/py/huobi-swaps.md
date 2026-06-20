@@ -1,8 +1,5 @@
-- [Huobi Swaps](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 from random import randint
@@ -88,5 +85,5 @@ try:
     cancelOrder = exchange.cancel_order(order['id'], symbol)
 except Exception as e:
     print(type(e).__name__, str(e))
- 
+
 ```

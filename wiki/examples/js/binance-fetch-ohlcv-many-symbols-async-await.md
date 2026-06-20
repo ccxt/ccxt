@@ -1,8 +1,5 @@
-- [Binance Fetch Ohlcv Many Symbols Async Await](./examples/js/)
-
-
- ```javascript
- 'use strict';
+```javascript
+'use strict';
 
 const ccxt = require ('../../js/ccxt.js')
 
@@ -35,5 +32,5 @@ async function main () {
 }
 
 
-main () 
+main ()
 ```

@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var bitfinex$1 = require('../bitfinex.js');
 var Precise = require('../base/Precise.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
-var sha512 = require('../static_dependencies/noble-hashes/sha512.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -627,7 +627,7 @@ class bitfinex extends bitfinex$1["default"] {
         const prec = this.safeString(options, 'prec', 'P0');
         const freq = this.safeString(options, 'freq', 'F0');
         const request = {
-            'prec': prec,
+            'prec': prec, // string, level of price aggregation, 'P0', 'P1', 'P2', 'P3', 'P4', default P0
             'freq': freq, // string, frequency of updates 'F0' = realtime, 'F1' = 2 seconds, default is 'F0'
         };
         if (limit !== undefined) {
@@ -999,7 +999,7 @@ class bitfinex extends bitfinex$1["default"] {
         if (authenticated === undefined) {
             const nonce = this.milliseconds();
             const payload = 'AUTH' + nonce.toString();
-            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512.sha384, 'hex');
+            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha384, 'hex');
             const event = 'auth';
             const request = {
                 'apiKey': this.apiKey,

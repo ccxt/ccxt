@@ -1148,67 +1148,66 @@ public partial class hashkey : Exchange
         //         ]
         //     }
         //
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(coins)); postFixIncrement(ref i))
+        return this.parseCurrencies(coins);
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
+        object currencyId = this.safeString(rawCurrency, "coinId");
+        object code = this.safeCurrencyCode(currencyId);
+        object networks = this.safeList(rawCurrency, "chainTypes");
+        object parsedNetworks = new Dictionary<string, object>() {};
+        for (object j = 0; isLessThan(j, getArrayLength(networks)); postFixIncrement(ref j))
         {
-            object currecy = getValue(coins, i);
-            object currencyId = this.safeString(currecy, "coinId");
-            object code = this.safeCurrencyCode(currencyId);
-            object networks = this.safeList(currecy, "chainTypes");
-            object parsedNetworks = new Dictionary<string, object>() {};
-            for (object j = 0; isLessThan(j, getArrayLength(networks)); postFixIncrement(ref j))
-            {
-                object network = getValue(networks, j);
-                object networkId = this.safeString(network, "chainType");
-                object networkCode = this.networkCodeToId(networkId);
-                ((IDictionary<string,object>)parsedNetworks)[(string)networkCode] = new Dictionary<string, object>() {
-                    { "id", networkId },
-                    { "network", networkCode },
-                    { "limits", new Dictionary<string, object>() {
-                        { "withdraw", new Dictionary<string, object>() {
-                            { "min", this.safeNumber(network, "minWithdrawQuantity") },
-                            { "max", this.parseNumber(this.omitZero(this.safeString(network, "maxWithdrawQuantity"))) },
-                        } },
-                        { "deposit", new Dictionary<string, object>() {
-                            { "min", this.safeNumber(network, "minDepositQuantity") },
-                            { "max", null },
-                        } },
-                    } },
-                    { "active", null },
-                    { "deposit", this.safeBool(network, "allowDeposit") },
-                    { "withdraw", this.safeBool(network, "allowWithdraw") },
-                    { "fee", this.safeNumber(network, "withdrawFee") },
-                    { "precision", null },
-                    { "info", network },
-                };
-            }
-            object rawType = this.safeString(currecy, "tokenType");
-            object type = ((bool) isTrue((isEqual(rawType, "REAL_MONEY")))) ? "fiat" : "crypto";
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "id", currencyId },
-                { "code", code },
-                { "precision", null },
-                { "type", type },
-                { "name", this.safeString(currecy, "coinFullName") },
-                { "active", null },
-                { "deposit", this.safeBool(currecy, "allowDeposit") },
-                { "withdraw", this.safeBool(currecy, "allowWithdraw") },
-                { "fee", null },
+            object network = getValue(networks, j);
+            object networkId = this.safeString(network, "chainType");
+            object networkCode = this.networkCodeToId(networkId, code);
+            ((IDictionary<string,object>)parsedNetworks)[(string)networkCode] = new Dictionary<string, object>() {
+                { "id", networkId },
+                { "network", networkCode },
                 { "limits", new Dictionary<string, object>() {
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
                     { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
+                        { "min", this.safeNumber(network, "minWithdrawQuantity") },
+                        { "max", this.parseNumber(this.omitZero(this.safeString(network, "maxWithdrawQuantity"))) },
+                    } },
+                    { "deposit", new Dictionary<string, object>() {
+                        { "min", this.safeNumber(network, "minDepositQuantity") },
                         { "max", null },
                     } },
                 } },
-                { "networks", parsedNetworks },
-                { "info", currecy },
-            });
+                { "active", null },
+                { "deposit", this.safeBool(network, "allowDeposit") },
+                { "withdraw", this.safeBool(network, "allowWithdraw") },
+                { "fee", this.safeNumber(network, "withdrawFee") },
+                { "precision", null },
+                { "info", network },
+            };
         }
-        return result;
+        object rawType = this.safeString(rawCurrency, "tokenType");
+        object type = ((bool) isTrue((isEqual(rawType, "REAL_MONEY")))) ? "fiat" : "crypto";
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "id", currencyId },
+            { "code", code },
+            { "precision", null },
+            { "type", type },
+            { "name", this.safeString(rawCurrency, "coinFullName") },
+            { "active", null },
+            { "deposit", this.safeBool(rawCurrency, "allowDeposit") },
+            { "withdraw", this.safeBool(rawCurrency, "allowWithdraw") },
+            { "fee", null },
+            { "limits", new Dictionary<string, object>() {
+                { "deposit", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+            { "networks", parsedNetworks },
+            { "info", rawCurrency },
+        });
     }
 
     /**
@@ -2091,7 +2090,7 @@ public partial class hashkey : Exchange
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         if (isTrue(!isEqual(networkCode, null)))
         {
-            ((IDictionary<string,object>)request)["chainType"] = this.networkCodeToId(networkCode);
+            ((IDictionary<string,object>)request)["chainType"] = this.networkCodeToId(networkCode, getValue(currency, "code"));
         }
         object response = await this.privatePostApiV1AccountWithdraw(this.extend(request, parameters));
         //

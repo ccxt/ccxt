@@ -1114,7 +1114,7 @@ public partial class bybit : ccxt.bybit
 
     public override void handleDelta(object bookside, object delta)
     {
-        object bidAsk = this.parseBidAsk(delta, 0, 1);
+        object bidAsk = this.parseOrderBookBidAsk(delta, 0, 1);
         (bookside as IOrderBookSide).storeArray(bidAsk);
     }
 
@@ -2699,11 +2699,20 @@ public partial class bybit : ccxt.bybit
             DynamicInvoker.InvokeMethod(exacMethod, new object[] { client, message});
             return;
         }
+        // 'order' is a substring of 'orderbook', so an orderbook topic like
+        // 'orderbook.50.BTCUSDT' could be wrongly captured by the 'order' key in a
+        // first-match loop (in Go map iteration order is randomized). Check the
+        // orderbook prefix explicitly, then fall back to a simple first-match.
+        if (isTrue(isGreaterThanOrEqual(getIndexOf(topic, "orderbook"), 0)))
+        {
+            this.handleOrderBook(client as WebSocketClient, message);
+            return;
+        }
         object keys = new List<object>(((IDictionary<string,object>)methods).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
-            if (isTrue(isGreaterThanOrEqual(getIndexOf(topic, getValue(keys, i)), 0)))
+            if (isTrue(isGreaterThanOrEqual(getIndexOf(topic, key), 0)))
             {
                 object method = getValue(methods, key);
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});

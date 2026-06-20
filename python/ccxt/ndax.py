@@ -480,41 +480,40 @@ class ndax(Exchange, ImplicitAPI):
         #        },
         #        ...
         #
-        result: dict = {}
-        for i in range(0, len(response)):
-            currency = response[i]
-            id = self.safe_string(currency, 'ProductId')
-            code = self.safe_currency_code(self.safe_string(currency, 'Product'))
-            ProductType = self.safe_string(currency, 'ProductType')
-            type = 'fiat' if (ProductType == 'NationalCurrency') else 'crypto'
-            if ProductType == 'Unknown':
-                # such currency is just a blanket entry
-                type = 'other'
-            result[code] = self.safe_currency_structure({
-                'id': id,
-                'name': self.safe_string(currency, 'ProductFullName'),
-                'code': code,
-                'type': type,
-                'precision': self.safe_number(currency, 'TickSize'),
-                'info': currency,
-                'active': not self.safe_bool(currency, 'IsDisabled'),
-                'deposit': self.safe_bool(currency, 'DepositEnabled'),
-                'withdraw': self.safe_bool(currency, 'WithdrawEnabled'),
-                'fee': None,
-                'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
-                    },
+        return self.parse_currencies(response)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        id = self.safe_string(rawCurrency, 'ProductId')
+        code = self.safe_currency_code(self.safe_string(rawCurrency, 'Product'))
+        ProductType = self.safe_string(rawCurrency, 'ProductType')
+        type = 'fiat' if (ProductType == 'NationalCurrency') else 'crypto'
+        if ProductType == 'Unknown':
+            # such currency is just a blanket entry
+            type = 'other'
+        return self.safe_currency_structure({
+            'id': id,
+            'name': self.safe_string(rawCurrency, 'ProductFullName'),
+            'code': code,
+            'type': type,
+            'precision': self.safe_number(rawCurrency, 'TickSize'),
+            'info': rawCurrency,
+            'active': not self.safe_bool(rawCurrency, 'IsDisabled'),
+            'deposit': self.safe_bool(rawCurrency, 'DepositEnabled'),
+            'withdraw': self.safe_bool(rawCurrency, 'WithdrawEnabled'),
+            'fee': None,
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
                 },
-                'networks': {},
-                'margin': self.safe_bool(currency, 'MarginEnabled'),
-            })
-        return result
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'networks': {},
+            'margin': self.safe_bool(rawCurrency, 'MarginEnabled'),
+        })
 
     def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -639,7 +638,7 @@ class ndax(Exchange, ImplicitAPI):
         }
 
     def parse_order_book(self, orderbook, symbol, timestamp=None, bidsKey='bids', asksKey='asks', priceKey: IndexType = 6, amountKey: IndexType = 8, countOrIdKey: IndexType = 2):
-        nonce = None
+        nonce: Int = None
         result: dict = {
             'symbol': symbol,
             'bids': [],
@@ -660,7 +659,7 @@ class ndax(Exchange, ImplicitAPI):
             else:
                 newNonce = self.safe_integer(level, 0)
                 nonce = max(nonce, newNonce)
-            bidask = self.parse_bid_ask(level, priceKey, amountKey)
+            bidask = self.parse_order_book_bid_ask(level, priceKey, amountKey)
             levelSide = self.safe_integer(level, 9)
             side = asksKey if levelSide else bidsKey
             resultSide = result[side]
@@ -1008,17 +1007,17 @@ class ndax(Exchange, ImplicitAPI):
         #         "OMSId":1
         #     }
         #
-        priceString = None
-        amountString = None
-        costString = None
-        timestamp = None
-        id = None
-        marketId = None
-        side = None
-        orderId = None
-        takerOrMaker = None
-        fee = None
-        type = None
+        priceString: Str = None
+        amountString: Str = None
+        costString: Str = None
+        timestamp: Int = None
+        id: Str = None
+        marketId: Str = None
+        side: Str = None
+        orderId: Str = None
+        takerOrMaker: Str = None
+        fee: dict = None
+        type: Str = None
         if isinstance(trade, list):
             priceString = self.safe_string(trade, 3)
             amountString = self.safe_string(trade, 2)
@@ -1236,15 +1235,15 @@ class ndax(Exchange, ImplicitAPI):
         currency = self.safe_currency(currencyId, currency)
         credit = self.safe_string(item, 'CR')
         debit = self.safe_string(item, 'DR')
-        amount = None
-        direction = None
+        amount: Str = None
+        direction: Str = None
         if Precise.string_lt(credit, '0'):
             amount = credit
             direction = 'in'
         elif Precise.string_lt(debit, '0'):
             amount = debit
             direction = 'out'
-        before = None
+        before: Str = None
         after = self.safe_string(item, 'Balance')
         if direction == 'out':
             before = Precise.string_add(after, amount)
@@ -1565,7 +1564,7 @@ class ndax(Exchange, ImplicitAPI):
             # 'StartIndex': 0  # from the most recent trade 0 and moving backwards in time
             # 'ExecutionId': 123,  # The ID of the individual buy or sell execution. If not specified, returns all.
         }
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['InstrumentId'] = market['id']
@@ -1675,7 +1674,7 @@ class ndax(Exchange, ImplicitAPI):
         # defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', int(self.accounts[0]['id']))
         # accountId = self.safe_integer_2(params, 'accountId', 'AccountId', defaultAccountId)
         # params = self.omit(params, ['accountId', 'AccountId'])
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
         request: dict = {
@@ -1713,7 +1712,7 @@ class ndax(Exchange, ImplicitAPI):
         defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', int(self.accounts[0]['id']))
         accountId = self.safe_integer_2(params, 'accountId', 'AccountId', defaultAccountId)
         params = self.omit(params, ['accountId', 'AccountId'])
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
         request: dict = {
@@ -1804,7 +1803,7 @@ class ndax(Exchange, ImplicitAPI):
             # 'Depth': limit,
             # 'StartIndex': 0,
         }
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['InstrumentId'] = market['id']
@@ -1882,7 +1881,7 @@ class ndax(Exchange, ImplicitAPI):
         defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', int(self.accounts[0]['id']))
         accountId = self.safe_integer_2(params, 'accountId', 'AccountId', defaultAccountId)
         params = self.omit(params, ['accountId', 'AccountId'])
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
         request: dict = {
@@ -1960,7 +1959,7 @@ class ndax(Exchange, ImplicitAPI):
         # defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', int(self.accounts[0]['id']))
         # accountId = self.safe_integer_2(params, 'accountId', 'AccountId', defaultAccountId)
         # params = self.omit(params, ['accountId', 'AccountId'])
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
         request: dict = {
@@ -2080,7 +2079,7 @@ class ndax(Exchange, ImplicitAPI):
         parts = lastString.split('?memo=')
         address = self.safe_string(parts, 0)
         tag = self.safe_string(parts, 1)
-        code = None
+        code: Str = None
         if currency is not None:
             code = currency['code']
         self.check_address(address)
@@ -2313,10 +2312,10 @@ class ndax(Exchange, ImplicitAPI):
         #         "NotionalProductId": 0
         #     }
         #
-        id = None
+        id: Str = None
         currencyId = self.safe_string(transaction, 'ProductId')
         code = self.safe_currency_code(currencyId, currency)
-        type = None
+        type: Str = None
         if 'DepositId' in transaction:
             id = self.safe_string(transaction, 'DepositId')
             type = 'deposit'
@@ -2331,7 +2330,7 @@ class ndax(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(templateForm, 'TimeSubmitted')
         feeCost = self.safe_number(transaction, 'FeeAmount')
         transactionStatus = self.safe_string(transaction, 'TicketStatus')
-        fee = None
+        fee: dict = None
         if feeCost is not None:
             fee = {'currency': code, 'cost': feeCost}
         return {

@@ -146,7 +146,7 @@ class lighter extends Exchange {
             ),
             'hostname' => 'zklighter.elliot.ai',
             'urls' => array(
-                'logo' => 'https://github.com/user-attachments/assets/ff1aaf96-bffb-4545-a750-5eba716e75d0',
+                'logo' => 'https://github.com/user-attachments/assets/478f648a-05e4-4b09-a841-e7fced3846c0',
                 'api' => array(
                     'root' => 'https://mainnet.{hostname}',
                     'public' => 'https://mainnet.{hostname}',
@@ -161,7 +161,7 @@ class lighter extends Exchange {
                 'doc' => 'https://apidocs.lighter.xyz/',
                 'fees' => 'https://docs.lighter.xyz/perpetual-futures/fees',
                 'referral' => array(
-                    'url' => 'app.lighter.xyz/?referral=715955W9',
+                    'url' => 'https://app.lighter.xyz/?referral=715955W9',
                     'discount' => 0.1, // user gets 10% of the points
                 ),
             ),
@@ -1308,45 +1308,44 @@ class lighter extends Exchange {
             //     }
             //
             $data = $this->safe_list($response, 'asset_details', array());
-            $result = array();
-            for ($i = 0; $i < count($data); $i++) {
-                $entry = $data[$i];
-                $id = $this->safe_string($entry, 'asset_id');
-                $code = $this->safe_currency_code($this->safe_string($entry, 'symbol'));
-                $decimals = $this->safe_string($entry, 'decimals');
-                $isUSDC = ($code === 'USDC');
-                $depositMin = null;
-                $withdrawMin = null;
-                if ($isUSDC) {
-                    $depositMin = $this->safe_number($entry, 'min_transfer_amount');
-                    $withdrawMin = $this->safe_number($entry, 'min_withdrawal_amount');
-                }
-                $result[$code] = $this->safe_currency_structure(array(
-                    'id' => $id,
-                    'name' => $code,
-                    'code' => $code,
-                    'precision' => $this->parse_number('1e-' . $decimals),
-                    'active' => true,
-                    'fee' => null,
-                    'networks' => array(),
-                    'deposit' => $isUSDC,
-                    'withdraw' => $isUSDC,
-                    'type' => 'crypto',
-                    'limits' => array(
-                        'deposit' => array(
-                            'min' => $depositMin,
-                            'max' => null,
-                        ),
-                        'withdraw' => array(
-                            'min' => $withdrawMin,
-                            'max' => null,
-                        ),
-                    ),
-                    'info' => $entry,
-                ));
-            }
-            return $result;
+            return $this->parse_currencies($data);
         }) ();
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $id = $this->safe_string($rawCurrency, 'asset_id');
+        $code = $this->safe_currency_code($this->safe_string($rawCurrency, 'symbol'));
+        $decimals = $this->safe_string($rawCurrency, 'decimals');
+        $isUSDC = ($code === 'USDC');
+        $depositMin = null;
+        $withdrawMin = null;
+        if ($isUSDC) {
+            $depositMin = $this->safe_number($rawCurrency, 'min_transfer_amount');
+            $withdrawMin = $this->safe_number($rawCurrency, 'min_withdrawal_amount');
+        }
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'name' => $code,
+            'code' => $code,
+            'precision' => $this->parse_number('1e-' . $decimals),
+            'active' => true,
+            'fee' => null,
+            'networks' => array(),
+            'deposit' => $isUSDC,
+            'withdraw' => $isUSDC,
+            'type' => 'crypto',
+            'limits' => array(
+                'deposit' => array(
+                    'min' => $depositMin,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => $withdrawMin,
+                    'max' => null,
+                ),
+            ),
+            'info' => $rawCurrency,
+        ));
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
@@ -1859,10 +1858,12 @@ class lighter extends Exchange {
                     }
                 } else {
                     $perpBalance = $this->safe_dict($result, 'USDC', $this->account());
-                    $perpUSDCTotal = $this->safe_string($account, 'collateral');
-                    $perpUSDCFree = $this->safe_string($account, 'available_balance');
-                    $perpBalance['total'] = Precise::string_add($perpBalance['total'], $perpUSDCTotal);
-                    $perpBalance['free'] = Precise::string_add($perpBalance['free'], $perpUSDCFree);
+                    $perpTotal = $this->safe_string($perpBalance, 'total', '0');
+                    $perpFree = $this->safe_string($perpBalance, 'free', '0');
+                    $perpUSDCTotal = $this->safe_string($account, 'collateral', '0');
+                    $perpUSDCFree = $this->safe_string($account, 'available_balance', '0');
+                    $perpBalance['total'] = Precise::string_add($perpTotal, $perpUSDCTotal);
+                    $perpBalance['free'] = Precise::string_add($perpFree, $perpUSDCFree);
                     $result['USDC'] = $perpBalance;
                 }
             }

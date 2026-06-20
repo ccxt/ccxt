@@ -1668,7 +1668,7 @@ class binance(Exchange, ImplicitAPI):
                         'symbolRequired': True,
                     },
                     'fetchOHLCV': {
-                        'limit': 1500,
+                        'limit': 500,
                     },
                 },
                 'swap': {
@@ -2949,198 +2949,196 @@ class binance(Exchange, ImplicitAPI):
         if fetchMargins:
             responseMarginables = results[1]
             marginablesById = self.index_by(responseMarginables, 'assetName')
-        result: dict = {}
+        return self.parse_currencies_custom(responseCurrencies, marginablesById)
+
+    def parse_currencies_custom(self, responseCurrencies, marginablesById) -> Currencies:
+        result = {}
         for i in range(0, len(responseCurrencies)):
-            #
-            #    {
-            #        "coin": "LINK",
-            #        "depositAllEnable": True,
-            #        "withdrawAllEnable": True,
-            #        "name": "ChainLink",
-            #        "free": "0",
-            #        "locked": "0",
-            #        "freeze": "0",
-            #        "withdrawing": "0",
-            #        "ipoing": "0",
-            #        "ipoable": "0",
-            #        "storage": "0",
-            #        "isLegalMoney": False,
-            #        "trading": True,
-            #        "networkList": [
-            #            {
-            #                "network": "BSC",
-            #                "coin": "LINK",
-            #                "withdrawIntegerMultiple": "0.00000001",
-            #                "isDefault": False,
-            #                "depositEnable": True,
-            #                "withdrawEnable": True,
-            #                "depositDesc": "",
-            #                "withdrawDesc": "",
-            #                "specialTips": "",
-            #                "specialWithdrawTips": "The network you have selected is BSC. Please ensure that the withdrawal address supports the Binance Smart Chain network. You will lose your assets if the chosen platform does not support retrievals.",
-            #                "name": "BNB Smart Chain(BEP20)",
-            #                "resetAddressStatus": False,
-            #                "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
-            #                "addressRule": "",
-            #                "memoRegex": "",
-            #                "withdrawFee": "0.012",
-            #                "withdrawMin": "0.024",
-            #                "withdrawMax": "9999999999.99999999",
-            #                "minConfirm": "15",
-            #                "unLockConfirm": "0",
-            #                "sameAddress": False,
-            #                "estimatedArrivalTime": "5",
-            #                "busy": False,
-            #                "country": "AE,BINANCE_BAHRAIN_BSC"
-            #            },
-            #            {
-            #                "network": "BNB",
-            #                "coin": "LINK",
-            #                "withdrawIntegerMultiple": "0.00000001",
-            #                "isDefault": False,
-            #                "depositEnable": True,
-            #                "withdrawEnable": True,
-            #                "depositDesc": "",
-            #                "withdrawDesc": "",
-            #                "specialTips": "Both a MEMO and an Address are required to successfully deposit your LINK BEP2 tokens to Binance.",
-            #                "specialWithdrawTips": "",
-            #                "name": "BNB Beacon Chain(BEP2)",
-            #                "resetAddressStatus": False,
-            #                "addressRegex": "^(bnb1)[0-9a-z]{38}$",
-            #                "addressRule": "",
-            #                "memoRegex": "^[0-9A-Za-z\\-_]{1,120}$",
-            #                "withdrawFee": "0.003",
-            #                "withdrawMin": "0.01",
-            #                "withdrawMax": "10000000000",
-            #                "minConfirm": "1",
-            #                "unLockConfirm": "0",
-            #                "sameAddress": True,
-            #                "estimatedArrivalTime": "5",
-            #                "busy": False,
-            #                "country": "AE,BINANCE_BAHRAIN_BSC"
-            #            },
-            #            {
-            #                "network": "ETH",
-            #                "coin": "LINK",
-            #                "withdrawIntegerMultiple": "0.00000001",
-            #                "isDefault": True,
-            #                "depositEnable": True,
-            #                "withdrawEnable": True,
-            #                "depositDesc": "",
-            #                "withdrawDesc": "",
-            #                "name": "Ethereum(ERC20)",
-            #                "resetAddressStatus": False,
-            #                "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
-            #                "addressRule": "",
-            #                "memoRegex": "",
-            #                "withdrawFee": "0.55",
-            #                "withdrawMin": "1.1",
-            #                "withdrawMax": "10000000000",
-            #                "minConfirm": "12",
-            #                "unLockConfirm": "0",
-            #                "sameAddress": False,
-            #                "estimatedArrivalTime": "5",
-            #                "busy": False,
-            #                "country": "AE,BINANCE_BAHRAIN_BSC"
-            #            }
-            #        ]
-            #    }
-            #
-            #     some coins(e.g. ETH, BIGTIME, SONIC, etc) return extra fields under network entry
-            #
-            #                "specialTips": "",
-            #                "specialWithdrawTips": "",
-            #                "withdrawInternalMin": "0",
-            #                "contractAddressUrl": "https://etherscan.io/address/",
-            #                "contractAddress": "0x64bc2ca1be492be7185faa2c8835d9b824c8a194"
-            #
-            entry = responseCurrencies[i]
-            id = self.safe_string(entry, 'coin')
-            name = self.safe_string(entry, 'name')
-            code = self.safe_currency_code(id)
-            isFiat = self.safe_bool(entry, 'isLegalMoney')
-            networkList = self.safe_list(entry, 'networkList', [])
-            fees: dict = {}
-            fee = None
-            networks: dict = {}
-            isETF = False
-            for j in range(0, len(networkList)):
-                networkItem = networkList[j]
-                network = self.safe_string(networkItem, 'network')
-                networkCode = self.network_id_to_code(network, code)
-                isETF = (network == 'ETF')  # ETF currencies(e.g. BTCUP, ETHDOWN) have only 1 "network" entry and are deterministic to set
-                # name = self.safe_string(networkItem, 'name')
-                withdrawFee = self.safe_number(networkItem, 'withdrawFee')
-                depositEnable = self.safe_bool(networkItem, 'depositEnable')
-                withdrawEnable = self.safe_bool(networkItem, 'withdrawEnable')
-                fees[network] = withdrawFee
-                isDefault = self.safe_bool(networkItem, 'isDefault')
-                if isDefault or (fee is None):
-                    fee = withdrawFee
-                # todo: default networks in "setMarkets" overload
-                # if isDefault:
-                #     self.options['defaultNetworkCodesForCurrencies'][code] = networkCode
-                # }
-                withdrawPrecision = self.omit_zero(self.safe_string_2(networkItem, 'withdrawIntegerMultiple', 'withdrawInternalMin'))
-                # zero values happen only on fiat or leveraged(ETF) tokens: https://t.me/binance_api_english/393075
-                if withdrawPrecision is None and isFiat:
-                    withdrawPrecision = self.safe_string(self.options, 'defaultFiatWithdrawPrecision')
-                networks[networkCode] = {
-                    'info': networkItem,
-                    'id': network,
-                    'network': networkCode,
-                    'active': None,
-                    'deposit': depositEnable,
-                    'withdraw': withdrawEnable,
-                    'fee': withdrawFee,
-                    'precision': self.parse_number(withdrawPrecision),
-                    'limits': {
-                        'withdraw': {
-                            'min': self.safe_number(networkItem, 'withdrawMin'),
-                            'max': self.safe_number(networkItem, 'withdrawMax'),
-                        },
-                        'deposit': {
-                            'min': self.safe_number(networkItem, 'depositDust'),
-                            'max': None,
-                        },
-                    },
-                }
-            type: Str = None
-            if isETF:
-                type = 'other'
-            elif isFiat:
-                type = 'fiat'
-            else:
-                type = 'crypto'
-            trading = self.safe_bool(entry, 'trading')
-            marginEntry = self.safe_dict(marginablesById, id, {})
-            #
-            #     {
-            #         assetName: "BTC",
-            #         assetFullName: "Bitcoin",
-            #         isBorrowable: True,
-            #         isMortgageable: True,
-            #         userMinBorrow: "0",
-            #         userMinRepay: "0",
-            #     }
-            #
-            result[code] = self.safe_currency_structure({
-                'id': id,
-                'name': name,
-                'code': code,
-                'type': type,
-                'precision': None,
-                'info': entry,
-                'active': trading,
-                'deposit': None,
-                'withdraw': None,
-                'networks': networks,
-                'fee': None,
-                'fees': fees,
-                'limits': None,
-                'margin': self.safe_bool(marginEntry, 'isBorrowable'),
-            })
+            parsed = self.parse_currency(responseCurrencies[i])
+            code = parsed['code']
+            marginEntry = self.safe_dict(marginablesById, parsed['id'])
+            parsed['margin'] = self.safe_bool(marginEntry, 'isBorrowable')
+            result[code] = parsed
         return result
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        #
+        #    {
+        #        "coin": "LINK",
+        #        "depositAllEnable": True,
+        #        "withdrawAllEnable": True,
+        #        "name": "ChainLink",
+        #        "free": "0",
+        #        "locked": "0",
+        #        "freeze": "0",
+        #        "withdrawing": "0",
+        #        "ipoing": "0",
+        #        "ipoable": "0",
+        #        "storage": "0",
+        #        "isLegalMoney": False,
+        #        "trading": True,
+        #        "networkList": [
+        #            {
+        #                "network": "BSC",
+        #                "coin": "LINK",
+        #                "withdrawIntegerMultiple": "0.00000001",
+        #                "isDefault": False,
+        #                "depositEnable": True,
+        #                "withdrawEnable": True,
+        #                "depositDesc": "",
+        #                "withdrawDesc": "",
+        #                "specialTips": "",
+        #                "specialWithdrawTips": "The network you have selected is BSC. Please ensure that the withdrawal address supports the Binance Smart Chain network. You will lose your assets if the chosen platform does not support retrievals.",
+        #                "name": "BNB Smart Chain(BEP20)",
+        #                "resetAddressStatus": False,
+        #                "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
+        #                "addressRule": "",
+        #                "memoRegex": "",
+        #                "withdrawFee": "0.012",
+        #                "withdrawMin": "0.024",
+        #                "withdrawMax": "9999999999.99999999",
+        #                "minConfirm": "15",
+        #                "unLockConfirm": "0",
+        #                "sameAddress": False,
+        #                "estimatedArrivalTime": "5",
+        #                "busy": False,
+        #                "country": "AE,BINANCE_BAHRAIN_BSC"
+        #            },
+        #            {
+        #                "network": "BNB",
+        #                "coin": "LINK",
+        #                "withdrawIntegerMultiple": "0.00000001",
+        #                "isDefault": False,
+        #                "depositEnable": True,
+        #                "withdrawEnable": True,
+        #                "depositDesc": "",
+        #                "withdrawDesc": "",
+        #                "specialTips": "Both a MEMO and an Address are required to successfully deposit your LINK BEP2 tokens to Binance.",
+        #                "specialWithdrawTips": "",
+        #                "name": "BNB Beacon Chain(BEP2)",
+        #                "resetAddressStatus": False,
+        #                "addressRegex": "^(bnb1)[0-9a-z]{38}$",
+        #                "addressRule": "",
+        #                "memoRegex": "^[0-9A-Za-z\\-_]{1,120}$",
+        #                "withdrawFee": "0.003",
+        #                "withdrawMin": "0.01",
+        #                "withdrawMax": "10000000000",
+        #                "minConfirm": "1",
+        #                "unLockConfirm": "0",
+        #                "sameAddress": True,
+        #                "estimatedArrivalTime": "5",
+        #                "busy": False,
+        #                "country": "AE,BINANCE_BAHRAIN_BSC"
+        #            },
+        #            {
+        #                "network": "ETH",
+        #                "coin": "LINK",
+        #                "withdrawIntegerMultiple": "0.00000001",
+        #                "isDefault": True,
+        #                "depositEnable": True,
+        #                "withdrawEnable": True,
+        #                "depositDesc": "",
+        #                "withdrawDesc": "",
+        #                "name": "Ethereum(ERC20)",
+        #                "resetAddressStatus": False,
+        #                "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
+        #                "addressRule": "",
+        #                "memoRegex": "",
+        #                "withdrawFee": "0.55",
+        #                "withdrawMin": "1.1",
+        #                "withdrawMax": "10000000000",
+        #                "minConfirm": "12",
+        #                "unLockConfirm": "0",
+        #                "sameAddress": False,
+        #                "estimatedArrivalTime": "5",
+        #                "busy": False,
+        #                "country": "AE,BINANCE_BAHRAIN_BSC"
+        #            }
+        #        ]
+        #    }
+        #
+        #     some coins(e.g. ETH, BIGTIME, SONIC, etc) return extra fields under network entry
+        #
+        #                "specialTips": "",
+        #                "specialWithdrawTips": "",
+        #                "withdrawInternalMin": "0",
+        #                "contractAddressUrl": "https://etherscan.io/address/",
+        #                "contractAddress": "0x64bc2ca1be492be7185faa2c8835d9b824c8a194"
+        #
+        entry = rawCurrency
+        id = self.safe_string(entry, 'coin')
+        name = self.safe_string(entry, 'name')
+        code = self.safe_currency_code(id)
+        isFiat = self.safe_bool(entry, 'isLegalMoney')
+        networkList = self.safe_list(entry, 'networkList', [])
+        fees: dict = {}
+        fee = None
+        networks: dict = {}
+        isETF = False
+        for j in range(0, len(networkList)):
+            networkItem = networkList[j]
+            network = self.safe_string(networkItem, 'network')
+            networkCode = self.network_id_to_code(network, code)
+            isETF = (network == 'ETF')  # ETF currencies(e.g. BTCUP, ETHDOWN) have only 1 "network" entry and are deterministic to set
+            # name = self.safe_string(networkItem, 'name')
+            withdrawFee = self.safe_number(networkItem, 'withdrawFee')
+            depositEnable = self.safe_bool(networkItem, 'depositEnable')
+            withdrawEnable = self.safe_bool(networkItem, 'withdrawEnable')
+            fees[network] = withdrawFee
+            isDefault = self.safe_bool(networkItem, 'isDefault')
+            if isDefault or (fee is None):
+                fee = withdrawFee
+            # todo: default networks in "setMarkets" overload
+            # if isDefault:
+            #     self.options['defaultNetworkCodesForCurrencies'][code] = networkCode
+            # }
+            withdrawPrecision = self.omit_zero(self.safe_string_2(networkItem, 'withdrawIntegerMultiple', 'withdrawInternalMin'))
+            # zero values happen only on fiat or leveraged(ETF) tokens: https://t.me/binance_api_english/393075
+            if withdrawPrecision is None and isFiat:
+                withdrawPrecision = self.safe_string(self.options, 'defaultFiatWithdrawPrecision')
+            networks[networkCode] = {
+                'info': networkItem,
+                'id': network,
+                'network': networkCode,
+                'active': None,
+                'deposit': depositEnable,
+                'withdraw': withdrawEnable,
+                'fee': withdrawFee,
+                'precision': self.parse_number(withdrawPrecision),
+                'limits': {
+                    'withdraw': {
+                        'min': self.safe_number(networkItem, 'withdrawMin'),
+                        'max': self.safe_number(networkItem, 'withdrawMax'),
+                    },
+                    'deposit': {
+                        'min': self.safe_number(networkItem, 'depositDust'),
+                        'max': None,
+                    },
+                },
+            }
+        type: Str = None
+        if isETF:
+            type = 'other'
+        elif isFiat:
+            type = 'fiat'
+        else:
+            type = 'crypto'
+        trading = self.safe_bool(entry, 'trading')
+        return self.safe_currency_structure({
+            'id': id,
+            'name': name,
+            'code': code,
+            'type': type,
+            'precision': None,
+            'info': entry,
+            'active': trading,
+            'deposit': None,
+            'withdraw': None,
+            'networks': networks,
+            'fee': None,
+            'fees': fees,
+            'limits': None,
+        })
 
     def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -4058,7 +4056,7 @@ class binance(Exchange, ImplicitAPI):
         #
         #     {
         #         "symbol": "BTCUSDT",
-        #         "markPrice": "11793.63104562",  # mark price
+        #         "markPrice": "11793.63104563",  # mark price
         #         "indexPrice": "11781.80495970",  # index price
         #         "estimatedSettlePrice": "11781.16138815",  # Estimated Settle Price, only useful in the last hour before the settlement starts
         #         "lastFundingRate": "0.00038246",  # This is the lastest estimated funding rate
@@ -9869,7 +9867,7 @@ class binance(Exchange, ImplicitAPI):
             rounderString = str(rounder)
             liquidationPriceRoundedString = Precise.string_add(rounderString, liquidationPriceStringRaw)
             truncatedLiquidationPrice = Precise.string_div(liquidationPriceRoundedString, '1', pricePrecision)
-            if truncatedLiquidationPrice[0] == '-':
+            if truncatedLiquidationPrice is not None and truncatedLiquidationPrice[0] == '-':
                 # user cannot be liquidated
                 # since he has more collateral than the size of the position
                 truncatedLiquidationPrice = None

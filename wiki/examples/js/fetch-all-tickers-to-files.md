@@ -1,8 +1,5 @@
-- [Fetch All Tickers To Files](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 
 import ccxt from '../../js/ccxt.js';
 import ololog from 'ololog';
@@ -79,5 +76,5 @@ const numWorkers = 8;(async () => {
     await Promise.all (workers)
 
 }) ()
- 
+
 ```

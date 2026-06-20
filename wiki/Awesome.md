@@ -49,7 +49,8 @@ Suggestions and contributions are always welcome! Make sure to read the [contrib
 
 ## Trading toolkits
 
-- [The Coinbase Pro trading toolkit (CPTT)](https://github.com/coinbase/coinbase-pro-trading-toolkit) – a trading toolkit developed by the coinbase team that integrates with ccxt, bitfinex, bitmex, bittrex, coinbasePro, gemini, poloniex.
+
+- [The Coinbase Pro trading toolkit (CPTT)](https://github.com/coinbase/coinbase-pro-trading-toolkit) – a trading toolkit developed by the coinbase team that integrates with ccxt, bitfinex, bitmex, coinbaseexchange, gemini, poloniex.
 - [bt-ccxt-store](https://github.com/Dave-Vallance/bt-ccxt-store) – Store with backtesting. #python
 - [ZTOM](https://github.com/ztomsy/ztom) - #python, #backtesting, #rest, orders manager, loggin, reporting, throttling control.
 - [TradingSystemDemo](https://github.com/FWangTrading/TradingSystemDemo) - #Catalyst, #CryptoCompare, #backtesting, #alerts, #trading, #python
@@ -143,7 +144,6 @@ Suggestions and contributions are always welcome! Make sure to read the [contrib
 - [Python3とCCXTを使用して仮想通貨の自動売買プログラムを作る](http://www.hacky.xyz/entry/2018/03/18/200822) – Automatic cryptocurrency trading using Python 3 and CCXT
 - [ccxtを使って裁定取引botを作ってみたらなぜか虚しくなった件](https://qiita.com/reon777/items/21ed87f19cdd50f08bd9) – An article in Japanese explaining the basics of programming an arbitrage bot with CCXT.
 - [Python 3 / BitMEX の BOT を作ろう CCXT + BOT サンプルコード 〈基礎編〉](https://note.mu/mman/n/n5a9083864335) – A sample of basic BitMEX bot with CCXT in Python 3.
-- [ccxtがbtcfxbot界隈でちょっと話題になっていたので使ってみた](http://cryptojapan.ml/entry/2018/03/01/151752) – Trying CCXT for a basic bot.
 - [python異步加協程獲取比特幣市場信息](https://hk.saowen.com/a/18a648f24d6e7f54981e9db4411b56730a35dd2b3b27519083543bcd6198cd27) – An article in Chinese on using CCXT with Python.
 - [Лучшая криптотрейдинг библиотека?](http://medium.com/@vladthelittleone/лучшая-криптотрейдинг-библиотека-67e308f96c1f) – An article in Russian on setting up CCXT to connect and trade with crypto exchanges.
 

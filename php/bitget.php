@@ -2878,7 +2878,7 @@ class bitget extends Exchange {
         }
         $this->load_markets();
         $currency = $this->currency($code);
-        $networkId = $this->network_code_to_id($networkCode);
+        $networkId = $this->network_code_to_id($networkCode, $code);
         $request = array(
             'coin' => $currency['id'],
             'address' => $address,
@@ -3049,7 +3049,7 @@ class bitget extends Exchange {
             'txid' => $this->safe_string($transaction, 'tradeId'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'network' => $this->network_id_to_code($networkId),
+            'network' => $this->network_id_to_code($networkId, $code),
             'addressFrom' => $this->safe_string($transaction, 'fromAddress'),
             'address' => $this->safe_string($transaction, 'toAddress'),
             'addressTo' => $this->safe_string($transaction, 'toAddress'),
@@ -11134,13 +11134,16 @@ class bitget extends Exchange {
                 $auth .= $body;
             } else {
                 if ($params) {
-                    $queryInner = '?' . $this->urlencode($this->keysort($params));
+                    $sortedParams = $this->keysort($params);
+                    $queryInner = '?' . $this->urlencode($sortedParams, true);
                     // check #21169 pr
                     if (mb_strpos($queryInner, '%24') > -1) {
                         $queryInner = str_replace('%24', '$', $queryInner);
                     }
                     $url .= $queryInner;
-                    $auth .= $queryInner;
+                    // bitget signs the raw (non-percent-encoded) $query string, so the
+                    // $signature must use the decoded values (e.g. non-ascii market ids)
+                    $auth .= '?' . $this->rawencode($sortedParams);
                 }
             }
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');

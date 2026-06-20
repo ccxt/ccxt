@@ -151,7 +151,7 @@ func  (this *CoinoneCore) HandleOrderBook(client any, message any)  {
     client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func  (this *CoinoneCore) HandleDelta(bookside any, delta any)  {
-    var bidAsk any = this.ParseBidAsk(delta, "price", "qty")
+    var bidAsk any = this.ParseOrderBookBidAsk(delta, "price", "qty")
     bookside.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 }
 /**

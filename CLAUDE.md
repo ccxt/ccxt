@@ -460,7 +460,7 @@ Use the §6.5 checklist as the body. Paste actual output (or one-line summary) u
 - **TDD: write/update the test with the code** (static JSON fixture or unified test).
 - **Verify in all five languages** (run §6.5). Don't claim done after `tsBuild`. If you can't run a step, say so — don't skip silently.
 - **Don't `npm run build` casually** — it's slow and rewrites thousands of files. Use `tsBuild` + `lint` for fast feedback; `transpile`, `transpileCS`, `transpileGO` to spot-check.
-- **Don't commit generated diffs** in `js/`, `python/ccxt/<exchange>.py`, `php/<exchange>.php`, `cs/ccxt/exchanges/`, `go/v4/`, `ts/src/abstract/`, or `dist/`.
+- **Don't commit generated diffs** in `js/`, `python/ccxt/<exchange>.py`, `php/<exchange>.php`, `cs/ccxt/exchanges/`, `go/v4/`, `ts/src/abstract/`, or `dist/`.  `go/v4/`  is an exception because some files like `exchange.go/exchange_*.go` are not automatically generated so those can be commited
 - **Always write/update JSDoc** when adding/changing a public method (§7).
 - **Pass `--verbose`** when implementing/debugging an endpoint.
 - **Update docs when behaviour changes** (§8: wiki, examples, user-facing skills).

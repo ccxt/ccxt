@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var okx$1 = require('../okx.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
-var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -77,7 +77,7 @@ class okx extends okx$1["default"] {
                     //
                     'depth': 'books',
                 },
-                'watchBalance': 'spot',
+                'watchBalance': 'spot', // margin, futures, swap
                 'watchTicker': {
                     'channel': 'tickers', // tickers, sprd-tickers, index-tickers, block-tickers
                 },
@@ -1488,7 +1488,7 @@ class okx extends okx$1["default"] {
             const method = 'GET';
             const path = '/users/self/verify';
             const auth = timestamp + method + path;
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256, 'base64');
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256, 'base64');
             const operation = 'login';
             const request = {
                 'op': operation,
@@ -2459,11 +2459,11 @@ class okx extends okx$1["default"] {
             const arg = this.safeValue(message, 'arg', {});
             const channel = this.safeString(arg, 'channel');
             const methods = {
-                'bbo-tbt': this.handleOrderBook,
-                'books': this.handleOrderBook,
-                'books5': this.handleOrderBook,
-                'books50-l2-tbt': this.handleOrderBook,
-                'books-l2-tbt': this.handleOrderBook,
+                'bbo-tbt': this.handleOrderBook, // newly added channel that sends tick-by-tick Level 1 data, all API users can subscribe, public depth channel, verification not required
+                'books': this.handleOrderBook, // all API users can subscribe, public depth channel, verification not required
+                'books5': this.handleOrderBook, // all API users can subscribe, public depth channel, verification not required, data feeds will be delivered every 100ms (vs. every 200ms now)
+                'books50-l2-tbt': this.handleOrderBook, // only users who're VIP4 and above can subscribe, identity verification required before subscription
+                'books-l2-tbt': this.handleOrderBook, // only users who're VIP5 and above can subscribe, identity verification required before subscription
                 'tickers': this.handleTicker,
                 'mark-price': this.handleTicker,
                 'positions': this.handlePositions,

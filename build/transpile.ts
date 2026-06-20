@@ -134,9 +134,6 @@ class Transpiler {
             [ /\.buildOHLCVC/g, '.build_ohlcv'],
             [ /\.intToBase16/g, '.int_to_base16'],
             [ /\.parseDate/g, '.parse_date'],
-            [ /\.binaryToBase16/g, '.binary_to_base16'],
-            [ /\.binaryToBase64/g, '.binary_to_base64'],
-            [ /\.stringToBase64/g, '.string_to_base64'],
             [ /\.urlencodeBase64/g, '.urlencode_base64'],
             [ /\.parseOrderStatusByType /g, '.parse_order_status_by_type'],
             [ /\.parseOrderStatus /g, '.parse_order_status'],
@@ -257,9 +254,6 @@ class Transpiler {
             [ /\.padEnd\s/g, '.ljust'],
             [ /\.padStart\s/g, '.rjust' ],
 
-        // insert common regexes in the middle (critical)
-        ].concat (this.getCommonRegexes ()).concat ([
-
             // [ /this\.urlencode\s/g, '_urlencode.urlencode ' ], // use self.urlencode instead
             [ /([a-zA-Z0-9_]+) in this(:?[^.])/g, 'hasattr(self, $1)$2' ],
             // [ /this\[[a-zA-Z0-9_]+\]/g, 'getattr(self, $1)' ],
@@ -364,7 +358,7 @@ class Transpiler {
             [ /(\s+) \* @returns \{(.+)\}/g, '$1:returns $2:' ], // docstring return
             [ /(\s+ \* @param \{[\]\[\|a-zA-Z]+\} )([a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+) (.*)/g, '$1$2[\'$3\'] $4' ], // docstring params.anything
             [ /(\s+) \* @([a-z]+) \{([\]\[a-zA-Z\|]+)\} ([a-zA-Z0-9_\-\.\[\]\']+)/g, '$1:$2 $3 $4:' ], // docstring param
-        ])
+        ]
     }
 
     getPython2Regexes () {
@@ -422,8 +416,8 @@ class Transpiler {
             [ /Number\.isInteger\s*\(([^\)]+)\)/g, "is_int($1)" ],
             [ /([^\(\s]+)\s+instanceof\s+String/g, 'is_string($1)' ],
             // we want to remove type hinting variable lines
-            [ /^\s+(?:let|const|var)\s+\w+:\s+(?:Str|Int|Num|SubType|MarketType|string|number|Dict|any(?:\[\])*);\n/mg, '' ],
-            [ /(^|[^a-zA-Z0-9_])(let|const|var)(\s+\w+):\s+(?:Str|Int|Num|Bool|Market|Currency|string|number|Dict|any(?:\[\])*)(\s+=\s+[\w+\{}])/g, '$1$2$3$4' ],
+            [ /^\s+(?:let|const|var)\s+\w+:\s+[^;\s]+;[^\n]*\n/mg, '' ],
+            [ /(^|[^a-zA-Z0-9_])(let|const|var)(\s+\w+):\s+[^\s=]+(\s+=\s+[\w+\{}])/g, '$1$2$3$4' ],
 
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2] === null' ],
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'undefined\'/g, '$1[$2] !== null' ],
@@ -461,10 +455,10 @@ class Transpiler {
             [ /undefined/g, 'null' ],
             [ /\} else if/g, '} elseif' ],
             [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
-            [ /this\.stringToBase64\s/g, 'base64_encode' ],
-            [ /this\.binaryToBase16\s/g, 'bin2hex' ],
-            [ /this\.base64ToBinary\s/g, 'base64_decode' ],
-            [ /this\.base64ToString\s/g, 'base64_decode' ],
+            [ /this\.string_to_base64/g, 'base64_encode' ],
+            [ /this\.binary_to_base16/g, 'bin2hex' ],
+            [ /this\.base64_to_binary/g, 'base64_decode' ],
+            [ /this\.base64_to_string/g, 'base64_decode' ],
             [ /Promise\.all\s*\(([^\)]+)\)/g, 'Promise\\all($1)' ],
             // deepExtend is commented for PHP because it does not overwrite linear arrays
             // a proper \ccxt\Exchange::deep_extend() base method is implemented instead
@@ -492,9 +486,6 @@ class Transpiler {
             [ /(\w+)\.padEnd\s*\(([^,]+),\s*([^)]+)\)/g, 'str_pad($1, $2, $3, STR_PAD_RIGHT)' ],
             [ /(\w+)\.padStart\s*\(([^,]+),\s*([^)]+)\)/g, 'str_pad($1, $2, $3, STR_PAD_LEFT)' ],
 
-        // insert common regexes in the middle (critical)
-        ].concat (this.getCommonRegexes ()).concat ([
-
             [ /([a-zA-Z0-9_]+) in this(:?[^.])/g, 'property_exists($this, $1)$2' ],
             [ /\(this,/g, '($this,' ],
             [ /this\./g, '$this->' ],
@@ -504,7 +495,7 @@ class Transpiler {
             [ /([^'])\[\](?!')/g, '$1array()' ],
 
         // add {}-array syntax conversions up to 20 levels deep on the same line
-        ]).concat ([ ... Array (20) ].map (x => [ /\{([^\n\}]+)\}/g, 'array($1)' ] )).concat ([
+        ].concat ([ ... Array (20) ].map (x => [ /\{([^\n\}]+)\}/g, 'array($1)' ] )).concat ([
             [ /\[\s*([^\]]+)\s\]\s=/g, 'list($1) =' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1list($2)' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}/g, '$1array_values(list($2))' ],
@@ -1181,6 +1172,9 @@ class Transpiler {
 
     transpileJavaScriptToPythonAndPHP (args:any) {
 
+        // apply common regexes once before branching to language-specific paths
+        args.js = this.regexAll (args.js, this.getCommonRegexes ())
+
         // transpile JS → Python 3
         let python3Body = ''
         let python2Body = ''
@@ -1652,7 +1646,7 @@ class Transpiler {
                     'Dictionary<any>': 'array',
                     'Dict': 'array',
                 }
-                const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|ADL|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRate|IsolatedBorrowRate|FundingRates|FundingRate|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|LongShortRatio|Position|BorrowInterest)( \| undefined)?$|\w+\[\]/
+                const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|ADL|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRate|IsolatedBorrowRate|FundingRates|FundingRate|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|LongShortRatio|Position|BorrowInterest|OpenInterests?)( \| undefined)?$|\w+\[\]/
 
                 phpArgs = argsArray.map (x => {
                     const parts = x.split (':')
@@ -2714,7 +2708,7 @@ class Transpiler {
             py: examplesBaseFolder +'py/',
             php: examplesBaseFolder +'php/',
         }
-        const transpileFlagPhrase = '// AUTO-TRANSPILE //'
+        const noTranspileFlagPhrase = '// @NO_AUTO_TRANSPILE'
 
         const pythonPreamble = this.getPythonPreamble ().replace ('sys.path.append(root)', 'sys.path.append(root + \'/python\')'); // as main preamble is meant for derived exchange classes, the path needs to be changed
         const phpPreamble = this.getPHPPreamble ();
@@ -2760,7 +2754,7 @@ class Transpiler {
         for (const filenameWithExtenstion of allTsExamplesFiles) {
             const tsFile = path.join (examplesFolders.ts, filenameWithExtenstion)
             let tsContent = fs.readFileSync (tsFile).toString ()
-            if (tsContent.indexOf (transpileFlagPhrase) > -1) {
+            if (!tsContent.includes (noTranspileFlagPhrase)) {
                 const isCcxtPro = tsContent.indexOf ('ccxt.pro') > -1;
                 log.magenta ('Transpiling from', tsFile.yellow)
                 const fileName = filenameWithExtenstion.replace ('.ts', '')

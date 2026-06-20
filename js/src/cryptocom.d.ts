@@ -15,6 +15,7 @@ export default class cryptocom extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
+    parseCurrency(currency: Dict): Currency;
     /**
      * @method
      * @name cryptocom#fetchMarkets
@@ -237,7 +238,7 @@ export default class cryptocom extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    parseAddress(addressString: any): any[];
+    parseAddress(addressString: any): string[];
     /**
      * @method
      * @name cryptocom#withdraw

@@ -1,12 +1,12 @@
 
 // ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/woo.js';
 import { AuthenticationError, RateLimitExceeded, BadRequest, OperationFailed, ExchangeError, InvalidOrder, ArgumentsRequired, NotSupported, OnMaintenance } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Balances, Conversion, Currency, FundingRateHistory, Int, Market, MarginModification, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Dict, Bool, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees, int, FundingHistory, LedgerEntry, FundingRate, FundingRates, DepositAddress, Position, TradingFeeInterface, ADL } from './base/types.js';
+import type { ADL, Account, Balances, Bool, Conversion, Currencies, Currency, DepositAddress, Dict, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, MarginModification, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -775,7 +775,7 @@ export default class woo extends Exchange {
         //
         const isFromFetchOrder = ('id' in trade);
         const timestampString = this.safeString2 (trade, 'executed_timestamp', 'executedTimestamp');
-        let timestamp = undefined;
+        let timestamp: Int = undefined;
         if (timestampString !== undefined) {
             if (timestampString.indexOf ('.') > -1) {
                 timestamp = this.safeTimestamp2 (trade, 'executed_timestamp', 'executedTimestamp');
@@ -1031,65 +1031,77 @@ export default class woo extends Exchange {
         const tokensById = this.groupBy (tokenRows, 'balance_token');
         const currencyIds = Object.keys (tokensById);
         for (let i = 0; i < currencyIds.length; i++) {
-            const currencyId = currencyIds[i];
-            const code = this.safeCurrencyCode (currencyId);
-            const tokensByNetworkId = this.indexBy (tokensById[currencyId], 'network');
-            const chainsByNetworkId = this.indexBy (networksById[currencyId], 'network');
-            const keys = Object.keys (chainsByNetworkId);
-            const resultingNetworks: Dict = {};
-            for (let j = 0; j < keys.length; j++) {
-                const networkId = keys[j];
-                const tokenEntry = this.safeDict (tokensByNetworkId, networkId, {});
-                const networkEntry = this.safeDict (chainsByNetworkId, networkId, {});
-                const networkCode = this.networkIdToCode (networkId, code);
-                const specialNetworkId = this.safeString (tokenEntry, 'token');
-                resultingNetworks[networkCode] = {
-                    'id': networkId,
-                    'currencyNetworkId': specialNetworkId, // exchange uses special crrency-ids (coin + network junction)
-                    'network': networkCode,
-                    'active': undefined,
-                    'deposit': this.safeString (networkEntry, 'allow_deposit') === '1',
-                    'withdraw': this.safeString (networkEntry, 'allow_withdraw') === '1',
-                    'fee': this.safeNumber (networkEntry, 'withdrawal_fee'),
-                    'precision': this.parseNumber (this.parsePrecision (this.safeString (tokenEntry, 'decimals'))),
-                    'limits': {
-                        'withdraw': {
-                            'min': this.safeNumber (networkEntry, 'minimum_withdrawal'),
-                            'max': undefined,
-                        },
-                        'deposit': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                    },
-                    'info': [ networkEntry, tokenEntry ],
-                };
-            }
-            result[code] = this.safeCurrencyStructure ({
-                'id': currencyId,
-                'name': undefined,
-                'code': code,
-                'precision': undefined,
+            const id = currencyIds[i];
+            const customCurrency = {
+                '_coin_id': id,
+                '_tokens_by_id': tokensById[id],
+                '_networks_by_id': networksById[id],
+            };
+            const parsed = this.parseCurrency (customCurrency);
+            const code = parsed['code'];
+            result[code] = parsed;
+        }
+        return result;
+    }
+
+    parseCurrency (rawCurrency: Dict): Currency {
+        const currencyId = this.safeString (rawCurrency, '_coin_id');
+        const code = this.safeCurrencyCode (currencyId);
+        const tokensByNetworkId = this.indexBy (rawCurrency['_tokens_by_id'], 'network');
+        const chainsByNetworkId = this.indexBy (rawCurrency['_networks_by_id'], 'network');
+        const keys = Object.keys (chainsByNetworkId);
+        const resultingNetworks: Dict = {};
+        for (let j = 0; j < keys.length; j++) {
+            const networkId = keys[j];
+            const tokenEntry = this.safeDict (tokensByNetworkId, networkId, {});
+            const networkEntry = this.safeDict (chainsByNetworkId, networkId, {});
+            const networkCode = this.networkIdToCode (networkId, code);
+            const specialNetworkId = this.safeString (tokenEntry, 'token');
+            resultingNetworks[networkCode] = {
+                'id': networkId,
+                'currencyNetworkId': specialNetworkId, // exchange uses special crrency-ids (coin + network junction)
+                'network': networkCode,
                 'active': undefined,
-                'fee': undefined,
-                'networks': resultingNetworks,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'type': 'crypto',
+                'deposit': this.safeString (networkEntry, 'allow_deposit') === '1',
+                'withdraw': this.safeString (networkEntry, 'allow_withdraw') === '1',
+                'fee': this.safeNumber (networkEntry, 'withdrawal_fee'),
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (tokenEntry, 'decimals'))),
                 'limits': {
+                    'withdraw': {
+                        'min': this.safeNumber (networkEntry, 'minimum_withdrawal'),
+                        'max': undefined,
+                    },
                     'deposit': {
                         'min': undefined,
                         'max': undefined,
                     },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                 },
-                'info': [ tokensByNetworkId, chainsByNetworkId ],
-            });
+                'info': { 'network': networkEntry, 'token': tokenEntry },
+            };
         }
-        return result;
+        return this.safeCurrencyStructure ({
+            'id': currencyId,
+            'name': undefined,
+            'code': code,
+            'precision': undefined,
+            'active': undefined,
+            'fee': undefined,
+            'networks': resultingNetworks,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'type': 'crypto',
+            'limits': {
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'info': rawCurrency,
+        });
     }
 
     /**
@@ -1626,7 +1638,7 @@ export default class woo extends Exchange {
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -1996,7 +2008,7 @@ export default class woo extends Exchange {
         //         "positionSide": "BOTH"
         //     }
         //
-        let timestamp = undefined;
+        let timestamp: Int = undefined;
         const timestrampString = this.safeString (order, 'createdTime');
         if (timestrampString !== undefined) {
             if (timestrampString.indexOf ('.') >= 0) {
@@ -2488,11 +2500,11 @@ export default class woo extends Exchange {
         // this method is TODO because of networks unification
         await this.loadMarkets ();
         const currency = this.currency (code);
-        let networkCode = undefined;
+        let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         const request: Dict = {
             'token': currency['id'],
-            'network': this.networkCodeToId (networkCode),
+            'network': this.networkCodeToId (networkCode, currency['code']),
         };
         const response = await this.v3PrivateGetAssetWalletDeposit (this.extend (request, params));
         //
@@ -2510,7 +2522,7 @@ export default class woo extends Exchange {
     }
 
     getDedicatedNetworkId (currency, params: Dict): any {
-        let networkCode = undefined;
+        let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         networkCode = this.networkIdToCode (networkCode, currency['code']);
         const networkEntry = this.safeDict (currency['networks'], networkCode);
@@ -2542,10 +2554,10 @@ export default class woo extends Exchange {
             currency = this.currency (code);
             request['token'] = currency['id'];
         }
-        let networkCode = undefined;
+        let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
-            request['network'] = this.networkCodeToId (networkCode);
+            request['network'] = this.networkCodeToId (networkCode, currency['code']);
         }
         if (since !== undefined) {
             request['startTime'] = since;
@@ -2801,7 +2813,7 @@ export default class woo extends Exchange {
             'comment': undefined,
             'internal': undefined,
             'fee': fee,
-            'network': this.networkIdToCode (this.safeString (transaction, 'network')),
+            'network': this.networkIdToCode (this.safeString (transaction, 'network'), code),
         } as Transaction;
     }
 
@@ -2877,7 +2889,7 @@ export default class woo extends Exchange {
      */
     async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
         const request: Dict = {};
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -3030,7 +3042,7 @@ export default class woo extends Exchange {
         }
         params = this.omit (params, 'network');
         request['token'] = currency['id'];
-        request['network'] = this.networkCodeToId (network);
+        request['network'] = this.networkCodeToId (network, currency['code']);
         const response = await this.v3PrivatePostAssetWalletWithdraw (this.extend (request, params));
         //
         //     {
@@ -3928,7 +3940,7 @@ export default class woo extends Exchange {
         const contractSize = this.safeString (market, 'contractSize');
         const markPrice = this.safeString2 (position, 'markPrice', 'mark_price');
         const timestampString = this.safeString (position, 'timestamp');
-        let timestamp = undefined;
+        let timestamp: Int = undefined;
         if (timestampString !== undefined) {
             if (timestampString.indexOf ('.') > -1) {
                 timestamp = this.safeTimestamp (position, 'timestamp');

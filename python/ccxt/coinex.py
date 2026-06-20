@@ -742,86 +742,85 @@ class coinex(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        result: dict = {}
-        for i in range(0, len(data)):
-            coin = data[i]
-            asset = self.safe_dict(coin, 'asset', {})
-            chains = self.safe_list(coin, 'chains', [])
-            currencyId = self.safe_string(asset, 'ccy')
-            if currencyId is None:
-                continue  # coinex returns empty structures for some reason
-            code = self.safe_currency_code(currencyId)
-            canDeposit = self.safe_bool(asset, 'deposit_enabled')
-            canWithdraw = self.safe_bool(asset, 'withdraw_enabled')
-            firstChain = self.safe_dict(chains, 0, {})
-            firstPrecisionString = self.parse_precision(self.safe_string(firstChain, 'withdrawal_precision'))
-            networks: dict = {}
-            for j in range(0, len(chains)):
-                chain = chains[j]
-                networkId = self.safe_string(chain, 'chain')
-                networkCode = self.network_id_to_code(networkId, code)
-                if networkId is None:
-                    continue
-                precisionString = self.parse_precision(self.safe_string(chain, 'withdrawal_precision'))
-                feeString = self.safe_string(chain, 'withdrawal_fee')
-                minNetworkDepositString = self.safe_string(chain, 'min_deposit_amount')
-                minNetworkWithdrawString = self.safe_string(chain, 'min_withdraw_amount')
-                canDepositChain = self.safe_bool(chain, 'deposit_enabled')
-                canWithdrawChain = self.safe_bool(chain, 'withdraw_enabled')
-                network: dict = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'name': None,
-                    'active': canDepositChain and canWithdrawChain,
-                    'deposit': canDepositChain,
-                    'withdraw': canWithdrawChain,
-                    'fee': self.parse_number(feeString),
-                    'precision': self.parse_number(precisionString),
-                    'limits': {
-                        'amount': {
-                            'min': None,
-                            'max': None,
-                        },
-                        'deposit': {
-                            'min': self.parse_number(minNetworkDepositString),
-                            'max': None,
-                        },
-                        'withdraw': {
-                            'min': self.parse_number(minNetworkWithdrawString),
-                            'max': None,
-                        },
-                    },
-                    'info': chain,
-                }
-                networks[networkCode] = network
-            result[code] = self.safe_currency_structure({
-                'id': currencyId,
-                'code': code,
+        return self.parse_currencies(data)
+
+    def parse_currency(self, coin) -> Currency:
+        asset = self.safe_dict(coin, 'asset', {})
+        chains = self.safe_list(coin, 'chains', [])
+        currencyId = self.safe_string(asset, 'ccy')
+        if currencyId is None:
+            return None  # coinex returns empty structures for some reason
+        code = self.safe_currency_code(currencyId)
+        canDeposit = self.safe_bool(asset, 'deposit_enabled')
+        canWithdraw = self.safe_bool(asset, 'withdraw_enabled')
+        firstChain = self.safe_dict(chains, 0, {})
+        firstPrecisionString = self.parse_precision(self.safe_string(firstChain, 'withdrawal_precision'))
+        networks: dict = {}
+        for j in range(0, len(chains)):
+            chain = chains[j]
+            networkId = self.safe_string(chain, 'chain')
+            networkCode = self.network_id_to_code(networkId, code)
+            if networkId is None:
+                continue
+            precisionString = self.parse_precision(self.safe_string(chain, 'withdrawal_precision'))
+            feeString = self.safe_string(chain, 'withdrawal_fee')
+            minNetworkDepositString = self.safe_string(chain, 'min_deposit_amount')
+            minNetworkWithdrawString = self.safe_string(chain, 'min_withdraw_amount')
+            canDepositChain = self.safe_bool(chain, 'deposit_enabled')
+            canWithdrawChain = self.safe_bool(chain, 'withdraw_enabled')
+            network: dict = {
+                'id': networkId,
+                'network': networkCode,
                 'name': None,
-                'active': canDeposit and canWithdraw,
-                'deposit': canDeposit,
-                'withdraw': canWithdraw,
-                'fee': None,
-                'precision': self.parse_number(firstPrecisionString),
+                'active': canDepositChain and canWithdrawChain,
+                'deposit': canDepositChain,
+                'withdraw': canWithdrawChain,
+                'fee': self.parse_number(feeString),
+                'precision': self.parse_number(precisionString),
                 'limits': {
                     'amount': {
                         'min': None,
                         'max': None,
                     },
                     'deposit': {
-                        'min': None,
+                        'min': self.parse_number(minNetworkDepositString),
                         'max': None,
                     },
                     'withdraw': {
-                        'min': None,
+                        'min': self.parse_number(minNetworkWithdrawString),
                         'max': None,
                     },
                 },
-                'networks': networks,
-                'type': 'crypto',
-                'info': coin,
-            })
-        return result
+                'info': chain,
+            }
+            networks[networkCode] = network
+        return self.safe_currency_structure({
+            'id': currencyId,
+            'code': code,
+            'name': None,
+            'active': canDeposit and canWithdraw,
+            'deposit': canDeposit,
+            'withdraw': canWithdraw,
+            'fee': None,
+            'precision': self.parse_number(firstPrecisionString),
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'deposit': {
+                    'min': None,
+                    'max': None,
+                },
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'networks': networks,
+            'type': 'crypto',
+            'info': coin,
+        })
 
     def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -3827,7 +3826,7 @@ class coinex(Exchange, ImplicitAPI):
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is None:
             raise ArgumentsRequired(self.id + ' fetchDepositAddress() requires a "network" parameter')
-        request['chain'] = self.network_code_to_id(networkCode)  # required for on-chain, not required for inter-user transfer
+        request['chain'] = self.network_code_to_id(networkCode, currency['code'])  # required for on-chain, not required for inter-user transfer
         response = self.v2PrivateGetAssetsDepositAddress(self.extend(request, params))
         #
         #     {
@@ -4718,7 +4717,7 @@ class coinex(Exchange, ImplicitAPI):
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:
-            request['chain'] = self.network_code_to_id(networkCode)  # required for on-chain, not required for inter-user transfer
+            request['chain'] = self.network_code_to_id(networkCode, currency['code'])  # required for on-chain, not required for inter-user transfer
         response = self.v2PrivatePostAssetsWithdraw(self.extend(request, params))
         #
         #     {
@@ -4911,7 +4910,7 @@ class coinex(Exchange, ImplicitAPI):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': self.network_id_to_code(networkId),
+            'network': self.network_id_to_code(networkId, code),
             'address': address,
             'addressTo': address,
             'addressFrom': None,
@@ -5594,7 +5593,9 @@ class coinex(Exchange, ImplicitAPI):
                 result['withdraw']['percentage'] = False
                 networkId = self.safe_string(entry, 'chain')
                 if networkId:
-                    networkCode = self.network_id_to_code(networkId, self.safe_string(asset, 'ccy'))
+                    currencyId = self.safe_string(asset, 'ccy')
+                    feeCode = self.safe_currency_code(currencyId, currency)
+                    networkCode = self.network_id_to_code(networkId, feeCode)
                     result['networks'][networkCode] = {
                         'withdraw': {
                             'fee': self.safe_number(entry, 'withdrawal_fee'),

@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var paymium$1 = require('./abstract/paymium.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -133,17 +133,17 @@ class paymium extends paymium$1["default"] {
                         'hedged': false,
                         'trailing': false,
                         'leverage': false,
-                        'marketBuyByCost': true,
+                        'marketBuyByCost': true, // todo
                         'marketBuyRequiresPrice': false,
                         'selfTradePrevention': false,
                         'iceberg': false,
                     },
                     'createOrders': undefined,
                     'fetchMyTrades': undefined,
-                    'fetchOrder': undefined,
-                    'fetchOpenOrders': undefined,
-                    'fetchOrders': undefined,
-                    'fetchClosedOrders': undefined,
+                    'fetchOrder': undefined, // todo
+                    'fetchOpenOrders': undefined, // todo
+                    'fetchOrders': undefined, // todo
+                    'fetchClosedOrders': undefined, // todo
                     'fetchOHLCV': undefined, // todo
                 },
                 'swap': {
@@ -625,7 +625,7 @@ class paymium extends paymium$1["default"] {
                     url += '?' + queryString;
                 }
             }
-            headers['Api-Signature'] = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
+            headers['Api-Signature'] = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

@@ -1832,7 +1832,7 @@ You can also clone it into your project directory from `ccxt GitHub repository <
 JavaScript (NPM)
 ^^^^^^^^^^^^^^^^
 
-JavaScript version of CCXT works in both Node and web browsers. Requires ES6 and ``async/await`` syntax support (Node 7.6.0+). When compiling with Webpack and Babel, make sure it is `not excluded <https://github.com/ccxt/ccxt/issues/225#issuecomment-331905178>`__ in your ``babel-loader`` config.
+JavaScript version of CCXT works in both Node and web browsers. Requires ES6 and ``async/await`` syntax support (Node 7.6.0+). When compiling with Rspack (or Webpack) and Babel, make sure it is `not excluded <https://github.com/ccxt/ccxt/issues/225#issuecomment-331905178>`__ in your ``babel-loader`` config.
 
 `ccxt in **NPM** <https://www.npmjs.com/package/ccxt>`__
 

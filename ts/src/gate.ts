@@ -1,10 +1,10 @@
 //  ---------------------------------------------------------------------------
 
+import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/gate.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled, OrderImmediatelyFillable } from './base/errors.js';
-import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, Dict, LeverageTier, LeverageTiers, int, CancellationRequest, LedgerEntry, FundingRate, FundingRates, DepositAddress, Bool, BorrowInterest } from './base/types.js';
 
 /**
@@ -1998,56 +1998,54 @@ export default class gate extends Exchange {
         //       },
         //    ]
         //
-        const indexedCurrencies = this.indexBy (response, 'currency');
-        const result: Dict = {};
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const currencyId = this.safeString (entry, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
-            // check leveraged tokens (e.g. BTC3S, ETH5L)
-            const type = this.isLeveragedCurrency (currencyId, true, indexedCurrencies) ? 'leveraged' : 'crypto';
-            const chains = this.safeList (entry, 'chains', []);
-            const networks = {};
-            for (let j = 0; j < chains.length; j++) {
-                const chain = chains[j];
-                const networkId = this.safeString (chain, 'name');
-                const networkCode = this.networkIdToCode (networkId);
-                networks[networkCode] = {
-                    'info': chain,
-                    'id': networkId,
-                    'network': networkCode,
-                    'active': undefined,
-                    'deposit': !this.safeBool (chain, 'deposit_disabled'),
-                    'withdraw': !this.safeBool (chain, 'withdraw_disabled'),
-                    'fee': undefined,
-                    'precision': this.parseNumber ('0.0001'), // temporary safe default, because no value provided from API,
-                    'limits': {
-                        'deposit': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'withdraw': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                    },
-                };
-            }
-            result[code] = this.safeCurrencyStructure ({
-                'id': currencyId,
-                'code': code,
-                'name': this.safeString (entry, 'name'),
-                'type': type,
-                'active': !this.safeBool (entry, 'delisted'),
-                'deposit': !this.safeBool (entry, 'deposit_disabled'),
-                'withdraw': !this.safeBool (entry, 'withdraw_disabled'),
+        return this.parseCurrencies (response);
+    }
+
+    parseCurrency (rawCurrency: Dict): Currency {
+        const currencyId = this.safeString (rawCurrency, 'currency');
+        const code = this.safeCurrencyCode (currencyId);
+        // check leveraged tokens (e.g. BTC3S, ETH5L)
+        const type = this.isLeveragedCurrency (currencyId) ? 'leveraged' : 'crypto';
+        const chains = this.safeList (rawCurrency, 'chains', []);
+        const networks = {};
+        for (let j = 0; j < chains.length; j++) {
+            const chain = chains[j];
+            const networkId = this.safeString (chain, 'name');
+            const networkCode = this.networkIdToCode (networkId, code);
+            networks[networkCode] = {
+                'info': chain,
+                'id': networkId,
+                'network': networkCode,
+                'active': undefined,
+                'deposit': !this.safeBool (chain, 'deposit_disabled'),
+                'withdraw': !this.safeBool (chain, 'withdraw_disabled'),
                 'fee': undefined,
-                'networks': networks,
-                'precision': this.parseNumber ('0.0001'),
-                'info': entry,
-            });
+                'precision': this.parseNumber ('0.0001'), // temporary safe default, because no value provided from API,
+                'limits': {
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+            };
         }
-        return result;
+        return this.safeCurrencyStructure ({
+            'id': currencyId,
+            'code': code,
+            'name': this.safeString (rawCurrency, 'name'),
+            'type': type,
+            'active': !this.safeBool (rawCurrency, 'delisted'),
+            'deposit': !this.safeBool (rawCurrency, 'deposit_disabled'),
+            'withdraw': !this.safeBool (rawCurrency, 'withdraw_disabled'),
+            'fee': undefined,
+            'networks': networks,
+            'precision': this.parseNumber ('0.0001'),
+            'info': rawCurrency,
+        });
     }
 
     /**
@@ -2126,7 +2124,7 @@ export default class gate extends Exchange {
     async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        let market = undefined;
+        let market: Market = undefined;
         if (symbols !== undefined) {
             const firstSymbol = this.safeString (symbols, 0);
             market = this.market (firstSymbol);
@@ -2359,12 +2357,13 @@ export default class gate extends Exchange {
         //
         const address = this.safeString (depositAddress, 'address');
         this.checkAddress (address);
+        const code = this.safeString (currency, 'code');
         return {
             'info': depositAddress,
-            'currency': this.safeString (currency, 'code'),
+            'currency': code,
             'address': address,
             'tag': this.safeString (depositAddress, 'payment_id'),
-            'network': this.networkIdToCode (this.safeString (depositAddress, 'chain')),
+            'network': this.networkIdToCode (this.safeString (depositAddress, 'chain'), code),
         };
     }
 
@@ -2517,7 +2516,7 @@ export default class gate extends Exchange {
                 const networkIds = Object.keys (withdrawFixOnChains);
                 for (let j = 0; j < networkIds.length; j++) {
                     const networkId = networkIds[j];
-                    const networkCode = this.networkIdToCode (networkId);
+                    const networkCode = this.networkIdToCode (networkId, code);
                     withdrawFees[networkCode] = this.parseNumber (withdrawFixOnChains[networkId]);
                 }
             }
@@ -2599,7 +2598,9 @@ export default class gate extends Exchange {
             const chainKeys = Object.keys (withdrawFixOnChains);
             for (let i = 0; i < chainKeys.length; i++) {
                 const chainKey = chainKeys[i];
-                const networkCode = this.networkIdToCode (chainKey, this.safeString (fee, 'currency'));
+                const currencyId = this.safeString (fee, 'currency');
+                const code = this.safeCurrencyCode (currencyId, currency);
+                const networkCode = this.networkIdToCode (chainKey, code);
                 result['networks'][networkCode] = {
                     'withdraw': {
                         'fee': this.parseNumber (withdrawFixOnChains[chainKey]),
@@ -2630,7 +2631,7 @@ export default class gate extends Exchange {
     async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         // let defaultType = 'future';
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -3002,7 +3003,7 @@ export default class gate extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const first = this.safeString (symbols, 0);
-        let market = undefined;
+        let market: Market = undefined;
         if (first !== undefined) {
             market = this.market (first);
         }
@@ -3334,7 +3335,7 @@ export default class gate extends Exchange {
 
     /**
      * @method
-     * @name gateio#fetchOHLCV
+     * @name gate#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @see https://www.gate.com/docs/developers/apiv4/en/#market-k-line-chart                       // spot
      * @see https://www.gate.com/docs/developers/apiv4/en/#futures-market-k-line-chart               // swap
@@ -4099,7 +4100,7 @@ export default class gate extends Exchange {
         let networkCode = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
-            request['chain'] = this.networkCodeToId (networkCode);
+            request['chain'] = this.networkCodeToId (networkCode, code);
         }
         const response = await this.privateWithdrawalsPostWithdrawals (this.extend (request, params));
         //
@@ -4233,7 +4234,7 @@ export default class gate extends Exchange {
             'txid': txid,
             'currency': code,
             'amount': this.parseNumber (amountString),
-            'network': this.networkIdToCode (networkId),
+            'network': this.networkIdToCode (networkId, code),
             'address': address,
             'addressTo': undefined,
             'addressFrom': undefined,
@@ -5326,7 +5327,7 @@ export default class gate extends Exchange {
         await this.loadMarkets ();
         await this.loadUnifiedStatus ();
         const until = this.safeInteger (params, 'until');
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -5356,7 +5357,7 @@ export default class gate extends Exchange {
     }
 
     prepareOrdersByStatusRequest (status, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -5398,7 +5399,7 @@ export default class gate extends Exchange {
     async fetchOrdersByStatus (status, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         await this.loadUnifiedStatus ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -5747,7 +5748,7 @@ export default class gate extends Exchange {
     async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         await this.loadUnifiedStatus ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -6306,7 +6307,7 @@ export default class gate extends Exchange {
      */
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         symbols = this.marketSymbols (symbols, undefined, true, true, true);
         if (symbols !== undefined) {
             const symbolsLength = symbols.length;
@@ -6879,7 +6880,7 @@ export default class gate extends Exchange {
             currency = this.currency (code);
             request['currency'] = currency['id'];
         }
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -7269,7 +7270,7 @@ export default class gate extends Exchange {
      */
     async fetchMySettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -8069,7 +8070,7 @@ export default class gate extends Exchange {
      */
     async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             // unified account does not require a symbol
             market = this.market (symbol);
@@ -8432,7 +8433,7 @@ export default class gate extends Exchange {
      */
     async fetchPositionsHistory (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbols !== undefined) {
             const symbolsLength = symbols.length;
             if (symbolsLength === 1) {

@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Str, Ticker, Trade
+from ccxt.base.types import Any, Balances, Int, Market, Order, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import NotSupported
@@ -307,9 +307,9 @@ class bitrue(ccxt.async_support.bitrue):
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'orderbook:' + symbol
-        url = None
-        channel = None
-        cbId = None
+        url: Str = None
+        channel: Str = None
+        cbId: Str = None
         if market['swap']:
             baseIdLower = self.safe_string_lower(market, 'baseId')
             quoteIdLower = self.safe_string_lower(market, 'quoteId')
@@ -369,7 +369,7 @@ class bitrue(ccxt.async_support.bitrue):
         parts = channel.split('_')
         channelKind = self.safe_string(parts, 1)
         isFutures = (channelKind == 'e')
-        market = None
+        market: Market = None
         if isFutures:
             wsBaseQuote = self.safe_string_lower(parts, 2)
             market = self.find_swap_market_by_ws_base_quote(wsBaseQuote)
@@ -436,7 +436,7 @@ class bitrue(ccxt.async_support.bitrue):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -633,7 +633,7 @@ class bitrue(ccxt.async_support.bitrue):
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)

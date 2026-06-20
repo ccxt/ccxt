@@ -1,11 +1,11 @@
 
 // ----------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/coinbaseexchange.js';
 import { InsufficientFunds, ArgumentsRequired, ExchangeError, InvalidOrder, InvalidAddress, AuthenticationError, OrderNotFound, OnMaintenance, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, Num, Account, Currencies, TradingFees, Dict, int, LedgerEntry, DepositAddress } from './base/types.js';
 
 // ----------------------------------------------------------------------------
@@ -235,6 +235,7 @@ export default class coinbaseexchange extends Exchange {
                         'funding/repay',
                         'orders',
                         'position/close',
+                        'profiles',
                         'profiles/margin-transfer',
                         'profiles/transfer',
                         'reports',
@@ -250,6 +251,10 @@ export default class coinbaseexchange extends Exchange {
                         'orders',
                         'orders/client:{client_oid}',
                         'orders/{id}',
+                    ],
+                    'put': [
+                        'profiles/{id}/deactivate',
+                        'profiles/{id}',
                     ],
                 },
             },
@@ -527,7 +532,7 @@ export default class coinbaseexchange extends Exchange {
         for (let j = 0; j < supportedNetworks.length; j++) {
             const network = supportedNetworks[j];
             const networkId = this.safeString (network, 'id');
-            const networkCode = this.networkIdToCode (networkId);
+            const networkCode = this.networkIdToCode (networkId, code);
             networks[networkCode] = {
                 'id': networkId,
                 'name': this.safeString (network, 'name'),
@@ -2043,7 +2048,7 @@ export default class coinbaseexchange extends Exchange {
             'txid': this.safeString (details, 'crypto_transaction_hash'),
             'type': type,
             'currency': code,
-            'network': this.networkIdToCode (networkId),
+            'network': this.networkIdToCode (networkId, code),
             'amount': amount,
             'status': this.parseTransactionStatus (transaction),
             'timestamp': timestamp,

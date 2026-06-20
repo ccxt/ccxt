@@ -927,7 +927,7 @@ public class DeepcoinCore extends DeepcoinApi
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
-                Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 2000));
+                Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 500));
             }
             Object productGroup = this.getProductGroupFromMarket(market);
             Helpers.addElementToObject(request, "productGroup", productGroup);
@@ -1245,7 +1245,7 @@ public class DeepcoinCore extends DeepcoinApi
         Object amount = this.safeNumber(transaction, "amount");
         Object timestamp = this.safeTimestamp(transaction, "createTime");
         Object networkId = this.safeString(transaction, "chainName");
-        Object network = this.networkIdToCode(networkId);
+        Object network = this.networkIdToCode(networkId, code);
         Object status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
@@ -1420,10 +1420,11 @@ public class DeepcoinCore extends DeepcoinApi
         Object chain = this.safeString(response, "chain");
         Object address = this.safeString(response, "address");
         this.checkAddress(address);
+        Object code = this.safeString(currency, "code");
         return new java.util.HashMap<String, Object>() {{
             put( "info", response );
             put( "currency", null );
-            put( "network", DeepcoinCore.this.networkIdToCode(chain) );
+            put( "network", DeepcoinCore.this.networkIdToCode(chain, code) );
             put( "address", address );
             put( "tag", DeepcoinCore.this.safeString(response, "memo") );
         }};

@@ -1,9 +1,9 @@
 
 // ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/deepcoin.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Precise } from './base/Precise.js';
 import type { Balances, Currency, DepositAddress, Dict, FundingRate, FundingRates, int, Int, LedgerEntry, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound, NotSupported, NullResponse } from './base/errors.js';
@@ -825,7 +825,7 @@ export default class deepcoin extends Exchange {
             'instId': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = Math.min (limit, 2000);
+            request['limit'] = Math.min (limit, 500);
         }
         const productGroup = this.getProductGroupFromMarket (market);
         request['productGroup'] = productGroup;
@@ -1082,7 +1082,7 @@ export default class deepcoin extends Exchange {
         const amount = this.safeNumber (transaction, 'amount');
         const timestamp = this.safeTimestamp (transaction, 'createTime');
         const networkId = this.safeString (transaction, 'chainName');
-        const network = this.networkIdToCode (networkId);
+        const network = this.networkIdToCode (networkId, code);
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         return {
             'info': transaction,
@@ -1233,10 +1233,11 @@ export default class deepcoin extends Exchange {
         const chain = this.safeString (response, 'chain');
         const address = this.safeString (response, 'address');
         this.checkAddress (address);
+        const code = this.safeString (currency, 'code');
         return {
             'info': response,
             'currency': undefined,
-            'network': this.networkIdToCode (chain),
+            'network': this.networkIdToCode (chain, code),
             'address': address,
             'tag': this.safeString (response, 'memo'),
         } as DepositAddress;

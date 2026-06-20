@@ -1,11 +1,11 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/bitget.js';
 import { ExchangeError, ExchangeNotAvailable, NotSupported, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, DDoSProtection, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, RestrictedLocation } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Liquidation, TransferEntry, Leverage, MarginMode, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRate, Dict, LeverageTier, int, LedgerEntry, FundingRate, DepositAddress, LongShortRatio, BorrowInterest, FundingRates } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
@@ -2887,7 +2887,7 @@ export default class bitget extends Exchange {
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const networkId = this.networkCodeToId (networkCode);
+        const networkId = this.networkCodeToId (networkCode, code);
         const request: Dict = {
             'coin': currency['id'],
             'address': address,
@@ -3058,7 +3058,7 @@ export default class bitget extends Exchange {
             'txid': this.safeString (transaction, 'tradeId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': this.networkIdToCode (networkId),
+            'network': this.networkIdToCode (networkId, code),
             'addressFrom': this.safeString (transaction, 'fromAddress'),
             'address': this.safeString (transaction, 'toAddress'),
             'addressTo': this.safeString (transaction, 'toAddress'),
@@ -11144,13 +11144,16 @@ export default class bitget extends Exchange {
                 auth += body;
             } else {
                 if (Object.keys (params).length) {
-                    let queryInner = '?' + this.urlencode (this.keysort (params));
+                    const sortedParams = this.keysort (params);
+                    let queryInner = '?' + this.urlencode (sortedParams, true);
                     // check #21169 pr
                     if (queryInner.indexOf ('%24') > -1) {
                         queryInner = queryInner.replace ('%24', '$');
                     }
                     url += queryInner;
-                    auth += queryInner;
+                    // bitget signs the raw (non-percent-encoded) query string, so the
+                    // signature must use the decoded values (e.g. non-ascii market ids)
+                    auth += '?' + this.rawencode (sortedParams);
                 }
             }
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256, 'base64');

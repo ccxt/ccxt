@@ -543,7 +543,7 @@ func (this *AscendexCore) ParseCurrency(rawCurrency any) any {
 	for j := 0; IsLessThan(j, GetArrayLength(chains)); j++ {
 		var networkEtnry any = GetValue(chains, j)
 		var networkId any = this.SafeString(networkEtnry, "chainName")
-		var networkCode any = this.NetworkCodeToId(networkId)
+		var networkCode any = this.NetworkCodeToId(networkId, code)
 		AddElementToObject(networks, networkCode, map[string]any{
 			"fee":       this.SafeNumber(networkEtnry, "withdrawFee"),
 			"active":    nil,
@@ -2963,7 +2963,7 @@ func (this *AscendexCore) FetchDepositAddress(code any, optionalArgs ...any) <-c
 		PanicOnError(retRes26028)
 		var currency any = this.Currency(code)
 		var networkCode any = this.SafeString2(params, "network", "chainName")
-		var networkId any = this.NetworkCodeToId(networkCode)
+		var networkId any = this.NetworkCodeToId(networkCode, GetValue(currency, "code"))
 		params = this.Omit(params, []any{"chainName"})
 		var request any = map[string]any{
 			"asset":      GetValue(currency, "id"),
@@ -4323,9 +4323,8 @@ func (this *AscendexCore) FetchOpenInterests(optionalArgs ...any) <-chan any {
 		retRes36478 := (<-this.LoadMarkets())
 		PanicOnError(retRes36478)
 		var request any = map[string]any{}
-		var response any = nil
 
-		response = (<-this.V2PublicGetFuturesPricingData(this.Extend(request, params)))
+		response := (<-this.V2PublicGetFuturesPricingData(this.Extend(request, params)))
 		PanicOnError(response)
 		//
 		//    {

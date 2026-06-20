@@ -800,7 +800,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Object bidAsk = Helpers.GetValue(bidAsks, i);
             if (Helpers.isTrue(Helpers.isArray(bidAsk)))
             {
-                Helpers.callDynamically(bookSide, "storeArray", new Object[]{this.parseBidAsk(bidAsk)});
+                Helpers.callDynamically(bookSide, "storeArray", new Object[]{this.parseOrderBookBidAsk(bidAsk)});
             } else
             {
                 Object price = this.safeFloat(bidAsk, "p");

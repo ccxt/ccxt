@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bigone import ImplicitAPI
 import asyncio
-from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Bool, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -539,7 +539,7 @@ class bigone(Exchange, ImplicitAPI):
         for j in range(0, len(chains)):
             chain = chains[j]
             networkId = self.safe_string(chain, 'gateway_name')
-            networkCode = self.network_id_to_code(networkId)
+            networkCode = self.network_id_to_code(networkId, code)
             deposit = self.safe_bool(chain, 'is_deposit_enabled')
             withdraw = self.safe_bool(chain, 'is_withdrawal_enabled')
             minDepositAmount = self.safe_string(chain, 'min_deposit_amount')
@@ -877,7 +877,7 @@ class bigone(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        type = None
+        type: Str = None
         type, params = self.handle_market_type_and_params('fetchTicker', market, params)
         if type == 'spot':
             request: dict = {
@@ -917,11 +917,11 @@ class bigone(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         symbol = self.safe_string(symbols, 0)
         if symbol is not None:
             market = self.market(symbol)
-        type = None
+        type: Str = None
         type, params = self.handle_market_type_and_params('fetchTickers', market, params)
         isSpot = type == 'spot'
         request: dict = {}
@@ -1024,7 +1024,7 @@ class bigone(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        response = None
+        response: dict = None
         if market['contract']:
             request: dict = {
                 'symbol': market['id'],
@@ -1391,7 +1391,7 @@ class bigone(Exchange, ImplicitAPI):
         await self.load_markets()
         type = self.safe_string(params, 'type', '')
         params = self.omit(params, 'type')
-        response = None
+        response: dict = None
         if type == 'funding' or type == 'fund':
             response = await self.privateGetFundAccounts(params)
         else:
@@ -1450,14 +1450,14 @@ class bigone(Exchange, ImplicitAPI):
         if Precise.string_eq(triggerPrice, '0'):
             triggerPrice = None
         immediateOrCancel = self.safe_bool(order, 'immediate_or_cancel')
-        timeInForce = None
+        timeInForce: Str = None
         if immediateOrCancel:
             timeInForce = 'IOC'
         type = self.parse_type(self.safe_string(order, 'type'))
         price = self.safe_string(order, 'price')
-        amount = None
-        filled = None
-        cost = None
+        amount: Str = None
+        filled: Str = None
+        cost: Str = None
         if type == 'market' and side == 'buy':
             cost = self.safe_string(order, 'filled_amount')
         else:
@@ -1534,7 +1534,7 @@ class bigone(Exchange, ImplicitAPI):
         uppercaseType = type.upper()
         isLimit = uppercaseType == 'LIMIT'
         exchangeSpecificParam = self.safe_bool(params, 'post_only', False)
-        postOnly = None
+        postOnly: Bool = None
         postOnly, params = self.handle_post_only((uppercaseType == 'MARKET'), exchangeSpecificParam, params)
         triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 'stop_price'])
         request: dict = {
@@ -1928,7 +1928,7 @@ class bigone(Exchange, ImplicitAPI):
         return {
             'info': response,
             'currency': code,
-            'network': self.network_id_to_code(selectedNetworkId),
+            'network': self.network_id_to_code(selectedNetworkId, code),
             'address': address,
             'tag': tag,
         }
@@ -2050,7 +2050,7 @@ class bigone(Exchange, ImplicitAPI):
             # 'kind': 'string',  # optional - air_drop, big_holder_dividend, default, eosc_to_eos, internal, equally_airdrop, referral_mining, one_holder_dividend, single_customer, snapshotted_airdrop, trade_mining
             # 'asset_symbol': 'BTC',  # optional
         }
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
             request['asset_symbol'] = currency['id']
@@ -2100,7 +2100,7 @@ class bigone(Exchange, ImplicitAPI):
             # 'kind': 'string',  # optional - air_drop, big_holder_dividend, default, eosc_to_eos, internal, equally_airdrop, referral_mining, one_holder_dividend, single_customer, snapshotted_airdrop, trade_mining
             # 'asset_symbol': 'BTC',  # optional
         }
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
             request['asset_symbol'] = currency['id']
@@ -2225,10 +2225,10 @@ class bigone(Exchange, ImplicitAPI):
         }
         if tag is not None:
             request['memo'] = tag
-        networkCode = None
+        networkCode: Str = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:
-            request['gateway_name'] = self.network_code_to_id(networkCode)
+            request['gateway_name'] = self.network_code_to_id(networkCode, currency['code'])
         # requires write permission on the wallet
         response = await self.privatePostWithdrawals(self.extend(request, params))
         #

@@ -1678,10 +1678,10 @@ func (this *IndodaxCore) FetchDepositAddresses(optionalArgs ...any) <-chan any {
 						network = []any{}
 						var networkIds any = Split(networkId, ",")
 						for j := 0; IsLessThan(j, GetArrayLength(networkIds)); j++ {
-							AppendToArray(&network, ToUpper(this.NetworkIdToCode(GetValue(networkIds, j))))
+							AppendToArray(&network, ToUpper(this.NetworkIdToCode(GetValue(networkIds, j), code)))
 						}
 					} else {
-						network = ToUpper(this.NetworkIdToCode(networkId))
+						network = ToUpper(this.NetworkIdToCode(networkId, code))
 					}
 				}
 				var finalNetwork any = network // java req

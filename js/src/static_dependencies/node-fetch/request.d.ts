@@ -15,7 +15,7 @@ export default class Request extends Body {
     agent: any;
     highWaterMark: any;
     insecureHTTPParser: any;
-    set referrerPolicy(arg: any);
+    set referrerPolicy(referrerPolicy: any);
     get referrerPolicy(): any;
     /** @returns {string} */
     get method(): string;
@@ -54,7 +54,7 @@ export function getNodeRequestOptions(request: Request): {
         agent: any;
     };
 };
-import Body from "./body.js";
-import Headers from "./headers.js";
+import Body from './body.js';
+import Headers from './headers.js';
 declare const INTERNALS: unique symbol;
 export {};

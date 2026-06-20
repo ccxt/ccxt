@@ -487,7 +487,7 @@ class btcbox(Exchange, ImplicitAPI):
         #
         #      {
         #          "date":"0",
-        #          "price":3,
+        #          "price":4,
         #          "amount":0.1,
         #          "tid":"1",
         #          "type":"buy"
@@ -631,7 +631,7 @@ class btcbox(Exchange, ImplicitAPI):
         #
         id = self.safe_string(order, 'id')
         datetimeString = self.safe_string(order, 'datetime')
-        timestamp = None
+        timestamp: Int = None
         if datetimeString is not None:
             timestamp = self.parse8601(order['datetime'] + '+09:00')  # Tokyo time
         amount = self.safe_string(order, 'amount_original')

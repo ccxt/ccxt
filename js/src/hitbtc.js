@@ -4,11 +4,11 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/hitbtc.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { BadSymbol, BadRequest, OnMaintenance, AccountSuspended, PermissionDenied, ExchangeError, RateLimitExceeded, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, AuthenticationError, ArgumentsRequired, NotSupported } from './base/errors.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 /**
  * @class hitbtc
  * @augments Exchange
@@ -22,7 +22,7 @@ export default class hitbtc extends Exchange {
             // 300 requests per second => 1000ms / 300 = 3.333 (Trading: placing, replacing, deleting)
             // 30 requests per second => ( 1000ms / rateLimit ) / 30 = cost = 10 (Market Data and other Public Requests)
             // 20 requests per second => ( 1000ms / rateLimit ) / 20 = cost = 15 (All Other)
-            'rateLimit': 3.333,
+            'rateLimit': 3.333, // TODO: optimize https://api.hitbtc.com/#rate-limiting
             'version': '3',
             'has': {
                 'CORS': false,
@@ -304,8 +304,8 @@ export default class hitbtc extends Exchange {
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -349,9 +349,9 @@ export default class hitbtc extends Exchange {
                     'fetchClosedOrders': {
                         'marginMode': true,
                         'limit': 1000,
-                        'daysBack': 100000,
-                        'daysBackCanceled': 1,
-                        'untilDays': 100000,
+                        'daysBack': 100000, // todo
+                        'daysBackCanceled': 1, // todo
+                        'untilDays': 100000, // todo
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
@@ -404,7 +404,7 @@ export default class hitbtc extends Exchange {
                 '3m': 'M3',
                 '5m': 'M5',
                 '15m': 'M15',
-                '30m': 'M30',
+                '30m': 'M30', // default
                 '1h': 'H1',
                 '4h': 'H4',
                 '1d': 'D1',
@@ -431,7 +431,7 @@ export default class hitbtc extends Exchange {
                     '2012': BadRequest,
                     '2020': BadRequest,
                     '2022': BadRequest,
-                    '2024': InvalidOrder,
+                    '2024': InvalidOrder, // Invalid margin mode.
                     '10001': BadRequest,
                     '10021': AccountSuspended,
                     '10022': BadRequest,
@@ -449,7 +449,7 @@ export default class hitbtc extends Exchange {
                     '20012': ExchangeError,
                     '20014': ExchangeError,
                     '20016': ExchangeError,
-                    '20018': ExchangeError,
+                    '20018': ExchangeError, // Withdrawals are unavailable due to the current configuration. Any of: - internal withdrawals are disabled; - in-chain withdrawals are disabled.
                     '20031': ExchangeError,
                     '20032': ExchangeError,
                     '20033': ExchangeError,
@@ -460,14 +460,14 @@ export default class hitbtc extends Exchange {
                     '20043': ExchangeError,
                     '20044': PermissionDenied,
                     '20045': InvalidOrder,
-                    '20047': InvalidOrder,
-                    '20048': InvalidOrder,
-                    '20049': InvalidOrder,
+                    '20047': InvalidOrder, // Order placing exceeds the central counterparty balance limit.
+                    '20048': InvalidOrder, // Provided Time-In-Force instruction is invalid or the combination of the instruction and the order type is not allowed.
+                    '20049': InvalidOrder, // Provided order type is invalid.
                     '20080': ExchangeError,
                     '21001': ExchangeError,
                     '21003': AccountSuspended,
                     '21004': AccountSuspended,
-                    '22004': ExchangeError,
+                    '22004': ExchangeError, // User is not found.
                     '22008': ExchangeError, // Gateway timeout exceeded.
                 },
                 'broad': {},
@@ -740,12 +740,12 @@ export default class hitbtc extends Exchange {
             },
             'commonCurrencies': {
                 'AUTO': 'Cube',
-                'BCC': 'BCC',
+                'BCC': 'BCC', // initial symbol for Bitcoin Cash, now inactive
                 'BDP': 'BidiPass',
                 'BET': 'DAO.Casino',
                 'BIT': 'BitRewards',
                 'BOX': 'BOX Token',
-                'CPT': 'Cryptaur',
+                'CPT': 'Cryptaur', // conflict with CPT = Contents Protocol https://github.com/ccxt/ccxt/issues/4920 and https://github.com/ccxt/ccxt/issues/6081
                 'GET': 'Themis',
                 'GMT': 'GMT Token',
                 'HSR': 'HC',
@@ -974,7 +974,7 @@ export default class hitbtc extends Exchange {
         for (let j = 0; j < rawNetworks.length; j++) {
             const rawNetwork = rawNetworks[j];
             const networkId = this.safeString2(rawNetwork, 'protocol', 'network');
-            let networkCode = this.networkIdToCode(networkId);
+            let networkCode = this.networkIdToCode(networkId, code);
             networkCode = (networkCode !== undefined) ? networkCode.toUpperCase() : code; // as hitbtc is white label, ensure we safeguard from possible bugs
             networks[networkCode] = {
                 'info': rawNetwork,
@@ -1012,17 +1012,6 @@ export default class hitbtc extends Exchange {
             },
             'type': undefined, // 'crypto' field emits incorrect values
         });
-    }
-    addKeyInArrayItems(obj, keyName) {
-        const result = [];
-        const keys = Object.keys(obj);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const item = obj[key];
-            item[keyName] = key;
-            result.push(item);
-        }
-        return result;
     }
     /**
      * @method
@@ -3406,7 +3395,7 @@ export default class hitbtc extends Exchange {
             amount = '0';
         }
         const request = {
-            'symbol': market['id'],
+            'symbol': market['id'], // swap and margin
             'margin_balance': amount, // swap and margin
             // "leverage": "10", // swap only required
             // "strict_validate": false, // swap and margin
@@ -3709,7 +3698,8 @@ export default class hitbtc extends Exchange {
         for (let j = 0; j < networks.length; j++) {
             const networkEntry = networks[j];
             const networkId = this.safeString(networkEntry, 'network');
-            let networkCode = this.networkIdToCode(networkId);
+            const code = this.safeString(currency, 'code');
+            let networkCode = this.networkIdToCode(networkId, code);
             networkCode = (networkCode !== undefined) ? networkCode.toUpperCase() : undefined;
             const withdrawFee = this.safeNumber(networkEntry, 'payout_fee');
             const isDefault = this.safeValue(networkEntry, 'default');

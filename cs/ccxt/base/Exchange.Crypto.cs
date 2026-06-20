@@ -628,11 +628,6 @@ public partial class Exchange
         return count;
     }
 
-    public object axolotl(object a, object b, object c)
-    {
-        return ""; // to be implemented
-    }
-
     public static object inflate(object data)
     {
         var compressedMessage = Encoding.UTF8.GetBytes((string)data);

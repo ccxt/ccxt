@@ -1,12 +1,12 @@
 
 // ---------------------------------------------------------------------------
 
+import { ed25519 } from '@noble/curves/ed25519.js';
 import Exchange from './abstract/backpack.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, ExchangeNotAvailable, InvalidOrder, InsufficientFunds, NetworkError, OperationFailed, OperationRejected, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import type { Balances, Bool, Currencies, Currency, DepositAddress, Dict, FundingRate, FundingRateHistory, int, Int, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderRequest, OrderType, OrderSide, Position, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
-import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { eddsa } from './base/functions/crypto.js';
 
 // ---------------------------------------------------------------------------
@@ -544,7 +544,7 @@ export default class backpack extends Exchange {
             const network = networks[j];
             const networkId = this.safeString (network, 'blockchain');
             const networkIdLowerCase = this.safeStringLower (network, 'blockchain');
-            const networkCode = this.networkIdToCode (networkIdLowerCase);
+            const networkCode = this.networkIdToCode (networkIdLowerCase, code);
             parsedNetworks[networkCode] = {
                 'id': networkId,
                 'network': networkCode,
@@ -1264,10 +1264,17 @@ export default class backpack extends Exchange {
         market = this.safeMarket (marketId, market);
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'quantity');
+        const isBuyerMaker = this.safeBool (trade, 'isBuyerMaker');
+        let side = this.parseOrderSide (this.safeString (trade, 'side'));
         const isMaker = this.safeBool (trade, 'isMaker');
-        const takerOrMaker = isMaker ? 'maker' : 'taker';
+        let takerOrMaker: Str = undefined;
+        if (isMaker !== undefined) {
+            takerOrMaker = isMaker ? 'maker' : 'taker';
+        } else if (isBuyerMaker !== undefined) {
+            takerOrMaker = 'taker';
+            side = isBuyerMaker ? 'sell' : 'buy';
+        }
         const orderId = this.safeString (trade, 'orderId');
-        const side = this.parseOrderSide (this.safeString (trade, 'side'));
         let fee = undefined;
         const feeAmount = this.safeString (trade, 'fee');
         let timestamp = this.safeInteger (trade, 'timestamp');
@@ -1478,7 +1485,7 @@ export default class backpack extends Exchange {
             request['clientId'] = tag; // memo or tag
         }
         const [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
-        const networkId = this.networkCodeToId (networkCode);
+        const networkId = this.networkCodeToId (networkCode, currency['code']);
         if (networkId === undefined) {
             throw new BadRequest (this.id + ' withdraw() requires a network parameter');
         }
@@ -1568,7 +1575,7 @@ export default class backpack extends Exchange {
         const timestamp = this.parse8601 (this.safeString (transaction, 'createdAt'));
         const amount = this.safeNumber (transaction, 'quantity');
         const networkId = this.safeStringLower2 (transaction, 'source', 'blockchain');
-        const network = this.networkIdToCode (networkId);
+        const network = this.networkIdToCode (networkId, code);
         const addressTo = this.safeString (transaction, 'toAddress');
         const addressFrom = this.safeString (transaction, 'fromAddress');
         const tag = this.safeString (transaction, 'platformMemo');
@@ -1638,7 +1645,7 @@ export default class backpack extends Exchange {
         }
         const currency = this.currency (code);
         const request: Dict = {
-            'blockchain': this.networkCodeToId (networkCode),
+            'blockchain': this.networkCodeToId (networkCode, currency['code']),
         };
         const response = await this.privateGetWapiV1CapitalDepositAddress (this.extend (request, params));
         return this.parseDepositAddress (response, currency);

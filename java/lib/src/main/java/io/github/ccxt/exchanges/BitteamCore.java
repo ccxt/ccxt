@@ -2569,7 +2569,7 @@ public class BitteamCore extends BitteamApi
             put( "txid", txid );
             put( "timestamp", timestamp );
             put( "datetime", BitteamCore.this.iso8601(timestamp) );
-            put( "network", BitteamCore.this.networkIdToCode(finalNetworkId) );
+            put( "network", BitteamCore.this.networkIdToCode(finalNetworkId, code) );
             put( "addressFrom", addressFrom );
             put( "address", null );
             put( "addressTo", addressTo );

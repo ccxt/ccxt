@@ -5890,6 +5890,25 @@ func WithFetchTransactionsHelperParams(params map[string]any) FetchTransactionsH
 	}
 }
 
+type CreateExtendedOrderRequestOptionsStruct struct {
+	Price  *float64
+	Params *map[string]any
+}
+
+type CreateExtendedOrderRequestOptions func(opts *CreateExtendedOrderRequestOptionsStruct)
+
+func WithCreateExtendedOrderRequestPrice(price float64) CreateExtendedOrderRequestOptions {
+	return func(opts *CreateExtendedOrderRequestOptionsStruct) {
+		opts.Price = &price
+	}
+}
+
+func WithCreateExtendedOrderRequestParams(params map[string]any) CreateExtendedOrderRequestOptions {
+	return func(opts *CreateExtendedOrderRequestOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
 type FetchNetworkDepositAddressOptionsStruct struct {
 	Params *map[string]any
 }
@@ -6874,18 +6893,6 @@ func WithFetchFundingLimitsCodes(codes []string) FetchFundingLimitsOptions {
 
 func WithFetchFundingLimitsParams(params map[string]any) FetchFundingLimitsOptions {
 	return func(opts *FetchFundingLimitsOptionsStruct) {
-		opts.Params = &params
-	}
-}
-
-type FetchTickersHelperOptionsStruct struct {
-	Params *map[string]any
-}
-
-type FetchTickersHelperOptions func(opts *FetchTickersHelperOptionsStruct)
-
-func WithFetchTickersHelperParams(params map[string]any) FetchTickersHelperOptions {
-	return func(opts *FetchTickersHelperOptionsStruct) {
 		opts.Params = &params
 	}
 }

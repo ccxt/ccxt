@@ -781,11 +781,11 @@ class indodax(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        side = None
+        side: Str = None
         if 'type' in order:
             side = order['type']
         status = self.parse_order_status(self.safe_string(order, 'status', 'open'))
-        symbol = None
+        symbol: Str = None
         cost = None
         price = self.safe_string(order, 'price')
         amount = None
@@ -869,7 +869,7 @@ class indodax(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
-        market = None
+        market: Market = None
         request: dict = {}
         if symbol is not None:
             market = self.market(symbol)
@@ -1136,7 +1136,7 @@ class indodax(Exchange, ImplicitAPI):
         withdraw = self.safe_value(data, 'withdraw', {})
         deposit = self.safe_value(data, 'deposit', {})
         transactions = []
-        currency = None
+        currency: Currency = None
         if code is None:
             keys = list(withdraw.keys())
             for i in range(0, len(keys)):
@@ -1249,7 +1249,7 @@ class indodax(Exchange, ImplicitAPI):
         timestamp = self.safe_timestamp_2(transaction, 'success_time', 'submit_time')
         depositId = self.safe_string(transaction, 'deposit_id')
         feeCost = self.safe_number(transaction, 'fee')
-        fee = None
+        fee: Fee = None
         if feeCost is not None:
             fee = {
                 'currency': self.safe_currency_code(None, currency),
@@ -1352,9 +1352,9 @@ class indodax(Exchange, ImplicitAPI):
                         network = []
                         networkIds = networkId.split(',')
                         for j in range(0, len(networkIds)):
-                            network.append(self.network_id_to_code(networkIds[j]).upper())
+                            network.append(self.network_id_to_code(networkIds[j], code).upper())
                     else:
-                        network = self.network_id_to_code(networkId).upper()
+                        network = self.network_id_to_code(networkId, code).upper()
                 finalNetwork = network  # java req
                 result[code] = {
                     'info': {},

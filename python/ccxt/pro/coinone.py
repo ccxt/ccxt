@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
-from ccxt.base.types import Any, Bool, Int, Market, OrderBook, Ticker, Trade
+from ccxt.base.types import Any, Bool, Int, Market, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import AuthenticationError
@@ -128,7 +128,7 @@ class coinone(ccxt.async_support.coinone):
         client.resolve(orderbook, messageHash)
 
     def handle_delta(self, bookside, delta):
-        bidAsk = self.parse_bid_ask(delta, 'price', 'qty')
+        bidAsk = self.parse_order_book_bid_ask(delta, 'price', 'qty')
         bookside.storeArray(bidAsk)
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
@@ -327,7 +327,7 @@ class coinone(ccxt.async_support.coinone):
         timestamp = self.safe_integer(trade, 'timestamp')
         market = self.safe_market(symbol, market)
         isSellerMaker = self.safe_value(trade, 'is_seller_maker')
-        side = None
+        side: Str = None
         if isSellerMaker is not None:
             side = 'sell' if isSellerMaker else 'buy'
         priceString = self.safe_string(trade, 'price')

@@ -79,7 +79,7 @@ export default class coinmetro extends Exchange {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    parseBidsAsks(bidasks: any, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): any[];
+    parseOrderBookBidsAsks(bidasks: any, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): any[];
     /**
      * @method
      * @name coinmetro#fetchTickers
@@ -125,7 +125,7 @@ export default class coinmetro extends Exchange {
      */
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
-    parseLedgerEntryDescription(description: any): any[];
+    parseLedgerEntryDescription(description: any): string[];
     parseLedgerEntryType(type: any): string;
     /**
      * @method

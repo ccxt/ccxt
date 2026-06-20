@@ -7,7 +7,7 @@ import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import asyncio
 import hashlib
-from ccxt.base.types import Any, Balances, Bool, Int, Liquidation, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Liquidation, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -188,10 +188,10 @@ class bybit(ccxt.async_support.bybit):
 
     async def get_url_by_market_type(self, symbol: Str = None, isPrivate=False, method: Str = None, params={}):
         accessibility = 'private' if isPrivate else 'public'
-        isUsdcSettled = None
-        isSpot = None
-        type = None
-        market = None
+        isUsdcSettled: Bool = None
+        isSpot: Bool = None
+        type: Str = None
+        market: Market = None
         url = self.urls['api']['ws']
         if symbol is not None:
             market = self.market(symbol)
@@ -215,7 +215,7 @@ class bybit(ccxt.async_support.bybit):
             if isSpot:
                 url = url[accessibility]['spot']
             elif (type == 'swap') or (type == 'future'):
-                subType = None
+                subType: Str = None
                 subType, params = self.handle_sub_type_and_params(method, market, params, 'linear')
                 url = url[accessibility][subType]
             else:
@@ -576,8 +576,8 @@ class bybit(ccxt.async_support.bybit):
         data = self.safe_dict(message, 'data', {})
         isSpot = self.safe_string(data, 'usdIndexPrice') is not None
         type = 'spot' if isSpot else 'contract'
-        symbol = None
-        parsed = None
+        symbol: Str = None
+        parsed: Ticker = None
         if (updateType == 'snapshot'):
             parsed = self.parse_ticker(data)
             symbol = parsed['symbol']
@@ -995,7 +995,7 @@ class bybit(ccxt.async_support.bybit):
             client.resolve(newBidsAsks, 'bidask:' + symbol)
 
     def handle_delta(self, bookside, delta):
-        bidAsk = self.parse_bid_ask(delta, 0, 1)
+        bidAsk = self.parse_order_book_bid_ask(delta, 0, 1)
         bookside.storeArray(bidAsk)
 
     def handle_deltas(self, bookside, deltas):
@@ -1172,7 +1172,7 @@ class bybit(ccxt.async_support.bybit):
         symbol = market['symbol']
         timestamp = self.safe_integer_2(trade, 't', 'T')
         side = self.safe_string_lower(trade, 'S')
-        takerOrMaker = None
+        takerOrMaker: Str = None
         m = self.safe_value(trade, 'm')
         if side is None:
             side = 'buy' if m else 'sell'
@@ -1376,7 +1376,7 @@ class bybit(ccxt.async_support.bybit):
         filterExecTypes = self.handle_option('watchMyTrades', 'filterExecTypes', [])
         for i in range(0, len(data)):
             rawTrade = data[i]
-            parsed = None
+            parsed: Trade = None
             if spot and not executionFast:
                 parsed = self.parse_ws_trade(rawTrade)
             else:
@@ -1579,7 +1579,7 @@ class bybit(ccxt.async_support.bybit):
         symbol = market['symbol']
         url = await self.get_url_by_market_type(symbol, False, 'watchLiquidations', params)
         params = self.clean_params(params)
-        method = None
+        method: Str = None
         method, params = self.handle_option_and_params(params, 'watchLiquidations', 'method', 'allLiquidation')
         messageHash = 'liquidations::' + symbol
         topic = method + '.' + market['id']
@@ -1889,9 +1889,9 @@ class bybit(ccxt.async_support.bybit):
         await self.load_markets()
         method = 'watchBalance'
         messageHash = 'balances'
-        type = None
+        type: Str = None
         type, params = self.handle_market_type_and_params('watchBalance', None, params)
-        subType = None
+        subType: Str = None
         subType, params = self.handle_sub_type_and_params('watchBalance', None, params)
         unified = await self.isUnifiedEnabled()
         isUnifiedMargin = self.safe_bool(unified, 0, False)
@@ -2075,7 +2075,7 @@ class bybit(ccxt.async_support.bybit):
         topic = self.safe_value(message, 'topic')
         info = None
         rawBalances = []
-        account = None
+        account: Str = None
         if topic == 'outboundAccountInfo':
             account = 'spot'
             data = self.safe_value(message, 'data', [])
@@ -2319,10 +2319,17 @@ class bybit(ccxt.async_support.bybit):
         if exacMethod is not None:
             exacMethod(client, message)
             return
+        # 'order' is a substring of 'orderbook', so an orderbook topic like
+        # 'orderbook.50.BTCUSDT' could be wrongly captured by the 'order' key in a
+        # first-match loop(in Go map iteration order is randomized). Check the
+        # orderbook prefix explicitly, then fall back to a simple first-match.
+        if topic.find('orderbook') >= 0:
+            self.handle_order_book(client, message)
+            return
         keys = list(methods.keys())
         for i in range(0, len(keys)):
             key = keys[i]
-            if topic.find(keys[i]) >= 0:
+            if topic.find(key) >= 0:
                 method = methods[key]
                 method(client, message)
                 return

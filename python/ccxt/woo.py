@@ -772,7 +772,7 @@ class woo(Exchange, ImplicitAPI):
         #
         isFromFetchOrder = ('id' in trade)
         timestampString = self.safe_string_2(trade, 'executed_timestamp', 'executedTimestamp')
-        timestamp = None
+        timestamp: Int = None
         if timestampString is not None:
             if timestampString.find('.') > -1:
                 timestamp = self.safe_timestamp_2(trade, 'executed_timestamp', 'executedTimestamp')
@@ -1017,63 +1017,74 @@ class woo(Exchange, ImplicitAPI):
         tokensById = self.group_by(tokenRows, 'balance_token')
         currencyIds = list(tokensById.keys())
         for i in range(0, len(currencyIds)):
-            currencyId = currencyIds[i]
-            code = self.safe_currency_code(currencyId)
-            tokensByNetworkId = self.index_by(tokensById[currencyId], 'network')
-            chainsByNetworkId = self.index_by(networksById[currencyId], 'network')
-            keys = list(chainsByNetworkId.keys())
-            resultingNetworks: dict = {}
-            for j in range(0, len(keys)):
-                networkId = keys[j]
-                tokenEntry = self.safe_dict(tokensByNetworkId, networkId, {})
-                networkEntry = self.safe_dict(chainsByNetworkId, networkId, {})
-                networkCode = self.network_id_to_code(networkId, code)
-                specialNetworkId = self.safe_string(tokenEntry, 'token')
-                resultingNetworks[networkCode] = {
-                    'id': networkId,
-                    'currencyNetworkId': specialNetworkId,  # exchange uses special crrency-ids(coin + network junction)
-                    'network': networkCode,
-                    'active': None,
-                    'deposit': self.safe_string(networkEntry, 'allow_deposit') == '1',
-                    'withdraw': self.safe_string(networkEntry, 'allow_withdraw') == '1',
-                    'fee': self.safe_number(networkEntry, 'withdrawal_fee'),
-                    'precision': self.parse_number(self.parse_precision(self.safe_string(tokenEntry, 'decimals'))),
-                    'limits': {
-                        'withdraw': {
-                            'min': self.safe_number(networkEntry, 'minimum_withdrawal'),
-                            'max': None,
-                        },
-                        'deposit': {
-                            'min': None,
-                            'max': None,
-                        },
-                    },
-                    'info': [networkEntry, tokenEntry],
-                }
-            result[code] = self.safe_currency_structure({
-                'id': currencyId,
-                'name': None,
-                'code': code,
-                'precision': None,
+            id = currencyIds[i]
+            customCurrency = {
+                '_coin_id': id,
+                '_tokens_by_id': tokensById[id],
+                '_networks_by_id': networksById[id],
+            }
+            parsed = self.parse_currency(customCurrency)
+            code = parsed['code']
+            result[code] = parsed
+        return result
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        currencyId = self.safe_string(rawCurrency, '_coin_id')
+        code = self.safe_currency_code(currencyId)
+        tokensByNetworkId = self.index_by(rawCurrency['_tokens_by_id'], 'network')
+        chainsByNetworkId = self.index_by(rawCurrency['_networks_by_id'], 'network')
+        keys = list(chainsByNetworkId.keys())
+        resultingNetworks: dict = {}
+        for j in range(0, len(keys)):
+            networkId = keys[j]
+            tokenEntry = self.safe_dict(tokensByNetworkId, networkId, {})
+            networkEntry = self.safe_dict(chainsByNetworkId, networkId, {})
+            networkCode = self.network_id_to_code(networkId, code)
+            specialNetworkId = self.safe_string(tokenEntry, 'token')
+            resultingNetworks[networkCode] = {
+                'id': networkId,
+                'currencyNetworkId': specialNetworkId,  # exchange uses special crrency-ids(coin + network junction)
+                'network': networkCode,
                 'active': None,
-                'fee': None,
-                'networks': resultingNetworks,
-                'deposit': None,
-                'withdraw': None,
-                'type': 'crypto',
+                'deposit': self.safe_string(networkEntry, 'allow_deposit') == '1',
+                'withdraw': self.safe_string(networkEntry, 'allow_withdraw') == '1',
+                'fee': self.safe_number(networkEntry, 'withdrawal_fee'),
+                'precision': self.parse_number(self.parse_precision(self.safe_string(tokenEntry, 'decimals'))),
                 'limits': {
+                    'withdraw': {
+                        'min': self.safe_number(networkEntry, 'minimum_withdrawal'),
+                        'max': None,
+                    },
                     'deposit': {
                         'min': None,
                         'max': None,
                     },
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
-                    },
                 },
-                'info': [tokensByNetworkId, chainsByNetworkId],
-            })
-        return result
+                'info': {'network': networkEntry, 'token': tokenEntry},
+            }
+        return self.safe_currency_structure({
+            'id': currencyId,
+            'name': None,
+            'code': code,
+            'precision': None,
+            'active': None,
+            'fee': None,
+            'networks': resultingNetworks,
+            'deposit': None,
+            'withdraw': None,
+            'type': 'crypto',
+            'limits': {
+                'deposit': {
+                    'min': None,
+                    'max': None,
+                },
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'info': rawCurrency,
+        })
 
     def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
@@ -1560,7 +1571,7 @@ class woo(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
         trigger = self.safe_bool_2(params, 'stop', 'trigger')
@@ -1915,7 +1926,7 @@ class woo(Exchange, ImplicitAPI):
         #         "positionSide": "BOTH"
         #     }
         #
-        timestamp = None
+        timestamp: Int = None
         timestrampString = self.safe_string(order, 'createdTime')
         if timestrampString is not None:
             if timestrampString.find('.') >= 0:
@@ -2379,11 +2390,11 @@ class woo(Exchange, ImplicitAPI):
         # self method is TODO because of networks unification
         self.load_markets()
         currency = self.currency(code)
-        networkCode = None
+        networkCode: Str = None
         networkCode, params = self.handle_network_code_and_params(params)
         request: dict = {
             'token': currency['id'],
-            'network': self.network_code_to_id(networkCode),
+            'network': self.network_code_to_id(networkCode, currency['code']),
         }
         response = self.v3PrivateGetAssetWalletDeposit(self.extend(request, params))
         #
@@ -2400,7 +2411,7 @@ class woo(Exchange, ImplicitAPI):
         return self.parse_deposit_address(data, currency)
 
     def get_dedicated_network_id(self, currency, params: dict) -> Any:
-        networkCode = None
+        networkCode: Str = None
         networkCode, params = self.handle_network_code_and_params(params)
         networkCode = self.network_id_to_code(networkCode, currency['code'])
         networkEntry = self.safe_dict(currency['networks'], networkCode)
@@ -2428,10 +2439,10 @@ class woo(Exchange, ImplicitAPI):
         if code is not None:
             currency = self.currency(code)
             request['token'] = currency['id']
-        networkCode = None
+        networkCode: Str = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:
-            request['network'] = self.network_code_to_id(networkCode)
+            request['network'] = self.network_code_to_id(networkCode, currency['code'])
         if since is not None:
             request['startTime'] = since
         if limit is not None:
@@ -2672,7 +2683,7 @@ class woo(Exchange, ImplicitAPI):
             'comment': None,
             'internal': None,
             'fee': fee,
-            'network': self.network_id_to_code(self.safe_string(transaction, 'network')),
+            'network': self.network_id_to_code(self.safe_string(transaction, 'network'), code),
         }
 
     def parse_transaction_status(self, status: Str):
@@ -2744,7 +2755,7 @@ class woo(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/?id=transfer-structure>`
         """
         request: dict = {}
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
         if limit is not None:
@@ -2887,7 +2898,7 @@ class woo(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' withdraw() requires a network parameter for ' + code)
         params = self.omit(params, 'network')
         request['token'] = currency['id']
-        request['network'] = self.network_code_to_id(network)
+        request['network'] = self.network_code_to_id(network, currency['code'])
         response = self.v3PrivatePostAssetWalletWithdraw(self.extend(request, params))
         #
         #     {
@@ -3731,7 +3742,7 @@ class woo(Exchange, ImplicitAPI):
         contractSize = self.safe_string(market, 'contractSize')
         markPrice = self.safe_string_2(position, 'markPrice', 'mark_price')
         timestampString = self.safe_string(position, 'timestamp')
-        timestamp = None
+        timestamp: Int = None
         if timestampString is not None:
             if timestampString.find('.') > -1:
                 timestamp = self.safe_timestamp(position, 'timestamp')

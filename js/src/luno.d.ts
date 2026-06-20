@@ -14,6 +14,7 @@ export default class luno extends Exchange {
      * @returns {dict} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
+    parseCurrency(rawCurrency: Dict): Currency;
     /**
      * @method
      * @name luno#fetchMarkets
@@ -215,7 +216,7 @@ export default class luno extends Exchange {
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
     parseLedgerComment(comment: any): {
         type: string;
-        referenceId: any;
+        referenceId: string;
     };
     parseLedgerEntry(entry: any, currency?: Currency): LedgerEntry;
     /**

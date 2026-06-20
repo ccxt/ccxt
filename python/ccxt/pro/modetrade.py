@@ -529,7 +529,7 @@ class modetrade(ccxt.async_support.modetrade):
         cost = Precise.string_mul(price, amount)
         side = self.safe_string_lower(trade, 'side')
         timestamp = self.safe_integer(trade, 'timestamp')
-        takerOrMaker = None
+        takerOrMaker: Str = None
         maker = self.safe_bool(trade, 'maker')
         if maker is not None:
             takerOrMaker = 'maker' if maker else 'taker'

@@ -1551,7 +1551,7 @@ func  (this *BinanceCore) ParseWsTrade(trade any, optionalArgs ...any) any  {
     //
     //     {
     //         "e": "trade",       // event type
-    //         "E": 1579481530911, // event time
+    //         "E": 1579481530912, // event time
     //         "s": "ETHBTC",      // symbol
     //         "t": 158410082,     // trade id
     //         "p": "0.01914100",  // price
@@ -2806,7 +2806,7 @@ func  (this *BinanceCore) HandleTickerWs(client any, message any)  {
     //        "status":200,
     //        "result":{
     //            "symbol":"BTCUSDT",
-    //            "price":"73178.50",
+    //            "price":"73178.60",
     //            "time":1712527052374
     //        }
     //    }
@@ -4573,8 +4573,8 @@ func  (this *BinanceCore) FetchOpenOrdersWs(optionalArgs ...any) <- chan any {
             ccxt.PanicOnError(retRes37178)
             var market any = this.Market(symbol)
             var typeVar any = this.GetMarketType("fetchOpenOrdersWs", market, params)
-            if ccxt.IsTrue(ccxt.IsTrue(!ccxt.IsEqual(typeVar, "spot")) && ccxt.IsTrue(!ccxt.IsEqual(typeVar, "future"))) {
-                panic(ccxt.BadRequest(ccxt.Add(this.Id, " fetchOpenOrdersWs only supports spot or swap markets")))
+            if ccxt.IsTrue(!ccxt.IsEqual(typeVar, "spot")) {
+                panic(ccxt.BadRequest(ccxt.Add(this.Id, " fetchOpenOrdersWs only supports spot markets")))
             }
             var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), typeVar)
             var requestId any = this.RequestId(url)

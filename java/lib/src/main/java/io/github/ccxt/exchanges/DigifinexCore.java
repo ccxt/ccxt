@@ -321,7 +321,7 @@ public class DigifinexCore extends DigifinexApi
                     put( "OTC", "3" );
                 }} );
                 put( "networks", new java.util.HashMap<String, Object>() {{
-                    put( "ARBITRUM", "Arbitrum" );
+                    put( "ARBONE", "Arbitrum" );
                     put( "AVALANCEC", "AVAX-CCHAIN" );
                     put( "AVALANCEX", "AVAX-XCHAIN" );
                     put( "BEP20", "BEP20" );
@@ -338,20 +338,19 @@ public class DigifinexCore extends DigifinexApi
                     put( "ETHW", "ETHW" );
                     put( "IOTA", "MIOTA" );
                     put( "KLAYTN", "KLAY" );
-                    put( "MATIC", "Polygon" );
                     put( "METIS", "MetisDAO" );
                     put( "MOONBEAM", "GLMR" );
                     put( "MOONRIVER", "Moonriver" );
                     put( "OPTIMISM", "OPETH" );
                     put( "POLYGON", "Polygon" );
+                    put( "MATIC", "Polygon" );
                     put( "RIPPLE", "XRP" );
-                    put( "SOLANA", "SOL" );
-                    put( "STELLAR", "Stella" );
+                    put( "SOL", "SOL" );
+                    put( "XLM", "Stella" );
                     put( "TERRACLASSIC", "TerraClassic" );
                     put( "TERRA", "Terra" );
                     put( "TON", "Ton" );
                     put( "TRC20", "TRC20" );
-                    put( "TRON", "TRC20" );
                     put( "TRX", "TRC20" );
                     put( "VECHAIN", "Vechain" );
                 }} );
@@ -432,50 +431,51 @@ public class DigifinexCore extends DigifinexApi
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object groupedById = this.groupBy(data, "currency");
-            Object keys = Helpers.objectKeys(groupedById);
-            Object result = new java.util.HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
-            {
-                Object id = Helpers.GetValue(keys, i);
-                Object networkEntries = Helpers.GetValue(groupedById, id);
-                Object code = this.safeCurrencyCode(id);
-                Object networks = new java.util.HashMap<String, Object>() {{}};
-                for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networkEntries)); j++)
-                {
-                    Object networkEntry = Helpers.GetValue(networkEntries, j);
-                    Object networkId = this.safeString2(networkEntry, "chain", "currency");
-                    Object networkCode = this.networkIdToCode(networkId);
-                    Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
-        put( "id", networkId );
-        put( "network", networkCode );
-        put( "active", null );
-        put( "deposit", Helpers.isEqual(DigifinexCore.this.safeInteger(networkEntry, "deposit_status"), 1) );
-        put( "withdraw", Helpers.isEqual(DigifinexCore.this.safeInteger(networkEntry, "withdraw_status"), 1) );
-        put( "fee", DigifinexCore.this.safeNumber(networkEntry, "min_withdraw_fee") );
-        put( "precision", null );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", DigifinexCore.this.safeNumber(networkEntry, "min_withdraw_amount") );
-                put( "max", null );
-            }} );
-            put( "deposit", new java.util.HashMap<String, Object>() {{
-                put( "min", DigifinexCore.this.safeNumber(networkEntry, "min_deposit_amount") );
-                put( "max", null );
-            }} );
-        }} );
-        put( "info", networkEntry );
-    }});
-                }
-                Helpers.addElementToObject(result, code, this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
-        put( "id", id );
-        put( "code", code );
-        put( "info", networkEntries );
-        put( "networks", networks );
-    }}));
-            }
-            return result;
+            Object values = Helpers.objectValues(groupedById);
+            return this.parseCurrencies(values);
         });
 
+    }
+
+    public Object parseCurrency(Object rawCurrency)
+    {
+        Object networkEntries = rawCurrency;
+        Object firstEntry = this.safeDict(networkEntries, 0, new java.util.HashMap<String, Object>() {{}}); // it must have at least one entry
+        Object id = this.safeString(firstEntry, "currency");
+        Object code = this.safeCurrencyCode(id);
+        Object networks = new java.util.HashMap<String, Object>() {{}};
+        for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networkEntries)); j++)
+        {
+            Object networkEntry = Helpers.GetValue(networkEntries, j);
+            Object networkId = this.safeString2(networkEntry, "chain", "currency");
+            Object networkCode = this.networkIdToCode(networkId, code);
+            Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
+    put( "id", networkId );
+    put( "network", networkCode );
+    put( "active", null );
+    put( "deposit", Helpers.isEqual(DigifinexCore.this.safeInteger(networkEntry, "deposit_status"), 1) );
+    put( "withdraw", Helpers.isEqual(DigifinexCore.this.safeInteger(networkEntry, "withdraw_status"), 1) );
+    put( "fee", DigifinexCore.this.safeNumber(networkEntry, "min_withdraw_fee") );
+    put( "precision", null );
+    put( "limits", new java.util.HashMap<String, Object>() {{
+        put( "withdraw", new java.util.HashMap<String, Object>() {{
+            put( "min", DigifinexCore.this.safeNumber(networkEntry, "min_withdraw_amount") );
+            put( "max", null );
+        }} );
+        put( "deposit", new java.util.HashMap<String, Object>() {{
+            put( "min", DigifinexCore.this.safeNumber(networkEntry, "min_deposit_amount") );
+            put( "max", null );
+        }} );
+    }} );
+    put( "info", networkEntry );
+}});
+        }
+        return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+            put( "id", id );
+            put( "code", code );
+            put( "info", networkEntries );
+            put( "networks", networks );
+        }});
     }
 
     /**
@@ -4767,7 +4767,7 @@ final Object finalI = i;
                 }};
                 if (Helpers.isTrue(!Helpers.isEqual(networkId, null)))
                 {
-                    Object networkCode = this.networkIdToCode(networkId);
+                    Object networkCode = this.networkIdToCode(networkId, code);
                     Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(depositWithdrawFees, code), "networks"), networkCode, new java.util.HashMap<String, Object>() {{
     put( "withdraw", withdrawResult );
     put( "deposit", depositResult );

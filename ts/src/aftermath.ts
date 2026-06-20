@@ -1,8 +1,8 @@
+import { ed25519 } from '@noble/curves/ed25519.js';
 import Exchange from './abstract/aftermath.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type { Account, Balances, Currencies, Currency, Market, Dict, int, Int, Strings, OHLCV, Order, OrderBook, OrderRequest, Str, Ticker, Trade, TradingFeeInterface, MarginModification, TransferEntry, Position, Transaction, OrderType, OrderSide, Num } from './base/types.js';
 import { eddsa } from './base/functions/crypto.js';
-import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { ArgumentsRequired, NotSupported, ExchangeError } from './base/errors.js';
 
 export default class aftermath extends Exchange {
@@ -605,7 +605,7 @@ export default class aftermath extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
-        let account = undefined;
+        let account: Str = undefined;
         [ account, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'account');
         const request = {
             'account': account,
@@ -701,7 +701,7 @@ export default class aftermath extends Exchange {
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let accountNumber = undefined;
+        let accountNumber: Int = undefined;
         [ accountNumber, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'accountNumber');
         if (accountNumber === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires an accountNumber parameter in params');
@@ -761,7 +761,7 @@ export default class aftermath extends Exchange {
      */
     async fetchPositions (symbols: Strings = undefined, params = {}) {
         await this.loadMarkets ();
-        let accountNumber = undefined;
+        let accountNumber: Int = undefined;
         [ accountNumber, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'accountNumber');
         if (accountNumber === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchPositions() requires an accountNumber parameter in params');
@@ -837,7 +837,7 @@ export default class aftermath extends Exchange {
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
-        let account = undefined;
+        let account: Str = undefined;
         [ account, params ] = this.handleOptionAndParams (params, 'createOrder', 'account');
         const order = this.parseCreateEditOrderArgs (undefined, symbol, type, side, amount, price, params);
         const accountObj = { 'account': account };
@@ -879,7 +879,7 @@ export default class aftermath extends Exchange {
             order['amount'] = this.parseToNumeric (this.amountToPrecision (symbol, amount));
             ordersRequest.push (order);
         }
-        let account = undefined;
+        let account: Str = undefined;
         [ account, params ] = this.handleOptionAndParams (params, 'createOrders', 'account');
         const txRequest = {
             'accountId': account,
@@ -947,7 +947,7 @@ export default class aftermath extends Exchange {
     async cancelOrders (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let account = undefined;
+        let account: Str = undefined;
         [ account, params ] = this.handleOptionAndParams (params, 'cancelOrders', 'account');
         const txRequest = {
             'accountId': account,
@@ -1030,7 +1030,7 @@ export default class aftermath extends Exchange {
     async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let account = undefined;
+        let account: Str = undefined;
         [ account, params ] = this.handleOptionAndParams2 (params, 'addMargin', 'account', 'accountId');
         const txRequest = {
             'accountId': account,
@@ -1078,7 +1078,7 @@ export default class aftermath extends Exchange {
     async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let account = undefined;
+        let account: Str = undefined;
         [ account, params ] = this.handleOptionAndParams2 (params, 'reduceMargin', 'account', 'accountId');
         const txRequest = {
             'accountId': account,
@@ -1185,7 +1185,7 @@ export default class aftermath extends Exchange {
     async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         await this.loadMarkets ();
         const currency = this.currency (code);
-        let account = undefined;
+        let account: Str = undefined;
         [ account, params ] = this.handleOptionAndParams (params, 'withdraw', 'account');
         if (account === undefined) {
             throw new ArgumentsRequired (this.id + ' withdraw() requires a account parameter in params');
@@ -1262,7 +1262,7 @@ export default class aftermath extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let account = undefined;
+        let account: Str = undefined;
         [ account, params ] = this.handleOptionAndParams2 (params, 'setLeverage', 'account', 'accountId');
         const txRequest = {
             'accountId': account,

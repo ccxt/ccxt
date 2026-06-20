@@ -528,7 +528,7 @@ class bigone extends Exchange {
         for ($j = 0; $j < count($chains); $j++) {
             $chain = $chains[$j];
             $networkId = $this->safe_string($chain, 'gateway_name');
-            $networkCode = $this->network_id_to_code($networkId);
+            $networkCode = $this->network_id_to_code($networkId, $code);
             $deposit = $this->safe_bool($chain, 'is_deposit_enabled');
             $withdraw = $this->safe_bool($chain, 'is_withdrawal_enabled');
             $minDepositAmount = $this->safe_string($chain, 'min_deposit_amount');
@@ -2000,7 +2000,7 @@ class bigone extends Exchange {
         return array(
             'info' => $response,
             'currency' => $code,
-            'network' => $this->network_id_to_code($selectedNetworkId),
+            'network' => $this->network_id_to_code($selectedNetworkId, $code),
             'address' => $address,
             'tag' => $tag,
         );
@@ -2314,7 +2314,7 @@ class bigone extends Exchange {
         $networkCode = null;
         list($networkCode, $params) = $this->handle_network_code_and_params($params);
         if ($networkCode !== null) {
-            $request['gateway_name'] = $this->network_code_to_id($networkCode);
+            $request['gateway_name'] = $this->network_code_to_id($networkCode, $currency['code']);
         }
         // requires write permission on the wallet
         $response = $this->privatePostWithdrawals ($this->extend($request, $params));

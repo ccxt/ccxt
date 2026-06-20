@@ -134,7 +134,7 @@ class hibachi(Exchange, ImplicitAPI):
                 },
                 'www': 'https://www.hibachi.xyz/',
                 'referral': {
-                    'url': 'hibachi.xyz/r/ZBL2YFWIHU',
+                    'url': 'https://hibachi.xyz/r/ZBL2YFWIHU',
                 },
             },
             'api': {
@@ -534,11 +534,11 @@ class hibachi(Exchange, ImplicitAPI):
         amount = self.safe_string(trade, 'quantity')
         timestamp = self.safe_integer_product(trade, 'timestamp', 1000)
         cost = Precise.string_mul(price, amount)
-        side = None
+        side: Str = None
         fee = None
-        orderType = None
-        orderId = None
-        takerOrMaker = None
+        orderType: Str = None
+        orderId: Str = None
+        takerOrMaker: Str = None
         if id is None:
             # public trades
             side = self.safe_string_lower(trade, 'takerSide')
@@ -667,7 +667,7 @@ class hibachi(Exchange, ImplicitAPI):
         type = self.safe_string_lower(order, 'orderType')
         price = self.safe_string(order, 'price')
         rawSide = self.safe_string(order, 'side')
-        side = None
+        side: Str = None
         if rawSide == 'BID':
             side = 'buy'
         elif rawSide == 'ASK':
@@ -728,7 +728,7 @@ class hibachi(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
         request: dict = {
@@ -809,6 +809,7 @@ class hibachi(Exchange, ImplicitAPI):
             priceInternal = Precise.string_div(Precise.string_div(Precise.string_mul(Precise.string_mul(priceStr, priceFactor), settlement), underlying), one, 0)
             price16 = self.int_to_base16(self.parse_to_int(priceInternal))
             pricePadded = price16.rjust(16, '0')
+            # @ts-expect-error
             encodedPrice = self.base16_to_binary(pricePadded)
         message = self.binary_concat(encodedNonce, encodedMarketId, encodedQuantity, encodedSide, encodedPrice, encodedFeeRate)
         return message
@@ -1364,7 +1365,7 @@ class hibachi(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
         request = {
@@ -1607,14 +1608,14 @@ class hibachi(Exchange, ImplicitAPI):
 
     def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
         transactionType = self.safe_string(item, 'transactionType')
-        timestamp = None
-        type = None
-        direction = None
-        amount = None
-        fee = None
-        referenceId = None
-        referenceAccount = None
-        status = None
+        timestamp: Int = None
+        type: Str = None
+        direction: Str = None
+        amount: Num = None
+        fee: Fee = None
+        referenceId: Str = None
+        referenceAccount: Str = None
+        status: Str = None
         if transactionType is None:
             # response from TradeAccountTradingHistory
             timestamp = self.safe_integer_product(item, 'timestamp', 1000)

@@ -54,7 +54,7 @@ the latest known information on the availability of the exchange API
 
 
 ```javascript
-bitrue.fetchStatus ([params])
+bitrue.fetchStatus (params?)
 ```
 
 
@@ -74,7 +74,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-bitrue.fetchTime ([params])
+bitrue.fetchTime (params?)
 ```
 
 
@@ -93,7 +93,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-bitrue.fetchCurrencies ([params])
+bitrue.fetchCurrencies (params?)
 ```
 
 
@@ -118,7 +118,7 @@ retrieves data on all markets for bitrue
 
 
 ```javascript
-bitrue.fetchMarkets ([params])
+bitrue.fetchMarkets (params?)
 ```
 
 
@@ -145,7 +145,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-bitrue.fetchBalance ([params])
+bitrue.fetchBalance (params?)
 ```
 
 
@@ -172,7 +172,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bitrue.fetchOrderBook (symbol[, limit, params])
+bitrue.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -198,7 +198,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bitrue.fetchTicker (symbol[, params])
+bitrue.fetchTicker (symbol, params?)
 ```
 
 
@@ -227,7 +227,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-bitrue.fetchOHLCV (symbol, timeframe[, since, limit, params])
+bitrue.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -253,7 +253,7 @@ fetches the bid and ask price and volume for multiple markets
 
 
 ```javascript
-bitrue.fetchBidsAsks (symbols[, params])
+bitrue.fetchBidsAsks (symbols, params?)
 ```
 
 
@@ -279,7 +279,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-bitrue.fetchTickers (symbols[, params])
+bitrue.fetchTickers (symbols, params?)
 ```
 
 
@@ -302,7 +302,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bitrue.fetchTrades (symbol[, since, limit, params])
+bitrue.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -328,7 +328,7 @@ create a market buy order by providing the symbol and cost
 
 
 ```javascript
-bitrue.createMarketBuyOrderWithCost (symbol, cost[, params])
+bitrue.createMarketBuyOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -366,7 +366,7 @@ create a trade order
 
 
 ```javascript
-bitrue.createOrder (symbol, type, side, amount[, price, params])
+bitrue.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -392,7 +392,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-bitrue.fetchOrder (id, symbol[, params])
+bitrue.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -415,7 +415,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-bitrue.fetchClosedOrders (symbol[, since, limit, params])
+bitrue.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -442,7 +442,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-bitrue.fetchOpenOrders (symbol[, since, limit, params])
+bitrue.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -469,7 +469,7 @@ cancels an open order
 
 
 ```javascript
-bitrue.cancelOrder (id, symbol[, params])
+bitrue.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -495,7 +495,7 @@ cancel all open orders in a market
 
 
 ```javascript
-bitrue.cancelAllOrders (symbol[, params])
+bitrue.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -522,7 +522,7 @@ fetch all trades made by the user
 
 
 ```javascript
-bitrue.fetchMyTrades (symbol[, since, limit, params])
+bitrue.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -545,7 +545,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-bitrue.fetchDeposits (code[, since, limit, params])
+bitrue.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -568,7 +568,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-bitrue.fetchWithdrawals (code[, since, limit, params])
+bitrue.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -592,7 +592,7 @@ make a withdrawal
 
 
 ```javascript
-bitrue.withdraw (code, amount, address, tag[, params])
+bitrue.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -613,7 +613,7 @@ fetch deposit and withdraw fees
 
 
 ```javascript
-bitrue.fetchDepositWithdrawFees (codes[, params])
+bitrue.fetchDepositWithdrawFees (codes, params?)
 ```
 
 
@@ -642,7 +642,7 @@ fetch a history of internal transfers made on an account
 
 
 ```javascript
-bitrue.fetchTransfers (code[, since, limit, params])
+bitrue.fetchTransfers (code, since?, limit?, params?)
 ```
 
 
@@ -670,7 +670,7 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-bitrue.transfer (code, amount, fromAccount, toAccount[, params])
+bitrue.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -696,7 +696,7 @@ set the level of leverage for a market
 
 
 ```javascript
-bitrue.setLeverage (leverage, symbol[, params])
+bitrue.setLeverage (leverage, symbol, params?)
 ```
 
 
@@ -722,7 +722,7 @@ Either adds or reduces margin in an isolated position in order to set the margin
 
 
 ```javascript
-bitrue.setMargin (symbol, amount[, params])
+bitrue.setMargin (symbol, amount, params?)
 ```
 
 
@@ -742,7 +742,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-bitrue.watchBalance ([params])
+bitrue.watchBalance (params?)
 ```
 
 
@@ -765,7 +765,7 @@ watches information on user orders
 
 
 ```javascript
-bitrue.watchOrders (symbol[, since, limit, params])
+bitrue.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -775,7 +775,7 @@ bitrue.watchOrders (symbol[, since, limit, params])
 watches public trades for a swap (futures) market
 
 **Kind**: instance method of [<code>bitrue</code>](#bitrue)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://www.bitrue.com/api_docs_includes_file/futures/index.html#websocket-market-data  
 
@@ -788,7 +788,7 @@ watches public trades for a swap (futures) market
 
 
 ```javascript
-bitrue.watchTrades (symbol[, since, limit, params])
+bitrue.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -812,7 +812,7 @@ watches OHLCV candles for a swap (futures) market
 
 
 ```javascript
-bitrue.watchOHLCV (symbol, timeframe[, since, limit, params])
+bitrue.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -822,7 +822,7 @@ bitrue.watchOHLCV (symbol, timeframe[, since, limit, params])
 watches a 24h ticker for a swap (futures) market
 
 **Kind**: instance method of [<code>bitrue</code>](#bitrue)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://www.bitrue.com/api_docs_includes_file/futures/index.html#websocket-market-data  
 
@@ -833,6 +833,6 @@ watches a 24h ticker for a swap (futures) market
 
 
 ```javascript
-bitrue.watchTicker (symbol[, params])
+bitrue.watchTicker (symbol, params?)
 ```
 

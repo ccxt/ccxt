@@ -676,10 +676,6 @@ public final class Crypto {
     // Stubs / unimplemented
     // ====================================================
 
-    public static Object axolotl(Object a, Object b, Object c) {
-        return ""; // to be implemented
-    }
-
     // ----------------- convenience instance-like wrappers -----------------
 
     public static String hmac(Object request2, Object secret2, Object algorithm2, String digest, boolean dummy) {

@@ -160,7 +160,7 @@ class apex(Exchange, ImplicitAPI):
                     'private': 'https://testnet.omni.apex.exchange/api',
                 },
                 'www': 'https://apex.exchange/',
-                'doc': 'https://api-docs.pro.apex.exchange',
+                'doc': 'https://api-docs.omni.apex.exchange',
                 'fees': 'https://apex-pro.gitbook.io/apex-pro/apex-omni-live-now/trading-perpetual-contracts/trading-fees',
                 'referral': 'https://omni.apex.exchange/trade',
             },
@@ -316,7 +316,7 @@ class apex(Exchange, ImplicitAPI):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
-        https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-system-time-v3
+        https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-system-time-v3
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
@@ -363,7 +363,7 @@ class apex(Exchange, ImplicitAPI):
         """
         query for account info
 
-        https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-balance
+        https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-balance
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
@@ -386,7 +386,7 @@ class apex(Exchange, ImplicitAPI):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
-        https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-data
+        https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-data
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
@@ -400,7 +400,7 @@ class apex(Exchange, ImplicitAPI):
         """
         fetches all available currencies on an exchange
 
-        https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-all-config-data-v3
+        https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-all-config-data-v3
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
@@ -417,7 +417,7 @@ class apex(Exchange, ImplicitAPI):
         #             "displayName": "Tether USD Coin",
         #             "decimals": 18,
         #             "showStep": "0.01",
-        #             "iconUrl": "https://static-pro.apex.exchange/chains/chain_tokens/Ethereum/Ethereum_USDT.svg",
+        #             "iconUrl": "https://static-omni.apex.exchange/chains/chain_tokens/Ethereum/Ethereum_USDT.svg",
         #             "l2WithdrawFee": "0",
         #             "enableCollateral": True,
         #             "enableCrossCollateral": False,
@@ -432,7 +432,7 @@ class apex(Exchange, ImplicitAPI):
         #          "chainId": "9",
         #          "chainType": "0",
         #          "l1ChainId": "42161",
-        #          "chainIconUrl": "https://static-pro.apex.exchange/chains/chain_logos/Arbitrum.svg",
+        #          "chainIconUrl": "https://static-omni.apex.exchange/chains/chain_logos/Arbitrum.svg",
         #          "contractAddress": "0x3169844a120c0f517b4eb4a750c08d8518c8466a",
         #          "swapContractAddress": "0x9e07b6Aef1bbD9E513fc2Eb8873e311E80B4f855",
         #          "stopDeposit": False,
@@ -443,10 +443,10 @@ class apex(Exchange, ImplicitAPI):
         #          "gasTokenDecimals": 18,
         #          "feeGasLimit": 300000,
         #          "blockTimeSeconds": 2,
-        #          "rpcUrl": "https://arb.pro.apex.exchange",
+        #          "rpcUrl": "https://arb.omni.apex.exchange",
         #          "minSwapUsdtAmount": "",
         #          "maxSwapUsdtAmount": "",
-        #          "webRpcUrl": "https://arb.pro.apex.exchange",
+        #          "webRpcUrl": "https://arb.omni.apex.exchange",
         #          "webTxUrl": "https://arbiscan.io/tx/",
         #          "backupRpcUrl": "https://arb-mainnet.g.alchemy.com/v2/rGlYUbRHtUav5mfeThCPtsV9GLPt2Xq5",
         #          "txConfirm": 20,
@@ -454,7 +454,7 @@ class apex(Exchange, ImplicitAPI):
         #          "tokens": [
         #              {
         #                  "decimals": 6,
-        #                  "iconUrl": "https://static-pro.apex.exchange/chains/chain_tokens/Arbitrum/Arbitrum_USDT.svg",
+        #                  "iconUrl": "https://static-omni.apex.exchange/chains/chain_tokens/Arbitrum/Arbitrum_USDT.svg",
         #                  "token": "USDT",
         #                  "tokenAddress": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
         #                  "pullOff": False,
@@ -475,7 +475,7 @@ class apex(Exchange, ImplicitAPI):
         #              },
         #              {
         #                  "decimals": 6,
-        #                  "iconUrl": "https://static-pro.apex.exchange/chains/chain_tokens/Arbitrum/Arbitrum_USDC.svg",
+        #                  "iconUrl": "https://static-omni.apex.exchange/chains/chain_tokens/Arbitrum/Arbitrum_USDC.svg",
         #                  "token": "USDC",
         #                  "tokenAddress": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
         #                  "pullOff": False,
@@ -519,7 +519,7 @@ class apex(Exchange, ImplicitAPI):
                 tokenName = self.safe_string(token, 'token')
                 if tokenName == currencyId:
                     networkId = self.safe_string(chain, 'chainId')
-                    networkCode = self.network_id_to_code(networkId)
+                    networkCode = self.network_id_to_code(networkId, code)
                     networks[networkCode] = {
                         'info': chain,
                         'id': networkId,
@@ -576,7 +576,7 @@ class apex(Exchange, ImplicitAPI):
         """
         retrieves data on all markets for apex
 
-        https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-all-config-data-v3
+        https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-all-config-data-v3
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
@@ -617,7 +617,7 @@ class apex(Exchange, ImplicitAPI):
         #             "tickSize": "0.1",
         #             "maxMaintenanceMarginRate": "0.5000",
         #             "maxPositionValue": "5000000.0000",
-        #             "tagIconUrl": "https://static-pro.apex.exchange/icon/LABLE_HOT.svg",
+        #             "tagIconUrl": "https://static-omni.apex.exchange/icon/LABLE_HOT.svg",
         #             "tag": "HOT",
         #             "riskTip": False,
         #             "defaultInitialMarginRate": "0.05",
@@ -765,7 +765,7 @@ class apex(Exchange, ImplicitAPI):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
-        https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
+        https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -785,7 +785,7 @@ class apex(Exchange, ImplicitAPI):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
-        https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
+        https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
 
         :param str symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -800,7 +800,7 @@ class apex(Exchange, ImplicitAPI):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
-        https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-candlestick-chart-data-v3
+        https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-candlestick-chart-data-v3
 
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -854,7 +854,7 @@ class apex(Exchange, ImplicitAPI):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
-        https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-market-depth-v3
+        https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-market-depth-v3
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
@@ -906,7 +906,7 @@ class apex(Exchange, ImplicitAPI):
         """
         get the list of most recent trades for a particular symbol
 
-        https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-newest-trading-data-v3
+        https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-newest-trading-data-v3
 
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -990,7 +990,7 @@ class apex(Exchange, ImplicitAPI):
         """
         retrieves the open interest of a contract trading pair
 
-        https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
+        https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
 
         :param str symbol: unified CCXT market symbol
         :param dict [params]: exchange specific parameters
@@ -1042,7 +1042,7 @@ class apex(Exchange, ImplicitAPI):
         """
         fetches historical funding rate prices
 
-        https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-funding-rate-history-v3
+        https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-funding-rate-history-v3
 
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
@@ -1278,7 +1278,7 @@ class apex(Exchange, ImplicitAPI):
         """
         create a trade order
 
-        https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-creating-orders
+        https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-creating-orders
 
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -1524,14 +1524,14 @@ class apex(Exchange, ImplicitAPI):
         """
         cancel all open orders in a market
 
-        https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-cancel-all-open-orders
+        https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-cancel-all-open-orders
 
         :param str symbol: unified market symbol of the market to cancel orders in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
-        market = None
+        market: Market = None
         request: dict = {}
         if symbol is not None:
             market = self.market(symbol)
@@ -1544,7 +1544,7 @@ class apex(Exchange, ImplicitAPI):
         """
         cancels an open order
 
-        https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-cancel-order
+        https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-cancel-order
 
         :param str id: order id
         :param str [symbol]: unified symbol of the market the order was made in
@@ -1568,8 +1568,8 @@ class apex(Exchange, ImplicitAPI):
         """
         fetches information on an order made by the user
 
-        https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-order-id
-        https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-order-by-clientorderid
+        https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-order-id
+        https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-order-by-clientorderid
 
         :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
@@ -1595,7 +1595,7 @@ class apex(Exchange, ImplicitAPI):
         """
         fetches information on multiple orders made by the user
 
-        https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-open-orders
+        https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-open-orders
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -1612,7 +1612,7 @@ class apex(Exchange, ImplicitAPI):
         """
         fetches information on multiple orders made by the user *classic accounts only*
 
-        https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-all-order-history
+        https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-all-order-history
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -1628,7 +1628,7 @@ class apex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         request: dict = {}
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -1649,7 +1649,7 @@ class apex(Exchange, ImplicitAPI):
         """
         fetch all the trades made from a single order
 
-        https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-trade-history
+        https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-trade-history
 
         :param str id: order id
         :param str symbol: unified market symbol
@@ -1675,7 +1675,7 @@ class apex(Exchange, ImplicitAPI):
         """
         fetches information on multiple orders made by the user *classic accounts only*
 
-        https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-trade-history
+        https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-trade-history
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -1689,7 +1689,7 @@ class apex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         request: dict = {}
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -1710,7 +1710,7 @@ class apex(Exchange, ImplicitAPI):
         """
         fetches information on multiple orders made by the user *classic accounts only*
 
-        https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-funding-rate
+        https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-funding-rate
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -1723,7 +1723,7 @@ class apex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         request: dict = {}
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -1774,7 +1774,7 @@ class apex(Exchange, ImplicitAPI):
         """
         set the level of leverage for a market
 
-        https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-sets-the-initial-margin-rate-of-a-contract
+        https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-sets-the-initial-margin-rate-of-a-contract
 
         :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
@@ -1799,7 +1799,7 @@ class apex(Exchange, ImplicitAPI):
         """
         fetch all open positions
 
-        https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-data
+        https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-data
 
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint

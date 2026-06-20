@@ -35,12 +35,12 @@ class grvt extends grvt$1["default"] {
             },
             'options': {
                 'watchOrderBookForSymbols': {
-                    'depth': 100,
-                    'interval': 500,
+                    'depth': 100, // 5, 10, 20, 50, 100
+                    'interval': 500, // 100, 200, 500, 1000
                     'channel': 'v1.book.s', // v1.book.s | v1.book.d
                 },
                 'watchTickers': {
-                    'channel': 'v1.ticker.s',
+                    'channel': 'v1.ticker.s', // v1.ticker.s | v1.ticker.d | v1.mini.s | v1.mini.d
                     'interval': 500, // raw, 50, 100, 200, 500, 1000, 5000
                 },
             },

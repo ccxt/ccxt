@@ -9,7 +9,12 @@ public partial class hitbtc : ccxt.hitbtc
 {
     public override object describe()
     {
-        return this.deepExtend(base.describe(), new Dictionary<string, object>() {
+        return this.deepExtend(base.describe(), this.describeData());
+    }
+
+    public virtual object describeData()
+    {
+        return new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
                 { "ws", true },
                 { "watchTicker", true },
@@ -71,7 +76,7 @@ public partial class hitbtc : ccxt.hitbtc
             { "streaming", new Dictionary<string, object>() {
                 { "keepAlive", 4000 },
             } },
-        });
+        };
     }
 
     /**

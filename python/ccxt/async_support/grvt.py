@@ -1055,7 +1055,7 @@ class grvt(Exchange, ImplicitAPI):
         marketId = self.safe_string(trade, 'instrument')
         market = self.safe_market(marketId, market)
         timestamp = self.safe_integer_product(trade, 'event_time', 0.000001)
-        takerOrMaker = None
+        takerOrMaker: Str = None
         isTakerBuyer = self.safe_bool(trade, 'is_taker_buyer')
         side: Str = None
         if isTakerBuyer is not None:
@@ -1064,7 +1064,7 @@ class grvt(Exchange, ImplicitAPI):
         else:
             takerOrMaker = 'taker' if self.safe_bool(trade, 'is_taker') else 'maker'
             side = 'buy' if self.safe_bool(trade, 'is_buyer') else 'sell'
-        fee = None
+        fee: Fee = None
         feeString = self.safe_string(trade, 'fee')
         if feeString is not None:
             fee = {
@@ -1245,7 +1245,7 @@ class grvt(Exchange, ImplicitAPI):
         }
 
     def get_sub_account_id(self, params):
-        subAccountId = None
+        subAccountId: Str = None
         subAccountId, params = self.handle_option_and_params(params, 'getSubAccountId', 'accountId')
         if subAccountId is None:
             raise ArgumentsRequired(self.id + ' you should set "accountId" in options or params, which can be found in the grvt dashboard, under Api-Keys page')
@@ -1356,7 +1356,7 @@ class grvt(Exchange, ImplicitAPI):
         """
         await self.load_markets_and_sign_in()
         request: dict = {}
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
             request['currency'] = [currency['code']]
@@ -1406,7 +1406,7 @@ class grvt(Exchange, ImplicitAPI):
         """
         await self.load_markets_and_sign_in()
         request: dict = {}
-        currency = None
+        currency: Currency = None
         if code is None:
             request['currency'] = None
         else:
@@ -1561,20 +1561,20 @@ class grvt(Exchange, ImplicitAPI):
         networkCode: Str = None
         addressFrom = self.safe_string(transaction, 'from_account_id')
         addressTo = self.safe_string(transaction, 'to_account_id')
+        currencyId = self.safe_string(transaction, 'currency')
+        code = self.safe_currency_code(currencyId, currency)
         if 'transfer_metadata' in transaction:
             metaData = self.omit_zero(self.safe_string(transaction, 'transfer_metadata'))
             if metaData is not None:
                 parsedMeta = self.parse_json(metaData)
                 direction = self.safe_string_lower(parsedMeta, 'direction')
                 txId = self.safe_string(parsedMeta, 'provider_tx_id')
-                networkCode = self.network_id_to_code(self.safe_string(parsedMeta, 'chainid'))
+                networkCode = self.network_id_to_code(self.safe_string(parsedMeta, 'chainid'), code)
                 if direction == 'withdrawal':
                     addressTo = self.safe_string(parsedMeta, 'endpoint')
                 elif direction == 'deposit':
                     addressFrom = self.safe_string(parsedMeta, 'endpoint')
         timestamp = self.safe_integer_product_2(transaction, 'event_time', 'initiated_time', 0.000001)
-        currencyId = self.safe_string(transaction, 'currency')
-        code = self.safe_currency_code(currencyId, currency)
         return {
             'info': transaction,
             'id': None,
@@ -1858,7 +1858,7 @@ class grvt(Exchange, ImplicitAPI):
             'signature': self.default_signature(),
         }
         networkCode, query = self.handle_network_code_and_params(params)
-        networkId = self.network_code_to_id(networkCode)
+        networkId = self.network_code_to_id(networkCode, code)
         if networkId is None:
             raise BadRequest(self.id + ' withdraw() requires a network parameter')
         request['signature']['chain_id'] = networkId
@@ -2143,7 +2143,7 @@ class grvt(Exchange, ImplicitAPI):
         request = {
             'sub_account_id': self.get_sub_account_id(params),
         }
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['base'] = []
@@ -2457,7 +2457,7 @@ class grvt(Exchange, ImplicitAPI):
         request = {
             'sub_account_id': self.get_sub_account_id(params),
         }
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['base'] = []
@@ -2531,7 +2531,7 @@ class grvt(Exchange, ImplicitAPI):
         request = {
             'sub_account_id': subAccountId,
         }
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['base'] = []
@@ -2853,7 +2853,7 @@ class grvt(Exchange, ImplicitAPI):
         timeInForceRaw = self.safe_string(order, 'time_in_force')
         timeInForce = 'PO' if isPostOnly else self.parse_time_in_force(timeInForceRaw)
         size = None
-        side = None
+        side: Str = None
         price = None
         filled = None
         avgPrice = None
@@ -3013,7 +3013,7 @@ class grvt(Exchange, ImplicitAPI):
         return self.convert_to_big_int_custom('10000')  # multiply needed https://t.me/c/3396937126/88
 
     def create_signed_request(self, request: Any, structureType: str, currencyObj=None, signerAddress: Str = None) -> dict:
-        messageData = None
+        messageData: dict = None
         if structureType == 'EIP712_TRANSFER_TYPE':
             amountMultiplier = self.convert_to_big_int_custom('1000000')
             amountInt = request['num_tokens'] * amountMultiplier

@@ -987,7 +987,7 @@ func (this *CoinmetroCore) FetchOrderBook(symbol any, optionalArgs ...any) <-cha
 	}()
 	return ch
 }
-func (this *CoinmetroCore) ParseBidsAsks(bidasks any, optionalArgs ...any) any {
+func (this *CoinmetroCore) ParseOrderBookBidsAsks(bidasks any, optionalArgs ...any) any {
 	priceKey := GetArg(optionalArgs, 0, 0)
 	_ = priceKey
 	amountKey := GetArg(optionalArgs, 1, 1)

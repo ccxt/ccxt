@@ -1,3 +1,4 @@
+// @NO_AUTO_TRANSPILE
 
 'use strict';
 
@@ -30,7 +31,7 @@ async function watchExchange (exchangeId, symbol) {
 async function main () {
     const streams = {
         'binance': 'BTC/USDT',
-        'okex': 'BTC/USDT',
+        'okx': 'BTC/USDT',
         'kraken': 'BTC/USD',
     };
 

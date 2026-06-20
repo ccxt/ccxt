@@ -1772,7 +1772,7 @@ func (this *GrvtCore) FetchDeposits(optionalArgs ...any) <-chan any {
 
 /**
  * @method
- * @name grvrt#fetchWithdrawals
+ * @name grvt#fetchWithdrawals
  * @description fetch all withdrawals made from an account
  * @see https://docs.backpack.exchange/#tag/Capital/operation/get_withdrawals
  * @param {string} [code] unified currency code of the currency transferred
@@ -1990,13 +1990,15 @@ func (this *GrvtCore) ParseTransaction(transaction any, optionalArgs ...any) any
 	var networkCode any = nil
 	var addressFrom any = this.SafeString(transaction, "from_account_id")
 	var addressTo any = this.SafeString(transaction, "to_account_id")
+	var currencyId any = this.SafeString(transaction, "currency")
+	var code any = this.SafeCurrencyCode(currencyId, currency)
 	if IsTrue(InOp(transaction, "transfer_metadata")) {
 		var metaData any = this.OmitZero(this.SafeString(transaction, "transfer_metadata"))
 		if IsTrue(!IsEqual(metaData, nil)) {
 			var parsedMeta any = this.ParseJson(metaData)
 			direction = this.SafeStringLower(parsedMeta, "direction")
 			txId = this.SafeString(parsedMeta, "provider_tx_id")
-			networkCode = this.NetworkIdToCode(this.SafeString(parsedMeta, "chainid"))
+			networkCode = this.NetworkIdToCode(this.SafeString(parsedMeta, "chainid"), code)
 			if IsTrue(IsEqual(direction, "withdrawal")) {
 				addressTo = this.SafeString(parsedMeta, "endpoint")
 			} else if IsTrue(IsEqual(direction, "deposit")) {
@@ -2005,8 +2007,6 @@ func (this *GrvtCore) ParseTransaction(transaction any, optionalArgs ...any) any
 		}
 	}
 	var timestamp any = this.SafeIntegerProduct2(transaction, "event_time", "initiated_time", 0.000001)
-	var currencyId any = this.SafeString(transaction, "currency")
-	var code any = this.SafeCurrencyCode(currencyId, currency)
 	return map[string]any{
 		"info":        transaction,
 		"id":          nil,
@@ -2402,7 +2402,7 @@ func (this *GrvtCore) Withdraw(code any, amount any, address any, optionalArgs .
 		networkCodequeryVariable := this.HandleNetworkCodeAndParams(params)
 		networkCode := GetValue(networkCodequeryVariable, 0)
 		query := GetValue(networkCodequeryVariable, 1)
-		var networkId any = this.NetworkCodeToId(networkCode)
+		var networkId any = this.NetworkCodeToId(networkCode, code)
 		if IsTrue(IsEqual(networkId, nil)) {
 			panic(BadRequest(Add(this.Id, " withdraw() requires a network parameter")))
 		}

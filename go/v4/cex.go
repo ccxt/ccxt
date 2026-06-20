@@ -378,7 +378,7 @@ func (this *CexCore) ParseCurrency(rawCurrency any) any {
 	for j := 0; IsLessThan(j, GetArrayLength(keys)); j++ {
 		var networkId any = GetValue(keys, j)
 		var rawNetwork any = GetValue(rawNetworks, networkId)
-		var networkCode any = this.NetworkIdToCode(networkId)
+		var networkCode any = this.NetworkIdToCode(networkId, code)
 		var deposit any = IsEqual(this.SafeString(rawNetwork, "deposit"), "enabled")
 		var withdraw any = IsEqual(this.SafeString(rawNetwork, "withdrawal"), "enabled")
 		AddElementToObject(networks, networkCode, map[string]any{
@@ -2159,7 +2159,7 @@ func (this *CexCore) FetchDepositAddress(code any, optionalArgs ...any) <-chan a
 		var request any = map[string]any{
 			"accountId":  accountId,
 			"currency":   GetValue(currency, "id"),
-			"blockchain": this.NetworkCodeToId(networkCode),
+			"blockchain": this.NetworkCodeToId(networkCode, GetValue(currency, "code")),
 		}
 
 		response := (<-this.PrivatePostGetDepositAddress(this.Extend(request, params)))
@@ -2193,7 +2193,7 @@ func (this *CexCore) ParseDepositAddress(depositAddress any, optionalArgs ...any
 	return map[string]any{
 		"info":     depositAddress,
 		"currency": GetValue(currency, "code"),
-		"network":  this.NetworkIdToCode(this.SafeString(depositAddress, "blockchain")),
+		"network":  this.NetworkIdToCode(this.SafeString(depositAddress, "blockchain"), GetValue(currency, "code")),
 		"address":  address,
 		"tag":      nil,
 	}

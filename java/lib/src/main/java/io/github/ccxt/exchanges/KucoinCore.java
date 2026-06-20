@@ -3618,7 +3618,7 @@ public class KucoinCore extends KucoinApi
                 parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
                 if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
                 {
-                    Helpers.addElementToObject(request, "chain", ((String)this.networkCodeToId(networkCode)).toLowerCase());
+                    Helpers.addElementToObject(request, "chain", ((String)this.networkCodeToId(networkCode, code)).toLowerCase());
                 }
                 //
                 //     {
@@ -4413,6 +4413,7 @@ public class KucoinCore extends KucoinApi
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
+            Object market = this.market(symbol);
             Object request = this.createUtaOrderRequest(symbol, type, side, amount, price, parameters);
             Object response = (this.utaPrivatePostAccountModeOrderPlace(request)).join();
             //
@@ -4427,7 +4428,7 @@ public class KucoinCore extends KucoinApi
             //     }
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            return this.parseOrder(data);
+            return this.parseOrder(data, market);
         });
 
     }
@@ -12905,7 +12906,7 @@ final Object finalMarket = market;
 
     /**
      * @method
-     * @name kucoinfutures#fetchPositionsADLRank
+     * @name kucoin#fetchPositionsADLRank
      * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-list
      * @param {string[]} [symbols] list of unified market symbols

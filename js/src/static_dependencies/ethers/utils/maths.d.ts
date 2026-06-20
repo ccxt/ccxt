@@ -2,11 +2,11 @@ import type { BytesLike } from "./data.js";
 /**
  *  Any type that can be used where a numeric value is needed.
  */
-export declare type Numeric = number | bigint;
+export type Numeric = number | bigint;
 /**
  *  Any type that can be used where a big number is needed.
  */
-export declare type BigNumberish = string | Numeric;
+export type BigNumberish = string | Numeric;
 /**
  *  Convert %%value%% from a twos-compliment representation of %%width%%
  *  bits to its value.

@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var gate$1 = require('../gate.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
-var sha512 = require('../static_dependencies/noble-hashes/sha512.js');
 var Precise = require('../base/Precise.js');
 
 // ----------------------------------------------------------------------------
@@ -107,16 +107,16 @@ class gate extends gate$1["default"] {
                     'name': 'tickers', // or book_ticker
                 },
                 'watchOrderBook': {
-                    'snapshotDelay': 10,
+                    'snapshotDelay': 10, // how many deltas to cache before fetching a snapshot
                     'snapshotMaxRetries': 3,
                     'checksum': true,
                 },
                 'watchBalance': {
-                    'settle': 'usdt',
+                    'settle': 'usdt', // or btc
                     'spot': 'spot.balances', // spot.margin_balances, spot.funding_balances or spot.cross_balances
                 },
                 'watchPositions': {
-                    'fetchPositionsSnapshot': true,
+                    'fetchPositionsSnapshot': true, // or false
                     'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
                 },
             },
@@ -636,7 +636,7 @@ class gate extends gate$1["default"] {
         for (let i = 0; i < bidAsks.length; i++) {
             const bidAsk = bidAsks[i];
             if (Array.isArray(bidAsk)) {
-                bookSide.storeArray(this.parseBidAsk(bidAsk));
+                bookSide.storeArray(this.parseOrderBookBidAsk(bidAsk));
             }
             else {
                 const price = this.safeFloat(bidAsk, 'p');
@@ -2150,7 +2150,7 @@ class gate extends gate$1["default"] {
         const time = this.seconds();
         // unfortunately, PHP demands double quotes for the escaped newline symbol
         const signatureString = [event, channel, this.json(reqParams), time.toString()].join("\n"); // eslint-disable-line quotes
-        const signature = this.hmac(this.encode(signatureString), this.encode(this.secret), sha512.sha512, 'hex');
+        const signature = this.hmac(this.encode(signatureString), this.encode(this.secret), sha2_js.sha512, 'hex');
         const payload = {
             'req_id': requestId,
             'timestamp': time.toString(),
@@ -2190,7 +2190,7 @@ class gate extends gate$1["default"] {
         const time = this.seconds();
         const event = 'subscribe';
         const signaturePayload = 'channel=' + channel + '&' + 'event=' + event + '&' + 'time=' + time.toString();
-        const signature = this.hmac(this.encode(signaturePayload), this.encode(this.secret), sha512.sha512, 'hex');
+        const signature = this.hmac(this.encode(signaturePayload), this.encode(this.secret), sha2_js.sha512, 'hex');
         const auth = {
             'method': 'api_key',
             'KEY': this.apiKey,

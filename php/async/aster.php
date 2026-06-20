@@ -1416,7 +1416,6 @@ class aster extends Exchange {
         $last = $this->safe_string($ticker, 'lastPrice');
         $open = $this->safe_string($ticker, 'openPrice');
         $percentage = $this->safe_string($ticker, 'priceChangePercent');
-        $percentage = Precise::string_mul($percentage, '100');
         $quoteVolume = $this->safe_string($ticker, 'quoteVolume');
         $baseVolume = $this->safe_string($ticker, 'volume');
         $high = $this->safe_string($ticker, 'highPrice');
@@ -2176,8 +2175,10 @@ class aster extends Exchange {
         //        }
         //
         $info = $order;
+        $positionSide = $this->safe_string($order, 'positionSide');
+        $defaultType = ($positionSide !== null) ? 'swap' : 'spot';
         $marketId = $this->safe_string($order, 'symbol');
-        $market = $this->safe_market($marketId, $market);
+        $market = $this->safe_market($marketId, $market, null, $defaultType);
         $side = $this->safe_string_lower($order, 'side');
         $timestamp = $this->safe_integer($order, 'time');
         $statusId = $this->safe_string_upper($order, 'status');
@@ -3129,7 +3130,7 @@ class aster extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($marginMode, 'symbol');
-        $market = $this->safe_market($marketId, $market);
+        $market = $this->safe_market($marketId, $market, null, 'swap');
         return array(
             'info' => $marginMode,
             'symbol' => $market['symbol'],
@@ -4217,7 +4218,8 @@ class aster extends Exchange {
             // Sign using EIP-712 typed data per the AsterSignTransaction spec
             $zeroAddress = $this->safe_string($this->options, 'zeroAddress', '0x0000000000000000000000000000000000000000');
             $v3ChainId = $this->safe_integer($this->options, 'v3ChainId', 1666);
-            $signerAddress = $this->safe_string($this->options, 'signerAddress');
+            $walletAddress = $this->eth_get_address_from_private_key($this->privateKey);
+            $signerAddress = $this->safe_string($this->options, 'signerAddress', $walletAddress); // default to user's wallet
             if ($signerAddress === null) {
                 throw new ArgumentsRequired($this->id . ' requires $signerAddress in options when use v3 api');
             }
@@ -4236,7 +4238,7 @@ class aster extends Exchange {
             // Note => timestamp and recvWindow are not used for v3; $nonce replaces timestamp
             $finalParams = $this->extend(array(
                 'nonce' => (string) $nonce,
-                'user' => $this->walletAddress,
+                'user' => $walletAddress,
                 'signer' => $signerAddress,
             ), $params);
             $paramString = null;

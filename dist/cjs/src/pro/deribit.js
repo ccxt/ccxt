@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var deribit$1 = require('../deribit.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
-var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -56,9 +56,9 @@ class deribit extends deribit$1["default"] {
                     },
                     // watchOrderBook replacement
                     'watchOrderBookForSymbols': {
-                        'interval': '100ms',
-                        'useDepthEndpoint': false,
-                        'depth': '20',
+                        'interval': '100ms', // 100ms, agg2, raw
+                        'useDepthEndpoint': false, // if true, it will use the {books.group.depth.interval} endpoint instead of the {books.interval} endpoint
+                        'depth': '20', // 1, 10, 20
                         'group': 'none', // none, 1, 2, 5, 10, 25, 100, 250
                     },
                 },
@@ -1042,7 +1042,7 @@ class deribit extends deribit$1["default"] {
             this.checkRequiredCredentials();
             const requestId = this.requestId();
             const lineBreak = "\n"; // eslint-disable-line quotes
-            const signature = this.hmac(this.encode(timeString + lineBreak + nonce + lineBreak), this.encode(this.secret), sha256.sha256);
+            const signature = this.hmac(this.encode(timeString + lineBreak + nonce + lineBreak), this.encode(this.secret), sha2_js.sha256);
             const request = {
                 'jsonrpc': '2.0',
                 'id': requestId,

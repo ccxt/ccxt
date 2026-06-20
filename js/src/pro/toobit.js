@@ -59,7 +59,7 @@ export default class toobit extends toobitRest {
                 },
             },
             'streaming': {
-                'keepAlive': (60 - 1) * 5 * 1000,
+                'keepAlive': (60 - 1) * 5 * 1000, // every 5 minutes
                 'ping': this.ping,
             },
             'exceptions': {
@@ -584,7 +584,7 @@ export default class toobit extends toobitRest {
         }
     }
     handleDelta(bookside, delta) {
-        const bidAsk = this.parseBidAsk(delta);
+        const bidAsk = this.parseOrderBookBidAsk(delta);
         bookside.storeArray(bidAsk);
     }
     handleOrderBookPartialSnapshot(client, message) {

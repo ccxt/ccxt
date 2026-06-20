@@ -232,7 +232,7 @@ class independentreserve(ccxt.async_support.independentreserve):
         return result
 
     def handle_delta(self, bookside, delta):
-        bidAsk = self.parse_bid_ask(delta, 'Price', 'Volume')
+        bidAsk = self.parse_order_book_bid_ask(delta, 'Price', 'Volume')
         bookside.storeArray(bidAsk)
 
     def handle_deltas(self, bookside, deltas):

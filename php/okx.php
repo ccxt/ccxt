@@ -1516,7 +1516,18 @@ class okx extends Exchange {
     }
 
     public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
-        $isOption = ($marketId !== null) && ((mb_strpos($marketId, '-C') > -1) || (mb_strpos($marketId, '-P') > -1));
+        $isOption = false;
+        if ($marketId !== null) {
+            $parts = explode('-', $marketId);
+            $partsLength = count($parts);
+            // a valid OKX option ends with the call/put flag and carries expiry+strike segments,
+            // e.g. the $market id BTC-USD-220325-194000-P (5 $parts) or the unified symbol
+            // BTC/USD:USD-260611-54000-C (4 $parts). Requiring more than 3 dash-separated $parts avoids
+            // misclassifying ordinary ids that merely contain "-C"/"-P" (such SPOT id like
+            // "PERFTESTA-PERFTESTB") options, which would crash createExpiredOptionMarket
+            // on the missing expiry.
+            $isOption = ($partsLength > 3) && (str_ends_with($marketId, '-C') || str_ends_with($marketId, '-P'));
+        }
         if ($isOption && !(is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
             // handle expired option contracts
             return $this->create_expired_option_market($marketId);
@@ -1939,6 +1950,10 @@ class okx extends Exchange {
         $marketsWithoutTest = array();
         for ($i = 0; $i < count($dataResponse); $i++) {
             $data = $dataResponse[$i];
+            $instId = $this->safe_string($data, 'instId', '');
+            if ($instId === '') {
+                continue; // skip broken "preopen" placeholder instruments that have no $instId
+            }
             if ($this->isSandboxModeEnabled) {
                 $instFamily = $this->safe_string($data, 'instFamily', '');
                 if (str_starts_with($instFamily, 'TEST')) {
@@ -7767,7 +7782,7 @@ class okx extends Exchange {
         return $this->parse_open_interest($data[0], $market);
     }
 
-    public function fetch_open_interests(?array $symbols = null, $params = array ()): OpenInterests {
+    public function fetch_open_interests(?array $symbols = null, $params = array ()): array {
         /**
          * Retrieves the open interests of some currencies
          *
@@ -9219,7 +9234,7 @@ class okx extends Exchange {
             $request['end'] = $until;
         }
         if ($timeframe !== null) {
-            $request['period'] = $timeframe;
+            $request['period'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         }
         if ($since !== null) {
             $request['begin'] = $since;

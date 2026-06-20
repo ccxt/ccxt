@@ -458,7 +458,6 @@ class derive(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
-        result: dict = {}
         tokenResponse = await self.publicGetGetAllCurrencies(params)
         #
         #    {
@@ -509,33 +508,33 @@ class derive(Exchange, ImplicitAPI):
         # }
         #
         currencies = self.safe_list(tokenResponse, 'result', [])
-        for i in range(0, len(currencies)):
-            currency = currencies[i]
-            currencyId = self.safe_string(currency, 'currency')
-            code = self.safe_currency_code(currencyId)
-            result[code] = self.safe_currency_structure({
-                'id': currencyId,
-                'name': None,
-                'code': code,
-                'precision': None,
-                'active': None,
-                'fee': None,
-                'networks': None,
-                'deposit': None,
-                'withdraw': None,
-                'limits': {
-                    'deposit': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
-                    },
+        return self.parse_currencies(currencies)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        currencyId = self.safe_string(rawCurrency, 'currency')
+        code = self.safe_currency_code(currencyId)
+        return self.safe_currency_structure({
+            'id': currencyId,
+            'name': None,
+            'code': code,
+            'precision': None,
+            'active': None,
+            'fee': None,
+            'networks': None,
+            'deposit': None,
+            'withdraw': None,
+            'limits': {
+                'deposit': {
+                    'min': None,
+                    'max': None,
                 },
-                'info': currency,
-            })
-        return result
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'info': rawCurrency,
+        })
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -913,7 +912,7 @@ class derive(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         request: dict = {}
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['instrument_name'] = market['id']
@@ -1193,7 +1192,7 @@ class derive(Exchange, ImplicitAPI):
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         TRADE_MODULE_ADDRESS = '0x87F2863866D85E3192a35A73b388BD625D83f2be' if (sandboxMode) else '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b'
         priceString = self.number_to_string(price)
-        maxFee = None
+        maxFee: Num = None
         maxFee, params = self.handle_option_and_params(params, 'createOrder', 'max_fee')
         if maxFee is None:
             raise ArgumentsRequired(self.id + ' createOrder() requires a max_fee argument in params')
@@ -1261,7 +1260,7 @@ class derive(Exchange, ImplicitAPI):
             request['label'] = clientOrderId
         request['signature'] = signature
         params = self.omit(params, ['reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'test', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trigger_price', 'stopLoss', 'takeProfit', 'trigger_price_type'])
-        response = None
+        response: dict = None
         if test:
             response = await self.privatePostOrderDebug(self.extend(request, params))
         else:
@@ -1532,7 +1531,7 @@ class derive(Exchange, ImplicitAPI):
         clientOrderIdUnified = self.safe_string(params, 'clientOrderId')
         clientOrderIdExchangeSpecific = self.safe_string(params, 'label', clientOrderIdUnified)
         isByClientOrder = clientOrderIdExchangeSpecific is not None
-        response = None
+        response: dict = None
         if isByClientOrder:
             request['label'] = clientOrderIdExchangeSpecific
             params = self.omit(params, ['clientOrderId', 'label'])
@@ -1613,7 +1612,7 @@ class derive(Exchange, ImplicitAPI):
         request: dict = {
             'subaccount_id': subaccountId,
         }
-        response = None
+        response: dict = None
         if market is not None:
             request['instrument_name'] = market['id']
             response = await self.privatePostCancelByInstrument(self.extend(request, params))

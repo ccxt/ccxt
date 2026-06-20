@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var poloniex$1 = require('../poloniex.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 var Precise = require('../base/Precise.js');
-var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -51,8 +51,8 @@ class poloniex extends poloniex$1["default"] {
                 'watchOrderBook': {
                     'name': 'book_lv2', // can also be 'book'
                 },
-                'connectionsLimit': 2000,
-                'requestsLimit': 500,
+                'connectionsLimit': 2000, // 2000 public, 2000 private, 4000 total, only for subscribe events, unsubscribe not restricted
+                'requestsLimit': 500, // per second, only for subscribe events, unsubscribe not restricted
                 'timeframes': {
                     '1m': 'candles_minute_1',
                     '5m': 'candles_minute_5',
@@ -93,7 +93,7 @@ class poloniex extends poloniex$1["default"] {
         if (future === undefined) {
             const accessPath = '/ws';
             const requestString = 'GET\n' + accessPath + '\nsignTimestamp=' + timestamp;
-            const signature = this.hmac(this.encode(requestString), this.encode(this.secret), sha256.sha256, 'base64');
+            const signature = this.hmac(this.encode(requestString), this.encode(this.secret), sha2_js.sha256, 'base64');
             const request = {
                 'event': 'subscribe',
                 'channel': ['auth'],
@@ -101,7 +101,7 @@ class poloniex extends poloniex$1["default"] {
                     'key': this.apiKey,
                     'signTimestamp': timestamp,
                     'signature': signature,
-                    'signatureMethod': 'HmacSHA256',
+                    'signatureMethod': 'HmacSHA256', // optional
                     'signatureVersion': '2', // optional
                 },
             };

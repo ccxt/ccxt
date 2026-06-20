@@ -1220,7 +1220,6 @@ class bitmart extends \ccxt\async\bitmart {
         } else {
             $datetime = $this->iso8601($timestamp);
         }
-        $takerOrMaker = null; // true for public trades
         $side = $this->safe_string($trade, 'side');
         $buyerMaker = $this->safe_bool($trade, 'm');
         if ($buyerMaker !== null) {
@@ -2199,6 +2198,15 @@ class bitmart extends \ccxt\async\bitmart {
             );
             if (mb_strpos($channel, 'fundingRate') !== false) {
                 $this->handle_funding_rate($client, $message);
+                return;
+            }
+            // 'ticker' is a substring of 'bookTicker', so a bookTicker $channel could
+            // be wrongly captured by (or double-dispatched with) the 'ticker' $key in a
+            // first-match loop (in Go map iteration order is randomized). Check the
+            // bookTicker prefix explicitly, then fall back to a simple first-match.
+            if (mb_strpos($channel, 'bookTicker') !== false) {
+                $this->handle_bid_ask($client, $message);
+                return;
             }
             $keys = is_array($methods) ? array_keys($methods) : array();
             for ($i = 0; $i < count($keys); $i++) {
@@ -2206,6 +2214,7 @@ class bitmart extends \ccxt\async\bitmart {
                 if (mb_strpos($channel, $key) !== false) {
                     $method = $this->safe_value($methods, $key);
                     $method($client, $message);
+                    return;
                 }
             }
         }

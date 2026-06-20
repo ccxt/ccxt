@@ -1,8 +1,5 @@
-- [Bittrex Fetch Closed Orders History](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -19,7 +16,7 @@ def table(values):
     return "\n".join([string.format(*[str(v[k]) for k in keys]) for v in values])
 
 
-exchange = ccxt.bittrex({
+exchange = ccxt.kucoin({
     'apiKey': 'YOUR_API_KEY',
     'secret': 'YOUR_API_SECRET',
 })
@@ -73,5 +70,5 @@ print(table([exchange.omit(order, omitted_keys) for order in all_orders]))
 print('Fetched', len(all_orders), symbol, 'orders in total')
 
 # do whatever you want to do with them, calculate profit loss, etc...
- 
+
 ```

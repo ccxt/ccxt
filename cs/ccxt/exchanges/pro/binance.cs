@@ -1434,7 +1434,7 @@ public partial class binance : ccxt.binance
         //
         //     {
         //         "e": "trade",       // event type
-        //         "E": 1579481530911, // event time
+        //         "E": 1579481530912, // event time
         //         "s": "ETHBTC",      // symbol
         //         "t": 158410082,     // trade id
         //         "p": "0.01914100",  // price
@@ -2531,7 +2531,7 @@ public partial class binance : ccxt.binance
         //        "status":200,
         //        "result":{
         //            "symbol":"BTCUSDT",
-        //            "price":"73178.50",
+        //            "price":"73178.60",
         //            "time":1712527052374
         //        }
         //    }
@@ -4184,9 +4184,9 @@ public partial class binance : ccxt.binance
         await this.loadMarkets();
         object market = this.market(symbol);
         object type = this.getMarketType("fetchOpenOrdersWs", market, parameters);
-        if (isTrue(isTrue(!isEqual(type, "spot")) && isTrue(!isEqual(type, "future"))))
+        if (isTrue(!isEqual(type, "spot")))
         {
-            throw new BadRequest ((string)add(this.id, " fetchOpenOrdersWs only supports spot or swap markets")) ;
+            throw new BadRequest ((string)add(this.id, " fetchOpenOrdersWs only supports spot markets")) ;
         }
         object url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "ws-api"), type);
         object requestId = this.requestId(url);

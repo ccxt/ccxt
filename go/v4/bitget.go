@@ -2967,7 +2967,7 @@ func (this *BitgetCore) Withdraw(code any, amount any, address any, optionalArgs
 		retRes28878 := (<-this.LoadMarkets())
 		PanicOnError(retRes28878)
 		var currency any = this.Currency(code)
-		var networkId any = this.NetworkCodeToId(networkCode)
+		var networkId any = this.NetworkCodeToId(networkCode, code)
 		var request any = map[string]any{
 			"coin":         GetValue(currency, "id"),
 			"address":      address,
@@ -3178,7 +3178,7 @@ func (this *BitgetCore) ParseTransaction(transaction any, optionalArgs ...any) a
 		"txid":        this.SafeString(transaction, "tradeId"),
 		"timestamp":   timestamp,
 		"datetime":    this.Iso8601(timestamp),
-		"network":     this.NetworkIdToCode(networkId),
+		"network":     this.NetworkIdToCode(networkId, code),
 		"addressFrom": this.SafeString(transaction, "fromAddress"),
 		"address":     this.SafeString(transaction, "toAddress"),
 		"addressTo":   this.SafeString(transaction, "toAddress"),
@@ -12496,13 +12496,16 @@ func (this *BitgetCore) Sign(path any, optionalArgs ...any) any {
 			auth = Add(auth, body)
 		} else {
 			if IsTrue(GetArrayLength(ObjectKeys(params))) {
-				var queryInner any = Add("?", this.Urlencode(this.Keysort(params)))
+				var sortedParams any = this.Keysort(params)
+				var queryInner any = Add("?", this.Urlencode(sortedParams, true))
 				// check #21169 pr
 				if IsTrue(IsGreaterThan(GetIndexOf(queryInner, "%24"), OpNeg(1))) {
 					queryInner = Replace(queryInner, "%24", "$")
 				}
 				url = Add(url, queryInner)
-				auth = Add(auth, queryInner)
+				// bitget signs the raw (non-percent-encoded) query string, so the
+				// signature must use the decoded values (e.g. non-ascii market ids)
+				auth = Add(auth, Add("?", this.Rawencode(sortedParams)))
 			}
 		}
 		var signature any = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256, "base64")

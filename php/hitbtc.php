@@ -973,7 +973,7 @@ class hitbtc extends Exchange {
         for ($j = 0; $j < count($rawNetworks); $j++) {
             $rawNetwork = $rawNetworks[$j];
             $networkId = $this->safe_string_2($rawNetwork, 'protocol', 'network');
-            $networkCode = $this->network_id_to_code($networkId);
+            $networkCode = $this->network_id_to_code($networkId, $code);
             $networkCode = ($networkCode !== null) ? strtoupper($networkCode) : $code; // is white label, ensure we safeguard from possible bugs
             $networks[$networkCode] = array(
                 'info' => $rawNetwork,
@@ -1011,18 +1011,6 @@ class hitbtc extends Exchange {
             ),
             'type' => null, // 'crypto' field emits incorrect values
         ));
-    }
-
-    public function add_key_in_array_items($obj, $keyName) {
-        $result = array();
-        $keys = is_array($obj) ? array_keys($obj) : array();
-        for ($i = 0; $i < count($keys); $i++) {
-            $key = $keys[$i];
-            $item = $obj[$key];
-            $item[$keyName] = $key;
-            $result[] = $item;
-        }
-        return $result;
     }
 
     public function create_deposit_address(string $code, $params = array ()): array {
@@ -3702,7 +3690,8 @@ class hitbtc extends Exchange {
         for ($j = 0; $j < count($networks); $j++) {
             $networkEntry = $networks[$j];
             $networkId = $this->safe_string($networkEntry, 'network');
-            $networkCode = $this->network_id_to_code($networkId);
+            $code = $this->safe_string($currency, 'code');
+            $networkCode = $this->network_id_to_code($networkId, $code);
             $networkCode = ($networkCode !== null) ? strtoupper($networkCode) : null;
             $withdrawFee = $this->safe_number($networkEntry, 'payout_fee');
             $isDefault = $this->safe_value($networkEntry, 'default');

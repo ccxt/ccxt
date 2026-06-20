@@ -1,8 +1,5 @@
-- [Fetch Orders](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 
 import ccxt from '../../js/ccxt.js';
 import asTable from 'as-table';
@@ -12,7 +9,7 @@ import ansicolor from 'ansicolor';
 
 ansicolor.nice
 
-const exchange = new ccxt.bittrex ({
+const exchange = new ccxt.binance ({
     apiKey: "YOUR_API_KEY",
     secret: "YOUR_SECRET",
 })
@@ -28,5 +25,5 @@ async function test () {
     log (order)
 }
 
-test () 
+test ()
 ```

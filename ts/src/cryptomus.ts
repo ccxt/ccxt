@@ -1,12 +1,12 @@
 
 // ---------------------------------------------------------------------------
 
+import { md5 } from '@noble/hashes/legacy.js';
 import Exchange from './abstract/cryptomus.js';
 import { ArgumentsRequired, ExchangeError, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { md5 } from './static_dependencies/noble-hashes/md5.js';
-import type { Balances, Currencies, Dict, int, Int, Market, Num, Order, OrderBook, OrderType, OrderSide, Str, Strings, Ticker, Tickers, Trade, TradingFees } from './base/types.js';
+import type{ Balances, Currencies, Dict, int, Int, Market, Num, Order, OrderBook, OrderType, OrderSide, Str, Strings, Ticker, Tickers, Trade, TradingFees, Currency, Fee } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -79,7 +79,7 @@ export default class cryptomus extends Exchange {
                 'fetchConvertTradeHistory': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
-                'fetchCurrencies': false, // temporarily, until they fix the endpoint
+                'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchDeposits': false,
                 'fetchDepositsWithdrawals': false,
@@ -409,46 +409,51 @@ export default class cryptomus extends Exchange {
         //
         const coins = this.safeList (response, 'result');
         const groupedById = this.groupBy (coins, 'currency_code');
-        const keys = Object.keys (groupedById);
-        const result: Dict = {};
-        for (let i = 0; i < keys.length; i++) {
-            const id = keys[i];
-            const code = this.safeCurrencyCode (id);
-            const networks = {};
-            const networkEntries = groupedById[id];
-            for (let j = 0; j < networkEntries.length; j++) {
-                const networkEntry = networkEntries[j];
-                const networkId = this.safeString (networkEntry, 'network_code');
-                const networkCode = this.networkIdToCode (networkId);
-                networks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'limits': {
-                        'withdraw': {
-                            'min': this.safeNumber (networkEntry, 'min_withdraw'),
-                            'max': this.safeNumber (networkEntry, 'max_withdraw'),
-                        },
-                        'deposit': {
-                            'min': this.safeNumber (networkEntry, 'min_deposit'),
-                            'max': this.safeNumber (networkEntry, 'max_deposit'),
-                        },
-                    },
-                    'active': undefined,
-                    'deposit': this.safeBool (networkEntry, 'can_withdraw'),
-                    'withdraw': this.safeBool (networkEntry, 'can_deposit'),
-                    'fee': undefined,
-                    'precision': undefined,
-                    'info': networkEntry,
-                };
+        const groupedArray = Object.values (groupedById);
+        return this.parseCurrencies (groupedArray);
+    }
+
+    parseCurrency (rawCurrency: Dict): Currency {
+        // currency here is array of networks
+        let id: Str = undefined; // all entried have same id, as they were grouped by
+        let code: Str = undefined;
+        const networks = {};
+        for (let i = 0; i < rawCurrency.length; i++) {
+            const networkEntry = rawCurrency[i];
+            // set ID on first loop
+            if (id === undefined) {
+                id = this.safeString (networkEntry, 'currency_code');
+                code = this.safeCurrencyCode (id);
             }
-            result[code] = this.safeCurrencyStructure ({
-                'id': id,
-                'code': code,
-                'networks': networks,
-                'info': networkEntries,
-            });
+            const networkId = this.safeString (networkEntry, 'network_code');
+            const networkCode = this.networkIdToCode (networkId, code);
+            networks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
+                'limits': {
+                    'withdraw': {
+                        'min': this.safeNumber (networkEntry, 'min_withdraw'),
+                        'max': this.safeNumber (networkEntry, 'max_withdraw'),
+                    },
+                    'deposit': {
+                        'min': this.safeNumber (networkEntry, 'min_deposit'),
+                        'max': this.safeNumber (networkEntry, 'max_deposit'),
+                    },
+                },
+                'active': undefined,
+                'deposit': this.safeBool (networkEntry, 'can_deposit'),
+                'withdraw': this.safeBool (networkEntry, 'can_withdraw'),
+                'fee': undefined,
+                'precision': undefined,
+                'info': networkEntry,
+            };
         }
-        return result;
+        return this.safeCurrencyStructure ({
+            'id': id,
+            'code': code,
+            'networks': networks,
+            'info': rawCurrency,
+        });
     }
 
     /**
@@ -714,7 +719,7 @@ export default class cryptomus extends Exchange {
         const priceToString = this.numberToString (price);
         let cost = undefined;
         [ cost, params ] = this.handleParamString (params, 'cost');
-        let response = undefined;
+        let response: Dict = undefined;
         if (type === 'market') {
             if (sideBuy) {
                 let createMarketBuyOrderRequiresPrice = true;
@@ -793,7 +798,7 @@ export default class cryptomus extends Exchange {
     async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         const request: Dict = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['market'] = market['id'];
@@ -868,7 +873,7 @@ export default class cryptomus extends Exchange {
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -969,7 +974,7 @@ export default class cryptomus extends Exchange {
         const side = this.safeString (order, 'direction');
         let price = this.safeNumber (order, 'price');
         const transaction = this.safeList (deal, 'transactions', []);
-        let fee = undefined;
+        let fee: Fee = undefined;
         const firstTx = this.safeDict (transaction, 0);
         const feeCurrency = this.safeString (firstTx, 'feeCurrency');
         if (feeCurrency !== undefined) {

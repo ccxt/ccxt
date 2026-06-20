@@ -50,7 +50,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-bitopro.fetchCurrencies ([params])
+bitopro.fetchCurrencies (params?)
 ```
 
 
@@ -70,7 +70,7 @@ retrieves data on all markets for bitopro
 
 
 ```javascript
-bitopro.fetchMarkets ([params])
+bitopro.fetchMarkets (params?)
 ```
 
 
@@ -91,7 +91,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bitopro.fetchTicker (symbol[, params])
+bitopro.fetchTicker (symbol, params?)
 ```
 
 
@@ -112,7 +112,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-bitopro.fetchTickers (symbols[, params])
+bitopro.fetchTickers (symbols, params?)
 ```
 
 
@@ -134,7 +134,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bitopro.fetchOrderBook (symbol[, limit, params])
+bitopro.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -157,7 +157,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bitopro.fetchTrades (symbol[, since, limit, params])
+bitopro.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -177,7 +177,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-bitopro.fetchTradingFees ([params])
+bitopro.fetchTradingFees (params?)
 ```
 
 
@@ -201,7 +201,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-bitopro.fetchOHLCV (symbol, timeframe[, since, limit, params])
+bitopro.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -221,7 +221,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-bitopro.fetchBalance ([params])
+bitopro.fetchBalance (params?)
 ```
 
 
@@ -247,7 +247,7 @@ create a trade order
 
 
 ```javascript
-bitopro.createOrder (symbol, type, side, amount[, price, params])
+bitopro.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -269,7 +269,7 @@ cancels an open order
 
 
 ```javascript
-bitopro.cancelOrder (id, symbol[, params])
+bitopro.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -291,7 +291,7 @@ cancel multiple orders
 
 
 ```javascript
-bitopro.cancelOrders (ids, symbol[, params])
+bitopro.cancelOrders (ids, symbol, params?)
 ```
 
 
@@ -312,7 +312,7 @@ cancel all open orders
 
 
 ```javascript
-bitopro.cancelAllOrders (symbol[, params])
+bitopro.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -334,7 +334,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-bitopro.fetchOrder (id, symbol[, params])
+bitopro.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -357,7 +357,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-bitopro.fetchOrders (symbol[, since, limit, params])
+bitopro.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -380,7 +380,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-bitopro.fetchOpenOrders (symbol[, since, limit, params])
+bitopro.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -403,7 +403,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-bitopro.fetchClosedOrders (symbol[, since, limit, params])
+bitopro.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -426,7 +426,7 @@ fetch all trades made by the user
 
 
 ```javascript
-bitopro.fetchMyTrades (symbol[, since, limit, params])
+bitopro.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -449,7 +449,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-bitopro.fetchDeposits (code[, since, limit, params])
+bitopro.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -472,7 +472,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-bitopro.fetchWithdrawals (code[, since, limit, params])
+bitopro.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -494,7 +494,7 @@ fetch data on a currency withdrawal via the withdrawal id
 
 
 ```javascript
-bitopro.fetchWithdrawal (id, code[, params])
+bitopro.fetchWithdrawal (id, code, params?)
 ```
 
 
@@ -518,7 +518,7 @@ make a withdrawal
 
 
 ```javascript
-bitopro.withdraw (code, amount, address, tag[, params])
+bitopro.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -539,7 +539,7 @@ fetch deposit and withdraw fees
 
 
 ```javascript
-bitopro.fetchDepositWithdrawFees (codes[, params])
+bitopro.fetchDepositWithdrawFees (codes, params?)
 ```
 
 
@@ -561,7 +561,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bitopro.watchOrderBook (symbol[, limit, params])
+bitopro.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -584,7 +584,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bitopro.watchTrades (symbol[, since, limit, params])
+bitopro.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -607,7 +607,7 @@ watches information on multiple trades made by the user
 
 
 ```javascript
-bitopro.watchMyTrades (symbol[, since, limit, params])
+bitopro.watchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -628,7 +628,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bitopro.watchTicker (symbol[, params])
+bitopro.watchTicker (symbol, params?)
 ```
 
 
@@ -648,6 +648,6 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-bitopro.watchBalance ([params])
+bitopro.watchBalance (params?)
 ```
 

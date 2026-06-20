@@ -380,7 +380,7 @@ public partial class Exchange
         return defaultValue;
     }
 
-    public virtual object safeBool2(object dictionary, object key1, object key2, object defaultValue = null)
+    public virtual object safeBool2(object dictionaryOrList, object key1, object key2, object defaultValue = null)
     {
         /**
          * @ignore
@@ -388,10 +388,20 @@ public partial class Exchange
          * @description safely extract boolean value from dictionary or list
          * @returns {bool | undefined}
          */
-        return this.safeBoolN(dictionary, new List<object>() {key1, key2}, defaultValue);
+        object value = this.safeValue(dictionaryOrList, key1);
+        if (isTrue((value is bool)))
+        {
+            return value;
+        }
+        object value2 = this.safeValue(dictionaryOrList, key2);
+        if (isTrue((value2 is bool)))
+        {
+            return value2;
+        }
+        return defaultValue;
     }
 
-    public virtual object safeBool(object dictionary, object key, object defaultValue = null)
+    public virtual object safeBool(object dictionaryOrList, object key, object defaultValue = null)
     {
         /**
          * @ignore
@@ -399,7 +409,7 @@ public partial class Exchange
          * @description safely extract boolean value from dictionary or list
          * @returns {bool | undefined}
          */
-        object value = this.safeValue(dictionary, key, defaultValue);
+        object value = this.safeValue(dictionaryOrList, key, defaultValue);
         if (isTrue((value is bool)))
         {
             return value;
@@ -427,7 +437,7 @@ public partial class Exchange
         return defaultValue;
     }
 
-    public virtual object safeDict(object dictionary, object key, object defaultValue = null)
+    public virtual object safeDict(object dictionaryOrList, object key, object defaultValue = null)
     {
         /**
          * @ignore
@@ -435,7 +445,7 @@ public partial class Exchange
          * @description safely extract a dictionary from dictionary or list
          * @returns {object | undefined}
          */
-        object value = this.safeValue(dictionary, key, defaultValue);
+        object value = this.safeValue(dictionaryOrList, key, defaultValue);
         if (isTrue(isEqual(value, null)))
         {
             return defaultValue;
@@ -447,7 +457,7 @@ public partial class Exchange
         return defaultValue;
     }
 
-    public virtual object safeDict2(object dictionary, object key1, object key2, object defaultValue = null)
+    public virtual object safeDict2(object dictionaryOrList, object key1, object key2, object defaultValue = null)
     {
         /**
          * @ignore
@@ -455,7 +465,17 @@ public partial class Exchange
          * @description safely extract a dictionary from dictionary or list
          * @returns {object | undefined}
          */
-        return this.safeDictN(dictionary, new List<object>() {key1, key2}, defaultValue);
+        object value = this.safeValue(dictionaryOrList, key1);
+        if (isTrue(this.isDictionary(value)))
+        {
+            return value;
+        }
+        object value2 = this.safeValue(dictionaryOrList, key2);
+        if (isTrue(this.isDictionary(value2)))
+        {
+            return value2;
+        }
+        return defaultValue;
     }
 
     public virtual object safeListN(object dictionaryOrList, object keys, object defaultValue = null)
@@ -491,7 +511,17 @@ public partial class Exchange
          * @description safely extract an Array from dictionary or list
          * @returns {Array | undefined}
          */
-        return this.safeListN(dictionaryOrList, new List<object>() {key1, key2}, defaultValue);
+        object value = this.safeValue(dictionaryOrList, key1);
+        if (isTrue(isTrue((!isEqual(value, null))) && isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
+        {
+            return value;
+        }
+        object value2 = this.safeValue(dictionaryOrList, key2);
+        if (isTrue(isTrue((!isEqual(value2, null))) && isTrue(((value2 is IList<object>) || (value2.GetType().IsGenericType && value2.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
+        {
+            return value2;
+        }
+        return defaultValue;
     }
 
     public virtual object safeList(object dictionaryOrList, object key, object defaultValue = null)
@@ -534,7 +564,7 @@ public partial class Exchange
         countOrIdKey ??= 2;
         for (object i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
         {
-            object bidAsk = this.parseBidAsk(getValue(deltas, i), priceKey, amountKey, countOrIdKey);
+            object bidAsk = this.parseOrderBookBidAsk(getValue(deltas, i), priceKey, amountKey, countOrIdKey);
             (bookSide as ccxt.pro.IOrderBookSide).storeArray(bidAsk);
         }
     }
@@ -1188,6 +1218,10 @@ public partial class Exchange
         for (object i = 0; isLessThan(i, getArrayLength(arr)); postFixIncrement(ref i))
         {
             object parsed = this.parseCurrency(getValue(arr, i));
+            if (isTrue(isEqual(parsed, null)))
+            {
+                continue;
+            }
             object code = getValue(parsed, "code");
             ((IDictionary<string,object>)result)[(string)code] = parsed;
         }
@@ -1927,24 +1961,6 @@ public partial class Exchange
                 if (isTrue(isTrue(isEqual(currencyWithdraw, null)) || isTrue(withdraw)))
                 {
                     ((IDictionary<string,object>)currency)["withdraw"] = withdraw;
-                }
-                // set network 'active' to false if D or W is disabled
-                object active = this.safeBool(network, "active");
-                if (isTrue(isEqual(active, null)))
-                {
-                    if (isTrue(isTrue(deposit) && isTrue(withdraw)))
-                    {
-                        ((IDictionary<string,object>)getValue(getValue(currency, "networks"), key))["active"] = true;
-                    } else if (isTrue(isTrue(!isEqual(deposit, null)) && isTrue(!isEqual(withdraw, null))))
-                    {
-                        ((IDictionary<string,object>)getValue(getValue(currency, "networks"), key))["active"] = false;
-                    }
-                }
-                active = this.safeBool(getValue(getValue(currency, "networks"), key), "active"); // dict might have been updated on above lines, so access directly instead of `network` variable
-                object currencyActive = this.safeBool(currency, "active");
-                if (isTrue(isTrue(isEqual(currencyActive, null)) || isTrue(active)))
-                {
-                    ((IDictionary<string,object>)currency)["active"] = active;
                 }
                 // find lowest fee (which is more desired)
                 object fee = this.safeString(network, "fee");
@@ -2947,6 +2963,25 @@ public partial class Exchange
         return getValue(arr, subtract(length, 1));
     }
 
+    public virtual object addKeyInArrayItems(object obj, object keyName)
+    {
+        object result = new List<object>() {};
+        object keys = new List<object>(((IDictionary<string,object>)obj).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        {
+            object key = getValue(keys, i);
+            object item = getValue(obj, key);
+            if (isTrue(isEqual(item, null)))
+            {
+                continue;
+            }
+            object itemWithKey = this.extend(new Dictionary<string, object>() {}, item);
+            ((IDictionary<string,object>)itemWithKey)[(string)keyName] = key;
+            ((IList<object>)result).Add(itemWithKey);
+        }
+        return result;
+    }
+
     public virtual object invertFlatStringDictionary(object dict)
     {
         object reversed = new Dictionary<string, object>() {};
@@ -3505,7 +3540,7 @@ public partial class Exchange
         return result;
     }
 
-    public virtual object parseBidsAsks(object bidasks, object priceKey = null, object amountKey = null, object countOrIdKey = null)
+    public virtual object parseOrderBookBidsAsks(object bidasks, object priceKey = null, object amountKey = null, object countOrIdKey = null)
     {
         priceKey ??= 0;
         amountKey ??= 1;
@@ -3514,7 +3549,7 @@ public partial class Exchange
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(bidasks)); postFixIncrement(ref i))
         {
-            ((IList<object>)result).Add(this.parseBidAsk(getValue(bidasks, i), priceKey, amountKey, countOrIdKey));
+            ((IList<object>)result).Add(this.parseOrderBookBidAsk(getValue(bidasks, i), priceKey, amountKey, countOrIdKey));
         }
         return result;
     }
@@ -3821,8 +3856,8 @@ public partial class Exchange
         priceKey ??= 0;
         amountKey ??= 1;
         countOrIdKey ??= 2;
-        object bids = this.parseBidsAsks(this.safeValue(orderbook, bidsKey, new List<object>() {}), priceKey, amountKey, countOrIdKey);
-        object asks = this.parseBidsAsks(this.safeValue(orderbook, asksKey, new List<object>() {}), priceKey, amountKey, countOrIdKey);
+        object bids = this.parseOrderBookBidsAsks(this.safeValue(orderbook, bidsKey, new List<object>() {}), priceKey, amountKey, countOrIdKey);
+        object asks = this.parseOrderBookBidsAsks(this.safeValue(orderbook, asksKey, new List<object>() {}), priceKey, amountKey, countOrIdKey);
         return ((object)new Dictionary<string, object>() {
             { "symbol", symbol },
             { "bids", this.sortBy(bids, 0, true) },
@@ -4589,7 +4624,7 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " fetchLedgerEntry() is not supported yet")) ;
     }
 
-    public virtual object parseBidAsk(object bidask, object priceKey = null, object amountKey = null, object countOrIdKey = null)
+    public virtual object parseOrderBookBidAsk(object bidask, object priceKey = null, object amountKey = null, object countOrIdKey = null)
     {
         priceKey ??= 0;
         amountKey ??= 1;

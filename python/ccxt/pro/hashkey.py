@@ -545,21 +545,22 @@ class hashkey(ccxt.async_support.hashkey):
         market = self.safe_market(marketId, market)
         timestamp = self.safe_integer(trade, 't')
         isBuyerMaker = self.safe_bool(trade, 'm')
+        isPublicTrade = self.safe_string(trade, 'e') is None
         side: Str = None
         takerOrMaker: Str = None
         if isBuyerMaker is not None:
-            if isBuyerMaker:
-                side = 'sell'
-                takerOrMaker = 'maker'
-            else:
-                side = 'buy'
+            if isPublicTrade:
                 takerOrMaker = 'taker'
+                side = 'sell' if isBuyerMaker else 'buy'
+            else:
+                takerOrMaker = 'maker' if isBuyerMaker else 'taker'
+                side = self.safe_string_lower(trade, 'S')
         return self.safe_trade({
             'id': self.safe_string_2(trade, 'v', 'T'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': market['symbol'],
-            'side': self.safe_string_lower(trade, 'S', side),
+            'side': side,
             'price': self.safe_string(trade, 'p'),
             'amount': self.safe_string(trade, 'q'),
             'cost': None,

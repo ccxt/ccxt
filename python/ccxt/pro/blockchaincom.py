@@ -693,7 +693,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         client.resolve(orderbook, messageHash)
 
     def handle_delta(self, bookside, delta):
-        bookArray = self.parse_bid_ask(delta, 'px', 'qty', 'num')
+        bookArray = self.parse_order_book_bid_ask(delta, 'px', 'qty', 'num')
         bookside.storeArray(bookArray)
 
     def handle_deltas(self, bookside, deltas):

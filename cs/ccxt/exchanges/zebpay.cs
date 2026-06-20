@@ -258,7 +258,7 @@ public partial class zebpay : Exchange
 
     /**
      * @method
-     * @name zebpayfutures#fetchTime
+     * @name zebpay#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the poloniexfutures server
      * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-server-time
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/system.md#get-system-time
@@ -379,94 +379,93 @@ public partial class zebpay : Exchange
         //     }
         //
         object rows = this.safeList(response, "data", new List<object>() {});
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
+        return this.parseCurrencies(rows);
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
+        object currencyId = this.safeString(rawCurrency, "currency");
+        object code = this.safeCurrencyCode(currencyId);
+        object name = this.safeString(rawCurrency, "name");
+        object precision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "precision")));
+        object chains = this.safeList(rawCurrency, "chains", new List<object>() {});
+        object networks = new Dictionary<string, object>() {};
+        object minWithdrawFeeString = null;
+        object minWithdrawString = null;
+        object minDepositString = null;
+        object deposit = false;
+        object withdraw = false;
+        for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
         {
-            object currency = getValue(rows, i);
-            object currencyId = this.safeString(currency, "currency");
-            object code = this.safeCurrencyCode(currencyId);
-            object name = this.safeString(currency, "name");
-            object precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "precision")));
-            object chains = this.safeList(currency, "chains", new List<object>() {});
-            object networks = new Dictionary<string, object>() {};
-            object minWithdrawFeeString = null;
-            object minWithdrawString = null;
-            object minDepositString = null;
-            object deposit = false;
-            object withdraw = false;
-            for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
+            object chain = getValue(chains, j);
+            object networkId = this.safeString(chain, "chainId");
+            object networkCode = this.networkIdToCode(networkId, code);
+            object depositAllowed = isEqual(this.safeBool(chain, "isDepositEnabled"), true);
+            deposit = ((bool) isTrue((depositAllowed))) ? depositAllowed : deposit;
+            object withdrawAllowed = isEqual(this.safeBool(chain, "isWithdrawEnabled"), true);
+            withdraw = ((bool) isTrue((withdrawAllowed))) ? withdrawAllowed : withdraw;
+            object withdrawFeeString = this.safeString(chain, "withdrawalFee");
+            if (isTrue(!isEqual(withdrawFeeString, null)))
             {
-                object chain = getValue(chains, j);
-                object networkId = this.safeString(chain, "chainId");
-                object networkCode = this.networkIdToCode(networkId);
-                object depositAllowed = isEqual(this.safeBool(chain, "isDepositEnabled"), true);
-                deposit = ((bool) isTrue((depositAllowed))) ? depositAllowed : deposit;
-                object withdrawAllowed = isEqual(this.safeBool(chain, "isWithdrawEnabled"), true);
-                withdraw = ((bool) isTrue((withdrawAllowed))) ? withdrawAllowed : withdraw;
-                object withdrawFeeString = this.safeString(chain, "withdrawalFee");
-                if (isTrue(!isEqual(withdrawFeeString, null)))
-                {
-                    minWithdrawFeeString = ((bool) isTrue((isEqual(minWithdrawFeeString, null)))) ? withdrawFeeString : Precise.stringMin(withdrawFeeString, minWithdrawFeeString);
-                }
-                object minNetworkWithdrawString = this.safeString(chain, "withdrawalMinSize");
-                if (isTrue(!isEqual(minNetworkWithdrawString, null)))
-                {
-                    minWithdrawString = ((bool) isTrue((isEqual(minWithdrawString, null)))) ? minNetworkWithdrawString : Precise.stringMin(minNetworkWithdrawString, minWithdrawString);
-                }
-                object minNetworkDepositString = this.safeString(chain, "depositMinSize");
-                if (isTrue(!isEqual(minNetworkDepositString, null)))
-                {
-                    minDepositString = ((bool) isTrue((isEqual(minDepositString, null)))) ? minNetworkDepositString : Precise.stringMin(minNetworkDepositString, minDepositString);
-                }
-                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                    { "info", chain },
-                    { "id", networkId },
-                    { "network", networkCode },
-                    { "active", isTrue(depositAllowed) && isTrue(withdrawAllowed) },
-                    { "deposit", depositAllowed },
-                    { "withdraw", withdrawAllowed },
-                    { "fee", this.parseNumber(withdrawFeeString) },
-                    { "precision", precision },
-                    { "limits", new Dictionary<string, object>() {
-                        { "withdraw", new Dictionary<string, object>() {
-                            { "min", this.parseNumber(minNetworkWithdrawString) },
-                            { "max", null },
-                        } },
-                        { "deposit", new Dictionary<string, object>() {
-                            { "min", this.parseNumber(minNetworkDepositString) },
-                            { "max", null },
-                        } },
-                    } },
-                };
+                minWithdrawFeeString = ((bool) isTrue((isEqual(minWithdrawFeeString, null)))) ? withdrawFeeString : Precise.stringMin(withdrawFeeString, minWithdrawFeeString);
             }
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "info", currency },
-                { "code", code },
-                { "id", currencyId },
-                { "name", name },
-                { "active", isTrue(deposit) && isTrue(withdraw) },
-                { "deposit", deposit },
-                { "withdraw", withdraw },
-                { "fee", this.parseNumber(minWithdrawFeeString) },
+            object minNetworkWithdrawString = this.safeString(chain, "withdrawalMinSize");
+            if (isTrue(!isEqual(minNetworkWithdrawString, null)))
+            {
+                minWithdrawString = ((bool) isTrue((isEqual(minWithdrawString, null)))) ? minNetworkWithdrawString : Precise.stringMin(minNetworkWithdrawString, minWithdrawString);
+            }
+            object minNetworkDepositString = this.safeString(chain, "depositMinSize");
+            if (isTrue(!isEqual(minNetworkDepositString, null)))
+            {
+                minDepositString = ((bool) isTrue((isEqual(minDepositString, null)))) ? minNetworkDepositString : Precise.stringMin(minNetworkDepositString, minDepositString);
+            }
+            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                { "info", chain },
+                { "id", networkId },
+                { "network", networkCode },
+                { "active", isTrue(depositAllowed) && isTrue(withdrawAllowed) },
+                { "deposit", depositAllowed },
+                { "withdraw", withdrawAllowed },
+                { "fee", this.parseNumber(withdrawFeeString) },
                 { "precision", precision },
                 { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
                     { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.parseNumber(minWithdrawString) },
+                        { "min", this.parseNumber(minNetworkWithdrawString) },
                         { "max", null },
                     } },
                     { "deposit", new Dictionary<string, object>() {
-                        { "min", this.parseNumber(minDepositString) },
+                        { "min", this.parseNumber(minNetworkDepositString) },
                         { "max", null },
                     } },
                 } },
-                { "networks", networks },
-            });
+            };
         }
-        return result;
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "info", rawCurrency },
+            { "code", code },
+            { "id", currencyId },
+            { "name", name },
+            { "active", isTrue(deposit) && isTrue(withdraw) },
+            { "deposit", deposit },
+            { "withdraw", withdraw },
+            { "fee", this.parseNumber(minWithdrawFeeString) },
+            { "precision", precision },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", this.parseNumber(minWithdrawString) },
+                    { "max", null },
+                } },
+                { "deposit", new Dictionary<string, object>() {
+                    { "min", this.parseNumber(minDepositString) },
+                    { "max", null },
+                } },
+            } },
+            { "networks", networks },
+        });
     }
 
     /**
@@ -532,7 +531,7 @@ public partial class zebpay : Exchange
 
     /**
      * @method
-     * @name zebpay(futures)#fetchTradingFees
+     * @name zebpay#fetchTradingFees
      * @description fetch the trading fees for multiple markets
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/exchange.md#get-trade-fees-all-symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1583,7 +1582,7 @@ public partial class zebpay : Exchange
 
     /**
      * @method
-     * @name zebpayfutures#addMargin
+     * @name zebpay#addMargin
      * @description add margin
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-add-margin-to-position
      * @param {string} symbol unified market symbol
@@ -1630,7 +1629,7 @@ public partial class zebpay : Exchange
 
     /**
      * @method
-     * @name zebpayfutures#reduceMargin
+     * @name zebpay#reduceMargin
      * @description add margin
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-reduce-margin-from-position
      * @param {string} symbol unified market symbol.

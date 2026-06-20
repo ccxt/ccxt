@@ -1,8 +1,5 @@
-- [Looping Over All Symbols Of Specific Exchanges](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 
 import ccxt from '../../js/ccxt.js';
 import asTable from 'as-table';
@@ -17,7 +14,7 @@ ansicolor.nice
 
 ;(async () => {
 
-    const exchanges = [ 'bittrex', 'poloniex', 'hitbtc2' ]
+    const exchanges = [ 'poloniex', 'hitbtc' ]
 
     for (let exchangeId of exchanges) {
 
@@ -63,5 +60,5 @@ ansicolor.nice
     }
 
 }) ()
- 
+
 ```

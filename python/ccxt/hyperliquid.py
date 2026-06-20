@@ -464,48 +464,48 @@ class hyperliquid(Exchange, ImplicitAPI):
         tokens = self.safe_list(response, 'tokens', [])
         # meta = self.safe_list(response, 'universe', [])
         self.options['cachedCurrenciesById'] = {}  # used to map hip3 markets
-        result: dict = {}
-        for i in range(0, len(tokens)):
-            data = self.safe_dict(tokens, i, {})
-            # id = i
-            id = self.safe_string(data, 'index')
-            name = self.safe_string(data, 'name')
-            code = self.safe_currency_code(name)
-            self.options['cachedCurrenciesById'][id] = name
-            result[code] = self.safe_currency_structure({
-                'id': id,
-                'name': name,
-                'code': code,
-                'precision': self.parse_precision(self.safe_string(data, 'weiDecimals')),
-                'info': data,
-                'active': None,
-                'deposit': None,
-                'withdraw': None,
-                'networks': None,
-                'fee': None,
-                'type': 'crypto',
-                'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
-                    },
+        return self.parse_currencies(tokens)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        # id = i
+        id = self.safe_string(rawCurrency, 'index')
+        name = self.safe_string(rawCurrency, 'name')
+        code = self.safe_currency_code(name)
+        self.options['cachedCurrenciesById'][id] = name
+        result = self.safe_currency_structure({
+            'id': id,
+            'name': name,
+            'code': code,
+            'precision': self.parse_precision(self.safe_string(rawCurrency, 'weiDecimals')),
+            'info': rawCurrency,
+            'active': None,
+            'deposit': None,
+            'withdraw': None,
+            'networks': None,
+            'fee': None,
+            'type': 'crypto',
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
                 },
-            })
-            # add in wrapped map
-            fullName = self.safe_string(data, 'fullName')
-            if fullName is not None and name is not None:
-                isWrapped = fullName.startswith('Unit ') and name.startswith('U')
-                if isWrapped:
-                    parts = name.split('U')
-                    nameWithoutU = ''
-                    for j in range(0, len(parts)):
-                        nameWithoutU = nameWithoutU + parts[j]
-                    baseCode = self.safe_currency_code(nameWithoutU)
-                    self.options['spotCurrencyMapping'][code] = baseCode
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+        })
+        # add in wrapped map
+        fullName = self.safe_string(rawCurrency, 'fullName')
+        if fullName is not None and name is not None:
+            isWrapped = fullName.startswith('Unit ') and name.startswith('U')
+            if isWrapped:
+                parts = name.split('U')
+                nameWithoutU = ''
+                for j in range(0, len(parts)):
+                    nameWithoutU = nameWithoutU + parts[j]
+                baseCode = self.safe_currency_code(nameWithoutU)
+                self.options['spotCurrencyMapping'][code] = baseCode
         return result
 
     def fetch_markets(self, params={}) -> List[Market]:

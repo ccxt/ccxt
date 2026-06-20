@@ -1,20 +1,17 @@
-/// <reference types="node" />
-/// <reference types="node" />
-/// <reference types="node" />
 import * as net from 'net';
 import * as tls from 'tls';
 import * as http from 'http';
 import type { OutgoingHttpHeaders } from 'http';
 import { Agent, AgentConnectOpts } from './../agent-base/index.js';
-declare type Protocol<T> = T extends `${infer Protocol}:${infer _}` ? Protocol : never;
-declare type ConnectOptsMap = {
+type Protocol<T> = T extends `${infer Protocol}:${infer _}` ? Protocol : never;
+type ConnectOptsMap = {
     http: Omit<net.TcpNetConnectOpts, 'host' | 'port'>;
     https: Omit<tls.ConnectionOptions, 'host' | 'port'>;
 };
-declare type ConnectOpts<T> = {
+type ConnectOpts<T> = {
     [P in keyof ConnectOptsMap]: Protocol<T> extends P ? ConnectOptsMap[P] : never;
 }[keyof ConnectOptsMap];
-export declare type HttpProxyAgentOptions<T> = ConnectOpts<T> & http.AgentOptions & {
+export type HttpProxyAgentOptions<T> = ConnectOpts<T> & http.AgentOptions & {
     headers?: OutgoingHttpHeaders | (() => OutgoingHttpHeaders);
 };
 interface HttpProxyAgentClientRequest extends http.ClientRequest {

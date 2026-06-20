@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var Precise = require('./base/Precise.js');
 var apex$1 = require('./abstract/apex.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var errors = require('./base/errors.js');
 
 // ----------------------------------------------------------------------------
@@ -21,7 +21,7 @@ class apex extends apex$1["default"] {
             'name': 'Apex',
             'countries': [],
             'version': 'v3',
-            'rateLimit': 20,
+            'rateLimit': 20, // 600 requests per minute, 10 request per second
             'certified': false,
             'pro': true,
             'dex': true,
@@ -154,7 +154,7 @@ class apex extends apex$1["default"] {
                     'private': 'https://testnet.omni.apex.exchange/api',
                 },
                 'www': 'https://apex.exchange/',
-                'doc': 'https://api-docs.pro.apex.exchange',
+                'doc': 'https://api-docs.omni.apex.exchange',
                 'fees': 'https://apex-pro.gitbook.io/apex-pro/apex-omni-live-now/trading-perpetual-contracts/trading-fees',
                 'referral': 'https://omni.apex.exchange/trade',
             },
@@ -207,8 +207,8 @@ class apex extends apex$1["default"] {
                 // - ob: order balance - the total cost of current open orders
                 // - ab: available balance
                 'exact': {
-                    '20006': 'apikey sign error',
-                    '20016': 'request para error',
+                    '20006': 'apikey sign error', // apikey sign error
+                    '20016': 'request para error', // apikey sign error
                     '10001': errors.BadRequest,
                 },
                 'broad': {
@@ -245,8 +245,8 @@ class apex extends apex$1["default"] {
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -256,7 +256,7 @@ class apex extends apex$1["default"] {
                         },
                         'hedged': false,
                         'selfTradePrevention': false,
-                        'trailing': true,
+                        'trailing': true, // todo unify
                         'leverage': false,
                         'marketBuyByCost': false,
                         'marketBuyRequiresPrice': false,
@@ -310,7 +310,7 @@ class apex extends apex$1["default"] {
      * @method
      * @name apex#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-system-time-v3
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-system-time-v3
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
@@ -357,7 +357,7 @@ class apex extends apex$1["default"] {
      * @method
      * @name apex#fetchBalance
      * @description query for account info
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-balance
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-balance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
@@ -380,7 +380,7 @@ class apex extends apex$1["default"] {
      * @method
      * @name apex#fetchAccount
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-data
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-data
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
@@ -394,7 +394,7 @@ class apex extends apex$1["default"] {
      * @method
      * @name apex#fetchCurrencies
      * @description fetches all available currencies on an exchange
-     * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-all-config-data-v3
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-all-config-data-v3
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
@@ -411,7 +411,7 @@ class apex extends apex$1["default"] {
         //             "displayName": "Tether USD Coin",
         //             "decimals": 18,
         //             "showStep": "0.01",
-        //             "iconUrl": "https://static-pro.apex.exchange/chains/chain_tokens/Ethereum/Ethereum_USDT.svg",
+        //             "iconUrl": "https://static-omni.apex.exchange/chains/chain_tokens/Ethereum/Ethereum_USDT.svg",
         //             "l2WithdrawFee": "0",
         //             "enableCollateral": true,
         //             "enableCrossCollateral": false,
@@ -426,7 +426,7 @@ class apex extends apex$1["default"] {
         //          "chainId": "9",
         //          "chainType": "0",
         //          "l1ChainId": "42161",
-        //          "chainIconUrl": "https://static-pro.apex.exchange/chains/chain_logos/Arbitrum.svg",
+        //          "chainIconUrl": "https://static-omni.apex.exchange/chains/chain_logos/Arbitrum.svg",
         //          "contractAddress": "0x3169844a120c0f517b4eb4a750c08d8518c8466a",
         //          "swapContractAddress": "0x9e07b6Aef1bbD9E513fc2Eb8873e311E80B4f855",
         //          "stopDeposit": false,
@@ -437,10 +437,10 @@ class apex extends apex$1["default"] {
         //          "gasTokenDecimals": 18,
         //          "feeGasLimit": 300000,
         //          "blockTimeSeconds": 2,
-        //          "rpcUrl": "https://arb.pro.apex.exchange",
+        //          "rpcUrl": "https://arb.omni.apex.exchange",
         //          "minSwapUsdtAmount": "",
         //          "maxSwapUsdtAmount": "",
-        //          "webRpcUrl": "https://arb.pro.apex.exchange",
+        //          "webRpcUrl": "https://arb.omni.apex.exchange",
         //          "webTxUrl": "https://arbiscan.io/tx/",
         //          "backupRpcUrl": "https://arb-mainnet.g.alchemy.com/v2/rGlYUbRHtUav5mfeThCPtsV9GLPt2Xq5",
         //          "txConfirm": 20,
@@ -448,7 +448,7 @@ class apex extends apex$1["default"] {
         //          "tokens": [
         //              {
         //                  "decimals": 6,
-        //                  "iconUrl": "https://static-pro.apex.exchange/chains/chain_tokens/Arbitrum/Arbitrum_USDT.svg",
+        //                  "iconUrl": "https://static-omni.apex.exchange/chains/chain_tokens/Arbitrum/Arbitrum_USDT.svg",
         //                  "token": "USDT",
         //                  "tokenAddress": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
         //                  "pullOff": false,
@@ -469,7 +469,7 @@ class apex extends apex$1["default"] {
         //              },
         //              {
         //                  "decimals": 6,
-        //                  "iconUrl": "https://static-pro.apex.exchange/chains/chain_tokens/Arbitrum/Arbitrum_USDC.svg",
+        //                  "iconUrl": "https://static-omni.apex.exchange/chains/chain_tokens/Arbitrum/Arbitrum_USDC.svg",
         //                  "token": "USDC",
         //                  "tokenAddress": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
         //                  "pullOff": false,
@@ -513,7 +513,7 @@ class apex extends apex$1["default"] {
                 const tokenName = this.safeString(token, 'token');
                 if (tokenName === currencyId) {
                     const networkId = this.safeString(chain, 'chainId');
-                    const networkCode = this.networkIdToCode(networkId);
+                    const networkCode = this.networkIdToCode(networkId, code);
                     networks[networkCode] = {
                         'info': chain,
                         'id': networkId,
@@ -573,7 +573,7 @@ class apex extends apex$1["default"] {
      * @method
      * @name apex#fetchMarkets
      * @description retrieves data on all markets for apex
-     * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-all-config-data-v3
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-all-config-data-v3
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -614,7 +614,7 @@ class apex extends apex$1["default"] {
         //             "tickSize": "0.1",
         //             "maxMaintenanceMarginRate": "0.5000",
         //             "maxPositionValue": "5000000.0000",
-        //             "tagIconUrl": "https://static-pro.apex.exchange/icon/LABLE_HOT.svg",
+        //             "tagIconUrl": "https://static-omni.apex.exchange/icon/LABLE_HOT.svg",
         //             "tag": "HOT",
         //             "riskTip": false,
         //             "defaultInitialMarginRate": "0.05",
@@ -761,7 +761,7 @@ class apex extends apex$1["default"] {
      * @method
      * @name apex#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -781,7 +781,7 @@ class apex extends apex$1["default"] {
      * @method
      * @name apex#fetchTickers
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
      * @param {string} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -796,7 +796,7 @@ class apex extends apex$1["default"] {
      * @method
      * @name apex#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-candlestick-chart-data-v3
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-candlestick-chart-data-v3
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -852,7 +852,7 @@ class apex extends apex$1["default"] {
      * @method
      * @name apex#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-market-depth-v3
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-market-depth-v3
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -905,7 +905,7 @@ class apex extends apex$1["default"] {
      * @method
      * @name apex#fetchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-newest-trading-data-v3
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-newest-trading-data-v3
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -990,7 +990,7 @@ class apex extends apex$1["default"] {
      * @method
      * @name apex#fetchOpenInterest
      * @description retrieves the open interest of a contract trading pair
-     * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
      * @param {string} symbol unified CCXT market symbol
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
@@ -1042,7 +1042,7 @@ class apex extends apex$1["default"] {
      * @method
      * @name apex#fetchFundingRateHistory
      * @description fetches historical funding rate prices
-     * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-funding-rate-history-v3
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-funding-rate-history-v3
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
      * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
@@ -1295,7 +1295,7 @@ class apex extends apex$1["default"] {
      * @method
      * @name apex#createOrder
      * @description create a trade order
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-creating-orders
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-creating-orders
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -1382,7 +1382,7 @@ class apex extends apex$1["default"] {
         const request = {
             'symbol': market['id'],
             'side': orderSide,
-            'type': orderType,
+            'type': orderType, // LIMIT/MARKET/STOP_LIMIT/STOP_MARKET
             'size': orderSize,
             'price': finalOrderPrice,
             'limitFee': limitFee,
@@ -1562,7 +1562,7 @@ class apex extends apex$1["default"] {
      * @method
      * @name apex#cancelAllOrders
      * @description cancel all open orders in a market
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-cancel-all-open-orders
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-cancel-all-open-orders
      * @param {string} symbol unified market symbol of the market to cancel orders in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -1583,7 +1583,7 @@ class apex extends apex$1["default"] {
      * @method
      * @name apex#cancelOrder
      * @description cancels an open order
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-cancel-order
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-cancel-order
      * @param {string} id order id
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1609,8 +1609,8 @@ class apex extends apex$1["default"] {
      * @method
      * @name apex#fetchOrder
      * @description fetches information on an order made by the user
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-order-id
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-order-by-clientorderid
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-order-id
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-order-by-clientorderid
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1638,7 +1638,7 @@ class apex extends apex$1["default"] {
      * @method
      * @name apex#fetchOpenOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-open-orders
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-open-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1655,7 +1655,7 @@ class apex extends apex$1["default"] {
      * @method
      * @name apex#fetchOrders
      * @description fetches information on multiple orders made by the user *classic accounts only*
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-all-order-history
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-all-order-history
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve, default 100
@@ -1696,7 +1696,7 @@ class apex extends apex$1["default"] {
      * @method
      * @name apex#fetchOrderTrades
      * @description fetch all the trades made from a single order
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-trade-history
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-trade-history
      * @param {string} id order id
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -1724,7 +1724,7 @@ class apex extends apex$1["default"] {
      * @method
      * @name apex#fetchMyTrades
      * @description fetches information on multiple orders made by the user *classic accounts only*
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-trade-history
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-trade-history
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve, default 100
@@ -1763,7 +1763,7 @@ class apex extends apex$1["default"] {
      * @method
      * @name apex#fetchFundingHistory
      * @description fetches information on multiple orders made by the user *classic accounts only*
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-funding-rate
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-funding-rate
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve, default 100
@@ -1831,7 +1831,7 @@ class apex extends apex$1["default"] {
      * @method
      * @name apex#setLeverage
      * @description set the level of leverage for a market
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-sets-the-initial-margin-rate-of-a-contract
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-sets-the-initial-margin-rate-of-a-contract
      * @param {float} leverage the rate of leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1857,7 +1857,7 @@ class apex extends apex$1["default"] {
      * @method
      * @name apex#fetchPositions
      * @description fetch all open positions
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-data
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-data
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -1948,7 +1948,7 @@ class apex extends apex$1["default"] {
             if (signBody !== undefined) {
                 messageString = messageString + signBody;
             }
-            const signature = this.hmac(this.encode(messageString), this.encode(this.stringToBase64(this.secret)), sha256.sha256, 'base64');
+            const signature = this.hmac(this.encode(messageString), this.encode(this.stringToBase64(this.secret)), sha2_js.sha256, 'base64');
             headers['APEX-SIGNATURE'] = signature;
             headers['APEX-API-KEY'] = this.apiKey;
             headers['APEX-TIMESTAMP'] = timestamp;

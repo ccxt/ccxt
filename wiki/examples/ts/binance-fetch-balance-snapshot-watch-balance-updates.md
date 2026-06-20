@@ -1,8 +1,5 @@
-- [Binance Fetch Balance Snapshot Watch Balance Updates](./examples/ts/)
-
-
- ```javascript
- // AUTO-TRANSPILE //
+```javascript
+// AUTO-TRANSPILE //
 
 'use strict';
 
@@ -54,5 +51,5 @@ async function main () {
 }
 
 main ();
- 
+
 ```

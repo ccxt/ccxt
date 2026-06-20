@@ -1,8 +1,5 @@
-- [Gateio Swap Watch Many Orderbooks](./examples/ts/)
-
-
- ```javascript
- 'use strict';
+```javascript
+'use strict';
 
 import ccxt from '../../js/ccxt.js';
 
@@ -20,7 +17,7 @@ async function loop (exchange, method, symbol) {
 }
 
 async function main () {
-    const exchange = new ccxt.pro.gateio ({
+    const exchange = new ccxt.pro.gate ({
         'options': { 'defaultType': 'swap' },
     });
     await exchange.loadMarkets ();
@@ -32,5 +29,5 @@ async function main () {
 }
 
 main ();
- 
+
 ```

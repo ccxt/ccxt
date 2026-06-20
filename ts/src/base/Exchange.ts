@@ -1,5 +1,10 @@
 // ----------------------------------------------------------------------------
 
+import { secp256k1 } from '@noble/curves/secp256k1.js';
+import { keccak_256 } from '@noble/hashes/sha3.js';
+import { getStarkKey, ethSigToPrivate, sign as starknetCurveSign } from '@scure/starknet';
+import { sha256 } from '@noble/hashes/sha2.js';
+import { sha1 } from '@noble/hashes/legacy.js';
 import * as functions from './functions.js';
 // import {
 //     // keys as keysFunc,
@@ -8,7 +13,7 @@ import * as functions from './functions.js';
 //     // vwap as vwapFunc,
 // } from './functions.js';
 // import exceptions from "./errors.js"
-import { // eslint-disable-line object-curly-newline
+import {
     ExchangeError,
     BadSymbol,
     NullResponse,
@@ -37,7 +42,6 @@ import { Future } from './ws/Future.js';
 import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook, OrderBook as Ob } from './ws/OrderBook.js';
 // ----------------------------------------------------------------------------
 //
-import { axolotl } from './functions/crypto.js';
 // import types
 import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL } from './types.js';
 // ----------------------------------------------------------------------------
@@ -46,14 +50,9 @@ import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
 import { totp } from './functions/totp.js';
 import ethers from '../static_dependencies/ethers/index.js';
 import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
-import { secp256k1 } from '../static_dependencies/noble-curves/secp256k1.js';
-import { keccak_256 } from '../static_dependencies/noble-hashes/sha3.js';
 import { SecureRandom } from '../static_dependencies/jsencrypt/lib/jsbn/rng.js';
-import { getStarkKey, ethSigToPrivate, sign as starknetCurveSign } from '../static_dependencies/scure-starknet/index.js';
 import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';
 import * as Starknet from '../static_dependencies/starknet/index.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { sha1 } from '../static_dependencies/noble-hashes/sha1.js';
 import { exportMnemonicAndPrivateKey, deriveHDKeyFromMnemonic } from '../static_dependencies/dydx-v4-client/onboarding.js';
 import { Long } from '../static_dependencies/dydx-v4-client/helpers.js';
 
@@ -160,7 +159,7 @@ const {
     TICK_SIZE,
     SIGNIFICANT_DIGITS,
     sleep,
-    readFile, writeFile, existsFile, getTempDir,
+    readFile, writeFile, existsFile, getTempDir, filePathToFileUrlForWindows,
 } = functions;
 
 // export {Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory} from './types.js'
@@ -291,7 +290,6 @@ export default class Exchange {
     };
 
     requiresWeb3: boolean = false;
-    requiresEddsa: boolean = false;
     precision: {
         amount: Num,
         price: Num,
@@ -573,7 +571,6 @@ export default class Exchange {
         this.positions = undefined;
         // web3 and cryptography flags
         this.requiresWeb3 = false;
-        this.requiresEddsa = false;
         // response handling flags and properties
         this.lastRestRequestTimestamp = 0;
         this.enableLastJsonResponse = false;
@@ -653,9 +650,7 @@ export default class Exchange {
         const nameBytes = new TextEncoder ().encode (name);
         const data = new Uint8Array ([ ...nsBytes, ...nameBytes ]);
         const nsHash = sha1 (data);
-        // eslint-disable-next-line
         nsHash[6] = (nsHash[6] & 0x0f) | 0x50;
-        // eslint-disable-next-line
         nsHash[8] = (nsHash[8] & 0x3f) | 0x80;
         const hex = [ ...nsHash.slice (0, 16) ]
             .map ((b) => b.toString (16).padStart (2, '0'))
@@ -764,7 +759,6 @@ export default class Exchange {
     }
 
     log (...args) {
-        // eslint-disable-next-line no-console
         console.log (...args);
     }
 
@@ -785,7 +779,7 @@ export default class Exchange {
                         // @ts-ignore
                         this.httpProxyAgentModule = await import (/* webpackIgnore: true */ 'http-proxy-agent');
                         // @ts-ignore
-                        this.httpsProxyAgentModule = await import (/* webpackIgnore: true */ 'https-proxy-agent'); // eslint-disable-line
+                        this.httpsProxyAgentModule = await import (/* webpackIgnore: true */ 'https-proxy-agent');
                     } catch (err) {
                         // TODO: handle error
                     }
@@ -996,7 +990,7 @@ export default class Exchange {
                     // some users having issues with dynamic imports (https://github.com/ccxt/ccxt/pull/20687)
                     // so let them to fallback to node's native fetch
                     if (typeof fetch === 'function') {
-                        this.fetchImplementation = fetch; // eslint-disable-line
+                        this.fetchImplementation = fetch;
                         // as it's browser-compatible implementation ( https://nodejs.org/dist/latest-v20.x/docs/api/globals.html#fetch )
                         // it throws same error types
                         this.AbortError = DOMException;
@@ -1601,10 +1595,6 @@ export default class Exchange {
         return message.slice (0, length);
     }
 
-    axolotl (payload, hexKey, ed25519) {
-        return axolotl (payload, hexKey, ed25519);
-    }
-
     fixStringifiedJsonMembers (content: string) {
         // used for instance in bingx
         // when stringified json has members with their values also stringified, like:
@@ -1630,10 +1620,10 @@ export default class Exchange {
         // Removes the "0x" prefix if present
         const cleanPrivateKey = this.remove0xPrefix (privateKey);
         // Get the public key from the private key using secp256k1 curve
-        const publicKeyBytes = secp256k1.getPublicKey (cleanPrivateKey);
+        const publicKeyBytes = secp256k1.getPublicKey (this.base16ToBinary (cleanPrivateKey));
         // For Ethereum, we need to use the uncompressed public key (without the first byte which indicates compression)
         // secp256k1.getPublicKey returns compressed key, we need uncompressed
-        const publicKeyUncompressed = secp256k1.ProjectivePoint.fromHex (publicKeyBytes).toRawBytes (false).slice (1); // Remove 0x04 prefix
+        const publicKeyUncompressed = secp256k1.Point.fromBytes (publicKeyBytes).toBytes (false).slice (1); // Remove 0x04 prefix
         // Hash the public key with Keccak256
         const publicKeyHash = keccak_256 (publicKeyUncompressed);
         // Take the last 20 bytes (40 hex chars)
@@ -1692,6 +1682,19 @@ export default class Exchange {
         // TODO: unify to ecdsa
         const signature = starknetCurveSign (msgHash.replace ('0x', ''), pri.replace ('0x', ''));
         return this.json ([ signature.r.toString (), signature.s.toString () ]);
+    }
+
+    extendedStarknetSign (msgHash, pri) {
+        const signature = starknetCurveSign (msgHash.replace ('0x', ''), pri.replace ('0x', ''));
+        return this.json ([ signature.r.toString (), signature.s.toString () ]);
+    }
+
+    extendedStarknetGetSelectorFromName (name) {
+        return Starknet.hash.getSelectorFromName (name);
+    }
+
+    extendedStarknetComputePoseidonHashOnElements (data) {
+        return Starknet.hash.computePoseidonHashOnElements (data);
     }
 
     async getZKContractSignatureObj (seed, params = {}) {
@@ -1955,7 +1958,7 @@ export default class Exchange {
         if (wasmExecPath === undefined || wasmExecPath === '') {
             throw new Error ('loadLighterLibrary() requires "wasmExecPath" that should point to `wasm_exec.js`. You can check the location of the file locally if you have GO installed or download it here https://github.com/ccxt/lighter-wasm.\nExample: exchanges.options["wasmExecPath"] = "/opt/homebrew/opt/go/libexec/lib/wasm/wasm_exec.js"');
         }
-        await import (wasmExecPath);
+        await import (filePathToFileUrlForWindows (wasmExecPath));
         const go = new (globalThis as any).Go ();
         // read wasm from disks
         const bytes = new Uint8Array (readFile (libraryPath, null) as Buffer); // it should point to lighter.wasm
@@ -1974,7 +1977,6 @@ export default class Exchange {
         return signer;
     }
 
-    // eslint-disable-next-line no-unused-vars
     lighterSignCreateGroupedOrders (signer, request): any[] {
         const orders = request['orders'];
         const ordersArr = [];
@@ -2006,7 +2008,6 @@ export default class Exchange {
         return [ res.txType, res.txInfo ];
     }
 
-    // eslint-disable-next-line no-unused-vars
     lighterSignCreateOrder (signer, request): any[] {
         const res = (globalThis.SignCreateOrder (
             parseInt (request['market_index']),
@@ -2064,7 +2065,6 @@ export default class Exchange {
         return [ res.txType, res.txInfo ];
     }
 
-    // eslint-disable-next-line no-unused-vars
     lighterSignCreateSubAccount (signer, request): any[] {
         const res = (globalThis.SignCreateSubAccount (
             1, // skip nonce
@@ -2164,7 +2164,6 @@ export default class Exchange {
         return [ res.txType, res.txInfo ];
     }
 
-    // eslint-disable-next-line no-unused-vars
     lighterSignApproveIntegrator (signer, request): any[] {
         const res = globalThis.SignApproveIntegrator (
             request['integrator_account_index'],
@@ -2189,7 +2188,6 @@ export default class Exchange {
         return [ res.privateKey, res.publicKey ];
     }
 
-    // eslint-disable-next-line no-unused-vars
     lighterSignChangePubkey (signer, request): any[] {
         const res = globalThis.SignChangePubKey (
             Buffer.from (request['pubkey']).toString (),
@@ -2202,7 +2200,6 @@ export default class Exchange {
         return [ res.txType, res.txInfo, res.messageToSign ];
     }
 
-    /* eslint-enable */
     // ------------------------------------------------------------------------
 
     // ########################################################################
@@ -2624,24 +2621,32 @@ export default class Exchange {
         return defaultValue;
     }
 
-    safeBool2 (dictionary, key1: IndexType, key2: IndexType, defaultValue: boolean = undefined): boolean | undefined {
+    safeBool2 (dictionaryOrList, key1: IndexType, key2: IndexType, defaultValue: boolean = undefined): boolean | undefined {
         /**
          * @ignore
          * @method
          * @description safely extract boolean value from dictionary or list
          * @returns {bool | undefined}
          */
-        return this.safeBoolN (dictionary, [ key1, key2 ], defaultValue);
+        const value = this.safeValue (dictionaryOrList, key1);
+        if (typeof value === 'boolean') {
+            return value;
+        }
+        const value2 = this.safeValue (dictionaryOrList, key2);
+        if (typeof value2 === 'boolean') {
+            return value2;
+        }
+        return defaultValue;
     }
 
-    safeBool (dictionary, key: IndexType, defaultValue: boolean = undefined): boolean | undefined {
+    safeBool (dictionaryOrList, key: IndexType, defaultValue: boolean = undefined): boolean | undefined {
         /**
          * @ignore
          * @method
          * @description safely extract boolean value from dictionary or list
          * @returns {bool | undefined}
          */
-        const value = this.safeValue (dictionary, key, defaultValue);
+        const value = this.safeValue (dictionaryOrList, key, defaultValue);
         if (typeof value === 'boolean') {
             return value;
         }
@@ -2665,14 +2670,14 @@ export default class Exchange {
         return defaultValue;
     }
 
-    safeDict (dictionary, key: IndexType, defaultValue: Dictionary<any> = undefined): Dictionary<any> | undefined {
+    safeDict (dictionaryOrList, key: IndexType, defaultValue: Dictionary<any> = undefined): Dictionary<any> | undefined {
         /**
          * @ignore
          * @method
          * @description safely extract a dictionary from dictionary or list
          * @returns {object | undefined}
          */
-        const value = this.safeValue (dictionary, key, defaultValue);
+        const value = this.safeValue (dictionaryOrList, key, defaultValue);
         if (value === undefined) {
             return defaultValue;
         }
@@ -2682,14 +2687,22 @@ export default class Exchange {
         return defaultValue;
     }
 
-    safeDict2 (dictionary, key1: IndexType, key2: string, defaultValue: Dictionary<any> = undefined): Dictionary<any> | undefined {
+    safeDict2 (dictionaryOrList, key1: IndexType, key2: string, defaultValue: Dictionary<any> = undefined): Dictionary<any> | undefined {
         /**
          * @ignore
          * @method
          * @description safely extract a dictionary from dictionary or list
          * @returns {object | undefined}
          */
-        return this.safeDictN (dictionary, [ key1, key2 ], defaultValue);
+        const value = this.safeValue (dictionaryOrList, key1);
+        if (this.isDictionary (value)) {
+            return value;
+        }
+        const value2 = this.safeValue (dictionaryOrList, key2);
+        if (this.isDictionary (value2)) {
+            return value2;
+        }
+        return defaultValue;
     }
 
     safeListN (dictionaryOrList, keys: IndexType[], defaultValue: any[] = undefined): any[] | undefined {
@@ -2720,7 +2733,15 @@ export default class Exchange {
          * @description safely extract an Array from dictionary or list
          * @returns {Array | undefined}
          */
-        return this.safeListN (dictionaryOrList, [ key1, key2 ], defaultValue);
+        const value = this.safeValue (dictionaryOrList, key1);
+        if ((value !== undefined) && Array.isArray (value)) {
+            return value;
+        }
+        const value2 = this.safeValue (dictionaryOrList, key2);
+        if ((value2 !== undefined) && Array.isArray (value2)) {
+            return value2;
+        }
+        return defaultValue;
     }
 
     safeList (dictionaryOrList, key: IndexType, defaultValue: any[] = undefined): any[] | undefined {
@@ -2752,7 +2773,7 @@ export default class Exchange {
 
     handleDeltasWithKeys (bookSide: any, deltas, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
         for (let i = 0; i < deltas.length; i++) {
-            const bidAsk = this.parseBidAsk (deltas[i], priceKey, amountKey, countOrIdKey);
+            const bidAsk = this.parseOrderBookBidAsk (deltas[i], priceKey, amountKey, countOrIdKey);
             bookSide.storeArray (bidAsk);
         }
     }
@@ -3248,6 +3269,9 @@ export default class Exchange {
         const arr = this.toArray (rawCurrencies);
         for (let i = 0; i < arr.length; i++) {
             const parsed = this.parseCurrency (arr[i]);
+            if (parsed === undefined) {
+                continue;
+            }
             const code = parsed['code'];
             result[code] = parsed;
         }
@@ -3830,20 +3854,6 @@ export default class Exchange {
                 const currencyWithdraw = this.safeBool (currency, 'withdraw');
                 if (currencyWithdraw === undefined || withdraw) {
                     currency['withdraw'] = withdraw;
-                }
-                // set network 'active' to false if D or W is disabled
-                let active = this.safeBool (network, 'active');
-                if (active === undefined) {
-                    if (deposit && withdraw) {
-                        currency['networks'][key]['active'] = true;
-                    } else if (deposit !== undefined && withdraw !== undefined) {
-                        currency['networks'][key]['active'] = false;
-                    }
-                }
-                active = this.safeBool (currency['networks'][key], 'active'); // dict might have been updated on above lines, so access directly instead of `network` variable
-                const currencyActive = this.safeBool (currency, 'active');
-                if (currencyActive === undefined || active) {
-                    currency['active'] = active;
                 }
                 // find lowest fee (which is more desired)
                 const fee = this.safeString (network, 'fee');
@@ -4692,6 +4702,22 @@ export default class Exchange {
         return arr[length - 1];
     }
 
+    addKeyInArrayItems (obj, keyName) {
+        const result = [];
+        const keys = Object.keys (obj);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const item = obj[key];
+            if (item === undefined) {
+                continue;
+            }
+            const itemWithKey = this.extend ({}, item);
+            itemWithKey[keyName] = key;
+            result.push (itemWithKey);
+        }
+        return result;
+    }
+
     invertFlatStringDictionary (dict) {
         const reversed = {};
         const keys = Object.keys (dict);
@@ -5133,11 +5159,11 @@ export default class Exchange {
         return result;
     }
 
-    parseBidsAsks (bidasks, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
+    parseOrderBookBidsAsks (bidasks, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
         bidasks = this.toArray (bidasks);
         const result = [];
         for (let i = 0; i < bidasks.length; i++) {
-            result.push (this.parseBidAsk (bidasks[i], priceKey, amountKey, countOrIdKey));
+            result.push (this.parseOrderBookBidAsk (bidasks[i], priceKey, amountKey, countOrIdKey));
         }
         return result;
     }
@@ -5392,8 +5418,8 @@ export default class Exchange {
     }
 
     parseOrderBook (orderbook: object, symbol: string, timestamp: Int = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2): OrderBook {
-        const bids = this.parseBidsAsks (this.safeValue (orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey);
-        const asks = this.parseBidsAsks (this.safeValue (orderbook, asksKey, []), priceKey, amountKey, countOrIdKey);
+        const bids = this.parseOrderBookBidsAsks (this.safeValue (orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey);
+        const asks = this.parseOrderBookBidsAsks (this.safeValue (orderbook, asksKey, []), priceKey, amountKey, countOrIdKey);
         return {
             'symbol': symbol,
             'bids': this.sortBy (bids, 0, true),
@@ -5996,7 +6022,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchLedgerEntry() is not supported yet');
     }
 
-    parseBidAsk (bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
+    parseOrderBookBidAsk (bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
         const price = this.safeFloat (bidask, priceKey);
         const amount = this.safeFloat (bidask, amountKey);
         const countOrId = this.safeInteger (bidask, countOrIdKey);

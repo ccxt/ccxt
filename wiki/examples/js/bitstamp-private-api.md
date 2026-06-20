@@ -1,8 +1,5 @@
-- [Bitstamp Private Api](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 
 import ccxt from '../../js/ccxt.js';
 import asTable from 'as-table';
@@ -116,5 +113,5 @@ ansicolor.nice
             }
         }
 
-    })() 
+    })()
 ```

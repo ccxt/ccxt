@@ -992,7 +992,7 @@ func  (this *CoinexCore) WatchOrderBook(symbol any, optionalArgs ...any) <- chan
             return ch
         }
 func  (this *CoinexCore) HandleDelta(bookside any, delta any)  {
-    var bidAsk any = this.ParseBidAsk(delta, 0, 1)
+    var bidAsk any = this.ParseOrderBookBidAsk(delta, 0, 1)
     bookside.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 }
 func  (this *CoinexCore) HandleDeltas(bookside any, deltas any)  {

@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
-from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ArgumentsRequired
@@ -152,7 +152,7 @@ class aster(ccxt.async_support.aster):
         firstMarket = self.get_market_from_symbols(symbols)
         type = self.safe_string(firstMarket, 'type', 'swap')
         symbolsLength = len(symbols)
-        methodName = None
+        methodName: Str = None
         methodName, params = self.handle_param_string(params, 'callerMethodName', 'watchTickers')
         params = self.omit(params, 'callerMethodName')
         if symbolsLength == 0:
@@ -194,7 +194,7 @@ class aster(ccxt.async_support.aster):
         firstMarket = self.get_market_from_symbols(symbols)
         type = self.safe_string(firstMarket, 'type', 'swap')
         symbolsLength = len(symbols)
-        methodName = None
+        methodName: Str = None
         methodName, params = self.handle_param_string(params, 'callerMethodName', 'unWatchTickers')
         params = self.omit(params, 'callerMethodName')
         if symbolsLength == 0:
@@ -263,7 +263,7 @@ class aster(ccxt.async_support.aster):
         firstMarket = self.get_market_from_symbols(symbols)
         type = self.safe_string(firstMarket, 'type', 'swap')
         symbolsLength = len(symbols)
-        methodName = None
+        methodName: Str = None
         methodName, params = self.handle_param_string(params, 'callerMethodName', 'watchMarkPrices')
         params = self.omit(params, 'callerMethodName')
         if symbolsLength == 0:
@@ -306,7 +306,7 @@ class aster(ccxt.async_support.aster):
         firstMarket = self.get_market_from_symbols(symbols)
         type = self.safe_string(firstMarket, 'type', 'swap')
         symbolsLength = len(symbols)
-        methodName = None
+        methodName: Str = None
         methodName, params = self.handle_param_string(params, 'callerMethodName', 'unWatchMarkPrices')
         params = self.omit(params, 'callerMethodName')
         if symbolsLength == 0:
@@ -567,7 +567,7 @@ class aster(ccxt.async_support.aster):
         firstMarket = self.get_market_from_symbols(symbols)
         type = self.safe_string(firstMarket, 'type', 'swap')
         symbolsLength = len(symbols)
-        methodName = None
+        methodName: Str = None
         methodName, params = self.handle_param_string(params, 'callerMethodName', 'watchTradesForSymbols')
         params = self.omit(params, 'callerMethodName')
         if symbolsLength == 0:
@@ -609,7 +609,7 @@ class aster(ccxt.async_support.aster):
         firstMarket = self.get_market_from_symbols(symbols)
         type = self.safe_string(firstMarket, 'type', 'swap')
         symbolsLength = len(symbols)
-        methodName = None
+        methodName: Str = None
         methodName, params = self.handle_param_string(params, 'callerMethodName', 'unWatchTradesForSymbols')
         params = self.omit(params, 'callerMethodName')
         if symbolsLength == 0:
@@ -766,7 +766,7 @@ class aster(ccxt.async_support.aster):
         defaultType = self.safe_string(self.options, 'defaultType', 'spot') if (market is None) else market['type']
         symbol = self.safe_symbol(marketId, market, None, defaultType)
         side = self.safe_string_lower(trade, 'S')
-        takerOrMaker = None
+        takerOrMaker: Str = None
         orderId = self.safe_string(trade, 'i')
         if 'm' in trade:
             if side is None:
@@ -851,7 +851,7 @@ class aster(ccxt.async_support.aster):
         firstMarket = self.get_market_from_symbols(symbols)
         type = self.safe_string(firstMarket, 'type', 'swap')
         symbolsLength = len(symbols)
-        methodName = None
+        methodName: Str = None
         methodName, params = self.handle_param_string(params, 'callerMethodName', 'watchOrderBookForSymbols')
         params = self.omit(params, 'callerMethodName')
         if symbolsLength == 0:
@@ -892,7 +892,7 @@ class aster(ccxt.async_support.aster):
         firstMarket = self.get_market_from_symbols(symbols)
         type = self.safe_string(firstMarket, 'type', 'swap')
         symbolsLength = len(symbols)
-        methodName = None
+        methodName: Str = None
         methodName, params = self.handle_param_string(params, 'callerMethodName', 'unWatchOrderBookForSymbols')
         params = self.omit(params, 'callerMethodName')
         if symbolsLength == 0:
@@ -1004,7 +1004,7 @@ class aster(ccxt.async_support.aster):
         """
         await self.load_markets()
         symbolsLength = len(symbolsAndTimeframes)
-        methodName = None
+        methodName: Str = None
         methodName, params = self.handle_param_string(params, 'callerMethodName', 'watchOHLCVForSymbols')
         params = self.omit(params, 'callerMethodName')
         if symbolsLength == 0:
@@ -1048,7 +1048,7 @@ class aster(ccxt.async_support.aster):
         """
         await self.load_markets()
         symbolsLength = len(symbolsAndTimeframes)
-        methodName = None
+        methodName: Str = None
         methodName, params = self.handle_param_string(params, 'callerMethodName', 'unWatchOHLCVForSymbols')
         params = self.omit(params, 'callerMethodName')
         if symbolsLength == 0:
@@ -1140,7 +1140,7 @@ class aster(ccxt.async_support.aster):
         listenKeyRefreshRateOptions = self.safe_dict(self.options, 'listenKeyRefreshRate', {})
         listenKeyRefreshRate = self.safe_integer(listenKeyRefreshRateOptions, type, 3600000)  # 1 hour
         if time - lastAuthenticatedTime > listenKeyRefreshRate:
-            response = None
+            response: dict = None
             if type == 'spot':
                 response = await self.sapiPrivatePostV3ListenKey(params)
             else:
@@ -1194,7 +1194,7 @@ class aster(ccxt.async_support.aster):
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.load_markets()
-        type = None
+        type: Str = None
         type, params = self.handle_market_type_and_params('watchBalance', None, params, type)
         await self.authenticate(type, params)
         url = self.get_private_url(type)
@@ -1498,12 +1498,12 @@ class aster(ccxt.async_support.aster):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
         messageHash = 'orders'
-        type = None
+        type: Str = None
         type, params = self.handle_market_type_and_params('watchOrders', market, params, type)
         await self.authenticate(type, params)
         if market is not None:
@@ -1531,12 +1531,12 @@ class aster(ccxt.async_support.aster):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
         messageHash = 'myTrades'
-        type = None
+        type: Str = None
         type, params = self.handle_market_type_and_params('watchOrders', market, params, type)
         await self.authenticate(type, params)
         if market is not None:
@@ -1711,7 +1711,7 @@ class aster(ccxt.async_support.aster):
         market = self.safe_market(marketId, market)
         timestamp = self.safe_integer(order, 'O')
         T = self.safe_integer(order, 'T')
-        lastTradeTimestamp = None
+        lastTradeTimestamp: Int = None
         if executionType == 'NEW' or executionType == 'AMENDMENT' or executionType == 'CANCELED':
             if timestamp is None:
                 timestamp = T

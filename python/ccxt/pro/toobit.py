@@ -566,7 +566,7 @@ class toobit(ccxt.async_support.toobit):
             client.resolve(orderBook, messageHash)
 
     def handle_delta(self, bookside, delta):
-        bidAsk = self.parse_bid_ask(delta)
+        bidAsk = self.parse_order_book_bid_ask(delta)
         bookside.storeArray(bidAsk)
 
     def handle_order_book_partial_snapshot(self, client: Client, message):
@@ -624,7 +624,7 @@ class toobit(ccxt.async_support.toobit):
         """
         await self.load_markets()
         await self.authenticate()
-        marketType = None
+        marketType: Str = None
         marketType, params = self.handle_market_type_and_params('watchBalance', None, params)
         isSpot = (marketType == 'spot')
         type = 'spot' if isSpot else 'contract'
@@ -795,7 +795,7 @@ class toobit(ccxt.async_support.toobit):
         else:
             orderType = rawOrderType
         feeCost = self.safe_number(order, 'n')
-        fee = None
+        fee: Fee = None
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
