@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import phemexRest from '../phemex.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Strings, Tickers, Num, Market } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Strings, Tickers, Num, Market, List } from '../base/types.js';
 import { AuthenticationError } from '../base/errors.js';
 import Client from '../base/ws/Client.js';
 
@@ -282,7 +282,7 @@ export default class phemex extends phemexRest {
         //        "type": "snapshot",
         //    }
         //
-        const tickers = [];
+        const tickers: List = [];
         if ('market24h' in message) {
             const ticker = this.safeValue (message, 'market24h');
             tickers.push (this.parseSwapTicker (ticker));
@@ -321,7 +321,7 @@ export default class phemex extends phemexRest {
     async watchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
         let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
+        [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params) as any;
         const usePerpetualApi = this.safeString (params, 'settle') === 'USDT';
         let messageHash = ':balance';
         messageHash = usePerpetualApi ? 'perpetual' + messageHash : type + messageHash;
@@ -566,7 +566,7 @@ export default class phemex extends phemexRest {
         const url = this.urls['api']['ws'];
         const requestId = this.requestId ();
         const subscriptionHash = name + '.subscribe';
-        const messageHashes = [];
+        const messageHashes: List = [];
         for (let i = 0; i < symbols.length; i++) {
             messageHashes.push ('ticker:' + symbols[i]);
         }
@@ -813,7 +813,7 @@ export default class phemex extends phemexRest {
                 params['settle'] = 'USDT';
             }
         }
-        [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
+        [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params) as any;
         if (symbol === undefined) {
             const settle = this.safeString (params, 'settle');
             messageHash = (settle === 'USDT') ? (messageHash + 'perpetual') : (messageHash + type);
@@ -978,7 +978,7 @@ export default class phemex extends phemexRest {
                 params['settle'] = 'USDT';
             }
         }
-        [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
+        [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params) as any;
         const isUSDTSettled = this.safeString (params, 'settle') === 'USDT';
         if (symbol === undefined) {
             messageHash = (isUSDTSettled) ? (messageHash + 'perpetual') : (messageHash + type);
@@ -1149,8 +1149,8 @@ export default class phemex extends phemexRest {
         //        ...
         //    ]
         //
-        let trades = [];
-        const parsedOrders = [];
+        let trades: List = [];
+        const parsedOrders: List = [];
         if (('closed' in message) || ('fills' in message) || ('open' in message)) {
             const closed = this.safeValue (message, 'closed', []);
             const open = this.safeValue (message, 'open', []);
