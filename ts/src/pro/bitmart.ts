@@ -278,6 +278,9 @@ export default class bitmart extends bitmartRest {
         //    }
         //
         const channel = this.safeString2 (message, 'table', 'group');
+        if (channel === undefined) {
+            return;
+        }
         const data = this.safeValue (message, 'data');
         if (data === undefined) {
             return;
@@ -533,7 +536,7 @@ export default class bitmart extends bitmartRest {
     handleBidAsk (client: Client, message) {
         const table = this.safeString (message, 'table');
         const isSpot = (table !== undefined);
-        let rawTickers = [];
+        let rawTickers: any[] = [];
         if (isSpot) {
             rawTickers = this.safeList (message, 'data', []);
         } else {
@@ -724,7 +727,7 @@ export default class bitmart extends bitmartRest {
             return;
         }
         const ordersLength = orders.length;
-        const newOrders = [];
+        const newOrders: any[] = [];
         const symbols: Dict = {};
         if (ordersLength > 0) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
@@ -1249,7 +1252,7 @@ export default class bitmart extends bitmartRest {
         this.handleBidAsk (client, message);
         const table = this.safeString (message, 'table');
         const isSpot = (table !== undefined);
-        let rawTickers = [];
+        let rawTickers: any[] = [];
         if (isSpot) {
             rawTickers = this.safeList (message, 'data', []);
         } else {
@@ -1634,7 +1637,7 @@ export default class bitmart extends bitmartRest {
         //    }
         //
         const isSpot = ('table' in message);
-        let datas = [];
+        let datas: any[] = [];
         if (isSpot) {
             datas = this.safeList (message, 'data', datas);
         } else {
