@@ -634,7 +634,7 @@ export default class zebpay extends Exchange {
         } else {
             response = await this.publicSwapGetV1MarketTicker24Hr (this.extend (request, params));
         }
-        const data = this.safeDict (response, 'data', {});
+        const data: Dict = this.safeDict (response, 'data', {}) as Dict;
         return this.parseTicker (data, market);
     }
 
@@ -1051,7 +1051,7 @@ export default class zebpay extends Exchange {
         //        },
         //    }
         //
-        const data = this.safeDict (response, 'data', {});
+        const data: Dict = this.safeDict (response, 'data', {}) as Dict;
         return this.parseOrder (data, market);
     }
 
@@ -1146,7 +1146,7 @@ export default class zebpay extends Exchange {
         //        },
         //    }
         //
-        const data = this.safeDict (response, 'data', {});
+        const data: Dict = this.safeDict (response, 'data', {}) as Dict;
         const parsedOrder = this.parseOrder (data);
         return [ parsedOrder ];
     }
@@ -1268,7 +1268,7 @@ export default class zebpay extends Exchange {
         //         }
         //     }
         //
-        const responseData = this.safeDict (response, 'data');
+        const responseData: Dict = this.safeDict (response, 'data', {}) as Dict;
         return this.parseOrder (responseData, market);
     }
 
@@ -1349,7 +1349,7 @@ export default class zebpay extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.privateSwapPostV1TradePositionClose (this.extend (request, params));
-        const data = this.safeDict (response, 'data', {});
+        const data: Dict = this.safeDict (response, 'data', {}) as Dict;
         return this.parseOrder (data, market);
     }
 
@@ -1402,7 +1402,7 @@ export default class zebpay extends Exchange {
         //         "data": { symbol: "ETHINR", longLeverage: 1, shortLeverage: 1, marginMode: "isolated" }
         //     }
         //
-        const data = this.safeDict (response, 'data', {});
+        const data: Dict = this.safeDict (response, 'data', {}) as Dict;
         return this.parseLeverage (data, market);
     }
 
