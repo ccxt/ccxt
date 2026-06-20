@@ -7,7 +7,7 @@ import Exchange from './abstract/dydx.js';
 import { ArgumentsRequired, NotSupported, ExchangeError, InsufficientFunds, InvalidOrder, BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Account, Balances, Currency, Dict, FundingRateHistory, Int, LedgerEntry, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry, int } from './base/types.js';
+import type { Account, Balances, Currency, Dict, FundingRateHistory, Int, LedgerEntry, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry, int } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 
 // ---------------------------------------------------------------------------
@@ -826,7 +826,7 @@ export default class dydx extends Exchange {
         //     ]
         // }
         //
-        const rates = [];
+        const rates: List = [];
         const rows = this.safeList (response, 'historicalFunding', []);
         for (let i = 0; i < rows.length; i++) {
             const entry = rows[i];
@@ -2312,7 +2312,7 @@ export default class dydx extends Exchange {
         // }
         //
         const rows = this.safeList (response, 'subaccounts', []);
-        const result = [];
+        const result: List = [];
         for (let i = 0; i < rows.length; i++) {
             const account = rows[i];
             const accountId = this.safeString (account, 'subaccountNumber');
