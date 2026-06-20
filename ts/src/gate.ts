@@ -5,7 +5,7 @@ import Exchange from './abstract/gate.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled, OrderImmediatelyFillable } from './base/errors.js';
-import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, NullableDict, List, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, Dict, LeverageTier, LeverageTiers, int, CancellationRequest, LedgerEntry, FundingRate, FundingRates, DepositAddress, Bool, BorrowInterest } from './base/types.js';
+import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, NullableDict, List, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, Dict, LeverageTier, LeverageTiers, int, CancellationRequest, LedgerEntry, FundingRate, FundingRates, DepositAddress, Bool, BorrowInterest, Fee } from './base/types.js';
 
 /**
  * @class gate
@@ -1319,7 +1319,7 @@ export default class gate extends Exchange {
         if (this.checkRequiredCredentials (false)) {
             await this.loadUnifiedStatus ();
         }
-        const rawPromises = [];
+        const rawPromises: Array<Promise<List>> = [];
         const fetchMarketsOptions = this.safeDict (this.options, 'fetchMarkets');
         const types = this.safeList (fetchMarketsOptions, 'types', [ 'spot', 'swap', 'future', 'option' ]);
         for (let i = 0; i < types.length; i++) {
@@ -1383,7 +1383,7 @@ export default class gate extends Exchange {
         //         }
         //     ]
         //
-        const result = [];
+        const result: any[] = [];
         for (let i = 0; i < spotMarketsResponse.length; i++) {
             const spotMarket = spotMarketsResponse[i];
             const id = this.safeString (spotMarket, 'id');
@@ -1457,7 +1457,7 @@ export default class gate extends Exchange {
     }
 
     async fetchSwapMarkets (params = {}) {
-        const result = [];
+        const result: any[] = [];
         let swapSettlementCurrencies = this.getSettlementCurrencies ('swap', 'fetchMarkets');
         if (this.options['sandboxMode']) {
             swapSettlementCurrencies = [ 'usdt' ]; // gate sandbox only has usdt-margined swaps
@@ -1480,7 +1480,7 @@ export default class gate extends Exchange {
         if (this.options['sandboxMode']) {
             return []; // right now sandbox does not have inverse swaps
         }
-        const result = [];
+        const result: any[] = [];
         const futureSettlementCurrencies = this.getSettlementCurrencies ('future', 'fetchMarkets');
         for (let c = 0; c < futureSettlementCurrencies.length; c++) {
             const settleId = futureSettlementCurrencies[c];
@@ -1669,7 +1669,7 @@ export default class gate extends Exchange {
     }
 
     async fetchOptionMarkets (params = {}) {
-        const result = [];
+        const result: any[] = [];
         const underlyings = await this.fetchOptionUnderlyings ();
         for (let i = 0; i < underlyings.length; i++) {
             const underlying = underlyings[i];
@@ -1806,7 +1806,7 @@ export default class gate extends Exchange {
         //        }
         //    ]
         //
-        const underlyings = [];
+        const underlyings: Str[] = [];
         for (let i = 0; i < underlyingsResponse.length; i++) {
             const underlying = underlyingsResponse[i];
             const name = this.safeString (underlying, 'name');
@@ -2670,7 +2670,7 @@ export default class gate extends Exchange {
     }
 
     parseFundingHistories (response, symbol, since, limit): FundingHistory[] {
-        const result = [];
+        const result: FundingRate[] = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const funding = this.parseFundingHistory (entry);
@@ -3298,7 +3298,7 @@ export default class gate extends Exchange {
         const isolated = marginMode === 'margin' && type === 'spot';
         let data = response;
         if ('balances' in data) { // True for cross_margin and unified
-            const flatBalances = [];
+            const flatBalances: Dict[] = [];
             const balances = this.safeValue (data, 'balances', []);
             // inject currency and create an artificial balance object
             // so it can follow the existent flow
@@ -3468,7 +3468,7 @@ export default class gate extends Exchange {
         //         "t": "1621267200000",
         //     }
         //
-        const rates = [];
+        const rates: object[] = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const timestamp = this.safeTimestamp (entry, 't');
@@ -3951,7 +3951,7 @@ export default class gate extends Exchange {
         const feeAmount = this.safeString (trade, 'fee');
         const gtFee = this.omitZero (this.safeString (trade, 'gt_fee'));
         const pointFee = this.omitZero (this.safeString (trade, 'point_fee'));
-        const fees = [];
+        const fees: any[] = [];
         if (feeAmount !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fee_currency');
             let feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
@@ -4394,8 +4394,8 @@ export default class gate extends Exchange {
     }
 
     createOrdersRequest (orders: OrderRequest[], params = {}) {
-        const ordersRequests = [];
-        const orderSymbols = [];
+        const ordersRequests: Dict[] = [];
+        const orderSymbols: Str[] = [];
         const ordersLength = orders.length;
         if (ordersLength === 0) {
             throw new BadRequest (this.id + ' createOrders() requires at least one order');
@@ -5121,7 +5121,7 @@ export default class gate extends Exchange {
         }
         const exchangeSymbol = this.safeString2 (order, 'currency_pair', 'market', contract);
         const symbol = this.safeSymbol (exchangeSymbol, market, '_', marketType);
-        const fees = [];
+        const fees: any[] = [];
         const gtFee = this.safeString (order, 'gt_fee');
         if (gtFee !== undefined) {
             fees.push ({
@@ -5761,10 +5761,10 @@ export default class gate extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelOrders requires a symbol argument for spot markets');
         }
         if (isSpot) {
-            const ordersRequests = [];
+        const ordersRequests: CancellationRequest[] = [];
             for (let i = 0; i < ids.length; i++) {
                 const id = ids[i];
-                const orderItem: Dict = {
+                const orderItem: CancellationRequest = {
                     'id': id,
                     'symbol': symbol,
                 };
@@ -5797,7 +5797,7 @@ export default class gate extends Exchange {
     async cancelOrdersForSymbols (orders: CancellationRequest[], params = {}) {
         await this.loadMarkets ();
         await this.loadUnifiedStatus ();
-        const ordersRequests = [];
+        const ordersRequests: Dict[] = [];
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
             const symbol = this.safeString (order, 'symbol');
@@ -6569,7 +6569,7 @@ export default class gate extends Exchange {
         let maintenanceMarginRate = maintenanceMarginUnit;
         let initialMarginRatio = initialMarginUnit;
         let floor = '0';
-        const tiers = [];
+        const tiers: object[] = [];
         while (Precise.stringLt (floor, riskLimitMax)) {
             const cap = Precise.stringAdd (floor, riskLimitStep);
             tiers.push ({
@@ -6605,7 +6605,7 @@ export default class gate extends Exchange {
             return this.parseEmulatedLeverageTiers (info, market);
         }
         let minNotional = 0;
-        const tiers = [];
+        const tiers: object[] = [];
         for (let i = 0; i < info.length; i++) {
             const item = info[i];
             const maxNotional = this.safeNumber (item, 'risk_limit');
@@ -7424,7 +7424,7 @@ export default class gate extends Exchange {
         //         }
         //     ]
         //
-        const result = [];
+        const result: object[] = [];
         for (let i = 0; i < settlements.length; i++) {
             result.push (this.parseSettlement (settlements[i], market));
         }
@@ -7721,7 +7721,7 @@ export default class gate extends Exchange {
         //        }
         //    ]
         //
-        const underlyings = [];
+        const underlyings: Str[] = [];
         for (let i = 0; i < response.length; i++) {
             const underlying = response[i];
             const name = this.safeString (underlying, 'name');
