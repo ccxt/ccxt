@@ -190,7 +190,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
             throw new BadRequest (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
         }
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols) as string[];
+        symbols = this.marketSymbols (symbols);
         const name = 'matches';
         const trades = await this.subscribeMultiple (name, symbols, name, params);
         if (this.newUpdates) {
@@ -238,7 +238,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        symbols = this.marketSymbols (symbols, undefined, false) as string[];
+        symbols = this.marketSymbols (symbols, undefined, false);
         await this.loadMarkets ();
         const name = 'user';
         const messageHash = 'myTrades';
@@ -264,7 +264,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
      */
     async watchOrdersForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false) as string[];
+        symbols = this.marketSymbols (symbols, undefined, false);
         const name = 'user';
         const messageHash = 'orders';
         const authentication = this.authenticate ();
@@ -319,7 +319,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         }
         const name = 'level2';
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols) as string[];
+        symbols = this.marketSymbols (symbols);
         const marketIds = this.marketIds (symbols);
         const messageHashes = [];
         for (let i = 0; i < symbolsLength; i++) {

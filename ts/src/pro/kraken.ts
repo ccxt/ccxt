@@ -1414,7 +1414,7 @@ export default class kraken extends krakenRest {
     async watchMultiHelper (unifiedName: string, channelName: string, symbols: Strings = undefined, subscriptionArgs = undefined, params = {}) {
         await this.loadMarkets ();
         // symbols are required
-        symbols = this.marketSymbols (symbols, undefined, false, true, false) as string[];
+        symbols = this.marketSymbols (symbols, undefined, false, true, false);
         const messageHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const eventTrigger = this.safeString (params, 'event_trigger');

@@ -402,7 +402,7 @@ export default class bitmart extends bitmartRest {
     }
 
     getParamsForMultipleSub (methodName: string, symbols: string[], limit: Int = undefined, params = {}): [string[], Str, Dict] {
-        symbols = this.marketSymbols (symbols, undefined, false, true) as string[];
+        symbols = this.marketSymbols (symbols, undefined, false, true);
         const length = symbols.length;
         if (length > 20) {
             throw new NotSupported (this.id + ' ' + methodName + '() accepts a maximum of 20 symbols in one request');

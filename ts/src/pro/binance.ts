@@ -307,7 +307,7 @@ export default class binance extends binanceRest {
         const subscriptionHashes: string[] = [];
         const messageHashes: string[] = [];
         let streamHash = 'liquidations';
-        symbols = this.marketSymbols (symbols, undefined, true, true) as string[];
+        symbols = this.marketSymbols (symbols, undefined, true, true);
         if (this.isEmpty (symbols)) {
             subscriptionHashes.push ('!' + 'forceOrder@arr');
             messageHashes.push ('liquidations');
@@ -527,7 +527,7 @@ export default class binance extends binanceRest {
      */
     async watchMyLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, true, true, true) as string[];
+        symbols = this.marketSymbols (symbols, undefined, true, true, true);
         const market = this.getMarketFromSymbols (symbols);
         const messageHashes = [ 'myLiquidations' ];
         if (!this.isEmpty (symbols)) {
@@ -696,7 +696,7 @@ export default class binance extends binanceRest {
      */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false, true, true) as string[];
+        symbols = this.marketSymbols (symbols, undefined, false, true, true);
         const firstMarket = this.market (symbols[0]);
         let type = firstMarket['type'];
         if (firstMarket['contract']) {
@@ -766,7 +766,7 @@ export default class binance extends binanceRest {
      */
     async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false, true, true) as string[];
+        symbols = this.marketSymbols (symbols, undefined, false, true, true);
         const firstMarket = this.market (symbols[0]);
         let type = firstMarket['type'];
         if (firstMarket['contract']) {
@@ -1148,7 +1148,7 @@ export default class binance extends binanceRest {
      */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false, true, true) as string[];
+        symbols = this.marketSymbols (symbols, undefined, false, true, true);
         let streamHash = 'multipleTrades';
         if (symbols !== undefined) {
             const symbolsLength = symbols.length;
@@ -1210,7 +1210,7 @@ export default class binance extends binanceRest {
      */
     async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false, true, true) as string[];
+        symbols = this.marketSymbols (symbols, undefined, false, true, true);
         let streamHash = 'multipleTrades';
         if (symbols !== undefined) {
             const symbolsLength = symbols.length;
@@ -2033,7 +2033,7 @@ export default class binance extends binanceRest {
      */
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, true, false, true) as string[];
+        symbols = this.marketSymbols (symbols, undefined, true, false, true);
         const result = await this.watchMultiTickerHelper ('watchBidsAsks', 'bookTicker', symbols, params);
         if (this.newUpdates) {
             return result;
@@ -2043,7 +2043,7 @@ export default class binance extends binanceRest {
 
     async watchMultiTickerHelper (methodName, channelName: string, symbols: Strings = undefined, params = {}, isUnsubscribe: boolean = false) {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, true, false, true) as string[];
+        symbols = this.marketSymbols (symbols, undefined, true, false, true);
         const isBidAsk = (channelName === 'bookTicker');
         const isMarkPrice = (channelName === 'markPrice');
         const use1sFreq = this.safeBool (params, 'use1sFreq', true);
@@ -2893,7 +2893,7 @@ export default class binance extends binanceRest {
         await this.loadMarkets ();
         const payload: Dict = {};
         let market: Market = undefined;
-        symbols = this.marketSymbols (symbols, 'swap', true, true, true) as string[];
+        symbols = this.marketSymbols (symbols, 'swap', true, true, true);
         if (symbols !== undefined) {
             const symbolsLength = symbols.length;
             if (symbolsLength === 1) {
@@ -4122,7 +4122,7 @@ export default class binance extends binanceRest {
         await this.loadMarkets ();
         let market: Market = undefined;
         let messageHash = '';
-        symbols = this.marketSymbols (symbols) as string[];
+        symbols = this.marketSymbols (symbols);
         if (!this.isEmpty (symbols)) {
             market = this.getMarketFromSymbols (symbols);
             messageHash = '::' + symbols.join (',');

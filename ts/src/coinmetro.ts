@@ -1985,7 +1985,7 @@ export default class coinmetro extends Exchange {
         };
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers: Dict = {}, body: Str = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers: NullableDict = {}, body: any = undefined) {
         const request = this.omit (params, this.extractParams (path));
         const endpoint = '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + endpoint;
