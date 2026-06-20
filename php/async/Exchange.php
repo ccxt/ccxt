@@ -102,19 +102,16 @@ class Exchange extends \ccxt\Exchange {
             $this->clean_ws_data();
         }
         // [REST]
-        if ($cleanInstanceData) {
-            $this->clean_rest_data();
-        }
-    }
-
-    public function clean_rest_data() {
         if ($this->browser) {
             $this->browser = null;
         }
         if ($this->default_connector) {
             $this->default_connector = null;
         }
-        parent::clean_rest_data();
+        if ($cleanInstanceData) {
+            $this->clean_rest_data();
+            parent::clean_rest_data();
+        }
     }
 
     private $proxyDictionaries = [];
