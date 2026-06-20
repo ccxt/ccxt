@@ -321,8 +321,8 @@ export default class zebpay extends Exchange {
             }
         }
         const promises = await Promise.all (promisesUnresolved);
-        const spotMarkets = this.safeList (promises, 0, []);
-        const futureMarkets = this.safeList (promises, 1, []);
+        const spotMarkets: List = this.safeList (promises, 0, []) as List;
+        const futureMarkets: List = this.safeList (promises, 1, []) as List;
         return this.arrayConcat (spotMarkets, futureMarkets);
     }
 
@@ -761,7 +761,7 @@ export default class zebpay extends Exchange {
         //                 ]
         //             ]
         //
-        const data = this.safeList (response, 'data', []);
+        const data: List = this.safeList (response, 'data', []) as List;
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
@@ -804,7 +804,7 @@ export default class zebpay extends Exchange {
         //         }
         //     ]
         //
-        const data = this.safeList (response, 'data', []);
+        const data: List = this.safeList (response, 'data', []) as List;
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -834,7 +834,7 @@ export default class zebpay extends Exchange {
             response = await this.privateSwapGetV1TradeHistory (params);
         }
         const data = this.safeDict (response, 'data', {});
-        const items = this.safeList (data, 'items', []);
+        const items: List = this.safeList (data, 'items', []) as List;
         return this.parseTrades (items, market, since, limit);
     }
 
@@ -1170,7 +1170,7 @@ export default class zebpay extends Exchange {
             'symbol': market['id'],
         };
         let response: NullableDict = undefined;
-        let orders = [];
+        let orders: List = [];
         if (market['spot']) {
             request['currentPage'] = 1;
             if (limit !== undefined) {
@@ -1178,7 +1178,7 @@ export default class zebpay extends Exchange {
             }
             response = await this.privateSpotGetV2ExOrders (this.extend (request, params));
             const responseData = this.safeDict (response, 'data', {});
-            orders = this.safeList (responseData, 'items', []);
+            orders = this.safeList (responseData, 'items', []) as List;
         } else {
             if (since !== undefined) {
                 request['since'] = since;
@@ -1188,7 +1188,7 @@ export default class zebpay extends Exchange {
             }
             response = await this.privateSwapGetV1TradeOrderOpenOrders (this.extend (request, params));
             const responseData = this.safeDict (response, 'data', {});
-            orders = this.safeList (responseData, 'data', []);
+            orders = this.safeList (responseData, 'data', []) as List;
         }
         //
         //     {
@@ -1377,7 +1377,7 @@ export default class zebpay extends Exchange {
         //         ]
         //     }
         //
-        const leveragePreferences = this.safeList (response, 'data', []);
+        const leveragePreferences: List = this.safeList (response, 'data', []) as List;
         return this.parseLeverages (leveragePreferences, symbols, 'symbol');
     }
 
@@ -1462,7 +1462,7 @@ export default class zebpay extends Exchange {
         //        ],
         //    }
         //
-        const positions = this.safeList (response, 'data', []);
+        const positions: List = this.safeList (response, 'data', []) as List;
         const result = this.parsePositions (positions);
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
