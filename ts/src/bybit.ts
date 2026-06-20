@@ -7,7 +7,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, AccountSuspended, InvalidOrder, OrderNotFound, InsufficientFunds, BadRequest, RateLimitExceeded, InvalidNonce, NotSupported, RequestTimeout, MarginModeAlreadySet, NoChange, ManualInteractionNeeded, BadSymbol, RestrictedLocation } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { rsa } from './base/functions/rsa.js';
-import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Liquidation, Leverage, Num, FundingHistory, Option, OptionChain, TradingFeeInterface, Currencies, TradingFees, CancellationRequest, Position, CrossBorrowRate, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, Conversion, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, MarginMode, ADL, Bool, Fee } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Liquidation, Leverage, Num, FundingHistory, Option, OptionChain, TradingFeeInterface, Currencies, TradingFees, CancellationRequest, Position, CrossBorrowRate, Dict, NullableDict, LeverageTier, LeverageTiers, int, LedgerEntry, Conversion, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, MarginMode, ADL, Bool, Fee } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1848,7 +1848,7 @@ export default class bybit extends Exchange {
             'category': 'spot',
         };
         const usePrivateInstrumentsInfo = this.safeBool (this.options, 'usePrivateInstrumentsInfo', false);
-        let response: Dict = undefined;
+        let response: Dict;
         if (usePrivateInstrumentsInfo) {
             response = await this.privateGetV5MarketInstrumentsInfo (this.extend (request, params));
         } else {
@@ -1966,7 +1966,7 @@ export default class bybit extends Exchange {
         params['limit'] = 1000; // minimize number of requests
         let preLaunchMarkets = [] as any;
         const usePrivateInstrumentsInfo = this.safeBool (this.options, 'usePrivateInstrumentsInfo', false);
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         if (usePrivateInstrumentsInfo) {
             response = await this.privateGetV5MarketInstrumentsInfo (params);
         } else {
@@ -1984,7 +1984,7 @@ export default class bybit extends Exchange {
         if (paginationCursor !== undefined) {
             while (paginationCursor !== undefined) {
                 params['cursor'] = paginationCursor;
-                let responseInner: Dict = undefined;
+                let responseInner: Dict;
                 if (usePrivateInstrumentsInfo) {
                     responseInner = await this.privateGetV5MarketInstrumentsInfo (params);
                 } else {
@@ -2162,7 +2162,7 @@ export default class bybit extends Exchange {
             'category': 'option',
         };
         const usePrivateInstrumentsInfo = this.safeBool (this.options, 'usePrivateInstrumentsInfo', false);
-        let response: Dict = undefined;
+        let response: Dict;
         if (usePrivateInstrumentsInfo) {
             response = await this.privateGetV5MarketInstrumentsInfo (this.extend (request, params));
         } else {
@@ -2176,7 +2176,7 @@ export default class bybit extends Exchange {
             if (paginationCursor !== undefined) {
                 while (paginationCursor !== undefined) {
                     request['cursor'] = paginationCursor;
-                    let responseInner: Dict = undefined;
+                    let responseInner: Dict;
                     if (usePrivateInstrumentsInfo) {
                         responseInner = await this.privateGetV5MarketInstrumentsInfo (this.extend (request, params));
                     } else {
@@ -2681,7 +2681,7 @@ export default class bybit extends Exchange {
         }
         [ request, params ] = this.handleUntilOption ('end', request, params);
         request['interval'] = this.safeString (this.timeframes, timeframe, timeframe);
-        let response: Dict = undefined;
+        let response: Dict;
         if (market['spot']) {
             request['category'] = 'spot';
             response = await this.publicGetV5MarketKline (this.extend (request, params));
@@ -3181,7 +3181,7 @@ export default class bybit extends Exchange {
             orderType = undefined;
         }
         const feeCostString = this.safeString (trade, 'execFee');
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         if (feeCostString !== undefined) {
             const feeRateString = this.safeString (trade, 'feeRate');
             let feeCurrencyCode: Str = undefined;
@@ -3571,7 +3571,7 @@ export default class bybit extends Exchange {
         const unifiedType = this.safeStringUpper (accountTypes, type, type);
         let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBalance', params);
-        let response: Dict = undefined;
+        let response: Dict;
         if (isSpot && (marginMode !== undefined)) {
             response = await this.privateGetV5SpotCrossMarginTradeAccount (this.extend (request, params));
         } else if (isFunding) {
@@ -4049,7 +4049,7 @@ export default class bybit extends Exchange {
         }
         let method: Str = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'createOrder', 'method', defaultMethod);
-        let response: Dict = undefined;
+        let response: Dict;
         if (method === 'privatePostV5PositionTradingStop') {
             response = await this.privatePostV5PositionTradingStop (orderRequest);
         } else {
@@ -6153,7 +6153,7 @@ export default class bybit extends Exchange {
         }
         let subType: Str = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchLedger', undefined, params);
-        let response: Dict = undefined;
+        let response: Dict;
         if (enableUnified[1]) {
             const unifiedMarginStatus = this.safeInteger (this.options, 'unifiedMarginStatus', 5); // 3/4 uta 1.0, 5/6 uta 2.0
             if (subType === 'inverse' && (unifiedMarginStatus < 5)) {
@@ -6449,7 +6449,7 @@ export default class bybit extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         let type: Str = undefined;
         [ type, params ] = this.getBybitType ('fetchPosition', market, params);
         request['category'] = type;
@@ -6907,7 +6907,7 @@ export default class bybit extends Exchange {
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
         const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
         let market: Market = undefined;
-        let response: Dict = undefined;
+        let response: Dict;
         if (isUnifiedAccount) {
             if (marginMode === 'isolated') {
                 marginMode = 'ISOLATED_MARGIN';
