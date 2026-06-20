@@ -2135,7 +2135,7 @@ export default class dydx extends Exchange {
         //     }
         // }
         //
-        const data = this.safeDict (response, 'result', {});
+        const data: Dict = this.safeDict (response, 'result', {}) as Dict;
         return this.parseTransaction (data, currency);
     }
 
