@@ -105,7 +105,7 @@ async function main () {
         console.log ('•', id);
         console.log ('    event:  ', match.title);
         console.log ('    market: ', market ? market.symbol : 'n/a');
-        console.log ('    outcome:', outcome ? outcome.label : 'n/a', outcome ? outcome.symbol : '');
+        console.log ('    outcome:', outcome ? outcome.label : 'n/a', outcome ? outcome.outcome : '');
     }
 }
 
