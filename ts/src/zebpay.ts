@@ -1865,7 +1865,7 @@ export default class zebpay extends Exchange {
         };
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         params = this.omit (params, 'defaultType');
         const isV1 = path.indexOf ('v1/') > -1;
         const marketType = isV1 ? 'swap' : 'spot';
