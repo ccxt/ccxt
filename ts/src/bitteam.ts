@@ -5,7 +5,7 @@ import Exchange from './abstract/bitteam.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import { Balances, Currencies, Currency, Dict, int, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Currencies, Currency, Dict, NullableDict, int, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1322,7 +1322,7 @@ export default class bitteam extends Exchange {
         const price = this.safeString (order, 'price');
         const amount = this.safeString (order, 'quantity');
         const filled = this.safeString (order, 'executed');
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         if (feeRaw !== undefined) {
             const feeCost = this.safeString (feeRaw, 'amount');
             const feeCurrencyId = this.safeString (feeRaw, 'symbol');
@@ -1433,7 +1433,7 @@ export default class bitteam extends Exchange {
         //         ...
         //     ]
         //
-        const tickers = [];
+        const tickers: List = [];
         if (!Array.isArray (response)) {
             response = [];
         }
@@ -2049,7 +2049,7 @@ export default class bitteam extends Exchange {
         }
         // the exchange returns the side of the taker
         let side = this.safeString2 (trade, 'side', 'type');
-        let feeInfo: Dict = undefined;
+        let feeInfo: NullableDict = undefined;
         let order: Str = undefined;
         if (takerOrMaker === 'maker') {
             if (side === 'sell') {
