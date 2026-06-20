@@ -182,7 +182,7 @@ export default class coinex extends coinexRest {
         client.resolve (newTickers, 'tickers');
     }
 
-    parseWSTicker (ticker, market = undefined) {
+    parseWSTicker (ticker, market: Market = undefined) {
         //
         //  spot
         //
@@ -329,15 +329,15 @@ export default class coinex extends coinexRest {
             this.balance = {};
         }
         const data = this.safeDict (message, 'data', {});
-        const balances = this.safeList (data, 'balance_list', []);
+        const balances = this.safeList (data, 'balance_list', []) as any[];
         const firstEntry = balances[0];
         const updated = this.safeInteger (firstEntry, 'updated_at');
         const unrealizedPnl = this.safeString (firstEntry, 'unrealized_pnl');
         const isSpot = (updated !== undefined);
         const isSwap = (unrealizedPnl !== undefined);
-        let info = undefined;
+        let info: any = undefined;
         let account: Str = undefined;
-        let rawBalances = [];
+        let rawBalances: any[] = [];
         if (isSpot) {
             account = 'spot';
             for (let i = 0; i < balances.length; i++) {
@@ -368,7 +368,7 @@ export default class coinex extends coinexRest {
         }
     }
 
-    parseWsBalance (balance, accountType = undefined) {
+    parseWsBalance (balance, accountType: Str = undefined) {
         //
         // spot
         //
@@ -430,7 +430,7 @@ export default class coinex extends coinexRest {
         [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params, 'spot');
         await this.authenticate (type);
         const url = this.urls['api']['ws'][type];
-        const subscribedSymbols = [];
+        const subscribedSymbols: any[] = [];
         let messageHash = 'myTrades';
         if (market !== undefined) {
             messageHash += ':' + symbol;
@@ -559,7 +559,7 @@ export default class coinex extends coinexRest {
         client.resolve (this.trades[symbol], messageHash);
     }
 
-    parseWsTrade (trade, market = undefined) {
+    parseWsTrade (trade, market: Market = undefined) {
         //
         // spot watchTrades
         //
@@ -659,7 +659,7 @@ export default class coinex extends coinexRest {
         await this.loadMarkets ();
         let marketIds = this.marketIds (symbols);
         let market: Market = undefined;
-        const messageHashes = [];
+        const messageHashes: any[] = [];
         const symbolsDefined = (symbols !== undefined);
         if (symbolsDefined) {
             for (let i = 0; i < symbols.length; i++) {
@@ -718,8 +718,8 @@ export default class coinex extends coinexRest {
      */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        const subscribedSymbols = [];
-        const messageHashes = [];
+        const subscribedSymbols: any[] = [];
+        const messageHashes: any[] = [];
         let market: Market = undefined;
         let callerMethodName: Str = undefined;
         [ callerMethodName, params ] = this.handleParamString (params, 'callerMethodName', 'watchTradesForSymbols');
@@ -764,7 +764,7 @@ export default class coinex extends coinexRest {
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
         const watchOrderBookSubscriptions: Dict = {};
-        const messageHashes = [];
+        const messageHashes: any[] = [];
         let market: Market = undefined;
         let type: Str = undefined;
         let callerMethodName: Str = undefined;
@@ -1092,7 +1092,7 @@ export default class coinex extends coinexRest {
         client.resolve (this.orders, messageHash);
     }
 
-    parseWsOrder (order, market = undefined) {
+    parseWsOrder (order, market: Market = undefined) {
         //
         // spot
         //
@@ -1244,7 +1244,7 @@ export default class coinex extends coinexRest {
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         const marketIds = this.marketIds (symbols);
-        const messageHashes = [];
+        const messageHashes: any[] = [];
         let market: Market = undefined;
         const symbolsDefined = (symbols !== undefined);
         if (symbolsDefined) {
@@ -1295,7 +1295,7 @@ export default class coinex extends coinexRest {
         client.resolve (parsedTicker, messageHash);
     }
 
-    parseWsBidAsk (ticker, market = undefined) {
+    parseWsBidAsk (ticker, market: Market = undefined) {
         //
         //     {
         //         "market": "BTCUSDT",
