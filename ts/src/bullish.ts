@@ -773,7 +773,7 @@ export default class bullish extends Exchange {
         //         "premiumCapRatio": "0.1000"
         //     }
         //
-        const id = this.safeString (market, 'symbol');
+        const id = this.safeString (market, 'symbol') as string;
         const baseId = this.safeString (market, 'baseSymbol');
         const quoteId = this.safeString (market, 'quoteSymbol');
         const base = this.safeCurrencyCode (baseId);
@@ -819,7 +819,7 @@ export default class bullish extends Exchange {
             } else {
                 expiryDatetime = this.safeString (market, 'expiryDatetime');
                 const idParts = id.split ('-');
-                const datePart = this.safeString (idParts, 2);
+                const datePart = this.safeString (idParts, 2) as string;
                 const dateYmd = datePart.slice (2);
                 symbol += '-' + dateYmd;
                 if (type === 'future') {
@@ -888,7 +888,7 @@ export default class bullish extends Exchange {
         });
     }
 
-    parseMarketType (type: string, defaultType: Str = undefined): string {
+    parseMarketType (type: Str = undefined, defaultType: Str = undefined): Str {
         const types = {
             'SPOT': 'spot',
             'PERPETUAL': 'swap',
