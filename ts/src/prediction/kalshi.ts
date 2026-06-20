@@ -344,12 +344,19 @@ export default class kalshi extends Exchange {
         // Market symbol (no outcome suffix)
         const subtitleOrTicker = (subtitle !== undefined) ? subtitle : ticker;
         const marketSymbol = this.slugToMarketSymbol (eventTicker, subtitleOrTicker);
-        // kalshi quotes in cents and exposes the price tick per market via tick_size (in cents);
-        // convert it to a dollar price precision (defaults to 1 cent). amount is a whole number of contracts
-        const tickSizeCents = this.safeString (raw, 'tick_size', '1');
+        // kalshi exposes the per-market price tick via price_ranges[].step (a dollar value,
+        // e.g. "0.0010" for deci-cent markets, "0.0100" for cent markets); older responses
+        // used tick_size (in cents). amount is a whole number of contracts
+        const priceRanges = this.safeList (raw, 'price_ranges', []);
+        const firstRange = this.safeDict (priceRanges, 0, {});
+        const stepDollars = this.safeString (firstRange, 'step');
+        let pricePrecision = this.parseNumber (Precise.stringDiv (this.safeString (raw, 'tick_size', '1'), '100'));
+        if (stepDollars !== undefined) {
+            pricePrecision = this.parseNumber (stepDollars);
+        }
         const precision = {
             'amount': 1,
-            'price': this.parseNumber (Precise.stringDiv (tickSizeCents, '100')),
+            'price': pricePrecision,
         };
         // Build outcomes
         const outcomeLabels = [ 'YES', 'NO' ];
