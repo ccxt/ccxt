@@ -3,7 +3,7 @@
 
 import grvtRest from '../grvt.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Ticker, Dict, List, Position, Bool, Tickers } from '../base/types.js';
+import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Ticker, Dict, List, Market, Position, Bool, Tickers } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError } from '../base/errors.js';
 
@@ -275,7 +275,7 @@ export default class grvt extends grvtRest {
         client.resolve (ticker, 'ticker::' + symbol);
     }
 
-    parseWsTicker (message, market = undefined) {
+    parseWsTicker (message, market: Market = undefined) {
         // same dict as REST api
         return this.parseTicker (message, market);
     }
@@ -372,7 +372,7 @@ export default class grvt extends grvtRest {
         client.resolve (stored, 'trade::' + symbol);
     }
 
-    parseWsTrade (trade, market = undefined) {
+    parseWsTrade (trade, market: Market = undefined) {
         // same as REST api
         return this.parseTrade (trade, market);
     }
@@ -477,7 +477,7 @@ export default class grvt extends grvtRest {
         client.resolve (resolveData, messageHash);
     }
 
-    parseWsOHLCV (ohlcv, market = undefined): OHLCV {
+    parseWsOHLCV (ohlcv, market: Market = undefined): OHLCV {
         // same as REST api
         return this.parseOHLCV (ohlcv, market);
     }
@@ -720,7 +720,7 @@ export default class grvt extends grvtRest {
         client.resolve (this.myTrades, 'myTrades');
     }
 
-    parseWsMyTrade (trade, market = undefined) {
+    parseWsMyTrade (trade, market: Market = undefined) {
         return this.parseTrade (trade, market);
     }
 
@@ -806,7 +806,7 @@ export default class grvt extends grvtRest {
         client.resolve (newPositions, 'positions');
     }
 
-    parseWsPosition (position, market = undefined) {
+    parseWsPosition (position, market: Market = undefined) {
         // same as REST api
         return this.parsePosition (position, market);
     }
@@ -923,7 +923,7 @@ export default class grvt extends grvtRest {
         client.resolve (this.orders, 'order::' + order['symbol']);
     }
 
-    parseWsOrder (order, market = undefined): Order {
+    parseWsOrder (order, market: Market = undefined): Order {
         // same as REST api
         return this.parseOrder (order, market);
     }
