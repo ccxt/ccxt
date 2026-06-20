@@ -5,7 +5,7 @@ import Exchange from './abstract/gate.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled, OrderImmediatelyFillable } from './base/errors.js';
-import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, NullableDict, List, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, Dict, LeverageTier, LeverageTiers, int, CancellationRequest, LedgerEntry, FundingRate, FundingRates, DepositAddress, Bool, BorrowInterest, Fee, IndexType } from './base/types.js';
+import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, NullableDict, List, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, Dict, LeverageTier, LeverageTiers, int, CancellationRequest, LedgerEntry, FundingRate, FundingRates, DepositAddress, Bool, BorrowInterest, IndexType } from './base/types.js';
 
 /**
  * @class gate
@@ -5761,7 +5761,7 @@ export default class gate extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelOrders requires a symbol argument for spot markets');
         }
         if (isSpot) {
-        const ordersRequests: CancellationRequest[] = [];
+            const ordersRequests: CancellationRequest[] = [];
             for (let i = 0; i < ids.length; i++) {
                 const id = ids[i];
                 const orderItem: CancellationRequest = {
@@ -6724,11 +6724,10 @@ export default class gate extends Exchange {
             'currency': currency['id'].toUpperCase (), // todo: currencies have network-junctions
             'amount': this.currencyToPrecision (code, amount),
         };
-        let response: Dict;
         const market = this.market (symbol);
         request['currency_pair'] = market['id'];
         request['type'] = 'borrow';
-        response = await this.privateMarginPostUniLoans (this.extend (request, params));
+        const response: Dict = await this.privateMarginPostUniLoans (this.extend (request, params));
         //
         //     {
         //         "id": "34267567",
