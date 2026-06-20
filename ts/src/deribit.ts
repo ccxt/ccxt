@@ -6,7 +6,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, DDoSProtection, NotSupported, ExchangeNotAvailable, InsufficientFunds, BadRequest, InvalidAddress, OnMaintenance } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { totp } from './base/functions/totp.js';
-import type { Balances, Bool, Currency, FundingRateHistory, Greeks, Int, Liquidation, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, MarketInterface, Num, Account, Option, OptionChain, Currencies, TradingFees, Dict, int, FundingRate, DepositAddress, Position } from './base/types.js';
+import type { Balances, Bool, Currency, FundingRateHistory, Greeks, Int, Liquidation, List, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, MarketInterface, Num, Account, Option, OptionChain, Currencies, TradingFees, Dict, NullableDict, int, FundingRate, DepositAddress, Position } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -802,8 +802,8 @@ export default class deribit extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        const instrumentsResponses = [];
-        const result = [];
+        const instrumentsResponses: List = [];
+        const result: List = [];
         const parsedMarkets: Dict = {};
         let fetchAllMarkets = undefined;
         [ fetchAllMarkets, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'fetchAllMarkets', true);
@@ -1034,7 +1034,7 @@ export default class deribit extends Exchange {
         const result: Dict = {
             'info': balance,
         };
-        let summaries = [];
+        let summaries: List = [];
         if ('summaries' in balance) {
             summaries = this.safeList (balance, 'summaries');
         } else {
@@ -1561,7 +1561,7 @@ export default class deribit extends Exchange {
             takerOrMaker = (liquidity === 'M') ? 'maker' : 'taker';
         }
         const feeCostString = this.safeString (trade, 'fee');
-        let fee = undefined;
+        let fee: NullableDict = undefined;
         if (feeCostString !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fee_currency');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
@@ -1927,7 +1927,7 @@ export default class deribit extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'order_state'));
         const side = this.safeStringLower (order, 'direction');
         let feeCostString = this.safeString (order, 'commission');
-        let fee = undefined;
+        let fee: NullableDict = undefined;
         if (feeCostString !== undefined) {
             feeCostString = Precise.stringAbs (feeCostString);
             fee = {
@@ -2647,7 +2647,7 @@ export default class deribit extends Exchange {
         const address = this.safeString (transaction, 'address');
         const feeCost = this.safeNumber (transaction, 'fee');
         let type = 'deposit';
-        let fee = undefined;
+        let fee: NullableDict = undefined;
         if (feeCost !== undefined) {
             type = 'withdrawal';
             fee = {
@@ -2897,7 +2897,7 @@ export default class deribit extends Exchange {
         //     }
         //
         const volatilityResult = this.safeValue (volatility, 'result', []);
-        const result = [];
+        const result: List = [];
         for (let i = 0; i < volatilityResult.length; i++) {
             const timestamp = this.safeInteger (volatilityResult[i], 0);
             const volatilityObj = this.safeNumber (volatilityResult[i], 1);
@@ -3263,7 +3263,7 @@ export default class deribit extends Exchange {
         //        ]
         //    }
         //
-        const rates = [];
+        const rates: List = [];
         const result = this.safeValue (response, 'result', []);
         for (let i = 0; i < result.length; i++) {
             const fr = result[i];
