@@ -2027,7 +2027,7 @@ export default class bitmart extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as any[];
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -2317,7 +2317,7 @@ export default class bitmart extends Exchange {
         //         "trace": "4cad855074634097ac6ba5257c47305d.62.16959616054873723"
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as any[];
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -2340,7 +2340,7 @@ export default class bitmart extends Exchange {
             'orderId': id,
         };
         const response = await this.privatePostSpotV4QueryOrderTrades (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as any[];
         return this.parseTrades (data, undefined, since, limit);
     }
 
@@ -3614,7 +3614,7 @@ export default class bitmart extends Exchange {
         //         "trace": "7f9d94g10f9d4513bc08a7rfc3a5559a.71.16957022303515933"
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as any[];
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -3684,7 +3684,7 @@ export default class bitmart extends Exchange {
         } else {
             response = await this.privateGetContractPrivateOrderHistory (this.extend (request, params));
         }
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as any[];
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -5034,7 +5034,7 @@ export default class bitmart extends Exchange {
         //         "trace":"4cad855074664097ac5ba5257c47305d.67.16963925142065945"
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as any[];
         const first = this.safeDict (data, 0, {});
         return this.parsePosition (first, market);
     }
@@ -5221,7 +5221,7 @@ export default class bitmart extends Exchange {
         //         "trace": "4cad855074664097ac6ba4257c47305d.71.16965658195443021"
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as any[];
         const result: any[] = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
@@ -5442,7 +5442,7 @@ export default class bitmart extends Exchange {
         //         "trace": "4cd11f83c71egfhfgh842790f07241e.23.173442343427772866"
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as any[];
         return this.parseLedger (data, currency, since, limit);
     }
 
@@ -5560,7 +5560,7 @@ export default class bitmart extends Exchange {
         //         "trace": "4cd11f83c71egfhfgh842790f07241e.23.173442343427772866"
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as any[];
         return this.parseFundingHistories (data, market, since, limit);
     }
 
