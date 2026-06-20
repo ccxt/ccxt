@@ -11456,7 +11456,7 @@ export default class binance extends Exchange {
             'symbol': market['id'],
             'marginType': marginMode,
         };
-        let response = undefined;
+        let response: NullableDict = undefined;
         try {
             if (market['linear']) {
                 response = await this.fapiPrivatePostMarginType (this.extend (request, params));
@@ -13769,7 +13769,7 @@ export default class binance extends Exchange {
         return this.parseMarginMode (response[0], market);
     }
 
-    parseMarginMode (marginMode: Dict, market = undefined): MarginMode {
+    parseMarginMode (marginMode: Dict, market: any = undefined): MarginMode {
         const marketId = this.safeString (marginMode, 'symbol');
         market = this.safeMarket (marketId, market);
         const marginModeRaw = this.safeBool (marginMode, 'isolated');
