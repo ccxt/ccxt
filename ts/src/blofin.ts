@@ -2704,7 +2704,7 @@ export default class blofin extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        return this.parseMarginMode (data as Dict, market);
+        return this.parseMarginMode (data as Dict, market) as any; // keep untyped to match the base setMarginMode return ({}) — narrowing it breaks the Go IExchange interface
     }
 
     /**

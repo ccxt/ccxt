@@ -870,6 +870,13 @@ class NewTranspiler {
             return addTaskIfNeeded('any'); // default if type is unknown;
         }
 
+        // `List` is an alias for `Array<any>` (see ts/src/base/types.ts) — normalize it
+        // to `any[]` so it flows through the array branch below instead of leaking the
+        // bare `List` / `NewList` identifiers that don't exist in the Go runtime.
+        if (wrappedType === 'List') {
+            wrappedType = 'any[]';
+        }
+
         if (wrappedType === 'string[][]') {
             return addTaskIfNeeded('[][]string');
         }
