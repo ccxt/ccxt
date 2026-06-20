@@ -4,7 +4,7 @@
 import { sha256 } from '@noble/hashes/sha2.js';
 import bithumbRest from '../bithumb.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type{ Int, OrderBook, Ticker, Trade, Strings, Tickers, Dict, NullableDict, Bool, Order, Str } from '../base/types.js';
+import type{ Int, OrderBook, Ticker, Trade, Strings, Tickers, Dict, NullableDict, Bool, Order, Str, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ExchangeError } from '../base/errors.js';
 import { jwt } from '../base/functions/rsa.js';
@@ -131,7 +131,7 @@ export default class bithumb extends bithumbRest {
         client.resolve (this.tickers[symbol], messageHash);
     }
 
-    parseWsTicker (ticker, market = undefined) {
+    parseWsTicker (ticker, market: Market = undefined) {
         //
         //    {
         //        "symbol" : "BTC_KRW",           // 통화코드
@@ -337,7 +337,7 @@ export default class bithumb extends bithumbRest {
         }
     }
 
-    parseWsTrade (trade, market = undefined) {
+    parseWsTrade (trade, market: Market = undefined) {
         //
         //    {
         //        "symbol" : "BTC_KRW",
@@ -551,7 +551,7 @@ export default class bithumb extends bithumbRest {
         client.resolve (cachedOrders, symbolSpecificMessageHash);
     }
 
-    parseWsOrder (order, market = undefined) {
+    parseWsOrder (order, market: Market = undefined) {
         //
         //    {
         //        "type": "myOrder",
