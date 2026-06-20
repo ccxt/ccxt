@@ -4323,9 +4323,8 @@ func (this *AscendexCore) FetchOpenInterests(optionalArgs ...any) <-chan any {
 		retRes36478 := (<-this.LoadMarkets())
 		PanicOnError(retRes36478)
 		var request any = map[string]any{}
-		var response any = nil
 
-		response = (<-this.V2PublicGetFuturesPricingData(this.Extend(request, params)))
+		response := (<-this.V2PublicGetFuturesPricingData(this.Extend(request, params)))
 		PanicOnError(response)
 		//
 		//    {

@@ -1,8 +1,5 @@
-- [Coinbase Watch All Trades](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import ccxt.pro
 from asyncio import run
@@ -32,5 +29,5 @@ async def main():
 
 
 run(main())
- 
+
 ```

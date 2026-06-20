@@ -705,7 +705,7 @@ class cryptomus(Exchange, ImplicitAPI):
         priceToString = self.number_to_string(price)
         cost = None
         cost, params = self.handle_param_string(params, 'cost')
-        response = None
+        response: dict = None
         if type == 'market':
             if sideBuy:
                 createMarketBuyOrderRequiresPrice = True
@@ -777,7 +777,7 @@ class cryptomus(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         request: dict = {}
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['market'] = market['id']
@@ -848,7 +848,7 @@ class cryptomus(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
         request: dict = {
@@ -946,7 +946,7 @@ class cryptomus(Exchange, ImplicitAPI):
         side = self.safe_string(order, 'direction')
         price = self.safe_number(order, 'price')
         transaction = self.safe_list(deal, 'transactions', [])
-        fee = None
+        fee: Fee = None
         firstTx = self.safe_dict(transaction, 0)
         feeCurrency = self.safe_string(firstTx, 'feeCurrency')
         if feeCurrency is not None:

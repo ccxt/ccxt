@@ -1,14 +1,11 @@
-- [Error Handling Message](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 
 include './ccxt.php';
 
 date_default_timezone_set('UTC');
 
-$exchange = new \ccxt\bittrex(array(
+$exchange = new \ccxt\kucoin(array(
     'apiKey' => 'foo',
     'secret' => 'bar',
 ));
@@ -52,5 +49,5 @@ try {
 }
 
 ?>
- 
+
 ```

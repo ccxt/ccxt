@@ -140,7 +140,7 @@ func (this *DydxCore) Describe() any {
 			"www":      "https://www.dydx.xyz",
 			"doc":      []any{"https://docs.dydx.xyz"},
 			"fees":     []any{"https://docs.dydx.exchange/introduction-trading_fees"},
-			"referral": "dydx.trade?ref=ccxt",
+			"referral": "https://dydx.trade?ref=ccxt",
 		},
 		"api": map[string]any{
 			"indexer": map[string]any{

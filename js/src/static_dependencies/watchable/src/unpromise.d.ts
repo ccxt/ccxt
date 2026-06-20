@@ -1,4 +1,4 @@
-import type { PromiseExecutor, PromiseWithResolvers, ProxyPromise, SubscribedPromise } from "./types";
+import type { PromiseExecutor, PromiseWithResolvers, ProxyPromise, SubscribedPromise } from "./types.js";
 /**
  * Every `Promise<T>` can be shadowed by a single `ProxyPromise<T>`. It is
  * created once, cached and reused throughout the lifetime of the Promise. Get a
@@ -84,7 +84,7 @@ export declare class Unpromise<T> implements ProxyPromise<T> {
     /** Create and store an Unpromise keyed by an original Promise. */
     protected static createSubscribablePromise<T>(promise: PromiseLike<T>): Unpromise<T>;
     /** Retrieve a previously-created Unpromise keyed by an original Promise. */
-    protected static getSubscribablePromise<T>(promise: PromiseLike<T>): ProxyPromise<T>;
+    protected static getSubscribablePromise<T>(promise: PromiseLike<T>): ProxyPromise<T> | undefined;
     /** Promise STATIC METHODS */
     /** Lookup the Unpromise for this promise, and derive a SubscribedPromise from
      * it (that can be later unsubscribed to eliminate Memory leaks) */

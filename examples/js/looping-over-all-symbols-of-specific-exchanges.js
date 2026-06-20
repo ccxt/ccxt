@@ -13,7 +13,7 @@ ansicolor.nice
 
 ;(async () => {
 
-    const exchanges = [ 'bittrex', 'poloniex', 'hitbtc2' ]
+    const exchanges = [ 'poloniex', 'hitbtc' ]
 
     for (let exchangeId of exchanges) {
 

@@ -2073,7 +2073,7 @@ class gate(Exchange, ImplicitAPI):
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
-        market = None
+        market: Market = None
         if symbols is not None:
             firstSymbol = self.safe_string(symbols, 0)
             market = self.market(firstSymbol)
@@ -2556,7 +2556,7 @@ class gate(Exchange, ImplicitAPI):
         """
         self.load_markets()
         # defaultType = 'future'
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
@@ -2907,7 +2907,7 @@ class gate(Exchange, ImplicitAPI):
         self.load_markets()
         symbols = self.market_symbols(symbols)
         first = self.safe_string(symbols, 0)
-        market = None
+        market: Market = None
         if first is not None:
             market = self.market(first)
         type, query = self.handle_market_type_and_params('fetchTickers', market, params)
@@ -5059,7 +5059,7 @@ class gate(Exchange, ImplicitAPI):
         self.load_markets()
         self.load_unified_status()
         until = self.safe_integer(params, 'until')
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
@@ -5083,7 +5083,7 @@ class gate(Exchange, ImplicitAPI):
         return self.parse_orders(response, market, since, limit)
 
     def prepare_orders_by_status_request(self, status, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
@@ -5116,7 +5116,7 @@ class gate(Exchange, ImplicitAPI):
     def fetch_orders_by_status(self, status, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         self.load_markets()
         self.load_unified_status()
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
@@ -5451,7 +5451,7 @@ class gate(Exchange, ImplicitAPI):
         """
         self.load_markets()
         self.load_unified_status()
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
         type = None
@@ -5973,7 +5973,7 @@ class gate(Exchange, ImplicitAPI):
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
         self.load_markets()
-        market = None
+        market: Market = None
         symbols = self.market_symbols(symbols, None, True, True, True)
         if symbols is not None:
             symbolsLength = len(symbols)
@@ -6519,7 +6519,7 @@ class gate(Exchange, ImplicitAPI):
         if code is not None:
             currency = self.currency(code)
             request['currency'] = currency['id']
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
         if since is not None:
@@ -6872,7 +6872,7 @@ class gate(Exchange, ImplicitAPI):
         :returns dict[]: a list of [settlement history objects]
         """
         self.load_markets()
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
@@ -7623,7 +7623,7 @@ class gate(Exchange, ImplicitAPI):
         :returns dict: a `leverage structure <https://docs.ccxt.com/?id=leverage-structure>`
         """
         self.load_markets()
-        market = None
+        market: Market = None
         if symbol is not None:
             # unified account does not require a symbol
             market = self.market(symbol)
@@ -7976,7 +7976,7 @@ class gate(Exchange, ImplicitAPI):
         :returns dict[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
         """
         self.load_markets()
-        market = None
+        market: Market = None
         if symbols is not None:
             symbolsLength = len(symbols)
             if symbolsLength == 1:

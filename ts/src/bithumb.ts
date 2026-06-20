@@ -1,11 +1,11 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/bithumb.js';
 import { ExchangeError, ExchangeNotAvailable, AuthenticationError, BadRequest, PermissionDenied, InvalidAddress, ArgumentsRequired, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { DECIMAL_PLACES, SIGNIFICANT_DIGITS, TRUNCATE } from './base/functions/number.js';
-import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 import type { Balances, Currency, Dict, Int, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
@@ -742,7 +742,7 @@ export default class bithumb extends Exchange {
         //     }
         //
         // a workaround for their bug in date format, hours are not 0-padded
-        let timestamp = undefined;
+        let timestamp: Int = undefined;
         const transactionDatetime = this.safeString (trade, 'transaction_date');
         if (transactionDatetime !== undefined) {
             const parts = transactionDatetime.split (' ');
@@ -769,7 +769,7 @@ export default class bithumb extends Exchange {
         const priceString = this.safeString (trade, 'price');
         const amountString = this.fixCommaNumber (this.safeString2 (trade, 'units_traded', 'units'));
         const costString = this.safeString (trade, 'total');
-        let fee = undefined;
+        let fee: Dict = undefined;
         const feeCostString = this.safeString (trade, 'fee');
         if (feeCostString !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fee_currency');
@@ -1002,7 +1002,7 @@ export default class bithumb extends Exchange {
                 remaining = amount;
             }
         }
-        let symbol = undefined;
+        let symbol: Str = undefined;
         const baseId = this.safeString (order, 'order_currency');
         const quoteId = this.safeString (order, 'payment_currency');
         const base = this.safeCurrencyCode (baseId);

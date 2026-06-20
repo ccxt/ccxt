@@ -149,7 +149,11 @@ export default class paradex extends Exchange {
         chainId: any;
         version: number;
     }>;
-    retrieveAccount(): Promise<Dict>;
+    retrieveAccount(): Promise<Dict | {
+        privateKey: string;
+        publicKey: string;
+        address: string;
+    }>;
     onboarding(params?: {}): Promise<any>;
     authenticateRest(params?: {}): Promise<string>;
     parseOrder(order: Dict, market?: Market): Order;

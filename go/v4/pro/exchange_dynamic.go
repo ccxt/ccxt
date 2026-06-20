@@ -19,10 +19,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
         apexItf := NewApexCore()
         apexItf.Init(exchangeArgs)
         return apexItf, true
-    case "arkham":
-        arkhamItf := NewArkhamCore()
-        arkhamItf.Init(exchangeArgs)
-        return arkhamItf, true
     case "ascendex":
         ascendexItf := NewAscendexCore()
         ascendexItf.Init(exchangeArgs)
@@ -131,10 +127,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
         coinbaseItf := NewCoinbaseCore()
         coinbaseItf.Init(exchangeArgs)
         return coinbaseItf, true
-    case "coinbaseadvanced":
-        coinbaseadvancedItf := NewCoinbaseadvancedCore()
-        coinbaseadvancedItf.Init(exchangeArgs)
-        return coinbaseadvancedItf, true
     case "coinbaseexchange":
         coinbaseexchangeItf := NewCoinbaseexchangeCore()
         coinbaseexchangeItf.Init(exchangeArgs)
@@ -211,10 +203,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
         htxItf := NewHtxCore()
         htxItf.Init(exchangeArgs)
         return htxItf, true
-    case "huobi":
-        huobiItf := NewHuobiCore()
-        huobiItf.Init(exchangeArgs)
-        return huobiItf, true
     case "hyperliquid":
         hyperliquidItf := NewHyperliquidCore()
         hyperliquidItf.Init(exchangeArgs)

@@ -30,7 +30,7 @@ async function testWatchOrderBookForSymbols(exchange, skippedProperties, symbols
         }
         if (success === true) {
             // [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
-            assert(typeof response === 'object', exchange.id + ' ' + method + ' ' + exchange.json(symbols) + ' must return an object. ' + exchange.json(response));
+            assert(exchange.isDictionary(response), exchange.id + ' ' + method + ' ' + exchange.json(symbols) + ' must return an object. ' + exchange.json(response));
             now = exchange.milliseconds();
             testSharedMethods.assertInArray(exchange, skippedProperties, method, response, 'symbol', symbols);
             testOrderBook(exchange, skippedProperties, method, response, undefined);

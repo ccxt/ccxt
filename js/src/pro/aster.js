@@ -66,16 +66,16 @@ export default class aster extends asterRest {
                     'swap': 0,
                 },
                 'listenKeyRefreshRate': {
-                    'spot': 3600000,
+                    'spot': 3600000, // 60 minutes
                     'swap': 3600000,
                 },
                 'watchBalance': {
-                    'fetchBalanceSnapshot': false,
+                    'fetchBalanceSnapshot': false, // or true
                     'awaitBalanceSnapshot': true, // whether to wait for the balance snapshot before providing updates
                 },
-                'wallet': 'wb',
+                'wallet': 'wb', // wb = wallet balance, cw = cross balance
                 'watchPositions': {
-                    'fetchPositionsSnapshot': true,
+                    'fetchPositionsSnapshot': true, // or false
                     'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
                 },
             },

@@ -17,13 +17,13 @@ class bingx extends bingx$1["default"] {
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
                 'watchOrderBook': true,
-                'watchOrderBookForSymbols': false,
+                'watchOrderBookForSymbols': false, // no longer supported
                 'watchOHLCV': true,
-                'watchOHLCVForSymbols': false,
+                'watchOHLCVForSymbols': false, // no longer supported
                 'watchOrders': true,
                 'watchMyTrades': true,
                 'watchTicker': true,
-                'watchTickers': false,
+                'watchTickers': false, // no longer supported
                 'watchBalance': true,
                 'watchPositions': true,
                 'unWatchOHLCV': true,
@@ -46,7 +46,7 @@ class bingx extends bingx$1["default"] {
                 },
             },
             'options': {
-                'listenKeyRefreshRate': 3540000,
+                'listenKeyRefreshRate': 3540000, // 1 hour (59 mins so we have 1 min to renew the token)
                 'ws': {
                     'gunzip': true,
                 },
@@ -79,7 +79,7 @@ class bingx extends bingx$1["default"] {
                     },
                 },
                 'watchBalance': {
-                    'fetchBalanceSnapshot': true,
+                    'fetchBalanceSnapshot': true, // needed to be true to keep track of used and free balance
                     'awaitBalanceSnapshot': true, // whether to wait for the balance snapshot before providing updates
                 },
                 'watchPositions': {

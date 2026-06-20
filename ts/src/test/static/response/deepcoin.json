@@ -2038,7 +2038,92 @@
         ],
         "fetchTrades": [
             {
-                "description": "Fetch trades for swap",
+                "description": "spot +since +limit",
+                "method": "fetchTrades",
+                "input": [
+                    "ETH/USDT",
+                    1770000000000,
+                    2
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": [
+                        {
+                            "instId": "ETH-USDT",
+                            "tradeId": "1001057516762503",
+                            "px": "1847.42",
+                            "sz": "0.02045555",
+                            "side": "sell",
+                            "ts": "1780460850000"
+                        },
+                        {
+                            "instId": "ETH-USDT",
+                            "tradeId": "1001057516762503",
+                            "px": "1847.42",
+                            "sz": "0.02045555",
+                            "side": "buy",
+                            "ts": "1780460850000"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "instId": "ETH-USDT",
+                            "tradeId": "1001057516762503",
+                            "px": "1847.42",
+                            "sz": "0.02045555",
+                            "side": "sell",
+                            "ts": "1780460850000"
+                        },
+                        "timestamp": 1780460850000,
+                        "datetime": "2026-06-03T04:27:30.000Z",
+                        "symbol": "ETH/USDT",
+                        "id": "1001057516762503",
+                        "order": null,
+                        "type": null,
+                        "takerOrMaker": null,
+                        "side": "sell",
+                        "price": 1847.42,
+                        "amount": 0.02045555,
+                        "cost": 37.789992181,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "instId": "ETH-USDT",
+                            "tradeId": "1001057516762503",
+                            "px": "1847.42",
+                            "sz": "0.02045555",
+                            "side": "buy",
+                            "ts": "1780460850000"
+                        },
+                        "timestamp": 1780460850000,
+                        "datetime": "2026-06-03T04:27:30.000Z",
+                        "symbol": "ETH/USDT",
+                        "id": "1001057516762503",
+                        "order": null,
+                        "type": null,
+                        "takerOrMaker": null,
+                        "side": "buy",
+                        "price": 1847.42,
+                        "amount": 0.02045555,
+                        "cost": 37.789992181,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
+            },
+            {
+                "description": "swap +limit",
                 "method": "fetchTrades",
                 "input": [
                     "ETH/USDT:USDT",

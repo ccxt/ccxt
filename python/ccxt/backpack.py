@@ -1235,10 +1235,16 @@ class backpack(Exchange, ImplicitAPI):
         market = self.safe_market(marketId, market)
         price = self.safe_string(trade, 'price')
         amount = self.safe_string(trade, 'quantity')
-        isMaker = self.safe_bool(trade, 'isMaker')
-        takerOrMaker = 'maker' if isMaker else 'taker'
-        orderId = self.safe_string(trade, 'orderId')
+        isBuyerMaker = self.safe_bool(trade, 'isBuyerMaker')
         side = self.parse_order_side(self.safe_string(trade, 'side'))
+        isMaker = self.safe_bool(trade, 'isMaker')
+        takerOrMaker: Str = None
+        if isMaker is not None:
+            takerOrMaker = 'maker' if isMaker else 'taker'
+        elif isBuyerMaker is not None:
+            takerOrMaker = 'taker'
+            side = 'sell' if isBuyerMaker else 'buy'
+        orderId = self.safe_string(trade, 'orderId')
         fee = None
         feeAmount = self.safe_string(trade, 'fee')
         timestamp = self.safe_integer(trade, 'timestamp')

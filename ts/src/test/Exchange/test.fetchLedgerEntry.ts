@@ -1,4 +1,4 @@
-import { Exchange } from "../../../ccxt";
+import { Exchange } from "../../../ccxt.js";
 import testLedgerEntry from './base/test.ledgerEntry.js';
 import testSharedMethods from './base/test.sharedMethods.js';
 

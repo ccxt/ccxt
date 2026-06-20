@@ -25,7 +25,7 @@ async def test_fetch_last_prices(exchange, skipped_properties, symbol):
     except Exception as e:
         response = await exchange.fetch_last_prices([symbol])
         checked_symbol = symbol
-    assert isinstance(response, dict), exchange.id + ' ' + method + ' ' + checked_symbol + ' must return an object. ' + exchange.json(response)
+    assert exchange.is_dictionary(response), exchange.id + ' ' + method + ' ' + checked_symbol + ' must return a dict. ' + exchange.json(response)
     values = list(response.values())
     test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, values, checked_symbol)
     at_least_one_passed = False

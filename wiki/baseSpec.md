@@ -36,7 +36,7 @@ add margin
 * [weex](/exchanges/weex.md#addmargin)
 * [woo](/exchanges/woo.md#addmargin)
 * [xt](/exchanges/xt.md#addmargin)
-* [zebpayfutures](/exchanges/zebpayfutures.md#addmargin)
+* [zebpay](/exchanges/zebpay.md#addmargin)
 
 ---
 
@@ -152,7 +152,6 @@ cancel all open orders in a market
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#cancelallorders)
 * [apex](/exchanges/apex.md#cancelallorders)
-* [arkham](/exchanges/arkham.md#cancelallorders)
 * [ascendex](/exchanges/ascendex.md#cancelallorders)
 * [aster](/exchanges/aster.md#cancelallorders)
 * [backpack](/exchanges/backpack.md#cancelallorders)
@@ -356,7 +355,6 @@ cancels an open order
 * [aftermath](/exchanges/aftermath.md#cancelorder)
 * [alpaca](/exchanges/alpaca.md#cancelorder)
 * [apex](/exchanges/apex.md#cancelorder)
-* [arkham](/exchanges/arkham.md#cancelorder)
 * [ascendex](/exchanges/ascendex.md#cancelorder)
 * [aster](/exchanges/aster.md#cancelorder)
 * [backpack](/exchanges/backpack.md#cancelorder)
@@ -441,13 +439,11 @@ cancels an open order
 * [tokocrypto](/exchanges/tokocrypto.md#cancelorder)
 * [toobit](/exchanges/toobit.md#cancelorder)
 * [upbit](/exchanges/upbit.md#cancelorder)
-* [wavesexchange](/exchanges/wavesexchange.md#cancelorder)
 * [weex](/exchanges/weex.md#cancelorder)
 * [whitebit](/exchanges/whitebit.md#cancelorder)
 * [woo](/exchanges/woo.md#cancelorder)
 * [woofipro](/exchanges/woofipro.md#cancelorder)
 * [xt](/exchanges/xt.md#cancelorder)
-* [yobit](/exchanges/yobit.md#cancelorder)
 * [zaif](/exchanges/zaif.md#cancelorder)
 * [zebpay](/exchanges/zebpay.md#cancelorder)
 
@@ -727,6 +723,7 @@ closes open positions for a market
 * [deepcoin](/exchanges/deepcoin.md#closeposition)
 * [gate](/exchanges/gate.md#closeposition)
 * [hitbtc](/exchanges/hitbtc.md#closeposition)
+* [htx](/exchanges/htx.md#closeposition)
 * [kucoin](/exchanges/kucoin.md#closeposition)
 * [okx](/exchanges/okx.md#closeposition)
 * [weex](/exchanges/weex.md#closeposition)
@@ -751,7 +748,6 @@ closes open positions for a market
 ##### Supported exchanges
 * [bitget](/exchanges/bitget.md#closepositions)
 * [cryptocom](/exchanges/cryptocom.md#closepositions)
-* [htx](/exchanges/htx.md#closepositions)
 
 ---
 
@@ -883,7 +879,6 @@ create a currency deposit address
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
-* [arkham](/exchanges/arkham.md#createdepositaddress)
 * [bitfinex](/exchanges/bitfinex.md#createdepositaddress)
 * [coinbase](/exchanges/coinbase.md#createdepositaddress)
 * [coinbaseexchange](/exchanges/coinbaseexchange.md#createdepositaddress)
@@ -901,7 +896,6 @@ create a currency deposit address
 * [poloniex](/exchanges/poloniex.md#createdepositaddress)
 * [upbit](/exchanges/upbit.md#createdepositaddress)
 * [whitebit](/exchanges/whitebit.md#createdepositaddress)
-* [yobit](/exchanges/yobit.md#createdepositaddress)
 
 ---
 
@@ -1069,7 +1063,6 @@ create a trade order
 * [aftermath](/exchanges/aftermath.md#createorder)
 * [alpaca](/exchanges/alpaca.md#createorder)
 * [apex](/exchanges/apex.md#createorder)
-* [arkham](/exchanges/arkham.md#createorder)
 * [ascendex](/exchanges/ascendex.md#createorder)
 * [aster](/exchanges/aster.md#createorder)
 * [backpack](/exchanges/backpack.md#createorder)
@@ -1156,13 +1149,11 @@ create a trade order
 * [tokocrypto](/exchanges/tokocrypto.md#createorder)
 * [toobit](/exchanges/toobit.md#createorder)
 * [upbit](/exchanges/upbit.md#createorder)
-* [wavesexchange](/exchanges/wavesexchange.md#createorder)
 * [weex](/exchanges/weex.md#createorder)
 * [whitebit](/exchanges/whitebit.md#createorder)
 * [woo](/exchanges/woo.md#createorder)
 * [woofipro](/exchanges/woofipro.md#createorder)
 * [xt](/exchanges/xt.md#createorder)
-* [yobit](/exchanges/yobit.md#createorder)
 * [zaif](/exchanges/zaif.md#createorder)
 * [zebpay](/exchanges/zebpay.md#createorder)
 
@@ -1830,7 +1821,6 @@ query for accounts owned by the walletAddress. An Account is needed for all trad
 
 ##### Supported exchanges
 * [aftermath](/exchanges/aftermath.md#fetchaccounts)
-* [arkham](/exchanges/arkham.md#fetchaccounts)
 * [ascendex](/exchanges/ascendex.md#fetchaccounts)
 * [bittrade](/exchanges/bittrade.md#fetchaccounts)
 * [bitvavo](/exchanges/bitvavo.md#fetchaccounts)
@@ -1896,7 +1886,6 @@ query for balance and get the amount of funds available for trading or funds loc
 * [aftermath](/exchanges/aftermath.md#fetchbalance)
 * [alpaca](/exchanges/alpaca.md#fetchbalance)
 * [apex](/exchanges/apex.md#fetchbalance)
-* [arkham](/exchanges/arkham.md#fetchbalance)
 * [ascendex](/exchanges/ascendex.md#fetchbalance)
 * [aster](/exchanges/aster.md#fetchbalance)
 * [backpack](/exchanges/backpack.md#fetchbalance)
@@ -1983,13 +1972,11 @@ query for balance and get the amount of funds available for trading or funds loc
 * [tokocrypto](/exchanges/tokocrypto.md#fetchbalance)
 * [toobit](/exchanges/toobit.md#fetchbalance)
 * [upbit](/exchanges/upbit.md#fetchbalance)
-* [wavesexchange](/exchanges/wavesexchange.md#fetchbalance)
 * [weex](/exchanges/weex.md#fetchbalance)
 * [whitebit](/exchanges/whitebit.md#fetchbalance)
 * [woo](/exchanges/woo.md#fetchbalance)
 * [woofipro](/exchanges/woofipro.md#fetchbalance)
 * [xt](/exchanges/xt.md#fetchbalance)
-* [yobit](/exchanges/yobit.md#fetchbalance)
 * [zaif](/exchanges/zaif.md#fetchbalance)
 * [zebpay](/exchanges/zebpay.md#fetchbalance)
 
@@ -2199,6 +2186,7 @@ fetches information on multiple canceled orders made by the user
 * [derive](/exchanges/derive.md#fetchcanceledorders)
 * [exmo](/exchanges/exmo.md#fetchcanceledorders)
 * [extended](/exchanges/extended.md#fetchcanceledorders)
+* [htx](/exchanges/htx.md#fetchcanceledorders)
 * [hyperliquid](/exchanges/hyperliquid.md#fetchcanceledorders)
 * [krakenfutures](/exchanges/krakenfutures.md#fetchcanceledorders)
 * [mexc](/exchanges/mexc.md#fetchcanceledorders)
@@ -2252,7 +2240,6 @@ fetches information on multiple closed orders made by the user
 
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#fetchclosedorders)
-* [arkham](/exchanges/arkham.md#fetchclosedorders)
 * [ascendex](/exchanges/ascendex.md#fetchclosedorders)
 * [bigone](/exchanges/bigone.md#fetchclosedorders)
 * [binance](/exchanges/binance.md#fetchclosedorders)
@@ -2307,7 +2294,6 @@ fetches information on multiple closed orders made by the user
 * [tokocrypto](/exchanges/tokocrypto.md#fetchclosedorders)
 * [toobit](/exchanges/toobit.md#fetchclosedorders)
 * [upbit](/exchanges/upbit.md#fetchclosedorders)
-* [wavesexchange](/exchanges/wavesexchange.md#fetchclosedorders)
 * [weex](/exchanges/weex.md#fetchclosedorders)
 * [whitebit](/exchanges/whitebit.md#fetchclosedorders)
 * [woo](/exchanges/woo.md#fetchclosedorders)
@@ -2629,7 +2615,6 @@ fetches all available currencies on an exchange
 ##### Supported exchanges
 * [aftermath](/exchanges/aftermath.md#fetchcurrencies)
 * [apex](/exchanges/apex.md#fetchcurrencies)
-* [arkham](/exchanges/arkham.md#fetchcurrencies)
 * [ascendex](/exchanges/ascendex.md#fetchcurrencies)
 * [aster](/exchanges/aster.md#fetchcurrencies)
 * [backpack](/exchanges/backpack.md#fetchcurrencies)
@@ -2756,7 +2741,6 @@ fetch the deposit address for a currency associated with this account
 
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#fetchdepositaddress)
-* [arkham](/exchanges/arkham.md#fetchdepositaddress)
 * [ascendex](/exchanges/ascendex.md#fetchdepositaddress)
 * [backpack](/exchanges/backpack.md#fetchdepositaddress)
 * [bigone](/exchanges/bigone.md#fetchdepositaddress)
@@ -2806,11 +2790,9 @@ fetch the deposit address for a currency associated with this account
 * [tokocrypto](/exchanges/tokocrypto.md#fetchdepositaddress)
 * [toobit](/exchanges/toobit.md#fetchdepositaddress)
 * [upbit](/exchanges/upbit.md#fetchdepositaddress)
-* [wavesexchange](/exchanges/wavesexchange.md#fetchdepositaddress)
 * [whitebit](/exchanges/whitebit.md#fetchdepositaddress)
 * [woo](/exchanges/woo.md#fetchdepositaddress)
 * [xt](/exchanges/xt.md#fetchdepositaddress)
-* [yobit](/exchanges/yobit.md#fetchdepositaddress)
 
 ---
 
@@ -2855,7 +2837,6 @@ fetch the deposit addresses for a currency associated with this account
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
-* [arkham](/exchanges/arkham.md#fetchdepositaddressesbynetwork)
 * [bingx](/exchanges/bingx.md#fetchdepositaddressesbynetwork)
 * [bybit](/exchanges/bybit.md#fetchdepositaddressesbynetwork)
 * [cryptocom](/exchanges/cryptocom.md#fetchdepositaddressesbynetwork)
@@ -2986,7 +2967,6 @@ fetch deposit and withdraw fees
 * [mexc](/exchanges/mexc.md#fetchdepositwithdrawfees)
 * [okx](/exchanges/okx.md#fetchdepositwithdrawfees)
 * [poloniex](/exchanges/poloniex.md#fetchdepositwithdrawfees)
-* [wavesexchange](/exchanges/wavesexchange.md#fetchdepositwithdrawfees)
 * [whitebit](/exchanges/whitebit.md#fetchdepositwithdrawfees)
 
 ---
@@ -3009,7 +2989,6 @@ fetch all deposits made to an account
 
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#fetchdeposits)
-* [arkham](/exchanges/arkham.md#fetchdeposits)
 * [ascendex](/exchanges/ascendex.md#fetchdeposits)
 * [backpack](/exchanges/backpack.md#fetchdeposits)
 * [bigone](/exchanges/bigone.md#fetchdeposits)
@@ -3102,7 +3081,7 @@ fetch history of deposits and withdrawals
 * [cex](/exchanges/cex.md#fetchdepositswithdrawals)
 * [coinbase](/exchanges/coinbase.md#fetchdepositswithdrawals)
 * [coinbaseexchange](/exchanges/coinbaseexchange.md#fetchdepositswithdrawals)
-* [exchange](/exchanges/exchange.md#fetchdepositswithdrawals)
+* [coinbaseinternational](/exchanges/coinbaseinternational.md#fetchdepositswithdrawals)
 * [coinmate](/exchanges/coinmate.md#fetchdepositswithdrawals)
 * [dydx](/exchanges/dydx.md#fetchdepositswithdrawals)
 * [exmo](/exchanges/exmo.md#fetchdepositswithdrawals)
@@ -3160,7 +3139,6 @@ fetches information on multiple orders made by the user *classic accounts only*
 
 ##### Supported exchanges
 * [apex](/exchanges/apex.md#fetchfundinghistory)
-* [arkham](/exchanges/arkham.md#fetchfundinghistory)
 * [ascendex](/exchanges/ascendex.md#fetchfundinghistory)
 * [aster](/exchanges/aster.md#fetchfundinghistory)
 * [backpack](/exchanges/backpack.md#fetchfundinghistory)
@@ -3649,7 +3627,6 @@ fetch the set leverage for a market
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
-* [arkham](/exchanges/arkham.md#fetchleverage)
 * [bingx](/exchanges/bingx.md#fetchleverage)
 * [bitget](/exchanges/bitget.md#fetchleverage)
 * [blofin](/exchanges/blofin.md#fetchleverage)
@@ -3692,7 +3669,6 @@ retrieve information on the maximum leverage, and maintenance margin for trades 
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
-* [arkham](/exchanges/arkham.md#fetchleveragetiers)
 * [ascendex](/exchanges/ascendex.md#fetchleveragetiers)
 * [binance](/exchanges/binance.md#fetchleveragetiers)
 * [bybit](/exchanges/bybit.md#fetchleveragetiers)
@@ -3961,7 +3937,6 @@ retrieves data on all markets for woo
 * [aftermath](/exchanges/aftermath.md#fetchmarkets)
 * [alpaca](/exchanges/alpaca.md#fetchmarkets)
 * [apex](/exchanges/apex.md#fetchmarkets)
-* [arkham](/exchanges/arkham.md#fetchmarkets)
 * [ascendex](/exchanges/ascendex.md#fetchmarkets)
 * [aster](/exchanges/aster.md#fetchmarkets)
 * [backpack](/exchanges/backpack.md#fetchmarkets)
@@ -4044,13 +4019,11 @@ retrieves data on all markets for woo
 * [tokocrypto](/exchanges/tokocrypto.md#fetchmarkets)
 * [toobit](/exchanges/toobit.md#fetchmarkets)
 * [upbit](/exchanges/upbit.md#fetchmarkets)
-* [wavesexchange](/exchanges/wavesexchange.md#fetchmarkets)
 * [weex](/exchanges/weex.md#fetchmarkets)
 * [whitebit](/exchanges/whitebit.md#fetchmarkets)
 * [woo](/exchanges/woo.md#fetchmarkets)
 * [woofipro](/exchanges/woofipro.md#fetchmarkets)
 * [xt](/exchanges/xt.md#fetchmarkets)
-* [yobit](/exchanges/yobit.md#fetchmarkets)
 * [zaif](/exchanges/zaif.md#fetchmarkets)
 * [zebpay](/exchanges/zebpay.md#fetchmarkets)
 
@@ -4221,7 +4194,6 @@ fetch all trades made by the user
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#fetchmytrades)
 * [apex](/exchanges/apex.md#fetchmytrades)
-* [arkham](/exchanges/arkham.md#fetchmytrades)
 * [aster](/exchanges/aster.md#fetchmytrades)
 * [backpack](/exchanges/backpack.md#fetchmytrades)
 * [bigone](/exchanges/bigone.md#fetchmytrades)
@@ -4299,13 +4271,11 @@ fetch all trades made by the user
 * [poloniex](/exchanges/poloniex.md#fetchmytrades)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchmytrades)
 * [toobit](/exchanges/toobit.md#fetchmytrades)
-* [wavesexchange](/exchanges/wavesexchange.md#fetchmytrades)
 * [weex](/exchanges/weex.md#fetchmytrades)
 * [whitebit](/exchanges/whitebit.md#fetchmytrades)
 * [woo](/exchanges/woo.md#fetchmytrades)
 * [woofipro](/exchanges/woofipro.md#fetchmytrades)
 * [xt](/exchanges/xt.md#fetchmytrades)
-* [yobit](/exchanges/yobit.md#fetchmytrades)
 * [zebpay](/exchanges/zebpay.md#fetchmytrades)
 
 ---
@@ -4381,7 +4351,6 @@ fetches historical candlestick data containing the open, high, low, and close pr
 * [aftermath](/exchanges/aftermath.md#fetchohlcv)
 * [alpaca](/exchanges/alpaca.md#fetchohlcv)
 * [apex](/exchanges/apex.md#fetchohlcv)
-* [arkham](/exchanges/arkham.md#fetchohlcv)
 * [ascendex](/exchanges/ascendex.md#fetchohlcv)
 * [aster](/exchanges/aster.md#fetchohlcv)
 * [backpack](/exchanges/backpack.md#fetchohlcv)
@@ -4423,7 +4392,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 * [exmo](/exchanges/exmo.md#fetchohlcv)
 * [extended](/exchanges/extended.md#fetchohlcv)
 * [foxbit](/exchanges/foxbit.md#fetchohlcv)
-* [gateio](/exchanges/gateio.md#fetchohlcv)
+* [gate](/exchanges/gate.md#fetchohlcv)
 * [gemini](/exchanges/gemini.md#fetchohlcv)
 * [grvt](/exchanges/grvt.md#fetchohlcv)
 * [hashkey](/exchanges/hashkey.md#fetchohlcv)
@@ -4453,7 +4422,6 @@ fetches historical candlestick data containing the open, high, low, and close pr
 * [tokocrypto](/exchanges/tokocrypto.md#fetchohlcv)
 * [toobit](/exchanges/toobit.md#fetchohlcv)
 * [upbit](/exchanges/upbit.md#fetchohlcv)
-* [wavesexchange](/exchanges/wavesexchange.md#fetchohlcv)
 * [weex](/exchanges/weex.md#fetchohlcv)
 * [whitebit](/exchanges/whitebit.md#fetchohlcv)
 * [woo](/exchanges/woo.md#fetchohlcv)
@@ -4636,7 +4604,6 @@ fetch all unfilled currently open orders
 * [aftermath](/exchanges/aftermath.md#fetchopenorders)
 * [alpaca](/exchanges/alpaca.md#fetchopenorders)
 * [apex](/exchanges/apex.md#fetchopenorders)
-* [arkham](/exchanges/arkham.md#fetchopenorders)
 * [ascendex](/exchanges/ascendex.md#fetchopenorders)
 * [aster](/exchanges/aster.md#fetchopenorders)
 * [backpack](/exchanges/backpack.md#fetchopenorders)
@@ -4721,13 +4688,11 @@ fetch all unfilled currently open orders
 * [tokocrypto](/exchanges/tokocrypto.md#fetchopenorders)
 * [toobit](/exchanges/toobit.md#fetchopenorders)
 * [upbit](/exchanges/upbit.md#fetchopenorders)
-* [wavesexchange](/exchanges/wavesexchange.md#fetchopenorders)
 * [weex](/exchanges/weex.md#fetchopenorders)
 * [whitebit](/exchanges/whitebit.md#fetchopenorders)
 * [woo](/exchanges/woo.md#fetchopenorders)
 * [woofipro](/exchanges/woofipro.md#fetchopenorders)
 * [xt](/exchanges/xt.md#fetchopenorders)
-* [yobit](/exchanges/yobit.md#fetchopenorders)
 * [zaif](/exchanges/zaif.md#fetchopenorders)
 * [zebpay](/exchanges/zebpay.md#fetchopenorders)
 
@@ -4840,7 +4805,6 @@ fetches information on an order made by the user
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#fetchorder)
 * [apex](/exchanges/apex.md#fetchorder)
-* [arkmm](/exchanges/arkmm.md#fetchorder)
 * [ascendex](/exchanges/ascendex.md#fetchorder)
 * [aster](/exchanges/aster.md#fetchorder)
 * [bigone](/exchanges/bigone.md#fetchorder)
@@ -4914,13 +4878,11 @@ fetches information on an order made by the user
 * [tokocrypto](/exchanges/tokocrypto.md#fetchorder)
 * [toobit](/exchanges/toobit.md#fetchorder)
 * [upbit](/exchanges/upbit.md#fetchorder)
-* [wavesexchange](/exchanges/wavesexchange.md#fetchorder)
 * [weex](/exchanges/weex.md#fetchorder)
 * [whitebit](/exchanges/whitebit.md#fetchorder)
 * [woo](/exchanges/woo.md#fetchorder)
 * [woofipro](/exchanges/woofipro.md#fetchorder)
 * [xt](/exchanges/xt.md#fetchorder)
-* [yobit](/exchanges/yobit.md#fetchorder)
 * [zebpay](/exchanges/zebpay.md#fetchorder)
 
 ---
@@ -4944,7 +4906,6 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 * [aftermath](/exchanges/aftermath.md#fetchorderbook)
 * [alpaca](/exchanges/alpaca.md#fetchorderbook)
 * [apex](/exchanges/apex.md#fetchorderbook)
-* [arkham](/exchanges/arkham.md#fetchorderbook)
 * [ascendex](/exchanges/ascendex.md#fetchorderbook)
 * [aster](/exchanges/aster.md#fetchorderbook)
 * [backpack](/exchanges/backpack.md#fetchorderbook)
@@ -5029,13 +4990,11 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 * [tokocrypto](/exchanges/tokocrypto.md#fetchorderbook)
 * [toobit](/exchanges/toobit.md#fetchorderbook)
 * [upbit](/exchanges/upbit.md#fetchorderbook)
-* [wavesexchange](/exchanges/wavesexchange.md#fetchorderbook)
 * [weex](/exchanges/weex.md#fetchorderbook)
 * [whitebit](/exchanges/whitebit.md#fetchorderbook)
 * [woo](/exchanges/woo.md#fetchorderbook)
 * [woofipro](/exchanges/woofipro.md#fetchorderbook)
 * [xt](/exchanges/xt.md#fetchorderbook)
-* [yobit](/exchanges/yobit.md#fetchorderbook)
 * [zaif](/exchanges/zaif.md#fetchorderbook)
 * [zebpay](/exchanges/zebpay.md#fetchorderbook)
 
@@ -5082,7 +5041,6 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 * [hitbtc](/exchanges/hitbtc.md#fetchorderbooks)
 * [hollaex](/exchanges/hollaex.md#fetchorderbooks)
 * [upbit](/exchanges/upbit.md#fetchorderbooks)
-* [yobit](/exchanges/yobit.md#fetchorderbooks)
 
 ---
 
@@ -5249,7 +5207,6 @@ fetches information on multiple orders made by the user
 * [phemex](/exchanges/phemex.md#fetchorders)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchorders)
 * [toobit](/exchanges/toobit.md#fetchorders)
-* [wavesexchange](/exchanges/wavesexchange.md#fetchorders)
 * [weex](/exchanges/weex.md#fetchorders)
 * [whitebit](/exchanges/whitebit.md#fetchorders)
 * [woo](/exchanges/woo.md#fetchorders)
@@ -5559,7 +5516,6 @@ fetch all open positions
 ##### Supported exchanges
 * [aftermath](/exchanges/aftermath.md#fetchpositions)
 * [apex](/exchanges/apex.md#fetchpositions)
-* [arkkm](/exchanges/arkkm.md#fetchpositions)
 * [ascendex](/exchanges/ascendex.md#fetchpositions)
 * [aster](/exchanges/aster.md#fetchpositions)
 * [backpack](/exchanges/backpack.md#fetchpositions)
@@ -5635,7 +5591,7 @@ fetches the auto deleveraging rank and risk percentage for a list of symbols tha
 * [bybit](/exchanges/bybit.md#fetchpositionsadlrank)
 * [delta](/exchanges/delta.md#fetchpositionsadlrank)
 * [htx](/exchanges/htx.md#fetchpositionsadlrank)
-* [kucoinfutures](/exchanges/kucoinfutures.md#fetchpositionsadlrank)
+* [kucoin](/exchanges/kucoin.md#fetchpositionsadlrank)
 * [woo](/exchanges/woo.md#fetchpositionsadlrank)
 
 ---
@@ -5918,7 +5874,6 @@ fetches a price ticker, a statistical calculation with the information calculate
 * [aftermath](/exchanges/aftermath.md#fetchticker)
 * [alpaca](/exchanges/alpaca.md#fetchticker)
 * [apex](/exchanges/apex.md#fetchticker)
-* [arkham](/exchanges/arkham.md#fetchticker)
 * [ascendex](/exchanges/ascendex.md#fetchticker)
 * [aster](/exchanges/aster.md#fetchticker)
 * [backpack](/exchanges/backpack.md#fetchticker)
@@ -5995,10 +5950,8 @@ fetches a price ticker, a statistical calculation with the information calculate
 * [poloniex](/exchanges/poloniex.md#fetchticker)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchticker)
 * [upbit](/exchanges/upbit.md#fetchticker)
-* [wavesexchange](/exchanges/wavesexchange.md#fetchticker)
 * [whitebit](/exchanges/whitebit.md#fetchticker)
 * [xt](/exchanges/xt.md#fetchticker)
-* [yobit](/exchanges/yobit.md#fetchticker)
 * [zaif](/exchanges/zaif.md#fetchticker)
 * [zebpay](/exchanges/zebpay.md#fetchticker)
 
@@ -6115,11 +6068,9 @@ fetches price tickers for multiple markets, statistical information calculated o
 * [tokocrypto](/exchanges/tokocrypto.md#fetchtickers)
 * [toobit](/exchanges/toobit.md#fetchtickers)
 * [upbit](/exchanges/upbit.md#fetchtickers)
-* [wavesexchange](/exchanges/wavesexchange.md#fetchtickers)
 * [weex](/exchanges/weex.md#fetchtickers)
 * [whitebit](/exchanges/whitebit.md#fetchtickers)
 * [xt](/exchanges/xt.md#fetchtickers)
-* [yobit](/exchanges/yobit.md#fetchtickers)
 * [zebpay](/exchanges/zebpay.md#fetchtickers)
 
 ---
@@ -6140,7 +6091,6 @@ fetches the current integer timestamp in milliseconds from the exchange server
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#fetchtime)
 * [apex](/exchanges/apex.md#fetchtime)
-* [arkham](/exchanges/arkham.md#fetchtime)
 * [ascendex](/exchanges/ascendex.md#fetchtime)
 * [aster](/exchanges/aster.md#fetchtime)
 * [backpack](/exchanges/backpack.md#fetchtime)
@@ -6191,7 +6141,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 * [woo](/exchanges/woo.md#fetchtime)
 * [woofipro](/exchanges/woofipro.md#fetchtime)
 * [xt](/exchanges/xt.md#fetchtime)
-* [zebpayfutures](/exchanges/zebpayfutures.md#fetchtime)
+* [zebpay](/exchanges/zebpay.md#fetchtime)
 
 ---
 
@@ -6216,7 +6166,6 @@ get the list of most recent trades for a particular symbol
 * [aftermath](/exchanges/aftermath.md#fetchtrades)
 * [alpaca](/exchanges/alpaca.md#fetchtrades)
 * [apex](/exchanges/apex.md#fetchtrades)
-* [arkham](/exchanges/arkham.md#fetchtrades)
 * [ascendex](/exchanges/ascendex.md#fetchtrades)
 * [aster](/exchanges/aster.md#fetchtrades)
 * [backpack](/exchanges/backpack.md#fetchtrades)
@@ -6299,13 +6248,11 @@ get the list of most recent trades for a particular symbol
 * [tokocrypto](/exchanges/tokocrypto.md#fetchtrades)
 * [toobit](/exchanges/toobit.md#fetchtrades)
 * [upbit](/exchanges/upbit.md#fetchtrades)
-* [wavesexchange](/exchanges/wavesexchange.md#fetchtrades)
 * [weex](/exchanges/weex.md#fetchtrades)
 * [whitebit](/exchanges/whitebit.md#fetchtrades)
 * [woo](/exchanges/woo.md#fetchtrades)
 * [woofipro](/exchanges/woofipro.md#fetchtrades)
 * [xt](/exchanges/xt.md#fetchtrades)
-* [yobit](/exchanges/yobit.md#fetchtrades)
 * [zaif](/exchanges/zaif.md#fetchtrades)
 * [zebpay](/exchanges/zebpay.md#fetchtrades)
 
@@ -6398,10 +6345,8 @@ fetch the trading fees for multiple markets
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.subType | <code>string</code> | No | "linear" or "inverse" |
 
 ##### Supported exchanges
-* [arkham](/exchanges/arkham.md#fetchtradingfees)
 * [ascendex](/exchanges/ascendex.md#fetchtradingfees)
 * [binance](/exchanges/binance.md#fetchtradingfees)
 * [bit2c](/exchanges/bit2c.md#fetchtradingfees)
@@ -6443,8 +6388,7 @@ fetch the trading fees for multiple markets
 * [whitebit](/exchanges/whitebit.md#fetchtradingfees)
 * [woo](/exchanges/woo.md#fetchtradingfees)
 * [woofipro](/exchanges/woofipro.md#fetchtradingfees)
-* [yobit](/exchanges/yobit.md#fetchtradingfees)
-* [zebpay(futures)](/exchanges/zebpay(futures).md#fetchtradingfees)
+* [zebpay](/exchanges/zebpay.md#fetchtradingfees)
 
 ---
 
@@ -6539,7 +6483,7 @@ please use fetchDepositWithdrawFees instead
 fetch history of deposits, withdrawals, and transfers
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;Transaction&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;Transaction&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 
 | Param | Type | Required | Description |
@@ -6564,7 +6508,7 @@ fetch history of deposits, withdrawals, and transfers
 fetches a transfer
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 
 | Param | Type | Required | Description |
@@ -6817,7 +6761,7 @@ fetch all withdrawals made from an account
 * [extended](/exchanges/extended.md#fetchwithdrawals)
 * [foxbit](/exchanges/foxbit.md#fetchwithdrawals)
 * [gate](/exchanges/gate.md#fetchwithdrawals)
-* [grvrt](/exchanges/grvrt.md#fetchwithdrawals)
+* [grvt](/exchanges/grvt.md#fetchwithdrawals)
 * [hashkey](/exchanges/hashkey.md#fetchwithdrawals)
 * [hibachi](/exchanges/hibachi.md#fetchwithdrawals)
 * [hitbtc](/exchanges/hitbtc.md#fetchwithdrawals)
@@ -7037,7 +6981,7 @@ remove margin from a position
 * [weex](/exchanges/weex.md#reducemargin)
 * [woo](/exchanges/woo.md#reducemargin)
 * [xt](/exchanges/xt.md#reducemargin)
-* [zebpayfutures](/exchanges/zebpayfutures.md#reducemargin)
+* [zebpay](/exchanges/zebpay.md#reducemargin)
 
 ---
 
@@ -7196,7 +7140,6 @@ set the level of leverage for a market
 ##### Supported exchanges
 * [aftermath](/exchanges/aftermath.md#setleverage)
 * [apex](/exchanges/apex.md#setleverage)
-* [arkham](/exchanges/arkham.md#setleverage)
 * [ascendex](/exchanges/ascendex.md#setleverage)
 * [aster](/exchanges/aster.md#setleverage)
 * [binance](/exchanges/binance.md#setleverage)
@@ -7396,7 +7339,6 @@ sign in, must be called prior to using other authenticated methods
 * [bullish](/exchanges/bullish.md#signin)
 * [grvt](/exchanges/grvt.md#signin)
 * [ndax](/exchanges/ndax.md#signin)
-* [wavesexchange](/exchanges/wavesexchange.md#signin)
 
 ---
 
@@ -8054,10 +7996,8 @@ watch balance and get the amount of funds available for trading or funds locked 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.type | <code>str</code> | No | spot or contract if not provided this.options['defaultType'] is used |
 
 ##### Supported exchanges
-* [arkham](/exchanges/arkham.md#watchbalance)
 * [ascendex](/exchanges/ascendex.md#watchbalance)
 * [aster](/exchanges/aster.md#watchbalance)
 * [binance](/exchanges/binance.md#watchbalance)
@@ -8426,7 +8366,6 @@ watches historical candlestick data containing the open, high, low, and close pr
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#watchohlcv)
 * [apex](/exchanges/apex.md#watchohlcv)
-* [arkham](/exchanges/arkham.md#watchohlcv)
 * [ascendex](/exchanges/ascendex.md#watchohlcv)
 * [aster](/exchanges/aster.md#watchohlcv)
 * [backpack](/exchanges/backpack.md#watchohlcv)
@@ -8523,7 +8462,6 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#watchorderbook)
 * [apex](/exchanges/apex.md#watchorderbook)
-* [arkham](/exchanges/arkham.md#watchorderbook)
 * [ascendex](/exchanges/ascendex.md#watchorderbook)
 * [aster](/exchanges/aster.md#watchorderbook)
 * [backpack](/exchanges/backpack.md#watchorderbook)
@@ -8641,7 +8579,6 @@ watches information on multiple orders made by the user
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#watchorders)
 * [apex](/exchanges/apex.md#watchorders)
-* [arkham](/exchanges/arkham.md#watchorders)
 * [ascendex](/exchanges/ascendex.md#watchorders)
 * [aster](/exchanges/aster.md#watchorders)
 * [backpack](/exchanges/backpack.md#watchorders)
@@ -8752,7 +8689,6 @@ watch all open positions
 
 ##### Supported exchanges
 * [apex](/exchanges/apex.md#watchpositions)
-* [arkham](/exchanges/arkham.md#watchpositions)
 * [aster](/exchanges/aster.md#watchpositions)
 * [backpack](/exchanges/backpack.md#watchpositions)
 * [binance](/exchanges/binance.md#watchpositions)
@@ -8799,7 +8735,6 @@ watches a price ticker, a statistical calculation with the information calculate
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#watchticker)
 * [apex](/exchanges/apex.md#watchticker)
-* [arkham](/exchanges/arkham.md#watchticker)
 * [aster](/exchanges/aster.md#watchticker)
 * [backpack](/exchanges/backpack.md#watchticker)
 * [binance](/exchanges/binance.md#watchticker)
@@ -8923,7 +8858,6 @@ watches information on multiple trades made in a market
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#watchtrades)
 * [apex](/exchanges/apex.md#watchtrades)
-* [arkham](/exchanges/arkham.md#watchtrades)
 * [ascendex](/exchanges/ascendex.md#watchtrades)
 * [aster](/exchanges/aster.md#watchtrades)
 * [backpack](/exchanges/backpack.md#watchtrades)
@@ -9009,7 +8943,7 @@ get the list of most recent trades for a list of symbols
 * [bitmex](/exchanges/bitmex.md#watchtradesforsymbols)
 * [blofin](/exchanges/blofin.md#watchtradesforsymbols)
 * [bybit](/exchanges/bybit.md#watchtradesforsymbols)
-* [coinbase](/exchanges/coinbase.md#watchtradesforsymbols)
+* [coinbaseexchange](/exchanges/coinbaseexchange.md#watchtradesforsymbols)
 * [coinex](/exchanges/coinex.md#watchtradesforsymbols)
 * [cryptocom](/exchanges/cryptocom.md#watchtradesforsymbols)
 * [deribit](/exchanges/deribit.md#watchtradesforsymbols)
@@ -9045,7 +8979,6 @@ make a withdrawal
 ##### Supported exchanges
 * [aftermath](/exchanges/aftermath.md#withdraw)
 * [alpaca](/exchanges/alpaca.md#withdraw)
-* [arkkm](/exchanges/arkkm.md#withdraw)
 * [aster](/exchanges/aster.md#withdraw)
 * [backpack](/exchanges/backpack.md#withdraw)
 * [bigone](/exchanges/bigone.md#withdraw)
@@ -9108,12 +9041,10 @@ make a withdrawal
 * [tokocrypto](/exchanges/tokocrypto.md#withdraw)
 * [toobit](/exchanges/toobit.md#withdraw)
 * [upbit](/exchanges/upbit.md#withdraw)
-* [wavesexchange](/exchanges/wavesexchange.md#withdraw)
 * [whitebit](/exchanges/whitebit.md#withdraw)
 * [woo](/exchanges/woo.md#withdraw)
 * [woofipro](/exchanges/woofipro.md#withdraw)
 * [xt](/exchanges/xt.md#withdraw)
-* [yobit](/exchanges/yobit.md#withdraw)
 * [zaif](/exchanges/zaif.md#withdraw)
 
 ---

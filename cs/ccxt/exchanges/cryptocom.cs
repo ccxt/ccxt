@@ -535,7 +535,7 @@ public partial class cryptocom : Exchange
         } catch(Exception e)
         {
             object erString = this.exceptionMessage(e);
-            if (isTrue(isGreaterThanOrEqual(getIndexOf(erString, "\"msg\":\"SYS_ERROR\""), 0)))
+            if (isTrue(isGreaterThanOrEqual(getIndexOf(erString, "SYS_ERROR"), 0)))
             {
                 // sub-accounts can't access this endpoint
                 // {"code":"10001","msg":"SYS_ERROR"}

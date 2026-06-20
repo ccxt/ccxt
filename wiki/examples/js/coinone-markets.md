@@ -1,8 +1,5 @@
-- [Coinone Markets](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 
 import log from 'ololog';
 import ccxt from '../../js/ccxt.js';
@@ -18,5 +15,5 @@ const exchange = new ccxt.coinone ({
     log ('\n' + exchange['name'] + ' supports ' + Object.keys (markets).length + ' pairs')
 
 }) ()
- 
+
 ```

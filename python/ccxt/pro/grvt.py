@@ -155,9 +155,9 @@ class grvt(ccxt.async_support.grvt):
         """
         if symbols is None:
             raise ArgumentsRequired(self.id + ' watchTickers requires a symbols argument')
-        channel = None
+        channel: Str = None
         channel, params = self.handle_option_and_params(params, 'watchTickers', 'channel', 'v1.ticker.s')
-        interval = None
+        interval: Str = None
         interval, params = self.handle_option_and_params(params, 'watchTickers', 'interval', 500)
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -488,7 +488,7 @@ class grvt(ccxt.async_support.grvt):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
-        channel = None
+        channel: Str = None
         channel, params = self.handle_option_and_params(params, 'watchOrderBook', 'channel', 'v1.book.d')
         isSnapshot = channel == 'v1.book.s'
         symbolsLength = len(symbols)
@@ -496,7 +496,7 @@ class grvt(ccxt.async_support.grvt):
             raise ArgumentsRequired(self.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols')
         if limit is None:
             limit, params = self.handle_option_and_params(params, 'watchOrderBook', 'limit', 100)
-        interval = None
+        interval: Str = None
         interval, params = self.handle_option_and_params(params, 'watchOrderBook', 'interval', 500)
         symbols = self.market_symbols(symbols)
         extraPart = str((interval) + '-' + str(limit)) if isSnapshot else str(interval)

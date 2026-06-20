@@ -40,7 +40,7 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.5.57';
+const version = '4.5.59';
 
 (Exchange as any).ccxtVersion = version
 
@@ -49,7 +49,6 @@ const version = '4.5.57';
 import aftermath from  './src/aftermath.js'
 import alpaca from  './src/alpaca.js'
 import apex from  './src/apex.js'
-import arkham from  './src/arkham.js'
 import ascendex from  './src/ascendex.js'
 import aster from  './src/aster.js'
 import backpack from  './src/backpack.js'
@@ -87,7 +86,6 @@ import bybiteu from  './src/bybiteu.js'
 import bydfi from  './src/bydfi.js'
 import cex from  './src/cex.js'
 import coinbase from  './src/coinbase.js'
-import coinbaseadvanced from  './src/coinbaseadvanced.js'
 import coinbaseexchange from  './src/coinbaseexchange.js'
 import coinbaseinternational from  './src/coinbaseinternational.js'
 import coincheck from  './src/coincheck.js'
@@ -117,7 +115,6 @@ import hibachi from  './src/hibachi.js'
 import hitbtc from  './src/hitbtc.js'
 import hollaex from  './src/hollaex.js'
 import htx from  './src/htx.js'
-import huobi from  './src/huobi.js'
 import hyperliquid from  './src/hyperliquid.js'
 import independentreserve from  './src/independentreserve.js'
 import indodax from  './src/indodax.js'
@@ -147,13 +144,11 @@ import poloniex from  './src/poloniex.js'
 import tokocrypto from  './src/tokocrypto.js'
 import toobit from  './src/toobit.js'
 import upbit from  './src/upbit.js'
-import wavesexchange from  './src/wavesexchange.js'
 import weex from  './src/weex.js'
 import whitebit from  './src/whitebit.js'
 import woo from  './src/woo.js'
 import woofipro from  './src/woofipro.js'
 import xt from  './src/xt.js'
-import yobit from  './src/yobit.js'
 import zaif from  './src/zaif.js'
 import zebpay from  './src/zebpay.js'
 
@@ -162,7 +157,6 @@ import zebpay from  './src/zebpay.js'
 import aftermathPro from  './src/pro/aftermath.js'
 import alpacaPro from  './src/pro/alpaca.js'
 import apexPro from  './src/pro/apex.js'
-import arkhamPro from  './src/pro/arkham.js'
 import ascendexPro from  './src/pro/ascendex.js'
 import asterPro from  './src/pro/aster.js'
 import backpackPro from  './src/pro/backpack.js'
@@ -190,7 +184,6 @@ import bybiteuPro from  './src/pro/bybiteu.js'
 import bydfiPro from  './src/pro/bydfi.js'
 import cexPro from  './src/pro/cex.js'
 import coinbasePro from  './src/pro/coinbase.js'
-import coinbaseadvancedPro from  './src/pro/coinbaseadvanced.js'
 import coinbaseexchangePro from  './src/pro/coinbaseexchange.js'
 import coinbaseinternationalPro from  './src/pro/coinbaseinternational.js'
 import coincheckPro from  './src/pro/coincheck.js'
@@ -210,7 +203,6 @@ import hashkeyPro from  './src/pro/hashkey.js'
 import hitbtcPro from  './src/pro/hitbtc.js'
 import hollaexPro from  './src/pro/hollaex.js'
 import htxPro from  './src/pro/htx.js'
-import huobiPro from  './src/pro/huobi.js'
 import hyperliquidPro from  './src/pro/hyperliquid.js'
 import independentreservePro from  './src/pro/independentreserve.js'
 import krakenPro from  './src/pro/kraken.js'
@@ -244,7 +236,6 @@ const exchanges = {
     'aftermath':              aftermath,
     'alpaca':                 alpaca,
     'apex':                   apex,
-    'arkham':                 arkham,
     'ascendex':               ascendex,
     'aster':                  aster,
     'backpack':               backpack,
@@ -282,7 +273,6 @@ const exchanges = {
     'bydfi':                  bydfi,
     'cex':                    cex,
     'coinbase':               coinbase,
-    'coinbaseadvanced':       coinbaseadvanced,
     'coinbaseexchange':       coinbaseexchange,
     'coinbaseinternational':  coinbaseinternational,
     'coincheck':              coincheck,
@@ -312,7 +302,6 @@ const exchanges = {
     'hitbtc':                 hitbtc,
     'hollaex':                hollaex,
     'htx':                    htx,
-    'huobi':                  huobi,
     'hyperliquid':            hyperliquid,
     'independentreserve':     independentreserve,
     'indodax':                indodax,
@@ -342,13 +331,11 @@ const exchanges = {
     'tokocrypto':             tokocrypto,
     'toobit':                 toobit,
     'upbit':                  upbit,
-    'wavesexchange':          wavesexchange,
     'weex':                   weex,
     'whitebit':               whitebit,
     'woo':                    woo,
     'woofipro':               woofipro,
     'xt':                     xt,
-    'yobit':                  yobit,
     'zaif':                   zaif,
     'zebpay':                 zebpay,
 }
@@ -357,7 +344,6 @@ const pro = {
     'aftermath':              aftermathPro,
     'alpaca':                 alpacaPro,
     'apex':                   apexPro,
-    'arkham':                 arkhamPro,
     'ascendex':               ascendexPro,
     'aster':                  asterPro,
     'backpack':               backpackPro,
@@ -385,7 +371,6 @@ const pro = {
     'bydfi':                  bydfiPro,
     'cex':                    cexPro,
     'coinbase':               coinbasePro,
-    'coinbaseadvanced':       coinbaseadvancedPro,
     'coinbaseexchange':       coinbaseexchangePro,
     'coinbaseinternational':  coinbaseinternationalPro,
     'coincheck':              coincheckPro,
@@ -405,7 +390,6 @@ const pro = {
     'hitbtc':                 hitbtcPro,
     'hollaex':                hollaexPro,
     'htx':                    htxPro,
-    'huobi':                  huobiPro,
     'hyperliquid':            hyperliquidPro,
     'independentreserve':     independentreservePro,
     'kraken':                 krakenPro,
@@ -582,7 +566,6 @@ export {
     aftermath,
     alpaca,
     apex,
-    arkham,
     ascendex,
     aster,
     backpack,
@@ -620,7 +603,6 @@ export {
     bydfi,
     cex,
     coinbase,
-    coinbaseadvanced,
     coinbaseexchange,
     coinbaseinternational,
     coincheck,
@@ -650,7 +632,6 @@ export {
     hitbtc,
     hollaex,
     htx,
-    huobi,
     hyperliquid,
     independentreserve,
     indodax,
@@ -680,13 +661,11 @@ export {
     tokocrypto,
     toobit,
     upbit,
-    wavesexchange,
     weex,
     whitebit,
     woo,
     woofipro,
     xt,
-    yobit,
     zaif,
     zebpay,    
 }

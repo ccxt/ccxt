@@ -1,8 +1,5 @@
-- [Binance Watch Ohlcv](./examples/py/)
-
-
- ```python
- import ccxt.pro
+```python
+import ccxt.pro
 from asyncio import run
 
 print('CCXT Pro version', ccxt.pro.__version__)
@@ -45,5 +42,5 @@ async def main():
 
 
 run(main())
- 
+
 ```

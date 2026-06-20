@@ -642,7 +642,7 @@ class mercado(Exchange, ImplicitAPI):
         #
         id = self.safe_string(order, 'order_id')
         order_type = self.safe_string(order, 'order_type')
-        side = None
+        side: Str = None
         if 'order_type' in order:
             side = 'buy' if (order_type == '1') else 'sell'
         status = self.parse_order_status(self.safe_string(order, 'status'))

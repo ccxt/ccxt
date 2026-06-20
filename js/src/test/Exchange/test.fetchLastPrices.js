@@ -11,7 +11,7 @@ async function testFetchLastPrices(exchange, skippedProperties, symbol) {
     const method = 'fetchLastprices';
     // log ('fetching all tickers at once...')
     let response = undefined;
-    let checkedSymbol = undefined;
+    let checkedSymbol;
     try {
         response = await exchange.fetchLastPrices();
     }
@@ -19,7 +19,7 @@ async function testFetchLastPrices(exchange, skippedProperties, symbol) {
         response = await exchange.fetchLastPrices([symbol]);
         checkedSymbol = symbol;
     }
-    assert(typeof response === 'object', exchange.id + ' ' + method + ' ' + checkedSymbol + ' must return an object. ' + exchange.json(response));
+    assert(exchange.isDictionary(response), exchange.id + ' ' + method + ' ' + checkedSymbol + ' must return a dict. ' + exchange.json(response));
     const values = Object.values(response);
     testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol);
     let atLeastOnePassed = false;

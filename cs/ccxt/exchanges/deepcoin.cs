@@ -862,7 +862,7 @@ public partial class deepcoin : Exchange
         };
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 2000);
+            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 500);
         }
         object productGroup = this.getProductGroupFromMarket(market);
         ((IDictionary<string,object>)request)["productGroup"] = productGroup;

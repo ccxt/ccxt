@@ -17,6 +17,9 @@ function isHTTPS(protocol) {
  * to the specified "HTTP proxy server" in order to proxy HTTP requests.
  */
 export class HttpProxyAgent extends Agent {
+    get secureProxy() {
+        return isHTTPS(this.proxy.protocol);
+    }
     constructor(proxy, opts) {
         super(opts);
         this.proxy = typeof proxy === 'string' ? new URL(proxy) : proxy;
@@ -34,9 +37,6 @@ export class HttpProxyAgent extends Agent {
             host,
             port,
         };
-    }
-    get secureProxy() {
-        return isHTTPS(this.proxy.protocol);
     }
     async connect(req, opts) {
         const { proxy } = this;

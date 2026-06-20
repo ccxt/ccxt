@@ -79,7 +79,7 @@ the latest known information on the availability of the exchange API
 
 
 ```javascript
-kucoinfutures.fetchStatus ([params])
+kucoinfutures.fetchStatus (params?)
 ```
 
 
@@ -99,7 +99,7 @@ retrieves data on all markets for kucoinfutures
 
 
 ```javascript
-kucoinfutures.fetchMarkets ([params])
+kucoinfutures.fetchMarkets (params?)
 ```
 
 
@@ -119,7 +119,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-kucoinfutures.fetchTime ([params])
+kucoinfutures.fetchTime (params?)
 ```
 
 
@@ -144,7 +144,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-kucoinfutures.fetchOHLCV (symbol, timeframe[, since, limit, params])
+kucoinfutures.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -165,7 +165,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-kucoinfutures.fetchDepositAddress (code[, params])
+kucoinfutures.fetchDepositAddress (code, params?)
 ```
 
 
@@ -187,7 +187,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-kucoinfutures.fetchOrderBook (symbol[, limit, params])
+kucoinfutures.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -208,7 +208,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-kucoinfutures.fetchTicker (symbol[, params])
+kucoinfutures.fetchTicker (symbol, params?)
 ```
 
 
@@ -229,7 +229,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-kucoinfutures.fetchMarkPrice (symbol[, params])
+kucoinfutures.fetchMarkPrice (symbol, params?)
 ```
 
 
@@ -251,7 +251,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-kucoinfutures.fetchTickers ([symbols, params])
+kucoinfutures.fetchTickers (symbols?, params?)
 ```
 
 
@@ -271,7 +271,7 @@ fetches the bid and ask price and volume for multiple markets
 
 
 ```javascript
-kucoinfutures.fetchBidsAsks ([symbols, params])
+kucoinfutures.fetchBidsAsks (symbols?, params?)
 ```
 
 
@@ -294,7 +294,7 @@ fetch the history of funding payments paid and received on this account
 
 
 ```javascript
-kucoinfutures.fetchFundingHistory (symbol[, since, limit, params])
+kucoinfutures.fetchFundingHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -315,7 +315,7 @@ fetch data on an open position
 
 
 ```javascript
-kucoinfutures.fetchPosition (symbol[, params])
+kucoinfutures.fetchPosition (symbol, params?)
 ```
 
 
@@ -336,7 +336,7 @@ fetch all open positions
 
 
 ```javascript
-kucoinfutures.fetchPositions (symbols[, params])
+kucoinfutures.fetchPositions (symbols, params?)
 ```
 
 
@@ -361,7 +361,7 @@ fetches historical positions
 
 
 ```javascript
-kucoinfutures.fetchPositionsHistory ([symbols, since, limit, params])
+kucoinfutures.fetchPositionsHistory (symbols?, since?, limit?, params?)
 ```
 
 
@@ -411,7 +411,7 @@ Create an order on the exchange
 
 
 ```javascript
-kucoinfutures.createOrder (symbol, type, side, amount[, price, params])
+kucoinfutures.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -432,7 +432,7 @@ create a list of trade orders
 
 
 ```javascript
-kucoinfutures.createOrders (orders[, params])
+kucoinfutures.createOrders (orders, params?)
 ```
 
 
@@ -455,7 +455,7 @@ cancels an open order
 
 
 ```javascript
-kucoinfutures.cancelOrder (id, symbol[, params])
+kucoinfutures.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -478,7 +478,7 @@ cancel multiple orders
 
 
 ```javascript
-kucoinfutures.cancelOrders (ids, symbol[, params])
+kucoinfutures.cancelOrders (ids, symbol, params?)
 ```
 
 
@@ -504,7 +504,7 @@ cancel all open orders
 
 
 ```javascript
-kucoinfutures.cancelAllOrders (symbol[, params])
+kucoinfutures.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -526,7 +526,7 @@ add margin
 
 
 ```javascript
-kucoinfutures.addMargin (symbol, amount[, params])
+kucoinfutures.addMargin (symbol, amount, params?)
 ```
 
 
@@ -559,7 +559,7 @@ fetches a list of orders placed on the exchange
 
 
 ```javascript
-kucoinfutures.fetchOrdersByStatus (status, symbol[, since, limit, params])
+kucoinfutures.fetchOrdersByStatus (status, symbol, since?, limit?, params?)
 ```
 
 
@@ -586,7 +586,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-kucoinfutures.fetchClosedOrders (symbol[, since, limit, params])
+kucoinfutures.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -618,7 +618,7 @@ fetches information on multiple open orders made by the user
 
 
 ```javascript
-kucoinfutures.fetchOpenOrders (symbol[, since, limit, params])
+kucoinfutures.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -640,7 +640,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-kucoinfutures.fetchOrder (id, symbol[, params])
+kucoinfutures.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -661,7 +661,7 @@ fetch the current funding rate
 
 
 ```javascript
-kucoinfutures.fetchFundingRate (symbol[, params])
+kucoinfutures.fetchFundingRate (symbol, params?)
 ```
 
 
@@ -682,7 +682,7 @@ fetch the current funding rate interval
 
 
 ```javascript
-kucoinfutures.fetchFundingInterval (symbol[, params])
+kucoinfutures.fetchFundingInterval (symbol, params?)
 ```
 
 
@@ -703,7 +703,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-kucoinfutures.fetchBalance ([params])
+kucoinfutures.fetchBalance (params?)
 ```
 
 
@@ -731,7 +731,7 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-kucoinfutures.transfer (code, amount, fromAccount, toAccount[, params])
+kucoinfutures.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -756,7 +756,7 @@ fetch all trades made by the user
 
 
 ```javascript
-kucoinfutures.fetchMyTrades (symbol[, since, limit, params])
+kucoinfutures.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -779,7 +779,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-kucoinfutures.fetchTrades (symbol[, since, limit, params])
+kucoinfutures.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -801,7 +801,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-kucoinfutures.fetchDeposits (code[, since, limit, params])
+kucoinfutures.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -823,7 +823,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-kucoinfutures.fetchWithdrawals (code[, since, limit, params])
+kucoinfutures.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -844,7 +844,7 @@ retrieve information on the maximum leverage, and maintenance margin for trades 
 
 
 ```javascript
-kucoinfutures.fetchMarketLeverageTiers (symbol[, params])
+kucoinfutures.fetchMarketLeverageTiers (symbol, params?)
 ```
 
 
@@ -868,7 +868,7 @@ fetches historical funding rate prices
 
 
 ```javascript
-kucoinfutures.fetchFundingRateHistory (symbol[, since, limit, params])
+kucoinfutures.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -891,7 +891,7 @@ closes open positions for a market
 
 
 ```javascript
-kucoinfutures.closePosition (symbol, side[, params])
+kucoinfutures.closePosition (symbol, side, params?)
 ```
 
 
@@ -912,7 +912,7 @@ fetch the trading fees for a market
 
 
 ```javascript
-kucoinfutures.fetchTradingFee (symbol[, params])
+kucoinfutures.fetchTradingFee (symbol, params?)
 ```
 
 
@@ -933,7 +933,7 @@ fetches the margin mode of a trading pair
 
 
 ```javascript
-kucoinfutures.fetchMarginMode (symbol[, params])
+kucoinfutures.fetchMarginMode (symbol, params?)
 ```
 
 
@@ -955,7 +955,7 @@ set margin mode to 'cross' or 'isolated'
 
 
 ```javascript
-kucoinfutures.setMarginMode (marginMode, symbol[, params])
+kucoinfutures.setMarginMode (marginMode, symbol, params?)
 ```
 
 
@@ -977,7 +977,7 @@ set hedged to true or false for a market
 
 
 ```javascript
-kucoinfutures.setPositionMode (hedged[, symbol, params])
+kucoinfutures.setPositionMode (hedged, symbol?, params?)
 ```
 
 
@@ -998,7 +998,7 @@ fetch the set leverage for a market
 
 
 ```javascript
-kucoinfutures.fetchLeverage (symbol[, params])
+kucoinfutures.fetchLeverage (symbol, params?)
 ```
 
 
@@ -1020,7 +1020,7 @@ set the level of leverage for a market
 
 
 ```javascript
-kucoinfutures.setLeverage (leverage, symbol[, params])
+kucoinfutures.setLeverage (leverage, symbol, params?)
 ```
 
 
@@ -1041,7 +1041,7 @@ fetches the auto deleveraging rank and risk percentage for a list of symbols
 
 
 ```javascript
-kucoinfutures.fetchPositionsADLRank ([symbols, params])
+kucoinfutures.fetchPositionsADLRank (symbols?, params?)
 ```
 
 
@@ -1062,7 +1062,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-kucoinfutures.watchTicker (symbol[, params])
+kucoinfutures.watchTicker (symbol, params?)
 ```
 
 
@@ -1082,7 +1082,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-kucoinfutures.watchTickers (symbols[, params])
+kucoinfutures.watchTickers (symbols, params?)
 ```
 
 
@@ -1103,7 +1103,7 @@ watches best bid & ask for symbols
 
 
 ```javascript
-kucoinfutures.watchBidsAsks (symbols[, params])
+kucoinfutures.watchBidsAsks (symbols, params?)
 ```
 
 
@@ -1124,7 +1124,7 @@ watch open positions for a specific symbol
 
 
 ```javascript
-kucoinfutures.watchPosition (symbol, params[])
+kucoinfutures.watchPosition (symbol, params)
 ```
 
 
@@ -1147,7 +1147,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-kucoinfutures.watchTrades (symbol[, since, limit, params])
+kucoinfutures.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1169,7 +1169,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-kucoinfutures.watchTradesForSymbols (symbols[, since, limit, params])
+kucoinfutures.watchTradesForSymbols (symbols, since?, limit?, params?)
 ```
 
 
@@ -1190,7 +1190,7 @@ unWatches trades stream
 
 
 ```javascript
-kucoinfutures.unWatchTrades (symbol[, params])
+kucoinfutures.unWatchTrades (symbol, params?)
 ```
 
 
@@ -1210,7 +1210,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-kucoinfutures.unWatchTradesForSymbols (symbols[, params])
+kucoinfutures.unWatchTradesForSymbols (symbols, params?)
 ```
 
 
@@ -1234,7 +1234,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-kucoinfutures.watchOHLCV (symbol, timeframe[, since, limit, params])
+kucoinfutures.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -1262,7 +1262,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-kucoinfutures.watchOrderBook (symbol[, limit, params])
+kucoinfutures.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -1284,7 +1284,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-kucoinfutures.watchOrderBookForSymbols (symbols[, limit, params])
+kucoinfutures.watchOrderBookForSymbols (symbols, limit?, params?)
 ```
 
 
@@ -1305,7 +1305,7 @@ unWatches information on open orders with bid (buy) and ask (sell) prices, volum
 
 
 ```javascript
-kucoinfutures.unWatchOrderBook (symbol[, params])
+kucoinfutures.unWatchOrderBook (symbol, params?)
 ```
 
 
@@ -1325,7 +1325,7 @@ unWatches information on open orders with bid (buy) and ask (sell) prices, volum
 
 
 ```javascript
-kucoinfutures.unWatchOrderBookForSymbols (symbols[, params])
+kucoinfutures.unWatchOrderBookForSymbols (symbols, params?)
 ```
 
 
@@ -1348,7 +1348,7 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-kucoinfutures.watchOrders (symbol[, since, limit, params])
+kucoinfutures.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -1368,6 +1368,6 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-kucoinfutures.watchBalance ([params])
+kucoinfutures.watchBalance (params?)
 ```
 

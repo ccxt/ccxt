@@ -3074,10 +3074,18 @@ func  (this *BybitCore) HandleMessage(client any, message any)  {
         ccxt.CallDynamically(exacMethod, client, message)
         return
     }
+    // 'order' is a substring of 'orderbook', so an orderbook topic like
+    // 'orderbook.50.BTCUSDT' could be wrongly captured by the 'order' key in a
+    // first-match loop (in Go map iteration order is randomized). Check the
+    // orderbook prefix explicitly, then fall back to a simple first-match.
+    if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(topic, "orderbook"), 0)) {
+        this.HandleOrderBook(client, message)
+        return
+    }
     var keys any = ccxt.ObjectKeys(methods)
     for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(keys)); i++ {
         var key any = ccxt.GetValue(keys, i)
-        if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(topic, ccxt.GetValue(keys, i)), 0)) {
+        if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(topic, key), 0)) {
             var method any = ccxt.GetValue(methods, key)
             ccxt.CallDynamically(method, client, message)
             return

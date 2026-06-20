@@ -88,18 +88,18 @@ export class ErrorDescription {
  */
 export class Indexed {
     /**
-     *  @_ignore:
-     */
-    constructor(hash) {
-        defineProperties(this, { hash, _isIndexed: true });
-    }
-    /**
      *  Returns ``true`` if %%value%% is an **Indexed**.
      *
      *  This provides a Type Guard for property access.
      */
     static isIndexed(value) {
         return !!(value && value._isIndexed);
+    }
+    /**
+     *  @_ignore:
+     */
+    constructor(hash) {
+        defineProperties(this, { hash, _isIndexed: true });
     }
 }
 // https://docs.soliditylang.org/en/v0.8.13/control-structures.html?highlight=panic#panic-via-assert-and-error-via-require

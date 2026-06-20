@@ -1,8 +1,5 @@
-- [Many Exchanges Many Orderbooks Synchronized](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import asyncio
 import ccxt.pro
@@ -53,7 +50,7 @@ async def main():
     symbols = ['BTC/USDT', 'ETH/BTC']
     # symbols = []
     exchanges = {
-        'okex': symbols + ['ETH/USDT'],
+        'okx': symbols + ['ETH/USDT'],
         'binance': symbols,
     }
     loops = [exchange_loop(exchange_id, symbols) for exchange_id, symbols in exchanges.items()]
@@ -61,5 +58,5 @@ async def main():
 
 
 asyncio.run(main())
- 
+
 ```

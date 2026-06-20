@@ -11289,13 +11289,16 @@ class bitget extends Exchange {
                 $auth .= $body;
             } else {
                 if ($params) {
-                    $queryInner = '?' . $this->urlencode($this->keysort($params));
+                    $sortedParams = $this->keysort($params);
+                    $queryInner = '?' . $this->urlencode($sortedParams, true);
                     // check #21169 pr
                     if (mb_strpos($queryInner, '%24') > -1) {
                         $queryInner = str_replace('%24', '$', $queryInner);
                     }
                     $url .= $queryInner;
-                    $auth .= $queryInner;
+                    // bitget signs the raw (non-percent-encoded) $query string, so the
+                    // $signature must use the decoded values (e.g. non-ascii market ids)
+                    $auth .= '?' . $this->rawencode($sortedParams);
                 }
             }
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');

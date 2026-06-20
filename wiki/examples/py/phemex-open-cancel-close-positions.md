@@ -1,8 +1,5 @@
-- [Phemex Open Cancel Close Positions](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -64,5 +61,5 @@ trailingOrder = exchange.create_order(symbol = ethSymbol, type = 'StopLimit', si
     'pegOffsetValueEp': 10000, # needs to be scaled
     } # default triggerType is ByMarkPrice
 )
-pprint(trailingOrder) 
+pprint(trailingOrder)
 ```

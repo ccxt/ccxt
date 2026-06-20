@@ -6896,15 +6896,3 @@ func WithFetchFundingLimitsParams(params map[string]any) FetchFundingLimitsOptio
 		opts.Params = &params
 	}
 }
-
-type FetchTickersHelperOptionsStruct struct {
-	Params *map[string]any
-}
-
-type FetchTickersHelperOptions func(opts *FetchTickersHelperOptionsStruct)
-
-func WithFetchTickersHelperParams(params map[string]any) FetchTickersHelperOptions {
-	return func(opts *FetchTickersHelperOptionsStruct) {
-		opts.Params = &params
-	}
-}

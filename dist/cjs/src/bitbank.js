@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var bitbank$1 = require('./abstract/bitbank.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -20,7 +20,7 @@ class bitbank extends bitbank$1["default"] {
             'name': 'bitbank',
             'countries': ['JP'],
             'version': 'v1',
-            'rateLimit': 100,
+            'rateLimit': 100, // https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -170,9 +170,9 @@ class bitbank extends bitbank$1["default"] {
                         'user/spot/order': 1.66,
                         'user/spot/cancel_order': 1.66,
                         'user/spot/cancel_orders': 1.66,
-                        'user/spot/orders_info': 1.66,
-                        'user/confirm_deposits': 1.66,
-                        'user/confirm_deposits_all': 1.66,
+                        'user/spot/orders_info': 1.66, // might be 10/s, based on docs at https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
+                        'user/confirm_deposits': 1.66, // might be 10/s, based on docs at https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
+                        'user/confirm_deposits_all': 1.66, // might be 10/s, based on docs at https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
                         'user/request_withdrawal': 1.66,
                     },
                 },
@@ -187,7 +187,7 @@ class bitbank extends bitbank$1["default"] {
                     'sandbox': false,
                     'createOrder': {
                         'marginMode': false,
-                        'triggerPrice': true,
+                        'triggerPrice': true, // todo implement
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
                         'stopLossPrice': false,
@@ -196,7 +196,7 @@ class bitbank extends bitbank$1["default"] {
                         'timeInForce': {
                             'IOC': false,
                             'FOK': false,
-                            'PO': true,
+                            'PO': true, // todo: implement
                             'GTD': false,
                         },
                         'hedged': false,
@@ -1063,7 +1063,7 @@ class bitbank extends bitbank$1["default"] {
                 'Content-Type': 'application/json',
                 'ACCESS-KEY': this.apiKey,
                 'ACCESS-NONCE': nonce,
-                'ACCESS-SIGNATURE': this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256),
+                'ACCESS-SIGNATURE': this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256),
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

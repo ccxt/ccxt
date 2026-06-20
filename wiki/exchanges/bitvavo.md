@@ -76,7 +76,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-bitvavo.fetchTime ([params])
+bitvavo.fetchTime (params?)
 ```
 
 
@@ -96,7 +96,7 @@ retrieves data on all markets for bitvavo
 
 
 ```javascript
-bitvavo.fetchMarkets ([params])
+bitvavo.fetchMarkets (params?)
 ```
 
 
@@ -116,7 +116,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-bitvavo.fetchCurrencies ([params])
+bitvavo.fetchCurrencies (params?)
 ```
 
 
@@ -137,7 +137,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bitvavo.fetchTicker (symbol[, params])
+bitvavo.fetchTicker (symbol, params?)
 ```
 
 
@@ -158,7 +158,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-bitvavo.fetchTickers (symbols[, params])
+bitvavo.fetchTickers (symbols, params?)
 ```
 
 
@@ -183,7 +183,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bitvavo.fetchTrades (symbol[, since, limit, params])
+bitvavo.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -203,7 +203,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-bitvavo.fetchTradingFees ([params])
+bitvavo.fetchTradingFees (params?)
 ```
 
 
@@ -224,7 +224,7 @@ fetch the trading fees for a market
 
 
 ```javascript
-bitvavo.fetchTradingFee (symbol[, params])
+bitvavo.fetchTradingFee (symbol, params?)
 ```
 
 
@@ -246,7 +246,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bitvavo.fetchOrderBook (symbol[, limit, params])
+bitvavo.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -272,7 +272,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-bitvavo.fetchOHLCV (symbol, timeframe[, since, limit, params])
+bitvavo.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -292,7 +292,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-bitvavo.fetchBalance ([params])
+bitvavo.fetchBalance (params?)
 ```
 
 
@@ -302,7 +302,7 @@ bitvavo.fetchBalance ([params])
 fetch all the accounts associated with a profile
 
 **Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [account structures](https://docs.ccxt.com/#/?id=account-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [account structures](https://docs.ccxt.com/?id=account-structure)
 
 **See**: https://docs.bitvavo.com/docs/institutional-api/get-subaccounts/  
 
@@ -312,7 +312,7 @@ fetch all the accounts associated with a profile
 
 
 ```javascript
-bitvavo.fetchAccounts ([params])
+bitvavo.fetchAccounts (params?)
 ```
 
 
@@ -322,7 +322,7 @@ bitvavo.fetchAccounts ([params])
 transfer currency internally between the master account and a subaccount
 
 **Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://docs.bitvavo.com/docs/institutional-api/create-transfer/  
 
@@ -338,7 +338,7 @@ transfer currency internally between the master account and a subaccount
 
 
 ```javascript
-bitvavo.transfer (code, amount, fromAccount, toAccount[, params])
+bitvavo.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -348,7 +348,7 @@ bitvavo.transfer (code, amount, fromAccount, toAccount[, params])
 fetch a history of internal transfers made on an account
 
 **Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://docs.bitvavo.com/docs/institutional-api/get-transfers/  
 
@@ -363,7 +363,7 @@ fetch a history of internal transfers made on an account
 
 
 ```javascript
-bitvavo.fetchTransfers ([code, since, limit, params])
+bitvavo.fetchTransfers (code?, since?, limit?, params?)
 ```
 
 
@@ -373,7 +373,7 @@ bitvavo.fetchTransfers ([code, since, limit, params])
 fetches a transfer
 
 **Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://docs.bitvavo.com/docs/institutional-api/get-transfer/  
 
@@ -385,7 +385,7 @@ fetches a transfer
 
 
 ```javascript
-bitvavo.fetchTransfer (id[, code, params])
+bitvavo.fetchTransfer (id, code?, params?)
 ```
 
 
@@ -406,7 +406,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-bitvavo.fetchDepositAddress (code[, params])
+bitvavo.fetchDepositAddress (code, params?)
 ```
 
 
@@ -442,7 +442,7 @@ create a trade order
 
 
 ```javascript
-bitvavo.createOrder (symbol, type, side, amount, price[, params])
+bitvavo.createOrder (symbol, type, side, amount, price, params?)
 ```
 
 
@@ -468,7 +468,7 @@ edit a trade order
 
 
 ```javascript
-bitvavo.editOrder (id, symbol, type, side[, amount, price, params])
+bitvavo.editOrder (id, symbol, type, side, amount?, price?, params?)
 ```
 
 
@@ -490,7 +490,7 @@ cancels an open order
 
 
 ```javascript
-bitvavo.cancelOrder (id, symbol[, params])
+bitvavo.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -511,7 +511,7 @@ cancel all open orders
 
 
 ```javascript
-bitvavo.cancelAllOrders (symbol[, params])
+bitvavo.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -533,7 +533,7 @@ dead man's switch, cancel all orders after the given timeout
 
 
 ```javascript
-bitvavo.cancelAllOrdersAfter (timeout[, params])
+bitvavo.cancelAllOrdersAfter (timeout, params?)
 ```
 
 
@@ -555,7 +555,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-bitvavo.fetchOrder (id, symbol[, params])
+bitvavo.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -580,7 +580,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-bitvavo.fetchOrders (symbol[, since, limit, params])
+bitvavo.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -603,7 +603,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-bitvavo.fetchOpenOrders (symbol[, since, limit, params])
+bitvavo.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -628,7 +628,7 @@ fetch all trades made by the user
 
 
 ```javascript
-bitvavo.fetchMyTrades (symbol[, since, limit, params])
+bitvavo.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -653,7 +653,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-bitvavo.fetchLedger ([code, since, limit, params])
+bitvavo.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -677,7 +677,7 @@ make a withdrawal
 
 
 ```javascript
-bitvavo.withdraw (code, amount, address, tag[, params])
+bitvavo.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -700,7 +700,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-bitvavo.fetchWithdrawals (code[, since, limit, params])
+bitvavo.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -723,7 +723,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-bitvavo.fetchDeposits (code[, since, limit, params])
+bitvavo.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -744,7 +744,7 @@ fetch deposit and withdraw fees
 
 
 ```javascript
-bitvavo.fetchDepositWithdrawFees (codes[, params])
+bitvavo.fetchDepositWithdrawFees (codes, params?)
 ```
 
 
@@ -765,7 +765,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bitvavo.watchTicker (symbol[, params])
+bitvavo.watchTicker (symbol, params?)
 ```
 
 
@@ -786,7 +786,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bitvavo.watchTickers ([symbols, params])
+bitvavo.watchTickers (symbols?, params?)
 ```
 
 
@@ -807,7 +807,7 @@ watches best bid & ask for symbols
 
 
 ```javascript
-bitvavo.watchBidsAsks (symbols[, params])
+bitvavo.watchBidsAsks (symbols, params?)
 ```
 
 
@@ -829,7 +829,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bitvavo.watchTrades (symbol[, since, limit, params])
+bitvavo.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -852,7 +852,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-bitvavo.watchOHLCV (symbol, timeframe[, since, limit, params])
+bitvavo.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -873,7 +873,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bitvavo.watchOrderBook (symbol[, limit, params])
+bitvavo.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -895,7 +895,7 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-bitvavo.watchOrders (symbol[, since, limit, params])
+bitvavo.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -917,7 +917,7 @@ watches information on multiple trades made by the user
 
 
 ```javascript
-bitvavo.watchMyTrades (symbol[, since, limit, params])
+bitvavo.watchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -953,7 +953,7 @@ create a trade order
 
 
 ```javascript
-bitvavo.createOrderWs (symbol, type, side, amount, price[, params])
+bitvavo.createOrderWs (symbol, type, side, amount, price, params?)
 ```
 
 
@@ -979,7 +979,7 @@ edit a trade order
 
 
 ```javascript
-bitvavo.editOrderWs (id, symbol, type, side[, amount, price, params])
+bitvavo.editOrderWs (id, symbol, type, side, amount?, price?, params?)
 ```
 
 
@@ -1001,7 +1001,7 @@ cancels an open order
 
 
 ```javascript
-bitvavo.cancelOrderWs (id, symbol[, params])
+bitvavo.cancelOrderWs (id, symbol, params?)
 ```
 
 
@@ -1022,7 +1022,7 @@ cancel all open orders
 
 
 ```javascript
-bitvavo.cancelAllOrdersWs (symbol[, params])
+bitvavo.cancelAllOrdersWs (symbol, params?)
 ```
 
 
@@ -1044,7 +1044,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-bitvavo.fetchOrderWs (id, symbol[, params])
+bitvavo.fetchOrderWs (id, symbol, params?)
 ```
 
 
@@ -1067,7 +1067,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-bitvavo.fetchOrdersWs (symbol[, since, limit, params])
+bitvavo.fetchOrdersWs (symbol, since?, limit?, params?)
 ```
 
 
@@ -1089,7 +1089,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-bitvavo.fetchOpenOrdersWs (symbol[, since, limit, params])
+bitvavo.fetchOpenOrdersWs (symbol, since?, limit?, params?)
 ```
 
 
@@ -1112,7 +1112,7 @@ fetch all trades made by the user
 
 
 ```javascript
-bitvavo.fetchMyTradesWs (symbol[, since, limit, params])
+bitvavo.fetchMyTradesWs (symbol, since?, limit?, params?)
 ```
 
 
@@ -1135,7 +1135,7 @@ make a withdrawal
 
 
 ```javascript
-bitvavo.withdrawWs (code, amount, address, tag[, params])
+bitvavo.withdrawWs (code, amount, address, tag, params?)
 ```
 
 
@@ -1158,7 +1158,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-bitvavo.fetchWithdrawalsWs (code[, since, limit, params])
+bitvavo.fetchWithdrawalsWs (code, since?, limit?, params?)
 ```
 
 
@@ -1182,7 +1182,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-bitvavo.fetchOHLCVWs (symbol, timeframe[, since, limit, params])
+bitvavo.fetchOHLCVWs (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -1205,7 +1205,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-bitvavo.fetchDepositsWs (code[, since, limit, params])
+bitvavo.fetchDepositsWs (code, since?, limit?, params?)
 ```
 
 
@@ -1225,7 +1225,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-bitvavo.fetchTradingFeesWs ([params])
+bitvavo.fetchTradingFeesWs (params?)
 ```
 
 
@@ -1245,7 +1245,7 @@ retrieves data on all markets for bitvavo
 
 
 ```javascript
-bitvavo.fetchMarketsWs ([params])
+bitvavo.fetchMarketsWs (params?)
 ```
 
 
@@ -1265,7 +1265,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-bitvavo.fetchCurrenciesWs ([params])
+bitvavo.fetchCurrenciesWs (params?)
 ```
 
 
@@ -1285,6 +1285,6 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-bitvavo.fetchBalanceWs ([params])
+bitvavo.fetchBalanceWs (params?)
 ```
 

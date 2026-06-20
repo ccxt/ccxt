@@ -414,7 +414,7 @@ class apex(ccxt.async_support.apex):
         topic = self.safe_string(message, 'topic', '')
         updateType = self.safe_string(message, 'type', '')
         data = self.safe_dict(message, 'data', {})
-        symbol = None
+        symbol: Str = None
         parsed = None
         if (updateType == 'snapshot'):
             parsed = self.parse_ticker(data)

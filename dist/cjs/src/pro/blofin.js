@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var blofin$1 = require('../blofin.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
-var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -737,7 +737,7 @@ class blofin extends blofin$1["default"] {
             'trades': this.handleTrades,
             'books': this.handleOrderBook,
             'tickers': this.handleTicker,
-            'candle': this.handleOHLCV,
+            'candle': this.handleOHLCV, // candle1m, candle5m, etc
             // private
             'account': this.handleBalance,
             'orders': this.handleOrders,
@@ -780,7 +780,7 @@ class blofin extends blofin$1["default"] {
         const timestamp = milliseconds.toString();
         const nonce = 'n_' + timestamp;
         const auth = '/users/self/verify' + 'GET' + timestamp + '' + nonce;
-        const signature = this.stringToBase64(this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256));
+        const signature = this.stringToBase64(this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256));
         const request = {
             'op': 'login',
             'args': [

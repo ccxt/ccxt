@@ -1,6 +1,6 @@
 import assert from 'assert';
 import Precise from '../../../base/Precise.js';
-import { Exchange, Market } from "../../../../ccxt";
+import { Exchange, Market } from "../../../../ccxt.js";
 import testSharedMethods from './test.sharedMethods.js';
 
 function testMarket (exchange: Exchange, skippedProperties: object, method: string, market: Market) {

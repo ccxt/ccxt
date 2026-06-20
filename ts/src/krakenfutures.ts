@@ -1,12 +1,11 @@
 //  ---------------------------------------------------------------------------
 
+import { sha256, sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/krakenfutures.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, ContractUnavailable, DDoSProtection, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OrderRequest, Order, Balances, Str, Dict, Ticker, OrderBook, Tickers, Strings, Market, Currency, Leverage, Leverages, Num, LeverageTier, LeverageTiers, int, FundingRate, FundingRates, Position } from './base/types.js';
+import type { Balances, Bool, Currency, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, Leverage, Leverages, LeverageTier, LeverageTiers, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -423,11 +422,11 @@ export default class krakenfutures extends Exchange {
             const market = instruments[i];
             const id = this.safeString (market, 'symbol');
             const marketType = this.safeString (market, 'type');
-            let type = undefined;
+            let type: Str = undefined;
             const index = (marketType.indexOf (' index') >= 0);
-            let linear = undefined;
-            let inverse = undefined;
-            let expiry = undefined;
+            let linear: Bool = undefined;
+            let inverse: Bool = undefined;
+            let expiry: Int = undefined;
             if (!index) {
                 linear = (marketType.indexOf ('_vanilla') >= 0);
                 inverse = !linear;
@@ -447,8 +446,8 @@ export default class krakenfutures extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             // swap == perpetual
-            let settle = undefined;
-            let settleId = undefined;
+            let settle: Str = undefined;
+            let settleId: Str = undefined;
             const cvtp = this.safeString (market, 'contractValueTradePrecision');
             const amountPrecision = this.parseNumber (this.integerPrecisionToAmount (cvtp));
             const pricePrecision = this.safeNumber (market, 'tickSize');
@@ -674,8 +673,8 @@ export default class krakenfutures extends Exchange {
         const percentage = Precise.stringMul (Precise.stringDiv (change, open), '100');
         const average = Precise.stringDiv (Precise.stringAdd (open, last), '2');
         const volume = this.safeString (ticker, 'vol24h');
-        let baseVolume = undefined;
-        let quoteVolume = undefined;
+        let baseVolume: Str = undefined;
+        let quoteVolume: Str = undefined;
         const isIndex = this.safeBool (market, 'index', false);
         if (!isIndex) {
             if (market['linear']) {
@@ -820,7 +819,7 @@ export default class krakenfutures extends Exchange {
         let request: Dict = {
             'symbol': market['id'],
         };
-        let method = undefined;
+        let method: Str = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'method', 'historyGetMarketSymbolExecutions');
         let rawTrades = undefined;
         const isFullHistoryEndpoint = (method === 'historyGetMarketSymbolExecutions');
@@ -997,7 +996,7 @@ export default class krakenfutures extends Exchange {
         let order = this.safeString (trade, 'order_id');
         let marketId = this.safeString (trade, 'symbol');
         let side = this.safeString (trade, 'side');
-        let type = undefined;
+        let type: Str = undefined;
         const priorEdit = this.safeValue (trade, 'orderPriorEdit');
         const priorExecution = this.safeValue (trade, 'orderPriorExecution');
         if (priorExecution !== undefined) {
@@ -1015,7 +1014,7 @@ export default class krakenfutures extends Exchange {
             type = this.parseOrderType (type);
         }
         market = this.safeMarket (marketId, market);
-        let cost = undefined;
+        let cost: Str = undefined;
         const linear = this.safeBool (market, 'linear');
         if ((amount !== undefined) && (price !== undefined) && (market !== undefined)) {
             if (linear) {
@@ -1026,7 +1025,7 @@ export default class krakenfutures extends Exchange {
             const contractSize = this.safeString (market, 'contractSize');
             cost = Precise.stringMul (cost, contractSize);
         }
-        let takerOrMaker = undefined;
+        let takerOrMaker: Str = undefined;
         const fillType = this.safeString (trade, 'fillType');
         if (fillType !== undefined) {
             if (fillType.indexOf ('taker') >= 0) {
@@ -1044,7 +1043,7 @@ export default class krakenfutures extends Exchange {
                 takerOrMaker = 'taker';
             }
         }
-        let fee = undefined;
+        let fee: Dict = undefined;
         if ((takerOrMaker !== undefined) && (cost !== undefined)) {
             const feeRate = this.safeString (market, takerOrMaker);
             fee = {
@@ -1497,7 +1496,7 @@ export default class krakenfutures extends Exchange {
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -1519,7 +1518,7 @@ export default class krakenfutures extends Exchange {
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -1565,7 +1564,7 @@ export default class krakenfutures extends Exchange {
      */
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -1577,7 +1576,7 @@ export default class krakenfutures extends Exchange {
             request['since'] = since;
         }
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
-        let response = undefined;
+        let response: Dict = undefined;
         if (isTrigger) {
             params = this.omit (params, [ 'trigger', 'stop' ]);
             response = await this.historyGetTriggers (this.extend (request, params));
@@ -1624,7 +1623,7 @@ export default class krakenfutures extends Exchange {
      */
     async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -1635,7 +1634,7 @@ export default class krakenfutures extends Exchange {
         if (since !== undefined) {
             request['from'] = since;
         }
-        let response = undefined;
+        let response: Dict = undefined;
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
         if (isTrigger) {
             params = this.omit (params, [ 'trigger', 'stop' ]);
@@ -2093,11 +2092,11 @@ export default class krakenfutures extends Exchange {
             // creteOrders error response
             return this.safeOrder ({ 'info': order, 'status': 'rejected' });
         }
-        let details = undefined;
+        let details: Dict = undefined;
         let isPrior = false;
         let fixed = false;
-        let statusId = undefined;
-        let price = undefined;
+        let statusId: Str = undefined;
+        let price: Str = undefined;
         let trades = [];
         if (orderEventsLength) {
             const executions = [];
@@ -2149,7 +2148,7 @@ export default class krakenfutures extends Exchange {
         let amount = this.safeString (details, 'quantity');
         let filled = this.safeString2 (details, 'filledSize', 'filled', '0.0');
         let remaining = this.safeString (details, 'unfilledSize');
-        let average = undefined;
+        let average: Str = undefined;
         let filled2 = '0.0';
         const tradesLength = trades.length;
         if (tradesLength > 0) {
@@ -2186,7 +2185,7 @@ export default class krakenfutures extends Exchange {
         if ((amount === undefined) && (!isPrior) && (remaining !== undefined)) {
             amount = Precise.stringAdd (filled, remaining);
         }
-        let cost = undefined;
+        let cost: Str = undefined;
         if ((filled !== undefined) && (market !== undefined)) {
             const whichPrice = (average !== undefined) ? average : price;
             if (whichPrice !== undefined) {
@@ -2255,7 +2254,7 @@ export default class krakenfutures extends Exchange {
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -2972,7 +2971,7 @@ export default class krakenfutures extends Exchange {
         const request: Dict = {
             'amount': amount,
         };
-        let response = undefined;
+        let response: Dict = undefined;
         if (toAccount === 'spot') {
             if (this.parseAccount (fromAccount) !== 'cash') {
                 throw new BadRequest (this.id + ' transfer cannot transfer from ' + fromAccount + ' to ' + toAccount);

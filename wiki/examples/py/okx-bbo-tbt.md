@@ -1,8 +1,5 @@
-- [Okx Bbo Tbt](./examples/py/)
-
-
- ```python
- import ccxt.pro
+```python
+import ccxt.pro
 from asyncio import run
 
 
@@ -38,5 +35,5 @@ async def main():
 
 
 run(main())
- 
+
 ```

@@ -356,7 +356,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         amount = self.safe_string(order, 'amount_str')
         filled = self.safe_string(order, 'amount_traded')
         event = self.safe_string(order, 'event')
-        status = None
+        status: Str = None
         if Precise.string_eq(filled, amount):
             status = 'closed'
         elif event == 'order_deleted':

@@ -1133,10 +1133,10 @@ class bullish(Exchange, ImplicitAPI):
         currency = market['quote']
         code = self.safe_currency_code(currency)
         feeCost = self.safe_number(trade, 'quoteFee')
-        fee = None
+        fee: Fee = None
         if feeCost is not None:
             fee = {'currency': code, 'cost': feeCost}
-        takerOrMaker = None
+        takerOrMaker: Str = None
         if isTaker:
             takerOrMaker = 'taker'
         else:
@@ -1281,7 +1281,7 @@ class bullish(Exchange, ImplicitAPI):
         }, market)
 
     async def safe_deterministic_call(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, timeframe: Str = None, params={}):
-        maxRetries = None
+        maxRetries: Int = None
         maxRetries, params = self.handle_option_and_params(params, method, 'maxRetries', 3)
         errors = 0
         params = self.omit(params, 'until')
@@ -1453,7 +1453,7 @@ class bullish(Exchange, ImplicitAPI):
         if paginate:
             params = self.handle_pagination_params('fetchOrders', since, params)
             return await self.fetch_paginated_call_dynamic('fetchOrders', symbol, since, limit, params, 100)
-        market = None
+        market: Market = None
         request: dict = {
             'tradingAccountId': tradingAccountId,
         }
@@ -1465,7 +1465,7 @@ class bullish(Exchange, ImplicitAPI):
             request['_pageSize'] = self.get_closest_limit(limit)
         method = 'privateGetV2HistoryOrders'
         method, params = self.handle_option_and_params(params, 'fetchOrders', 'method', method)
-        response = None
+        response: List[dict] = None
         if method == 'privateGetV2Orders':
             #
             #     [
@@ -1633,7 +1633,7 @@ class bullish(Exchange, ImplicitAPI):
         """
         await asyncio.gather(*[self.load_markets(), self.handle_token()])
         tradingAccountId = await self.load_account(params)
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
         request: dict = {
@@ -1822,7 +1822,7 @@ class bullish(Exchange, ImplicitAPI):
         request: dict = {
             'tradingAccountId': tradingAccountId,
         }
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -2012,7 +2012,7 @@ class bullish(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
         return self.parse_transactions(data, currency, since, limit)
@@ -2297,7 +2297,7 @@ class bullish(Exchange, ImplicitAPI):
         safeResponse = self.to_array(response)
         length = len(safeResponse)
         data = self.safe_dict(safeResponse, 0, {})
-        network = None
+        network: Str = None
         network, params = self.handle_network_code_and_params(params)
         networkDefinedByUser = network is not None
         if (length > 1) or (networkDefinedByUser):

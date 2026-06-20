@@ -469,7 +469,7 @@ class whitebit(ccxt.async_support.whitebit):
         amount = self.safe_string(trade, 5)
         marketId = self.safe_string(trade, 2)
         market = self.safe_market(marketId, market)
-        fee = None
+        fee: dict = None
         feeCost = self.safe_string(trade, 6)
         if feeCost is not None:
             fee = {
@@ -591,7 +591,7 @@ class whitebit(ccxt.async_support.whitebit):
         stopPrice = self.safe_string(order, 'activation_price')
         rawType = self.safe_string(order, 'type')
         type = self.parse_ws_order_type(rawType)
-        amount = None
+        amount: Str = None
         remaining = None
         if type == 'market':
             amount = self.safe_string(order, 'deal_stock')
@@ -605,13 +605,13 @@ class whitebit(ccxt.async_support.whitebit):
         rawSide = self.safe_integer(order, 'side')
         side = 'sell' if (rawSide == 1) else 'buy'
         dealFee = self.safe_string(order, 'deal_fee')
-        fee = None
+        fee: dict = None
         if dealFee is not None:
             fee = {
                 'cost': self.parse_number(dealFee),
                 'currency': market['quote'],
             }
-        unifiedStatus = None
+        unifiedStatus: Str = None
         if (status == 1) or (status == 2):
             unifiedStatus = 'open'
         else:
@@ -670,10 +670,10 @@ class whitebit(ccxt.async_support.whitebit):
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.load_markets()
-        type = None
+        type: Str = None
         type, params = self.handle_market_type_and_params('watchBalance', None, params)
         messageHash = 'wallet:'
-        method = None
+        method: Str = None
         if type == 'spot':
             method = 'balanceSpot_subscribe'
             messageHash += 'spot'
@@ -734,7 +734,7 @@ class whitebit(ccxt.async_support.whitebit):
         url = self.urls['api']['ws']
         id = self.nonce()
         client = self.safe_value(self.clients, url)
-        request = None
+        request: dict = None
         marketIds = []
         if client is None:
             subscription: dict = {}

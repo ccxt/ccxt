@@ -125,7 +125,7 @@ export default class coinmetro extends Exchange {
      */
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
-    parseLedgerEntryDescription(description: any): any[];
+    parseLedgerEntryDescription(description: any): string[];
     parseLedgerEntryType(type: any): string;
     /**
      * @method

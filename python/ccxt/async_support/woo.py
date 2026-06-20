@@ -773,7 +773,7 @@ class woo(Exchange, ImplicitAPI):
         #
         isFromFetchOrder = ('id' in trade)
         timestampString = self.safe_string_2(trade, 'executed_timestamp', 'executedTimestamp')
-        timestamp = None
+        timestamp: Int = None
         if timestampString is not None:
             if timestampString.find('.') > -1:
                 timestamp = self.safe_timestamp_2(trade, 'executed_timestamp', 'executedTimestamp')
@@ -1572,7 +1572,7 @@ class woo(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
         trigger = self.safe_bool_2(params, 'stop', 'trigger')
@@ -1927,7 +1927,7 @@ class woo(Exchange, ImplicitAPI):
         #         "positionSide": "BOTH"
         #     }
         #
-        timestamp = None
+        timestamp: Int = None
         timestrampString = self.safe_string(order, 'createdTime')
         if timestrampString is not None:
             if timestrampString.find('.') >= 0:
@@ -2391,7 +2391,7 @@ class woo(Exchange, ImplicitAPI):
         # self method is TODO because of networks unification
         await self.load_markets()
         currency = self.currency(code)
-        networkCode = None
+        networkCode: Str = None
         networkCode, params = self.handle_network_code_and_params(params)
         request: dict = {
             'token': currency['id'],
@@ -2412,7 +2412,7 @@ class woo(Exchange, ImplicitAPI):
         return self.parse_deposit_address(data, currency)
 
     def get_dedicated_network_id(self, currency, params: dict) -> Any:
-        networkCode = None
+        networkCode: Str = None
         networkCode, params = self.handle_network_code_and_params(params)
         networkCode = self.network_id_to_code(networkCode, currency['code'])
         networkEntry = self.safe_dict(currency['networks'], networkCode)
@@ -2440,7 +2440,7 @@ class woo(Exchange, ImplicitAPI):
         if code is not None:
             currency = self.currency(code)
             request['token'] = currency['id']
-        networkCode = None
+        networkCode: Str = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:
             request['network'] = self.network_code_to_id(networkCode, currency['code'])
@@ -2756,7 +2756,7 @@ class woo(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/?id=transfer-structure>`
         """
         request: dict = {}
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
         if limit is not None:
@@ -3743,7 +3743,7 @@ class woo(Exchange, ImplicitAPI):
         contractSize = self.safe_string(market, 'contractSize')
         markPrice = self.safe_string_2(position, 'markPrice', 'mark_price')
         timestampString = self.safe_string(position, 'timestamp')
-        timestamp = None
+        timestamp: Int = None
         if timestampString is not None:
             if timestampString.find('.') > -1:
                 timestamp = self.safe_timestamp(position, 'timestamp')

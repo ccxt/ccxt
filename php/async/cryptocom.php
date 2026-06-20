@@ -571,7 +571,7 @@ class cryptocom extends Exchange {
                 $response = Async\await($this->v1PrivatePostPrivateGetCurrencyNetworks ($params));
             } catch (Exception $e) {
                 $erString = $this->exception_message($e);
-                if (mb_strpos($erString, '"msg":"SYS_ERROR"') !== false) {
+                if (mb_strpos($erString, 'SYS_ERROR') !== false) {
                     // sub-accounts can't access this endpoint
                     // array("code":"10001","msg":"SYS_ERROR")
                     return array();

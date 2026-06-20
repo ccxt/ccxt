@@ -11759,14 +11759,17 @@ public partial class bitget : Exchange
             {
                 if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
                 {
-                    object queryInner = add("?", this.urlencode(this.keysort(parameters)));
+                    object sortedParams = this.keysort(parameters);
+                    object queryInner = add("?", this.urlencode(sortedParams, true));
                     // check #21169 pr
                     if (isTrue(isGreaterThan(getIndexOf(queryInner, "%24"), -1)))
                     {
                         queryInner = ((string)queryInner).Replace((string)"%24", (string)"$");
                     }
                     url = add(url, queryInner);
-                    auth = add(auth, queryInner);
+                    // bitget signs the raw (non-percent-encoded) query string, so the
+                    // signature must use the decoded values (e.g. non-ascii market ids)
+                    auth = add(auth, add("?", this.rawencode(sortedParams)));
                 }
             }
             object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256, "base64");

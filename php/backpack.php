@@ -1257,10 +1257,17 @@ class backpack extends Exchange {
         $market = $this->safe_market($marketId, $market);
         $price = $this->safe_string($trade, 'price');
         $amount = $this->safe_string($trade, 'quantity');
-        $isMaker = $this->safe_bool($trade, 'isMaker');
-        $takerOrMaker = $isMaker ? 'maker' : 'taker';
-        $orderId = $this->safe_string($trade, 'orderId');
+        $isBuyerMaker = $this->safe_bool($trade, 'isBuyerMaker');
         $side = $this->parse_order_side($this->safe_string($trade, 'side'));
+        $isMaker = $this->safe_bool($trade, 'isMaker');
+        $takerOrMaker = null;
+        if ($isMaker !== null) {
+            $takerOrMaker = $isMaker ? 'maker' : 'taker';
+        } elseif ($isBuyerMaker !== null) {
+            $takerOrMaker = 'taker';
+            $side = $isBuyerMaker ? 'sell' : 'buy';
+        }
+        $orderId = $this->safe_string($trade, 'orderId');
         $fee = null;
         $feeAmount = $this->safe_string($trade, 'fee');
         $timestamp = $this->safe_integer($trade, 'timestamp');

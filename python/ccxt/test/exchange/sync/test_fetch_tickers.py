@@ -26,7 +26,7 @@ def test_fetch_tickers(exchange, skipped_properties, symbol):
 def fetch_tickers_helper_test(exchange, skipped_properties, arg_symbols, arg_params={}):
     method = 'fetchTickers'
     response = exchange.fetch_tickers(arg_symbols, arg_params)
-    assert isinstance(response, dict), exchange.id + ' ' + method + ' ' + exchange.json(arg_symbols) + ' must return an object. ' + exchange.json(response)
+    assert exchange.is_dictionary(response), exchange.id + ' ' + method + ' ' + exchange.json(arg_symbols) + ' must return a dict. ' + exchange.json(response)
     values = list(response.values())
     checked_symbol = None
     if arg_symbols is not None and len(arg_symbols) == 1:

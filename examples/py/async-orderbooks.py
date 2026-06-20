@@ -37,7 +37,7 @@ async def multi_orderbooks(exchanges, symbol):
 if __name__ == '__main__':
 
     # Consider review request rate limit in the methods you call
-    exchanges = ["bittrex", "bitfinex", "poloniex"]
+    exchanges = ["kucoin", "bitfinex", "poloniex"]
     symbol = 'ETH/BTC'
 
     asyncio.run(multi_orderbooks(exchanges, symbol))

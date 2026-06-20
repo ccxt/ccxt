@@ -1,5 +1,10 @@
 // ----------------------------------------------------------------------------
 
+import { secp256k1 } from '@noble/curves/secp256k1.js';
+import { keccak_256 } from '@noble/hashes/sha3.js';
+import { getStarkKey, ethSigToPrivate, sign as starknetCurveSign } from '@scure/starknet';
+import { sha256 } from '@noble/hashes/sha2.js';
+import { sha1 } from '@noble/hashes/legacy.js';
 import * as functions from './functions.js';
 // import {
 //     // keys as keysFunc,
@@ -8,7 +13,7 @@ import * as functions from './functions.js';
 //     // vwap as vwapFunc,
 // } from './functions.js';
 // import exceptions from "./errors.js"
-import { // eslint-disable-line object-curly-newline
+import {
     ExchangeError,
     BadSymbol,
     NullResponse,
@@ -37,7 +42,6 @@ import { Future } from './ws/Future.js';
 import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook, OrderBook as Ob } from './ws/OrderBook.js';
 // ----------------------------------------------------------------------------
 //
-import { axolotl } from './functions/crypto.js';
 // import types
 import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL } from './types.js';
 // ----------------------------------------------------------------------------
@@ -46,14 +50,9 @@ import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
 import { totp } from './functions/totp.js';
 import ethers from '../static_dependencies/ethers/index.js';
 import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
-import { secp256k1 } from '../static_dependencies/noble-curves/secp256k1.js';
-import { keccak_256 } from '../static_dependencies/noble-hashes/sha3.js';
 import { SecureRandom } from '../static_dependencies/jsencrypt/lib/jsbn/rng.js';
-import { getStarkKey, ethSigToPrivate, sign as starknetCurveSign } from '../static_dependencies/scure-starknet/index.js';
 import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';
 import * as Starknet from '../static_dependencies/starknet/index.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { sha1 } from '../static_dependencies/noble-hashes/sha1.js';
 import { exportMnemonicAndPrivateKey, deriveHDKeyFromMnemonic } from '../static_dependencies/dydx-v4-client/onboarding.js';
 import { Long } from '../static_dependencies/dydx-v4-client/helpers.js';
 
@@ -291,7 +290,6 @@ export default class Exchange {
     };
 
     requiresWeb3: boolean = false;
-    requiresEddsa: boolean = false;
     precision: {
         amount: Num,
         price: Num,
@@ -573,7 +571,6 @@ export default class Exchange {
         this.positions = undefined;
         // web3 and cryptography flags
         this.requiresWeb3 = false;
-        this.requiresEddsa = false;
         // response handling flags and properties
         this.lastRestRequestTimestamp = 0;
         this.enableLastJsonResponse = false;
@@ -653,9 +650,7 @@ export default class Exchange {
         const nameBytes = new TextEncoder ().encode (name);
         const data = new Uint8Array ([ ...nsBytes, ...nameBytes ]);
         const nsHash = sha1 (data);
-        // eslint-disable-next-line
         nsHash[6] = (nsHash[6] & 0x0f) | 0x50;
-        // eslint-disable-next-line
         nsHash[8] = (nsHash[8] & 0x3f) | 0x80;
         const hex = [ ...nsHash.slice (0, 16) ]
             .map ((b) => b.toString (16).padStart (2, '0'))
@@ -764,7 +759,6 @@ export default class Exchange {
     }
 
     log (...args) {
-        // eslint-disable-next-line no-console
         console.log (...args);
     }
 
@@ -785,7 +779,7 @@ export default class Exchange {
                         // @ts-ignore
                         this.httpProxyAgentModule = await import (/* webpackIgnore: true */ 'http-proxy-agent');
                         // @ts-ignore
-                        this.httpsProxyAgentModule = await import (/* webpackIgnore: true */ 'https-proxy-agent'); // eslint-disable-line
+                        this.httpsProxyAgentModule = await import (/* webpackIgnore: true */ 'https-proxy-agent');
                     } catch (err) {
                         // TODO: handle error
                     }
@@ -996,7 +990,7 @@ export default class Exchange {
                     // some users having issues with dynamic imports (https://github.com/ccxt/ccxt/pull/20687)
                     // so let them to fallback to node's native fetch
                     if (typeof fetch === 'function') {
-                        this.fetchImplementation = fetch; // eslint-disable-line
+                        this.fetchImplementation = fetch;
                         // as it's browser-compatible implementation ( https://nodejs.org/dist/latest-v20.x/docs/api/globals.html#fetch )
                         // it throws same error types
                         this.AbortError = DOMException;
@@ -1616,10 +1610,6 @@ export default class Exchange {
         return message.slice (0, length);
     }
 
-    axolotl (payload, hexKey, ed25519) {
-        return axolotl (payload, hexKey, ed25519);
-    }
-
     fixStringifiedJsonMembers (content: string) {
         // used for instance in bingx
         // when stringified json has members with their values also stringified, like:
@@ -1645,10 +1635,10 @@ export default class Exchange {
         // Removes the "0x" prefix if present
         const cleanPrivateKey = this.remove0xPrefix (privateKey);
         // Get the public key from the private key using secp256k1 curve
-        const publicKeyBytes = secp256k1.getPublicKey (cleanPrivateKey);
+        const publicKeyBytes = secp256k1.getPublicKey (this.base16ToBinary (cleanPrivateKey));
         // For Ethereum, we need to use the uncompressed public key (without the first byte which indicates compression)
         // secp256k1.getPublicKey returns compressed key, we need uncompressed
-        const publicKeyUncompressed = secp256k1.ProjectivePoint.fromHex (publicKeyBytes).toRawBytes (false).slice (1); // Remove 0x04 prefix
+        const publicKeyUncompressed = secp256k1.Point.fromBytes (publicKeyBytes).toBytes (false).slice (1); // Remove 0x04 prefix
         // Hash the public key with Keccak256
         const publicKeyHash = keccak_256 (publicKeyUncompressed);
         // Take the last 20 bytes (40 hex chars)
@@ -2002,7 +1992,6 @@ export default class Exchange {
         return signer;
     }
 
-    // eslint-disable-next-line no-unused-vars
     lighterSignCreateGroupedOrders (signer, request): any[] {
         const orders = request['orders'];
         const ordersArr = [];
@@ -2034,7 +2023,6 @@ export default class Exchange {
         return [ res.txType, res.txInfo ];
     }
 
-    // eslint-disable-next-line no-unused-vars
     lighterSignCreateOrder (signer, request): any[] {
         const res = (globalThis.SignCreateOrder (
             parseInt (request['market_index']),
@@ -2092,7 +2080,6 @@ export default class Exchange {
         return [ res.txType, res.txInfo ];
     }
 
-    // eslint-disable-next-line no-unused-vars
     lighterSignCreateSubAccount (signer, request): any[] {
         const res = (globalThis.SignCreateSubAccount (
             1, // skip nonce
@@ -2192,7 +2179,6 @@ export default class Exchange {
         return [ res.txType, res.txInfo ];
     }
 
-    // eslint-disable-next-line no-unused-vars
     lighterSignApproveIntegrator (signer, request): any[] {
         const res = globalThis.SignApproveIntegrator (
             request['integrator_account_index'],
@@ -2217,7 +2203,6 @@ export default class Exchange {
         return [ res.privateKey, res.publicKey ];
     }
 
-    // eslint-disable-next-line no-unused-vars
     lighterSignChangePubkey (signer, request): any[] {
         const res = globalThis.SignChangePubKey (
             Buffer.from (request['pubkey']).toString (),
@@ -2230,7 +2215,6 @@ export default class Exchange {
         return [ res.txType, res.txInfo, res.messageToSign ];
     }
 
-    /* eslint-enable */
     // ------------------------------------------------------------------------
 
     // ########################################################################
@@ -2706,11 +2690,11 @@ export default class Exchange {
          * @returns {object | undefined}
          */
         const value = this.safeValue (dictionaryOrList, key1);
-        if ((value !== undefined) && (typeof value === 'object') && !Array.isArray (value)) {
+        if (this.isDictionary (value)) {
             return value;
         }
         const value2 = this.safeValue (dictionaryOrList, key2);
-        if ((value2 !== undefined) && (typeof value2 === 'object') && !Array.isArray (value2)) {
+        if (this.isDictionary (value2)) {
             return value2;
         }
         return defaultValue;

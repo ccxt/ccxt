@@ -36,11 +36,11 @@ php -f path/to/example.php # substitute for actual filename here
 
 - [Binance Spot Trailing](./examples/php/binance-spot-trailing.md)
 
-- [Bitfinex2 Fetch Ohlcv Since Limit](./examples/php/bitfinex2-fetch-ohlcv-since-limit.md)
+- [Bitfinex Fetch Ohlcv Since Limit](./examples/php/bitfinex-fetch-ohlcv-since-limit.md)
 
-- [Bitfinex2 Fetch Ohlcv](./examples/php/bitfinex2-fetch-ohlcv.md)
+- [Bitfinex Fetch Ohlcv](./examples/php/bitfinex-fetch-ohlcv.md)
 
-- [Bitfinex2 Fetch Trades Since](./examples/php/bitfinex2-fetch-trades-since.md)
+- [Bitfinex Fetch Trades Since](./examples/php/bitfinex-fetch-trades-since.md)
 
 - [Bitmex Create Order](./examples/php/bitmex-create-order.md)
 
@@ -50,17 +50,13 @@ php -f path/to/example.php # substitute for actual filename here
 
 - [Bybit Updated](./examples/php/bybit-updated.md)
 
-- [Bytetrade Create Order](./examples/php/bytetrade-create-order.md)
-
 - [Cache Exchange Instance Reuse](./examples/php/cache-exchange-instance-reuse.md)
 
 - [Cancel Order](./examples/php/cancel-order.md)
 
 - [Cli](./examples/php/cli.md)
 
-- [Coinbase Fetch All Balances](./examples/php/coinbase-fetch-all-balances.md)
-
-- [Coinbasepro Cursor Pagination](./examples/php/coinbasepro-cursor-pagination.md)
+- [Coinbaseexchange Cursor Pagination](./examples/php/coinbaseexchange-cursor-pagination.md)
 
 - [Coinone Markets](./examples/php/coinone-markets.md)
 
@@ -80,7 +76,9 @@ php -f path/to/example.php # substitute for actual filename here
 
 - [Exchange Properties](./examples/php/exchange-properties.md)
 
-- [Exchange Rate Limiter Rollingwindow](./examples/php/exchange-rate-limiter-rollingWindow.md)
+- [Exchange Rate Limiter RollingWindow](./examples/php/exchange-rate-limiter-rollingWindow.md)
+
+- [Fetch Balance Snapshot Watch Balance Updates](./examples/php/fetch-balance-snapshot-watch-balance-updates.md)
 
 - [Fetch Balance](./examples/php/fetch-balance.md)
 
@@ -96,17 +94,17 @@ php -f path/to/example.php # substitute for actual filename here
 
 - [Fetch Tickers](./examples/php/fetch-tickers.md)
 
-- [Gateio Futures](./examples/php/gateio-futures.md)
+- [Gate Futures](./examples/php/gate-futures.md)
 
-- [Gateio Swaps](./examples/php/gateio-swaps.md)
+- [Gate Swaps](./examples/php/gate-swaps.md)
 
-- [Gateio Watch Balance](./examples/php/gateio-watch-balance.md)
+- [Gate Watch Balance](./examples/php/gate-watch-balance.md)
 
-- [Huobi Fetch Balance](./examples/php/huobi-fetch-balance.md)
+- [Htx Fetch Balance](./examples/php/htx-fetch-balance.md)
 
-- [Huobi Futures](./examples/php/huobi-futures.md)
+- [Htx Futures](./examples/php/htx-futures.md)
 
-- [Huobi Swaps](./examples/php/huobi-swaps.md)
+- [Htx Swaps](./examples/php/htx-swaps.md)
 
 - [Hyperliquid Load Hip3 Dexes](./examples/php/hyperliquid-load-hip3-dexes.md)
 
@@ -154,11 +152,11 @@ php -f path/to/example.php # substitute for actual filename here
 
 - [Trading View](./examples/php/trading-view.md)
 
-- [Watch Ohlcv For Symbols](./examples/php/watch-OHLCV-For-Symbols.md)
+- [Watch OHLCV For Symbols](./examples/php/watch-OHLCV-For-Symbols.md)
 
-- [Watch Ohlcv](./examples/php/watch-OHLCV.md)
+- [Watch OHLCV](./examples/php/watch-OHLCV.md)
 
-- [Watch Orderbook For Symbols](./examples/php/watch-OrderBook-For-Symbols.md)
+- [Watch OrderBook For Symbols](./examples/php/watch-OrderBook-For-Symbols.md)
 
 - [Watch Trades For Symbols](./examples/php/watch-Trades-For-Symbols.md)
 
@@ -166,11 +164,11 @@ php -f path/to/example.php # substitute for actual filename here
 
 - [Watch Tickers](./examples/php/watch-tickers.md)
 
-- [Watchpositions Many Exchanges Continuosly](./examples/php/watchPositions-many-exchanges-continuosly.md)
+- [WatchPositions Many Exchanges Continuosly](./examples/php/watchPositions-many-exchanges-continuosly.md)
 
-- [Watchpositions](./examples/php/watchPositions.md)
+- [WatchPositions](./examples/php/watchPositions.md)
 
-- [Watchpositionsforsymbols](./examples/php/watchPositionsForSymbols.md)
+- [WatchPositionsForSymbols](./examples/php/watchPositionsForSymbols.md)
 
-- [Watchtradesforsymbols](./examples/php/watchTradesForSymbols.md)
+- [WatchTradesForSymbols](./examples/php/watchTradesForSymbols.md)
 

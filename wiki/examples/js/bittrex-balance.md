@@ -1,8 +1,5 @@
-- [Bittrex Balance](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 
 import ccxt from '../../js/ccxt.js';
 import asTable from 'as-table';
@@ -18,7 +15,7 @@ let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms))
 ;(async () => {
 
     // instantiate the exchange
-    let exchange = new ccxt.bittrex  ({
+    let exchange = new ccxt.kraken  ({
         "apiKey": "471b47a06c384e81b24072e9a8739064",
         "secret": "694025686e9445589787e8ca212b4cff",
     })
@@ -51,5 +48,5 @@ let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms))
         }
     }
 
-}) () 
+}) ()
 ```

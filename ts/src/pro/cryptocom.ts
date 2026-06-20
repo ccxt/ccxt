@@ -1,10 +1,10 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import cryptocomRest from '../cryptocom.js';
 import { AuthenticationError, ChecksumError, ExchangeError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, OHLCV, Position, Balances, Num, Dict, Tickers, Market, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
@@ -127,13 +127,13 @@ export default class cryptocom extends cryptocomRest {
         if (topicParams === undefined) {
             params['params'] = {};
         }
-        let bookSubscriptionType = undefined;
-        let bookSubscriptionType2 = undefined;
+        let bookSubscriptionType: Str = undefined;
+        let bookSubscriptionType2: Str = undefined;
         [ bookSubscriptionType, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE');
         [ bookSubscriptionType2, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'bookSubscriptionType', bookSubscriptionType);
         params['params']['bookSubscriptionType'] = bookSubscriptionType2;
-        let bookUpdateFrequency = undefined;
-        let bookUpdateFrequency2 = undefined;
+        let bookUpdateFrequency: Str = undefined;
+        let bookUpdateFrequency2: Str = undefined;
         [ bookUpdateFrequency, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'bookUpdateFrequency');
         [ bookUpdateFrequency2, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency);
         if (bookUpdateFrequency2 !== undefined) {
@@ -174,13 +174,13 @@ export default class cryptocom extends cryptocomRest {
         if (topicParams === undefined) {
             params['params'] = {};
         }
-        let bookSubscriptionType = undefined;
-        let bookSubscriptionType2 = undefined;
+        let bookSubscriptionType: Str = undefined;
+        let bookSubscriptionType2: Str = undefined;
         [ bookSubscriptionType, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE');
         [ bookSubscriptionType2, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'bookSubscriptionType', bookSubscriptionType);
         params['params']['bookSubscriptionType'] = bookSubscriptionType2;
-        let bookUpdateFrequency = undefined;
-        let bookUpdateFrequency2 = undefined;
+        let bookUpdateFrequency: Str = undefined;
+        let bookUpdateFrequency2: Str = undefined;
         [ bookUpdateFrequency, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'bookUpdateFrequency');
         [ bookUpdateFrequency2, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency);
         if (bookUpdateFrequency2 !== undefined) {
@@ -449,7 +449,7 @@ export default class cryptocom extends cryptocomRest {
      */
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -801,7 +801,7 @@ export default class cryptocom extends cryptocomRest {
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -1179,7 +1179,7 @@ export default class cryptocom extends cryptocomRest {
      */
     async cancelAllOrdersWs (symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         const request: Dict = {
             'method': 'private/cancel-all-orders',
             'params': this.extend ({}, params),

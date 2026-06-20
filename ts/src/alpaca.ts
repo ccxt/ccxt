@@ -4,7 +4,7 @@ import Exchange from './abstract/alpaca.js';
 import { Precise } from './base/Precise.js';
 import { ExchangeError, BadRequest, PermissionDenied, BadSymbol, NotSupported, InsufficientFunds, InvalidOrder, RateLimitExceeded, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Trade, int, Strings, Ticker, Tickers, Currency, DepositAddress, Transaction, Balances } from './base/types.js';
+import type{ Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Trade, int, Strings, Ticker, Tickers, Currency, DepositAddress, Transaction, Balances } from './base/types.js';
 
 //  ---------------------------------------------------------------------------xs
 /**
@@ -1204,7 +1204,7 @@ export default class alpaca extends Exchange {
         const request: Dict = {
             'status': 'all',
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbols'] = market['id'];
@@ -1324,7 +1324,7 @@ export default class alpaca extends Exchange {
         const request: Dict = {
             'order_id': id,
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -1339,7 +1339,7 @@ export default class alpaca extends Exchange {
         if (price !== undefined) {
             request['limit_price'] = this.priceToPrecision (symbol, price);
         }
-        let timeInForce = undefined;
+        let timeInForce: Str = undefined;
         [ timeInForce, params ] = this.handleOptionAndParams2 (params, 'editOrder', 'timeInForce', 'defaultTimeInForce');
         if (timeInForce !== undefined) {
             request['time_in_force'] = timeInForce;
@@ -1470,7 +1470,7 @@ export default class alpaca extends Exchange {
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         let request: Dict = {
             'activity_type': 'FILL',
         };
@@ -1607,7 +1607,7 @@ export default class alpaca extends Exchange {
         //         "created_at": "2024-11-03T07:30:05.609976344Z"
         //     }
         //
-        let parsedCurrency = undefined;
+        let parsedCurrency: Str = undefined;
         if (currency !== undefined) {
             parsedCurrency = currency['id'];
         }
@@ -1668,7 +1668,7 @@ export default class alpaca extends Exchange {
 
     async fetchTransactionsHelper (type, code, since, limit, params) {
         await this.loadMarkets ();
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }

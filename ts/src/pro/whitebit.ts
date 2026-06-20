@@ -495,7 +495,7 @@ export default class whitebit extends whitebitRest {
         const amount = this.safeString (trade, 5);
         const marketId = this.safeString (trade, 2);
         market = this.safeMarket (marketId, market);
-        let fee = undefined;
+        let fee: Dict = undefined;
         const feeCost = this.safeString (trade, 6);
         if (feeCost !== undefined) {
             fee = {
@@ -624,7 +624,7 @@ export default class whitebit extends whitebitRest {
         const stopPrice = this.safeString (order, 'activation_price');
         const rawType = this.safeString (order, 'type');
         const type = this.parseWsOrderType (rawType);
-        let amount = undefined;
+        let amount: Str = undefined;
         let remaining = undefined;
         if (type === 'market') {
             amount = this.safeString (order, 'deal_stock');
@@ -639,14 +639,14 @@ export default class whitebit extends whitebitRest {
         const rawSide = this.safeInteger (order, 'side');
         const side = (rawSide === 1) ? 'sell' : 'buy';
         const dealFee = this.safeString (order, 'deal_fee');
-        let fee = undefined;
+        let fee: Dict = undefined;
         if (dealFee !== undefined) {
             fee = {
                 'cost': this.parseNumber (dealFee),
                 'currency': market['quote'],
             };
         }
-        let unifiedStatus = undefined;
+        let unifiedStatus: Str = undefined;
         if ((status === 1) || (status === 2)) {
             unifiedStatus = 'open';
         } else {
@@ -709,10 +709,10 @@ export default class whitebit extends whitebitRest {
      */
     async watchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         let messageHash = 'wallet:';
-        let method = undefined;
+        let method: Str = undefined;
         if (type === 'spot') {
             method = 'balanceSpot_subscribe';
             messageHash += 'spot';
@@ -778,7 +778,7 @@ export default class whitebit extends whitebitRest {
         const url = this.urls['api']['ws'];
         const id = this.nonce ();
         const client = this.safeValue (this.clients, url);
-        let request = undefined;
+        let request: Dict = undefined;
         let marketIds = [];
         if (client === undefined) {
             const subscription: Dict = {};

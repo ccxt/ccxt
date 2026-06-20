@@ -2,12 +2,12 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var legacy_js = require('@noble/hashes/legacy.js');
+var sha2_js = require('@noble/hashes/sha2.js');
 var lbank$1 = require('./abstract/lbank.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
-var md5 = require('./static_dependencies/noble-hashes/md5.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var rsa = require('./base/functions/rsa.js');
 
 // ----------------------------------------------------------------------------
@@ -127,7 +127,7 @@ class lbank extends lbank$1["default"] {
                             'accuracy': 2.5,
                             'usdToCny': 2.5,
                             'assetConfigs': 2.5,
-                            'withdrawConfigs': 2.5 * 1.5,
+                            'withdrawConfigs': 2.5 * 1.5, // frequently rate-limits, so increase this endpoint RL
                             'timestamp': 2.5,
                             'ticker/24hr': 2.5,
                             'ticker': 2.5,
@@ -213,7 +213,7 @@ class lbank extends lbank$1["default"] {
                 },
             },
             'commonCurrencies': {
-                'XBT': 'XBT',
+                'XBT': 'XBT', // not BTC!
                 'HIT': 'Hiver',
                 'VET_ERC20': 'VEN',
                 'PNT': 'Penta',
@@ -317,11 +317,11 @@ class lbank extends lbank$1["default"] {
                         'marketBuyRequiresPrice': false,
                         'iceberg': false,
                     },
-                    'createOrders': undefined,
+                    'createOrders': undefined, // todo
                     'fetchMyTrades': {
                         'marginMode': false,
                         'limit': 100,
-                        'daysBack': 100000,
+                        'daysBack': 100000, // todo
                         'untilDays': 2,
                         'symbolRequired': true,
                     },
@@ -347,7 +347,7 @@ class lbank extends lbank$1["default"] {
                         'trailing': false,
                         'symbolRequired': true,
                     },
-                    'fetchClosedOrders': undefined,
+                    'fetchClosedOrders': undefined, // todo: through fetchOrders "status" -1: Cancelled 0: Unfilled 1: Partially filled 2: Completely filled 3: Partially filled has been cancelled 4: Cancellation is being processed
                     'fetchOHLCV': {
                         'limit': 2000,
                     },
@@ -1151,11 +1151,11 @@ class lbank extends lbank$1["default"] {
         //   ],
         //
         return [
-            this.safeTimestamp(ohlcv, 0),
-            this.safeNumber(ohlcv, 1),
-            this.safeNumber(ohlcv, 2),
-            this.safeNumber(ohlcv, 3),
-            this.safeNumber(ohlcv, 4),
+            this.safeTimestamp(ohlcv, 0), // timestamp
+            this.safeNumber(ohlcv, 1), // open
+            this.safeNumber(ohlcv, 2), // high
+            this.safeNumber(ohlcv, 3), // low
+            this.safeNumber(ohlcv, 4), // close
             this.safeNumber(ohlcv, 5), // volume
         ];
     }
@@ -1694,11 +1694,11 @@ class lbank extends lbank$1["default"] {
     }
     parseOrderStatus(status) {
         const statuses = {
-            '-1': 'canceled',
-            '0': 'open',
-            '1': 'open',
-            '2': 'closed',
-            '3': 'canceled',
+            '-1': 'canceled', // canceled
+            '0': 'open', // not traded
+            '1': 'open', // partial deal
+            '2': 'closed', // complete deal
+            '3': 'canceled', // filled partially and cancelled
             '4': 'closed', // disposal processing
         };
         return this.safeString(statuses, status, status);
@@ -2988,7 +2988,7 @@ class lbank extends lbank$1["default"] {
                 'timestamp': timestamp,
             }, query)));
             const encoded = this.encode(auth);
-            const hash = this.hash(encoded, md5.md5);
+            const hash = this.hash(encoded, legacy_js.md5);
             const uppercaseHash = hash.toUpperCase();
             let sign = undefined;
             if (signatureMethod === 'RSA') {
@@ -3004,10 +3004,10 @@ class lbank extends lbank$1["default"] {
                 else {
                     pem = this.convertSecretToPem(this.encode(this.secret));
                 }
-                sign = rsa.rsa(uppercaseHash, pem, sha256.sha256);
+                sign = rsa.rsa(uppercaseHash, pem, sha2_js.sha256);
             }
             else if (signatureMethod === 'HmacSHA256') {
-                sign = this.hmac(this.encode(uppercaseHash), this.encode(this.secret), sha256.sha256);
+                sign = this.hmac(this.encode(uppercaseHash), this.encode(this.secret), sha2_js.sha256);
             }
             query['sign'] = sign;
             body = this.urlencode(this.keysort(query));
@@ -3114,35 +3114,35 @@ class lbank extends lbank$1["default"] {
                 '10019': errors.BadRequest,
                 '10020': errors.BadRequest,
                 '10021': errors.InvalidOrder,
-                '10022': errors.PermissionDenied,
-                '10023': errors.InvalidOrder,
-                '10024': errors.PermissionDenied,
-                '10025': errors.InvalidOrder,
-                '10026': errors.InvalidOrder,
-                '10027': errors.InvalidOrder,
-                '10028': errors.BadRequest,
-                '10029': errors.BadRequest,
-                '10030': errors.BadRequest,
-                '10031': errors.InvalidNonce,
-                '10033': errors.ExchangeError,
-                '10036': errors.DuplicateOrderId,
-                '10100': errors.PermissionDenied,
-                '10101': errors.BadRequest,
-                '10102': errors.InsufficientFunds,
-                '10103': errors.ExchangeError,
-                '10104': errors.ExchangeError,
-                '10105': errors.ExchangeError,
-                '10106': errors.BadRequest,
-                '10107': errors.BadRequest,
-                '10108': errors.ExchangeError,
-                '10109': errors.InvalidAddress,
-                '10110': errors.ExchangeError,
-                '10111': errors.BadRequest,
-                '10112': errors.BadRequest,
-                '10113': errors.BadRequest,
-                '10600': errors.BadRequest,
-                '10601': errors.ExchangeError,
-                '10701': errors.BadSymbol,
+                '10022': errors.PermissionDenied, // 'Invalid authorization',
+                '10023': errors.InvalidOrder, // 'Market Order is not supported yet',
+                '10024': errors.PermissionDenied, // 'User cannot trade on this pair',
+                '10025': errors.InvalidOrder, // 'Order has been filled',
+                '10026': errors.InvalidOrder, // 'Order has been cancelled',
+                '10027': errors.InvalidOrder, // 'Order is cancelling',
+                '10028': errors.BadRequest, // 'Wrong query time',
+                '10029': errors.BadRequest, // 'from is not in the query time',
+                '10030': errors.BadRequest, // 'from do not match the transaction type of inqury',
+                '10031': errors.InvalidNonce, // 'echostr length must be valid and length must be from 30 to 40',
+                '10033': errors.ExchangeError, // 'Failed to create order',
+                '10036': errors.DuplicateOrderId, // 'customID duplicated',
+                '10100': errors.PermissionDenied, // 'Has no privilege to withdraw',
+                '10101': errors.BadRequest, // 'Invalid fee rate to withdraw',
+                '10102': errors.InsufficientFunds, // 'Too little to withdraw',
+                '10103': errors.ExchangeError, // 'Exceed daily limitation of withdraw',
+                '10104': errors.ExchangeError, // 'Cancel was rejected',
+                '10105': errors.ExchangeError, // 'Request has been cancelled',
+                '10106': errors.BadRequest, // 'None trade time',
+                '10107': errors.BadRequest, // 'Start price exception',
+                '10108': errors.ExchangeError, // 'can not create order',
+                '10109': errors.InvalidAddress, // 'wallet address is not mapping',
+                '10110': errors.ExchangeError, // 'transfer fee is not mapping',
+                '10111': errors.BadRequest, // 'mount > 0',
+                '10112': errors.BadRequest, // 'fee is too lower',
+                '10113': errors.BadRequest, // 'transfer fee is 0',
+                '10600': errors.BadRequest, // 'intercepted by replay attacks filter, check timestamp',
+                '10601': errors.ExchangeError, // 'Interface closed unavailable',
+                '10701': errors.BadSymbol, // 'invalid asset code',
                 '10702': errors.PermissionDenied, // 'not allowed deposit',
             }, errorCode, errors.ExchangeError);
             throw new ErrorClass(message);

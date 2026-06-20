@@ -683,7 +683,7 @@ func (this *ExtendedCore) ParseCurrency(currency any) any {
  * @see https://api.docs.extended.exchange/#get-market-statistics
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *ExtendedCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -754,7 +754,7 @@ func (this *ExtendedCore) FetchTicker(symbol any, optionalArgs ...any) <-chan an
  * @see https://api.docs.extended.exchange/#get-markets
  * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *ExtendedCore) FetchTickers(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -890,7 +890,7 @@ func (this *ExtendedCore) ParseTicker(ticker any, optionalArgs ...any) any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *ExtendedCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -955,7 +955,7 @@ func (this *ExtendedCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *ExtendedCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1013,7 +1013,7 @@ func (this *ExtendedCore) FetchTrades(symbol any, optionalArgs ...any) <-chan an
  * @param {int} [limit] the maximum number of trade structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *ExtendedCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1112,7 +1112,7 @@ func (this *ExtendedCore) FetchMyTrades(optionalArgs ...any) <-chan any {
  * @param {int} [limit] the maximum number of funding history structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {FundingHistory[]} a list of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+ * @returns {FundingHistory[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
 func (this *ExtendedCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1424,7 +1424,7 @@ func (this *ExtendedCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
  * @param {int} [params.endTime] exchange-specific end timestamp in ms of the latest funding rate to fetch
  * @param {int} [params.cursor] offset of the result set
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *ExtendedCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1547,7 +1547,7 @@ func (this *ExtendedCore) ParseFundingRateHistory(info any, optionalArgs ...any)
  * @param {int} [limit] the maximum amount of open interest structures to retrieve
  * @param {object} [params] exchange specific parameters
  * @param {int} [params.until] timestamp in ms of the latest open interest record to fetch
- * @returns {object[]} an array of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+ * @returns {object[]} an array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
 func (this *ExtendedCore) FetchOpenInterestHistory(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1712,7 +1712,7 @@ func (this *ExtendedCore) ParseBalance(response any) any {
  * @description fetch the current authenticated sub-account
  * @see https://api.docs.extended.exchange/#get-account-details
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [account structure]{@link https://docs.ccxt.com/#/?id=account-structure}
+ * @returns {object} an [account structure]{@link https://docs.ccxt.com/?id=account-structure}
  */
 func (this *ExtendedCore) FetchAccount(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1757,7 +1757,7 @@ func (this *ExtendedCore) FetchAccount(optionalArgs ...any) <-chan any {
  * @description fetch the current authenticated sub-account, extended private endpoints only return records for the authenticated sub-account
  * @see https://api.docs.extended.exchange/#get-sub-accounts
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure}
+ * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/?id=account-structure}
  */
 func (this *ExtendedCore) FetchAccounts(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1825,7 +1825,7 @@ func (this *ExtendedCore) ParseAccount(account any) any {
  * @param {int} [limit] max number of ledger entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/#/?id=ledger}
+ * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/?id=ledger}
  */
 func (this *ExtendedCore) FetchLedger(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1948,7 +1948,7 @@ func (this *ExtendedCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
  * @param {int} [limit] the maximum number of transaction structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *ExtendedCore) FetchTransactions(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2042,7 +2042,7 @@ func (this *ExtendedCore) FetchTransactions(optionalArgs ...any) <-chan any {
  * @param {int} [limit] the maximum number of deposit structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *ExtendedCore) FetchDeposits(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2079,7 +2079,7 @@ func (this *ExtendedCore) FetchDeposits(optionalArgs ...any) <-chan any {
  * @param {int} [limit] the maximum number of withdrawal structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *ExtendedCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2204,7 +2204,7 @@ func (this *ExtendedCore) Withdraw(code any, amount any, address any, optionalAr
  * @param {int} [limit] the maximum number of transfer structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {TransferEntry[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {TransferEntry[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *ExtendedCore) FetchTransfers(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2281,7 +2281,7 @@ func (this *ExtendedCore) FetchTransfers(optionalArgs ...any) <-chan any {
  * @param {string} params.toVault destination account L2 vault
  * @param {string} params.toL2Key destination account L2 public key
  * @param {int} [params.settlementExpiration] settlement expiration timestamp in seconds, defaults to now + 21 days
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *ExtendedCore) Transfer(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2614,7 +2614,7 @@ func (this *ExtendedCore) ParseTradingFee(fee any, optionalArgs ...any) any {
  * @see https://api.docs.extended.exchange/#get-leverage
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+ * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
 func (this *ExtendedCore) FetchLeverage(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2728,7 +2728,7 @@ func (this *ExtendedCore) ParseLeverage(leverage any, optionalArgs ...any) any {
  * @see https://api.docs.extended.exchange/#get-positions
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Position[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {Position[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *ExtendedCore) FetchPositions(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2796,7 +2796,7 @@ func (this *ExtendedCore) FetchPositions(optionalArgs ...any) <-chan any {
  * @see https://api.docs.extended.exchange/#get-positions
  * @param {string} symbol unified market symbol of the market the position is held in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *ExtendedCore) FetchPosition(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2826,7 +2826,7 @@ func (this *ExtendedCore) FetchPosition(symbol any, optionalArgs ...any) <-chan 
  * @param {int} [limit] the maximum number of position structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Position[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {Position[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *ExtendedCore) FetchPositionsHistory(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -3376,7 +3376,7 @@ func (this *ExtendedCore) CreateExtendedOrderRequest(symbol any, typeVar any, si
  * @param {float} [params.stopLoss.triggerPrice] *swap only* stop loss trigger price
  * @param {float} [params.stopLoss.price] *swap only* the execution price for a stop loss attached to a trigger order
  * @param {string} [params.stopLoss.type] *swap only* the type for a stop loss attached to a trigger order, 'LAST', 'MARK' or 'INDEX', default is ''
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *ExtendedCore) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -3429,7 +3429,7 @@ func (this *ExtendedCore) CreateOrder(symbol any, typeVar any, side any, amount 
  * @param {float} [amount] how much of currency you want to trade in units of base currency
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *ExtendedCore) EditOrder(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -3743,7 +3743,7 @@ func (this *ExtendedCore) CancelAllOrdersAfter(timeout any, optionalArgs ...any)
  * @param {string} [symbol] unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.clientOrderId] user-defined order id, fetches by external id
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *ExtendedCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -3803,7 +3803,7 @@ func (this *ExtendedCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of open order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *ExtendedCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -3877,7 +3877,7 @@ func (this *ExtendedCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *ExtendedCore) FetchOrders(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -3982,7 +3982,7 @@ func (this *ExtendedCore) FetchOrders(optionalArgs ...any) <-chan any {
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *ExtendedCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -4019,7 +4019,7 @@ func (this *ExtendedCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *ExtendedCore) FetchCanceledOrders(optionalArgs ...any) <-chan any {
 	ch := make(chan any)

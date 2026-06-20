@@ -135,7 +135,7 @@ public partial class lighter : Exchange
             } },
             { "hostname", "zklighter.elliot.ai" },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://github.com/user-attachments/assets/ff1aaf96-bffb-4545-a750-5eba716e75d0" },
+                { "logo", "https://github.com/user-attachments/assets/478f648a-05e4-4b09-a841-e7fced3846c0" },
                 { "api", new Dictionary<string, object>() {
                     { "root", "https://mainnet.{hostname}" },
                     { "public", "https://mainnet.{hostname}" },
@@ -150,7 +150,7 @@ public partial class lighter : Exchange
                 { "doc", "https://apidocs.lighter.xyz/" },
                 { "fees", "https://docs.lighter.xyz/perpetual-futures/fees" },
                 { "referral", new Dictionary<string, object>() {
-                    { "url", "app.lighter.xyz/?referral=715955W9" },
+                    { "url", "https://app.lighter.xyz/?referral=715955W9" },
                     { "discount", 0.1 },
                 } },
             } },

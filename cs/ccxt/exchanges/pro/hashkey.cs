@@ -616,18 +616,19 @@ public partial class hashkey : ccxt.hashkey
         market = this.safeMarket(marketId, market);
         object timestamp = this.safeInteger(trade, "t");
         object isBuyerMaker = this.safeBool(trade, "m");
+        object isPublicTrade = isEqual(this.safeString(trade, "e"), null);
         object side = null;
         object takerOrMaker = null;
         if (isTrue(!isEqual(isBuyerMaker, null)))
         {
-            if (isTrue(isBuyerMaker))
+            if (isTrue(isPublicTrade))
             {
-                side = "sell";
-                takerOrMaker = "maker";
+                takerOrMaker = "taker";
+                side = ((bool) isTrue(isBuyerMaker)) ? "sell" : "buy";
             } else
             {
-                side = "buy";
-                takerOrMaker = "taker";
+                takerOrMaker = ((bool) isTrue(isBuyerMaker)) ? "maker" : "taker";
+                side = this.safeStringLower(trade, "S");
             }
         }
         return this.safeTrade(new Dictionary<string, object>() {
@@ -635,7 +636,7 @@ public partial class hashkey : ccxt.hashkey
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "symbol", getValue(market, "symbol") },
-            { "side", this.safeStringLower(trade, "S", side) },
+            { "side", side },
             { "price", this.safeString(trade, "p") },
             { "amount", this.safeString(trade, "q") },
             { "cost", null },

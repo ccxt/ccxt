@@ -1,8 +1,5 @@
-- [Poloniex Limits Amount Min](./examples/js/)
-
-
- ```javascript
- import ccxt from '../../js/ccxt.js';
+```javascript
+import ccxt from '../../js/ccxt.js';
 import fs from 'fs';
 import ololog from 'ololog'
 
@@ -63,5 +60,5 @@ const log = ololog.configure.unlimited.noLocate,
         await ccxt.sleep (5000) // sleep 5 seconds, no rush, safe delay
     }
 
-}) () 
+}) ()
 ```

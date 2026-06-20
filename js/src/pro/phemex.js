@@ -5,10 +5,10 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import phemexRest from '../phemex.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { AuthenticationError } from '../base/errors.js';
 //  ---------------------------------------------------------------------------
 export default class phemex extends phemexRest {
@@ -23,7 +23,7 @@ export default class phemex extends phemexRest {
                 'watchOrders': true,
                 'watchOrderBook': true,
                 'watchOHLCV': true,
-                'watchPositions': undefined,
+                'watchPositions': undefined, // TODO
                 // mutli-endpoints are not supported: https://github.com/ccxt/ccxt/pull/21490
                 'watchOrderBookForSymbols': false,
                 'watchTradesForSymbols': false,
@@ -130,7 +130,7 @@ export default class phemex extends phemexRest {
             'open': open,
             'close': last,
             'last': last,
-            'previousClose': undefined,
+            'previousClose': undefined, // previous day close
             'change': change,
             'percentage': percentage,
             'average': average,
@@ -189,7 +189,7 @@ export default class phemex extends phemexRest {
             'open': open,
             'close': last,
             'last': last,
-            'previousClose': undefined,
+            'previousClose': undefined, // previous day close
             'change': change,
             'percentage': percentage,
             'average': average,

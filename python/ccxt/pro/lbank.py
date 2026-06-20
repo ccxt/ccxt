@@ -517,7 +517,7 @@ class lbank(ccxt.async_support.lbank):
         await self.load_markets()
         key = await self.authenticate(params)
         url = self.urls['api']['ws']
-        messageHash = None
+        messageHash: Str = None
         pair = 'all'
         if symbol is None:
             messageHash = 'orders:all'
@@ -617,7 +617,7 @@ class lbank(ccxt.async_support.lbank):
         typeParts = rawType.split('_')
         side = self.safe_string(typeParts, 0)
         exchangeType = self.safe_string(typeParts, 1)
-        type = None
+        type: Str = None
         if rawType != 'buy' and rawType != 'sell':
             type = 'market' if (exchangeType == 'market') else 'limit'
         marketId = self.safe_string(order, 'pair')

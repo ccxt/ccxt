@@ -5,10 +5,10 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import bithumbRest from '../bithumb.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { ExchangeError } from '../base/errors.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { jwt } from '../base/functions/rsa.js';
 //  ---------------------------------------------------------------------------
 export default class bithumb extends bithumbRest {
@@ -27,8 +27,8 @@ export default class bithumb extends bithumbRest {
             'urls': {
                 'api': {
                     'ws': {
-                        'public': 'wss://pubwss.bithumb.com/pub/ws',
-                        'publicV2': 'wss://ws-api.bithumb.com/websocket/v1',
+                        'public': 'wss://pubwss.bithumb.com/pub/ws', // v1.2.0
+                        'publicV2': 'wss://ws-api.bithumb.com/websocket/v1', // v2.1.5
                         'privateV2': 'wss://ws-api.bithumb.com/websocket/v1/private', // v2.1.5
                     },
                 },

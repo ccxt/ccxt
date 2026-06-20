@@ -60,7 +60,7 @@ retrieves data on all markets for upbit
 
 
 ```javascript
-upbit.fetchMarkets ([params])
+upbit.fetchMarkets (params?)
 ```
 
 
@@ -84,7 +84,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-upbit.fetchBalance ([params])
+upbit.fetchBalance (params?)
 ```
 
 
@@ -110,7 +110,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-upbit.fetchOrderBooks (symbols[, limit, params])
+upbit.fetchOrderBooks (symbols, limit?, params?)
 ```
 
 
@@ -136,7 +136,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-upbit.fetchOrderBook (symbol[, limit, params])
+upbit.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -161,7 +161,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-upbit.fetchTickers (symbols[, params])
+upbit.fetchTickers (symbols, params?)
 ```
 
 
@@ -186,7 +186,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-upbit.fetchTicker (symbol[, params])
+upbit.fetchTicker (symbol, params?)
 ```
 
 
@@ -213,7 +213,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-upbit.fetchTrades (symbol[, since, limit, params])
+upbit.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -238,7 +238,7 @@ fetch the trading fees for a market
 
 
 ```javascript
-upbit.fetchTradingFee (symbol[, params])
+upbit.fetchTradingFee (symbol, params?)
 ```
 
 
@@ -257,7 +257,7 @@ fetch the trading fees for markets
 
 
 ```javascript
-upbit.fetchTradingFees ([params])
+upbit.fetchTradingFees (params?)
 ```
 
 
@@ -285,7 +285,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-upbit.fetchOHLCV (symbol, timeframe[, since, limit, params])
+upbit.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -321,7 +321,7 @@ create a trade order
 
 
 ```javascript
-upbit.createOrder (symbol, type, side, amount[, price, params])
+upbit.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -347,7 +347,7 @@ cancels an open order
 
 
 ```javascript
-upbit.cancelOrder (id, symbol[, params])
+upbit.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -383,7 +383,7 @@ canceled existing order and create new order. It's only generated same side and 
 
 
 ```javascript
-upbit.editOrder (id, symbol, type, side, amount, price[, params])
+upbit.editOrder (id, symbol, type, side, amount, price, params?)
 ```
 
 
@@ -410,7 +410,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-upbit.fetchDeposits (code[, since, limit, params])
+upbit.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -437,7 +437,7 @@ fetch information on a deposit
 
 
 ```javascript
-upbit.fetchDeposit (id[, code, params])
+upbit.fetchDeposit (id, code?, params?)
 ```
 
 
@@ -464,7 +464,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-upbit.fetchWithdrawals (code[, since, limit, params])
+upbit.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -491,7 +491,7 @@ fetch data on a currency withdrawal via the withdrawal id
 
 
 ```javascript
-upbit.fetchWithdrawal (id[, code, params])
+upbit.fetchWithdrawal (id, code?, params?)
 ```
 
 
@@ -519,7 +519,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-upbit.fetchOpenOrders (symbol[, since, limit, params])
+upbit.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -547,7 +547,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-upbit.fetchClosedOrders (symbol[, since, limit, params])
+upbit.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -575,7 +575,7 @@ fetches information on multiple canceled orders made by the user
 
 
 ```javascript
-upbit.fetchCanceledOrders (symbol[, since, limit, params])
+upbit.fetchCanceledOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -601,7 +601,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-upbit.fetchOrder (id, symbol[, params])
+upbit.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -626,7 +626,7 @@ fetch deposit addresses for multiple currencies and chain types
 
 
 ```javascript
-upbit.fetchDepositAddresses (codes[, params])
+upbit.fetchDepositAddresses (codes, params?)
 ```
 
 
@@ -652,7 +652,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-upbit.fetchDepositAddress (code[, params])
+upbit.fetchDepositAddress (code, params?)
 ```
 
 
@@ -677,7 +677,7 @@ create a currency deposit address
 
 
 ```javascript
-upbit.createDepositAddress (code[, params])
+upbit.createDepositAddress (code, params?)
 ```
 
 
@@ -705,7 +705,7 @@ make a withdrawal
 
 
 ```javascript
-upbit.withdraw (code, amount, address, tag[, params])
+upbit.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -726,7 +726,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-upbit.watchTicker (symbol[, params])
+upbit.watchTicker (symbol, params?)
 ```
 
 
@@ -747,7 +747,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-upbit.watchTickers (symbols[, params])
+upbit.watchTickers (symbols, params?)
 ```
 
 
@@ -770,7 +770,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-upbit.watchTrades (symbol[, since, limit, params])
+upbit.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -793,7 +793,7 @@ get the list of most recent trades for a list of symbols
 
 
 ```javascript
-upbit.watchTradesForSymbols (symbols[, since, limit, params])
+upbit.watchTradesForSymbols (symbols, since?, limit?, params?)
 ```
 
 
@@ -815,7 +815,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-upbit.watchOrderBook (symbol[, limit, params])
+upbit.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -843,7 +843,7 @@ watches information an OHLCV with timestamp, openingPrice, highPrice, lowPrice, 
 
 
 ```javascript
-upbit.watchOHLCV (symbol, timeframe[, since, limit, params])
+upbit.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -866,7 +866,7 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-upbit.watchOrders (symbol[, since, limit, params])
+upbit.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -889,7 +889,7 @@ watches information on multiple trades made by the user
 
 
 ```javascript
-upbit.watchMyTrades (symbol[, since, limit, params])
+upbit.watchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -909,6 +909,6 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-upbit.watchBalance ([params])
+upbit.watchBalance (params?)
 ```
 

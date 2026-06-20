@@ -1,8 +1,5 @@
-- [Async With Threads](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import asyncio
 import threading
@@ -14,7 +11,7 @@ import ccxt.async_support as ccxt  # noqa: E402
 
 
 async def test(loop):
-    exchange = ccxt.bittrex({
+    exchange = ccxt.kucoin({
         'asyncio_loop': loop,
     })
     print(await exchange.fetch_ticker('ETH/BTC'))
@@ -38,5 +35,5 @@ thread.start()
 thread2.start()
 thread.join()
 thread2.join()
- 
+
 ```

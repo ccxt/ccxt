@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var bingx$1 = require('./abstract/bingx.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var number = require('./base/functions/number.js');
 
 // ----------------------------------------------------------------------------
@@ -19,7 +19,7 @@ class bingx extends bingx$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'bingx',
             'name': 'BingX',
-            'countries': ['US'],
+            'countries': ['US'], // North America, Canada, the EU, Hong Kong and Taiwan
             'rateLimit': 100,
             'version': 'v1',
             'certified': true,
@@ -193,7 +193,7 @@ class bingx extends bingx$1["default"] {
                                 'market/depth': 1,
                                 'market/kline': 1,
                                 'ticker/24hr': 1,
-                                'ticker/price': 1,
+                                'ticker/price': 1, // deprecated, still can be used
                                 'ticker/bookTicker': 1,
                             },
                         },
@@ -276,7 +276,7 @@ class bingx extends bingx$1["default"] {
                                 'positionSide/dual': 5,
                                 'trade/batchCancelReplace': 5,
                                 'trade/closePosition': 2,
-                                'trade/getVst': 5,
+                                'trade/getVst': 5, // deprecated
                                 'twap/order': 5,
                                 'twap/cancelOrder': 5,
                                 'trade/assetMode': 5,
@@ -384,7 +384,7 @@ class bingx extends bingx$1["default"] {
                                 'trade/positionMargin': 2,
                             },
                             'delete': {
-                                'trade/allOpenOrders': 2,
+                                'trade/allOpenOrders': 2, // post method in doc
                                 'trade/cancelOrder': 2,
                             },
                         },
@@ -584,30 +584,30 @@ class bingx extends bingx$1["default"] {
                     '100202': errors.InsufficientFunds,
                     '100204': errors.BadRequest,
                     '100400': errors.BadRequest,
-                    '100410': errors.OperationFailed,
-                    '100421': errors.BadSymbol,
+                    '100410': errors.OperationFailed, // {"code":100410,"msg":"The current system is busy, please try again later"}
+                    '100421': errors.BadSymbol, // {"code":100421,"msg":"This pair is currently restricted from API trading","debugMsg":""}
                     '100440': errors.ExchangeError,
-                    '100500': errors.OperationFailed,
+                    '100500': errors.OperationFailed, // {"code":100500,"msg":"The current system is busy, please try again later","debugMsg":""}
                     '100503': errors.ExchangeError,
                     '80001': errors.BadRequest,
-                    '80012': errors.InsufficientFunds,
+                    '80012': errors.InsufficientFunds, // {"code":80012,"msg":"{\"Code\":101253,\"Msg\":\"margin is not enough\"}}
                     '80014': errors.BadRequest,
                     '80016': errors.OrderNotFound,
                     '80017': errors.OrderNotFound,
-                    '100414': errors.AccountSuspended,
-                    '100419': errors.PermissionDenied,
-                    '100437': errors.BadRequest,
-                    '101204': errors.InsufficientFunds,
-                    '110425': errors.InvalidOrder,
-                    'Insufficient assets': errors.InsufficientFunds,
+                    '100414': errors.AccountSuspended, // {"code":100414,"msg":"Code: 100414, Msg: risk control check fail,code(1)","debugMsg":""}
+                    '100419': errors.PermissionDenied, // {"code":100419,"msg":"IP does not match IP whitelist","success":false,"timestamp":1705274099347}
+                    '100437': errors.BadRequest, // {"code":100437,"msg":"The withdrawal amount is lower than the minimum limit, please re-enter.","timestamp":1689258588845}
+                    '101204': errors.InsufficientFunds, // {"code":101204,"msg":"","data":{}}
+                    '110425': errors.InvalidOrder, // {"code":110425,"msg":"Please ensure that the minimum nominal value of the order placed must be greater than 2u","data":{}}
+                    'Insufficient assets': errors.InsufficientFunds, // {"transferErrorMsg":"Insufficient assets"}
                     'illegal transferType': errors.BadRequest, // {"transferErrorMsg":"illegal transferType"}
                 },
                 'broad': {},
             },
             'commonCurrencies': {
-                'SNOW': 'Snowman',
+                'SNOW': 'Snowman', // Snowman vs SnowSwap conflict
                 'OMNI': 'OmniCat',
-                'NAP': '$NAP',
+                'NAP': '$NAP', // NAP on SOL = SNAP
                 'TRUMP': 'TRUMPMAGA',
                 'TRUMPSOL': 'TRUMP',
             },
@@ -628,7 +628,7 @@ class bingx extends bingx$1["default"] {
                     'USDTMPerp': 'linear',
                     'coinMPerp': 'inverse',
                 },
-                'recvWindow': 5 * 1000,
+                'recvWindow': 5 * 1000, // 5 sec
                 'broker': 'CCXT',
                 'defaultNetworks': {
                     'ETH': 'ETH',
@@ -686,9 +686,9 @@ class bingx extends bingx$1["default"] {
                     },
                     'fetchMyTrades': {
                         'marginMode': false,
-                        'limit': 512,
-                        'daysBack': 30,
-                        'untilDays': 30,
+                        'limit': 512, // 512 days for 'allFillOrders', 1000 days for 'fillOrders'
+                        'daysBack': 30, // 30 for 'allFillOrders', 7 for 'fillHistory'
+                        'untilDays': 30, // 30 for 'allFillOrders', 7 for 'fillHistory'
                         'symbolRequired': true,
                     },
                     'fetchOrder': {
@@ -707,7 +707,7 @@ class bingx extends bingx$1["default"] {
                     'fetchOrders': {
                         'marginMode': false,
                         'limit': 1000,
-                        'daysBack': 20000,
+                        'daysBack': 20000, // since epoch
                         'untilDays': 7,
                         'trigger': false,
                         'trailing': false,
@@ -1987,7 +1987,7 @@ class bingx extends bingx$1["default"] {
         return this.safeOpenInterest({
             'symbol': symbol,
             'baseVolume': undefined,
-            'quoteVolume': undefined,
+            'quoteVolume': undefined, // deprecated
             'openInterestAmount': undefined,
             'openInterestValue': openInterest,
             'timestamp': timestamp,
@@ -6884,7 +6884,7 @@ class bingx extends bingx$1["default"] {
                 parsedParams = this.parseParams(params);
                 encodeRequest = this.rawencode(parsedParams, true);
             }
-            const signature = this.hmac(this.encode(encodeRequest), this.encode(this.secret), sha256.sha256);
+            const signature = this.hmac(this.encode(encodeRequest), this.encode(this.secret), sha2_js.sha256);
             headers = {
                 'X-BX-APIKEY': this.apiKey,
                 'X-SOURCE-KEY': this.safeString(this.options, 'broker', 'CCXT'),

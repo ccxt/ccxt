@@ -1,8 +1,5 @@
-- [Build Ohlcv Many Symbols](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 import asyncio
 import ccxt.pro
 
@@ -55,5 +52,5 @@ async def main():
 
 
 asyncio.run(main())
- 
+
 ```

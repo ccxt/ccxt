@@ -1,8 +1,5 @@
-- [Watchpositions Many Exchanges Continuosly](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 namespace ccxt;
 include_once (__DIR__.'/../../ccxt.php');
 // ----------------------------------------------------------------------------
@@ -63,7 +60,7 @@ function example() {
                 'apiKey' => 'YOUR_API_KEY',
                 'secret' => 'YOUR_API_SECRET',
             ),
-            'huobi' => array(
+            'htx' => array(
                 'apiKey' => 'YOUR_API_KEY',
                 'secret' => 'YOUR_API_SECRET',
             ),
@@ -81,5 +78,5 @@ function example() {
 
 
 \React\Async\await(example());
- 
+
 ```

@@ -14,7 +14,7 @@ function testRemoveRepeatedElementsFromArray() {
     const array1 = [
         { 'id': 'a', 'timestamp': 1, 'uniq': 'x1' },
         { 'id': 'b', 'timestamp': 2, 'uniq': 'x2' },
-        { 'id': 'a', 'timestamp': 3, 'uniq': 'x3' },
+        { 'id': 'a', 'timestamp': 3, 'uniq': 'x3' }, // duplicate id
         { 'id': 'c', 'timestamp': 1, 'uniq': 'x4' }, // duplicate timestamp
     ];
     const res1 = exchange.removeRepeatedElementsFromArray(array1, false);
@@ -27,7 +27,7 @@ function testRemoveRepeatedElementsFromArray() {
     const array2 = [
         { 'id': undefined, 'timestamp': 1, 'uniq': 'x1' },
         { 'id': undefined, 'timestamp': 2, 'uniq': 'x2' },
-        { 'id': undefined, 'timestamp': 1, 'uniq': 'x3' },
+        { 'id': undefined, 'timestamp': 1, 'uniq': 'x3' }, // duplicate timestamp
         { 'id': undefined, 'timestamp': 3, 'uniq': 'x4' },
     ];
     const res2 = exchange.removeRepeatedElementsFromArray(array2, true);

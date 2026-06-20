@@ -1,8 +1,5 @@
-- [Symbols](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 
 import ccxt from '../../js/ccxt.js';
 import fs from 'fs';
@@ -111,5 +108,5 @@ let printSymbols = async (id) => {
 
     process.exit ()
 
-}) () 
+}) ()
 ```

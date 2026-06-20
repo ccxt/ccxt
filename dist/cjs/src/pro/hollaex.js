@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var hollaex$1 = require('../hollaex.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
-var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -20,7 +20,7 @@ class hollaex extends hollaex$1["default"] {
                 'watchOrderBook': true,
                 'watchOrders': true,
                 'watchTicker': false,
-                'watchTickers': false,
+                'watchTickers': false, // for now
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
             },
@@ -46,7 +46,7 @@ class hollaex extends hollaex$1["default"] {
             'exceptions': {
                 'ws': {
                     'exact': {
-                        'Bearer or HMAC authentication required': errors.BadSymbol,
+                        'Bearer or HMAC authentication required': errors.BadSymbol, // { error: 'Bearer or HMAC authentication required' }
                         'Error: wrong input': errors.BadRequest, // { error: 'Error: wrong input' }
                     },
                 },
@@ -444,7 +444,7 @@ class hollaex extends hollaex$1["default"] {
         }
         const url = this.urls['api']['ws'];
         const auth = 'CONNECT' + '/stream' + expires;
-        const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
+        const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
         const authParams = {
             'api-key': this.apiKey,
             'api-signature': signature,
@@ -475,7 +475,7 @@ class hollaex extends hollaex$1["default"] {
                 return false;
             }
         }
-        return message;
+        return true;
     }
     handleMessage(client, message) {
         //

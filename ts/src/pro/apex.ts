@@ -1,13 +1,12 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import apexRest from '../apex.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Trade, Dict, OrderBook, Ticker, Strings, Tickers, Bool } from '../base/types.js';
+import type { Bool, Dict, Int, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError, NetworkError } from '../base/errors.js';
-import { OHLCV, Order, Position, Str } from '../base/types.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -440,7 +439,7 @@ export default class apex extends apexRest {
         const topic = this.safeString (message, 'topic', '');
         const updateType = this.safeString (message, 'type', '');
         const data = this.safeDict (message, 'data', {});
-        let symbol = undefined;
+        let symbol: Str = undefined;
         let parsed = undefined;
         if ((updateType === 'snapshot')) {
             parsed = this.parseTicker (data);

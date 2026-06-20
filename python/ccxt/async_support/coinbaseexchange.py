@@ -244,6 +244,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
                         'funding/repay',
                         'orders',
                         'position/close',
+                        'profiles',
                         'profiles/margin-transfer',
                         'profiles/transfer',
                         'reports',
@@ -259,6 +260,10 @@ class coinbaseexchange(Exchange, ImplicitAPI):
                         'orders',
                         'orders/client:{client_oid}',
                         'orders/{id}',
+                    ],
+                    'put': [
+                        'profiles/{id}/deactivate',
+                        'profiles/{id}',
                     ],
                 },
             },

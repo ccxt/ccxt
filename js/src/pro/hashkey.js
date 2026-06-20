@@ -41,7 +41,7 @@ export default class hashkey extends hashkeyRest {
                 'listenKeyRefreshRate': 3600000,
                 'listenKey': undefined,
                 'watchBalance': {
-                    'fetchBalanceSnapshot': true,
+                    'fetchBalanceSnapshot': true, // or false
                     'awaitBalanceSnapshot': false, // whether to wait for the balance snapshot before providing updates
                 },
             },
@@ -558,16 +558,17 @@ export default class hashkey extends hashkeyRest {
         market = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger(trade, 't');
         const isBuyerMaker = this.safeBool(trade, 'm');
+        const isPublicTrade = this.safeString(trade, 'e') === undefined;
         let side = undefined;
         let takerOrMaker = undefined;
         if (isBuyerMaker !== undefined) {
-            if (isBuyerMaker) {
-                side = 'sell';
-                takerOrMaker = 'maker';
+            if (isPublicTrade) {
+                takerOrMaker = 'taker';
+                side = isBuyerMaker ? 'sell' : 'buy';
             }
             else {
-                side = 'buy';
-                takerOrMaker = 'taker';
+                takerOrMaker = isBuyerMaker ? 'maker' : 'taker';
+                side = this.safeStringLower(trade, 'S');
             }
         }
         return this.safeTrade({
@@ -575,7 +576,7 @@ export default class hashkey extends hashkeyRest {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'symbol': market['symbol'],
-            'side': this.safeStringLower(trade, 'S', side),
+            'side': side,
             'price': this.safeString(trade, 'p'),
             'amount': this.safeString(trade, 'q'),
             'cost': undefined,
@@ -676,7 +677,7 @@ export default class hashkey extends hashkeyRest {
             'hedged': true,
             'maintenanceMargin': this.safeNumber(position, 'mm'),
             'maintenanceMarginPercentage': undefined,
-            'initialMargin': this.safeNumber(position, 'm'),
+            'initialMargin': this.safeNumber(position, 'm'), // todo check
             'initialMarginPercentage': undefined,
             'marginRatio': undefined,
             'lastUpdateTimestamp': undefined,

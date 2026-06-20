@@ -1,8 +1,5 @@
-- [Fetch All Balances](./examples/js/)
-
-
- ```javascript
- import { PAD_WITH_ZERO } from '../../js/src/base/functions/number.js';
+```javascript
+import { PAD_WITH_ZERO } from '../../js/src/base/functions/number.js';
 
 //-----------------------------------------------------------------------------
 
@@ -94,13 +91,13 @@ function initializeAllExchanges () {
         'bcex',
         'bitsane',
         'chbtc',
-        'coinbasepro',
+        'coinbaseexchange',
         'jubi',
         'hitbtc',
         'bitstamp1',
-        'bitfinex2',
+        'bitfinex',
         'upbit',
-        'huobipro',
+        'htx',
     ]
     const result = []
     ccxt.exchanges.filter (exchangeId => (!ignore.includes (exchangeId))).forEach (exchangeId => {
@@ -221,5 +218,5 @@ function initializeAllExchanges () {
     console.log (new Date ())
 
 }) ()
- 
+
 ```

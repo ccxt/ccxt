@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.5.57'
+__version__ = '4.5.59'
 
 # ----------------------------------------------------------------------------
 
@@ -87,7 +87,6 @@ from ccxt.base.errors import error_hierarchy                          # noqa: F4
 from ccxt.aftermath import aftermath                                  # noqa: F401
 from ccxt.alpaca import alpaca                                        # noqa: F401
 from ccxt.apex import apex                                            # noqa: F401
-from ccxt.arkham import arkham                                        # noqa: F401
 from ccxt.ascendex import ascendex                                    # noqa: F401
 from ccxt.aster import aster                                          # noqa: F401
 from ccxt.backpack import backpack                                    # noqa: F401
@@ -125,7 +124,6 @@ from ccxt.bybiteu import bybiteu                                      # noqa: F4
 from ccxt.bydfi import bydfi                                          # noqa: F401
 from ccxt.cex import cex                                              # noqa: F401
 from ccxt.coinbase import coinbase                                    # noqa: F401
-from ccxt.coinbaseadvanced import coinbaseadvanced                    # noqa: F401
 from ccxt.coinbaseexchange import coinbaseexchange                    # noqa: F401
 from ccxt.coinbaseinternational import coinbaseinternational          # noqa: F401
 from ccxt.coincheck import coincheck                                  # noqa: F401
@@ -155,7 +153,6 @@ from ccxt.hibachi import hibachi                                      # noqa: F4
 from ccxt.hitbtc import hitbtc                                        # noqa: F401
 from ccxt.hollaex import hollaex                                      # noqa: F401
 from ccxt.htx import htx                                              # noqa: F401
-from ccxt.huobi import huobi                                          # noqa: F401
 from ccxt.hyperliquid import hyperliquid                              # noqa: F401
 from ccxt.independentreserve import independentreserve                # noqa: F401
 from ccxt.indodax import indodax                                      # noqa: F401
@@ -185,13 +182,11 @@ from ccxt.poloniex import poloniex                                    # noqa: F4
 from ccxt.tokocrypto import tokocrypto                                # noqa: F401
 from ccxt.toobit import toobit                                        # noqa: F401
 from ccxt.upbit import upbit                                          # noqa: F401
-from ccxt.wavesexchange import wavesexchange                          # noqa: F401
 from ccxt.weex import weex                                            # noqa: F401
 from ccxt.whitebit import whitebit                                    # noqa: F401
 from ccxt.woo import woo                                              # noqa: F401
 from ccxt.woofipro import woofipro                                    # noqa: F401
 from ccxt.xt import xt                                                # noqa: F401
-from ccxt.yobit import yobit                                          # noqa: F401
 from ccxt.zaif import zaif                                            # noqa: F401
 from ccxt.zebpay import zebpay                                        # noqa: F401
 
@@ -199,7 +194,6 @@ exchanges = [
     'aftermath',
     'alpaca',
     'apex',
-    'arkham',
     'ascendex',
     'aster',
     'backpack',
@@ -237,7 +231,6 @@ exchanges = [
     'bydfi',
     'cex',
     'coinbase',
-    'coinbaseadvanced',
     'coinbaseexchange',
     'coinbaseinternational',
     'coincheck',
@@ -267,7 +260,6 @@ exchanges = [
     'hitbtc',
     'hollaex',
     'htx',
-    'huobi',
     'hyperliquid',
     'independentreserve',
     'indodax',
@@ -297,13 +289,11 @@ exchanges = [
     'tokocrypto',
     'toobit',
     'upbit',
-    'wavesexchange',
     'weex',
     'whitebit',
     'woo',
     'woofipro',
     'xt',
-    'yobit',
     'zaif',
     'zebpay',
 ]

@@ -147,7 +147,7 @@ public class LighterCore extends LighterApi
             }} );
             put( "hostname", "zklighter.elliot.ai" );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/ff1aaf96-bffb-4545-a750-5eba716e75d0" );
+                put( "logo", "https://github.com/user-attachments/assets/478f648a-05e4-4b09-a841-e7fced3846c0" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "root", "https://mainnet.{hostname}" );
                     put( "public", "https://mainnet.{hostname}" );
@@ -162,7 +162,7 @@ public class LighterCore extends LighterApi
                 put( "doc", "https://apidocs.lighter.xyz/" );
                 put( "fees", "https://docs.lighter.xyz/perpetual-futures/fees" );
                 put( "referral", new java.util.HashMap<String, Object>() {{
-                    put( "url", "app.lighter.xyz/?referral=715955W9" );
+                    put( "url", "https://app.lighter.xyz/?referral=715955W9" );
                     put( "discount", 0.1 );
                 }} );
             }} );

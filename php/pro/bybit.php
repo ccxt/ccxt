@@ -2547,10 +2547,18 @@ class bybit extends \ccxt\async\bybit {
             $exacMethod($client, $message);
             return;
         }
+        // 'order' is a substring of 'orderbook', so an orderbook $topic like
+        // 'orderbook.50.BTCUSDT' could be wrongly captured by the 'order' $key in a
+        // first-match loop (in Go map iteration order is randomized). Check the
+        // orderbook prefix explicitly, then fall back to a simple first-match.
+        if (mb_strpos($topic, 'orderbook') !== false) {
+            $this->handle_order_book($client, $message);
+            return;
+        }
         $keys = is_array($methods) ? array_keys($methods) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
-            if (mb_strpos($topic, $keys[$i]) !== false) {
+            if (mb_strpos($topic, $key) !== false) {
                 $method = $methods[$key];
                 $method($client, $message);
                 return;

@@ -5,10 +5,10 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/bitflyer.js';
 import { ExchangeError, ArgumentsRequired, OrderNotFound, OnMaintenance } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Precise } from './base/Precise.js';
 //  ---------------------------------------------------------------------------
 /**
@@ -22,19 +22,19 @@ export default class bitflyer extends Exchange {
             'name': 'bitFlyer',
             'countries': ['JP'],
             'version': 'v1',
-            'rateLimit': 1000,
-            'hostname': 'bitflyer.com',
+            'rateLimit': 1000, // their nonce-timestamp is in seconds...
+            'hostname': 'bitflyer.com', // or bitflyer.com
             'has': {
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,
-                'swap': undefined,
-                'future': undefined,
+                'swap': undefined, // has but not fully implemented
+                'future': undefined, // has but not fully implemented
                 'option': false,
                 'borrowCrossMargin': false,
                 'borrowIsolatedMargin': false,
                 'borrowMargin': false,
-                'cancelAllOrders': undefined,
+                'cancelAllOrders': undefined, // https://lightning.bitflyer.com/docs?lang=en#cancel-all-orders
                 'cancelOrder': true,
                 'createOrder': true,
                 'fetchAllGreeks': false,
@@ -91,10 +91,10 @@ export default class bitflyer extends Exchange {
             'api': {
                 'public': {
                     'get': [
-                        'getmarkets/usa',
-                        'getmarkets/eu',
-                        'getmarkets',
-                        'getboard',
+                        'getmarkets/usa', // new (wip)
+                        'getmarkets/eu', // new (wip)
+                        'getmarkets', // or 'markets'
+                        'getboard', // ...
                         'getticker',
                         'getexecutions',
                         'gethealth',
@@ -160,7 +160,7 @@ export default class bitflyer extends Exchange {
                             'GTD': true, // todo implement
                         },
                         'hedged': false,
-                        'trailing': false,
+                        'trailing': false, // todo recheck
                         'leverage': false,
                         'marketBuyRequiresPrice': false,
                         'marketBuyByCost': false,

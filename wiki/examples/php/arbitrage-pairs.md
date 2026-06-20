@@ -1,8 +1,5 @@
-- [Arbitrage Pairs](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 
 include './ccxt.php';
 include 'Console/Table.php'; // pear-install it from here: https://pear.php.net/package/Console_Table/
@@ -140,5 +137,5 @@ if ($ids) {
 
 }
 
-?> 
+?>
 ```

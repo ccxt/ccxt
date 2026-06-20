@@ -1,15 +1,12 @@
-- [Builtin Rate Limiting Rest Poller](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 
 import ccxt from '../../js/ccxt.js';
 import log from 'ololog';
 import { nice as ansi } from 'ansicolor';
 import asTable from 'as-table';
 
-const exchange = new ccxt.coinbasepro ()
+const exchange = new ccxt.coinbaseexchange ()
 const repeat   = 100
 
 async function test (symbol) {
@@ -26,5 +23,5 @@ const concurrent = [
     test ('ETH/USD')
 ]
 
-Promise.all (concurrent) 
+Promise.all (concurrent)
 ```

@@ -1,15 +1,12 @@
-- [Hybridesmexample](./examples/js/)
-
-
- ```javascript
- import {version, huobi} from 'ccxt';
+```javascript
+import {version, htx} from 'ccxt';
 
 console.log('--------------------------------------------')
 console.log('Yey importing ccxt as an ESM module!!!!!')
 console.log('Version:', version)
 console.log('--------------------------------------------')
 
-const exchange = new huobi ({
+const exchange = new htx ({
     'apiKey': 'YOUR_API_KEY',
     'secret': 'YOUR_SECRET_KEY',
     'options': {
@@ -20,5 +17,5 @@ const exchange = new huobi ({
 ;(async () => {
     const result = await exchange.fetchBalance();
     console.log(result)
-    }) () 
+    }) ()
 ```

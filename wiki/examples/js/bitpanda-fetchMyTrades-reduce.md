@@ -1,8 +1,5 @@
-- [Bitpanda Fetchmytrades Reduce](./examples/js/)
-
-
- ```javascript
- import ccxt from '../../js/ccxt.js';
+```javascript
+import ccxt from '../../js/ccxt.js';
 
 const bitpanda = new ccxt.bitpanda ({
     "apiKey": "INSERTYOURAPIKEY"
@@ -37,5 +34,5 @@ bought 0.00 USDT for 0.00 EUR
     const buys = trades.filter (x => x.side === 'buy')
     console.log ('\nsold', sells.reduce ((a, b) => a + b.amount, 0).toFixed (2), market.base, 'for', sells.reduce ((a, b) => a + b.cost, 0).toFixed (2), market.quote)
     console.log ('bought', buys.reduce ((a, b) => a + b.amount, 0).toFixed (2), market.base, 'for', buys.reduce ((a, b) => a + b.cost, 0).toFixed (2), market.quote)
-}) () 
+}) ()
 ```

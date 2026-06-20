@@ -16,16 +16,16 @@ var data = require('../utils/data.js');
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
+var __classPrivateFieldGet = (globalThis && globalThis.__classPrivateFieldGet) || function (receiver, state, kind, f) {
+    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
+    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+};
 var __classPrivateFieldSet = (globalThis && globalThis.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
     if (kind === "m") throw new TypeError("Private method is not writable");
     if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
     return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
-};
-var __classPrivateFieldGet = (globalThis && globalThis.__classPrivateFieldGet) || function (receiver, state, kind, f) {
-    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
-    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
-    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
 var _TypedDataEncoder_instances, _TypedDataEncoder_types, _TypedDataEncoder_fullTypes, _TypedDataEncoder_encoderCache, _TypedDataEncoder_getEncoder;
 const { base16ToBinary } = functions;
@@ -144,6 +144,12 @@ function encodeType(name, fields) {
  */
 class TypedDataEncoder {
     /**
+     *  The types.
+     */
+    get types() {
+        return JSON.parse(__classPrivateFieldGet(this, _TypedDataEncoder_types, "f"));
+    }
+    /**
      *  Create a new **TypedDataEncoder** for %%types%%.
      *
      *  This performs all necessary checking that types are valid and
@@ -218,12 +224,6 @@ class TypedDataEncoder {
             st.sort();
             __classPrivateFieldGet(this, _TypedDataEncoder_fullTypes, "f").set(name, encodeType(name, types[name]) + st.map((t) => encodeType(t, types[t])).join(""));
         }
-    }
-    /**
-     *  The types.
-     */
-    get types() {
-        return JSON.parse(__classPrivateFieldGet(this, _TypedDataEncoder_types, "f"));
     }
     /**
      *  Returnthe encoder for the specific %%type%%.

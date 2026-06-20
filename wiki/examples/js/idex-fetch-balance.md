@@ -1,8 +1,5 @@
-- [Idex Fetch Balance](./examples/js/)
-
-
- ```javascript
- import ccxt from '../../js/ccxt.js';
+```javascript
+import ccxt from '../../js/ccxt.js';
 
 const idex = ccxt.idex ({
     'apiKey': 'YOUR_IDEX_API_KEY',
@@ -15,5 +12,5 @@ const idex = ccxt.idex ({
 ;(async () => {
     console.log (await idex.fetchBalance ())
 }) ()
- 
+
 ```

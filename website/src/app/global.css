@@ -1,0 +1,444 @@
+@import 'tailwindcss';
+@import 'fumadocs-ui/css/neutral.css';
+@import 'fumadocs-ui/css/preset.css';
+
+html {
+  scrollbar-gutter: stable;
+}
+
+html > body[data-scroll-locked] {
+  margin-right: 0px !important;
+  --removed-body-scroll-bar-size: 0px !important;
+}
+
+/* =========================================================
+   CCXT "Code Swap" hero — namespaced under .csh-root.
+   Colours map onto Fumadocs fd- tokens so it follows the
+   active theme (light/dark) automatically.
+   ========================================================= */
+.csh-root {
+  --csh-card: var(--color-fd-card);
+  --csh-card-2: color-mix(in oklab, var(--color-fd-card) 70%, var(--color-fd-background));
+  --csh-fg: var(--color-fd-foreground);
+  --csh-muted: var(--color-fd-muted);
+  --csh-muted-fg: var(--color-fd-muted-foreground);
+  --csh-border: var(--color-fd-border);
+  --csh-border-strong: color-mix(in oklab, var(--color-fd-border) 50%, var(--color-fd-foreground));
+  --csh-mono: var(--font-mono, ui-monospace, 'SF Mono', Menlo, monospace);
+  --c-key: hsl(265 70% 75%);
+  --c-fn: hsl(35 90% 66%);
+  --c-str: hsl(150 45% 60%);
+  --c-com: hsl(240 5% 50%);
+  --c-num: hsl(20 85% 68%);
+  --c-pun: hsl(240 5% 55%);
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--csh-fg);
+}
+/* lighter syntax palette in light mode */
+:root:not(.dark) .csh-root {
+  --c-key: hsl(265 60% 50%);
+  --c-fn: hsl(35 80% 42%);
+  --c-str: hsl(150 55% 34%);
+  --c-com: hsl(240 4% 55%);
+  --c-num: hsl(20 75% 45%);
+  --c-pun: hsl(240 5% 45%);
+}
+
+.csh-stage {
+  position: relative;
+  width: min(880px, 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.csh-cards {
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  gap: 18px;
+  align-items: stretch;
+}
+@media (max-width: 760px) {
+  .csh-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+.csh-card {
+  background: var(--csh-card);
+  border: 1px solid var(--csh-border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.02),
+    0 24px 60px -32px rgba(0, 0, 0, 0.6);
+  transition: box-shadow 0.4s ease;
+}
+.csh-cards:hover .csh-card,
+.csh-card:focus-within {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--exc, transparent) 45%, transparent),
+    0 0 44px -12px color-mix(in srgb, var(--exc, transparent) 60%, transparent),
+    0 24px 60px -32px rgba(0, 0, 0, 0.6);
+}
+
+.csh-ch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--csh-border);
+  background: var(--csh-card-2);
+}
+.csh-dots {
+  display: flex;
+  gap: 6px;
+  margin-right: 4px;
+}
+.csh-dots i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--csh-muted);
+  box-shadow: inset 0 0 0 1px var(--csh-border-strong);
+}
+.csh-name {
+  font-family: var(--csh-mono);
+  font-size: 12px;
+  color: var(--csh-muted-fg);
+}
+.csh-pill {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--csh-muted-fg);
+  padding: 3px 9px 3px 7px;
+  border-radius: 100px;
+  border: 1px solid var(--csh-border);
+  background: var(--color-fd-background);
+}
+.csh-pill-mark {
+  width: 12px;
+  height: 12px;
+  display: block;
+  color: var(--csh-fg);
+}
+
+.csh-pre {
+  margin: 0;
+  padding: 18px 18px 20px;
+  font-family: var(--csh-mono);
+  font-size: clamp(12.5px, 1.4vw, 14.5px);
+  line-height: 1.9;
+  color: var(--csh-fg);
+  white-space: pre;
+  overflow-x: auto;
+  background: transparent;
+}
+.csh-pre code {
+  font-family: inherit;
+  background: transparent;
+  padding: 0;
+}
+.csh-k {
+  color: var(--c-key);
+}
+.csh-fn {
+  color: var(--c-fn);
+}
+.csh-str {
+  color: var(--c-str);
+}
+.csh-com {
+  color: var(--c-com);
+  font-style: italic;
+}
+.csh-pun {
+  color: var(--c-pun);
+}
+.csh-num {
+  color: var(--c-num);
+}
+
+.csh-tok {
+  position: relative;
+  display: inline-flex;
+  align-items: baseline;
+  white-space: nowrap;
+  font-weight: 600;
+  color: var(--exc, var(--csh-fg));
+  padding: 1px 5px;
+  margin: 0 -2px;
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--exc, #888) 15%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--exc, #888) 40%, transparent);
+  transition:
+    color 0.25s,
+    background 0.25s,
+    box-shadow 0.25s;
+}
+.csh-tok.csh-typing {
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--exc) 70%, transparent),
+    0 0 22px -4px var(--exc);
+}
+.csh-caret {
+  display: inline-block;
+  width: 2px;
+  height: 1.05em;
+  transform: translateY(2px);
+  margin-left: 1px;
+  background: var(--exc, var(--csh-fg));
+  animation: csh-blink 1s steps(1) infinite;
+}
+@keyframes csh-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.csh-langs {
+  display: flex;
+  gap: 2px;
+  padding: 7px 8px 0;
+  background: var(--csh-card-2);
+  border-bottom: 1px solid var(--csh-border);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.csh-langs::-webkit-scrollbar {
+  display: none;
+}
+.csh-lang {
+  cursor: pointer;
+  border: 0;
+  background: none;
+  color: var(--csh-muted-fg);
+  font-family: var(--csh-mono);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 7px 11px 9px;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  white-space: nowrap;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
+}
+.csh-lang:hover {
+  color: var(--csh-fg);
+}
+.csh-lang.csh-active {
+  color: var(--csh-fg);
+  border-bottom-color: var(--csh-fg);
+}
+
+.csh-resp {
+  display: flex;
+  flex-direction: column;
+}
+.csh-resp-body {
+  padding: 16px 18px;
+  flex: 1;
+}
+.csh-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px dashed var(--csh-border);
+}
+.csh-row:last-of-type {
+  border-bottom: 0;
+}
+.csh-key {
+  font-family: var(--csh-mono);
+  font-size: 12px;
+  color: var(--csh-muted-fg);
+}
+.csh-v {
+  font-family: var(--csh-mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--csh-fg);
+}
+.csh-venue {
+  color: var(--exc, var(--csh-fg));
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.csh-vd {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--exc, var(--csh-fg));
+}
+.csh-ok {
+  margin-top: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--csh-muted-fg);
+}
+.csh-live {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: hsl(150 60% 50%);
+  box-shadow: 0 0 0 0 hsla(150, 60%, 50%, 0.5);
+  animation: csh-pulse 2.2s ease-out infinite;
+}
+@keyframes csh-pulse {
+  0% {
+    box-shadow: 0 0 0 0 hsla(150, 60%, 50%, 0.5);
+  }
+  70%,
+  100% {
+    box-shadow: 0 0 0 7px hsla(150, 60%, 50%, 0);
+  }
+}
+
+/* beam: glowing line + comet from the active exchange chip up to the swapping token */
+.csh-beam {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 1;
+}
+.csh-beam-base {
+  fill: none;
+  stroke: var(--csh-border-strong);
+  stroke-width: 1.5;
+}
+.csh-beam-flow {
+  fill: none;
+  stroke: var(--bm, var(--csh-muted-fg));
+  stroke-width: 2;
+  stroke-dasharray: 2 8;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 4px var(--bm, var(--csh-muted-fg)));
+  transition: stroke 0.3s;
+}
+.csh-beam-comet {
+  fill: var(--bm, var(--csh-muted-fg));
+  filter: drop-shadow(0 0 5px var(--bm, var(--csh-muted-fg)));
+  transition: fill 0.3s;
+}
+@media (max-width: 760px) {
+  .csh-beam {
+    display: none;
+  }
+}
+
+.csh-picker {
+  position: relative;
+  z-index: 3;
+  margin-top: 80px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  max-width: 760px;
+}
+.csh-exc {
+  cursor: pointer;
+  border: 1px solid var(--csh-border);
+  background: var(--csh-card);
+  color: var(--csh-muted-fg);
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 14px 8px 9px;
+  border-radius: 9px;
+  transition:
+    transform 0.15s,
+    border-color 0.2s,
+    background 0.2s,
+    color 0.2s,
+    box-shadow 0.2s;
+}
+.csh-exc-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--exc);
+  flex: 0 0 auto;
+  filter: saturate(0.6) opacity(0.7);
+  transition: filter 0.2s;
+}
+.csh-exc-lbl {
+  font-size: 13.5px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+.csh-exc:hover {
+  color: var(--csh-fg);
+  border-color: var(--csh-border-strong);
+  transform: translateY(-1px);
+}
+.csh-exc:hover .csh-exc-dot {
+  filter: none;
+}
+.csh-exc.csh-active {
+  color: var(--csh-fg);
+  border-color: color-mix(in srgb, var(--exc) 55%, var(--csh-border));
+  background: color-mix(in srgb, var(--exc) 10%, var(--csh-card));
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--exc) 35%, transparent),
+    0 8px 24px -12px var(--exc);
+}
+.csh-exc.csh-active .csh-exc-dot {
+  filter: none;
+  box-shadow: 0 0 8px var(--exc);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .csh-caret,
+  .csh-live {
+    animation: none !important;
+  }
+  .csh-card,
+  .csh-exc {
+    transition: none !important;
+  }
+}
+
+/* Ask-AI panel on the home layout: the home navbar (#nd-nav, h-14, z-40) sits ABOVE the
+   panel (z-30), so the panel's lg:top-0 puts its header behind the navbar. Start it below
+   the navbar instead. Docs/notebook layouts drop the panel into grid-area:toc and are
+   unaffected (this is scoped to #nd-home-layout). */
+@media (min-width: 1024px) {
+  #nd-home-layout [class~='lg:sticky'][class~='lg:h-dvh'] {
+    top: 3.5rem; /* h-14 navbar */
+    height: calc(100dvh - 3.5rem);
+  }
+}
+
+/* Per-exchange table (Manual #exchanges): images get `rounded-lg` from the MDX <img>
+   component, but the exchange logos are rectangular brand marks — soften only slightly,
+   and centre the logo within its column (scoped to cells that actually hold an image, so
+   text/param tables keep their left-aligned first column). */
+.prose td img {
+  border-radius: 3px;
+}
+.prose td:first-child:has(img) {
+  text-align: center;
+}

@@ -1,8 +1,5 @@
-- [Many Exchanges Many Streams With Keys](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import ccxt.pro
 from asyncio import gather, run
@@ -59,7 +56,7 @@ async def exchange_loop(exchange_id, methods, config={}):
 
 async def main():
     keys = {
-        'okex': {
+        'okx': {
             'apiKey': 'YOUR_API_KEY',
             'secret': 'YOUR_SECRET',
         },
@@ -69,7 +66,7 @@ async def main():
         },
     }
     exchanges = {
-        'okex': {
+        'okx': {
             'watchOrderBook': ['BTC/USDT', 'ETH/BTC', 'ETH/USDT'],
             'watchTicker': ['BTC/USDT'],
             'watchBalance': [],
@@ -85,5 +82,5 @@ async def main():
 
 
 run(main())
- 
+
 ```

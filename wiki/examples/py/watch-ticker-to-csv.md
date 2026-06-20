@@ -1,8 +1,5 @@
-- [Watch Ticker To Csv](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 from asyncio import gather, run
 import ccxt.pro
@@ -39,7 +36,7 @@ async def watch_tickers_continuously(exchange_id, overrides, symbols):
 async def main():
     exchanges = {
         'binance': {'options': {'defaultType': 'future'}},
-        'huobipro': {}
+        'htx': {}
     }
     symbols = ['BTC/USDT', 'ETH/USDT', 'LTC/USDT', 'XRP/USDT', 'BCH/USDT']
     coroutines = [watch_tickers_continuously(exchange_id, exchanges[exchange_id], symbols) for exchange_id in exchanges.keys()]
@@ -47,5 +44,5 @@ async def main():
 
 
 run(main())
- 
+
 ```

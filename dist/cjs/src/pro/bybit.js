@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var bybit$1 = require('../bybit.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
-var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -120,7 +120,7 @@ class bybit extends bybit$1["default"] {
                     'name': 'tickers', // 'tickers' for 24hr statistical ticker or 'tickers_lt' for leverage token ticker
                 },
                 'watchPositions': {
-                    'fetchPositionsSnapshot': true,
+                    'fetchPositionsSnapshot': true, // or false
                     'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
                 },
                 'watchMyTrades': {
@@ -2295,7 +2295,7 @@ class bybit extends bybit$1["default"] {
             const expires = this.numberToString(expiresInt);
             const path = 'GET/realtime';
             const auth = path + expires;
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256, 'hex');
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256, 'hex');
             const request = {
                 'op': 'auth',
                 'args': [
@@ -2442,10 +2442,18 @@ class bybit extends bybit$1["default"] {
             exacMethod.call(this, client, message);
             return;
         }
+        // 'order' is a substring of 'orderbook', so an orderbook topic like
+        // 'orderbook.50.BTCUSDT' could be wrongly captured by the 'order' key in a
+        // first-match loop (in Go map iteration order is randomized). Check the
+        // orderbook prefix explicitly, then fall back to a simple first-match.
+        if (topic.indexOf('orderbook') >= 0) {
+            this.handleOrderBook(client, message);
+            return;
+        }
         const keys = Object.keys(methods);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            if (topic.indexOf(keys[i]) >= 0) {
+            if (topic.indexOf(key) >= 0) {
                 const method = methods[key];
                 method.call(this, client, message);
                 return;

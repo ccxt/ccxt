@@ -1,8 +1,5 @@
-- [Live Orderbook](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 
 import asTable from 'as-table';
 import ololog from 'ololog';
@@ -107,5 +104,5 @@ let printOrderBook = async (id, symbol, depth) => {
 
     process.exit ()
 
-}) () 
+}) ()
 ```

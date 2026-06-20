@@ -549,7 +549,7 @@ class bithumb(ccxt.async_support.bithumb):
         sideId = self.safe_string(order, 'ask_bid')
         side = ('buy') if (sideId == 'BID') else ('sell')
         typeId = self.safe_string(order, 'order_type')
-        type = None
+        type: Str = None
         if typeId == 'limit':
             type = 'limit'
         elif typeId == 'price':
@@ -557,7 +557,7 @@ class bithumb(ccxt.async_support.bithumb):
         elif typeId == 'market':
             type = 'market'
         stateId = self.safe_string(order, 'state')
-        status = None
+        status: Str = None
         if stateId == 'wait':
             status = 'open'
         elif stateId == 'trade':

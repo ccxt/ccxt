@@ -871,7 +871,7 @@ class foxbit(Exchange, ImplicitAPI):
 
     def fetch_orders_by_status(self, status: Str, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         self.load_markets()
-        market = None
+        market: Market = None
         request: dict = {
             'state': status,
         }
@@ -1131,7 +1131,7 @@ class foxbit(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
-        market = None
+        market: Market = None
         request: dict = {}
         if symbol is not None:
             market = self.market(symbol)
@@ -1258,7 +1258,7 @@ class foxbit(Exchange, ImplicitAPI):
         """
         self.load_markets()
         request: dict = {}
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
         if limit is not None:
@@ -1301,7 +1301,7 @@ class foxbit(Exchange, ImplicitAPI):
         """
         self.load_markets()
         request: dict = {}
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
         if limit is not None:
@@ -1481,7 +1481,7 @@ class foxbit(Exchange, ImplicitAPI):
         }
         if tag is not None:
             request['destination_tag'] = tag
-        networkCode = None
+        networkCode: Str = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:
             request['network_code'] = self.network_code_to_id(networkCode, code)

@@ -33,7 +33,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-bit2c.fetchBalance ([params])
+bit2c.fetchBalance (params?)
 ```
 
 
@@ -55,7 +55,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bit2c.fetchOrderBook (symbol[, limit, params])
+bit2c.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -76,7 +76,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bit2c.fetchTicker (symbol[, params])
+bit2c.fetchTicker (symbol, params?)
 ```
 
 
@@ -103,7 +103,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bit2c.fetchTrades (symbol[, since, limit, params])
+bit2c.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -123,7 +123,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-bit2c.fetchTradingFees ([params])
+bit2c.fetchTradingFees (params?)
 ```
 
 
@@ -148,7 +148,7 @@ create a trade order
 
 
 ```javascript
-bit2c.createOrder (symbol, type, side, amount[, price, params])
+bit2c.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -170,7 +170,7 @@ cancels an open order
 
 
 ```javascript
-bit2c.cancelOrder (id, symbol[, params])
+bit2c.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -193,7 +193,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-bit2c.fetchOpenOrders (symbol[, since, limit, params])
+bit2c.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -215,7 +215,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-bit2c.fetchOrder (id, symbol[, params])
+bit2c.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -238,7 +238,7 @@ fetch all trades made by the user
 
 
 ```javascript
-bit2c.fetchMyTrades (symbol[, since, limit, params])
+bit2c.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -259,6 +259,6 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-bit2c.fetchDepositAddress (code[, params])
+bit2c.fetchDepositAddress (code, params?)
 ```
 

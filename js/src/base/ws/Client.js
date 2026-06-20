@@ -8,7 +8,7 @@ import { RequestTimeout, NetworkError, NotSupported, BaseError, ExchangeClosedBy
 import { inflateSync, gunzipSync } from '../../static_dependencies/fflake/browser.js';
 import { Future } from './Future.js';
 import { isNode, isJsonEncodedObject, deepExtend, milliseconds, } from '../../base/functions.js';
-import { utf8 } from '../../static_dependencies/scure-base/index.js';
+import { utf8 } from '@scure/base';
 export default class Client {
     constructor(url, onMessageCallback, onErrorCallback, onCloseCallback, onConnectedCallback, config = {}) {
         this.verbose = false;
@@ -19,23 +19,23 @@ export default class Client {
             onErrorCallback,
             onCloseCallback,
             onConnectedCallback,
-            verbose: false,
-            protocols: undefined,
-            options: undefined,
+            verbose: false, // verbose output
+            protocols: undefined, // ws-specific protocols
+            options: undefined, // ws-specific options
             futures: {},
             subscriptions: {},
-            rejections: {},
-            connected: undefined,
-            error: undefined,
-            connectionStarted: undefined,
-            connectionEstablished: undefined,
+            rejections: {}, // so that we can reject things in the future
+            connected: undefined, // connection-related Future
+            error: undefined, // stores low-level networking exception, if any
+            connectionStarted: undefined, // initiation timestamp in milliseconds
+            connectionEstablished: undefined, // success timestamp in milliseconds
             isConnected: false,
-            connectionTimer: undefined,
-            connectionTimeout: 10000,
-            pingInterval: undefined,
-            ping: undefined,
-            keepAlive: 30000,
-            maxPingPongMisses: 2.0,
+            connectionTimer: undefined, // connection-related setTimeout
+            connectionTimeout: 10000, // in milliseconds, false to disable
+            pingInterval: undefined, // stores the ping-related interval
+            ping: undefined, // ping-function (if defined)
+            keepAlive: 30000, // ping-pong keep-alive rate in milliseconds
+            maxPingPongMisses: 2.0, // how many missing pongs to throw a RequestTimeout
             // timeout is not used atm
             // timeout: 30000, // throw if a request is not satisfied in 30 seconds, false to disable
             connection: undefined,

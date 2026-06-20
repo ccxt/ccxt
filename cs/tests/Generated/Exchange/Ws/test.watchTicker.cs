@@ -32,7 +32,7 @@ public partial class testMainClass : BaseTest
             }
             if (isTrue(isEqual(success, true)))
             {
-                assert((response is IDictionary<string, object>), add(add(add(add(add(add(exchange.id, " "), method), " "), symbol), " must return an object. "), exchange.json(response)));
+                assert(exchange.isDictionary(response), add(add(add(add(add(add(exchange.id, " "), method), " "), symbol), " must return an object. "), exchange.json(response)));
                 now = exchange.milliseconds();
                 testTicker(exchange, skippedProperties, method, response, symbol);
             }

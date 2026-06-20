@@ -1,8 +1,5 @@
-- [Bitmex_watch_ticker_and_ohlcv](./examples/py/)
-
-
- ```python
- import ccxt.pro
+```python
+import ccxt.pro
 from asyncio import run, gather
 
 
@@ -75,5 +72,5 @@ async def main():
 
 
 run(main())
- 
+
 ```
