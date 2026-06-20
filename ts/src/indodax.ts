@@ -6,7 +6,7 @@ import Exchange from './abstract/indodax.js';
 import { ExchangeError, ArgumentsRequired, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError, BadSymbol } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type{ Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress, Fee } from './base/types.js';
+import type{ Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress, Fee, List } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -366,7 +366,7 @@ export default class indodax extends Exchange {
         //         }
         //     ]
         //
-        const result = [];
+        const result: List = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
             const id = this.safeString (market, 'id');
@@ -623,7 +623,7 @@ export default class indodax extends Exchange {
         const response = await this.publicGetApiTickerAll (params);
         const tickers = this.safeDict (response, 'tickers', {});
         const keys = Object.keys (tickers);
-        const parsedTickers = {};
+        const parsedTickers: Dict = {};
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             const rawTicker = tickers[key];
@@ -910,7 +910,7 @@ export default class indodax extends Exchange {
         }
         // { success: 1, return: { orders: { marketid: [ ... objects ] }}} if all orders are fetched
         const marketIds = Object.keys (rawOrders);
-        let exchangeOrders = [];
+        let exchangeOrders: List = [];
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const marketOrders = rawOrders[marketId];
@@ -1179,7 +1179,7 @@ export default class indodax extends Exchange {
         const data = this.safeValue (response, 'return', {});
         const withdraw = this.safeValue (data, 'withdraw', {});
         const deposit = this.safeValue (data, 'deposit', {});
-        let transactions = [];
+        let transactions: List = [];
         let currency: Currency = undefined;
         if (code === undefined) {
             let keys = Object.keys (withdraw);
@@ -1398,7 +1398,7 @@ export default class indodax extends Exchange {
             const address = this.safeString (addresses, marketId);
             if ((address !== undefined) && ((codes === undefined) || (this.inArray (code, codes)))) {
                 this.checkAddress (address);
-                let network = undefined;
+                let network: any = undefined;
                 if (marketId in networks) {
                     const networkId = this.safeString (networks, marketId);
                     if (networkId.indexOf (',') >= 0) {
