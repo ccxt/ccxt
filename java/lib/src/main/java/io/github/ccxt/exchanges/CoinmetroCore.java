@@ -480,7 +480,7 @@ public class CoinmetroCore extends CoinmetroApi
             {
                 Object market = this.parseMarket(Helpers.GetValue(response, i));
                 // there are several broken (unavailable info) markets
-                if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "base"), null)) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "quote"), null))))
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(this.safeString(market, "base"), null)) || Helpers.isTrue(Helpers.isEqual(this.safeString(market, "quote"), null))))
                 {
                     continue;
                 }

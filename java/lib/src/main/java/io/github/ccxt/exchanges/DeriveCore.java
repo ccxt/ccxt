@@ -2037,7 +2037,7 @@ public class DeriveCore extends DeriveApi
         {
             market = this.safeMarket(marketId, market);
         }
-        Object symbol = Helpers.GetValue(market, "symbol");
+        Object symbol = this.safeString(market, "symbol");
         Object price = this.safeString(order, "limit_price");
         Object average = this.safeString(order, "average_price");
         Object amount = this.safeString(order, "desired_amount");

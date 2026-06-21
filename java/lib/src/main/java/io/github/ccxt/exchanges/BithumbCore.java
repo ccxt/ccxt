@@ -299,7 +299,7 @@ public class BithumbCore extends BithumbApi
                 Object quote = Helpers.GetValue(quotes, i);
                 Object quoteId = quote;
                 Object response = Helpers.GetValue(results, i);
-                Object data = this.safeDict(response, "data");
+                Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
                 Object extension = this.safeDict(quoteCurrencies, quote, new java.util.HashMap<String, Object>() {{}});
                 Object currencyIds = Helpers.objectKeys(data);
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(currencyIds)); j++)

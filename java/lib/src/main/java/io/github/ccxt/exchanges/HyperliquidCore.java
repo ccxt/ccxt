@@ -565,7 +565,7 @@ public class HyperliquidCore extends HyperliquidApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object options = this.safeDict(this.options, "fetchMarkets", new java.util.HashMap<String, Object>() {{}});
-            Object types = this.safeList(options, "types");
+            Object types = this.safeList(options, "types", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object rawPromises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(types)); i++)
             {
@@ -2850,7 +2850,7 @@ public class HyperliquidCore extends HyperliquidApi
             //
             Object innerResponse = this.safeDict(response, "response");
             Object data = this.safeDict(innerResponse, "data");
-            Object statuses = this.safeList(data, "statuses");
+            Object statuses = this.safeList(data, "statuses", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(statuses)); i++)
             {
@@ -5340,7 +5340,7 @@ final Object finalClientOrderId = clientOrderId;
                     Object record = Helpers.GetValue(records, i);
                     if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(record, "type"), "vaultDeposit")))
                     {
-                        Object delta = this.safeDict(record, "delta");
+                        Object delta = this.safeDict(record, "delta", new java.util.HashMap<String, Object>() {{}});
                         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(delta, "vault"), Helpers.add("0x", vaultAddress))))
                         {
                             ((java.util.List<Object>)deposits).add(record);
@@ -5426,7 +5426,7 @@ final Object finalClientOrderId = clientOrderId;
                     Object record = Helpers.GetValue(records, i);
                     if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(record, "type"), "vaultWithdraw")))
                     {
-                        Object delta = this.safeDict(record, "delta");
+                        Object delta = this.safeDict(record, "delta", new java.util.HashMap<String, Object>() {{}});
                         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(delta, "vault"), Helpers.add("0x", vaultAddress))))
                         {
                             ((java.util.List<Object>)withdrawals).add(record);

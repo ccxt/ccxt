@@ -565,7 +565,7 @@ public class CoinmateCore extends CoinmateApi
         Object timestamp = this.safeTimestamp(ticker, "timestamp");
         Object last = this.safeNumber(ticker, "last");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
-            put( "symbol", Helpers.GetValue(market, "symbol") );
+            put( "symbol", CoinmateCore.this.safeString(market, "symbol") );
             put( "timestamp", timestamp );
             put( "datetime", CoinmateCore.this.iso8601(timestamp) );
             put( "high", CoinmateCore.this.safeNumber(ticker, "high") );

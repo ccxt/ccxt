@@ -1949,7 +1949,7 @@ public class KrakenCore extends KrakenApi
             final Object finalMarket = market;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "orders", ordersRequests );
-                put( "pair", Helpers.GetValue(finalMarket, "id") );
+                put( "pair", KrakenCore.this.safeString(finalMarket, "id") );
             }};
             request = this.extend(request, parameters);
             response = (this.privatePostAddOrderBatch(request)).join();
@@ -2493,6 +2493,7 @@ final Object finalId = id;
         if (Helpers.isTrue(!Helpers.isEqual(close, null)))
         {
             close = this.extend(new java.util.HashMap<String, Object>() {{}}, close);
+            close = ((Helpers.isTrue((Helpers.isEqual(close, null))))) ? new java.util.HashMap<String, Object>() {{}} : close;
             Object closePrice = this.safeValue(close, "price");
             if (Helpers.isTrue(!Helpers.isEqual(closePrice, null)))
             {
