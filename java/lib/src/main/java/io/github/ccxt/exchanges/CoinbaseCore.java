@@ -5785,8 +5785,8 @@ public class CoinbaseCore extends CoinbaseApi
                     Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
         put( "info", response );
         put( "symbol", symbol );
-        put( "maker", taker_fee );
-        put( "taker", marker_fee );
+        put( "maker", marker_fee );
+        put( "taker", taker_fee );
         put( "percentage", true );
     }});
                 }
