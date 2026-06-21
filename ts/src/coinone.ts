@@ -6,7 +6,7 @@ import Exchange from './abstract/coinone.js';
 import { BadSymbol, BadRequest, ExchangeError, ArgumentsRequired, OrderNotFound, OnMaintenance } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, DepositAddress, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
+import type { Balances, Currencies, Currency, DepositAddress, Dict, Int, Market, NullableDict, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -571,7 +571,7 @@ export default class coinone extends Exchange {
             'quote_currency': 'KRW',
         };
         let market: Market = undefined;
-        let response = undefined;
+        let response: NullableDict = undefined;
         if (symbols !== undefined) {
             const first = this.safeString (symbols, 0);
             market = this.market (first);
@@ -767,7 +767,7 @@ export default class coinone extends Exchange {
         const amountString = this.safeString (trade, 'qty');
         const orderId = this.safeString (trade, 'orderId');
         let feeCostString = this.safeString (trade, 'fee');
-        let fee = undefined;
+        let fee: NullableDict = undefined;
         if (feeCostString !== undefined) {
             feeCostString = Precise.stringAbs (feeCostString);
             let feeRateString = this.safeString (trade, 'feeRate');
@@ -979,8 +979,8 @@ export default class coinone extends Exchange {
         const id = this.safeString (order, 'orderId');
         const baseId = this.safeString (order, 'baseCurrency');
         const quoteId = this.safeString (order, 'targetCurrency');
-        let base = undefined;
-        let quote = undefined;
+        let base: Str = undefined;
+        let quote: Str = undefined;
         if (baseId !== undefined) {
             base = this.safeCurrencyCode (baseId);
         }
@@ -1012,7 +1012,7 @@ export default class coinone extends Exchange {
             }
         }
         status = this.parseOrderStatus (status);
-        let fee = undefined;
+        let fee: NullableDict = undefined;
         const feeCostString = this.safeString (order, 'fee');
         if (feeCostString !== undefined) {
             const feeCurrencyCode = (side === 'sell') ? quote : base;
@@ -1232,7 +1232,7 @@ export default class coinone extends Exchange {
         return result as DepositAddress[];
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const request = this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         let url = this.urls['api']['rest'] + '/';

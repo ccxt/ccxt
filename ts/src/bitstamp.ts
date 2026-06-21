@@ -1951,7 +1951,7 @@ export default class bitstamp extends Exchange {
         //         },
         //     ]
         //
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -2354,7 +2354,7 @@ export default class bitstamp extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.privatePostUserTransactions (this.extend (request, params));
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -2524,7 +2524,7 @@ export default class bitstamp extends Exchange {
         const request: Dict = {
             'amount': amount,
         };
-        let currency = undefined;
+        let currency: Currency = undefined;
         let method: Str = undefined;
         if (!this.isFiat (code)) {
             const name = this.getCurrencyName (code);
@@ -2619,7 +2619,7 @@ export default class bitstamp extends Exchange {
         return this.milliseconds ();
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/';
         url += this.version + '/';
         url += this.implodeParams (path, params);

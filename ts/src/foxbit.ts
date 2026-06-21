@@ -1778,7 +1778,7 @@ export default class foxbit extends Exchange {
         const filled = this.safeString (order, 'quantity_executed');
         const remaining = this.safeString (order, 'quantity');
         // TODO: validate logic of amount here, should this be calculated?
-        let amount = undefined;
+        let amount: Str = undefined;
         if (remaining !== undefined && filled !== undefined) {
             amount = Precise.stringAdd (remaining, filled);
         }
@@ -1971,7 +1971,7 @@ export default class foxbit extends Exchange {
         };
     }
 
-    sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const version = api[0];
         let urlPath = api[1];
         let fullPath = '/rest/' + version + '/' + this.implodeParams (path, params);

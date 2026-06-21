@@ -3,7 +3,7 @@
 import toobitRest from '../toobit.js';
 import { AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Str, Ticker, OrderBook, Order, Trade, OHLCV, Dict, Market, Strings, Tickers, Balances, Position, Bool, Fee } from '../base/types.js';
+import type { Int, Str, Ticker, OrderBook, Order, Trade, OHLCV, Dict, List, Market, Strings, Tickers, Balances, Position, Bool, Fee } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -190,8 +190,8 @@ export default class toobit extends toobitRest {
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
-        const messageHashes = [];
-        const subParams = [];
+        const messageHashes: List = [];
+        const subParams: List = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
@@ -294,9 +294,9 @@ export default class toobit extends toobitRest {
     async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const url = this.urls['api']['ws']['common'] + '/quote/ws/v1';
-        const messageHashes = [];
+        const messageHashes: List = [];
         const timeframes = this.safeDict (this.options['ws'], 'timeframes', {});
-        const marketIds = [];
+        const marketIds: List = [];
         let selectedTimeframe: Str = undefined;
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = symbolsAndTimeframes[i];
@@ -422,8 +422,8 @@ export default class toobit extends toobitRest {
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
-        const messageHashes = [];
-        const subParams = [];
+        const messageHashes: List = [];
+        const subParams: List = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
@@ -530,8 +530,8 @@ export default class toobit extends toobitRest {
         symbols = this.marketSymbols (symbols, undefined, false);
         let channel: Str = undefined;
         [ channel, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'channel', 'depth');
-        const messageHashes = [];
-        const subParams = [];
+        const messageHashes: List = [];
+        const subParams: List = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
@@ -1070,7 +1070,7 @@ export default class toobit extends toobitRest {
             this.positions[accountType] = new ArrayCacheBySymbolBySide ();
         }
         const cache = this.positions[accountType];
-        const newPositions = [];
+        const newPositions: List = [];
         for (let i = 0; i < message.length; i++) {
             const rawPosition = message[i];
             const position = this.parseWsPosition (rawPosition);

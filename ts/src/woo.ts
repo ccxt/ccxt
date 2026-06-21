@@ -6,7 +6,7 @@ import Exchange from './abstract/woo.js';
 import { AuthenticationError, RateLimitExceeded, BadRequest, OperationFailed, ExchangeError, InvalidOrder, ArgumentsRequired, NotSupported, OnMaintenance } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { ADL, Account, Balances, Bool, Conversion, Currencies, Currency, DepositAddress, Dict, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, MarginModification, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int } from './base/types.js';
+import type { ADL, Account, Balances, Bool, Conversion, Currencies, Currency, DepositAddress, Dict, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, MarginModification, Market, MarketType, Num, NullableDict, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -821,7 +821,7 @@ export default class woo extends Exchange {
 
     parseTokenAndFeeTemp (item, feeTokenKeys, feeAmountKeys) {
         const feeCost = this.safeStringN (item, feeAmountKeys);
-        let fee = undefined;
+        let fee: NullableDict = undefined;
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeStringN (item, feeTokenKeys);
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
@@ -1277,7 +1277,7 @@ export default class woo extends Exchange {
             params = this.omit (params, [ 'cost', 'order_amount', 'orderAmount' ]);
             const isPriceProvided = price !== undefined;
             if (market['spot'] && (isPriceProvided || (cost !== undefined))) {
-                let quoteAmount = undefined;
+                let quoteAmount: Str = undefined;
                 if (cost !== undefined) {
                     quoteAmount = this.costToPrecision (symbol, cost);
                 } else {
@@ -1349,7 +1349,7 @@ export default class woo extends Exchange {
             request['childOrders'] = [ outterOrder ];
         }
         params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingPercent', 'trailingAmount', 'trailingTriggerPrice' ]);
-        let response = undefined;
+        let response: NullableDict = undefined;
         if (isConditional) {
             response = await this.v3PrivatePostTradeAlgoOrder (this.extend (request, params));
             //
@@ -1462,7 +1462,7 @@ export default class woo extends Exchange {
         }
         params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent' ]);
         const isConditional = isTrailing || (triggerPrice !== undefined) || (this.safeValue (params, 'childOrders') !== undefined);
-        let response = undefined;
+        let response: NullableDict = undefined;
         if (isByClientOrder) {
             request['client_order_id'] = clientOrderIdExchangeSpecific;
             if (isConditional) {
@@ -1522,7 +1522,7 @@ export default class woo extends Exchange {
         const clientOrderIdExchangeSpecific = this.safeString (params, 'client_order_id', clientOrderIdUnified);
         params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
-        let response = undefined;
+        let response: NullableDict = undefined;
         if (isTrigger) {
             if (isByClientOrder) {
                 request['clientAlgoOrderId'] = clientOrderIdExchangeSpecific;
@@ -1578,7 +1578,7 @@ export default class woo extends Exchange {
             const market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        let response = undefined;
+        let response: NullableDict = undefined;
         if (trigger) {
             response = await this.v3PrivateDeleteTradeAlgoOrders (params);
         } else {
@@ -1646,7 +1646,7 @@ export default class woo extends Exchange {
         params = this.omit (params, [ 'stop', 'trigger' ]);
         const request: Dict = {};
         const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
-        let response = undefined;
+        let response: NullableDict = undefined;
         if (trigger) {
             if (clientOrderId !== undefined) {
                 request['clientAlgoOrderId'] = id;
@@ -1775,7 +1775,7 @@ export default class woo extends Exchange {
         if (limit !== undefined) {
             request['size'] = Math.min (limit, 500);
         }
-        let response = undefined;
+        let response: NullableDict = undefined;
         if (trigger) {
             response = await this.v3PrivateGetTradeAlgoOrders (this.extend (request, params));
             //
@@ -2038,7 +2038,7 @@ export default class woo extends Exchange {
         const feeCurrency = this.safeString (order, 'feeAsset');
         const triggerPrice = this.safeNumber (order, 'triggerPrice');
         const lastUpdateTimestampString = this.safeString (order, 'updatedTime');
-        let lastUpdateTimestamp = undefined;
+        let lastUpdateTimestamp: Int = undefined;
         if (lastUpdateTimestampString !== undefined) {
             if (lastUpdateTimestampString.indexOf ('.') >= 0) {
                 lastUpdateTimestamp = this.safeTimestamp (order, 'updatedTime'); // algo orders
@@ -3343,7 +3343,7 @@ export default class woo extends Exchange {
         const estFundingRateTimestamp = this.safeInteger (fundingRate, 'estFundingRateTimestamp');
         const lastFundingRateTimestamp = this.safeInteger (fundingRate, 'lastFundingRateTimestamp');
         const intervalString = this.safeString (fundingRate, 'estFundingIntervalHours');
-        let interval = undefined;
+        let interval: Str = undefined;
         if (intervalString !== undefined) {
             interval = intervalString + 'h';
         }
@@ -3547,7 +3547,7 @@ export default class woo extends Exchange {
      * @returns {object} response from the exchange
      */
     async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
-        let hedgeMode = undefined;
+        let hedgeMode: Str = undefined;
         if (hedged) {
             hedgeMode = 'HEDGE_MODE';
         } else {
@@ -3581,7 +3581,7 @@ export default class woo extends Exchange {
     async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         if (market['spot']) {
             response = await this.v3PrivateGetAccountInfo (params);
             //
@@ -4093,8 +4093,8 @@ export default class woo extends Exchange {
         const data = this.safeDict (response, 'data', {});
         const fromCurrencyId = this.safeString (data, 'sellAsset');
         const toCurrencyId = this.safeString (data, 'buyAsset');
-        let fromCurrency = undefined;
-        let toCurrency = undefined;
+        let fromCurrency: Currency = undefined;
+        let toCurrency: Currency = undefined;
         if (fromCurrencyId !== undefined) {
             fromCurrency = this.currency (fromCurrencyId);
         }

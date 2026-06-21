@@ -6,7 +6,7 @@ import Exchange from './abstract/cryptomus.js';
 import { ArgumentsRequired, ExchangeError, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type{ Balances, Currencies, Dict, int, Int, Market, Num, Order, OrderBook, OrderType, OrderSide, Str, Strings, Ticker, Tickers, Trade, TradingFees, Currency, Fee } from './base/types.js';
+import type{ Balances, Currencies, Dict, int, Int, Market, Num, Order, OrderBook, OrderType, OrderSide, Str, Strings, Ticker, Tickers, Trade, TradingFees, Currency, Fee, List } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -417,7 +417,7 @@ export default class cryptomus extends Exchange {
         // currency here is array of networks
         let id: Str = undefined; // all entried have same id, as they were grouped by
         let code: Str = undefined;
-        const networks = {};
+        const networks: Dict = {};
         for (let i = 0; i < rawCurrency.length; i++) {
             const networkEntry = rawCurrency[i];
             // set ID on first loop
@@ -717,9 +717,9 @@ export default class cryptomus extends Exchange {
         const sideBuy = side === 'buy';
         const amountToString = this.numberToString (amount);
         const priceToString = this.numberToString (price);
-        let cost = undefined;
+        let cost: Str = undefined;
         [ cost, params ] = this.handleParamString (params, 'cost');
-        let response: Dict = undefined;
+        let response: Dict;
         if (type === 'market') {
             if (sideBuy) {
                 let createMarketBuyOrderRequiresPrice = true;
@@ -847,7 +847,7 @@ export default class cryptomus extends Exchange {
         //     }
         //
         const result = this.safeList (response, 'result', []);
-        const orders = [];
+        const orders: List = [];
         for (let i = 0; i < result.length; i++) {
             const order = result[i];
             orders.push (this.parseOrder (order, market));
@@ -1111,8 +1111,8 @@ export default class cryptomus extends Exchange {
     }
 
     parseFeeTiers (feeTiers, market: Market = undefined) {
-        const takerFees = [];
-        const makerFees = [];
+        const takerFees: List = [];
+        const makerFees: List = [];
         for (let i = 0; i < feeTiers.length; i++) {
             const tier = feeTiers[i];
             const turnover = this.safeNumber (tier, 'from_turnover');
@@ -1129,7 +1129,7 @@ export default class cryptomus extends Exchange {
         };
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const endpoint = this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
         let url = this.urls['api'][api] + '/' + endpoint;

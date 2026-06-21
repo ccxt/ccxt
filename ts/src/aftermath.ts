@@ -1,7 +1,7 @@
 import { ed25519 } from '@noble/curves/ed25519.js';
 import Exchange from './abstract/aftermath.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Account, Balances, Currencies, Currency, Market, Dict, int, Int, Strings, OHLCV, Order, OrderBook, OrderRequest, Str, Ticker, Trade, TradingFeeInterface, MarginModification, TransferEntry, Position, Transaction, OrderType, OrderSide, Num } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, Market, Dict, int, Int, List, Strings, OHLCV, Order, OrderBook, OrderRequest, Str, Ticker, Trade, TradingFeeInterface, MarginModification, TransferEntry, Position, Transaction, OrderType, OrderSide, Num } from './base/types.js';
 import { eddsa } from './base/functions/crypto.js';
 import { ArgumentsRequired, NotSupported, ExchangeError } from './base/errors.js';
 
@@ -540,7 +540,7 @@ export default class aftermath extends Exchange {
         //         "nextCursor": 573
         //     }
         //
-        const data = this.safeList (response, 'trades', []);
+        const data = this.safeList (response, 'trades', []) as List;
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -858,7 +858,7 @@ export default class aftermath extends Exchange {
      */
     async createOrders (orders: OrderRequest[], params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        const ordersRequest = [];
+        const ordersRequest: List = [];
         for (let i = 0; i < orders.length; i++) {
             const order = this.clone (orders[i]);
             const symbol = this.safeString (order, 'symbol');
@@ -1344,7 +1344,7 @@ export default class aftermath extends Exchange {
         return undefined;
     }
 
-    sign (path, api = 'public', method = 'POST', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'POST', params = {}, headers = undefined, body = undefined) {
         const url = this.urls['api']['rest'] + '/' + path;
         if (api === 'private') {
             this.checkRequiredCredentials ();

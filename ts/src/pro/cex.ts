@@ -820,7 +820,7 @@ export default class cex extends cexRest {
         //
         const isTransaction = this.safeValue (order, 'd') !== undefined;
         const remainsPrecision = this.safeString (order, 'remains');
-        let remaining = undefined;
+        let remaining: Str = undefined;
         if (remainsPrecision !== undefined) {
             remaining = this.currencyFromPrecision (market['base'], remainsPrecision);
         }

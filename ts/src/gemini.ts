@@ -761,7 +761,7 @@ export default class gemini extends Exchange {
         let tickSize: Num = undefined;
         let amountPrecision: Num = undefined;
         let minSize: Num = undefined;
-        let status = undefined;
+        let status: Bool = undefined;
         let swap = false;
         let contractSize: Num = undefined;
         let linear: Bool = undefined;
@@ -1941,7 +1941,7 @@ export default class gemini extends Exchange {
         return this.groupBy (results, 'network') as DepositAddress[];
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'private') {

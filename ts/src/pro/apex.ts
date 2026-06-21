@@ -4,7 +4,7 @@
 import { sha256 } from '@noble/hashes/sha2.js';
 import apexRest from '../apex.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Bool, Dict, Int, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Bool, Dict, Int, NullableDict, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError, NetworkError } from '../base/errors.js';
 
@@ -89,8 +89,8 @@ export default class apex extends apexRest {
             throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
         }
         const url = this.getWsPublicUrl ();
-        const topics = [];
-        const messageHashes = [];
+        const topics: string[] = [];
+        const messageHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
@@ -223,8 +223,8 @@ export default class apex extends apexRest {
         }
         symbols = this.marketSymbols (symbols);
         const url = this.getWsPublicUrl ();
-        const topics = [];
-        const messageHashes = [];
+        const topics: string[] = [];
+        const messageHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
@@ -247,7 +247,7 @@ export default class apex extends apexRest {
         // topics whose messageHash isn't yet tracked on this client; if all
         // are already subscribed, skip the subscribe entirely.
         const client = this.client (url);
-        const newTopics = [];
+        const newTopics: string[] = [];
         let newTopicsCount = 0;
         for (let i = 0; i < topics.length; i++) {
             if (!(messageHashes[i] in client.subscriptions)) {
@@ -255,7 +255,7 @@ export default class apex extends apexRest {
                 newTopicsCount = newTopicsCount + 1;
             }
         }
-        let message = undefined;
+        let message: NullableDict = undefined;
         if (newTopicsCount > 0) {
             const request: Dict = {
                 'op': 'subscribe',
@@ -394,9 +394,9 @@ export default class apex extends apexRest {
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
-        const messageHashes = [];
+        const messageHashes: string[] = [];
         const url = this.getWsPublicUrl ();
-        const topics = [ ];
+        const topics: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
@@ -440,7 +440,7 @@ export default class apex extends apexRest {
         const updateType = this.safeString (message, 'type', '');
         const data = this.safeDict (message, 'data', {});
         let symbol: Str = undefined;
-        let parsed = undefined;
+        let parsed: Ticker = undefined;
         if ((updateType === 'snapshot')) {
             parsed = this.parseTicker (data);
             symbol = parsed['symbol'];
@@ -495,8 +495,8 @@ export default class apex extends apexRest {
     async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const url = this.getWsPublicUrl ();
-        const rawHashes = [];
-        const messageHashes = [];
+        const rawHashes: string[] = [];
+        const messageHashes: string[] = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = symbolsAndTimeframes[i];
             let symbolString = this.safeString (data, 0);
@@ -710,7 +710,7 @@ export default class apex extends apexRest {
         const symbols: Dict = {};
         for (let i = 0; i < lists.length; i++) {
             const rawTrade = lists[i];
-            let parsed = undefined;
+            let parsed: Trade = undefined;
             parsed = this.parseWsTrade (rawTrade);
             const symbol = parsed['symbol'];
             symbols[symbol] = true;
@@ -763,7 +763,7 @@ export default class apex extends apexRest {
         const orders = this.orders;
         const symbols: Dict = {};
         for (let i = 0; i < lists.length; i++) {
-            let parsed = undefined;
+            let parsed: Order = undefined;
             parsed = this.parseOrder (lists[i]);
             const symbol = parsed['symbol'];
             symbols[symbol] = true;
@@ -839,7 +839,7 @@ export default class apex extends apexRest {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
         const cache = this.positions;
-        const newPositions = [];
+        const newPositions: Position[] = [];
         for (let i = 0; i < lists.length; i++) {
             const rawPosition = lists[i];
             const position = this.parsePosition (rawPosition);
