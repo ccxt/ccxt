@@ -6319,10 +6319,6 @@ public partial class Exchange
         {
             throw new ExchangeError ((string)add(this.id, " markets not loaded")) ;
         }
-        if (isTrue(isEqual(symbol, null)))
-        {
-            throw new BadSymbol ((string)add(add(this.id, " does not have market symbol "), symbol)) ;
-        }
         if (isTrue(inOp(this.markets, symbol)))
         {
             return getValue(this.markets, symbol);

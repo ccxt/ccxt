@@ -874,9 +874,9 @@ public partial class deepcoin : Exchange
     public virtual object getProductGroupFromMarket(object market)
     {
         object productGroup = "Spot";
-        if (isTrue(getValue(market, "swap")))
+        if (isTrue(this.safeBool(market, "swap")))
         {
-            if (isTrue(getValue(market, "linear")))
+            if (isTrue(this.safeBool(market, "linear")))
             {
                 productGroup = "SwapU";
             } else

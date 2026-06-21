@@ -582,7 +582,7 @@ public partial class coinbase : Exchange
         object accounts = this.safeList(response, "data", new List<object>() {});
         object length = getArrayLength(accounts);
         object lastIndex = subtract(length, 1);
-        object last = this.safeDict(accounts, lastIndex);
+        object last = this.safeDict(accounts, lastIndex, new Dictionary<string, object>() {});
         if (isTrue(isTrue((!isEqual(cursor, null))) && isTrue((!isEqual(cursor, "")))))
         {
             ((IDictionary<string,object>)last)["next_starting_after"] = cursor;
@@ -643,7 +643,7 @@ public partial class coinbase : Exchange
         if (isTrue(isTrue(isTrue((isGreaterThan(accountsLength, 0))) && isTrue((!isEqual(cursor, null)))) && isTrue((!isEqual(cursor, "")))))
         {
             object lastIndex = subtract(accountsLength, 1);
-            object last = this.safeDict(accounts, lastIndex);
+            object last = this.safeDict(accounts, lastIndex, new Dictionary<string, object>() {});
             ((IDictionary<string,object>)last)["cursor"] = cursor;
             ((List<object>)accounts)[Convert.ToInt32(lastIndex)] = last;
         }
@@ -3856,7 +3856,7 @@ public partial class coinbase : Exchange
         //     }
         //
         object orders = this.safeList(response, "orders", new List<object>() {});
-        object first = this.safeDict(orders, 0);
+        object first = this.safeDict(orders, 0, new Dictionary<string, object>() {});
         object cursor = this.safeString(response, "cursor");
         if (isTrue(isTrue((!isEqual(cursor, null))) && isTrue((!isEqual(cursor, "")))))
         {
@@ -3941,7 +3941,7 @@ public partial class coinbase : Exchange
         //     }
         //
         object orders = this.safeList(response, "orders", new List<object>() {});
-        object first = this.safeDict(orders, 0);
+        object first = this.safeDict(orders, 0, new Dictionary<string, object>() {});
         object cursor = this.safeString(response, "cursor");
         if (isTrue(isTrue((!isEqual(cursor, null))) && isTrue((!isEqual(cursor, "")))))
         {
@@ -4275,7 +4275,7 @@ public partial class coinbase : Exchange
         //     }
         //
         object trades = this.safeList(response, "fills", new List<object>() {});
-        object first = this.safeDict(trades, 0);
+        object first = this.safeDict(trades, 0, new Dictionary<string, object>() {});
         object cursor = this.safeString(response, "cursor");
         if (isTrue(isTrue((!isEqual(cursor, null))) && isTrue((!isEqual(cursor, "")))))
         {
