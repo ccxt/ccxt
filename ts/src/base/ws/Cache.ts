@@ -1,5 +1,6 @@
 /* eslint-disable max-classes-per-file */
 // @ts-nocheck
+import { Int } from '../types.js';
 
 interface CustomArray extends Array<any> {
     hashmap: object;
@@ -7,7 +8,7 @@ interface CustomArray extends Array<any> {
 
 class BaseCache extends Array {
 
-    constructor (maxSize = undefined) {
+    constructor (maxSize: Int = undefined) {
         super ()
         Object.defineProperty (this, 'maxSize', {
             __proto__: null, // make it invisible
@@ -25,7 +26,7 @@ class ArrayCache extends BaseCache implements CustomArray {
 
     hashmap: object = {};
 
-    constructor (maxSize = undefined) {
+    constructor (maxSize: Int = undefined) {
         super (maxSize);
         Object.defineProperty (this, 'nestedNewUpdatesBySymbol', {
             __proto__: null, // make it invisible
@@ -106,7 +107,7 @@ class ArrayCache extends BaseCache implements CustomArray {
 
 class ArrayCacheByTimestamp extends BaseCache {
 
-    constructor (maxSize = undefined) {
+    constructor (maxSize: Int = undefined) {
         super (maxSize)
         Object.defineProperty (this, 'hashmap', {
             __proto__: null, // make it invisible
@@ -166,7 +167,7 @@ class ArrayCacheByTimestamp extends BaseCache {
 
 class ArrayCacheBySymbolById extends ArrayCache {
 
-    constructor (maxSize = undefined) {
+    constructor (maxSize: Int = undefined) {
         super (maxSize)
         this.nestedNewUpdatesBySymbol = true
         // Object.defineProperty (this, 'hashmap', {
