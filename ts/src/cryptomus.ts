@@ -6,7 +6,7 @@ import Exchange from './abstract/cryptomus.js';
 import { ArgumentsRequired, ExchangeError, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type{ Balances, Currencies, Dict, int, Int, Market, Num, Order, OrderBook, OrderType, OrderSide, Str, Strings, Ticker, Tickers, Trade, TradingFees, Currency, Fee, List } from './base/types.js';
+import type{ Balances, Currencies, Dict, int, Int, Market, Num, Order, OrderBook, OrderType, OrderSide, Str, Strings, Ticker, Tickers, Trade, TradingFees, Currency, Fee, List, NullableDict} from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1129,7 +1129,7 @@ export default class cryptomus extends Exchange {
         };
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const endpoint = this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
         let url = this.urls['api'][api] + '/' + endpoint;

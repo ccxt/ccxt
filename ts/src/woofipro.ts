@@ -9,7 +9,7 @@ import { AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, Inva
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { ecdsa, eddsa } from './base/functions/crypto.js';
-import type { Balances, Currency, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction, Leverage, Currencies, TradingFees, OrderRequest, Dict, int, LedgerEntry, FundingRate, FundingRates, FundingHistory, Position } from './base/types.js';
+import type { Balances, Currency, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction, Leverage, Currencies, TradingFees, OrderRequest, Dict, int, LedgerEntry, FundingRate, FundingRates, FundingHistory, Position, NullableDict} from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -2917,7 +2917,7 @@ export default class woofipro extends Exchange {
         return this.milliseconds ();
     }
 
-    sign (path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, section = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const version = section[0];
         const access = section[1];
         const pathWithParams = this.implodeParams (path, params);

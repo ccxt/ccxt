@@ -6,7 +6,7 @@ import Exchange from './abstract/bithumb.js';
 import { ExchangeError, ExchangeNotAvailable, AuthenticationError, BadRequest, PermissionDenied, InvalidAddress, ArgumentsRequired, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { DECIMAL_PLACES, SIGNIFICANT_DIGITS, TRUNCATE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, Int, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, NullableDict} from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1221,7 +1221,7 @@ export default class bithumb extends Exchange {
         return this.milliseconds ();
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const endpoint = '/' + this.implodeParams (path, params);
         let url = this.implodeHostname (this.urls['api'][api]) + endpoint;
         const query = this.omit (params, this.extractParams (path));

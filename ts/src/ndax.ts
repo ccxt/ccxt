@@ -7,7 +7,7 @@ import { ExchangeError, AuthenticationError, InsufficientFunds, BadSymbol, Order
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { totp } from './base/functions/totp.js';
-import type { IndexType, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, Num, Account, Currencies, Dict, int, LedgerEntry, DepositAddress } from './base/types.js';
+import type { IndexType, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, Num, Account, Currencies, Dict, int, LedgerEntry, DepositAddress, NullableDict} from './base/types.js';
 // ---------------------------------------------------------------------------
 
 /**
@@ -2544,7 +2544,7 @@ export default class ndax extends Exchange {
         return this.milliseconds ();
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (api === 'public') {

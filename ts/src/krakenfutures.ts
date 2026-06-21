@@ -5,7 +5,7 @@ import Exchange from './abstract/krakenfutures.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, ContractUnavailable, DDoSProtection, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Bool, Currency, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, Leverage, Leverages, LeverageTier, LeverageTiers, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry } from './base/types.js';
+import type { Balances, Bool, Currency, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, Leverage, Leverages, LeverageTier, LeverageTiers, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, NullableDict} from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -3117,7 +3117,7 @@ export default class krakenfutures extends Exchange {
         throw new ExchangeError (feedback); // unknown message
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const apiVersions = this.safeValue (this.options['versions'], api, {});
         const methodVersions = this.safeValue (apiVersions, method, {});
         const defaultVersion = this.safeString (methodVersions, path, this.version);

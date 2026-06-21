@@ -6079,7 +6079,7 @@ export default class coinex extends Exchange {
         return this.milliseconds ();
     }
 
-    sign (path, api: any = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = [], method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         path = this.implodeParams (path, params);
         const version = api[0];
         const requestUrl = api[1];

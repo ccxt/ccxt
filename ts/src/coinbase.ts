@@ -5133,7 +5133,7 @@ export default class coinbase extends Exchange {
         return this.milliseconds () - this.options['timeDifference'];
     }
 
-    sign (path, api: any = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = [], method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const version = api[0];
         const signed = api[1] === 'private';
         const isV3 = version === 'v3';

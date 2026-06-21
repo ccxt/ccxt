@@ -5,7 +5,7 @@ import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/p2b.js';
 import { InsufficientFunds, AuthenticationError, BadRequest, ExchangeNotAvailable, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, Int, Num, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, int, Market } from './base/types.js';
+import type { Dict, Int, Num, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, int, Market, NullableDict} from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1331,7 +1331,7 @@ export default class p2b extends Exchange {
         }, market);
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
         if (method === 'GET') {

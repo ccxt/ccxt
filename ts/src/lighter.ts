@@ -5,7 +5,7 @@ import Exchange from './abstract/lighter.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, InvalidOrder, NotSupported, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Dict, FundingRate, FundingRates, Int, List, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num, Order, Balances, Position, Str, TransferEntry, Currency, Currencies, Transaction, Trade, Account, MarginModification } from './base/types.js';
+import type { Dict, FundingRate, FundingRates, Int, List, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num, Order, Balances, Position, Str, TransferEntry, Currency, Currencies, Transaction, Trade, Account, MarginModification, NullableDict} from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 
 //  ---------------------------------------------------------------------------
@@ -3298,7 +3298,7 @@ export default class lighter extends Exchange {
         };
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         let url: Str = undefined;
         if (api === 'root') {
             url = this.implodeHostname (this.urls['api']['public']);
