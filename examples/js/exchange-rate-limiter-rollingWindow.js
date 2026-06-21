@@ -1,5 +1,4 @@
 import ccxt from '../../js/ccxt.js';
-// AUTO-TRANSPILE //
 async function example() {
     const myex = new ccxt.okx({
         'rateLimiterAlgorithm': 'rollingWindow', // switching to rolling window algorithm

@@ -1,3 +1,4 @@
+// @NO_AUTO_TRANSPILE
 'use strict';
 import ccxt from '../../js/ccxt.js';
 // eslint-disable-next-line import/no-named-as-default-member
