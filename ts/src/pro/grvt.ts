@@ -164,7 +164,7 @@ export default class grvt extends grvtRest {
         let interval: Str = undefined;
         [ interval, params ] = this.handleOptionAndParams (params, 'watchTickers', 'interval', 500);
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
+        symbols = this.valueOr (this.marketSymbols (symbols), []);
         const rawHashes: string[] = [];
         const messageHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -265,7 +265,7 @@ export default class grvt extends grvtRest {
         //    }
         //
         const data = this.safeDict (message, 'feed', {});
-        const selector = this.safeString (message, 'selector');
+        const selector = this.valueOr (this.safeString (message, 'selector'), '');
         const parts = selector.split ('@');
         const marketId = this.safeString (parts, 0);
         const market = this.safeMarket (marketId, undefined);
@@ -309,7 +309,7 @@ export default class grvt extends grvtRest {
      */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
+        symbols = this.valueOr (this.marketSymbols (symbols), []);
         const rawHashes: string[] = [];
         const messageHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -357,7 +357,7 @@ export default class grvt extends grvtRest {
         //    }
         //
         const data = this.safeDict (message, 'feed', {});
-        const selector = this.safeString (message, 'selector');
+        const selector = this.valueOr (this.safeString (message, 'selector'), '');
         const parts = selector.split ('@');
         const marketId = this.safeString (parts, 0);
         const market = this.safeMarket (marketId, undefined);
@@ -456,12 +456,12 @@ export default class grvt extends grvtRest {
         //    }
         //
         const data = this.safeDict (message, 'feed', {});
-        const selector = this.safeString (message, 'selector');
+        const selector = this.valueOr (this.safeString (message, 'selector'), '');
         const parts = selector.split ('@');
         const marketId = this.safeString (parts, 0);
         const market = this.safeMarket (marketId, undefined);
         const symbol = market['symbol'];
-        const secondPart = this.safeString (parts, 1);
+        const secondPart = this.valueOr (this.safeString (parts, 1), '');
         const timeframeId = secondPart.replace ('-TRADE', '');
         const timeframe = this.findTimeframe (timeframeId);
         const messageHash = 'ohlcv::' + symbol + '::' + timeframe;
@@ -524,7 +524,7 @@ export default class grvt extends grvtRest {
         }
         let interval: Str = undefined;
         [ interval, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'interval', 500);
-        symbols = this.marketSymbols (symbols);
+        symbols = this.valueOr (this.marketSymbols (symbols), []);
         const extraPart = isSnapshot ? (interval.toString () + '-' + limit.toString ()) : interval.toString ();
         const rawHashes: string[] = [];
         const messageHashes: string[] = [];
@@ -571,7 +571,7 @@ export default class grvt extends grvtRest {
         //    }
         //
         const data = this.safeDict (message, 'feed', {});
-        const selector = this.safeString (message, 'selector');
+        const selector = this.valueOr (this.safeString (message, 'selector'), '');
         const parts = selector.split ('@');
         const marketId = this.safeString (parts, 0);
         const market = this.safeMarket (marketId, undefined);
@@ -739,7 +739,7 @@ export default class grvt extends grvtRest {
         await this.authenticate ();
         await this.loadMarkets ();
         const subAccountId = this.getSubAccountId (params);
-        symbols = this.marketSymbols (symbols);
+        symbols = this.valueOr (this.marketSymbols (symbols), []);
         const rawHashes: string[] = [];
         const messageHashes: string[] = [];
         if (symbols !== undefined) {

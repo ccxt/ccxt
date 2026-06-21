@@ -72,7 +72,7 @@ export default class coinbase extends coinbaseRest {
         let messageHash = name;
         let productIds = [];
         if (Array.isArray (symbol)) {
-            const symbols = this.marketSymbols (symbol);
+            const symbols = this.valueOr (this.marketSymbols (symbol), []);
             const marketIds = this.marketIds (symbols);
             productIds = marketIds;
             messageHash = messageHash + '::' + symbol.join (',');
@@ -118,7 +118,7 @@ export default class coinbase extends coinbaseRest {
         let unWatchMessageHash = 'unsubscribe:' + name;
         let productIds = [];
         if (Array.isArray (symbol)) {
-            const symbols = this.marketSymbols (symbol);
+            const symbols = this.valueOr (this.marketSymbols (symbol), []);
             const marketIds = this.marketIds (symbols);
             productIds = marketIds;
             watchMessageHash = watchMessageHash + '::' + symbol.join (',');
@@ -168,7 +168,7 @@ export default class coinbase extends coinbaseRest {
         await this.loadMarkets ();
         const productIds = [];
         const messageHashes = [];
-        symbols = this.marketSymbols (symbols, undefined, false);
+        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false), []);
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
@@ -209,7 +209,7 @@ export default class coinbase extends coinbaseRest {
         const productIds = [];
         const watchMessageHashes = [];
         const unWatchMessageHashes = [];
-        symbols = this.marketSymbols (symbols, undefined, false);
+        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false), []);
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
@@ -432,13 +432,13 @@ export default class coinbase extends coinbaseRest {
         //
         //
         const channel = this.safeString (message, 'channel');
-        const events = this.safeList (message, 'events', []);
+        const events = this.valueOr (this.safeList (message, 'events', []), []);
         const datetime = this.safeString (message, 'timestamp');
         const timestamp = this.parse8601 (datetime);
         const newTickers = [];
         for (let i = 0; i < events.length; i++) {
             const tickersObj = events[i];
-            const tickers = this.safeList (tickersObj, 'tickers', []);
+            const tickers = this.valueOr (this.safeList (tickersObj, 'tickers', []), []);
             for (let j = 0; j < tickers.length; j++) {
                 const ticker = tickers[j];
                 const wsMarketId = this.safeString (ticker, 'product_id');
@@ -477,7 +477,7 @@ export default class coinbase extends coinbaseRest {
         //         "best_ask_quantity": "300.0"
         //     }
         //
-        const marketId = this.safeString (ticker, 'product_id');
+        const marketId = this.valueOr (this.safeString (ticker, 'product_id'), '');
         const timestamp = undefined;
         const last = this.safeNumber (ticker, 'price');
         return this.safeTicker ({
@@ -691,11 +691,11 @@ export default class coinbase extends coinbaseRest {
         //        ]
         //    }
         //
-        const events = this.safeList (message, 'events');
+        const events = this.valueOr (this.safeList (message, 'events'), []);
         const event = this.safeValue (events, 0);
         const trades = this.safeList (event, 'trades');
         const trade = this.safeDict (trades, 0);
-        const marketId = this.safeString (trade, 'product_id');
+        const marketId = this.valueOr (this.safeString (trade, 'product_id'), '');
         const symbol = this.safeSymbol (marketId);
         const messageHash = 'market_trades::' + symbol;
         let tradesArray = this.safeValue (this.trades, symbol);
@@ -706,7 +706,7 @@ export default class coinbase extends coinbaseRest {
         }
         for (let i = 0; i < events.length; i++) {
             const currentEvent = events[i];
-            const currentTrades = this.safeList (currentEvent, 'trades');
+            const currentTrades = this.valueOr (this.safeList (currentEvent, 'trades'), []);
             for (let j = 0; j < currentTrades.length; j++) {
                 const item = currentTrades[j];
                 tradesArray.append (this.parseTrade (item));
@@ -745,7 +745,7 @@ export default class coinbase extends coinbaseRest {
         //        ]
         //    }
         //
-        const events = this.safeList (message, 'events');
+        const events = this.valueOr (this.safeList (message, 'events'), []);
         const marketIds = [];
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
@@ -753,12 +753,12 @@ export default class coinbase extends coinbaseRest {
         }
         for (let i = 0; i < events.length; i++) {
             const event = events[i];
-            const responseOrders = this.safeList (event, 'orders');
+            const responseOrders = this.valueOr (this.safeList (event, 'orders'), []);
             for (let j = 0; j < responseOrders.length; j++) {
                 const responseOrder = responseOrders[j];
                 const parsed = this.parseWsOrder (responseOrder);
                 const cachedOrders = this.orders;
-                const marketId = this.safeString (responseOrder, 'product_id');
+                const marketId = this.valueOr (this.safeString (responseOrder, 'product_id'), '');
                 if (!(marketId in marketIds)) {
                     marketIds.push (marketId);
                 }
@@ -793,7 +793,7 @@ export default class coinbase extends coinbaseRest {
         //
         const id = this.safeString (order, 'order_id');
         const clientOrderId = this.safeString (order, 'client_order_id');
-        const marketId = this.safeString (order, 'product_id');
+        const marketId = this.valueOr (this.safeString (order, 'product_id'), '');
         const datetime = this.safeString2 (order, 'time', 'creation_time');
         market = this.safeMarket (marketId, market);
         const stopPrice = this.safeString (order, 'stop_price');
@@ -867,12 +867,12 @@ export default class coinbase extends coinbaseRest {
         //        ]
         //    }
         //
-        const events = this.safeList (message, 'events');
+        const events = this.valueOr (this.safeList (message, 'events'), []);
         const datetime = this.safeString (message, 'timestamp');
         for (let i = 0; i < events.length; i++) {
             const event = events[i];
             const updates = this.safeList (event, 'updates', []);
-            const marketId = this.safeString (event, 'product_id');
+            const marketId = this.valueOr (this.safeString (event, 'product_id'), '');
             // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
@@ -924,15 +924,15 @@ export default class coinbase extends coinbaseRest {
         //        events: [ { subscriptions: {} } ]
         //      }
         //
-        const events = this.safeList (message, 'events', []);
+        const events = this.valueOr (this.safeList (message, 'events', []), []);
         const firstEvent = this.safeValue (events, 0, {});
         const isUnsub = ('subscriptions' in firstEvent);
         const subKeys = Object.keys (firstEvent['subscriptions']);
         const subKeysLength = subKeys.length;
         if (isUnsub && subKeysLength === 0) {
             const unSubObject = this.safeDict (this.options, 'unSubscription', {});
-            const messageHashes = this.safeList (unSubObject, 'messageHashes', []);
-            const subMessageHashes = this.safeList (unSubObject, 'subMessageHashes', []);
+            const messageHashes = this.valueOr (this.safeList (unSubObject, 'messageHashes', []), []);
+            const subMessageHashes = this.valueOr (this.safeList (unSubObject, 'subMessageHashes', []), []);
             for (let i = 0; i < messageHashes.length; i++) {
                 const messageHash = messageHashes[i];
                 const subHash = subMessageHashes[i];

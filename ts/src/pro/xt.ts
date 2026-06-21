@@ -131,8 +131,8 @@ export default class xt extends xtRest {
 
     handleDelta (orderbook, delta) {
         orderbook['nonce'] = this.safeInteger2 (delta, 'i', 'u');
-        const obAsks = this.safeList (delta, 'a', []);
-        const obBids = this.safeList (delta, 'b', []);
+        const obAsks = this.valueOr (this.safeList (delta, 'a', []), []);
+        const obBids = this.valueOr (this.safeList (delta, 'b', []), []);
         const bids = orderbook['bids'];
         const asks = orderbook['asks'];
         for (let i = 0; i < obBids.length; i++) {
@@ -672,7 +672,7 @@ export default class xt extends xtRest {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
         const cache = this.positions;
-        const data = this.safeDict (message, 'data', {});
+        const data = this.valueOr (this.safeDict (message, 'data', {}), {});
         const position = this.parsePosition (data);
         cache.append (position);
         const messageHashes = this.findMessageHashes (client, 'position::contract');
@@ -750,7 +750,7 @@ export default class xt extends xtRest {
         //       }
         //    }
         //
-        const data = this.safeDict (message, 'data');
+        const data = this.valueOr (this.safeDict (message, 'data'), {});
         const marketId = this.safeString (data, 's');
         if (marketId !== undefined) {
             const cv = this.safeString (data, 'cv');
@@ -758,7 +758,7 @@ export default class xt extends xtRest {
             const ticker = this.parseTicker (data);
             const symbol = ticker['symbol'];
             this.tickers[symbol] = ticker;
-            const event = this.safeString (message, 'event');
+            const event = this.valueOr (this.safeString (message, 'event'), '');
             const messageHashTail = isSpot ? 'spot' : 'contract';
             const messageHash = event + '::' + messageHashTail;
             client.resolve (ticker, messageHash);
@@ -834,7 +834,7 @@ export default class xt extends xtRest {
         //        ]
         //    }
         //
-        const data = this.safeList (message, 'data', []);
+        const data = this.valueOr (this.safeList (message, 'data', []), []);
         const firstTicker = this.safeDict (data, 0);
         const spotTest = this.safeString2 (firstTicker, 'cv', 'aq');
         const tradeType = (spotTest !== undefined) ? 'spot' : 'contract';
@@ -902,7 +902,7 @@ export default class xt extends xtRest {
         //        }
         //    }
         //
-        const data = this.safeDict (message, 'data', {});
+        const data = this.valueOr (this.safeDict (message, 'data', {}), {});
         const marketId = this.safeString (data, 's');
         if (marketId !== undefined) {
             const timeframe = this.safeString (data, 'i');
@@ -918,7 +918,7 @@ export default class xt extends xtRest {
                 this.ohlcvs[symbol][timeframe] = stored;
             }
             stored.append (parsed);
-            const event = this.safeString (message, 'event');
+            const event = this.valueOr (this.safeString (message, 'event'), '');
             const messageHash = event + '::' + tradeType;
             client.resolve (stored, messageHash);
         }
@@ -956,7 +956,7 @@ export default class xt extends xtRest {
         //        }
         //    }
         //
-        const data = this.safeDict (message, 'data');
+        const data = this.valueOr (this.safeDict (message, 'data'), {});
         const marketId = this.safeStringLower (data, 's');
         if (marketId !== undefined) {
             const trade = this.parseTrade (data);
@@ -964,7 +964,7 @@ export default class xt extends xtRest {
             const tradeType = (i !== undefined) ? 'spot' : 'contract';
             const market = this.safeMarket (marketId, undefined, undefined, tradeType);
             const symbol = market['symbol'];
-            const event = this.safeString (message, 'event');
+            const event = this.valueOr (this.safeString (message, 'event'), '');
             let tradesArray = this.safeValue (this.trades, symbol);
             if (tradesArray === undefined) {
                 const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -1038,17 +1038,17 @@ export default class xt extends xtRest {
         //        }
         //    }
         //
-        const data = this.safeDict (message, 'data');
+        const data = this.valueOr (this.safeDict (message, 'data'), {});
         const marketId = this.safeString (data, 's');
         if (marketId !== undefined) {
-            let event = this.safeString (message, 'event');
+            let event = this.valueOr (this.safeString (message, 'event'), '');
             const splitEvent = event.split (',');
-            event = this.safeString (splitEvent, 0);
+            event = this.valueOr (this.safeString (splitEvent, 0), '');
             const tradeType = ('fu' in data) ? 'contract' : 'spot';
             const market = this.safeMarket (marketId, undefined, undefined, tradeType);
             const symbol = market['symbol'];
-            const obAsks = this.safeList (data, 'a');
-            const obBids = this.safeList (data, 'b');
+            const obAsks = this.valueOr (this.safeList (data, 'a'), []);
+            const obBids = this.valueOr (this.safeList (data, 'b'), []);
             const messageHash = event + '::' + tradeType;
             if (!(symbol in this.orderbooks)) {
                 const subscription = this.safeDict (client.subscriptions, messageHash, {});
@@ -1277,7 +1277,7 @@ export default class xt extends xtRest {
             orders = new ArrayCacheBySymbolById (limit);
             this.orders = orders;
         }
-        const order = this.safeDict (message, 'data', {});
+        const order = this.valueOr (this.safeDict (message, 'data', {}), {});
         const marketId = this.safeString2 (order, 's', 'symbol');
         if (marketId !== undefined) {
             const tradeType = ('symbol' in order) ? 'contract' : 'spot';
@@ -1324,7 +1324,7 @@ export default class xt extends xtRest {
         //        }
         //    }
         //
-        const data = this.safeDict (message, 'data', {});
+        const data = this.valueOr (this.safeDict (message, 'data', {}), {});
         const currencyId = this.safeString2 (data, 'c', 'coin');
         const code = this.safeCurrencyCode (currencyId);
         const account = this.account ();
@@ -1372,7 +1372,7 @@ export default class xt extends xtRest {
         //        }
         //    }
         //
-        const data = this.safeDict (message, 'data', {});
+        const data = this.valueOr (this.safeDict (message, 'data', {}), {});
         let stored = this.myTrades;
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -1387,7 +1387,7 @@ export default class xt extends xtRest {
     }
 
     handleMessage (client: Client, message) {
-        const event = this.safeString (message, 'event');
+        const event = this.valueOr (this.safeString (message, 'event'), '');
         if (event === 'pong') {
             client.onPong ();
         } else if (event !== undefined) {
@@ -1406,7 +1406,7 @@ export default class xt extends xtRest {
             };
             let method = this.safeValue (methods, topic);
             if (topic === 'trade') {
-                const data = this.safeDict (message, 'data');
+                const data = this.valueOr (this.safeDict (message, 'data'), {});
                 if (('oi' in data) || ('orderId' in data)) {
                     method = this.handleMyTrades;
                 } else {
@@ -1456,8 +1456,8 @@ export default class xt extends xtRest {
     }
 
     handleUnSubscription (client: Client, subscription: Dict) {
-        const messageHashes = this.safeList (subscription, 'messageHashes', []);
-        const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
+        const messageHashes = this.valueOr (this.safeList (subscription, 'messageHashes', []), []);
+        const subMessageHashes = this.valueOr (this.safeList (subscription, 'subMessageHashes', []), []);
         for (let j = 0; j < messageHashes.length; j++) {
             const unsubHash = messageHashes[j];
             const subHash = subMessageHashes[j];

@@ -225,7 +225,7 @@ export default class paradex extends paradexRest {
             'bids': [],
             'asks': [],
         };
-        const inserts = this.safeList (data, 'inserts');
+        const inserts = this.valueOr (this.safeList (data, 'inserts'), []);
         for (let i = 0; i < inserts.length; i++) {
             const insert = this.safeDict (inserts, i);
             const side = this.safeString (insert, 'side');
@@ -423,7 +423,7 @@ export default class paradex extends paradexRest {
         const marketId = this.safeString (data, 'symbol');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        const channel = this.safeString (params, 'channel');
+        const channel = this.valueOr (this.safeString (params, 'channel'), '');
         const messageHash = channel + '.' + symbol;
         const ticker = this.parseTicker (data, market);
         this.tickers[symbol] = ticker;
@@ -525,7 +525,7 @@ export default class paradex extends paradexRest {
         const fundingRate = this.parseFundingRateWs (data);
         const symbol = fundingRate['symbol'];
         this.fundingRates[symbol] = fundingRate;
-        const channel = this.safeString (params, 'channel');
+        const channel = this.valueOr (this.safeString (params, 'channel'), '');
         const messageHash = channel + '.' + symbol;
         client.resolve (fundingRate, messageHash);
     }
@@ -639,7 +639,7 @@ export default class paradex extends paradexRest {
         }
         const data = this.safeDict (message, 'params');
         if (data !== undefined) {
-            const channel = this.safeString (data, 'channel');
+            const channel = this.valueOr (this.safeString (data, 'channel'), '');
             const parts = channel.split ('.');
             const name = this.safeString (parts, 0);
             const methods: Dict = {

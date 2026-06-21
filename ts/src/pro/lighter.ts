@@ -123,7 +123,7 @@ export default class lighter extends lighterRest {
     }
 
     handleOrderBookMessage (client: Client, message, orderbook) {
-        const data = this.safeDict (message, 'order_book', {});
+        const data = this.valueOr (this.safeDict (message, 'order_book', {}), {});
         this.handleDeltas (orderbook['asks'], this.safeList (data, 'asks', []));
         this.handleDeltas (orderbook['bids'], this.safeList (data, 'bids', []));
         orderbook['nonce'] = this.safeInteger (data, 'offset');
@@ -159,7 +159,7 @@ export default class lighter extends lighterRest {
         //     "type": "update/order_book"
         // }
         //
-        const data = this.safeDict (message, 'order_book', {});
+        const data = this.valueOr (this.safeDict (message, 'order_book', {}), {});
         const channel = this.safeString (message, 'channel', '') as string;
         const parts = channel.split (':');
         const marketId = parts[1];
@@ -274,7 +274,7 @@ export default class lighter extends lighterRest {
         //     "type": "update/market_stats"
         // }
         //
-        const data = this.safeDict (message, 'market_stats', {});
+        const data = this.valueOr (this.safeDict (message, 'market_stats', {}), {});
         const channel = this.safeString (message, 'channel');
         if (channel === 'market_stats:all') {
             const marketIds = Object.keys (data);
@@ -347,7 +347,7 @@ export default class lighter extends lighterRest {
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
+        symbols = this.valueOr (this.marketSymbols (symbols), []);
         const request: Dict = {
             'channel': 'market_stats/all',
         };
@@ -532,12 +532,12 @@ export default class lighter extends lighterRest {
         //         "type": "subscribed/trade"
         //     }
         //
-        const liquidationData = this.safeList (message, 'liquidation_trades', []);
+        const liquidationData = this.valueOr (this.safeList (message, 'liquidation_trades', []), []);
         const liquidationDataLength = liquidationData.length;
         if (liquidationDataLength > 0) {
             this.handleLiquidation (client, message);
         }
-        const data = this.safeList (message, 'trades', []);
+        const data = this.valueOr (this.safeList (message, 'trades', []), []);
         const channel = this.safeString (message, 'channel', '') as string;
         const parts = channel.split (':');
         const marketId = parts[1];
@@ -714,7 +714,7 @@ export default class lighter extends lighterRest {
         const channel = this.safeString (message, 'channel', '') as string;
         const parts = channel.split (':');
         const accountIndex = parts[1];
-        const data = this.safeDict (message, 'trades', {});
+        const data = this.valueOr (this.safeDict (message, 'trades', {}), {});
         const marketIds = Object.keys (data);
         const idsLength = marketIds.length;
         if (idsLength === 0) {
@@ -729,7 +729,7 @@ export default class lighter extends lighterRest {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket (marketId);
-            const trades = this.safeList (data, marketId, []);
+            const trades = this.valueOr (this.safeList (data, marketId, []), []);
             const tradesLength = trades.length;
             for (let j = 0; j < tradesLength; j++) {
                 const jReversed = tradesLength - 1 - j;
@@ -892,7 +892,7 @@ export default class lighter extends lighterRest {
         //         "type": "subscribed/trade"
         //     }
         //
-        const data = this.safeList (message, 'liquidation_trades', []);
+        const data = this.valueOr (this.safeList (message, 'liquidation_trades', []), []);
         const channel = this.safeString (message, 'channel', '') as string;
         const parts = channel.split (':');
         const marketId = parts[1];
@@ -1022,9 +1022,9 @@ export default class lighter extends lighterRest {
         if (channel.indexOf ('user_stats:') >= 0) {
             type = 'swap';
         }
-        const balance = this.safeDict (this.balance, type, {});
+        const balance = this.valueOr (this.safeDict (this.balance, type, {}), {});
         if (type === 'spot') {
-            const assets = this.safeDict (message, 'assets', {});
+            const assets = this.valueOr (this.safeDict (message, 'assets', {}), {});
             const assetIds = Object.keys (assets);
             for (let i = 0; i < assetIds.length; i++) {
                 const assetId = assetIds[i];
@@ -1130,7 +1130,7 @@ export default class lighter extends lighterRest {
         //        "type": "update/account_all_orders"
         //    }
         //
-        const data = this.safeDict (message, 'orders', {});
+        const data = this.valueOr (this.safeDict (message, 'orders', {}), {});
         const marketIds = Object.keys (data);
         const idsLength = marketIds.length;
         if (idsLength === 0) {
@@ -1145,7 +1145,7 @@ export default class lighter extends lighterRest {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket (marketId);
-            const orders = this.safeList (data, marketId, []);
+            const orders = this.valueOr (this.safeList (data, marketId, []), []);
             for (let j = 0; j < orders.length; j++) {
                 const order = this.parseOrder (orders[j], market);
                 stored.append (order);
@@ -1254,8 +1254,8 @@ export default class lighter extends lighterRest {
     }
 
     handleUnSubscription (client: Client, subscription: Dict) {
-        const messageHashes = this.safeList (subscription, 'messageHashes', []);
-        const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
+        const messageHashes = this.valueOr (this.safeList (subscription, 'messageHashes', []), []);
+        const subMessageHashes = this.valueOr (this.safeList (subscription, 'subMessageHashes', []), []);
         for (let i = 0; i < messageHashes.length; i++) {
             const unsubHash = messageHashes[i];
             const subHash = subMessageHashes[i];

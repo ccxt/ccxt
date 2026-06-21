@@ -123,7 +123,7 @@ export default class exmo extends exmoRest {
         //         }
         //     }
         //
-        const topic = this.safeString (message, 'topic');
+        const topic = this.valueOr (this.safeString (message, 'topic'), '');
         const parts = topic.split ('/');
         const type = this.safeString (parts, 0);
         if (type === 'spot') {
@@ -244,7 +244,7 @@ export default class exmo extends exmoRest {
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false);
+        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false), []);
         const messageHashes: List = [];
         const args: List = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -283,7 +283,7 @@ export default class exmo extends exmoRest {
         //          }
         //      }
         //
-        const topic = this.safeString (message, 'topic');
+        const topic = this.valueOr (this.safeString (message, 'topic'), '');
         const topicParts = topic.split (':');
         const marketId = this.safeString (topicParts, 1);
         const symbol = this.safeSymbol (marketId);
@@ -339,7 +339,7 @@ export default class exmo extends exmoRest {
         //          }]
         //      }
         //
-        const topic = this.safeString (message, 'topic');
+        const topic = this.valueOr (this.safeString (message, 'topic'), '');
         const parts = topic.split (':');
         const marketId = this.safeString (parts, 1);
         const symbol = this.safeSymbol (marketId);
@@ -454,7 +454,7 @@ export default class exmo extends exmoRest {
         //         }
         //     }
         //
-        const topic = this.safeString (message, 'topic');
+        const topic = this.valueOr (this.safeString (message, 'topic'), '');
         const parts = topic.split ('/');
         const type = this.safeString (parts, 0);
         const messageHash = 'myTrades:' + type;
@@ -552,7 +552,7 @@ export default class exmo extends exmoRest {
         //         }
         //     }
         //
-        const topic = this.safeString (message, 'topic');
+        const topic = this.valueOr (this.safeString (message, 'topic'), '');
         const parts = topic.split (':');
         const marketId = this.safeString (parts, 1);
         const symbol = this.safeSymbol (marketId);
@@ -682,7 +682,7 @@ export default class exmo extends exmoRest {
         //     ]
         // }
         //
-        const topic = this.safeString (message, 'topic');
+        const topic = this.valueOr (this.safeString (message, 'topic'), '');
         const parts = topic.split ('/');
         const type = this.safeString (parts, 0);
         const messageHash = 'orders:' + type;
@@ -832,7 +832,7 @@ export default class exmo extends exmoRest {
             return;
         }
         if ((event === 'update') || (event === 'snapshot')) {
-            const topic = this.safeString (message, 'topic');
+            const topic = this.valueOr (this.safeString (message, 'topic'), '');
             if (topic !== undefined) {
                 const parts = topic.split (':');
                 const channel = this.safeString (parts, 0);

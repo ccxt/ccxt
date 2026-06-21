@@ -333,7 +333,7 @@ export default class bullish extends bullishRest {
             'asks': asks,
         };
         const parsed = this.parseOrderBook (snapshot, symbol, timestamp);
-        const sequenceNumberRange = this.safeList (data, 'sequenceNumberRange', []);
+        const sequenceNumberRange = this.valueOr (this.safeList (data, 'sequenceNumberRange', []), []);
         if (sequenceNumberRange.length > 0) {
             const lastIndex = sequenceNumberRange.length - 1;
             parsed['nonce'] = this.safeInteger (sequenceNumberRange, lastIndex);
@@ -382,7 +382,7 @@ export default class bullish extends bullishRest {
         const request: Dict = {
             'topic': 'orders',
         };
-        const tradingAccountId = this.safeString (params, 'tradingAccountId');
+        const tradingAccountId = this.valueOr (this.safeString (params, 'tradingAccountId'), '');
         if (tradingAccountId !== undefined) {
             request['tradingAccountId'] = tradingAccountId;
             params = this.omit (params, 'tradingAccountId');
@@ -495,7 +495,7 @@ export default class bullish extends bullishRest {
         const request: Dict = {
             'topic': 'trades',
         };
-        const tradingAccountId = this.safeString (params, 'tradingAccountId');
+        const tradingAccountId = this.valueOr (this.safeString (params, 'tradingAccountId'), '');
         if (tradingAccountId !== undefined) {
             request['tradingAccountId'] = tradingAccountId;
             params = this.omit (params, 'tradingAccountId');
@@ -593,7 +593,7 @@ export default class bullish extends bullishRest {
             'topic': 'assetAccounts',
         };
         let messageHash = 'balance';
-        const tradingAccountId = this.safeString (params, 'tradingAccountId');
+        const tradingAccountId = this.valueOr (this.safeString (params, 'tradingAccountId'), '');
         if (tradingAccountId !== undefined) {
             params = this.omit (params, 'tradingAccountId');
             request['tradingAccountId'] = tradingAccountId;
@@ -644,7 +644,7 @@ export default class bullish extends bullishRest {
         //         }
         //     }
         //
-        const tradingAccountId = this.safeString (message, 'tradingAccountId');
+        const tradingAccountId = this.valueOr (this.safeString (message, 'tradingAccountId'), '');
         if (!(tradingAccountId in this.balance)) {
             this.balance[tradingAccountId] = {};
         }
@@ -685,7 +685,7 @@ export default class bullish extends bullishRest {
         const subscribeHash = 'positions';
         let messageHash = subscribeHash;
         if (!this.isEmpty (symbols)) {
-            symbols = this.marketSymbols (symbols);
+            symbols = this.valueOr (this.marketSymbols (symbols), []);
             messageHash += '::' + symbols.join (',');
         }
         const request: Dict = {

@@ -275,8 +275,8 @@ export default class pacifica extends pacificaRest {
         //   "type": "batch_orders"
         // }
         //
-        const data = this.safeDict (response, 'data', {});
-        const results = this.safeList (data, 'results', []);
+        const data = this.valueOr (this.safeDict (response, 'data', {}), {});
+        const results = this.valueOr (this.safeList (data, 'results', []), []);
         const ordersToReturn = [];
         for (let i = 0; i < results.length; i++) {
             const order = results[i];
@@ -497,7 +497,7 @@ export default class pacifica extends pacificaRest {
         //   }
         // }
         //
-        const entry = this.safeDict (message, 'data', {});
+        const entry = this.valueOr (this.safeDict (message, 'data', {}), {});
         const marketId = this.safeString (entry, 's');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
@@ -685,7 +685,7 @@ export default class pacifica extends pacificaRest {
         // }
         //
         const parsedTickers = [];
-        const data = this.safeList (message, 'data', []);
+        const data = this.valueOr (this.safeList (message, 'data', []), []);
         for (let i = 0; i < data.length; i++) {
             const info = data[i];
             const marketId = this.safeString (info, 'symbol');
@@ -735,7 +735,7 @@ export default class pacifica extends pacificaRest {
         }
         const trades = this.myTrades;
         const symbols: Dict = {};
-        const data = this.safeList (message, 'data', []);
+        const data = this.valueOr (this.safeList (message, 'data', []), []);
         const dataLength = data.length;
         if (dataLength === 0) {
             return;
@@ -838,7 +838,7 @@ export default class pacifica extends pacificaRest {
         //   ]
         // }
         //
-        const entry = this.safeList (message, 'data', []);
+        const entry = this.valueOr (this.safeList (message, 'data', []), []);
         const first = this.safeDict (entry, 0, {});
         const marketId = this.safeString (first, 's');
         const market = this.safeMarket (marketId);
@@ -850,7 +850,7 @@ export default class pacifica extends pacificaRest {
         }
         const trades = this.trades[symbol];
         for (let i = 0; i < entry.length; i++) {
-            const data = this.safeDict (entry, i);
+            const data = this.valueOr (this.safeDict (entry, i), {});
             const trade = this.parseWsTrade (data);
             trades.append (trade);
         }
@@ -1024,11 +1024,11 @@ export default class pacifica extends pacificaRest {
         //   }
         // }
         //
-        const data = this.safeDict (message, 'data', {});
+        const data = this.valueOr (this.safeDict (message, 'data', {}), {});
         const marketId = this.safeString (data, 's');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        const timeframe = this.safeString (data, 'i');
+        const timeframe = this.valueOr (this.safeString (data, 'i'), '');
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
@@ -1145,7 +1145,7 @@ export default class pacifica extends pacificaRest {
         //     }
         //   ]
         // }
-        const data = this.safeList (message, 'data', []);
+        const data = this.valueOr (this.safeList (message, 'data', []), []);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
@@ -1180,7 +1180,7 @@ export default class pacifica extends pacificaRest {
         //
         const error = this.safeString (message, 'err', '');
         const postType = this.safeString (message, 'type', '');
-        const data = this.safeDict (message, 'data', {});
+        const data = this.valueOr (this.safeDict (message, 'data', {}), {});
         let id = this.safeString (message, 'id');
         if (id === undefined) {
             id = this.safeString (data, 'id');
@@ -1283,7 +1283,7 @@ export default class pacifica extends pacificaRest {
         //      }
         //  }
         //
-        const data = this.safeDict (message, 'data', {});
+        const data = this.valueOr (this.safeDict (message, 'data', {}), {});
         const method = this.safeString (message, 'channel');
         if (method === 'unsubscribe') {
             const subscription = this.safeDict (data, 'data', {});
@@ -1323,7 +1323,7 @@ export default class pacifica extends pacificaRest {
             return;
         }
         const postType = this.safeString (message, 'type', undefined);
-        const topic = this.safeString (message, 'channel', '');
+        const topic = this.valueOr (this.safeString (message, 'channel', ''), '');
         const methods: Dict = {
             'pong': this.handlePong,
             'trades': this.handleTrades,

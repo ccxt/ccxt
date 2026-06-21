@@ -195,7 +195,7 @@ export default class weex extends weexRest {
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false, true);
+        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false, true), []);
         const firstMarket = this.getMarketFromSymbols (symbols);
         const isContract = firstMarket['contract'];
         const topic = 'ticker';
@@ -244,7 +244,7 @@ export default class weex extends weexRest {
      */
     async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false, true);
+        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false, true), []);
         const firstMarket = this.getMarketFromSymbols (symbols);
         const isContract = firstMarket['contract'];
         const topic = 'ticker';
@@ -299,7 +299,7 @@ export default class weex extends weexRest {
         //
         const market = this.getMarketFromClientAndMessage (client, message);
         const tickers = this.safeList (message, 'd', []);
-        const data = this.safeDict (tickers, 0, {});
+        const data = this.valueOr (this.safeDict (tickers, 0, {}), {});
         const ticker = this.parseWsTicker (data, market);
         const symbol = market['symbol'];
         const messageHash = 'ticker::' + symbol;
@@ -384,7 +384,7 @@ export default class weex extends weexRest {
      */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false, true);
+        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false, true), []);
         const firstMarket = this.getMarketFromSymbols (symbols);
         const isContract = firstMarket['contract'];
         const topic = 'trade';
@@ -434,7 +434,7 @@ export default class weex extends weexRest {
      */
     async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false, true);
+        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false, true), []);
         const firstMarket = this.getMarketFromSymbols (symbols);
         const isContract = firstMarket['contract'];
         const topic = 'trade';
@@ -487,7 +487,7 @@ export default class weex extends weexRest {
             this.trades[symbol] = new ArrayCache (limit);
         }
         const tradesArray = this.trades[symbol];
-        const data = this.safeList (message, 'd', []);
+        const data = this.valueOr (this.safeList (message, 'd', []), []);
         const newTrades = [];
         for (let i = 0; i < data.length; i++) {
             const rawTrade = this.safeDict (data, i, {});
@@ -580,7 +580,7 @@ export default class weex extends weexRest {
             [ priceType, params ] = this.handleOptionAndParams2 (params, callerMethodName, 'price', 'priceType', priceType);
         }
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
-            const data = this.safeList (symbolsAndTimeframes, i);
+            const data = this.valueOr (this.safeList (symbolsAndTimeframes, i), []);
             let symbolString = this.safeString (data, 0);
             const market = this.market (symbolString);
             if (market['type'] !== firstMarket['type']) {
@@ -644,7 +644,7 @@ export default class weex extends weexRest {
             [ priceType, params ] = this.handleOptionAndParams2 (params, callerMethodName, 'price', 'priceType', priceType);
         }
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
-            const data = this.safeList (symbolsAndTimeframes, i);
+            const data = this.valueOr (this.safeList (symbolsAndTimeframes, i), []);
             let symbolString = this.safeString (data, 0);
             const market = this.market (symbolString);
             if (market['type'] !== firstMarket['type']) {
@@ -701,7 +701,7 @@ export default class weex extends weexRest {
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
-        const data = this.safeList (message, 'd', []);
+        const data = this.valueOr (this.safeList (message, 'd', []), []);
         const firstEntry = this.safeDict (data, 0, {});
         const interval = this.safeString (firstEntry, 'i');
         const timeframe = this.findTimeframe (interval);
@@ -779,7 +779,7 @@ export default class weex extends weexRest {
      */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false, true);
+        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false, true), []);
         const firstMarket = this.getMarketFromSymbols (symbols);
         const isContract = firstMarket['contract'];
         const callerMethodName = this.safeString (params, 'callerMethodName', 'watchOrderBookForSymbols');
@@ -832,7 +832,7 @@ export default class weex extends weexRest {
      */
     async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false, true);
+        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false, true), []);
         const firstMarket = this.getMarketFromSymbols (symbols);
         const isContract = firstMarket['contract'];
         const callerMethodName = this.safeString (params, 'callerMethodName', 'unWatchOrderBookForSymbols');
@@ -924,7 +924,7 @@ export default class weex extends weexRest {
      */
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false, true);
+        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false, true), []);
         const firstMarket = this.getMarketFromSymbols (symbols);
         if (firstMarket['contract']) {
             throw new NotSupported (this.id + ' watchBidsAsks is supported for spot markets only');
@@ -959,7 +959,7 @@ export default class weex extends weexRest {
      */
     async unWatchBidsAsks (symbols: Strings = undefined, params = {}): Promise<any> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false, true);
+        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false, true), []);
         const firstMarket = this.getMarketFromSymbols (symbols);
         if (firstMarket['contract']) {
             throw new NotSupported (this.id + ' unWatchBidsAsks is supported for spot markets only');
@@ -1141,7 +1141,7 @@ export default class weex extends weexRest {
             this.myTrades = new ArrayCacheBySymbolById (limit);
         }
         const trades = this.myTrades;
-        const data = this.safeList (message, 'd', []);
+        const data = this.valueOr (this.safeList (message, 'd', []), []);
         const symbols: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const trade = this.safeDict (data, i, {});
@@ -1339,7 +1339,7 @@ export default class weex extends weexRest {
         //         ]
         //     }
         //
-        const data = this.safeList (message, 'd', []);
+        const data = this.valueOr (this.safeList (message, 'd', []), []);
         const symbols: Dict = {};
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
@@ -1647,7 +1647,7 @@ export default class weex extends weexRest {
             this.balance[accountType] = {};
         }
         this.balance[accountType]['info'] = message;
-        const balanceUpdates = this.safeList (message, 'd', []);
+        const balanceUpdates = this.valueOr (this.safeList (message, 'd', []), []);
         for (let i = 0; i < balanceUpdates.length; i++) {
             const entry = this.safeDict (balanceUpdates, i);
             const currencyId = this.safeString (entry, 'coin');
@@ -1682,7 +1682,7 @@ export default class weex extends weexRest {
         const url = this.urls['api']['ws']['contract'] + '/private';
         this.authenticate (url);
         const client = this.client (url);
-        symbols = this.marketSymbols (symbols, 'swap', true);
+        symbols = this.valueOr (this.marketSymbols (symbols, 'swap', true), []);
         let messageHash = 'positions';
         const subscriptionHash = messageHash;
         if (symbols !== undefined) {
@@ -1800,7 +1800,7 @@ export default class weex extends weexRest {
         }
         const cache = this.positions;
         const newPositions = [];
-        const data = this.safeList (message, 'd', []);
+        const data = this.valueOr (this.safeList (message, 'd', []), []);
         for (let i = 0; i < data.length; i++) {
             const rawPosition = this.safeDict (data, i, {});
             const position = this.parseWsPosition (rawPosition);
@@ -1864,7 +1864,7 @@ export default class weex extends weexRest {
         const unsubscribe = this.safeBool (subscription, 'unsubscribe', false);
         if (unsubscribe) {
             const subHashIsPrefix = this.safeBool (subscription, 'subHashIsPrefix', false);
-            const messageHashes = this.safeList (subscription, 'messageHashes', []);
+            const messageHashes = this.valueOr (this.safeList (subscription, 'messageHashes', []), []);
             const subHashes = this.safeList (subscription, 'subMessageHashes', []);
             for (let i = 0; i < messageHashes.length; i++) {
                 const unSubHash = this.safeString (messageHashes, i);

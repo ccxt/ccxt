@@ -122,11 +122,11 @@ export default class derive extends deriveRest {
         // }
         //
         const params = this.safeDict (message, 'params');
-        const data = this.safeDict (params, 'data');
+        const data = this.valueOr (this.safeDict (params, 'data'), {});
         const marketId = this.safeString (data, 'instrument_name');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        const topic = this.safeString (params, 'channel');
+        const topic = this.valueOr (this.safeString (params, 'channel'), '');
         if (!(symbol in this.orderbooks)) {
             const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
             const subscription = client.subscriptions[topic];
@@ -236,7 +236,7 @@ export default class derive extends deriveRest {
         //
         const params = this.safeDict (message, 'params');
         const rawData = this.safeDict (params, 'data');
-        const data = this.safeDict (rawData, 'instrument_ticker');
+        const data = this.valueOr (this.safeDict (rawData, 'instrument_ticker'), {});
         const topic = this.safeValue (params, 'channel');
         const ticker = this.parseTicker (data);
         this.tickers[ticker['symbol']] = ticker;
@@ -413,7 +413,7 @@ export default class derive extends deriveRest {
         //
         //
         const params = this.safeDict (message, 'params');
-        const data = this.safeDict (params, 'data');
+        const data = this.valueOr (this.safeDict (params, 'data'), {});
         const topic = this.safeValue (params, 'channel');
         const parsedTopic = topic.split ('.');
         const marketId = this.safeString (parsedTopic, 1);
@@ -564,8 +564,8 @@ export default class derive extends deriveRest {
         // }
         //
         const params = this.safeDict (message, 'params');
-        const topic = this.safeString (params, 'channel');
-        const rawOrders = this.safeList (params, 'data');
+        const topic = this.valueOr (this.safeString (params, 'channel'), '');
+        const rawOrders = this.valueOr (this.safeList (params, 'data'), []);
         for (let i = 0; i < rawOrders.length; i++) {
             const data = rawOrders[i];
             const parsed = this.parseOrder (data);
@@ -652,8 +652,8 @@ export default class derive extends deriveRest {
             myTrades = new ArrayCacheBySymbolById (limit);
         }
         const params = this.safeDict (message, 'params');
-        const topic = this.safeString (params, 'channel');
-        const rawTrades = this.safeList (params, 'data');
+        const topic = this.valueOr (this.safeString (params, 'channel'), '');
+        const rawTrades = this.valueOr (this.safeList (params, 'data'), []);
         for (let i = 0; i < rawTrades.length; i++) {
             const trade = this.parseTrade (message);
             myTrades.append (trade);
@@ -752,7 +752,7 @@ export default class derive extends deriveRest {
         // }
         //
         const messageHash = 'authenticated';
-        const ids = this.safeList (message, 'result');
+        const ids = this.valueOr (this.safeList (message, 'result'), []);
         if (ids.length > 0) {
             // client.resolve (message, messageHash);
             const future = this.safeValue (client.futures, 'authenticated');

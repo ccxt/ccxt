@@ -152,7 +152,7 @@ export default class p2b extends p2bRest {
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false);
+        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false), []);
         const watchTickerOptions = this.safeDict (this.options, 'watchTicker');
         let name = this.safeString (watchTickerOptions, 'name', 'state');  // or price
         [ name, params ] = this.handleOptionAndParams (params, 'method', 'name', name);
@@ -201,7 +201,7 @@ export default class p2b extends p2bRest {
      */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false, true, true);
+        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false, true, true), []);
         const messageHashes: string[] = [];
         if (symbols !== undefined) {
             for (let i = 0; i < symbols.length; i++) {
@@ -275,7 +275,7 @@ export default class p2b extends p2bRest {
         //
         let data = this.safeList (message, 'params');
         data = this.safeList (data, 0);
-        const method = this.safeString (message, 'method');
+        const method = this.valueOr (this.safeString (message, 'method'), '');
         const splitMethod = method.split ('.');
         const channel = this.safeString (splitMethod, 0);
         const marketId = this.safeString (data, 7);
@@ -320,7 +320,7 @@ export default class p2b extends p2bRest {
         //    }
         //
         const data = this.safeList (message, 'params', []);
-        const trades = this.safeList (data, 1);
+        const trades = this.valueOr (this.safeList (data, 1), []);
         const marketId = this.safeString (data, 0);
         const market = this.safeMarket (marketId);
         const symbol = this.safeString (market, 'symbol');
@@ -376,7 +376,7 @@ export default class p2b extends p2bRest {
         const data = this.safeList (message, 'params', []);
         const marketId = this.safeString (data, 0);
         const market = this.safeMarket (marketId);
-        const method = this.safeString (message, 'method');
+        const method = this.valueOr (this.safeString (message, 'method'), '');
         const splitMethod = method.split ('.');
         const messageHashStart = this.safeString (splitMethod, 0);
         const tickerData = this.safeDict (data, 1);
@@ -463,7 +463,7 @@ export default class p2b extends p2bRest {
             this.handlePong (client, message);
             return;
         }
-        const method = this.safeString (message, 'method');
+        const method = this.valueOr (this.safeString (message, 'method'), '');
         const methods: Dict = {
             'depth.update': this.handleOrderBook,
             'price.update': this.handleTicker,

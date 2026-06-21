@@ -192,7 +192,7 @@ export default class krakenfutures extends krakenfuturesRest {
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false);
+        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false), []);
         const ticker = await this.watchMultiHelper ('ticker', 'ticker', symbols, undefined, params);
         if (this.newUpdates) {
             const result: Dict = {};
@@ -285,7 +285,7 @@ export default class krakenfutures extends krakenfuturesRest {
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         let messageHash = '';
-        symbols = this.marketSymbols (symbols);
+        symbols = this.valueOr (this.marketSymbols (symbols), []);
         if (!this.isEmpty (symbols)) {
             messageHash = '::' + symbols.join (',');
         }
@@ -534,7 +534,7 @@ export default class krakenfutures extends krakenfuturesRest {
             }
             const tradesArray = this.trades[symbol];
             if (channel === 'trade_snapshot') {
-                const trades = this.safeList (message, 'trades', []);
+                const trades = this.valueOr (this.safeList (message, 'trades', []), []);
                 const length = trades.length;
                 for (let i = 0; i < length; i++) {
                     const index = length - 1 - i; // need reverse to correct chronology
@@ -1148,8 +1148,8 @@ export default class krakenfutures extends krakenfuturesRest {
         const timestamp = this.safeInteger (message, 'timestamp');
         this.orderbooks[symbol] = this.orderBook ({}, limit);
         const orderbook = this.orderbooks[symbol];
-        const bids = this.safeList (message, 'bids');
-        const asks = this.safeList (message, 'asks');
+        const bids = this.valueOr (this.safeList (message, 'bids'), []);
+        const asks = this.valueOr (this.safeList (message, 'asks'), []);
         for (let i = 0; i < bids.length; i++) {
             const bid = bids[i];
             const price = this.safeNumber (bid, 'price');
@@ -1519,7 +1519,7 @@ export default class krakenfutures extends krakenfuturesRest {
         await this.loadMarkets ();
         const url = this.urls['api']['ws'];
         // symbols are required
-        symbols = this.marketSymbols (symbols, undefined, false, true, false);
+        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false, true, false), []);
         const messageHashes = [];
         const rawSubs = [];
         for (let i = 0; i < symbols.length; i++) {

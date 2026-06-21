@@ -207,7 +207,7 @@ export default class deribit extends deribitRest {
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false);
+        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false), []);
         const url = this.urls['api']['ws'];
         const interval = this.safeString (params, 'interval', '100ms');
         params = this.omit (params, 'interval');
@@ -289,7 +289,7 @@ export default class deribit extends deribitRest {
      */
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false);
+        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false), []);
         const url = this.urls['api']['ws'];
         const channels = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -424,13 +424,13 @@ export default class deribit extends deribitRest {
         //     }
         //
         const params = this.safeDict (message, 'params', {});
-        const channel = this.safeString (params, 'channel', '');
+        const channel = this.valueOr (this.safeString (params, 'channel', ''), '');
         const parts = channel.split ('.');
         const marketId = this.safeString (parts, 1);
         const interval = this.safeString (parts, 2);
         const symbol = this.safeSymbol (marketId);
         const market = this.safeMarket (marketId);
-        const trades = this.safeList (params, 'data', []);
+        const trades = this.valueOr (this.safeList (params, 'data', []), []);
         if (this.safeValue (this.trades, symbol) === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             this.trades[symbol] = new ArrayCache (limit);
@@ -515,7 +515,7 @@ export default class deribit extends deribitRest {
         //     }
         //
         const params = this.safeValue (message, 'params', {});
-        const channel = this.safeString (params, 'channel', '');
+        const channel = this.valueOr (this.safeString (params, 'channel', ''), '');
         const trades = this.safeValue (params, 'data', []);
         let cachedTrades = this.myTrades;
         if (cachedTrades === undefined) {
@@ -629,7 +629,7 @@ export default class deribit extends deribitRest {
         //
         const params = this.safeValue (message, 'params', {});
         const data = this.safeValue (params, 'data', {});
-        const channel = this.safeString (params, 'channel');
+        const channel = this.valueOr (this.safeString (params, 'channel'), '');
         const parts = channel.split ('.');
         let descriptor = '';
         const partsLength = parts.length;
@@ -650,8 +650,8 @@ export default class deribit extends deribitRest {
             this.orderbooks[symbol] = this.countedOrderBook ();
         }
         const storedOrderBook = this.orderbooks[symbol];
-        const asks = this.safeList (data, 'asks', []);
-        const bids = this.safeList (data, 'bids', []);
+        const asks = this.valueOr (this.safeList (data, 'asks', []), []);
+        const bids = this.valueOr (this.safeList (data, 'bids', []), []);
         this.handleDeltas (storedOrderBook['asks'], asks);
         this.handleDeltas (storedOrderBook['bids'], bids);
         storedOrderBook['nonce'] = timestamp;
@@ -664,8 +664,8 @@ export default class deribit extends deribitRest {
     }
 
     cleanOrderBook (data) {
-        const bids = this.safeList (data, 'bids', []);
-        const asks = this.safeList (data, 'asks', []);
+        const bids = this.valueOr (this.safeList (data, 'bids', []), []);
+        const asks = this.valueOr (this.safeList (data, 'asks', []), []);
         const cleanedBids = [];
         for (let i = 0; i < bids.length; i++) {
             cleanedBids.push ([ bids[i][1], bids[i][2] ]);
@@ -774,7 +774,7 @@ export default class deribit extends deribitRest {
             this.orders = new ArrayCacheBySymbolById (limit);
         }
         const params = this.safeValue (message, 'params', {});
-        const channel = this.safeString (params, 'channel', '');
+        const channel = this.valueOr (this.safeString (params, 'channel', ''), '');
         const data = this.safeValue (params, 'data', {});
         let orders = [];
         if (Array.isArray (data)) {
@@ -853,7 +853,7 @@ export default class deribit extends deribitRest {
         //     }
         //
         const params = this.safeDict (message, 'params', {});
-        const channel = this.safeString (params, 'channel', '');
+        const channel = this.valueOr (this.safeString (params, 'channel', ''), '');
         const parts = channel.split ('.');
         const marketId = this.safeString (parts, 2);
         const rawTimeframe = this.safeString (parts, 3);
@@ -1005,7 +1005,7 @@ export default class deribit extends deribitRest {
             throw new ExchangeError (this.id + ' ' + this.json (error));
         }
         const params = this.safeValue (message, 'params');
-        const channel = this.safeString (params, 'channel');
+        const channel = this.valueOr (this.safeString (params, 'channel'), '');
         if (channel !== undefined) {
             const parts = channel.split ('.');
             const channelId = this.safeString (parts, 0);

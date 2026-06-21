@@ -326,11 +326,11 @@ export default class gemini extends geminiRest {
         //         ]
         //     }
         //
-        const type = this.safeString (message, 'type', '');
+        const type = this.valueOr (this.safeString (message, 'type', ''), '');
         let timeframeId = type.slice (8);
         const timeframeEndIndex = timeframeId.indexOf ('_');
         timeframeId = timeframeId.slice (0, timeframeEndIndex);
-        const marketId = this.safeString (message, 'symbol', '').toLowerCase ();
+        const marketId = this.valueOr (this.safeString (message, 'symbol', '').toLowerCase (), '');
         const market = this.safeMarket (marketId);
         const symbol = this.safeSymbol (marketId, market);
         const changes = this.safeValue (message, 'changes', []);
@@ -746,7 +746,7 @@ export default class gemini extends geminiRest {
         //
         const timestamp = this.safeInteger (order, 'timestampms');
         const status = this.safeString (order, 'type');
-        const marketId = this.safeString (order, 'symbol');
+        const marketId = this.valueOr (this.safeString (order, 'symbol'), '');
         const typeId = this.safeString (order, 'order_type');
         const behavior = this.safeString (order, 'behavior');
         let timeInForce = 'GTC';
@@ -866,7 +866,7 @@ export default class gemini extends geminiRest {
             'subscription_ack': this.handleSubscription,
             'heartbeat': this.handleHeartbeat,
         };
-        const type = this.safeString (message, 'type', '');
+        const type = this.valueOr (this.safeString (message, 'type', ''), '');
         if (type.indexOf ('candles') >= 0) {
             this.handleOHLCV (client, message);
             return;
@@ -879,7 +879,7 @@ export default class gemini extends geminiRest {
         if (type === 'update') {
             const ts = this.safeInteger (message, 'timestampms', this.milliseconds ());
             const eventId = this.safeInteger (message, 'eventId');
-            const events = this.safeList (message, 'events');
+            const events = this.valueOr (this.safeList (message, 'events'), []);
             const orderBookItems = [];
             const bidaskItems = [];
             const collectedEventsOfTrades = [];
@@ -914,7 +914,7 @@ export default class gemini extends geminiRest {
     }
 
     async authenticate (params = {}) {
-        const url = this.safeString (params, 'url');
+        const url = this.valueOr (this.safeString (params, 'url'), '');
         if ((this.clients !== undefined) && (url in this.clients)) {
             return;
         }

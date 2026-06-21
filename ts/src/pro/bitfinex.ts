@@ -236,7 +236,7 @@ export default class bitfinex extends bitfinexRest {
             ohlcvs = [ data ];
         }
         const channel = this.safeValue (subscription, 'channel');
-        const key = this.safeString (subscription, 'key');
+        const key = this.valueOr (this.safeString (subscription, 'key'), '');
         const keyParts = key.split (':');
         const interval = this.safeString (keyParts, 1);
         let marketId = key;
@@ -413,7 +413,7 @@ export default class bitfinex extends bitfinexRest {
         //
         //
         const channel = this.safeValue (subscription, 'channel');
-        const marketId = this.safeString (subscription, 'symbol');
+        const marketId = this.valueOr (this.safeString (subscription, 'symbol'), '');
         const market = this.safeMarket (marketId);
         const messageHash = channel + ':' + marketId;
         const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -426,7 +426,7 @@ export default class bitfinex extends bitfinexRest {
         const messageLength = message.length;
         if (messageLength === 2) {
             // initial snapshot
-            const trades = this.safeList (message, 1, []);
+            const trades = this.valueOr (this.safeList (message, 1, []), []);
             // needs to be reversed to make chronological order
             const length = trades.length;
             for (let i = 0; i < length; i++) {
@@ -436,7 +436,7 @@ export default class bitfinex extends bitfinexRest {
             }
         } else {
             // update
-            const type = this.safeString (message, 1);
+            const type = this.valueOr (this.safeString (message, 1), '');
             if (type === 'tu') {
                 // don't resolve for a duplicate update
                 // since te and tu updates are duplicated on the public stream
@@ -500,7 +500,7 @@ export default class bitfinex extends bitfinexRest {
         const priceKey = isPublic ? 3 : 5;
         const amountKey = isPublic ? 2 : 4;
         marketId = market['id'];
-        let type = this.safeString (trade, 6);
+        let type = this.valueOr (this.safeString (trade, 6), '');
         if (type !== undefined) {
             if (type.indexOf ('LIMIT') > -1) {
                 type = 'limit';
@@ -570,7 +570,7 @@ export default class bitfinex extends bitfinexRest {
         //  ]
         //
         const ticker = this.safeValue (message, 1);
-        const marketId = this.safeString (subscription, 'symbol');
+        const marketId = this.valueOr (this.safeString (subscription, 'symbol'), '');
         const market = this.safeMarket (marketId);
         const symbol = this.safeSymbol (marketId);
         const parsed = this.parseWsTicker (ticker, market);
@@ -679,7 +679,7 @@ export default class bitfinex extends bitfinexRest {
         //         ]
         //     ]
         //
-        const marketId = this.safeString (subscription, 'symbol');
+        const marketId = this.valueOr (this.safeString (subscription, 'symbol'), '');
         const symbol = this.safeSymbol (marketId);
         const channel = 'book';
         const messageHash = channel + ':' + marketId;
@@ -738,7 +738,7 @@ export default class bitfinex extends bitfinexRest {
                 const idString = this.safeString (deltas, 0);
                 bookside.storeArray ([ this.parseNumber (price), this.parseNumber (amount), idString ]);
             } else {
-                const amount = this.safeString (deltas, 2);
+                const amount = this.valueOr (this.safeString (deltas, 2), '');
                 const counter = this.safeString (deltas, 1);
                 const price = this.safeString (deltas, 0);
                 const size = Precise.stringLt (amount, '0') ? Precise.stringNeg (amount) : amount;
@@ -754,7 +754,7 @@ export default class bitfinex extends bitfinexRest {
         //
         // [ 173904, "cs", -890884919 ]
         //
-        const marketId = this.safeString (subscription, 'symbol');
+        const marketId = this.valueOr (this.safeString (subscription, 'symbol'), '');
         const symbol = this.safeSymbol (marketId);
         const channel = 'book';
         const messageHash = channel + ':' + marketId;
@@ -951,8 +951,8 @@ export default class bitfinex extends bitfinexRest {
         const subMessageHash = this.safeString (client.subscriptions, unSubChannel);
         const subscription = this.safeDict (client.subscriptions, 'unsubscribe:' + subMessageHash);
         delete client.subscriptions[unSubChannel];
-        const messageHashes = this.safeList (subscription, 'messageHashes', []);
-        const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
+        const messageHashes = this.valueOr (this.safeList (subscription, 'messageHashes', []), []);
+        const subMessageHashes = this.valueOr (this.safeList (subscription, 'subMessageHashes', []), []);
         for (let i = 0; i < messageHashes.length; i++) {
             const messageHash = messageHashes[i];
             const subHash = subMessageHashes[i];
@@ -994,11 +994,11 @@ export default class bitfinex extends bitfinexRest {
         const unifiedChannel = this.safeString (mappings, this.safeString (message, 'channel'));
         if ('key' in message) {
             // handle ohlcv differently because the message is different
-            const key = this.safeString (message, 'key');
+            const key = this.valueOr (this.safeString (message, 'key'), '');
             const subKeyId = 'unsubscribe:' + key;
             client.subscriptions[subKeyId] = channelId;
         } else {
-            const marketId = this.safeString (message, 'symbol');
+            const marketId = this.valueOr (this.safeString (message, 'symbol'), '');
             const symbol = this.safeSymbol (marketId);
             if (unifiedChannel !== undefined) {
                 const subId = 'unsubscribe:' + unifiedChannel + ':' + symbol;
@@ -1200,23 +1200,23 @@ export default class bitfinex extends bitfinexRest {
         //
         const id = this.safeString (order, 0);
         const clientOrderId = this.safeString (order, 1);
-        const marketId = this.safeString (order, 3);
+        const marketId = this.valueOr (this.safeString (order, 3), '');
         const symbol = this.safeSymbol (marketId);
         market = this.safeMarket (symbol);
-        let amount = this.safeString (order, 7);
+        let amount = this.valueOr (this.safeString (order, 7), '');
         let side = 'buy';
         if (Precise.stringLt (amount, '0')) {
             amount = Precise.stringAbs (amount);
             side = 'sell';
         }
         const remaining = Precise.stringAbs (this.safeString (order, 6));
-        let type = this.safeString (order, 8);
+        let type = this.valueOr (this.safeString (order, 8), '');
         if (type.indexOf ('LIMIT') > -1) {
             type = 'limit';
         } else if (type.indexOf ('MARKET') > -1) {
             type = 'market';
         }
-        const rawState = this.safeString (order, 13);
+        const rawState = this.valueOr (this.safeString (order, 13), '');
         const stateParts = rawState.split (' ');
         const trimmedStatus = this.safeString (stateParts, 0);
         const status = this.parseWsOrderStatus (trimmedStatus);

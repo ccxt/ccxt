@@ -348,7 +348,7 @@ export default class hitbtc extends hitbtcRest {
         symbols = this.marketSymbols (symbols);
         const options = this.safeValue (this.options, 'watchTicker');
         const defaultMethod = this.safeString (options, 'method', 'ticker/{speed}/batch');
-        const method = this.safeString2 (params, 'method', 'defaultMethod', defaultMethod);
+        const method = this.valueOr (this.safeString2 (params, 'method', 'defaultMethod', defaultMethod), '');
         const speed = this.safeString (params, 'speed', '1s');
         const name = this.implodeParams (method, { 'speed': speed });
         params = this.omit (params, [ 'method', 'speed' ]);
@@ -505,7 +505,7 @@ export default class hitbtc extends hitbtcRest {
         symbols = this.marketSymbols (symbols, undefined, false);
         const options = this.safeValue (this.options, 'watchBidsAsks');
         const defaultMethod = this.safeString (options, 'method', 'orderbook/top/{speed}/batch');
-        const method = this.safeString2 (params, 'method', 'defaultMethod', defaultMethod);
+        const method = this.valueOr (this.safeString2 (params, 'method', 'defaultMethod', defaultMethod), '');
         const speed = this.safeString (params, 'speed', '100ms');
         const name = this.implodeParams (method, { 'speed': speed });
         params = this.omit (params, [ 'method', 'speed' ]);
@@ -541,7 +541,7 @@ export default class hitbtc extends hitbtcRest {
         //         }
         //     }
         //
-        const data = this.safeDict (message, 'data', {});
+        const data = this.valueOr (this.safeDict (message, 'data', {}), {});
         const marketIds = Object.keys (data);
         const result = [];
         const topic = 'bidask';
@@ -771,7 +771,7 @@ export default class hitbtc extends hitbtcRest {
         //
         const data = this.safeValue2 (message, 'snapshot', 'update', {});
         const marketIds = Object.keys (data);
-        const channel = this.safeString (message, 'ch');
+        const channel = this.valueOr (this.safeString (message, 'ch'), '');
         const splitChannel = channel.split ('/');
         const period = this.safeString (splitChannel, 1);
         const timeframe = this.findTimeframe (period);
@@ -933,7 +933,7 @@ export default class hitbtc extends hitbtcRest {
     handleOrderHelper (client: Client, message, order) {
         const orders = this.orders;
         const marketId = this.safeStringLower2 (order, 'instrument', 'symbol');
-        const method = this.safeString (message, 'method');
+        const method = this.valueOr (this.safeString (message, 'method'), '');
         const splitMethod = method.split ('_order');
         const messageHash = this.safeString (splitMethod, 0);
         const symbol = this.safeSymbol (marketId);
@@ -1312,10 +1312,10 @@ export default class hitbtc extends hitbtcRest {
         if (this.handleError (client, message)) {
             return;
         }
-        let channel = this.safeString2 (message, 'ch', 'method');
+        let channel = this.valueOr (this.safeString2 (message, 'ch', 'method'), '');
         if (channel !== undefined) {
             const splitChannel = channel.split ('/');
-            channel = this.safeString (splitChannel, 0);
+            channel = this.valueOr (this.safeString (splitChannel, 0), '');
             if (channel === 'orderbook') {
                 const channel2 = this.safeString (splitChannel, 1);
                 if (channel2 !== undefined && channel2 === 'top') {

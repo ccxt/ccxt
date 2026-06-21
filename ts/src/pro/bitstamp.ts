@@ -98,7 +98,7 @@ export default class bitstamp extends bitstampRest {
         //         "channel": "diff_order_book_btcusd"
         //     }
         //
-        const channel = this.safeString (message, 'channel');
+        const channel = this.valueOr (this.safeString (message, 'channel'), '');
         const parts = channel.split ('_');
         const marketId = this.safeString (parts, 3);
         const symbol = this.safeSymbol (marketId);
@@ -254,7 +254,7 @@ export default class bitstamp extends bitstampRest {
         //
         // the trade streams push raw trade information in real-time
         // each trade has a unique buyer and seller
-        const channel = this.safeString (message, 'channel');
+        const channel = this.valueOr (this.safeString (message, 'channel'), '');
         const parts = channel.split ('_');
         const marketId = this.safeString (parts, 2);
         const market = this.safeMarket (marketId);
@@ -322,7 +322,7 @@ export default class bitstamp extends bitstampRest {
         //     "event": "order_deleted" // field only present for cancelOrder
         // }
         //
-        const channel = this.safeString (message, 'channel');
+        const channel = this.valueOr (this.safeString (message, 'channel'), '');
         const order = this.safeValue (message, 'data', {});
         const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
         if (this.orders === undefined) {
@@ -417,7 +417,7 @@ export default class bitstamp extends bitstampRest {
     }
 
     handleOrderBookSubscription (client: Client, message) {
-        const channel = this.safeString (message, 'channel');
+        const channel = this.valueOr (this.safeString (message, 'channel'), '');
         const parts = channel.split ('_');
         const marketId = this.safeString (parts, 3);
         const symbol = this.safeSymbol (marketId);
@@ -437,7 +437,7 @@ export default class bitstamp extends bitstampRest {
         //         "data": {}
         //     }
         //
-        const channel = this.safeString (message, 'channel');
+        const channel = this.valueOr (this.safeString (message, 'channel'), '');
         if (channel.indexOf ('order_book') > -1) {
             this.handleOrderBookSubscription (client, message);
         }
@@ -481,7 +481,7 @@ export default class bitstamp extends bitstampRest {
         //         "event": "order_deleted" // field only present for cancelOrder
         //     }
         //
-        const channel = this.safeString (message, 'channel');
+        const channel = this.valueOr (this.safeString (message, 'channel'), '');
         const methods: Dict = {
             'live_trades': this.handleTrade,
             'diff_order_book': this.handleOrderBook,

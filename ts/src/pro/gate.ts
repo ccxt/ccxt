@@ -499,7 +499,7 @@ export default class gate extends gateRest {
         //   }
         const result = this.safeDict (message, 'result', {});
         const full = this.safeBool (result, 'full', false);
-        const marketIdWithPrefix = this.safeString (result, 's');
+        const marketIdWithPrefix = this.valueOr (this.safeString (result, 's'), '');
         const marketIdParts = marketIdWithPrefix.split ('.');
         const marketId = this.safeString (marketIdParts, 1);
         const symbol = this.safeSymbol (marketId, undefined, '_', 'spot');
@@ -766,7 +766,7 @@ export default class gate extends gateRest {
     async subscribeWatchTickersAndBidsAsks (symbols: Strings = undefined, callerMethodName: Str = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         [ callerMethodName, params ] = this.handleParamString (params, 'callerMethodName', callerMethodName);
-        symbols = this.marketSymbols (symbols, undefined, false);
+        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false), []);
         const market = this.market (symbols[0]);
         const messageType = this.getTypeByMarket (market);
         const marketIds = this.marketIds (symbols);
@@ -855,7 +855,7 @@ export default class gate extends gateRest {
      */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
+        symbols = this.valueOr (this.marketSymbols (symbols), []);
         const marketIds = this.marketIds (symbols);
         const market = this.market (symbols[0]);
         const messageType = this.getTypeByMarket (market);
@@ -885,7 +885,7 @@ export default class gate extends gateRest {
      */
     async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
+        symbols = this.valueOr (this.marketSymbols (symbols), []);
         const marketIds = this.marketIds (symbols);
         const market = this.market (symbols[0]);
         const messageType = this.getTypeByMarket (market);
@@ -1011,7 +1011,7 @@ export default class gate extends gateRest {
         const marketIds: Dict = {};
         for (let i = 0; i < result.length; i++) {
             const ohlcv = result[i];
-            const subscription = this.safeString (ohlcv, 'n', '');
+            const subscription = this.valueOr (this.safeString (ohlcv, 'n', ''), '');
             const parts = subscription.split ('_');
             const timeframeId = this.safeString (parts, 0);
             const timeframe = this.findTimeframe (timeframeId);
@@ -1281,7 +1281,7 @@ export default class gate extends gateRest {
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         let market: Market = undefined;
-        symbols = this.marketSymbols (symbols);
+        symbols = this.valueOr (this.marketSymbols (symbols), []);
         const payload = [ '!' + 'all' ];
         if (!this.isEmpty (symbols)) {
             market = this.getMarketFromSymbols (symbols);
@@ -1601,7 +1601,7 @@ export default class gate extends gateRest {
      */
     async watchMyLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, true, true);
+        symbols = this.valueOr (this.marketSymbols (symbols, undefined, true, true), []);
         const market = this.getMarketFromSymbols (symbols);
         let type = undefined;
         let query: Dict = undefined;
@@ -1683,7 +1683,7 @@ export default class gate extends gateRest {
         //        ]
         //    }
         //
-        const rawLiquidations = this.safeList (message, 'result', []);
+        const rawLiquidations = this.valueOr (this.safeList (message, 'result', []), []);
         const newLiquidations = [];
         if (this.liquidations === undefined) {
             const limit = this.safeInteger (this.options, 'liquidationsLimit', 1000);
@@ -1805,7 +1805,7 @@ export default class gate extends gateRest {
         const errs = this.safeDict (data, 'errs');
         const error = this.safeDict (message, 'error', errs);
         const code = this.safeString2 (error, 'code', 'label');
-        const id = this.safeStringN (message, [ 'id', 'requestId', 'request_id' ]);
+        const id = this.valueOr (this.safeStringN (message, [ 'id', 'requestId', 'request_id' ]), '');
         if (error !== undefined) {
             const messageHash = this.safeString (client.subscriptions, id);
             try {
@@ -1823,7 +1823,7 @@ export default class gate extends gateRest {
                 const channel = this.safeString (message, 'channel') as string;
                 if ((channel !== undefined) && (channel.indexOf ('.') > 0)) {
                     const parsedChannel = channel.split ('.');
-                    const payload = this.safeList (message, 'payload', []);
+                    const payload = this.valueOr (this.safeList (message, 'payload', []), []);
                     for (let i = 0; i < payload.length; i++) {
                         const marketType = parsedChannel[0] === 'futures' ? 'swap' : parsedChannel[0];
                         const symbol = this.safeSymbol (payload[i], undefined, '_', marketType);
@@ -1854,7 +1854,7 @@ export default class gate extends gateRest {
             'futures.order_book_update': this.handleOrderBookSubscription,
             'options.order_book_update': this.handleOrderBookSubscription,
         };
-        const id = this.safeString (message, 'id');
+        const id = this.valueOr (this.safeString (message, 'id'), '');
         if (channel in methods) {
             const subscriptionHash = this.safeString (client.subscriptions, id);
             const subscription = this.safeValue (client.subscriptions, subscriptionHash);
@@ -1885,7 +1885,7 @@ export default class gate extends gateRest {
         //     "requestId":"efe1d282b630b4aa266b84bee177791a"
         // }
         //
-        const id = this.safeString (message, 'id');
+        const id = this.valueOr (this.safeString (message, 'id'), '');
         const keys = Object.keys (client.subscriptions);
         for (let i = 0; i < keys.length; i++) {
             const messageHash = keys[i];
@@ -1899,8 +1899,8 @@ export default class gate extends gateRest {
                 if (id !== subId) {
                     continue;
                 }
-                const messageHashes = this.safeList (subscription, 'messageHashes', []);
-                const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
+                const messageHashes = this.valueOr (this.safeList (subscription, 'messageHashes', []), []);
+                const subMessageHashes = this.valueOr (this.safeList (subscription, 'subMessageHashes', []), []);
                 for (let j = 0; j < messageHashes.length; j++) {
                     const unsubHash = messageHashes[j];
                     const subHash = subMessageHashes[j];
@@ -2013,7 +2013,7 @@ export default class gate extends gateRest {
             this.handleUnSubscribe (client, message);
             return;
         }
-        const channel = this.safeString (message, 'channel', '');
+        const channel = this.valueOr (this.safeString (message, 'channel', ''), '');
         // after supporting more method we can create a mapping for this
         if (channel === 'spot.obu') {
             this.handleOrderBook (client, message);

@@ -42,8 +42,8 @@ export default class upbit extends upbitRest {
         if (symbols === undefined) {
             symbols = this.symbols;
         }
-        symbols = this.marketSymbols (symbols);
-        const marketIds = this.marketIds (symbols);
+        symbols = this.valueOr (this.marketSymbols (symbols), []);
+        const marketIds = this.valueOr (this.marketIds (symbols), []);
         const url = this.implodeParams (this.urls['api']['ws'], {
             'hostname': this.hostname,
         });
@@ -365,7 +365,7 @@ export default class upbit extends upbitRest {
             const market = this.market (symbol);
             symbol = market['symbol'];
             const symbols = [ symbol ];
-            const marketIds = this.marketIds (symbols);
+            const marketIds = this.valueOr (this.marketIds (symbols), []);
             request['codes'] = marketIds;
             messageHash = messageHash + ':' + symbol;
         }
@@ -654,7 +654,7 @@ export default class upbit extends upbitRest {
         //     "stream_type": "REALTIME"
         // }
         //
-        const data = this.safeList (message, 'assets', []);
+        const data = this.valueOr (this.safeList (message, 'assets', []), []);
         const timestamp = this.safeInteger (message, 'timestamp');
         this.balance['timestamp'] = timestamp;
         this.balance['datetime'] = this.iso8601 (timestamp);

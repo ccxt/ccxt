@@ -154,7 +154,7 @@ export default class htx extends htxRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const options = this.safeDict (this.options, 'watchTicker', {});
-        const topic = this.safeString (options, 'name', 'market.{marketId}.detail');
+        const topic = this.valueOr (this.safeString (options, 'name', 'market.{marketId}.detail'), '');
         if (topic === 'market.{marketId}.ticker' && market['type'] !== 'spot') {
             throw new BadRequest (this.id + ' watchTicker() with name market.{marketId}.ticker is only allowed for spot markets, use market.{marketId}.detail instead');
         }
@@ -220,7 +220,7 @@ export default class htx extends htxRest {
         //     }
         //
         const tick = this.safeValue (message, 'tick', {});
-        const ch = this.safeString (message, 'ch');
+        const ch = this.valueOr (this.safeString (message, 'ch'), '');
         const parts = ch.split ('.');
         const marketId = this.safeString (parts, 1);
         const market = this.safeMarket (marketId);
@@ -304,7 +304,7 @@ export default class htx extends htxRest {
         //
         const tick = this.safeValue (message, 'tick', {});
         const data = this.safeValue (tick, 'data', {});
-        const ch = this.safeString (message, 'ch');
+        const ch = this.valueOr (this.safeString (message, 'ch'), '');
         const parts = ch.split ('.');
         const marketId = this.safeString (parts, 1);
         const market = this.safeMarket (marketId);
@@ -391,7 +391,7 @@ export default class htx extends htxRest {
         //         }
         //     }
         //
-        const ch = this.safeString (message, 'ch');
+        const ch = this.valueOr (this.safeString (message, 'ch'), '');
         const parts = ch.split ('.');
         const marketId = this.safeString (parts, 1);
         const market = this.safeMarket (marketId);
@@ -509,8 +509,8 @@ export default class htx extends htxRest {
         //     }
         //
         const symbol = this.safeString (subscription, 'symbol');
-        const messageHash = this.safeString (subscription, 'messageHash');
-        const id = this.safeString (message, 'id');
+        const messageHash = this.valueOr (this.safeString (subscription, 'messageHash'), '');
+        const id = this.valueOr (this.safeString (message, 'id'), '');
         const lastTimestamp = this.safeInteger (subscription, 'lastTimestamp');
         try {
             const orderbook = this.orderbooks[symbol];
@@ -562,7 +562,7 @@ export default class htx extends htxRest {
     }
 
     async watchOrderBookSnapshot (client, message, subscription) {
-        const messageHash = this.safeString (subscription, 'messageHash');
+        const messageHash = this.valueOr (this.safeString (subscription, 'messageHash'), '');
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');
         const timestamp = this.safeInteger (message, 'ts');
@@ -758,15 +758,15 @@ export default class htx extends htxRest {
         //         "ts":1645023376098
         //     }
         //
-        const messageHash = this.safeString (message, 'ch');
+        const messageHash = this.valueOr (this.safeString (message, 'ch'), '');
         const tick = this.safeDict (message, 'tick');
         const event = this.safeString (tick, 'event');
-        const ch = this.safeString (message, 'ch');
+        const ch = this.valueOr (this.safeString (message, 'ch'), '');
         const parts = ch.split ('.');
         const marketId = this.safeString (parts, 1);
         const symbol = this.safeSymbol (marketId);
         if (!(symbol in this.orderbooks)) {
-            const size = this.safeString (parts, 3);
+            const size = this.valueOr (this.safeString (parts, 3), '');
             const sizeParts = size.split ('_');
             const limit = this.safeInteger (sizeParts, 1);
             this.orderbooks[symbol] = this.orderBook ({}, limit);
@@ -927,7 +927,7 @@ export default class htx extends htxRest {
         } else {
             const channelAndMessageHash = this.getOrderChannelAndMessageHash (type, subType, market, params);
             channel = this.safeString (channelAndMessageHash, 0);
-            messageHash = this.safeString (channelAndMessageHash, 1);
+            messageHash = this.valueOr (this.safeString (channelAndMessageHash, 1), '');
         }
         const orders = await this.subscribePrivate (channel, messageHash, type, subType, params);
         if (this.newUpdates) {
@@ -1057,7 +1057,7 @@ export default class htx extends htxRest {
         //   }
         //
         //
-        const messageHash = this.safeString2 (message, 'ch', 'topic');
+        const messageHash = this.valueOr (this.safeString2 (message, 'ch', 'topic'), '');
         const data = this.safeValue (message, 'data');
         let marketId = this.safeString (message, 'contract_code');
         if (marketId === undefined) {
@@ -1252,7 +1252,7 @@ export default class htx extends htxRest {
         const symbol = this.safeSymbol (marketId, market);
         const amount = this.safeString2 (order, 'orderSize', 'volume');
         const status = this.parseOrderStatus (this.safeString2 (order, 'orderStatus', 'status'));
-        const id = this.safeString2 (order, 'orderId', 'order_id');
+        const id = this.valueOr (this.safeString2 (order, 'orderId', 'order_id'), '');
         const clientOrderId = this.safeString2 (order, 'clientOrderId', 'client_order_id');
         const price = this.safeString2 (order, 'orderPrice', 'price');
         const filled = this.safeString (order, 'execAmt');
@@ -1396,7 +1396,7 @@ export default class htx extends htxRest {
             }
             [ subType, params ] = this.handleOptionAndParams (params, 'watchPositions', 'subType', subType);
         }
-        symbols = this.marketSymbols (symbols);
+        symbols = this.valueOr (this.marketSymbols (symbols), []);
         let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('watchPositions', params, 'cross');
         const isLinear = (subType === 'linear');
@@ -1447,7 +1447,7 @@ export default class htx extends htxRest {
         //    }
         //
         const url = client.url;
-        const topic = this.safeString (message, 'topic', '');
+        const topic = this.valueOr (this.safeString (message, 'topic', ''), '');
         const marginMode = (topic === 'positions_cross') ? 'cross' : 'isolated';
         if (this.positions === undefined) {
             this.positions = {};
@@ -1707,7 +1707,7 @@ export default class htx extends htxRest {
         this.balance['info'] = data;
         if (channel !== undefined) {
             // spot balance
-            const currencyId = this.safeString (data, 'currency');
+            const currencyId = this.valueOr (this.safeString (data, 'currency'), '');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['free'] = this.safeString (data, 'available');
@@ -1722,9 +1722,9 @@ export default class htx extends htxRest {
                 return;
             }
             const first = this.safeValue (data, 0, {});
-            const topic = this.safeString (message, 'topic');
+            const topic = this.valueOr (this.safeString (message, 'topic'), '');
             const splitTopic = topic.split ('.');
-            let messageHash = this.safeString (splitTopic, 0);
+            let messageHash = this.valueOr (this.safeString (splitTopic, 0), '');
             let subscription = this.safeValue2 (client.subscriptions, messageHash, messageHash + '.*');
             if (subscription === undefined) {
                 // if subscription not found means that we subscribed to a specific currency/symbol
@@ -1732,7 +1732,7 @@ export default class htx extends htxRest {
                 // Example: topic = 'accounts'
                 // client.subscription hash = 'accounts.usdt'
                 // we do 'accounts' + '.' + data[0]]['margin_asset'] to get it
-                const currencyId = this.safeString2 (first, 'margin_asset', 'symbol');
+                const currencyId = this.valueOr (this.safeString2 (first, 'margin_asset', 'symbol'), '');
                 messageHash += '.' + currencyId.toLowerCase ();
                 subscription = this.safeValue (client.subscriptions, messageHash);
             }
@@ -1772,7 +1772,7 @@ export default class htx extends htxRest {
                             const balance = balances[i];
                             const marketId = this.safeString2 (balance, 'contract_code', 'margin_account');
                             const market = this.safeMarket (marketId);
-                            const currencyId = this.safeString (balance, 'margin_asset');
+                            const currencyId = this.valueOr (this.safeString (balance, 'margin_asset'), '');
                             const currency = this.safeCurrency (currencyId);
                             const code = this.safeString (market, 'settle', currency['code']);
                             // the exchange outputs positions for delisted markets
@@ -1796,7 +1796,7 @@ export default class htx extends htxRest {
                         const account = this.account ();
                         account['free'] = this.safeString (isolatedBalance, 'margin_balance', 'margin_available');
                         account['used'] = this.safeString (isolatedBalance, 'margin_frozen');
-                        const currencyId = this.safeString2 (isolatedBalance, 'margin_asset', 'symbol');
+                        const currencyId = this.valueOr (this.safeString2 (isolatedBalance, 'margin_asset', 'symbol'), '');
                         const code = this.safeCurrencyCode (currencyId);
                         this.balance[code] = account;
                         this.balance = this.safeBalance (this.balance);
@@ -1806,7 +1806,7 @@ export default class htx extends htxRest {
                 // inverse branch
                 for (let i = 0; i < data.length; i++) {
                     const balance = data[i];
-                    const currencyId = this.safeString (balance, 'symbol');
+                    const currencyId = this.valueOr (this.safeString (balance, 'symbol'), '');
                     const code = this.safeCurrencyCode (currencyId);
                     const account = this.account ();
                     account['free'] = this.safeString (balance, 'margin_available');
@@ -1836,7 +1836,7 @@ export default class htx extends htxRest {
         //         "ts": 1759329276980
         //     }
         //
-        const id = this.safeString (message, 'id');
+        const id = this.valueOr (this.safeString (message, 'id'), '');
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
         const subscription = this.safeDict (subscriptionsById, id);
         if (subscription !== undefined) {
@@ -1856,8 +1856,8 @@ export default class htx extends htxRest {
     }
 
     handleUnSubscription (client: Client, subscription: Dict) {
-        const messageHashes = this.safeList (subscription, 'messageHashes', []);
-        const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
+        const messageHashes = this.valueOr (this.safeList (subscription, 'messageHashes', []), []);
+        const subMessageHashes = this.valueOr (this.safeList (subscription, 'subMessageHashes', []), []);
         for (let i = 0; i < messageHashes.length; i++) {
             const unsubHash = messageHashes[i];
             const subHash = subMessageHashes[i];
@@ -1981,7 +1981,7 @@ export default class htx extends htxRest {
         }
         // private spot subjects
         const privateParts = ch.split ('#');
-        const privateType = this.safeString (privateParts, 0, '');
+        const privateType = this.valueOr (this.safeString (privateParts, 0, ''), '');
         if (privateType === 'trade.clearing') {
             this.handleMyTrade (client, message);
             return;
@@ -1997,7 +1997,7 @@ export default class htx extends htxRest {
         // private contract subjects
         const op = this.safeString (message, 'op');
         if (op === 'notify') {
-            const topic = this.safeString (message, 'topic', '');
+            const topic = this.valueOr (this.safeString (message, 'topic', ''), '');
             if (topic.indexOf ('orders') >= 0) {
                 this.handleOrder (client, message);
             }
@@ -2103,7 +2103,7 @@ export default class htx extends htxRest {
         //
         const status = this.safeString (message, 'status');
         if (status === 'error') {
-            const id = this.safeString (message, 'id');
+            const id = this.valueOr (this.safeString (message, 'id'), '');
             const subscriptionsById = this.indexBy (client.subscriptions, 'id');
             const subscription = this.safeValue (subscriptionsById, id);
             if (subscription !== undefined) {
@@ -2112,7 +2112,7 @@ export default class htx extends htxRest {
                     this.throwExactlyMatchedException (this.exceptions['ws']['exact'], errorCode, this.json (message));
                     throw new ExchangeError (this.json (message));
                 } catch (e) {
-                    const messageHash = this.safeString (subscription, 'messageHash');
+                    const messageHash = this.valueOr (this.safeString (subscription, 'messageHash'), '');
                     client.reject (e, messageHash);
                     client.reject (e, id);
                     if (id in client.subscriptions) {
@@ -2297,7 +2297,7 @@ export default class htx extends htxRest {
             this.myTrades = new ArrayCacheBySymbolById (limit);
         }
         const cachedTrades = this.myTrades;
-        const messageHash = this.safeString (message, 'ch');
+        const messageHash = this.valueOr (this.safeString (message, 'ch'), '');
         if (messageHash !== undefined) {
             const data = this.safeValue (message, 'data');
             if (data !== undefined) {

@@ -508,7 +508,7 @@ export default class bingx extends bingxRest {
         //     }
         //
         const data = this.safeValue (message, 'data', []);
-        const rawHash = this.safeString (message, 'dataType');
+        const rawHash = this.valueOr (this.safeString (message, 'dataType'), '');
         const marketId = rawHash.split ('@')[0];
         const isSwap = client.url.indexOf ('swap') >= 0;
         const marketType = isSwap ? 'swap' : 'spot';
@@ -688,7 +688,7 @@ export default class bingx extends bingxRest {
         //     }
         //
         const data = this.safeDict (message, 'data', {});
-        const dataType = this.safeString (message, 'dataType');
+        const dataType = this.valueOr (this.safeString (message, 'dataType'), '');
         const parts = dataType.split ('@');
         const firstPart = parts[0];
         const isAllEndpoint = (firstPart === 'all');
@@ -822,7 +822,7 @@ export default class bingx extends bingxRest {
         //     }
         //
         const isSwap = client.url.indexOf ('swap') >= 0;
-        const dataType = this.safeString (message, 'dataType');
+        const dataType = this.valueOr (this.safeString (message, 'dataType'), '');
         const parts = dataType.split ('@');
         const firstPart = parts[0];
         const isAllEndpoint = (firstPart === 'all');
@@ -834,7 +834,7 @@ export default class bingx extends bingxRest {
             if (market['inverse']) {
                 candles = [ this.safeDict (message, 'data', {}) ];
             } else {
-                candles = this.safeList (message, 'data', []);
+                candles = this.valueOr (this.safeList (message, 'data', []), []);
             }
         } else {
             const data = this.safeDict (message, 'data', {});
@@ -1180,7 +1180,7 @@ export default class bingx extends bingxRest {
         await this.authenticate ();
         let market: Market = undefined;
         let messageHash = '';
-        symbols = this.marketSymbols (symbols);
+        symbols = this.valueOr (this.marketSymbols (symbols), []);
         if (!this.isEmpty (symbols)) {
             market = this.getMarketFromSymbols (symbols);
             messageHash = '::' + symbols.join (',');
@@ -1269,7 +1269,7 @@ export default class bingx extends bingxRest {
         //     }
         //
         const marketId = this.safeString (position, 's');
-        const contracts = this.safeString (position, 'pa');
+        const contracts = this.valueOr (this.safeString (position, 'pa'), '');
         const contractsAbs = Precise.stringAbs (contracts);
         let positionSide = this.safeStringLower (position, 'ps');
         let hedged = true;
@@ -1678,7 +1678,7 @@ export default class bingx extends bingxRest {
         //         }
         //     }
         //
-        const a = this.safeDict (message, 'a', {});
+        const a = this.valueOr (this.safeDict (message, 'a', {}), {});
         const data = this.safeList (a, 'B', []) as List;
         const timestamp = this.safeInteger2 (message, 'T', 'E');
         const type = ('P' in a) ? 'swap' : 'spot';
@@ -1711,7 +1711,7 @@ export default class bingx extends bingxRest {
             this.spawn (this.pong, client, message);
             return;
         }
-        const dataType = this.safeString (message, 'dataType', '');
+        const dataType = this.valueOr (this.safeString (message, 'dataType', ''), '');
         if (dataType.indexOf ('@depth') >= 0) {
             this.handleOrderBook (client, message);
             return;

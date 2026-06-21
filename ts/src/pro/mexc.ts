@@ -326,8 +326,8 @@ export default class mexc extends mexcRest {
         //         "s": "BTCUSDT"
         //     }
         //
-        const data = this.safeList2 (message, 'data', 'd');
-        const channel = this.safeString (message, 'c', '');
+        const data = this.valueOr (this.safeList2 (message, 'data', 'd'), []);
+        const channel = this.valueOr (this.safeString (message, 'c', ''), '');
         const marketId = this.safeString (message, 's');
         const market = this.safeMarket (marketId);
         const channelStartsWithSpot = channel.startsWith ('spot');
@@ -474,7 +474,7 @@ export default class mexc extends mexcRest {
         //    }
         //
         const parsedTicker = this.parseWsBidAsk (message);
-        const symbol = this.safeString (parsedTicker, 'symbol');
+        const symbol = this.valueOr (this.safeString (parsedTicker, 'symbol'), '');
         if (symbol === undefined) {
             return;
         }
@@ -484,10 +484,10 @@ export default class mexc extends mexcRest {
     }
 
     parseWsBidAsk (ticker, market: Market = undefined) {
-        const data = this.safeDict (ticker, 'd');
+        const data = this.valueOr (this.safeDict (ticker, 'd'), {});
         const marketId = this.safeString (ticker, 's');
         market = this.safeMarket (marketId, market);
-        const symbol = this.safeString (market, 'symbol');
+        const symbol = this.valueOr (this.safeString (market, 'symbol'), '');
         const timestamp = this.safeInteger (ticker, 't');
         return this.safeTicker ({
             'symbol': symbol,
@@ -660,7 +660,7 @@ export default class mexc extends mexcRest {
         let timeframe: Str = undefined;
         if ('publicSpotKline' in message) {
             symbol = this.symbol (this.safeString (message, 'symbol'));
-            const data = this.safeDict (message, 'publicSpotKline', {});
+            const data = this.valueOr (this.safeDict (message, 'publicSpotKline', {}), {});
             const timeframeId = this.safeString (data, 'interval');
             timeframe = this.findTimeframe (timeframeId, this.options['timeframes']);
             parsed = this.parseWsOHLCV (data, this.safeMarket (symbol));
@@ -784,7 +784,7 @@ export default class mexc extends mexcRest {
         // spot
         //     { id: 0, code: 0, msg: "spot@public.increase.depth.v3.api@BTCUSDT" }
         //
-        const msg = this.safeString (message, 'msg');
+        const msg = this.valueOr (this.safeString (message, 'msg'), '');
         const parts = msg.split ('@');
         const marketId = this.safeString (parts, 2);
         const symbol = this.safeSymbol (marketId);
@@ -876,7 +876,7 @@ export default class mexc extends mexcRest {
         //      }
         // }
         //
-        const data = this.safeDictN (message, [ 'd', 'data', 'publicAggreDepths' ]);
+        const data = this.valueOr (this.safeDictN (message, [ 'd', 'data', 'publicAggreDepths' ]), {});
         const marketId = this.safeString2 (message, 's', 'symbol');
         const symbol = this.safeSymbol (marketId);
         const messageHash = 'orderbook:' + symbol;
@@ -1046,9 +1046,9 @@ export default class mexc extends mexcRest {
             this.trades[symbol] = stored;
         }
         const d = this.safeDictN (message, [ 'd', 'publicAggreDeals' ]);
-        let trades = this.safeList2 (d, 'deals', 'dealsList', [ d ]);
+        let trades = this.valueOr (this.safeList2 (d, 'deals', 'dealsList', [ d ]), []);
         if (d === undefined) {
-            trades = this.safeList (message, 'data', []);
+            trades = this.valueOr (this.safeList (message, 'data', []), []);
         }
         for (let j = 0; j < trades.length; j++) {
             let parsedTrade: Trade;
@@ -1134,7 +1134,7 @@ export default class mexc extends mexcRest {
         // }
         //
         const messageHash = 'myTrades';
-        const data = this.safeDictN (message, [ 'd', 'data', 'privateDeals' ]);
+        const data = this.valueOr (this.safeDictN (message, [ 'd', 'data', 'privateDeals' ]), {});
         const futuresMarketId = this.safeString (data, 'symbol');
         const marketId = this.safeString2 (message, 's', 'symbol', futuresMarketId);
         const market = this.safeMarket (marketId);
@@ -1351,7 +1351,7 @@ export default class mexc extends mexcRest {
         //   }
         //
         const messageHash = 'orders';
-        const data = this.safeDictN (message, [ 'd', 'data', 'privateOrders' ]);
+        const data = this.valueOr (this.safeDictN (message, [ 'd', 'data', 'privateOrders' ]), {});
         const futuresMarketId = this.safeString (data, 'symbol');
         const marketId = this.safeString2 (message, 's', 'symbol', futuresMarketId);
         const market = this.safeMarket (marketId);
@@ -1579,10 +1579,10 @@ export default class mexc extends mexcRest {
         //         "ts": 1680059188191
         //     }
         //
-        const channel = this.safeString (message, 'channel');
+        const channel = this.valueOr (this.safeString (message, 'channel'), '');
         const type = (channel === 'spot@private.account.v3.api.pb') ? 'spot' : 'swap';
         const messageHash = 'balance:' + type;
-        const data = this.safeDictN (message, [ 'data', 'privateAccount' ]);
+        const data = this.valueOr (this.safeDictN (message, [ 'data', 'privateAccount' ]), {});
         const futuresTimestamp = this.safeInteger2 (message, 'ts', 'createTime');
         const timestamp = this.safeInteger2 (data, 'time', futuresTimestamp);
         if (!(type in this.balance)) {
@@ -1659,7 +1659,7 @@ export default class mexc extends mexcRest {
         //         "ts": 1771069020506
         //     }
         //
-        const data = this.safeDict (message, 'data', {});
+        const data = this.valueOr (this.safeDict (message, 'data', {}), {});
         const fundingRate = this.parseFundingRate (data);
         const symbol = fundingRate['symbol'];
         this.fundingRates[symbol] = fundingRate;
@@ -1929,7 +1929,7 @@ export default class mexc extends mexcRest {
                 }
             } else if (messageHash.indexOf ('candles') >= 0) {
                 const splitHashes = messageHash.split (':');
-                let symbol = this.safeString (splitHashes, 2);
+                let symbol = this.valueOr (this.safeString (splitHashes, 2), '');
                 if (splitHashes.length > 4) {
                     symbol += ':' + this.safeString (splitHashes, 3);
                 }
@@ -2007,12 +2007,12 @@ export default class mexc extends mexcRest {
         //        "msg": "spot@public.increase.depth.v3.api@BTCUSDT"
         //    }
         // Set the default to an empty string if the message is empty during the test.
-        const msg = this.safeString (message, 'msg', '');
+        const msg = this.valueOr (this.safeString (message, 'msg', ''), '');
         if (msg === 'PONG') {
             this.handlePong (client, message);
         } else if (msg.indexOf ('@') > -1) {
             const parts = msg.split ('@');
-            const channel = this.safeString (parts, 1);
+            const channel = this.valueOr (this.safeString (parts, 1), '');
             const methods: Dict = {
                 'public.increase.depth.v3.api': this.handleOrderBookSubscription,
                 'public.aggre.depth.v3.api.pb': this.handleOrderBookSubscription,
@@ -2043,7 +2043,7 @@ export default class mexc extends mexcRest {
         //       "windowEnd":"1754737980"
         //    }
         // }
-        const channel = this.safeString (message, 'channel');
+        const channel = this.valueOr (this.safeString (message, 'channel'), '');
         const channelParts = channel.split ('@');
         const channelId = this.safeString (channelParts, 1);
         if (channelId === 'public.kline.v3.api.pb') {
@@ -2084,10 +2084,10 @@ export default class mexc extends mexcRest {
         const c = this.safeString (message, 'c');
         let channel: Str = undefined;
         if (c === undefined) {
-            channel = this.safeString (message, 'channel');
+            channel = this.valueOr (this.safeString (message, 'channel'), '');
         } else {
             const parts = c.split ('@');
-            channel = this.safeString (parts, 1);
+            channel = this.valueOr (this.safeString (parts, 1), '');
         }
         const methods: Dict = {
             'public.deals.v3.api': this.handleTrades,

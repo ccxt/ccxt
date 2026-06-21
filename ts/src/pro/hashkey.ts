@@ -138,7 +138,7 @@ export default class hashkey extends hashkeyRest {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
         }
-        const data = this.safeList (message, 'data', []);
+        const data = this.valueOr (this.safeList (message, 'data', []), []);
         const stored = this.ohlcvs[symbol][timeframe];
         for (let i = 0; i < data.length; i++) {
             const candle = this.safeDict (data, i, {});
@@ -220,7 +220,7 @@ export default class hashkey extends hashkeyRest {
         //         "shared": false
         //     }
         //
-        const data = this.safeList (message, 'data', []);
+        const data = this.valueOr (this.safeList (message, 'data', []), []);
         const ticker = this.parseTicker (this.safeDict (data, 0));
         const symbol = ticker['symbol'];
         const messageHash = 'ticker:' + symbol;
@@ -286,7 +286,7 @@ export default class hashkey extends hashkeyRest {
             this.trades[symbol] = new ArrayCache (limit);
         }
         const stored = this.trades[symbol];
-        let data = this.safeList (message, 'data');
+        let data = this.valueOr (this.safeList (message, 'data'), []);
         if (data !== undefined) {
             data = this.sortBy (data, 't');
             for (let i = 0; i < data.length; i++) {
@@ -356,7 +356,7 @@ export default class hashkey extends hashkeyRest {
             this.orderbooks[symbol] = this.orderBook ({});
         }
         const orderbook = this.orderbooks[symbol];
-        const data = this.safeList (message, 'data', []);
+        const data = this.valueOr (this.safeList (message, 'data', []), []);
         const dataEntry = this.safeDict (data, 0);
         const timestamp = this.safeInteger (dataEntry, 't');
         const snapshot = this.parseOrderBook (dataEntry, symbol, timestamp, 'b', 'a');
@@ -784,7 +784,7 @@ export default class hashkey extends hashkeyRest {
         //     }
         //
         const event = this.safeString (message, 'e');
-        const data = this.safeList (message, 'B', []);
+        const data = this.valueOr (this.safeList (message, 'B', []), []);
         const balanceUpdate = this.safeDict (data, 0);
         const isSpot = event === 'outboundAccountInfo';
         const type = isSpot ? 'spot' : 'swap';

@@ -307,7 +307,7 @@ export default class binance extends binanceRest {
         const subscriptionHashes: string[] = [];
         const messageHashes: string[] = [];
         let streamHash = 'liquidations';
-        symbols = this.marketSymbols (symbols, undefined, true, true);
+        symbols = this.valueOr (this.marketSymbols (symbols, undefined, true, true), []);
         if (this.isEmpty (symbols)) {
             subscriptionHashes.push ('!' + 'forceOrder@arr');
             messageHashes.push ('liquidations');
@@ -391,7 +391,7 @@ export default class binance extends binanceRest {
         //    }
         //
         const rawLiquidation = this.safeValue (message, 'o', {});
-        const marketId = this.safeString (rawLiquidation, 's');
+        const marketId = this.valueOr (this.safeString (rawLiquidation, 's'), '');
         const market = this.safeMarket (marketId, undefined, '', 'contract');
         const symbol = market['symbol'];
         const liquidation = this.parseWsLiquidation (rawLiquidation, market);
@@ -480,7 +480,7 @@ export default class binance extends binanceRest {
         //        "gtd":0                     // TIF GTD order auto cancel time
         //    }
         //
-        const marketId = this.safeString (liquidation, 's');
+        const marketId = this.valueOr (this.safeString (liquidation, 's'), '');
         market = this.safeMarket (marketId, market, undefined, 'swap');
         const timestamp = this.safeInteger (liquidation, 'T');
         return this.safeLiquidation ({
@@ -527,7 +527,7 @@ export default class binance extends binanceRest {
      */
     async watchMyLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, true, true, true);
+        symbols = this.valueOr (this.marketSymbols (symbols, undefined, true, true, true), []);
         const market = this.getMarketFromSymbols (symbols);
         const messageHashes = [ 'myLiquidations' ];
         if (!this.isEmpty (symbols)) {
@@ -605,7 +605,7 @@ export default class binance extends binanceRest {
         if (orderType !== 'LIQUIDATION') {
             return;
         }
-        const marketId = this.safeString (message, 's');
+        const marketId = this.valueOr (this.safeString (message, 's'), '');
         const market = this.safeMarket (marketId, undefined, undefined, 'swap');
         const symbol = this.safeSymbol (marketId, market);
         const liquidation = this.parseWsLiquidation (message, market);
@@ -696,7 +696,7 @@ export default class binance extends binanceRest {
      */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false, true, true);
+        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false, true, true), []);
         const firstMarket = this.market (symbols[0]);
         let type = firstMarket['type'];
         if (firstMarket['contract']) {
@@ -766,7 +766,7 @@ export default class binance extends binanceRest {
      */
     async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false, true, true);
+        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false, true, true), []);
         const firstMarket = this.market (symbols[0]);
         let type = firstMarket['type'];
         if (firstMarket['contract']) {
@@ -777,7 +777,7 @@ export default class binance extends binanceRest {
         if (symbols !== undefined) {
             streamHash += '::' + symbols.join (',');
         }
-        const watchOrderBookRate = this.safeString (this.options, 'watchOrderBookRate', '100');
+        const watchOrderBookRate = this.valueOr (this.safeString (this.options, 'watchOrderBookRate', '100'), '');
         const subParams: string[] = [];
         const subMessageHashes: string[] = [];
         const messageHashes: string[] = [];
@@ -896,7 +896,7 @@ export default class binance extends binanceRest {
         //    }
         //
         const messageHash = this.safeString (message, 'id');
-        const result = this.safeDict (message, 'result');
+        const result = this.valueOr (this.safeDict (message, 'result'), {});
         const timestamp = this.safeInteger (result, 'T');
         const orderbook = this.parseOrderBook (result, undefined, timestamp);
         orderbook['nonce'] = this.safeInteger2 (result, 'lastUpdateId', 'u');
@@ -1001,7 +1001,7 @@ export default class binance extends binanceRest {
         //
         const isSpot = this.isSpotUrl (client);
         const marketType = (isSpot) ? 'spot' : 'swap';
-        const marketId = this.safeString (message, 's');
+        const marketId = this.valueOr (this.safeString (message, 's'), '');
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         const messageHash = 'orderbook::' + symbol;
@@ -1121,8 +1121,8 @@ export default class binance extends binanceRest {
     }
 
     handleUnSubscription (client: Client, subscription: Dict) {
-        const messageHashes = this.safeList (subscription, 'messageHashes', []);
-        const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
+        const messageHashes = this.valueOr (this.safeList (subscription, 'messageHashes', []), []);
+        const subMessageHashes = this.valueOr (this.safeList (subscription, 'subMessageHashes', []), []);
         for (let j = 0; j < messageHashes.length; j++) {
             const unsubHash = messageHashes[j];
             const subHash = subMessageHashes[j];
@@ -1148,7 +1148,7 @@ export default class binance extends binanceRest {
      */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false, true, true);
+        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false, true, true), []);
         let streamHash = 'multipleTrades';
         if (symbols !== undefined) {
             const symbolsLength = symbols.length;
@@ -1210,7 +1210,7 @@ export default class binance extends binanceRest {
      */
     async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false, true, true);
+        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false, true, true), []);
         let streamHash = 'multipleTrades';
         if (symbols !== undefined) {
             const symbolsLength = symbols.length;
@@ -1419,7 +1419,7 @@ export default class binance extends binanceRest {
                 cost = Precise.stringMul (price, amount);
             }
         }
-        const marketId = this.safeString (trade, 's');
+        const marketId = this.valueOr (this.safeString (trade, 's'), '');
         const marketType = ('ps' in trade) ? 'contract' : 'spot';
         const symbol = this.safeSymbol (marketId, undefined, undefined, marketType);
         let side = this.safeStringLower (trade, 'S');
@@ -1464,7 +1464,7 @@ export default class binance extends binanceRest {
         // each trade has a unique buyer and seller
         const isSpot = this.isSpotUrl (client);
         const marketType = (isSpot) ? 'spot' : 'contract';
-        const marketId = this.safeString (message, 's');
+        const marketId = this.valueOr (this.safeString (message, 's'), '');
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         const messageHash = 'trade::' + symbol;
@@ -1522,7 +1522,7 @@ export default class binance extends binanceRest {
         let klineType: Str = undefined;
         [ klineType, params ] = this.handleParamString2 (params, 'channel', 'name', 'kline');
         const symbols = this.getListFromObjectValues (symbolsAndTimeframes, 0);
-        const marketSymbols = this.marketSymbols (symbols, undefined, false, false, true);
+        const marketSymbols = this.valueOr (this.marketSymbols (symbols, undefined, false, false, true), []);
         const firstMarket = this.market (marketSymbols[0]);
         let type = firstMarket['type'];
         if (firstMarket['contract']) {
@@ -1588,7 +1588,7 @@ export default class binance extends binanceRest {
         let klineType: Str = undefined;
         [ klineType, params ] = this.handleParamString2 (params, 'channel', 'name', 'kline');
         const symbols = this.getListFromObjectValues (symbolsAndTimeframes, 0);
-        const marketSymbols = this.marketSymbols (symbols, undefined, false, false, true);
+        const marketSymbols = this.valueOr (this.marketSymbols (symbols, undefined, false, false, true), []);
         const firstMarket = this.market (marketSymbols[0]);
         let type = firstMarket['type'];
         if (firstMarket['contract']) {
@@ -1694,10 +1694,10 @@ export default class binance extends binanceRest {
         };
         event = this.safeString (eventMap, event, event);
         const kline = this.safeValue (message, 'k');
-        let marketId = this.safeString2 (kline, 's', 'ps');
+        let marketId = this.valueOr (this.safeString2 (kline, 's', 'ps'), '');
         if (event === 'indexPriceKline') {
             // indexPriceKline doesn't have the _PERP suffix
-            marketId = this.safeString (message, 'ps');
+            marketId = this.valueOr (this.safeString (message, 'ps'), '');
         }
         const interval = this.safeString (kline, 'i');
         // use a reverse lookup in a static map instead
@@ -1854,7 +1854,7 @@ export default class binance extends binanceRest {
         //        ]
         //    }
         //
-        const result = this.safeList (message, 'result');
+        const result = this.valueOr (this.safeList (message, 'result'), []);
         const parsed = this.parseOHLCVs (result);
         // use a reverse lookup in a static map instead
         const messageHash = this.safeString (message, 'id');
@@ -2033,7 +2033,7 @@ export default class binance extends binanceRest {
      */
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, true, false, true);
+        symbols = this.valueOr (this.marketSymbols (symbols, undefined, true, false, true), []);
         const result = await this.watchMultiTickerHelper ('watchBidsAsks', 'bookTicker', symbols, params);
         if (this.newUpdates) {
             return result;
@@ -2043,7 +2043,7 @@ export default class binance extends binanceRest {
 
     async watchMultiTickerHelper (methodName, channelName: string, symbols: Strings = undefined, params = {}, isUnsubscribe: boolean = false) {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, true, false, true);
+        symbols = this.valueOr (this.marketSymbols (symbols, undefined, true, false, true), []);
         const isBidAsk = (channelName === 'bookTicker');
         const isMarkPrice = (channelName === 'markPrice');
         const use1sFreq = this.safeBool (params, 'use1sFreq', true);
@@ -2219,7 +2219,7 @@ export default class binance extends binanceRest {
         //         "time":1589437530011,
         //      }
         //
-        const marketId = this.safeString2 (message, 's', 'symbol');
+        const marketId = this.valueOr (this.safeString2 (message, 's', 'symbol'), '');
         const symbol = this.safeSymbol (marketId, undefined, undefined, marketType);
         let event = this.safeString (message, 'e', 'bookTicker');
         if (event === '24hrTicker') {
@@ -2484,7 +2484,7 @@ export default class binance extends binanceRest {
         const subscriptions = client.subscriptions;
         const subscriptionsKeys = Object.keys (subscriptions);
         const accountType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
-        const result = this.safeDict (message, 'result', {});
+        const result = this.valueOr (this.safeDict (message, 'result', {}), {});
         const subscriptionId = this.safeInteger (result, 'subscriptionId');
         if (subscriptionId === undefined) {
             delete client.subscriptions[accountType];
@@ -2804,7 +2804,7 @@ export default class binance extends binanceRest {
             rawBalance = this.safeList (message, 'result', []);
         } else {
             // account.status
-            const result = this.safeDict (message, 'result', {});
+            const result = this.valueOr (this.safeDict (message, 'result', {}), {});
             rawBalance = this.safeList (result, 'assets', []);
         }
         const parsedBalances = this.parseBalanceCustom (rawBalance);
@@ -2859,7 +2859,7 @@ export default class binance extends binanceRest {
         // swap
         //
         const messageHash = this.safeString (message, 'id');
-        const result = this.safeDict (message, 'result', {});
+        const result = this.valueOr (this.safeDict (message, 'result', {}), {});
         const parsedBalances = this.parseBalanceCustom (result);
         client.resolve (parsedBalances, messageHash);
     }
@@ -2893,7 +2893,7 @@ export default class binance extends binanceRest {
         await this.loadMarkets ();
         const payload: Dict = {};
         let market: Market = undefined;
-        symbols = this.marketSymbols (symbols, 'swap', true, true, true);
+        symbols = this.valueOr (this.marketSymbols (symbols, 'swap', true, true, true), []);
         if (symbols !== undefined) {
             const symbolsLength = symbols.length;
             if (symbolsLength === 1) {
@@ -2962,7 +2962,7 @@ export default class binance extends binanceRest {
         //
         //
         const messageHash = this.safeString (message, 'id');
-        const result = this.safeList (message, 'result', []);
+        const result = this.valueOr (this.safeList (message, 'result', []), []);
         const positions: Position[] = [];
         for (let i = 0; i < result.length; i++) {
             const parsed = this.parsePositionRisk (result[i]);
@@ -3115,7 +3115,7 @@ export default class binance extends binanceRest {
             this.balance[accountType][code] = account;
         } else {
             message = this.safeDict (message, 'a', message);
-            const B = this.safeList (message, 'B');
+            const B = this.valueOr (this.safeList (message, 'B'), []);
             for (let i = 0; i < B.length; i++) {
                 const entry = B[i];
                 const currencyId = this.safeString (entry, 'a');
@@ -3278,7 +3278,7 @@ export default class binance extends binanceRest {
         //    }
         //
         const messageHash = this.safeString (message, 'id');
-        const result = this.safeDict (message, 'result', {});
+        const result = this.valueOr (this.safeDict (message, 'result', {}), {});
         const order = this.parseOrder (result);
         client.resolve (order, messageHash);
     }
@@ -3322,7 +3322,7 @@ export default class binance extends binanceRest {
         //    }
         //
         const messageHash = this.safeString (message, 'id');
-        const result = this.safeList (message, 'result', []);
+        const result = this.valueOr (this.safeList (message, 'result', []), []);
         const orders = this.parseOrders (result);
         client.resolve (orders, messageHash);
     }
@@ -3474,7 +3474,7 @@ export default class binance extends binanceRest {
         //    }
         //
         const messageHash = this.safeString (message, 'id');
-        const result = this.safeDict (message, 'result', {});
+        const result = this.valueOr (this.safeDict (message, 'result', {}), {});
         const newSpotOrder = this.safeDict (result, 'newOrderResponse');
         let order: Order;
         if (newSpotOrder !== undefined) {
@@ -3917,7 +3917,7 @@ export default class binance extends binanceRest {
         //     }
         //
         const executionType = this.safeString (order, 'x');
-        const marketId = this.safeString (order, 's');
+        const marketId = this.valueOr (this.safeString (order, 's'), '');
         const marketType = ('ps' in order) ? 'contract' : 'spot';
         const symbol = this.safeSymbol (marketId, undefined, undefined, marketType);
         let timestamp = this.safeInteger (order, 'O');
@@ -4122,7 +4122,7 @@ export default class binance extends binanceRest {
         await this.loadMarkets ();
         let market: Market = undefined;
         let messageHash = '';
-        symbols = this.marketSymbols (symbols);
+        symbols = this.valueOr (this.marketSymbols (symbols), []);
         if (!this.isEmpty (symbols)) {
             market = this.getMarketFromSymbols (symbols);
             messageHash = '::' + symbols.join (',');
@@ -4256,7 +4256,7 @@ export default class binance extends binanceRest {
         }
         const cache = this.positions[accountType];
         const data = this.safeDict (message, 'a', {});
-        const rawPositions = this.safeList (data, 'P', []);
+        const rawPositions = this.valueOr (this.safeList (data, 'P', []), []);
         const newPositions: Position[] = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
@@ -4294,8 +4294,8 @@ export default class binance extends binanceRest {
         //         "ps": "BOTH" // Position Side
         //     }
         //
-        const marketId = this.safeString (position, 's');
-        const contracts = this.safeString (position, 'pa');
+        const marketId = this.valueOr (this.safeString (position, 's'), '');
+        const contracts = this.valueOr (this.safeString (position, 'pa'), '');
         const contractsAbs = Precise.stringAbs (this.safeString (position, 'pa'));
         let positionSide = this.safeStringLower (position, 'ps');
         let hedged = true;
@@ -4482,7 +4482,7 @@ export default class binance extends binanceRest {
         //    }
         //
         const messageHash = this.safeString (message, 'id');
-        const result = this.safeList (message, 'result', []);
+        const result = this.valueOr (this.safeList (message, 'result', []), []);
         const trades = this.parseTrades (result);
         client.resolve (trades, messageHash);
     }
@@ -4593,7 +4593,7 @@ export default class binance extends binanceRest {
                             order['fee'] = tradeFee;
                         }
                         // save this trade in the order
-                        const orderTrades = this.safeList (order, 'trades', []);
+                        const orderTrades = this.valueOr (this.safeList (order, 'trades', []), []);
                         orderTrades.push (trade);
                         order['trades'] = orderTrades;
                         // don't append twice cause it breaks newUpdates mode

@@ -83,7 +83,7 @@ export default class apex extends apexRest {
      */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
+        symbols = this.valueOr (this.marketSymbols (symbols), []);
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
@@ -130,7 +130,7 @@ export default class apex extends apexRest {
         //     }
         //
         const data = this.safeValue (message, 'data', {});
-        const topic = this.safeString (message, 'topic');
+        const topic = this.valueOr (this.safeString (message, 'topic'), '');
         const trades = data;
         const parts = topic.split ('.');
         const marketId = this.safeString (parts, 2);
@@ -221,7 +221,7 @@ export default class apex extends apexRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
         }
-        symbols = this.marketSymbols (symbols);
+        symbols = this.valueOr (this.marketSymbols (symbols), []);
         const url = this.getWsPublicUrl ();
         const topics: string[] = [];
         const messageHashes: string[] = [];
@@ -436,7 +436,7 @@ export default class apex extends apexRest {
         //     "cs":44939063,
         //     "ts":1661500091955487
         // }
-        const topic = this.safeString (message, 'topic', '');
+        const topic = this.valueOr (this.safeString (message, 'topic', ''), '');
         const updateType = this.safeString (message, 'type', '');
         const data = this.safeDict (message, 'data', {});
         let symbol: Str = undefined;
@@ -539,7 +539,7 @@ export default class apex extends apexRest {
         //     }
         //
         const data = this.safeValue (message, 'data', {});
-        const topic = this.safeString (message, 'topic');
+        const topic = this.valueOr (this.safeString (message, 'topic'), '');
         const topicParts = topic.split ('.');
         const topicLength = topicParts.length;
         const timeframeId = this.safeString (topicParts, 1);
@@ -635,7 +635,7 @@ export default class apex extends apexRest {
         await this.loadMarkets ();
         let messageHash = '';
         if (!this.isEmpty (symbols)) {
-            symbols = this.marketSymbols (symbols);
+            symbols = this.valueOr (this.marketSymbols (symbols), []);
             messageHash = '::' + symbols.join (',');
         }
         const url = this.getWsPrivateUrl ();
@@ -999,7 +999,7 @@ export default class apex extends apexRest {
         if (this.handleErrorMessage (client, message)) {
             return;
         }
-        const topic = this.safeString2 (message, 'topic', 'op', '');
+        const topic = this.valueOr (this.safeString2 (message, 'topic', 'op', ''), '');
         const methods: Dict = {
             'ws_zk_accounts_v3': this.handleAccount,
             'orderBook': this.handleOrderBook,

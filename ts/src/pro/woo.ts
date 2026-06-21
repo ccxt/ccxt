@@ -204,11 +204,11 @@ export default class woo extends wooRest {
         //         }
         //     }
         //
-        const data = this.safeDict (message, 'data');
+        const data = this.valueOr (this.safeDict (message, 'data'), {});
         const marketId = this.safeString (data, 'symbol');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        const topic = this.safeString (message, 'topic');
+        const topic = this.valueOr (this.safeString (message, 'topic'), '');
         const method = this.safeString (topic.split ('@'), 1);
         if (method === 'orderbookupdate') {
             if (!(symbol in this.orderbooks)) {
@@ -258,7 +258,7 @@ export default class woo extends wooRest {
     }
 
     async fetchOrderBookSnapshot (client, message, subscription) {
-        const symbol = this.safeString (subscription, 'symbol');
+        const symbol = this.valueOr (this.safeString (subscription, 'symbol'), '');
         const messageHash = this.safeString (message, 'topic');
         try {
             const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
@@ -290,7 +290,7 @@ export default class woo extends wooRest {
     }
 
     handleOrderBookMessage (client: Client, message, orderbook) {
-        const data = this.safeDict (message, 'data');
+        const data = this.valueOr (this.safeDict (message, 'data'), {});
         this.handleDeltas (orderbook['asks'], this.safeValue (data, 'asks', []));
         this.handleDeltas (orderbook['bids'], this.safeValue (data, 'bids', []));
         const timestamp = this.safeInteger (message, 'ts');
@@ -429,7 +429,7 @@ export default class woo extends wooRest {
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
+        symbols = this.valueOr (this.marketSymbols (symbols), []);
         const name = 'tickers';
         const topic = name;
         const request: Dict = {
@@ -515,7 +515,7 @@ export default class woo extends wooRest {
      */
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
+        symbols = this.valueOr (this.marketSymbols (symbols), []);
         const name = 'bbos';
         const topic = name;
         const request: Dict = {
@@ -565,12 +565,12 @@ export default class woo extends wooRest {
         //         ]
         //     }
         //
-        const topic = this.safeString (message, 'topic');
-        const data = this.safeList (message, 'data', []);
+        const topic = this.valueOr (this.safeString (message, 'topic'), '');
+        const data = this.valueOr (this.safeList (message, 'data', []), []);
         const timestamp = this.safeInteger (message, 'ts');
         const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
-            const ticker = this.safeDict (data, i);
+            const ticker = this.valueOr (this.safeDict (data, i), {});
             ticker['ts'] = timestamp;
             const parsedTicker = this.parseWsBidAsk (ticker);
             const symbol = parsedTicker['symbol'];
@@ -583,7 +583,7 @@ export default class woo extends wooRest {
     parseWsBidAsk (ticker, market: Market = undefined) {
         const marketId = this.safeString (ticker, 'symbol');
         market = this.safeMarket (marketId, market);
-        const symbol = this.safeString (market, 'symbol');
+        const symbol = this.valueOr (this.safeString (market, 'symbol'), '');
         const timestamp = this.safeInteger (ticker, 'ts');
         return this.safeTicker ({
             'symbol': symbol,
@@ -756,7 +756,7 @@ export default class woo extends wooRest {
         //     }
         // }
         //
-        const topic = this.safeString (message, 'topic');
+        const topic = this.valueOr (this.safeString (message, 'topic'), '');
         const timestamp = this.safeInteger (message, 'ts');
         const data = this.safeValue (message, 'data');
         const marketId = this.safeString (data, 'symbol');
@@ -1132,7 +1132,7 @@ export default class woo extends wooRest {
         //         }
         //     }
         //
-        const topic = this.safeString (message, 'topic');
+        const topic = this.valueOr (this.safeString (message, 'topic'), '');
         const data = this.safeValue (message, 'data');
         if (Array.isArray (data)) {
             // algoexecutionreportv2
@@ -1156,7 +1156,7 @@ export default class woo extends wooRest {
 
     handleOrder (client: Client, message, topic) {
         const parsed = this.parseWsOrder (message);
-        const symbol = this.safeString (parsed, 'symbol');
+        const symbol = this.valueOr (this.safeString (parsed, 'symbol'), '');
         const orderId = this.safeString (parsed, 'id');
         if (symbol !== undefined) {
             if (this.orders === undefined) {
@@ -1244,7 +1244,7 @@ export default class woo extends wooRest {
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         const messageHashes: string[] = [];
-        symbols = this.marketSymbols (symbols);
+        symbols = this.valueOr (this.marketSymbols (symbols), []);
         if (!this.isEmpty (symbols)) {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
@@ -1458,7 +1458,7 @@ export default class woo extends wooRest {
         //         }
         //     }
         //
-        const data = this.safeDict (message, 'data', {});
+        const data = this.valueOr (this.safeDict (message, 'data', {}), {});
         const fundingRate = this.parseFundingRate (data);
         const symbol = fundingRate['symbol'];
         this.fundingRates[symbol] = fundingRate;
@@ -1511,8 +1511,8 @@ export default class woo extends wooRest {
         const subscribeHash = this.safeString (message, 'data');
         const unsubscribeHash = 'unsubscribe::' + subscribeHash;
         const subscription = this.safeDict (client.subscriptions, unsubscribeHash, {});
-        const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
-        const unsubMessageHashes = this.safeList (subscription, 'unsubMessageHashes', []);
+        const subMessageHashes = this.valueOr (this.safeList (subscription, 'subMessageHashes', []), []);
+        const unsubMessageHashes = this.valueOr (this.safeList (subscription, 'unsubMessageHashes', []), []);
         for (let i = 0; i < subMessageHashes.length; i++) {
             const subHash = subMessageHashes[i];
             const unsubHash = unsubMessageHashes[i];
@@ -1550,7 +1550,7 @@ export default class woo extends wooRest {
             method.call (this, client, message);
             return;
         }
-        const topic = this.safeString (message, 'topic');
+        const topic = this.valueOr (this.safeString (message, 'topic'), '');
         if (topic !== undefined) {
             method = this.safeValue (methods, topic);
             if (method !== undefined) {
@@ -1560,7 +1560,7 @@ export default class woo extends wooRest {
             const splitTopic = topic.split ('@');
             const splitLength = splitTopic.length;
             if (splitLength === 2) {
-                const name = this.safeString (splitTopic, 1);
+                const name = this.valueOr (this.safeString (splitTopic, 1), '');
                 method = this.safeValue (methods, name);
                 if (method !== undefined) {
                     method.call (this, client, message);

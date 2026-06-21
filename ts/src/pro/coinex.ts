@@ -155,7 +155,7 @@ export default class coinex extends coinexRest {
         //
         const defaultType = this.safeString (this.options, 'defaultType');
         const data = this.safeDict (message, 'data', {});
-        const rawTickers = this.safeList (data, 'state_list', []);
+        const rawTickers = this.valueOr (this.safeList (data, 'state_list', []), []);
         const newTickers = {};
         for (let i = 0; i < rawTickers.length; i++) {
             const entry = rawTickers[i];
@@ -329,7 +329,7 @@ export default class coinex extends coinexRest {
             this.balance = {};
         }
         const data = this.safeDict (message, 'data', {});
-        const balances = this.safeList (data, 'balance_list', []);
+        const balances = this.valueOr (this.safeList (data, 'balance_list', []), []);
         const firstEntry = balances[0];
         const updated = this.safeInteger (firstEntry, 'updated_at');
         const unrealizedPnl = this.safeString (firstEntry, 'unrealized_pnl');
@@ -537,7 +537,7 @@ export default class coinex extends coinexRest {
         //     }
         //
         const data = this.safeDict (message, 'data', {});
-        const trades = this.safeList (data, 'deal_list', []);
+        const trades = this.valueOr (this.safeList (data, 'deal_list', []), []);
         const marketId = this.safeString (data, 'market');
         const isSpot = client.url.indexOf ('spot') > -1;
         const defaultType = isSpot ? 'spot' : 'swap';
@@ -770,7 +770,7 @@ export default class coinex extends coinexRest {
         let callerMethodName: Str = undefined;
         [ callerMethodName, params ] = this.handleParamString (params, 'callerMethodName', 'watchOrderBookForSymbols');
         const options = this.safeDict (this.options, 'watchOrderBook', {});
-        const limits = this.safeList (options, 'limits', []);
+        const limits = this.valueOr (this.safeList (options, 'limits', []), []);
         if (limit === undefined) {
             limit = this.safeInteger (options, 'defaultLimit', 50);
         }
@@ -778,7 +778,7 @@ export default class coinex extends coinexRest {
             throw new NotSupported (this.id + ' watchOrderBookForSymbols() limit must be one of ' + limits.join (', '));
         }
         const defaultAggregation = this.safeString (options, 'defaultAggregation', '0');
-        const aggregations = this.safeList (options, 'aggregations', []);
+        const aggregations = this.valueOr (this.safeList (options, 'aggregations', []), []);
         const aggregation = this.safeString (params, 'aggregation', defaultAggregation);
         if (!this.inArray (aggregation, aggregations)) {
             throw new NotSupported (this.id + ' watchOrderBookForSymbols() aggregation must be one of ' + aggregations.join (', '));

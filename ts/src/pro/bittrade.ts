@@ -101,7 +101,7 @@ export default class bittrade extends bittradeRest {
         //     }
         //
         const tick = this.safeValue (message, 'tick', {});
-        const ch = this.safeString (message, 'ch');
+        const ch = this.valueOr (this.safeString (message, 'ch'), '');
         const parts = ch.split ('.');
         const marketId = this.safeString (parts, 1);
         const market = this.safeMarket (marketId);
@@ -175,7 +175,7 @@ export default class bittrade extends bittradeRest {
         //
         const tick = this.safeValue (message, 'tick', {});
         const data = this.safeValue (tick, 'data', {});
-        const ch = this.safeString (message, 'ch');
+        const ch = this.valueOr (this.safeString (message, 'ch'), '');
         const parts = ch.split ('.');
         const marketId = this.safeString (parts, 1);
         const market = this.safeMarket (marketId);
@@ -250,7 +250,7 @@ export default class bittrade extends bittradeRest {
         //         }
         //     }
         //
-        const ch = this.safeString (message, 'ch');
+        const ch = this.valueOr (this.safeString (message, 'ch'), '');
         const parts = ch.split ('.');
         const marketId = this.safeString (parts, 1);
         const market = this.safeMarket (marketId);
@@ -331,7 +331,7 @@ export default class bittrade extends bittradeRest {
         //         }
         //     }
         //
-        const symbol = this.safeString (subscription, 'symbol');
+        const symbol = this.valueOr (this.safeString (subscription, 'symbol'), '');
         const messageHash = this.safeString (subscription, 'messageHash');
         const timestamp = this.safeInteger (message, 'ts');
         const orderbook = this.orderbooks[symbol];
@@ -353,7 +353,7 @@ export default class bittrade extends bittradeRest {
     async watchOrderBookSnapshot (client, message, subscription) {
         const messageHash = this.safeString (subscription, 'messageHash');
         try {
-            const symbol = this.safeString (subscription, 'symbol');
+            const symbol = this.valueOr (this.safeString (subscription, 'symbol'), '');
             const limit = this.safeInteger (subscription, 'limit');
             const params = this.safeValue (subscription, 'params');
             const api = this.safeString (this.options, 'api', 'api');
@@ -470,7 +470,7 @@ export default class bittrade extends bittradeRest {
     }
 
     handleOrderBookSubscription (client: Client, message, subscription) {
-        const symbol = this.safeString (subscription, 'symbol');
+        const symbol = this.valueOr (this.safeString (subscription, 'symbol'), '');
         const limit = this.safeInteger (subscription, 'limit');
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
@@ -489,7 +489,7 @@ export default class bittrade extends bittradeRest {
         //         "ts": 1583414229143
         //     }
         //
-        const id = this.safeString (message, 'id');
+        const id = this.valueOr (this.safeString (message, 'id'), '');
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
         const subscription = this.safeValue (subscriptionsById, id);
         if (subscription !== undefined) {
@@ -582,7 +582,7 @@ export default class bittrade extends bittradeRest {
         //
         const status = this.safeString (message, 'status');
         if (status === 'error') {
-            const id = this.safeString (message, 'id');
+            const id = this.valueOr (this.safeString (message, 'id'), '');
             const subscriptionsById = this.indexBy (client.subscriptions, 'id');
             const subscription = this.safeValue (subscriptionsById, id);
             if (subscription !== undefined) {

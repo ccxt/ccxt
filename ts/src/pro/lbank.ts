@@ -494,7 +494,7 @@ export default class lbank extends lbankRest {
         if (timestamp === undefined) {
             timestamp = this.parse8601 (datetime);
         }
-        const rawSide = this.safeString2 (trade, 'direction', 3);
+        const rawSide = this.valueOr (this.safeString2 (trade, 'direction', 3), '');
         const parts = rawSide.split ('_');
         const firstPart = this.safeString (parts, 0);
         const secondPart = this.safeString (parts, 1);
@@ -635,7 +635,7 @@ export default class lbank extends lbankRest {
         //     }
         //
         const orderUpdate = this.safeValue (order, 'orderUpdate', {});
-        const rawType = this.safeString (orderUpdate, 'type', '');
+        const rawType = this.valueOr (this.safeString (orderUpdate, 'type', ''), '');
         const typeParts = rawType.split ('_');
         const side = this.safeString (typeParts, 0);
         const exchangeType = this.safeString (typeParts, 1);

@@ -554,7 +554,7 @@ export default class phemex extends phemexRest {
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false);
+        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false), []);
         const first = symbols[0];
         const market = this.market (first);
         const isSwap = market['swap'];
@@ -1333,7 +1333,7 @@ export default class phemex extends phemexRest {
         //        "userID": 4018340
         //    }
         //
-        const id = this.safeString (order, 'orderID');
+        const id = this.valueOr (this.safeString (order, 'orderID'), '');
         let clientOrderId = this.safeString (order, 'clOrdID');
         if ((clientOrderId !== undefined) && (clientOrderId.length < 1)) {
             clientOrderId = undefined;
@@ -1479,7 +1479,7 @@ export default class phemex extends phemexRest {
         //       }
         //     ]
         // }
-        const id = this.safeString (message, 'id');
+        const id = this.valueOr (this.safeString (message, 'id'), '');
         if (id in client.subscriptions) {
             const method = client.subscriptions[id];
             delete client.subscriptions[id];
@@ -1488,7 +1488,7 @@ export default class phemex extends phemexRest {
                 return;
             }
         }
-        const methodName = this.safeString (message, 'method', '');
+        const methodName = this.valueOr (this.safeString (message, 'method', ''), '');
         if (('market24h' in message) || ('spot_market24h' in message) || (methodName.indexOf ('perp_market24h_pack_p') >= 0)) {
             this.handleTicker (client, message);
             return;

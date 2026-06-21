@@ -679,7 +679,7 @@ export default class kraken extends krakenRest {
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false);
+        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false), []);
         const ticker = await this.watchMultiHelper ('ticker', 'ticker', symbols, undefined, params);
         if (this.newUpdates) {
             const result: Dict = {};
@@ -700,7 +700,7 @@ export default class kraken extends krakenRest {
      */
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false);
+        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false), []);
         params['event_trigger'] = 'bbo';
         const ticker = await this.watchMultiHelper ('bidask', 'ticker', symbols, undefined, params);
         if (this.newUpdates) {
@@ -1414,7 +1414,7 @@ export default class kraken extends krakenRest {
     async watchMultiHelper (unifiedName: string, channelName: string, symbols: Strings = undefined, subscriptionArgs = undefined, params = {}) {
         await this.loadMarkets ();
         // symbols are required
-        symbols = this.marketSymbols (symbols, undefined, false, true, false);
+        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false, true, false), []);
         const messageHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const eventTrigger = this.safeString (params, 'event_trigger');

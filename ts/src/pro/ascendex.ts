@@ -137,7 +137,7 @@ export default class ascendex extends ascendexRest {
         //
         const marketId = this.safeString (message, 's');
         const symbol = this.safeSymbol (marketId);
-        const channel = this.safeString (message, 'm');
+        const channel = this.valueOr (this.safeString (message, 'm'), '');
         const data = this.safeValue (message, 'data', {});
         const interval = this.safeString (data, 'i');
         const messageHash = channel + ':' + interval + ':' + marketId;
@@ -226,7 +226,7 @@ export default class ascendex extends ascendexRest {
         //
         const marketId = this.safeString (message, 'symbol');
         const symbol = this.safeSymbol (marketId);
-        const channel = this.safeString (message, 'm');
+        const channel = this.valueOr (this.safeString (message, 'm'), '');
         const messageHash = channel + ':' + marketId;
         const market = this.market (symbol);
         let rawData = this.safeValue (message, 'data');
@@ -314,7 +314,7 @@ export default class ascendex extends ascendexRest {
         //
         const marketId = this.safeString (message, 'symbol');
         const symbol = this.safeSymbol (marketId);
-        const channel = this.safeString (message, 'm');
+        const channel = this.valueOr (this.safeString (message, 'm'), '');
         const messageHash = channel + ':' + symbol;
         const orderbook = this.orderbooks[symbol];
         const data = this.safeValue (message, 'data');
@@ -344,7 +344,7 @@ export default class ascendex extends ascendexRest {
         //       }
         //   }
         //
-        const channel = this.safeString (message, 'm');
+        const channel = this.valueOr (this.safeString (message, 'm'), '');
         const marketId = this.safeString (message, 'symbol');
         const symbol = this.safeSymbol (marketId);
         const messageHash = channel + ':' + marketId;
@@ -486,7 +486,7 @@ export default class ascendex extends ascendexRest {
         //     ],
         //     (...)
         //
-        const channel = this.safeString (message, 'm');
+        const channel = this.valueOr (this.safeString (message, 'm'), '');
         let result = undefined;
         let type: Str = undefined;
         if ((channel === 'order') || (channel === 'futures-order')) {
@@ -962,7 +962,7 @@ export default class ascendex extends ascendexRest {
         //
         //     { m: 'sub', id: "1647515701", ch: "depth:BTC/USDT", code: 0 }
         //
-        const channel = this.safeString (message, 'ch', '');
+        const channel = this.valueOr (this.safeString (message, 'ch', ''), '');
         if (channel.indexOf ('depth') > -1 && !(channel.indexOf ('depth-snapshot') > -1)) {
             this.handleOrderBookSubscription (client, message);
         }
@@ -970,7 +970,7 @@ export default class ascendex extends ascendexRest {
     }
 
     handleOrderBookSubscription (client: Client, message) {
-        const channel = this.safeString (message, 'ch');
+        const channel = this.valueOr (this.safeString (message, 'ch'), '');
         const parts = channel.split (':');
         const marketId = parts[1];
         const market = this.safeMarket (marketId);

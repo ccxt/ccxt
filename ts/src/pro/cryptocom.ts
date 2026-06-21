@@ -117,7 +117,7 @@ export default class cryptocom extends cryptocomRest {
      */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
+        symbols = this.valueOr (this.marketSymbols (symbols), []);
         const topics: string[] = [];
         const messageHashes: string[] = [];
         if (!limit) {
@@ -165,7 +165,7 @@ export default class cryptocom extends cryptocomRest {
      */
     async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
+        symbols = this.valueOr (this.marketSymbols (symbols), []);
         const topics: string[] = [];
         const subMessageHashes: string[] = [];
         const messageHashes: string[] = [];
@@ -278,7 +278,7 @@ export default class cryptocom extends cryptocomRest {
             this.orderbooks[symbol] = this.countedOrderBook ({}, limit);
         }
         const orderbook = this.orderbooks[symbol];
-        const channel = this.safeString (message, 'channel');
+        const channel = this.valueOr (this.safeString (message, 'channel'), '');
         const nonce = this.safeInteger2 (data, 'u', 's');
         let books = data;
         if (channel === 'book') {  // snapshot
@@ -347,7 +347,7 @@ export default class cryptocom extends cryptocomRest {
      */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
+        symbols = this.valueOr (this.marketSymbols (symbols), []);
         const topics: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
@@ -375,7 +375,7 @@ export default class cryptocom extends cryptocomRest {
      */
     async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
+        symbols = this.valueOr (this.marketSymbols (symbols), []);
         const topics: string[] = [];
         const messageHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -411,7 +411,7 @@ export default class cryptocom extends cryptocomRest {
         //       ]
         // }
         //
-        const channel = this.safeString (message, 'channel');
+        const channel = this.valueOr (this.safeString (message, 'channel'), '');
         const marketId = this.safeString (message, 'instrument_name');
         const symbolSpecificMessageHash = this.safeString (message, 'subscription');
         const market = this.safeMarket (marketId);
@@ -507,9 +507,9 @@ export default class cryptocom extends cryptocomRest {
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false);
+        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false), []);
         const messageHashes: string[] = [];
-        const marketIds = this.marketIds (symbols);
+        const marketIds = this.valueOr (this.marketIds (symbols), []);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             messageHashes.push ('ticker.' + marketId);
@@ -543,10 +543,10 @@ export default class cryptocom extends cryptocomRest {
      */
     async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false);
+        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false), []);
         const messageHashes: string[] = [];
         const subMessageHashes: string[] = [];
-        const marketIds = this.marketIds (symbols);
+        const marketIds = this.valueOr (this.marketIds (symbols), []);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const symbol = symbols[i];
@@ -653,10 +653,10 @@ export default class cryptocom extends cryptocomRest {
      */
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false);
+        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false), []);
         const messageHashes: string[] = [];
         const topics: string[] = [];
-        const marketIds = this.marketIds (symbols);
+        const marketIds = this.valueOr (this.marketIds (symbols), []);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             messageHashes.push ('bidask.' + symbols[i]);
@@ -846,7 +846,7 @@ export default class cryptocom extends cryptocomRest {
         //        }
         //    }
         //
-        const channel = this.safeString (message, 'channel');
+        const channel = this.valueOr (this.safeString (message, 'channel'), '');
         const symbolSpecificMessageHash = this.safeString (message, 'subscription');
         const orders = this.safeValue (message, 'data', []);
         const ordersLength = orders.length;
@@ -891,7 +891,7 @@ export default class cryptocom extends cryptocomRest {
             'nonce': id,
         };
         let messageHash = 'positions';
-        symbols = this.marketSymbols (symbols);
+        symbols = this.valueOr (this.marketSymbols (symbols), []);
         if (!this.isEmpty (symbols)) {
             messageHash = '::' + symbols.join (',');
         }
@@ -1329,7 +1329,7 @@ export default class cryptocom extends cryptocomRest {
             'user.position_balance': this.handlePositions,
         };
         const result = this.safeValue2 (message, 'result', 'info');
-        const channel = this.safeString (result, 'channel');
+        const channel = this.valueOr (this.safeString (result, 'channel'), '');
         if ((channel !== undefined) && channel.indexOf ('user.trade') > -1) {
             // channel might be user.trade.BTC_USDT
             this.handleTrades (client, result);
@@ -1452,8 +1452,8 @@ export default class cryptocom extends cryptocomRest {
                 if (id !== subId) {
                     continue;
                 }
-                const messageHashes = this.safeList (subscription, 'messageHashes', []);
-                const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
+                const messageHashes = this.valueOr (this.safeList (subscription, 'messageHashes', []), []);
+                const subMessageHashes = this.valueOr (this.safeList (subscription, 'subMessageHashes', []), []);
                 for (let j = 0; j < messageHashes.length; j++) {
                     const unsubHash = messageHashes[j];
                     const subHash = subMessageHashes[j];

@@ -83,8 +83,8 @@ export default class hyperliquid extends hyperliquidRest {
         const requestId = this.safeString (wrapped, 'requestId');
         const response = await this.watch (url, requestId, request, requestId);
         const responseOjb = this.safeDict (response, 'response', {});
-        const data = this.safeDict (responseOjb, 'data', {});
-        const statuses = this.safeList (data, 'statuses', []);
+        const data = this.valueOr (this.safeDict (responseOjb, 'data', {}), {});
+        const statuses = this.valueOr (this.safeList (data, 'statuses', []), []);
         return this.parseOrders (statuses, undefined);
     }
 
@@ -154,7 +154,7 @@ export default class hyperliquid extends hyperliquidRest {
         // response is the same as in this.editOrder
         const responseObject = this.safeDict (response, 'response', {});
         const dataObject = this.safeDict (responseObject, 'data', {});
-        const statuses = this.safeList (dataObject, 'statuses', []);
+        const statuses = this.valueOr (this.safeList (dataObject, 'statuses', []), []);
         const first = this.safeDict (statuses, 0, {});
         const parsedOrder = this.parseOrder (first, market);
         return parsedOrder;
@@ -182,8 +182,8 @@ export default class hyperliquid extends hyperliquidRest {
         const requestId = this.safeString (wrapped, 'requestId');
         const response = await this.watch (url, requestId, wsRequest, requestId);
         const responseObj = this.safeDict (response, 'response', {});
-        const data = this.safeDict (responseObj, 'data', {});
-        const statuses = this.safeList (data, 'statuses', []);
+        const data = this.valueOr (this.safeDict (responseObj, 'data', {}), {});
+        const statuses = this.valueOr (this.safeList (data, 'statuses', []), []);
         const orders = [];
         for (let i = 0; i < statuses.length; i++) {
             const status = statuses[i];
@@ -295,7 +295,7 @@ export default class hyperliquid extends hyperliquidRest {
         //         }
         //     }
         //
-        const entry = this.safeDict (message, 'data', {});
+        const entry = this.valueOr (this.safeDict (message, 'data', {}), {});
         const coin = this.safeString (entry, 'coin');
         const marketId = this.coinToMarketId (coin);
         const market = this.market (marketId);
@@ -352,7 +352,7 @@ export default class hyperliquid extends hyperliquidRest {
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, true);
+        symbols = this.valueOr (this.marketSymbols (symbols, undefined, true), []);
         let messageHash = 'tickers';
         const url = this.urls['api']['ws']['public'];
         let channel = 'webData2';
@@ -398,7 +398,7 @@ export default class hyperliquid extends hyperliquidRest {
      */
     async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, true);
+        symbols = this.valueOr (this.marketSymbols (symbols, undefined, true), []);
         const subMessageHash = 'tickers';
         let channel = 'webData2';
         [ channel, params ] = this.handleOptionAndParams (params, 'unWatchTickers', 'channel', channel);
@@ -544,7 +544,7 @@ export default class hyperliquid extends hyperliquidRest {
         // handle hip3 mids
         const channel = this.safeString (message, 'channel');
         if (channel === 'allMids') {
-            const data = this.safeDict (message, 'data', {});
+            const data = this.valueOr (this.safeDict (message, 'data', {}), {});
             const mids = this.safeDict (data, 'mids', {});
             if (mids !== undefined) {
                 const keys = Object.keys (mids);
@@ -569,7 +569,7 @@ export default class hyperliquid extends hyperliquidRest {
         }
         // spot
         const rawData = this.safeDict (message, 'data', {});
-        const spotAssets = this.safeList (rawData, 'spotAssetCtxs', []);
+        const spotAssets = this.valueOr (this.safeList (rawData, 'spotAssetCtxs', []), []);
         const parsedTickers = [];
         for (let i = 0; i < spotAssets.length; i++) {
             const assetObject = spotAssets[i];
@@ -583,7 +583,7 @@ export default class hyperliquid extends hyperliquidRest {
         }
         // perpetuals
         const meta = this.safeDict (rawData, 'meta', {});
-        const universe = this.safeList (meta, 'universe', []);
+        const universe = this.valueOr (this.safeList (meta, 'universe', []), []);
         const assetCtxs = this.safeList (rawData, 'assetCtxs', []);
         for (let i = 0; i < universe.length; i++) {
             const data = this.extend (
@@ -636,14 +636,14 @@ export default class hyperliquid extends hyperliquidRest {
         //         }
         //     }
         //
-        const entry = this.safeDict (message, 'data', {});
+        const entry = this.valueOr (this.safeDict (message, 'data', {}), {});
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             this.myTrades = new ArrayCacheBySymbolById (limit);
         }
         const trades = this.myTrades;
         const symbols: Dict = {};
-        const data = this.safeList (entry, 'fills', []);
+        const data = this.valueOr (this.safeList (entry, 'fills', []), []);
         const dataLength = data.length;
         if (dataLength === 0) {
             return;
@@ -741,7 +741,7 @@ export default class hyperliquid extends hyperliquidRest {
         //         ]
         //     }
         //
-        const entry = this.safeList (message, 'data', []);
+        const entry = this.valueOr (this.safeList (message, 'data', []), []);
         const entryLength = entry.length;
         if (entryLength === 0) {
             return;
@@ -758,7 +758,7 @@ export default class hyperliquid extends hyperliquidRest {
         }
         const trades = this.trades[symbol];
         for (let i = 0; i < entry.length; i++) {
-            const data = this.safeDict (entry, i);
+            const data = this.valueOr (this.safeDict (entry, i), {});
             const trade = this.parseWsTrade (data);
             trades.append (trade);
         }
@@ -911,11 +911,11 @@ export default class hyperliquid extends hyperliquidRest {
         //         }
         //     }
         //
-        const data = this.safeDict (message, 'data', {});
+        const data = this.valueOr (this.safeDict (message, 'data', {}), {});
         const base = this.safeString (data, 's');
         const marketId = this.coinToMarketId (base);
         const symbol = this.safeSymbol (marketId);
-        const timeframe = this.safeString (data, 'i');
+        const timeframe = this.valueOr (this.safeString (data, 'i'), '');
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
@@ -941,7 +941,7 @@ export default class hyperliquid extends hyperliquidRest {
         //                  payload: { ... }
         //         }
         //    }
-        const data = this.safeDict (message, 'data');
+        const data = this.valueOr (this.safeDict (message, 'data'), {});
         const id = this.safeString (data, 'id');
         const response = this.safeDict (data, 'response');
         const payload = this.safeDict (response, 'payload');
@@ -1185,7 +1185,7 @@ export default class hyperliquid extends hyperliquidRest {
         const topic = 'clearinghouseState';
         let messageHash = topic + '::positions';
         if (!this.isEmpty (symbols)) {
-            symbols = this.marketSymbols (symbols);
+            symbols = this.valueOr (this.marketSymbols (symbols), []);
             messageHash += '::' + symbols.join (',');
         }
         const url = this.urls['api']['ws']['public'];
@@ -1224,10 +1224,10 @@ export default class hyperliquid extends hyperliquidRest {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
         const cache = this.positions;
-        const data = this.safeDict (message, 'data', {});
+        const data = this.valueOr (this.safeDict (message, 'data', {}), {});
         const clearinghouseState = this.safeDict (data, 'clearinghouseState', {});
         const newPositions = [];
-        const rawPositions = this.safeList (clearinghouseState, 'assetPositions', []);
+        const rawPositions = this.valueOr (this.safeList (clearinghouseState, 'assetPositions', []), []);
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
             const position = this.parsePosition (rawPosition);
@@ -1371,7 +1371,7 @@ export default class hyperliquid extends hyperliquidRest {
         //         ]
         //     }
         //
-        const data = this.safeList (message, 'data', []);
+        const data = this.valueOr (this.safeList (message, 'data', []), []);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
@@ -1436,7 +1436,7 @@ export default class hyperliquid extends hyperliquidRest {
             client.reject (errorMsg);
             return true;
         }
-        const data = this.safeDict (message, 'data', {});
+        const data = this.valueOr (this.safeDict (message, 'data', {}), {});
         let id = this.safeString (message, 'id');
         if (id === undefined) {
             id = this.safeString (data, 'id');
@@ -1592,7 +1592,7 @@ export default class hyperliquid extends hyperliquidRest {
         //      }
         //  }
         //
-        const data = this.safeDict (message, 'data', {});
+        const data = this.valueOr (this.safeDict (message, 'data', {}), {});
         const method = this.safeString (data, 'method');
         if (method === 'unsubscribe') {
             const subscription = this.safeDict (data, 'subscription', {});
@@ -1635,7 +1635,7 @@ export default class hyperliquid extends hyperliquidRest {
         if (this.handleErrorMessage (client, message)) {
             return;
         }
-        const topic = this.safeString (message, 'channel', '');
+        const topic = this.valueOr (this.safeString (message, 'channel', ''), '');
         const methods: Dict = {
             'pong': this.handlePong,
             'trades': this.handleTrades,

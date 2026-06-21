@@ -579,7 +579,7 @@ export default class alpaca extends alpacaRest {
         //
         const marketId = this.safeString (trade, 'symbol');
         const datetime = this.safeString (trade, 'filled_at');
-        let type = this.safeString (trade, 'type');
+        let type = this.valueOr (this.safeString (trade, 'type'), '');
         if (type.indexOf ('limit') >= 0) {
             // might be limit or stop-limit
             type = 'limit';

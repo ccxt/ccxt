@@ -91,7 +91,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const symbolsLength = symbols.length;
         const messageHashes = [];
         if (symbolsLength > 1) {
-            const parsedSymbols = this.marketSymbols (symbols);
+            const parsedSymbols = this.valueOr (this.marketSymbols (symbols), []);
             const marketIds = this.marketIds (parsedSymbols);
             productIds = marketIds;
             for (let i = 0; i < parsedSymbols.length; i++) {
@@ -144,7 +144,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         if (this.isEmpty (symbols)) {
             symbols = this.symbols;
         } else {
-            symbols = this.marketSymbols (symbols);
+            symbols = this.valueOr (this.marketSymbols (symbols), []);
         }
         const messageHashes = [];
         const productIds = [];
@@ -202,7 +202,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         }
         await this.loadMarkets ();
         const fundingRate = await this.subscribeMultiple ('RISK', symbols, params);
-        const symbol = this.safeString (fundingRate, 'symbol');
+        const symbol = this.valueOr (this.safeString (fundingRate, 'symbol'), '');
         if (this.newUpdates) {
             const result: Dict = {};
             result[symbol] = fundingRate;
@@ -291,7 +291,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         //        "type":"SNAPSHOT"
         //    }
         const ticker = this.parseWsInstrument (message);
-        const channel = this.safeString (message, 'channel');
+        const channel = this.valueOr (this.safeString (message, 'channel'), '');
         client.resolve (ticker, channel);
         client.resolve (ticker, channel + '::' + ticker['symbol']);
     }
@@ -402,7 +402,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         //    }
         //
         const ticker = this.parseWsTicker (message);
-        const channel = this.safeString (message, 'channel');
+        const channel = this.valueOr (this.safeString (message, 'channel'), '');
         client.resolve (ticker, channel);
         client.resolve (ticker, channel + '::' + ticker['symbol']);
     }
@@ -502,7 +502,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
         }
         const stored = this.ohlcvs[symbol][timeframe];
-        const data = this.safeList (message, 'candles', []);
+        const data = this.valueOr (this.safeList (message, 'candles', []), []);
         for (let i = 0; i < data.length; i++) {
             const tick = data[i];
             const parsed = this.parseOHLCV (tick, market);
@@ -538,7 +538,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false, true, true);
+        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false, true, true), []);
         const trades = await this.subscribeMultiple ('MATCH', symbols, params);
         if (this.newUpdates) {
             const first = this.safeDict (trades, 0);
@@ -564,7 +564,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         //
         const trade = this.parseWsTrade (message);
         const symbol = trade['symbol'];
-        const channel = this.safeString (message, 'channel');
+        const channel = this.valueOr (this.safeString (message, 'channel'), '');
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             const tradesArrayCache = new ArrayCache (limit);
@@ -679,7 +679,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const marketId = this.safeString (message, 'product_id');
         const symbol = this.safeSymbol (marketId);
         const datetime = this.safeString (message, 'time');
-        const channel = this.safeString (message, 'channel');
+        const channel = this.valueOr (this.safeString (message, 'channel'), '');
         if (!(symbol in this.orderbooks)) {
             const limit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
             this.orderbooks[symbol] = this.orderBook ({}, limit);
@@ -766,7 +766,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         //       "type": "UPDATE"
         //    }
         //
-        const channel = this.safeString (message, 'channel');
+        const channel = this.valueOr (this.safeString (message, 'channel'), '');
         const fundingRate = this.parseFundingRate (message);
         this.fundingRates[fundingRate['symbol']] = fundingRate;
         client.resolve (fundingRate, channel + '::' + fundingRate['symbol']);
@@ -802,7 +802,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         if (this.handleErrorMessage (client, message)) {
             return;
         }
-        const channel = this.safeString (message, 'channel', '');
+        const channel = this.valueOr (this.safeString (message, 'channel', ''), '');
         const methods: Dict = {
             'SUBSCRIPTIONS': this.handleSubscriptionStatus,
             'INSTRUMENTS': this.handleInstrument,

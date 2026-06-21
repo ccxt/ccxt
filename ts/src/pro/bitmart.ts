@@ -144,7 +144,7 @@ export default class bitmart extends bitmartRest {
     }
 
     async subscribeMultiple (unifiedName: string, channel: string, type: string, symbols: Strings = undefined, params = {}) {
-        symbols = this.marketSymbols (symbols, type, false, true);
+        symbols = this.valueOr (this.marketSymbols (symbols, type, false, true), []);
         const url = this.implodeHostname (this.urls['api']['ws'][type]['public']);
         const channelType = (type === 'spot') ? 'spot' : 'futures';
         const actionType = (type === 'spot') ? 'op' : 'action';
@@ -277,7 +277,7 @@ export default class bitmart extends bitmartRest {
         //        }
         //    }
         //
-        const channel = this.safeString2 (message, 'table', 'group');
+        const channel = this.valueOr (this.safeString2 (message, 'table', 'group'), '');
         if (channel === undefined) {
             return;
         }
@@ -296,7 +296,7 @@ export default class bitmart extends bitmartRest {
                 const timestamp = this.safeInteger (message, 'event_time');
                 this.balance[type]['timestamp'] = timestamp;
                 this.balance[type]['datetime'] = this.iso8601 (timestamp);
-                const balanceDetails = this.safeList (data[i], 'balance_details', []);
+                const balanceDetails = this.valueOr (this.safeList (data[i], 'balance_details', []), []);
                 for (let ii = 0; ii < balanceDetails.length; ii++) {
                     const rawBalance = balanceDetails[i];
                     const account = this.account ();
@@ -402,7 +402,7 @@ export default class bitmart extends bitmartRest {
     }
 
     getParamsForMultipleSub (methodName: string, symbols: string[], limit: Int = undefined, params = {}): [string[], Str, Dict] {
-        symbols = this.marketSymbols (symbols, undefined, false, true);
+        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false, true), []);
         const length = symbols.length;
         if (length > 20) {
             throw new NotSupported (this.id + ' ' + methodName + '() accepts a maximum of 20 symbols in one request');
@@ -499,7 +499,7 @@ export default class bitmart extends bitmartRest {
      */
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false);
+        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false), []);
         const firstMarket = this.getMarketFromSymbols (symbols);
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchBidsAsks', firstMarket, params);
@@ -925,7 +925,7 @@ export default class bitmart extends bitmartRest {
         await this.loadMarkets ();
         const type = 'swap';
         await this.authenticate (type, params);
-        symbols = this.marketSymbols (symbols, 'swap', true, true, false);
+        symbols = this.valueOr (this.marketSymbols (symbols, 'swap', true, true, false), []);
         let messageHash = 'positions';
         if (symbols !== undefined) {
             messageHash += '::' + symbols.join (',');
@@ -1005,7 +1005,7 @@ export default class bitmart extends bitmartRest {
         //        ]
         //    }
         //
-        const data = this.safeList (message, 'data', []);
+        const data = this.valueOr (this.safeList (message, 'data', []), []);
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
@@ -1119,7 +1119,7 @@ export default class bitmart extends bitmartRest {
         //        ]
         //    }
         //
-        const data = this.safeList (message, 'data');
+        const data = this.valueOr (this.safeList (message, 'data'), []);
         if (data === undefined) {
             return;
         }
@@ -1411,14 +1411,14 @@ export default class bitmart extends bitmartRest {
         //        }
         //    }
         //
-        const channel = this.safeString2 (message, 'table', 'group');
+        const channel = this.valueOr (this.safeString2 (message, 'table', 'group'), '');
         const isSpot = (channel.indexOf ('spot') >= 0);
         const data = this.safeValue (message, 'data');
         if (data === undefined) {
             return;
         }
         const parts = channel.split ('/');
-        const part1 = this.safeString (parts, 1, '');
+        const part1 = this.valueOr (this.safeString (parts, 1, ''), '');
         let interval = part1.replace ('kline', '');
         interval = interval.replace ('Bin', '');
         const intervalParts = interval.split (':');
@@ -1451,7 +1451,7 @@ export default class bitmart extends bitmartRest {
             const marketId = this.safeString (data, 'symbol');
             const market = this.safeMarket (marketId, undefined, undefined, 'swap');
             const symbol = market['symbol'];
-            const items = this.safeList (data, 'items', []);
+            const items = this.valueOr (this.safeList (data, 'items', []), []);
             this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
             let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
@@ -1650,7 +1650,7 @@ export default class bitmart extends bitmartRest {
         if (length <= 0) {
             return;
         }
-        const channelName = this.safeString2 (message, 'table', 'group');
+        const channelName = this.valueOr (this.safeString2 (message, 'table', 'group'), '');
         // find limit subscribed to
         const limitsToCheck = [ '100', '50', '20', '10', '5' ];
         let limit = 0;
@@ -1828,7 +1828,7 @@ export default class bitmart extends bitmartRest {
         //         "group": "futures/fundingRate:BTCUSDT"
         //     }
         //
-        const data = this.safeDict (message, 'data', {});
+        const data = this.valueOr (this.safeDict (message, 'data', {}), {});
         const fundingRate = this.parseFundingRate (data);
         const symbol = fundingRate['symbol'];
         this.fundingRates[symbol] = fundingRate;
@@ -1983,11 +1983,11 @@ export default class bitmart extends bitmartRest {
 
     getUnSubParams (messageTopic) {
         const parts = messageTopic.split (':');
-        const channel = this.safeString (parts, 0);
+        const channel = this.valueOr (this.safeString (parts, 0), '');
         const marketTypeAndTopic = channel.split ('/');
         const rawMarketType = this.safeStringLower (marketTypeAndTopic, 0);
         const marketType = this.parseMarketType (rawMarketType as string);
-        let topic = this.safeString (marketTypeAndTopic, 1);
+        let topic = this.valueOr (this.safeString (marketTypeAndTopic, 1), '');
         const thirdPart = this.safeString (marketTypeAndTopic, 2);
         if (thirdPart !== undefined) {
             topic += '/' + thirdPart;
@@ -2133,7 +2133,7 @@ export default class bitmart extends bitmartRest {
                 }
             }
         } else {
-            const channel = this.safeString2 (message, 'table', 'group');
+            const channel = this.valueOr (this.safeString2 (message, 'table', 'group'), '');
             const methods: Dict = {
                 'depth': this.handleOrderBook,
                 'bookTicker': this.handleBidAsk,

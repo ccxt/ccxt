@@ -964,7 +964,7 @@ export default class bydfi extends bydfiRest {
         const messageHash = 'balance';
         if (messageHash in client.futures) {
             const data = this.safeDict (message, 'a', {});
-            const balances = this.safeList (data, 'B', []);
+            const balances = this.valueOr (this.safeList (data, 'B', []), []);
             const timestamp = this.safeInteger (message, 'T');
             const result: Dict = {
                 'info': message,
@@ -1004,7 +1004,7 @@ export default class bydfi extends bydfiRest {
     }
 
     handleUnSubscription (client: Client, subscription: Dict) {
-        const messageHashes = this.safeList (subscription, 'messageHashes', []);
+        const messageHashes = this.valueOr (this.safeList (subscription, 'messageHashes', []), []);
         const subHashIsPrefix = this.safeBool (subscription, 'subHashIsPrefix', false);
         for (let i = 0; i < messageHashes.length; i++) {
             const unsubHash = messageHashes[i];
@@ -1063,12 +1063,12 @@ export default class bydfi extends bydfiRest {
                 this.handleOrder (client, message);
             } else if (event === 'ACCOUNT_UPDATE') {
                 const account = this.safeDict (message, 'a', {});
-                const balances = this.safeList (account, 'B', []);
+                const balances = this.valueOr (this.safeList (account, 'B', []), []);
                 const balancesLength = balances.length;
                 if (balancesLength > 0) {
                     this.handleBalance (client, message);
                 }
-                const positions = this.safeList (account, 'p', []);
+                const positions = this.valueOr (this.safeList (account, 'p', []), []);
                 const positionsLength = positions.length;
                 if (positionsLength > 0) {
                     this.handlePositions (client, message);
