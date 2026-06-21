@@ -11412,6 +11412,10 @@ public Object describe()
         {
             throw new ExchangeError((String)Helpers.add(this.id, " markets not loaded")) ;
         }
+        if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+        {
+            throw new BadSymbol((String)Helpers.add(Helpers.add(this.id, " does not have market symbol "), symbol)) ;
+        }
         if (Helpers.isTrue(Helpers.inOp(this.markets, symbol)))
         {
             return Helpers.GetValue(this.markets, symbol);

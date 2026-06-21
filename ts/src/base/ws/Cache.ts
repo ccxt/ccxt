@@ -1,5 +1,6 @@
 /* eslint-disable max-classes-per-file */
 // @ts-nocheck
+import { Int } from '../types.js';
 
 interface CustomArray extends Array<any> {
     hashmap: object;

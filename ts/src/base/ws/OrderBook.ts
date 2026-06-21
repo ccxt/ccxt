@@ -42,7 +42,7 @@ class OrderBook implements CustomOrderBookProp {
 
     symbol: Str;
 
-    constructor (snapshot = {}, depth = undefined) {
+    constructor (snapshot = {}, depth: Int = undefined) {
 
         Object.defineProperty (this, 'cache', {
             __proto__: null, // make it invisible
@@ -127,7 +127,7 @@ class OrderBook implements CustomOrderBookProp {
 // or deletes price levels based on order counts (3rd value in a bidask delta)
 
 class CountedOrderBook extends OrderBook {
-    constructor (snapshot = {}, depth = undefined) {
+    constructor (snapshot = {}, depth: Int = undefined) {
         super (extend (snapshot, {
             'asks': new CountedAsks (snapshot.asks || [], depth),
             'bids': new CountedBids (snapshot.bids || [], depth),
@@ -139,7 +139,7 @@ class CountedOrderBook extends OrderBook {
 // indexed by order ids (3rd value in a bidask delta)
 
 class IndexedOrderBook extends OrderBook {
-    constructor (snapshot = {}, depth = undefined) {
+    constructor (snapshot = {}, depth: Int = undefined) {
         super (extend (snapshot, {
             'asks': new IndexedAsks (snapshot.asks || [], depth),
             'bids': new IndexedBids (snapshot.bids || [], depth),
@@ -151,7 +151,7 @@ class IndexedOrderBook extends OrderBook {
 // adjusts the volumes by positive or negative relative changes or differences
 
 // class IncrementalOrderBook extends OrderBook {
-//     constructor (snapshot = {}, depth = undefined) {
+//     constructor (snapshot = {}, depth: Int = undefined) {
 //         super (extend (snapshot, {
 //             'asks': new IncrementalAsks (snapshot.asks || [], depth),
 //             'bids': new IncrementalBids (snapshot.bids || [], depth),
@@ -164,7 +164,7 @@ class IndexedOrderBook extends OrderBook {
 // // incremental and indexed (2 in 1)
 
 // class IncrementalIndexedOrderBook extends OrderBook {
-//     constructor (snapshot = {}, depth = undefined) {
+//     constructor (snapshot = {}, depth: Int = undefined) {
 //         super (extend (snapshot, {
 //             'asks': new IncrementalIndexedAsks (snapshot.asks || [], depth),
 //             'bids': new IncrementalIndexedBids (snapshot.bids || [], depth),

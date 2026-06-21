@@ -372,7 +372,7 @@ class hyperliquid extends Exchange {
         $this->options['sandboxMode'] = $enabled;
     }
 
-    public function market(string $symbol): array {
+    public function market(?string $symbol): array {
         if ($this->markets === null) {
             throw new ExchangeError($this->id . ' markets not loaded');
         }
