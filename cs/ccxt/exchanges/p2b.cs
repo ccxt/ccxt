@@ -348,8 +348,8 @@ public partial class p2b : Exchange
         object marketId = this.safeString(market, "name");
         object baseId = this.safeString(market, "stock");
         object quoteId = this.safeString(market, "money");
-        object bs = this.safeCurrencyCode(baseId);
-        object quote = this.safeCurrencyCode(quoteId);
+        object bs = ((string)this.safeCurrencyCode(baseId));
+        object quote = ((string)this.safeCurrencyCode(quoteId));
         object limits = this.safeValue(market, "limits");
         object maxAmount = this.safeString(limits, "max_amount");
         object maxPrice = this.safeString(limits, "max_price");
@@ -388,11 +388,11 @@ public partial class p2b : Exchange
                 } },
                 { "amount", new Dictionary<string, object>() {
                     { "min", this.safeNumber(limits, "min_amount") },
-                    { "max", this.parseNumber(this.omitZero(maxAmount)) },
+                    { "max", this.parseNumber(this.omitZero(((string)maxAmount))) },
                 } },
                 { "price", new Dictionary<string, object>() {
                     { "min", this.safeNumber(limits, "min_price") },
-                    { "max", this.parseNumber(this.omitZero(maxPrice)) },
+                    { "max", this.parseNumber(this.omitZero(((string)maxPrice))) },
                 } },
                 { "cost", new Dictionary<string, object>() {
                     { "min", null },
@@ -731,7 +731,7 @@ public partial class p2b : Exchange
             { "amount", this.safeString(trade, "amount") },
             { "cost", this.safeString(trade, "deal") },
             { "fee", new Dictionary<string, object>() {
-                { "currency", getValue(market, "quote") },
+                { "currency", this.safeString(market, "quote") },
                 { "cost", this.safeString2(trade, "fee", "deal_fee") },
             } },
         }, market);
@@ -871,7 +871,7 @@ public partial class p2b : Exchange
                 { "free", available },
                 { "used", used },
             };
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            ((IDictionary<string,object>)result)[(string)((string)code)] = account;
         }
         return this.safeBalance(result);
     }
