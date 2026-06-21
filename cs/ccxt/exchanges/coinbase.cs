@@ -5341,7 +5341,7 @@ public partial class coinbase : Exchange
         //
         object data = this.safeDict(response, "fee_tier", new Dictionary<string, object>() {});
         object taker_fee = this.safeNumber(data, "taker_fee_rate");
-        object marker_fee = this.safeNumber(data, "maker_fee_rate");
+        object maker_fee = this.safeNumber(data, "maker_fee_rate");
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
         {
@@ -5352,7 +5352,7 @@ public partial class coinbase : Exchange
                 ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                     { "info", response },
                     { "symbol", symbol },
-                    { "maker", marker_fee },
+                    { "maker", maker_fee },
                     { "taker", taker_fee },
                     { "percentage", true },
                 };
