@@ -1512,7 +1512,8 @@ class xt extends Exchange {
         //         "v" => "702461.58895"
         //     }
         //
-        $volumeIndex = ($market['inverse']) ? 'v' : 'a';
+        $isInverse = $this->safe_bool($market, 'inverse');
+        $volumeIndex = ($isInverse) ? 'v' : 'a';
         return array(
             $this->safe_integer($ohlcv, 't'),
             $this->safe_number($ohlcv, 'o'),

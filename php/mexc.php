@@ -1941,7 +1941,7 @@ class mexc extends Exchange {
         list($marketType, $query) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
         $tickers = null;
         if ($isSingularMarket) {
-            $request['symbol'] = $market['id'];
+            $request['symbol'] = $this->safe_string($market, 'id');
         }
         if ($marketType === 'spot') {
             $tickers = $this->spotPublicGetTicker24hr ($this->extend($request, $query));
@@ -3036,7 +3036,7 @@ class mexc extends Exchange {
         list($marketType, $params) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
         if ($marketType === 'spot') {
             if ($symbol !== null) {
-                $request['symbol'] = $market['id'];
+                $request['symbol'] = $this->safe_string($market, 'id');
             }
             list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchOpenOrders', $params);
             if ($marginMode !== null) {
@@ -3185,7 +3185,7 @@ class mexc extends Exchange {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
             }
             $requestInner = array(
-                'symbol' => $market['id'],
+                'symbol' => $this->safe_string($market, 'id'),
             );
             $clientOrderId = $this->safe_string($params, 'clientOrderId');
             if ($clientOrderId !== null) {
@@ -3329,7 +3329,7 @@ class mexc extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument on spot');
             }
-            $request['symbol'] = $market['id'];
+            $request['symbol'] = $this->safe_string($market, 'id');
             if ($marginMode !== null) {
                 if ($marginMode !== 'isolated') {
                     throw new BadRequest($this->id . ' cancelAllOrders() does not support $marginMode ' . $marginMode . ' for spot-margin trading');
@@ -3377,7 +3377,7 @@ class mexc extends Exchange {
             return $this->parse_orders($response, $market);
         } else {
             if ($symbol !== null) {
-                $request['symbol'] = $market['id'];
+                $request['symbol'] = $this->safe_string($market, 'id');
             }
             // $method can be either => contractPrivatePostOrderCancelAll or contractPrivatePostPlanorderCancelAll
             // the Planorder endpoints work not only for stop-$market orders but also for stop-limit orders that are supposed to have separate endpoint
@@ -4190,7 +4190,7 @@ class mexc extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrderTrades() requires a $symbol argument');
             }
-            $request['symbol'] = $market['id'];
+            $request['symbol'] = $this->safe_string($market, 'id');
             $request['orderId'] = $id;
             $trades = $this->spotPrivateGetMyTrades ($this->extend($request, $query));
             //
@@ -5978,7 +5978,7 @@ class mexc extends Exchange {
         }
         return array(
             'info' => $leverage,
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'marginMode' => $marginMode,
             'longLeverage' => $longLeverage,
             'shortLeverage' => $shortLeverage,
@@ -6165,6 +6165,7 @@ class mexc extends Exchange {
                 );
             }
             if (($method === 'POST') || ($method === 'PUT') || ($method === 'DELETE')) {
+                $headers = ($headers === null) ? array() : $headers;
                 $headers['Content-Type'] = 'application/json';
             }
         } elseif ($section === 'contract' || $section === 'spot2') {

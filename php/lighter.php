@@ -785,7 +785,7 @@ class lighter extends Exchange {
                 }
             }
         }
-        $marketInfo = $this->safe_dict($market, 'info');
+        $marketInfo = $this->safe_dict($market, 'info', array());
         $amountStr = null;
         $priceStr = $this->price_to_precision($symbol, $price);
         $amountScale = $this->pow('10', $marketInfo['size_decimals']);
@@ -986,7 +986,7 @@ class lighter extends Exchange {
         $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
         $signer = $this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params);
         $market = $this->market($symbol);
-        $marketInfo = $this->safe_dict($market, 'info');
+        $marketInfo = $this->safe_dict($market, 'info', array());
         $amountScale = $this->pow('10', $marketInfo['size_decimals']);
         $priceScale = $this->pow('10', $marketInfo['price_decimals']);
         $triggerPrice = $this->safe_string_n($params, array( 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));

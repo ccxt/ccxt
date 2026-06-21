@@ -343,7 +343,7 @@ class bithumb extends Exchange {
             $quote = $quotes[$i];
             $quoteId = $quote;
             $response = $results[$i];
-            $data = $this->safe_dict($response, 'data');
+            $data = $this->safe_dict($response, 'data', array());
             $extension = $this->safe_dict($quoteCurrencies, $quote, array());
             $currencyIds = is_array($data) ? array_keys($data) : array();
             for ($j = 0; $j < count($currencyIds); $j++) {

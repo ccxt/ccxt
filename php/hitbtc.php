@@ -3440,7 +3440,7 @@ class hitbtc extends Exchange {
         $datetime = $this->safe_string($data, 'updated_at');
         return array(
             'info' => $data,
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'type' => null,
             'marginMode' => 'isolated',
             'amount' => null,

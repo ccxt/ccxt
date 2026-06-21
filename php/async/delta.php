@@ -3314,7 +3314,7 @@ class delta extends Exchange {
             $result = $this->safe_list($response, 'result', array());
             $settlements = $this->parse_settlements($result, $market);
             $sorted = $this->sort_by($settlements, 'timestamp');
-            return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
+            return $this->filter_by_symbol_since_limit($sorted, $this->safe_string($market, 'symbol'), $since, $limit);
         }) ();
     }
 

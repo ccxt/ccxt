@@ -372,7 +372,7 @@ class hyperliquid extends Exchange {
         $this->options['sandboxMode'] = $enabled;
     }
 
-    public function market(?string $symbol): array {
+    public function market(string $symbol): array {
         if ($this->markets === null) {
             throw new ExchangeError($this->id . ' markets not loaded');
         }
@@ -535,7 +535,7 @@ class hyperliquid extends Exchange {
              * @return {array[]} an array of objects representing market data
              */
             $options = $this->safe_dict($this->options, 'fetchMarkets', array());
-            $types = $this->safe_list($options, 'types');
+            $types = $this->safe_list($options, 'types', array());
             $rawPromises = array();
             for ($i = 0; $i < count($types); $i++) {
                 $marketType = $types[$i];
@@ -2483,7 +2483,7 @@ class hyperliquid extends Exchange {
             //
             $innerResponse = $this->safe_dict($response, 'response');
             $data = $this->safe_dict($innerResponse, 'data');
-            $statuses = $this->safe_list($data, 'statuses');
+            $statuses = $this->safe_list($data, 'statuses', array());
             $orders = array();
             for ($i = 0; $i < count($statuses); $i++) {
                 $status = $statuses[$i];
@@ -4562,7 +4562,7 @@ class hyperliquid extends Exchange {
                 for ($i = 0; $i < count($records); $i++) {
                     $record = $records[$i];
                     if ($record['type'] === 'vaultDeposit') {
-                        $delta = $this->safe_dict($record, 'delta');
+                        $delta = $this->safe_dict($record, 'delta', array());
                         if ($delta['vault'] === '0x' . $vaultAddress) {
                             $deposits[] = $record;
                         }
@@ -4626,7 +4626,7 @@ class hyperliquid extends Exchange {
                 for ($i = 0; $i < count($records); $i++) {
                     $record = $records[$i];
                     if ($record['type'] === 'vaultWithdraw') {
-                        $delta = $this->safe_dict($record, 'delta');
+                        $delta = $this->safe_dict($record, 'delta', array());
                         if ($delta['vault'] === '0x' . $vaultAddress) {
                             $withdrawals[] = $record;
                         }

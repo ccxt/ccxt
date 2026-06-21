@@ -7738,7 +7738,7 @@ class Exchange {
         return $this->safe_string($this->commonCurrencies, $code, $code);
     }
 
-    public function currency(?string $code) {
+    public function currency(string $code) {
         $keys = is_array($this->currencies) ? array_keys($this->currencies) : array();
         $numCurrencies = count($keys);
         if ($numCurrencies === 0) {
@@ -7754,12 +7754,9 @@ class Exchange {
         throw new ExchangeError($this->id . ' does not have currency $code ' . $code);
     }
 
-    public function market(?string $symbol) {
+    public function market(string $symbol) {
         if ($this->markets === null) {
             throw new ExchangeError($this->id . ' $markets not loaded');
-        }
-        if ($symbol === null) {
-            throw new BadSymbol($this->id . ' does not have $market $symbol ' . $symbol);
         }
         if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
             return $this->markets[$symbol];

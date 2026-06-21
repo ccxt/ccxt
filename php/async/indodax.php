@@ -541,8 +541,8 @@ class indodax extends Exchange {
         //
         $symbol = $this->safe_symbol(null, $market);
         $timestamp = $this->safe_timestamp($ticker, 'server_time');
-        $baseVolume = 'vol_' . strtolower($market['baseId']);
-        $quoteVolume = 'vol_' . strtolower($market['quoteId']);
+        $baseVolume = 'vol_' . strtolower($this->safe_string($market, 'baseId'));
+        $quoteVolume = 'vol_' . strtolower($this->safe_string($market, 'quoteId'));
         $last = $this->safe_string($ticker, 'last');
         return $this->safe_ticker(array(
             'symbol' => $symbol,

@@ -2486,7 +2486,7 @@ class ascendex extends Exchange {
             'time' => $this->milliseconds(),
         );
         if ($symbol !== null) {
-            $request['symbol'] = $market['id'];
+            $request['symbol'] = $this->safe_string($market, 'id');
         }
         $response = null;
         if (($type === 'spot') || ($type === 'margin')) {
@@ -3048,12 +3048,12 @@ class ascendex extends Exchange {
         $status = ($errorCode === '0') ? 'ok' : 'failed';
         return array(
             'info' => $data,
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'type' => null,
             'marginMode' => 'isolated',
             'amount' => null,
             'total' => null,
-            'code' => $market['quote'],
+            'code' => $this->safe_string($market, 'quote'),
             'status' => $status,
             'timestamp' => null,
             'datetime' => null,
