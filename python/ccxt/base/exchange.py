@@ -6663,7 +6663,7 @@ class Exchange(object):
             return code
         return self.safe_string(self.commonCurrencies, code, code)
 
-    def currency(self, code: str):
+    def currency(self, code: Str):
         keys = list(self.currencies.keys())
         numCurrencies = len(keys)
         if numCurrencies == 0:
@@ -6675,9 +6675,11 @@ class Exchange(object):
                 return self.currencies_by_id[code]
         raise ExchangeError(self.id + ' does not have currency code ' + code)
 
-    def market(self, symbol: str):
+    def market(self, symbol: Str):
         if self.markets is None:
             raise ExchangeError(self.id + ' markets not loaded')
+        if symbol is None:
+            raise BadSymbol(self.id + ' does not have market symbol ' + symbol)
         if symbol in self.markets:
             return self.markets[symbol]
         elif symbol in self.markets_by_id:
