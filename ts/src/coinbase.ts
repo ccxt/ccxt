@@ -5002,7 +5002,7 @@ export default class coinbase extends Exchange {
         //
         const data = this.safeDict (response, 'fee_tier', {});
         const taker_fee = this.safeNumber (data, 'taker_fee_rate');
-        const marker_fee = this.safeNumber (data, 'maker_fee_rate');
+        const maker_fee = this.safeNumber (data, 'maker_fee_rate');
         const result: Dict = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
@@ -5011,7 +5011,7 @@ export default class coinbase extends Exchange {
                 result[symbol] = {
                     'info': response,
                     'symbol': symbol,
-                    'maker': marker_fee,
+                    'maker': maker_fee,
                     'taker': taker_fee,
                     'percentage': true,
                 };
