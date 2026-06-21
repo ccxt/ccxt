@@ -10,6 +10,7 @@ import { promisify } from 'util'
 import errors from "../ts/src/base/errors.js"
 import {unCamelCase, precisionConstants, safeString, unique} from "../ts/src/base/functions.js"
 import Exchange from '../ts/src/base/Exchange.js'
+import PredictionExchange from '../ts/src/base/PredictionExchange.js'
 import { basename, join, resolve } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile, writeFile, checkCreateFolder } from './fsLocal.js'
 import errorHierarchy from '../ts/src/base/errorHierarchy.js'
@@ -78,9 +79,16 @@ class Transpiler {
     baseMethodsList!: any[];
 
     defineImplicitMethodsList () {
-        const exchange: any = new Exchange();
-        let all = Object.getOwnPropertyNames(Object.getPrototypeOf(exchange));
-        all = all.concat (Object.getOwnPropertyNames(exchange));
+        // use PredictionExchange (extends Exchange) so the prediction base methods
+        // (checkEvents, safeOutcome, safePredictionOrder, ...) are recognised and their calls
+        // get snake_cased in prediction exchange files, instead of being treated as implicit-api
+        const exchange: any = new PredictionExchange();
+        let all = Object.getOwnPropertyNames(exchange);
+        let proto = Object.getPrototypeOf(exchange);
+        while (proto && proto !== Object.prototype) {
+            all = all.concat (Object.getOwnPropertyNames(proto));
+            proto = Object.getPrototypeOf(proto);
+        }
         this.baseMethodsList = [ ... all.filter(m => 'function' === typeof exchange[m])];
     }
 

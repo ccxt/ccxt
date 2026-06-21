@@ -372,17 +372,19 @@ export default class PredictionExchange extends Exchange {
     }
 
     safePredictionOrder (order: Dict, market = undefined): PredictionOrder {
-        const parsed = super.safeOrder (order, market);
+        // the prediction identity is the `outcome` handle carried on the raw dict (read by
+        // toPredictionStructure), not a ccxt `symbol`, so don't pass an outcome object as a market
+        const parsed = super.safeOrder (order);
         return this.toPredictionStructure (parsed, order);
     }
 
     safePredictionTrade (trade: Dict, market = undefined): PredictionTrade {
-        const parsed = super.safeTrade (trade, market);
+        const parsed = super.safeTrade (trade);
         return this.toPredictionStructure (parsed, trade);
     }
 
     safePredictionTicker (ticker: Dict, market = undefined): PredictionTicker {
-        const parsed = super.safeTicker (ticker, market);
+        const parsed = super.safeTicker (ticker);
         return this.toPredictionStructure (parsed, ticker);
     }
 
@@ -392,16 +394,19 @@ export default class PredictionExchange extends Exchange {
     }
 
     toPredictionStructure (parsed: Dict, raw: Dict): any {
-        // rename the unified `symbol` to the prediction `outcome` handle and attach the
-        // prediction identity fields (raw exchange id, label, parent market/event) that the
+        // the prediction identity is the `outcome` handle (never the base `symbol`); attach it
+        // and the other prediction fields (raw exchange id, label, parent market/event) that the
         // base safe* helpers drop. the exchange parser passes them on the raw input dict.
-        const outcomeSymbol = this.safeString2 (raw, 'outcome', 'symbol');
-        parsed['outcome'] = outcomeSymbol;
+        parsed['outcome'] = this.safeString (raw, 'outcome');
         parsed['outcomeId'] = this.safeString (raw, 'outcomeId');
         parsed['label'] = this.safeString (raw, 'label');
         parsed['market'] = this.safeString (raw, 'market');
         parsed['event'] = this.safeString (raw, 'event');
-        delete parsed['symbol'];
+        // guard the delete: a bare `delete` is a no-op on a missing key in JS, but transpiles to
+        // `del`/`unset` which raises in Python when the inherited `symbol` was never set
+        if ('symbol' in parsed) {
+            delete parsed['symbol'];
+        }
         return parsed;
     }
 

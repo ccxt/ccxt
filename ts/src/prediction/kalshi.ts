@@ -137,6 +137,7 @@ export default class kalshi extends Exchange {
                         },
                         'post': {
                             'portfolio/orders': 1,
+                            'portfolio/events/orders': 1,
                             'portfolio/orders/batched': 1,
                             'portfolio/orders/{order_id}/amend': 1,
                             'portfolio/orders/{order_id}/decrease': 1,
@@ -1140,7 +1141,7 @@ export default class kalshi extends Exchange {
             total = balanceCents / 100;
         }
         result['USD'] = { 'free': total, 'used': 0, 'total': total };
-        return result as Balances;
+        return this.safeBalance (result) as Balances;
     }
 
     /**
@@ -1363,24 +1364,51 @@ export default class kalshi extends Exchange {
         this.checkEvents (outcome);
         const outcomeObj = this.outcome (outcome);
         const ticker = this.safeString (outcomeObj['info'], 'ticker');
-        const outcomeLabel = outcomeObj['label'];
-        let priceCents = undefined;
-        if (price !== undefined) {
-            priceCents = this.parseToInt (price * 100 + 0.5);
+        const isNo = (outcomeObj['label'] === 'NO');
+        const isBuy = (side === 'buy');
+        // kalshi V2 (/portfolio/events/orders) quotes the YES leg only: side 'bid' = buy YES,
+        // 'ask' = sell YES, price in dollars. a NO order maps to the complementary YES order
+        // (buy NO @ q == sell YES @ 1-q), so flip the book side and the price
+        let bookSide = (isBuy) ? 'bid' : 'ask';
+        let yesPrice = price;
+        if (isNo) {
+            bookSide = (isBuy) ? 'ask' : 'bid';
+            if (price !== undefined) {
+                yesPrice = this.parseNumber (Precise.stringSub ('1', this.numberToString (price)));
+            }
         }
+        const isMarket = (type === 'market');
+        const defaultTif = (isMarket) ? 'immediate_or_cancel' : 'good_till_canceled';
+        let timeInForce = undefined;
+        [ timeInForce, params ] = this.handleOptionAndParams (params, 'createOrder', 'time_in_force', defaultTif);
+        let stp = undefined;
+        [ stp, params ] = this.handleOptionAndParams (params, 'createOrder', 'self_trade_prevention_type', 'taker_at_cross');
         const request: Dict = {
-            'action': (side === 'buy') ? 'buy' : 'sell',
-            'count': amount,
-            'side': (outcomeLabel === 'NO') ? 'no' : 'yes',
             'ticker': ticker,
-            'type': type,
+            'side': bookSide,
+            'count': this.numberToString (amount),
+            'time_in_force': timeInForce,
+            'self_trade_prevention_type': stp,
         };
-        if (priceCents !== undefined) {
-            const priceKey = (outcomeLabel === 'NO') ? 'no_price' : 'yes_price';
-            request[priceKey] = priceCents;
+        if (yesPrice !== undefined) {
+            request['price'] = this.numberToString (yesPrice);
         }
-        const response = await this.kalshiPrivatePostPortfolioOrders (this.extend (request, params));
-        return this.parseOrder (this.safeValue (response, 'order', response), outcomeObj as any);
+        const response = await this.kalshiPrivatePostPortfolioEventsOrders (this.extend (request, params));
+        // the V2 create response is minimal (order_id, fill_count, remaining_count), so backfill
+        // the known order details and resolve the status from the remaining count
+        const order = this.parseOrder (response, outcomeObj as any);
+        order['side'] = side;
+        order['amount'] = amount;
+        order['price'] = price;
+        if (order['status'] === undefined) {
+            const remaining = this.safeNumber (response, 'remaining_count');
+            let resolvedStatus = 'open';
+            if ((remaining !== undefined) && (remaining === 0)) {
+                resolvedStatus = 'closed';
+            }
+            order['status'] = resolvedStatus;
+        }
+        return order as PredictionOrder;
     }
 
     /**
@@ -1743,20 +1771,22 @@ export default class kalshi extends Exchange {
             // Signing payload: {timestamp}{METHOD}{path}, where path is the full request path
             // INCLUDING the /trade-api/v2 prefix and any path params substituted in, but NOT
             // the query string (e.g. /trade-api/v2/portfolio/orders/{order_id})
-            const versionPrefix = baseUrl.slice (baseUrl.indexOf ('/trade-api'));
+            const tradeApiIndex = baseUrl.indexOf ('/trade-api');
+            const versionPrefix = baseUrl.slice (tradeApiIndex);
             const pathForSigning = versionPrefix + '/' + implodedPath;
             const payload = timestamp + method + pathForSigning;
             // RSA-PSS SHA-256 signature with the private key PEM
             const keyParts = this.privateKey.split ('\\n');
             const cleanPrivateKey = keyParts.join ('\n');
-            const signature = rsa (payload, cleanPrivateKey, sha256);
+            const signature = rsa (payload, cleanPrivateKey, sha256, 'pss');
             headers = this.extend (headers, {
                 'KALSHI-ACCESS-KEY': this.apiKey,
                 'KALSHI-ACCESS-SIGNATURE': signature,
                 'KALSHI-ACCESS-TIMESTAMP': timestamp,
             });
             if (method !== 'GET' && querystring) {
-                body = query as any;
+                // kalshi expects a JSON body; the signature covers only timestamp+method+path
+                body = this.json (query);
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
