@@ -490,7 +490,7 @@ class bitbns(Exchange, ImplicitAPI):
         return self.parse_tickers(response, symbols)
 
     def parse_balance(self, response) -> Balances:
-        timestamp = None
+        timestamp: Int = None
         result: dict = {
             'info': response,
             'timestamp': timestamp,
@@ -712,7 +712,7 @@ class bitbns(Exchange, ImplicitAPI):
             'entry_id': id,
             'symbol': market['uppercaseId'],
         }
-        response = None
+        response: dict = None
         tail = 'StopLossOrder' if isTrigger else 'Order'
         quoteSide = 'usdtcancel' if (market['quoteId'] == 'USDT') else 'cancel'
         quoteSide += tail
@@ -867,14 +867,14 @@ class bitbns(Exchange, ImplicitAPI):
             elif side.find('sell') >= 0:
                 side = 'sell'
         factor = self.safe_string(trade, 'factor')
-        costString = None
+        costString: Str = None
         if factor is not None:
             amountString = Precise.string_div(amountString, factor)
         else:
             amountString = self.safe_string(trade, 'base_volume')
             costString = self.safe_string(trade, 'quote_volume')
         symbol = market['symbol']
-        fee = None
+        fee: NullableDict = None
         feeCostString = self.safe_string(trade, 'fee')
         if feeCostString is not None:
             feeCurrencyCode = market['quote']
@@ -1057,7 +1057,7 @@ class bitbns(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    def parse_transaction_status_by_type(self, status, type=None):
+    def parse_transaction_status_by_type(self, status, type: Str = None):
         statusesByType: dict = {
             'deposit': {
                 '0': 'pending',
@@ -1104,7 +1104,7 @@ class bitbns(Exchange, ImplicitAPI):
         timestamp = self.parse8601(self.safe_string_2(transaction, 'date', 'timestamp'))
         type = self.safe_string(transaction, 'type')
         expTime = self.safe_string(transaction, 'expTime', '')
-        status = None
+        status: Str = None
         if type is not None:
             if type.find('deposit') >= 0:
                 type = 'deposit'
@@ -1114,7 +1114,7 @@ class bitbns(Exchange, ImplicitAPI):
         # status = self.parse_transaction_status_by_type(self.safe_string(transaction, 'status'), type)
         amount = self.safe_number(transaction, 'amount')
         feeCost = self.safe_number(transaction, 'fee')
-        fee = None
+        fee: Fee = None
         if feeCost is not None:
             fee = {'currency': code, 'cost': feeCost}
         return {
@@ -1178,7 +1178,7 @@ class bitbns(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api='www', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'www', method='GET', params={}, headers: dict = None, body: Str = None):
         urls = self.urls
         if not (api in urls['api']):
             raise ExchangeError(self.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints')

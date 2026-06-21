@@ -1311,7 +1311,7 @@ class ndax(Exchange, ImplicitAPI):
         #         },
         #     ]
         #
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
         return self.parse_ledger(response, currency, since, limit)
@@ -2121,7 +2121,7 @@ class ndax(Exchange, ImplicitAPI):
         defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', int(self.accounts[0]['id']))
         accountId = self.safe_integer_2(params, 'accountId', 'AccountId', defaultAccountId)
         params = self.omit(params, ['accountId', 'AccountId'])
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
         request: dict = {
@@ -2179,7 +2179,7 @@ class ndax(Exchange, ImplicitAPI):
         defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', int(self.accounts[0]['id']))
         accountId = self.safe_integer_2(params, 'accountId', 'AccountId', defaultAccountId)
         params = self.omit(params, ['accountId', 'AccountId'])
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
         request: dict = {
@@ -2446,7 +2446,7 @@ class ndax(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api] + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':

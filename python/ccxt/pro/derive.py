@@ -463,7 +463,7 @@ class derive(ccxt.async_support.derive):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        subaccountId = None
+        subaccountId: Int = None
         subaccountId, params = self.handleDeriveSubaccountId('watchOrders', params)
         topic = self.number_to_string(subaccountId) + '.orders'
         messageHash = topic
@@ -575,7 +575,7 @@ class derive(ccxt.async_support.derive):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
-        subaccountId = None
+        subaccountId: Int = None
         subaccountId, params = self.handleDeriveSubaccountId('watchMyTrades', params)
         topic = self.number_to_string(subaccountId) + '.trades'
         messageHash = topic

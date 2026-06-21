@@ -397,7 +397,6 @@ class p2b extends \ccxt\async\p2b {
         $splitMethod = explode('.', $method);
         $messageHashStart = $this->safe_string($splitMethod, 0);
         $tickerData = $this->safe_dict($data, 1);
-        $ticker = null;
         if ($method === 'price.update') {
             $lastPrice = $this->safe_string($data, 1);
             $ticker = $this->safe_ticker(array(
@@ -494,7 +493,7 @@ class p2b extends \ccxt\async\p2b {
         }
     }
 
-    public function handle_error_message(Client $client, $message): Bool {
+    public function handle_error_message(Client $client, $message): ?bool {
         $error = $this->safe_string($message, 'error');
         if ($error !== null) {
             throw new ExchangeError($this->id . ' $error => ' . $this->json($error));

@@ -447,7 +447,7 @@ func  (this *BitoproCore) HandleTicker(client any, message any)  {
     //
     var marketId any = this.SafeString(message, "pair")
     // market-ids are lowercase in REST API and uppercase in WS API
-    var market any = this.SafeMarket(ccxt.ToLower(marketId), nil, "_")
+    var market any = this.SafeMarket(ccxt.Ternary(ccxt.IsTrue(!ccxt.IsEqual(marketId, nil)), ccxt.ToLower(marketId), nil), nil, "_")
     var symbol any = ccxt.GetValue(market, "symbol")
     var event any = this.SafeString(message, "event")
     var messageHash any = ccxt.Add(ccxt.Add(event, ":"), symbol)

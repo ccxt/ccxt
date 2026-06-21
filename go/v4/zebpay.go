@@ -1607,7 +1607,7 @@ func (this *ZebpayCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		//         }
 		//     }
 		//
-		var responseData any = this.SafeDict(response, "data")
+		var responseData any = this.SafeDict(response, "data", map[string]any{})
 
 		ch <- this.ParseOrder(responseData, market)
 		return nil

@@ -963,7 +963,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
         tradeId = self.safe_string(order, 'trade_id')
-        trades = None
+        trades: List = None
         if tradeId is not None:
             trade = self.parse_ws_order_trade(order, market)
             trades = [trade]

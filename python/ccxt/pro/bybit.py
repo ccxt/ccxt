@@ -2073,7 +2073,7 @@ class bybit(ccxt.async_support.bybit):
             self.balance = {}
         messageHash = 'balance'
         topic = self.safe_value(message, 'topic')
-        info = None
+        info: NullableList = None
         rawBalances = []
         account: Str = None
         if topic == 'outboundAccountInfo':

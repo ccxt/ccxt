@@ -4677,12 +4677,11 @@ public class AsterCore extends AsterApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " transfer() requires fromAccount and toAccount parameters to be either SPOT or FUTURE")) ;
             }
-            Object response = null;
             Object defaultClientTranId = this.numberToString(this.milliseconds());
             Object clientTranId = this.safeString(parameters, "clientTranId", defaultClientTranId);
             Helpers.addElementToObject(request, "kindType", type);
             Helpers.addElementToObject(request, "clientTranId", clientTranId);
-            response = (this.sapiPrivatePostV3AssetWalletTransfer(this.extend(request, parameters))).join();
+            Object response = (this.sapiPrivatePostV3AssetWalletTransfer(this.extend(request, parameters))).join();
             return this.parseTransfer(response, currency);
         });
 

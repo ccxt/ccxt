@@ -266,6 +266,8 @@ class bitmart(ccxt.async_support.bitmart):
         #    }
         #
         channel = self.safe_string_2(message, 'table', 'group')
+        if channel is None:
+            return
         data = self.safe_value(message, 'data')
         if data is None:
             return
@@ -374,7 +376,7 @@ class bitmart(ccxt.async_support.bitmart):
         params = self.extend(params, {'unsubscribe': True})
         return await self.subscribe_multiple('trade', channelName, marketType, symbols, params)
 
-    def get_params_for_multiple_sub(self, methodName: str, symbols: List[str], limit: Int = None, params={}):
+    def get_params_for_multiple_sub(self, methodName: str, symbols: List[str], limit: Int = None, params={}) -> list:
         symbols = self.market_symbols(symbols, None, False, True)
         length = len(symbols)
         if length > 20:
@@ -511,7 +513,7 @@ class bitmart(ccxt.async_support.bitmart):
             messageHash = 'bidask::' + symbol
             client.resolve(ticker, messageHash)
 
-    def parse_ws_bid_ask(self, ticker, market=None):
+    def parse_ws_bid_ask(self, ticker, market: Market = None):
         marketId = self.safe_string(ticker, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = self.safe_string(market, 'symbol')
@@ -550,7 +552,7 @@ class bitmart(ccxt.async_support.bitmart):
         type = 'spot'
         type, params = self.handle_market_type_and_params('watchOrders', market, params)
         await self.authenticate(type, params)
-        request: dict = None
+        request: dict
         if type == 'spot':
             argsRequest = 'spot/user/order:'
             if symbol is not None:
@@ -595,7 +597,7 @@ class bitmart(ccxt.async_support.bitmart):
         type = 'spot'
         type, params = self.handle_market_type_and_params('watchOrders', market, params)
         await self.authenticate(type, params)
-        request: dict = None
+        request: dict
         if type == 'spot':
             argsRequest = 'spot/user/order:'
             if symbol is not None:
@@ -1709,7 +1711,7 @@ class bitmart(ccxt.async_support.bitmart):
             path = 'bitmart.WebSocket'
             auth = timestamp + '#' + memo + '#' + path
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
-            request: dict = None
+            request: dict
             if type == 'spot':
                 request = {
                     'op': 'login',
