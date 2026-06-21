@@ -106,7 +106,7 @@ class IndexedOrderBook extends OrderBook {
 // ----------------------------------------------------------------------------
 // adjusts the volumes by positive or negative relative changes or differences
 // class IncrementalOrderBook extends OrderBook {
-//     constructor (snapshot = {}, depth = undefined) {
+//     constructor (snapshot = {}, depth: Int = undefined) {
 //         super (extend (snapshot, {
 //             'asks': new IncrementalAsks (snapshot.asks || [], depth),
 //             'bids': new IncrementalBids (snapshot.bids || [], depth),
@@ -116,7 +116,7 @@ class IndexedOrderBook extends OrderBook {
 // // ----------------------------------------------------------------------------
 // // incremental and indexed (2 in 1)
 // class IncrementalIndexedOrderBook extends OrderBook {
-//     constructor (snapshot = {}, depth = undefined) {
+//     constructor (snapshot = {}, depth: Int = undefined) {
 //         super (extend (snapshot, {
 //             'asks': new IncrementalIndexedAsks (snapshot.asks || [], depth),
 //             'bids': new IncrementalIndexedBids (snapshot.bids || [], depth),
