@@ -4038,7 +4038,7 @@ export default class digifinex extends Exchange {
         return tiers as LeverageTier[];
     }
 
-    handleMarginModeAndParams (methodName, params = {}, defaultValue = undefined) {
+    handleMarginModeAndParams (methodName, params = {}, defaultValue = undefined): [any, Dict] {
         /**
          * @ignore
          * @method

@@ -6055,7 +6055,7 @@ export default class coinex extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    handleMarginModeAndParams (methodName, params = {}, defaultValue = undefined) {
+    handleMarginModeAndParams (methodName, params = {}, defaultValue = undefined): [any, Dict] {
         /**
          * @ignore
          * @method
