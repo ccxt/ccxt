@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Any, Balances, Bool, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -136,7 +136,7 @@ class woo(ccxt.async_support.woo):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
-        method = None
+        method: Str = None
         method, params = self.handle_option_and_params(params, 'watchOrderBook', 'method', 'orderbook')
         market = self.market(symbol)
         topic = market['id'] + '@' + method
@@ -172,7 +172,7 @@ class woo(ccxt.async_support.woo):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
-        method = None
+        method: Str = None
         method, params = self.handle_option_and_params(params, 'watchOrderBook', 'method', 'orderbook')
         market = self.market(symbol)
         subHash = market['id'] + '@' + method
@@ -318,14 +318,14 @@ class woo(ccxt.async_support.woo):
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
-        method = None
+        method: Str = None
         method, params = self.handle_option_and_params(params, 'watchTicker', 'method', 'ticker')
         market = self.market(symbol)
         subHash = market['id'] + '@' + method
         topic = 'ticker'
         return await self.unwatch_public(subHash, market['symbol'], topic, params)
 
-    def parse_ws_ticker(self, ticker, market=None):
+    def parse_ws_ticker(self, ticker, market: Market = None):
         #
         #     {
         #         "symbol": "PERP_BTC_USDT",
@@ -462,7 +462,7 @@ class woo(ccxt.async_support.woo):
         topic = self.safe_value(message, 'topic')
         data = self.safe_value(message, 'data')
         timestamp = self.safe_integer(message, 'ts')
-        result = []
+        result: List = []
         for i in range(0, len(data)):
             marketId = self.safe_string(data[i], 'symbol')
             market = self.safe_market(marketId)
@@ -541,7 +541,7 @@ class woo(ccxt.async_support.woo):
             result[symbol] = parsedTicker
         client.resolve(result, topic)
 
-    def parse_ws_bid_ask(self, ticker, market=None):
+    def parse_ws_bid_ask(self, ticker, market: Market = None):
         marketId = self.safe_string(ticker, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = self.safe_string(market, 'symbol')
@@ -722,7 +722,7 @@ class woo(ccxt.async_support.woo):
         self.trades[symbol] = tradesArray
         client.resolve(tradesArray, topic)
 
-    def parse_ws_trade(self, trade, market=None):
+    def parse_ws_trade(self, trade, market: Market = None):
         #
         #     {
         #         "symbol":"SPOT_ADA_USDT",
@@ -770,12 +770,12 @@ class woo(ccxt.async_support.woo):
         cost = Precise.string_mul(price, amount)
         side = self.safe_string_lower(trade, 'side')
         timestamp = self.safe_integer(trade, 'timestamp')
-        maker = self.safe_bool(trade, 'marker')
-        takerOrMaker = None
+        maker = self.safe_bool(trade, 'maker')
+        takerOrMaker: Str = None
         if maker is not None:
             takerOrMaker = 'maker' if maker else 'taker'
         type = self.safe_string_lower(trade, 'type')
-        fee = None
+        fee: NullableDict = None
         feeCost = self.safe_number(trade, 'fee')
         if feeCost is not None:
             fee = {
@@ -916,7 +916,7 @@ class woo(ccxt.async_support.woo):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    def parse_ws_order(self, order, market=None):
+    def parse_ws_order(self, order, market: Market = None):
         #
         #     {
         #         "symbol": "PERP_BTC_USDT",
@@ -1161,7 +1161,7 @@ class woo(ccxt.async_support.woo):
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         await self.load_markets()
-        messageHashes = []
+        messageHashes: List[str] = []
         symbols = self.market_symbols(symbols)
         if not self.is_empty(symbols):
             for i in range(0, len(symbols)):
@@ -1243,7 +1243,7 @@ class woo(ccxt.async_support.woo):
         if self.positions is None:
             self.positions = ArrayCacheBySymbolBySide()
         cache = self.positions
-        newPositions = []
+        newPositions: List = []
         for i in range(0, len(postitionsIds)):
             marketId = postitionsIds[i]
             market = self.safe_market(marketId)

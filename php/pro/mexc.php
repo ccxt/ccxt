@@ -189,7 +189,6 @@ class mexc extends \ccxt\async\mexc {
         $timestamp = $this->safe_integer_2($message, 't', 'sendTime');
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
-        $ticker = null;
         if ($market['spot']) {
             $ticker = $this->parse_ws_ticker($rawTicker, $market);
             $ticker['timestamp'] = $timestamp;
@@ -346,7 +345,6 @@ class mexc extends \ccxt\async\mexc {
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];
-            $ticker = null;
             if ($isSpot) {
                 $ticker = $this->parse_ws_ticker($entry, $market);
             } else {
@@ -361,7 +359,7 @@ class mexc extends \ccxt\async\mexc {
         $client->resolve ($result, $topic);
     }
 
-    public function parse_ws_ticker($ticker, $market = null) {
+    public function parse_ws_ticker($ticker, ?array $market = null) {
         // protobuf $ticker
         // "bidprice" => "93387.28",  // Best bid $price
         // "bidquantity" => "3.73485", // Best bid quantity
@@ -492,7 +490,7 @@ class mexc extends \ccxt\async\mexc {
         $client->resolve ($parsedTicker, $messageHash);
     }
 
-    public function parse_ws_bid_ask($ticker, $market = null) {
+    public function parse_ws_bid_ask($ticker, ?array $market = null) {
         $data = $this->safe_dict($ticker, 'd');
         $marketId = $this->safe_string($ticker, 's');
         $market = $this->safe_market($marketId, $market);
@@ -674,7 +672,6 @@ class mexc extends \ccxt\async\mexc {
         //    }
         // }
         //
-        $parsed = null;
         $symbol = null;
         $timeframe = null;
         if (is_array($message) && array_key_exists('publicSpotKline', $message)) {
@@ -706,7 +703,7 @@ class mexc extends \ccxt\async\mexc {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function parse_ws_ohlcv($ohlcv, $market = null): array {
+    public function parse_ws_ohlcv($ohlcv, ?array $market = null): array {
         //
         // spot
         //
@@ -1074,7 +1071,6 @@ class mexc extends \ccxt\async\mexc {
             $trades = $this->safe_list($message, 'data', array());
         }
         for ($j = 0; $j < count($trades); $j++) {
-            $parsedTrade = null;
             if ($market['spot']) {
                 $parsedTrade = $this->parse_ws_trade($trades[$j], $market);
             } else {
@@ -1164,7 +1160,6 @@ class mexc extends \ccxt\async\mexc {
         $marketId = $this->safe_string_2($message, 's', 'symbol', $futuresMarketId);
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
-        $trade = null;
         if ($market['spot']) {
             $trade = $this->parse_ws_trade($data, $market);
         } else {
@@ -1182,7 +1177,7 @@ class mexc extends \ccxt\async\mexc {
         $client->resolve ($trades, $symbolSpecificMessageHash);
     }
 
-    public function parse_ws_trade($trade, $market = null) {
+    public function parse_ws_trade($trade, ?array $market = null) {
         //
         // public $trade (protobuf)
         //    {
@@ -1383,7 +1378,6 @@ class mexc extends \ccxt\async\mexc {
         $marketId = $this->safe_string_2($message, 's', 'symbol', $futuresMarketId);
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
-        $parsed = null;
         if ($market['spot']) {
             $parsed = $this->parse_ws_order($data, $market);
         } else {
@@ -1401,7 +1395,7 @@ class mexc extends \ccxt\async\mexc {
         $client->resolve ($orders, $symbolSpecificMessageHash);
     }
 
-    public function parse_ws_order($order, $market = null) {
+    public function parse_ws_order($order, ?array $market = null) {
         //
         // spot
         //     {
@@ -1506,7 +1500,7 @@ class mexc extends \ccxt\async\mexc {
         ), $market);
     }
 
-    public function parse_ws_order_status($status, $market = null) {
+    public function parse_ws_order_status($status, ?array $market = null) {
         $statuses = array(
             '0' => 'open',     // new/pending (OCO orders)
             '1' => 'open',     // new order

@@ -510,7 +510,7 @@ class bingx extends bingx$1["default"] {
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         const messageHash = 'trade::' + symbol;
-        let trades = undefined;
+        let trades;
         if (Array.isArray(data)) {
             trades = this.parseTrades(data, market);
         }
@@ -702,7 +702,7 @@ class bingx extends bingx$1["default"] {
             this.orderbooks[symbol] = this.orderBook({}, limit);
         }
         orderbook = this.orderbooks[symbol];
-        let snapshot = undefined;
+        let snapshot;
         let timestamp = this.safeInteger2(message, 'timestamp', 'ts');
         timestamp = this.safeInteger2(data, 'timestamp', 'ts', timestamp);
         if (market['inverse']) {

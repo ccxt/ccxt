@@ -1124,7 +1124,7 @@ func (this *BitfinexCore) ConvertDerivativesId(currency any, typeVar any) any {
 	var currencyId any = nil
 	if IsTrue(IsEqual(typeVar, "derivatives")) {
 		currencyId = this.SafeString(underlying, 0, transferId)
-		var start any = Subtract(GetArrayLength(currencyId), 2)
+		var start any = Subtract(GetLength(currencyId), 2)
 		var isDerivativeCode any = IsEqual(Slice(currencyId, start, nil), "F0")
 		if !IsTrue(isDerivativeCode) {
 			currencyId = Add(currencyId, "F0")

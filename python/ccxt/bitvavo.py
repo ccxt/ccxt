@@ -911,11 +911,11 @@ class bitvavo(Exchange, ImplicitAPI):
         marketId = self.safe_string(trade, 'market')
         symbol = self.safe_symbol(marketId, market, '-')
         taker = self.safe_value(trade, 'taker')
-        takerOrMaker = None
+        takerOrMaker: Str = None
         if taker is not None:
             takerOrMaker = 'taker' if taker else 'maker'
         feeCostString = self.safe_string(trade, 'fee')
-        fee = None
+        fee: NullableDict = None
         if feeCostString is not None:
             feeCurrencyId = self.safe_string(trade, 'feeCurrency')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
@@ -962,7 +962,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_trading_fees(response)
 
-    def parse_trading_fees(self, fees, market=None):
+    def parse_trading_fees(self, fees, market: Market = None):
         #
         #     {
         #         "fees": {
@@ -1232,7 +1232,7 @@ class bitvavo(Exchange, ImplicitAPI):
         currency = self.currency(code)
         subaccountId = self.safe_string(params, 'subaccountId')
         params = self.omit(params, 'subaccountId')
-        direction = None
+        direction: Str = None
         if (fromAccount == 'master') and (toAccount == 'master'):
             raise ArgumentsRequired(self.id + ' transfer() requires fromAccount and toAccount to be different(one master and one subaccount id)')
         elif fromAccount == 'master':
@@ -1284,7 +1284,7 @@ class bitvavo(Exchange, ImplicitAPI):
         """
         self.load_markets()
         request: dict = {}
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
             request['symbol'] = currency['id']
@@ -1331,7 +1331,7 @@ class bitvavo(Exchange, ImplicitAPI):
         :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
         self.load_markets()
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
         request: dict = {
@@ -1365,8 +1365,8 @@ class bitvavo(Exchange, ImplicitAPI):
         code = self.safe_currency_code(currencyId, currency)
         subaccountId = self.safe_string(transfer, 'subaccountId')
         direction = self.safe_string(transfer, 'direction')
-        fromAccount = None
-        toAccount = None
+        fromAccount: Str = None
+        toAccount: Str = None
         if direction == 'masterToSub':
             fromAccount = 'master'
             toAccount = subaccountId
@@ -1472,13 +1472,13 @@ class bitvavo(Exchange, ImplicitAPI):
             request['timeInForce'] = timeInForce
         if postOnly:
             request['postOnly'] = True
-        operatorId = None
+        operatorId: Str = None
         operatorId, params = self.handle_option_and_params(params, 'createOrder', 'operatorId')
         if operatorId is not None:
             request['operatorId'] = self.parse_to_int(operatorId)
         else:
             raise ArgumentsRequired(self.id + ' createOrder() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890')
-        selfTradePrevention = None
+        selfTradePrevention: Str = None
         selfTradePrevention, params = self.handle_option_and_params(params, 'createOrder', 'selfTradePrevention')
         if selfTradePrevention is not None:
             if selfTradePrevention == 'EXPIRE_BOTH':
@@ -1578,7 +1578,7 @@ class bitvavo(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is None:
             request['orderId'] = id
-        operatorId = None
+        operatorId: Str = None
         operatorId, params = self.handle_option_and_params(params, 'editOrder', 'operatorId')
         if operatorId is not None:
             request['operatorId'] = self.parse_to_int(operatorId)
@@ -1618,7 +1618,7 @@ class bitvavo(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is None:
             request['orderId'] = id
-        operatorId = None
+        operatorId: Str = None
         operatorId, params = self.handle_option_and_params(params, 'cancelOrder', 'operatorId')
         if operatorId is not None:
             request['operatorId'] = self.parse_to_int(operatorId)
@@ -1660,11 +1660,11 @@ class bitvavo(Exchange, ImplicitAPI):
         """
         self.load_markets()
         request: dict = {}
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['market'] = market['id']
-        operatorId = None
+        operatorId: Str = None
         operatorId, params = self.handle_option_and_params(params, 'cancelAllOrders', 'operatorId')
         if operatorId is not None:
             request['operatorId'] = self.parse_to_int(operatorId)
@@ -1696,7 +1696,7 @@ class bitvavo(Exchange, ImplicitAPI):
         if (timeout > 0) and (timeout < 10000):
             raise BadRequest(self.id + ' cancelAllOrdersAfter() timeout should be 0 or greater than or equal to 10000 milliseconds')
         self.load_markets()
-        codGroupId = None
+        codGroupId: Int = None
         codGroupId, params = self.handle_option_and_params(params, 'cancelAllOrdersAfter', 'codGroupId', 1)
         request: dict = {
             'codGroupId': codGroupId,
@@ -1864,7 +1864,7 @@ class bitvavo(Exchange, ImplicitAPI):
         request: dict = {
             # "market": market["id"],  # rate limit 25 without a market, 1 with market specified
         }
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['market'] = market['id']
@@ -1988,7 +1988,7 @@ class bitvavo(Exchange, ImplicitAPI):
             amountQuote = self.safe_string(order, 'amountQuote')
             amountQuoteRemaining = self.safe_string(order, 'amountQuoteRemaining')
             cost = Precise.string_sub(amountQuote, amountQuoteRemaining)
-        fee = None
+        fee: NullableDict = None
         feeCost = self.safe_number(order, 'feePaid')
         if feeCost is not None:
             feeCurrencyId = self.safe_string(order, 'feeCurrency')
@@ -2101,7 +2101,7 @@ class bitvavo(Exchange, ImplicitAPI):
         """
         self.load_markets()
         request: dict = {}
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
         if since is not None:
@@ -2161,7 +2161,7 @@ class bitvavo(Exchange, ImplicitAPI):
         code = self.safe_currency_code(currencyId)
         currency = self.safe_currency(currencyId, currency)
         timestamp = self.parse8601(self.safe_string(item, 'executedAt'))
-        fee = None
+        fee: NullableDict = None
         feeCost = self.safe_string(item, 'feesAmount')
         if feeCost is not None:
             feeCurrencyId = self.safe_string(item, 'feesCurrency')
@@ -2236,7 +2236,7 @@ class bitvavo(Exchange, ImplicitAPI):
             # 'start': since,
             # 'end': self.milliseconds(),
         }
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
             request['symbol'] = currency['id']
@@ -2260,7 +2260,7 @@ class bitvavo(Exchange, ImplicitAPI):
         """
         self.load_markets()
         request = self.fetch_withdrawals_request(code, since, limit, params)
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
         response = self.privateGetWithdrawalHistory(request)
@@ -2287,7 +2287,7 @@ class bitvavo(Exchange, ImplicitAPI):
             # 'start': since,
             # 'end': self.milliseconds(),
         }
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
             request['symbol'] = currency['id']
@@ -2311,7 +2311,7 @@ class bitvavo(Exchange, ImplicitAPI):
         """
         self.load_markets()
         request = self.fetch_deposits_request(code, since, limit, params)
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
         response = self.privateGetDepositHistory(request)
@@ -2385,14 +2385,14 @@ class bitvavo(Exchange, ImplicitAPI):
         amount = self.safe_number(transaction, 'amount')
         address = self.safe_string(transaction, 'address')
         txid = self.safe_string(transaction, 'txId')
-        fee = None
+        fee: NullableDict = None
         feeCost = self.safe_number(transaction, 'fee')
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
                 'currency': code,
             }
-        type = None
+        type: Str = None
         if ('success' in transaction) or ('address' in transaction):
             type = 'withdrawal'
         else:
@@ -2496,7 +2496,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_withdraw_fees(response, codes, 'symbol')
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         query = self.omit(params, self.extract_params(path))
         url = '/' + self.version + '/' + self.implode_params(path, params)
         getOrDelete = (method == 'GET') or (method == 'DELETE')

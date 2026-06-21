@@ -928,8 +928,10 @@ func (this *BullishCore) ParseMarket(market any) any {
 		"info":    market,
 	})
 }
-func (this *BullishCore) ParseMarketType(typeVar any, optionalArgs ...any) any {
-	defaultType := GetArg(optionalArgs, 0, nil)
+func (this *BullishCore) ParseMarketType(optionalArgs ...any) any {
+	typeVar := GetArg(optionalArgs, 0, nil)
+	_ = typeVar
+	defaultType := GetArg(optionalArgs, 1, nil)
 	_ = defaultType
 	var types any = map[string]any{
 		"SPOT":         "spot",

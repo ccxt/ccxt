@@ -1914,7 +1914,7 @@ class coinbase extends Exchange {
         return $this->safe_dict($this->options, 'fetchCurrencies', array());
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available $currencies on an exchange
          *
@@ -4996,7 +4996,7 @@ class coinbase extends Exchange {
         //
         $data = $this->safe_dict($response, 'fee_tier', array());
         $taker_fee = $this->safe_number($data, 'taker_fee_rate');
-        $marker_fee = $this->safe_number($data, 'maker_fee_rate');
+        $maker_fee = $this->safe_number($data, 'maker_fee_rate');
         $result = array();
         for ($i = 0; $i < count($this->symbols); $i++) {
             $symbol = $this->symbols[$i];
@@ -5005,8 +5005,8 @@ class coinbase extends Exchange {
                 $result[$symbol] = array(
                     'info' => $response,
                     'symbol' => $symbol,
-                    'maker' => $taker_fee,
-                    'taker' => $marker_fee,
+                    'maker' => $maker_fee,
+                    'taker' => $taker_fee,
                     'percentage' => true,
                 );
             }
@@ -5127,7 +5127,7 @@ class coinbase extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = [], $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $version = $api[0];
         $signed = $api[1] === 'private';
         $isV3 = $version === 'v3';

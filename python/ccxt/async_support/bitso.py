@@ -406,8 +406,8 @@ class bitso(Exchange, ImplicitAPI):
         type = self.parse_ledger_entry_type(operation)
         balanceUpdates = self.safe_value(item, 'balance_updates', [])
         firstBalance = self.safe_value(balanceUpdates, 0, {})
-        direction = None
-        fee = None
+        direction: Str = None
+        fee: NullableDict = None
         amount = self.safe_string(firstBalance, 'amount')
         currencyId = self.safe_string(firstBalance, 'currency')
         code = self.safe_currency_code(currencyId, currency)
@@ -491,7 +491,7 @@ class bitso(Exchange, ImplicitAPI):
         #         ]
         #     }
         markets = self.safe_value(response, 'payload', [])
-        result = []
+        result: List[Market] = []
         for i in range(0, len(markets)):
             market = markets[i]
             id = self.safe_string(market, 'book')
@@ -869,7 +869,7 @@ class bitso(Exchange, ImplicitAPI):
         symbol = self.safe_symbol(marketId, market, '_')
         side = self.safe_string(trade, 'side')
         makerSide = self.safe_string(trade, 'maker_side')
-        takerOrMaker = None
+        takerOrMaker: Str = None
         if side is not None:
             if side == makerSide:
                 takerOrMaker = 'maker'
@@ -883,7 +883,7 @@ class bitso(Exchange, ImplicitAPI):
         amount = self.safe_string_2(trade, 'amount', 'major')
         if amount is not None:
             amount = Precise.string_abs(amount)
-        fee = None
+        fee: NullableDict = None
         feeCost = self.safe_string(trade, 'fees_amount')
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'fees_currency')
@@ -1115,7 +1115,7 @@ class bitso(Exchange, ImplicitAPI):
         """
         if not isinstance(ids, list):
             raise ArgumentsRequired(self.id + ' cancelOrders() ids argument should be an array')
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
         oids = ','.join(ids)
@@ -1130,7 +1130,7 @@ class bitso(Exchange, ImplicitAPI):
         #     }
         #
         payload = self.safe_value(response, 'payload', [])
-        orders = []
+        orders: List[Order] = []
         for i in range(0, len(payload)):
             id = payload[i]
             orders.append(self.parse_order(id, market))
@@ -1156,7 +1156,7 @@ class bitso(Exchange, ImplicitAPI):
         #     }
         #
         payload = self.safe_value(response, 'payload', [])
-        canceledOrders = []
+        canceledOrders: List[Order] = []
         for i in range(0, len(payload)):
             order = self.parse_order(payload[i])
             canceledOrders.append(order)
@@ -1177,7 +1177,7 @@ class bitso(Exchange, ImplicitAPI):
         # canceledOrder
         # yWTQGxDMZ0VimZgZ
         #
-        id = None
+        id: Str = None
         if isinstance(order, str):
             id = order
         else:
@@ -1353,7 +1353,7 @@ class bitso(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         await self.load_markets()
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
         response = await self.privateGetFundings(params)
@@ -1397,7 +1397,7 @@ class bitso(Exchange, ImplicitAPI):
         }
         response = await self.privateGetFundingDestination(self.extend(request, params))
         address = self.safe_string(response['payload'], 'account_identifier')
-        tag = None
+        tag: Str = None
         if address.find('?dt=') >= 0:
             parts = address.split('?dt=')
             address = self.safe_string(parts, 0)
@@ -1559,7 +1559,7 @@ class bitso(Exchange, ImplicitAPI):
         payload = self.safe_list(response, 'payload', [])
         return self.parse_deposit_withdraw_fees(payload, codes)
 
-    def parse_deposit_withdraw_fees(self, response, codes=None, currencyIdKey=None):
+    def parse_deposit_withdraw_fees(self, response, codes: Strings = None, currencyIdKey=None):
         #
         #    {
         #        "fees": [
@@ -1770,7 +1770,7 @@ class bitso(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
         endpoint = '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if method == 'GET' or method == 'DELETE':

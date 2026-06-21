@@ -186,7 +186,7 @@ class mexc(ccxt.async_support.mexc):
         timestamp = self.safe_integer_2(message, 't', 'sendTime')
         market = self.safe_market(marketId)
         symbol = market['symbol']
-        ticker: Ticker = None
+        ticker: Ticker
         if market['spot']:
             ticker = self.parse_ws_ticker(rawTicker, market)
             ticker['timestamp'] = timestamp
@@ -212,7 +212,7 @@ class mexc(ccxt.async_support.mexc):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None)
-        messageHashes = []
+        messageHashes: List = []
         firstSymbol = self.safe_string(symbols, 0)
         market: Market = None
         if firstSymbol is not None:
@@ -332,10 +332,10 @@ class mexc(ccxt.async_support.mexc):
         spotPrefix = 'spot:'
         messageHashPrefix = spotPrefix if isSpot else ''
         topic = messageHashPrefix + 'ticker'
-        result = []
+        result: List = []
         for i in range(0, len(data)):
             entry = data[i]
-            ticker: Ticker = None
+            ticker: Ticker
             if isSpot:
                 ticker = self.parse_ws_ticker(entry, market)
             else:
@@ -347,7 +347,7 @@ class mexc(ccxt.async_support.mexc):
             client.resolve(ticker, messageHash)
         client.resolve(result, topic)
 
-    def parse_ws_ticker(self, ticker, market=None):
+    def parse_ws_ticker(self, ticker, market: Market = None):
         # protobuf ticker
         # "bidprice": "93387.28",  # Best bid price
         # "bidquantity": "3.73485",  # Best bid quantity
@@ -426,8 +426,8 @@ class mexc(ccxt.async_support.mexc):
         isSpot = marketType == 'spot'
         if not isSpot:
             raise NotSupported(self.id + ' watchBidsAsks only support spot market')
-        messageHashes = []
-        topics = []
+        messageHashes: List = []
+        topics: List = []
         for i in range(0, len(symbols)):
             if isSpot:
                 market = self.market(symbols[i])
@@ -467,7 +467,7 @@ class mexc(ccxt.async_support.mexc):
         messageHash = 'bidask:' + symbol
         client.resolve(parsedTicker, messageHash)
 
-    def parse_ws_bid_ask(self, ticker, market=None):
+    def parse_ws_bid_ask(self, ticker, market: Market = None):
         data = self.safe_dict(ticker, 'd')
         marketId = self.safe_string(ticker, 's')
         market = self.safe_market(marketId, market)
@@ -631,7 +631,7 @@ class mexc(ccxt.async_support.mexc):
         #    }
         # }
         #
-        parsed: dict = None
+        parsed: dict
         symbol: Str = None
         timeframe: Str = None
         if 'publicSpotKline' in message:
@@ -660,7 +660,7 @@ class mexc(ccxt.async_support.mexc):
         stored.append(parsed)
         client.resolve(stored, messageHash)
 
-    def parse_ws_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ws_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         # spot
         #
@@ -999,7 +999,7 @@ class mexc(ccxt.async_support.mexc):
         if d is None:
             trades = self.safe_list(message, 'data', [])
         for j in range(0, len(trades)):
-            parsedTrade: Trade = None
+            parsedTrade: Trade
             if market['spot']:
                 parsedTrade = self.parse_ws_trade(trades[j], market)
             else:
@@ -1080,7 +1080,7 @@ class mexc(ccxt.async_support.mexc):
         marketId = self.safe_string_2(message, 's', 'symbol', futuresMarketId)
         market = self.safe_market(marketId)
         symbol = market['symbol']
-        trade: Trade = None
+        trade: Trade
         if market['spot']:
             trade = self.parse_ws_trade(data, market)
         else:
@@ -1095,7 +1095,7 @@ class mexc(ccxt.async_support.mexc):
         symbolSpecificMessageHash = messageHash + ':' + symbol
         client.resolve(trades, symbolSpecificMessageHash)
 
-    def parse_ws_trade(self, trade, market=None):
+    def parse_ws_trade(self, trade, market: Market = None):
         #
         # public trade(protobuf)
         #    {
@@ -1288,7 +1288,7 @@ class mexc(ccxt.async_support.mexc):
         marketId = self.safe_string_2(message, 's', 'symbol', futuresMarketId)
         market = self.safe_market(marketId)
         symbol = market['symbol']
-        parsed: Order = None
+        parsed: Order
         if market['spot']:
             parsed = self.parse_ws_order(data, market)
         else:
@@ -1303,7 +1303,7 @@ class mexc(ccxt.async_support.mexc):
         symbolSpecificMessageHash = messageHash + ':' + symbol
         client.resolve(orders, symbolSpecificMessageHash)
 
-    def parse_ws_order(self, order, market=None):
+    def parse_ws_order(self, order, market: Market = None):
         #
         # spot
         #     {
@@ -1406,7 +1406,7 @@ class mexc(ccxt.async_support.mexc):
             'info': order,
         }, market)
 
-    def parse_ws_order_status(self, status, market=None):
+    def parse_ws_order_status(self, status, market: Market = None):
         statuses: dict = {
             '0': 'open',     # new/pending(OCO orders)
             '1': 'open',     # new order
@@ -1621,7 +1621,7 @@ class mexc(ccxt.async_support.mexc):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None)
-        messageHashes = []
+        messageHashes: List = []
         firstSymbol = self.safe_string(symbols, 0)
         market: Market = None
         if firstSymbol is not None:
@@ -1685,8 +1685,8 @@ class mexc(ccxt.async_support.mexc):
         isSpot = marketType == 'spot'
         if not isSpot:
             raise NotSupported(self.id + ' watchBidsAsks only support spot market')
-        messageHashes = []
-        topics = []
+        messageHashes: List = []
+        topics: List = []
         for i in range(0, len(symbols)):
             if isSpot:
                 market = self.market(symbols[i])

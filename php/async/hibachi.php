@@ -379,7 +379,7 @@ class hibachi extends Exchange {
         }) ();
     }
 
-    public function hardcoded_currencies(): ?array {
+    public function hardcoded_currencies(): array {
         // Hibachi only supports USDT on Arbitrum at this time
         // We don't have an API endpoint to expose this information yet
         $result = array();
@@ -1650,7 +1650,7 @@ class hibachi extends Exchange {
         ));
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $endpoint = '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . $endpoint;
         $headers = array( 'Hibachi-Client' => 'HibachiCCXT/unversioned' );

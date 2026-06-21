@@ -733,7 +733,6 @@ class cryptomus extends Exchange {
             $priceToString = $this->number_to_string($price);
             $cost = null;
             list($cost, $params) = $this->handle_param_string($params, 'cost');
-            $response = null;
             if ($type === 'market') {
                 if ($sideBuy) {
                     $createMarketBuyOrderRequiresPrice = true;
@@ -1152,7 +1151,7 @@ class cryptomus extends Exchange {
         );
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $endpoint = $this->implode_params($path, $params);
         $params = $this->omit($params, $this->extract_params($path));
         $url = $this->urls['api'][$api] . '/' . $endpoint;

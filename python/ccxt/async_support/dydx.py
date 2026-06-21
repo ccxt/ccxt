@@ -691,7 +691,7 @@ class dydx(Exchange, ImplicitAPI):
         #     ]
         # }
         #
-        rows = self.safe_list(response, 'trades', [])
+        rows: List = self.safe_list(response, 'trades', [])
         return self.parse_trades(rows, market, since, limit)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
@@ -771,7 +771,7 @@ class dydx(Exchange, ImplicitAPI):
         #     ]
         # }
         #
-        rows = self.safe_list(response, 'candles', [])
+        rows: List = self.safe_list(response, 'candles', [])
         return self.parse_ohlcvs(rows, market, timeframe, since, limit)
 
     async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -813,7 +813,7 @@ class dydx(Exchange, ImplicitAPI):
         #     ]
         # }
         #
-        rates = []
+        rates: List = []
         rows = self.safe_list(response, 'historicalFunding', [])
         for i in range(0, len(rows)):
             entry = rows[i]
@@ -1156,7 +1156,7 @@ class dydx(Exchange, ImplicitAPI):
         #     ]
         # }
         #
-        rows = self.safe_list(response, 'positions', [])
+        rows: List = self.safe_list(response, 'positions', [])
         return self.parse_positions(rows, symbols)
 
     def hash_message(self, message):
@@ -1281,8 +1281,8 @@ class dydx(Exchange, ImplicitAPI):
         clientMetadata = 0
         conditionalType = 0
         conditionalOrderTriggerSubticks = '0'
-        orderFlag = None
-        timeInForceNumber = None
+        orderFlag: Int = None
+        timeInForceNumber: Int = None
         if timeInForce == 'FOK':
             raise InvalidOrder(self.id + ' timeInForce fok has been deprecated')
         if orderType == 'MARKET':
@@ -1668,7 +1668,7 @@ class dydx(Exchange, ImplicitAPI):
         code = self.safe_currency_code(currencyId, currency)
         currency = self.safe_currency(currencyId, currency)
         type = self.safe_string_upper(item, 'type')
-        direction = None
+        direction: Str = None
         if type is not None:
             if type == 'TRANSFER_IN' or type == 'DEPOSIT':
                 direction = 'in'
@@ -1749,8 +1749,8 @@ class dydx(Exchange, ImplicitAPI):
         defaultFeeDenom = self.safe_string(self.options, 'defaultFeeDenom')
         defaultFeeMultiplier = self.safe_string(self.options, 'defaultFeeMultiplier')
         feeDenom = self.safe_dict(self.options, 'feeDenom')
-        gasPrice = None
-        denom = None
+        gasPrice: Str = None
+        denom: Str = None
         if defaultFeeDenom == 'uusdc':
             gasPrice = feeDenom['USDC_GAS_PRICE']
             denom = feeDenom['USDC_DENOM']
@@ -1796,8 +1796,8 @@ class dydx(Exchange, ImplicitAPI):
         credentials = self.retrieve_credentials()
         account = await self.fetch_dydx_account()
         usd = self.parse_to_int(Precise.string_mul(self.number_to_string(amount), '1000000'))
-        payload = None
-        signingPayload = None
+        payload: NullableDict = None
+        signingPayload: NullableDict = None
         if fromAccount == 'main':
             # deposit to subaccount
             if toSubaccountId is None:
@@ -1917,8 +1917,8 @@ class dydx(Exchange, ImplicitAPI):
         if code is not None:
             currency = self.currency(code)
         response = await self.fetch_transactions_helper(code, since, limit, self.extend(params, {'methodName': 'fetchTransfers'}))
-        transferIn = self.filter_by(response, 'type', 'TRANSFER_IN')
-        transferOut = self.filter_by(response, 'type', 'TRANSFER_OUT')
+        transferIn: List = self.filter_by(response, 'type', 'TRANSFER_IN')
+        transferOut: List = self.filter_by(response, 'type', 'TRANSFER_OUT')
         rows = self.array_concat(transferIn, transferOut)
         return self.parse_transfers(rows, currency, since, limit)
 
@@ -2031,7 +2031,7 @@ class dydx(Exchange, ImplicitAPI):
         #     }
         # }
         #
-        data = self.safe_dict(response, 'result', {})
+        data: dict = self.safe_dict(response, 'result', {})
         return self.parse_transaction(data, currency)
 
     async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
@@ -2053,7 +2053,7 @@ class dydx(Exchange, ImplicitAPI):
         if code is not None:
             currency = self.currency(code)
         response = await self.fetch_transactions_helper(code, since, limit, self.extend(params, {'methodName': 'fetchWithdrawals'}))
-        rows = self.filter_by(response, 'type', 'WITHDRAWAL')
+        rows: List = self.filter_by(response, 'type', 'WITHDRAWAL')
         return self.parse_transactions(rows, currency, since, limit)
 
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
@@ -2075,7 +2075,7 @@ class dydx(Exchange, ImplicitAPI):
         if code is not None:
             currency = self.currency(code)
         response = await self.fetch_transactions_helper(code, since, limit, self.extend(params, {'methodName': 'fetchDeposits'}))
-        rows = self.filter_by(response, 'type', 'DEPOSIT')
+        rows: List = self.filter_by(response, 'type', 'DEPOSIT')
         return self.parse_transactions(rows, currency, since, limit)
 
     async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
@@ -2097,8 +2097,8 @@ class dydx(Exchange, ImplicitAPI):
         if code is not None:
             currency = self.currency(code)
         response = await self.fetch_transactions_helper(code, since, limit, self.extend(params, {'methodName': 'fetchDepositsWithdrawals'}))
-        withdrawals = self.filter_by(response, 'type', 'WITHDRAWAL')
-        deposits = self.filter_by(response, 'type', 'DEPOSIT')
+        withdrawals: List = self.filter_by(response, 'type', 'WITHDRAWAL')
+        deposits: List = self.filter_by(response, 'type', 'DEPOSIT')
         rows = self.array_concat(withdrawals, deposits)
         return self.parse_transactions(rows, currency, since, limit)
 
@@ -2200,7 +2200,7 @@ class dydx(Exchange, ImplicitAPI):
         # }
         #
         rows = self.safe_list(response, 'subaccounts', [])
-        result = []
+        result: List = []
         for i in range(0, len(rows)):
             account = rows[i]
             accountId = self.safe_string(account, 'subaccountNumber')
@@ -2225,7 +2225,7 @@ class dydx(Exchange, ImplicitAPI):
         await self.load_markets()
         userAddress: Str = None
         userAddress, params = self.handle_public_address('fetchAccounts', params)
-        subaccountNumber = None
+        subaccountNumber: Int = None
         subaccountNumber, params = self.handle_option_and_params(params, 'fetchAccounts', 'subaccountNumber', 0)
         request: dict = {
             'address': userAddress,
@@ -2318,7 +2318,7 @@ class dydx(Exchange, ImplicitAPI):
                 return wallet
         raise ArgumentsRequired(self.id + ' getWalletAddress() requires a wallet address. Set `walletAddress` or `dydxAccount` in exchange options.')
 
-    def sign(self, path, section='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, section='public', method='GET', params={}, headers: dict = None, body: Str = None):
         pathWithParams = self.implode_params(path, params)
         url = self.implode_hostname(self.urls['api'][section])
         params = self.omit(params, self.extract_params(path))
