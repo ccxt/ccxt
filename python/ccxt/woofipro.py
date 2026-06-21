@@ -2779,7 +2779,7 @@ class woofipro(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, section='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, section='public', method='GET', params={}, headers: dict = None, body: Str = None):
         version = section[0]
         access = section[1]
         pathWithParams = self.implode_params(path, params)

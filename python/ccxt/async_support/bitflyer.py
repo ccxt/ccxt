@@ -1152,7 +1152,7 @@ class bitflyer(Exchange, ImplicitAPI):
             'interval': None,
         }
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         request = '/' + self.version + '/'
         if api == 'private':
             request += 'me/'

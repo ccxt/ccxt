@@ -3332,7 +3332,7 @@ class extended(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         version = self.safe_string(api, 0)
         accessibility = self.safe_string(api, 1)
         endpoint = '/' + self.implode_params(path, params)

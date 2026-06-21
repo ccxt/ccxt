@@ -766,7 +766,7 @@ class btcbox(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api='public', method='GET', params={}, headers: dict = None, body: Any = None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
         url = self.urls['api']['rest'] + '/' + self.version + '/' + path
         if api == 'public':
             if params:

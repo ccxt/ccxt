@@ -1365,7 +1365,7 @@ class indodax(Exchange, ImplicitAPI):
                 }
         return result
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api]
         if api == 'public':
             query = self.omit(params, self.extract_params(path))

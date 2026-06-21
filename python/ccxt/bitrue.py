@@ -3062,7 +3062,7 @@ class bitrue(Exchange, ImplicitAPI):
         #
         return self.parse_margin_modification(response, market)
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         type = self.safe_string(api, 0)
         version = self.safe_string(api, 1)
         access = self.safe_string(api, 2)

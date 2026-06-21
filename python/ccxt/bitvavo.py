@@ -2496,7 +2496,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_withdraw_fees(response, codes, 'symbol')
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         query = self.omit(params, self.extract_params(path))
         url = '/' + self.version + '/' + self.implode_params(path, params)
         getOrDelete = (method == 'GET') or (method == 'DELETE')

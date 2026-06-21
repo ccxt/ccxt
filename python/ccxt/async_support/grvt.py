@@ -3100,7 +3100,7 @@ class grvt(Exchange, ImplicitAPI):
         self.options['requestId'] = requestId
         return requestId
 
-    def sign(self, path, api='public', method='GET', params={}, headers: dict = None, body: Any = None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
         query = self.omit(params, self.extract_params(path))
         url = self.urls['api'][api] + path
         queryString = ''

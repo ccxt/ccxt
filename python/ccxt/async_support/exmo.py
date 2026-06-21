@@ -2594,7 +2594,7 @@ class exmo(Exchange, ImplicitAPI):
         items = self.safe_list(response, 'items', [])
         return self.parse_transactions(items, currency, since, limit)
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api] + '/'
         if api != 'web':
             url += self.version + '/'

@@ -2318,7 +2318,7 @@ class dydx(Exchange, ImplicitAPI):
                 return wallet
         raise ArgumentsRequired(self.id + ' getWalletAddress() requires a wallet address. Set `walletAddress` or `dydxAccount` in exchange options.')
 
-    def sign(self, path, section='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, section='public', method='GET', params={}, headers: dict = None, body: Str = None):
         pathWithParams = self.implode_params(path, params)
         url = self.implode_hostname(self.urls['api'][section])
         params = self.omit(params, self.extract_params(path))

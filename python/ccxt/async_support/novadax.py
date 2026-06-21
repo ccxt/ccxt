@@ -1598,7 +1598,7 @@ class novadax(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         request = '/' + self.version + '/' + self.implode_params(path, params)
         url = self.urls['api'][api] + request
         query = self.omit(params, self.extract_params(path))

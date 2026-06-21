@@ -6513,7 +6513,7 @@ class bingx(Exchange, ImplicitAPI):
             })
         return tiers
 
-    def sign(self, path, section='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, section='public', method='GET', params={}, headers: dict = None, body: Str = None):
         type = section[0]
         version = section[1]
         access = section[2]

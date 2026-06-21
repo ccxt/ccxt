@@ -3577,7 +3577,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None):
+    def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None) -> list:
         """
  @ignore
         marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'
@@ -3620,7 +3620,7 @@ class hitbtc(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         query = self.omit(params, self.extract_params(path))
         implodedPath = self.implode_params(path, params)
         url = self.urls['api'][api] + '/' + implodedPath

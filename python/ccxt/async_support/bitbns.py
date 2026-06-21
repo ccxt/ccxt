@@ -1178,7 +1178,7 @@ class bitbns(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api: Any = 'www', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'www', method='GET', params={}, headers: dict = None, body: Str = None):
         urls = self.urls
         if not (api in urls['api']):
             raise ExchangeError(self.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints')

@@ -1853,7 +1853,7 @@ class bigone(Exchange, ImplicitAPI):
         exchangeTimeCorrection = self.safe_integer(self.options, 'exchangeMillisecondsCorrection', 0) * 1000000
         return self.sum(self.microseconds() * 1000, exchangeTimeCorrection)
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         query = self.omit(params, self.extract_params(path))
         baseUrl = self.implode_hostname(self.urls['api'][api])
         url = baseUrl + '/' + self.implode_params(path, params)

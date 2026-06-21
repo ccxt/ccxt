@@ -3533,7 +3533,7 @@ class ascendex(Exchange, ImplicitAPI):
             'shortLeverage': leverageValue,
         }
 
-    def sign(self, path, api='public', method='GET', params={}, headers: dict = None, body: Any = None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
         version = api[0]
         access = api[1]
         type = self.safe_string(api, 2)

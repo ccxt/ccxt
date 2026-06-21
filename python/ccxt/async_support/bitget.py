@@ -10603,7 +10603,7 @@ class bitget(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
-    def sign(self, path, api=[], method='GET', params={}, headers: dict = None, body: Any = None):
+    def sign(self, path, api: Any = [], method='GET', params={}, headers: dict = None, body: Any = None):
         signed = api[0] == 'private'
         endpoint = api[1]
         pathPart = '/api'

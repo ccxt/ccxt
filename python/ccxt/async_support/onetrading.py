@@ -1790,7 +1790,7 @@ class onetrading(Exchange, ImplicitAPI):
         tradeHistory: List = self.safe_list(response, 'trade_history', [])
         return self.parse_trades(tradeHistory, market, since, limit)
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':

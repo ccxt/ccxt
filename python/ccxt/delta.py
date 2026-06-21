@@ -3989,7 +3989,7 @@ class delta(Exchange, ImplicitAPI):
             'datetime': datetime,
         }
 
-    def sign(self, path, api='public', method='GET', params={}, headers: dict = {}, body: Any = None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = {}, body: Any = None):
         requestPath = '/' + self.version + '/' + self.implode_params(path, params)
         url = self.urls['api'][api] + requestPath
         query = self.omit(params, self.extract_params(path))

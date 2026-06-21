@@ -9167,7 +9167,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         }
         return self.safe_string(marginModes, marginMode, marginMode)
 
-    def sign(self, path, api='public', method='GET', params={}, headers: dict = None, body: Any = None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
         url = self.implode_hostname(self.urls['api'][api]) + '/' + path
         if api == 'public':
             if params:

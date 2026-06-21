@@ -2992,7 +2992,7 @@ class pacifica(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)  # unknown message
         return None
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         isTestnet = self.isSandboxModeEnabled
         urlKey = 'test' if (isTestnet) else 'api'
         host = self.implode_hostname(self.urls[urlKey][api])

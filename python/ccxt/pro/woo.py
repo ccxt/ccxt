@@ -770,7 +770,7 @@ class woo(ccxt.async_support.woo):
         cost = Precise.string_mul(price, amount)
         side = self.safe_string_lower(trade, 'side')
         timestamp = self.safe_integer(trade, 'timestamp')
-        maker = self.safe_bool(trade, 'marker')
+        maker = self.safe_bool(trade, 'maker')
         takerOrMaker: Str = None
         if maker is not None:
             takerOrMaker = 'maker' if maker else 'taker'

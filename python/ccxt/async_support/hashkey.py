@@ -4125,7 +4125,7 @@ class hashkey(Exchange, ImplicitAPI):
             'tierBased': True,
         }
 
-    def sign(self, path, api='public', method='GET', params={}, headers: dict = None, body: Any = None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
         url = self.urls['api'][api] + '/' + path
         query: Str = None
         if api == 'private':

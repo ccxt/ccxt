@@ -914,7 +914,7 @@ class mercado(Exchange, ImplicitAPI):
                 result.append(trades[y])
         return result
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api] + '/'
         query = self.omit(params, self.extract_params(path))
         if (api == 'public') or (api == 'v4Public') or (api == 'v4PublicNet'):

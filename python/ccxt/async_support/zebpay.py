@@ -1787,7 +1787,7 @@ class zebpay(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         params = self.omit(params, 'defaultType')
         isV1 = path.find('v1/') > -1
         marketType = 'swap' if isV1 else 'spot'

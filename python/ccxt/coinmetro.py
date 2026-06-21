@@ -1895,7 +1895,7 @@ class coinmetro(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    def sign(self, path, api='public', method='GET', params={}, headers: dict = {}, body: Any = None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = {}, body: Any = None):
         request = self.omit(params, self.extract_params(path))
         endpoint = '/' + self.implode_params(path, params)
         url = self.urls['api'][api] + endpoint

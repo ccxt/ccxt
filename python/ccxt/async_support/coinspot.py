@@ -710,7 +710,7 @@ class coinspot(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         isVersionedApi = isinstance(api, list)
         version = api[0] if isVersionedApi else None
         accessType = api[1] if isVersionedApi else api

@@ -1330,7 +1330,7 @@ class btcmarkets(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         request = '/' + self.version + '/' + self.implode_params(path, params)
         query = self.keysort(self.omit(params, self.extract_params(path)))
         if api == 'private':

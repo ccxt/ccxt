@@ -1289,7 +1289,7 @@ class p2b(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api] + '/' + self.implode_params(path, params)
         params = self.omit(params, self.extract_params(path))
         if method == 'GET':

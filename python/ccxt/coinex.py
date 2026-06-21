@@ -5800,7 +5800,7 @@ class coinex(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
-    def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None):
+    def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None) -> list:
         """
  @ignore
         marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'
@@ -5819,7 +5819,7 @@ class coinex(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api: Any = [], method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = [], method='GET', params={}, headers: dict = None, body: Str = None):
         path = self.implode_params(path, params)
         version = api[0]
         requestUrl = api[1]

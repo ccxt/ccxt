@@ -5729,7 +5729,7 @@ class mexc(Exchange, ImplicitAPI):
             'shortLeverage': shortLeverage,
         }
 
-    def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None):
+    def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None) -> list:
         """
  @ignore
         marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'
@@ -5857,7 +5857,7 @@ class mexc(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         section = self.safe_string(api, 0)
         access = self.safe_string(api, 1)
         path, params = self.resolve_path(path, params)

@@ -2834,7 +2834,7 @@ class lbank(Exchange, ImplicitAPI):
                 }
         return result
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         query = self.omit(params, self.extract_params(path))
         url = self.urls['api']['rest'] + '/' + self.version + '/' + self.implode_params(path, params)
         # Every spot endpoint ends with ".do"

@@ -943,7 +943,7 @@ class bit2c(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api']['rest'] + '/' + self.implode_params(path, params)
         if api == 'public':
             url += '.json'

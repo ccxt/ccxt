@@ -2181,7 +2181,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def sign(self, path, api: Any = [], method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = [], method='GET', params={}, headers: dict = None, body: Str = None):
         version = api[0]
         signed = api[1] == 'private'
         fullPath = '/' + version + '/' + self.implode_params(path, params)

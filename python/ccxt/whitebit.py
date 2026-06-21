@@ -3916,7 +3916,7 @@ class whitebit(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
-    def sign(self, path, api='public', method='GET', params={}, headers: dict = None, body: Any = None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
         query = self.omit(params, self.extract_params(path))
         version = self.safe_value(api, 0)
         accessibility = self.safe_value(api, 1)

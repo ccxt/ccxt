@@ -3470,7 +3470,7 @@ class bitmex(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         query = '/api/' + self.version + '/' + path
         if method == 'GET':
             if params:

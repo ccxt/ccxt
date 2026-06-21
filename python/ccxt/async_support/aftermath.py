@@ -1297,7 +1297,7 @@ class aftermath(Exchange, ImplicitAPI):
             raise ExchangeError(body)
         return None
 
-    def sign(self, path, api: Any = 'public', method='POST', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='POST', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api']['rest'] + '/' + path
         if api == 'private':
             self.check_required_credentials()

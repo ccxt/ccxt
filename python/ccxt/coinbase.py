@@ -4769,7 +4769,7 @@ class coinbase(Exchange, ImplicitAPI):
         #
         data = self.safe_dict(response, 'fee_tier', {})
         taker_fee = self.safe_number(data, 'taker_fee_rate')
-        marker_fee = self.safe_number(data, 'maker_fee_rate')
+        maker_fee = self.safe_number(data, 'maker_fee_rate')
         result: dict = {}
         for i in range(0, len(self.symbols)):
             symbol = self.symbols[i]
@@ -4778,7 +4778,7 @@ class coinbase(Exchange, ImplicitAPI):
                 result[symbol] = {
                     'info': response,
                     'symbol': symbol,
-                    'maker': marker_fee,
+                    'maker': maker_fee,
                     'taker': taker_fee,
                     'percentage': True,
                 }
@@ -4887,7 +4887,7 @@ class coinbase(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
-    def sign(self, path, api: Any = [], method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = [], method='GET', params={}, headers: dict = None, body: Str = None):
         version = api[0]
         signed = api[1] == 'private'
         isV3 = version == 'v3'

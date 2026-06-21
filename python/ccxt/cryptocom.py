@@ -3343,7 +3343,7 @@ class cryptocom(Exchange, ImplicitAPI):
             'tierBased': None,
         }
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         type = self.safe_string(api, 0)
         access = self.safe_string(api, 1)
         url = self.urls['api'][type] + '/' + path
