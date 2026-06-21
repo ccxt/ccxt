@@ -191,30 +191,30 @@ export default class Exchange {
 
     // PROXY & USER-AGENTS (see "examples/proxy-usage" file for explanation)
     proxy: any;  // maintained for backwards compatibility, no-one should use it from now on
-    proxyUrl: string;
-    proxy_url: string;
+    proxyUrl: Str = undefined;
+    proxy_url: Str = undefined;
     proxyUrlCallback: any;
     proxy_url_callback: any;
-    httpProxy: string;
-    http_proxy: string;
+    httpProxy: Str = undefined;
+    http_proxy: Str = undefined;
     httpProxyCallback: any;
     http_proxy_callback: any;
-    httpsProxy: string;
-    https_proxy: string;
+    httpsProxy: Str = undefined;
+    https_proxy: Str = undefined;
     httpsProxyCallback: any;
     https_proxy_callback: any;
-    socksProxy: string;
-    socks_proxy: string;
+    socksProxy: Str = undefined;
+    socks_proxy: Str = undefined;
     socksProxyCallback: any;
     socks_proxy_callback: any;
     userAgent: { 'User-Agent': string } | false = undefined;
     user_agent: { 'User-Agent': string } | false = undefined;
-    wsProxy: string;
-    ws_proxy: string;
-    wssProxy: string;
-    wss_proxy: string;
-    wsSocksProxy: string;
-    ws_socks_proxy: string;
+    wsProxy: Str = undefined;
+    ws_proxy: Str = undefined;
+    wssProxy: Str = undefined;
+    wss_proxy: Str = undefined;
+    wsSocksProxy: Str = undefined;
+    ws_socks_proxy: Str = undefined;
     //
     userAgents: Dictionary<string> = {
         'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
@@ -262,7 +262,7 @@ export default class Exchange {
     walletAddress: string;  // a wallet address "0x"-prefixed hexstring
     token: string;  // reserved for HTTP auth in some cases
     twofa: string;
-    accountId: string;
+    accountId!: string;
 
     balance: any = {};
     liquidations: any = undefined;
@@ -278,7 +278,7 @@ export default class Exchange {
     myLiquidations: any = undefined;
     myTrades: ArrayCache;
     positions: any;
-    urls: {
+    urls!: {
         logo?: string;
         api?: string | Dictionary<string>;
         test?: string | Dictionary<string>;
@@ -312,7 +312,7 @@ export default class Exchange {
     id: string = 'Exchange';
 
     markets: Dictionary<any> = undefined;
-    has: Dictionary<boolean | 'emulated' | undefined>;
+    has!: Dictionary<boolean | 'emulated' | undefined>;
     features: Dictionary<Dictionary<any>> = undefined;
     status: {
         status: Str,
@@ -322,7 +322,7 @@ export default class Exchange {
         info: any,
     } = undefined;
 
-    requiredCredentials: {
+    requiredCredentials!: {
         apiKey: Bool,
         secret: Bool,
         uid: Bool,
@@ -350,7 +350,7 @@ export default class Exchange {
         price?: MinMax,
     } = undefined;
 
-    fees: {
+    fees!: {
         trading: {
             tierBased: Bool,
             percentage: Bool,
