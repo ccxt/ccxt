@@ -820,7 +820,7 @@ class extended extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //     {
         //       "dailyVolume" => "231216165.666600",
@@ -1158,7 +1158,7 @@ class extended extends Exchange {
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades
         //
@@ -1286,7 +1286,7 @@ class extended extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     {
         //       "o" => "75657.5",
@@ -2219,7 +2219,7 @@ class extended extends Exchange {
         }) ();
     }
 
-    public function parse_trading_fee($fee, $market = null): array {
+    public function parse_trading_fee($fee, ?array $market = null): array {
         //
         //     {
         //         "market" => "BTC-USD",
@@ -2306,7 +2306,7 @@ class extended extends Exchange {
         }) ();
     }
 
-    public function parse_leverage($leverage, $market = null): array {
+    public function parse_leverage($leverage, ?array $market = null): array {
         //
         //     {
         //         "market" => "BTC-USD",
@@ -2466,7 +2466,7 @@ class extended extends Exchange {
         }) ();
     }
 
-    public function parse_position($position, $market = null): array {
+    public function parse_position($position, ?array $market = null): array {
         //
         //     {
         //         "id" => 1,
@@ -3374,7 +3374,7 @@ class extended extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         //     {
         //         "id" => 1784963886257016832,
@@ -3628,7 +3628,7 @@ class extended extends Exchange {
         return null;
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $version = $this->safe_string($api, 0);
         $accessibility = $this->safe_string($api, 1);
         $endpoint = '/' . $this->implode_params($path, $params);

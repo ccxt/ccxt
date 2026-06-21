@@ -307,7 +307,6 @@ class exmo extends Exchange {
             'position_id' => $market['id'],
             'quantity' => $amount,
         );
-        $response = null;
         if ($type === 'add') {
             $response = $this->privatePostMarginUserPositionMarginAdd ($this->extend($request, $params));
         } elseif ($type === 'reduce') {
@@ -669,7 +668,7 @@ class exmo extends Exchange {
         return $this->assign_default_deposit_withdraw_fees($result);
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          *
@@ -1088,7 +1087,6 @@ class exmo extends Exchange {
         if ($marginMode === 'cross') {
             throw new BadRequest($this->id . ' does not support cross margin');
         }
-        $response = null;
         if ($marginMode === 'isolated') {
             $response = $this->privatePostMarginUserWalletList ($params);
             //
@@ -1144,7 +1142,7 @@ class exmo extends Exchange {
         return $this->parse_order_book($result, $market['symbol'], null, 'bid', 'ask');
     }
 
-    public function fetch_order_books(?array $symbols = null, ?int $limit = null, $params = array ()): OrderBooks {
+    public function fetch_order_books(?array $symbols = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
          *
@@ -1460,7 +1458,6 @@ class exmo extends Exchange {
         }
         $offset = $this->safe_integer($params, 'offset', 0);
         $request['offset'] = $offset;
-        $response = null;
         if ($isSpot) {
             $response = $this->privatePostUserTrades ($this->extend($request, $params));
             //
@@ -1634,7 +1631,6 @@ class exmo extends Exchange {
         if ($price !== null) {
             $request['price'] = $this->price_to_precision($market['symbol'], $price);
         }
-        $response = null;
         if ($isSpot) {
             if ($triggerPrice !== null) {
                 if ($type === 'limit') {
@@ -1709,7 +1705,6 @@ class exmo extends Exchange {
         if ($marginMode === 'cross') {
             throw new BadRequest($this->id . ' only supports isolated margin');
         }
-        $response = null;
         if (($marginMode === 'isolated')) {
             $request['order_id'] = $id;
             $response = $this->privatePostMarginUserOrderCancel ($this->extend($request, $params));
@@ -1806,7 +1801,6 @@ class exmo extends Exchange {
         $request = array(
             'order_id' => (string) $id,
         );
-        $response = null;
         if ($marginMode === 'isolated') {
             $response = $this->privatePostMarginUserOrderTrades ($this->extend($request, $params));
             //
@@ -1880,7 +1874,6 @@ class exmo extends Exchange {
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOpenOrders', $params);
         $isMargin = (($marginMode === 'cross') || ($marginMode === 'isolated'));
-        $response = null;
         $orders = array();
         if ($isMargin) {
             $response = $this->privatePostMarginUserOrderList ($params);
@@ -2158,7 +2151,6 @@ class exmo extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $response = null;
         if ($isSpot) {
             $response = $this->privatePostUserCancelledOrders ($this->extend($request, $params));
             //
@@ -2742,7 +2734,7 @@ class exmo extends Exchange {
         return $this->parse_transactions($items, $currency, $since, $limit);
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api] . '/';
         if ($api !== 'web') {
             $url .= $this->version . '/';

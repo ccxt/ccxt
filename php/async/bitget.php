@@ -1876,7 +1876,7 @@ class bitget extends Exchange {
         $this->set_sandbox_mode($enabled);
     }
 
-    public function handle_product_type_and_params($market = null, $params = array ()) {
+    public function handle_product_type_and_params(?array $market = null, $params = array ()): array {
         $subType = null;
         list($subType, $params) = $this->handle_sub_type_and_params('handleProductTypeAndParams', null, $params);
         $defaultProductType = null;
@@ -11265,7 +11265,7 @@ class bitget extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = [], $method = 'GET', $params = array (), ?array $headers = null, mixed $body = null) {
         $signed = $api[0] === 'private';
         $endpoint = $api[1];
         $pathPart = '/api';

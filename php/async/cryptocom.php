@@ -3596,7 +3596,7 @@ class cryptocom extends Exchange {
         );
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $type = $this->safe_string($api, 0);
         $access = $this->safe_string($api, 1);
         $url = $this->urls['api'][$type] . '/' . $path;

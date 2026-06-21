@@ -423,7 +423,7 @@ class hyperliquid extends Exchange {
         return $this->safe_integer($response, 'time');
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          *
@@ -4106,7 +4106,6 @@ class hyperliquid extends Exchange {
         $params = $this->omit($params, 'vaultAddress');
         $nonce = $this->milliseconds();
         $action = array();
-        $sig = null;
         if ($vaultAddress !== null) {
             $action = array(
                 'type' => 'vaultTransfer',
@@ -4831,7 +4830,7 @@ class hyperliquid extends Exchange {
         return null;
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->implode_hostname($this->urls['api'][$api]) . '/' . $path;
         if ($method === 'POST') {
             $headers = array(

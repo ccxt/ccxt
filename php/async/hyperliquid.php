@@ -4213,7 +4213,6 @@ class hyperliquid extends Exchange {
             $params = $this->omit($params, 'vaultAddress');
             $nonce = $this->milliseconds();
             $action = array();
-            $sig = null;
             if ($vaultAddress !== null) {
                 $action = array(
                     'type' => 'vaultTransfer',
@@ -4957,7 +4956,7 @@ class hyperliquid extends Exchange {
         return null;
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->implode_hostname($this->urls['api'][$api]) . '/' . $path;
         if ($method === 'POST') {
             $headers = array(

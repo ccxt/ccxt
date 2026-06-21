@@ -645,7 +645,7 @@ class aster extends Exchange {
         }
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          *
@@ -943,7 +943,6 @@ class aster extends Exchange {
          */
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchTime', null, $params);
-        $response = null;
         if ($marketType === 'swap') {
             $response = $this->fapiPublicGetV3Time ($params);
         } else {
@@ -1021,7 +1020,6 @@ class aster extends Exchange {
         $isMark = ($price === 'mark');
         $isIndex = ($price === 'index');
         $params = $this->omit($params, 'price');
-        $response = null;
         if ($isMark) {
             $request['symbol'] = $market['id'];
             $response = $this->fapiPublicGetV3MarkPriceKlines ($this->extend($request, $params));
@@ -1178,7 +1176,6 @@ class aster extends Exchange {
         if ($limit !== null) {
             $request['limit'] = min ($limit, 1000);
         }
-        $response = null;
         $sinceDefined = $since !== null;
         $untilDefined = (is_array($params) && array_key_exists('until', $params));
         if ($sinceDefined) {
@@ -1263,7 +1260,6 @@ class aster extends Exchange {
             $request['limit'] = min ($limit, 1000);
         }
         list($request, $params) = $this->handle_until_option('endTime', $request, $params);
-        $response = null;
         if ($marketType === 'swap') {
             $response = $this->fapiPrivateGetV3UserTrades ($this->extend($request, $params));
         } else {
@@ -1312,7 +1308,6 @@ class aster extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = null;
         if ($limit !== null) {
             $request['limit'] = $this->find_nearest_ceiling(array( 5, 10, 20, 50, 100, 500, 1000 ), $limit);
         }
@@ -1448,7 +1443,6 @@ class aster extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = null;
         if ($market['swap']) {
             $response = $this->fapiPublicGetV3Ticker24hr ($this->extend($request, $params));
         } else {
@@ -2029,7 +2023,6 @@ class aster extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = null;
         if ($market['swap']) {
             $response = $this->fapiPrivateGetV3CommissionRate ($this->extend($request, $params));
         } else {
@@ -2191,7 +2184,6 @@ class aster extends Exchange {
         } else {
             $request['orderId'] = $id;
         }
-        $response = null;
         if ($market['swap']) {
             $response = $this->fapiPrivateGetV3Order ($this->extend($request, $params));
         } else {
@@ -2256,7 +2248,6 @@ class aster extends Exchange {
         } else {
             $request['orderId'] = $id;
         }
-        $response = null;
         if ($market['spot']) {
             $response = $this->sapiPrivateGetV3OpenOrder ($this->extend($request, $params));
         } else {
@@ -2323,7 +2314,6 @@ class aster extends Exchange {
             $request['startTime'] = $since;
         }
         list($request, $params) = $this->handle_until_option('endTime', $request, $params);
-        $response = null;
         if ($market['swap']) {
             $response = $this->fapiPrivateGetV3AllOrders ($this->extend($request, $params));
         } else {
@@ -2462,7 +2452,6 @@ class aster extends Exchange {
         $this->load_markets_and_sign_in();
         $market = $this->market($symbol);
         $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
-        $response = null;
         if ($market['swap']) {
             $response = $this->fapiPrivatePostV3Order ($request);
         } else {
@@ -2754,7 +2743,6 @@ class aster extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = null;
         if ($market['swap']) {
             $response = $this->fapiPrivateDeleteV3AllOpenOrders ($this->extend($request, $params));
         } else {
@@ -2802,7 +2790,6 @@ class aster extends Exchange {
             $request['orderId'] = $id;
         }
         $params = $this->omit($params, array( 'origClientOrderId', 'clientOrderId' ));
-        $response = null;
         if ($market['swap']) {
             $response = $this->fapiPrivateDeleteV3Order ($this->extend($request, $params));
         } else {
@@ -2841,7 +2828,6 @@ class aster extends Exchange {
         } else {
             $request['orderIdList'] = $ids;
         }
-        $response = null;
         if ($market['swap']) {
             $response = $this->fapiPrivateDeleteV3BatchOrders ($this->extend($request, $params));
             //
@@ -4060,7 +4046,6 @@ class aster extends Exchange {
         if ($type === null) {
             throw new ArgumentsRequired($this->id . ' transfer() requires $fromAccount and $toAccount parameters to be either SPOT or FUTURE');
         }
-        $response = null;
         $defaultClientTranId = $this->number_to_string($this->milliseconds());
         $clientTranId = $this->safe_string($params, 'clientTranId', $defaultClientTranId);
         $request['kindType'] = $type;
@@ -4109,7 +4094,7 @@ class aster extends Exchange {
         return '0x' . str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($s, 64, '0', STR_PAD_LEFT) . $v;
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, mixed $body = null) {
         $url = $this->implode_hostname($this->urls['api'][$api]) . '/' . $path;
         if ($api === 'fapiPublic' || $api === 'sapiPublic') {
             if ($params) {
@@ -4145,7 +4130,6 @@ class aster extends Exchange {
                 'signer' => $signerAddress,
             ), $params);
             $paramString = null;
-            $paramsToEncode = null;
             $isApproveBuilder = (mb_strpos($path, '/approveBuilder') !== false);
             if ($isApproveBuilder) {
                 // $domain['name'] = 'Aster';

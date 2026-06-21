@@ -2210,7 +2210,7 @@ class kucoin extends Exchange {
         }) ();
     }
 
-    public function handle_hf_and_params($params = array ()) {
+    public function handle_hf_and_params($params = array ()): array {
         $migrated = $this->safe_bool($this->options, 'hf', false);
         $loadedHf = null;
         if ($migrated !== null) {
@@ -8464,7 +8464,7 @@ class kucoin extends Exchange {
             $response = Async\await($this->utaPrivatePostAccountTransfer ($this->extend($request, $params)));
             //
             //
-            $data = $this->safe_dict($response, 'data');
+            $data = $this->safe_dict($response, 'data', array());
             $transfer = $this->parse_transfer($data, $currency);
             $transferOptions = $this->safe_dict($this->options, 'transfer', array());
             $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
@@ -8550,7 +8550,7 @@ class kucoin extends Exchange {
                 //
                 $response = Async\await($this->privatePostAccountsUniversalTransfer ($this->extend($request, $params)));
             }
-            $data = $this->safe_dict($response, 'data');
+            $data = $this->safe_dict($response, 'data', array());
             $transfer = $this->parse_transfer($data, $currency);
             $transferOptions = $this->safe_dict($this->options, 'transfer', array());
             $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
@@ -11426,7 +11426,7 @@ class kucoin extends Exchange {
         }) ();
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         //
         // the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
         //                                ↑                 ↑

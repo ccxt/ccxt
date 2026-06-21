@@ -1308,7 +1308,7 @@ class zebpay extends Exchange {
             //         }
             //     }
             //
-            $responseData = $this->safe_dict($response, 'data');
+            $responseData = $this->safe_dict($response, 'data', array());
             return $this->parse_order($responseData, $market);
         }) ();
     }
@@ -1924,7 +1924,7 @@ class zebpay extends Exchange {
         );
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $params = $this->omit($params, 'defaultType');
         $isV1 = mb_strpos($path, 'v1/') > -1;
         $marketType = $isV1 ? 'swap' : 'spot';

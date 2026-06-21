@@ -323,7 +323,7 @@ class foxbit extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array ()): array {
         $response = $this->v3PublicGetCurrencies ($params);
         // {
         //   "data" => array(
@@ -1967,7 +1967,7 @@ class foxbit extends Exchange {
         );
     }
 
-    public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {
         $version = $api[0];
         $urlPath = $api[1];
         $fullPath = '/rest/' . $version . '/' . $this->implode_params($path, $params);

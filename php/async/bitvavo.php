@@ -982,7 +982,7 @@ class bitvavo extends Exchange {
         }) ();
     }
 
-    public function parse_trading_fees($fees, $market = null) {
+    public function parse_trading_fees($fees, ?array $market = null) {
         //
         //     {
         //         "fees" => {
@@ -2682,7 +2682,7 @@ class bitvavo extends Exchange {
         }) ();
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
         $url = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $getOrDelete = ($method === 'GET') || ($method === 'DELETE');

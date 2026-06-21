@@ -365,7 +365,7 @@ class woo extends \ccxt\async\woo {
         }) ();
     }
 
-    public function parse_ws_ticker($ticker, $market = null) {
+    public function parse_ws_ticker($ticker, ?array $market = null) {
         //
         //     {
         //         "symbol" => "PERP_BTC_USDT",
@@ -602,7 +602,7 @@ class woo extends \ccxt\async\woo {
         $client->resolve ($result, $topic);
     }
 
-    public function parse_ws_bid_ask($ticker, $market = null) {
+    public function parse_ws_bid_ask($ticker, ?array $market = null) {
         $marketId = $this->safe_string($ticker, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $this->safe_string($market, 'symbol');
@@ -803,7 +803,7 @@ class woo extends \ccxt\async\woo {
         $client->resolve ($tradesArray, $topic);
     }
 
-    public function parse_ws_trade($trade, $market = null) {
+    public function parse_ws_trade($trade, ?array $market = null) {
         //
         //     {
         //         "symbol":"SPOT_ADA_USDT",
@@ -1023,7 +1023,7 @@ class woo extends \ccxt\async\woo {
         }) ();
     }
 
-    public function parse_ws_order($order, $market = null) {
+    public function parse_ws_order($order, ?array $market = null) {
         //
         //     {
         //         "symbol" => "PERP_BTC_USDT",
@@ -1514,7 +1514,7 @@ class woo extends \ccxt\async\woo {
         $client->resolve ($fundingRate, $messageHash);
     }
 
-    public function handle_error_message(Client $client, $message): Bool {
+    public function handle_error_message(Client $client, $message): ?bool {
         //
         // array("id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed.")
         //

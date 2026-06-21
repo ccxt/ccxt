@@ -1353,7 +1353,7 @@ class pacifica extends Exchange {
         }) ();
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): array {
         /**
          * @ignore
          * create a trade order
@@ -3213,7 +3213,7 @@ class pacifica extends Exchange {
         }) ();
     }
 
-    public function handle_origin_and_single_address(string $methodName, array $params) {
+    public function handle_origin_and_single_address(string $methodName, array $params): array {
         $address = null;
         list($address, $params) = $this->handle_param_string_2($params, 'account', 'address', null); // this is for get endpoints that accept account or $address
         if ($address !== null) {
@@ -3254,7 +3254,7 @@ class pacifica extends Exchange {
         return null;
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $isTestnet = $this->isSandboxModeEnabled;
         $urlKey = ($isTestnet) ? 'test' : 'api';
         $host = $this->implode_hostname($this->urls[$urlKey][$api]);
