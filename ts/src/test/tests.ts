@@ -711,7 +711,7 @@ class testMainClass {
             const valuesLength = values.length;
             if (valuesLength > 0) {
                 const first = values[0];
-                if (first !== undefined && first !== null) {
+                if (first) {
                     symbol = first['symbol'];
                 }
             }

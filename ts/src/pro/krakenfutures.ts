@@ -5,7 +5,7 @@ import krakenfuturesRest from '../krakenfutures.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances, Dict, Bool, FeeInterface } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances, Dict, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -774,12 +774,12 @@ export default class krakenfutures extends krakenfuturesRest {
                     previousOrder['fee'] = {
                         'rate': undefined,
                         'cost': '0',
-                        'currency': this.numberToString ((trade['fee'] as FeeInterface)['currency']),
+                        'currency': this.numberToString (this.safeString (trade['fee'], 'currency')),
                     };
                 }
-                if ((previousOrder['fee']['cost'] !== undefined) && ((trade['fee'] as FeeInterface)['cost'] !== undefined)) {
+                if ((previousOrder['fee']['cost'] !== undefined) && (this.safeNumber (trade['fee'], 'cost') !== undefined)) {
                     const stringOrderCost = this.numberToString (previousOrder['fee']['cost']);
-                    const stringTradeCost = this.numberToString ((trade['fee'] as FeeInterface)['cost']);
+                    const stringTradeCost = this.numberToString (this.safeNumber (trade['fee'], 'cost'));
                     previousOrder['fee']['cost'] = Precise.stringAdd (stringOrderCost, stringTradeCost);
                 }
                 // update the newUpdates count

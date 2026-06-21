@@ -3984,7 +3984,10 @@ export default class mexc extends Exchange {
             if (symbol === undefined) {
                 const symbols = this.safeValue (params, 'symbols');
                 if (symbols !== undefined) {
-                    parsedSymbols = (this.marketIds (symbols) as string[]).join (',');
+                    const symbolIds = this.marketIds (symbols);
+                    if (symbolIds !== undefined) {
+                        parsedSymbols = symbolIds.join (',');
+                    }
                 }
             } else {
                 const market = this.market (symbol);

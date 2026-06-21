@@ -315,7 +315,7 @@ export default class hibachi extends Exchange {
             'optionType': undefined,
             'precision': {
                 'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'underlyingDecimals'))),
-                'price': this.parseNumber ((this.safeList (market, 'orderbookGranularities') as number[])[0]) / 10000.0,
+                'price': this.parseNumber (this.safeValue (this.safeList (market, 'orderbookGranularities', []), 0)) / 10000.0,
             },
             'limits': {
                 'leverage': {

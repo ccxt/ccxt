@@ -1114,9 +1114,9 @@ export default class indodax extends Exchange {
         await this.loadMarkets ();
         const request: Dict = {};
         if (since !== undefined) {
-            const startTime = (this.iso8601 (since) as string).slice (0, 10);
+            const startTime = this.yyyymmdd (since);
             request['start'] = startTime;
-            request['end'] = (this.iso8601 (this.milliseconds ()) as string).slice (0, 10);
+            request['end'] = this.yyyymmdd (this.milliseconds ());
         }
         const response = await this.privatePostTransHistory (this.extend (request, params));
         //
