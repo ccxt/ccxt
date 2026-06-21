@@ -2166,7 +2166,7 @@ export default class coinsph extends Exchange {
         return {
             'info': depositAddress,
             'currency': parsedCurrency,
-            'network': null,
+            'network': undefined,
             'address': this.safeString (depositAddress, 'address'),
             'tag': this.safeString (depositAddress, 'addressTag'),
         } as DepositAddress;

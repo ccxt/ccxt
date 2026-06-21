@@ -267,9 +267,9 @@ export interface Balances extends Dictionary<Balance> {
 
 export interface DepositAddress {
     info: any;
-    currency: string;
-    network?: string;
-    address: string;
+    currency: Str;
+    network?: Str;
+    address: Str;
     tag?: Str;
 }
 
@@ -512,15 +512,15 @@ export interface Greeks {
 
 export interface Conversion {
     info: any;
-    timestamp?: number
+    timestamp?: Int
     datetime?: string;
-    id: string;
-    fromCurrency: string;
-    fromAmount: number;
-    toCurrency: string;
-    toAmount: number;
-    price: number;
-    fee: number;
+    id: Str;
+    fromCurrency: Str;
+    fromAmount: Num;
+    toCurrency: Str;
+    toAmount: Num;
+    price: Num;
+    fee: Num;
 }
 
 export interface Option {
