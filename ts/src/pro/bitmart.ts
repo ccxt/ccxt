@@ -445,7 +445,7 @@ export default class bitmart extends bitmartRest {
         const market = this.getMarketFromSymbols (symbols);
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchTickers', market, params);
-        const ticker = await this.subscribeMultiple ('ticker', 'ticker', marketType as string, symbols, params);
+        const ticker = await this.subscribeMultiple ('ticker', 'ticker', marketType, symbols, params);
         if (this.newUpdates) {
             const tickers: Dict = {};
             tickers[ticker['symbol']] = ticker;
@@ -484,7 +484,7 @@ export default class bitmart extends bitmartRest {
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchTickers', market, params);
         params = this.extend (params, { 'unsubscribe': true });
-        return await this.subscribeMultiple ('ticker', 'ticker', marketType as string, symbols, params);
+        return await this.subscribeMultiple ('ticker', 'ticker', marketType, symbols, params);
     }
 
     /**
@@ -1803,7 +1803,7 @@ export default class bitmart extends bitmartRest {
         const market = this.getMarketFromSymbols (symbols);
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchFundingRates', market, params);
-        const fundingRate = await this.subscribeMultiple ('fundingRate', 'fundingRate', marketType as string, symbols, params);
+        const fundingRate = await this.subscribeMultiple ('fundingRate', 'fundingRate', marketType, symbols, params);
         if (this.newUpdates) {
             const fundingRates: Dict = {};
             fundingRates[fundingRate['symbol']] = fundingRate;

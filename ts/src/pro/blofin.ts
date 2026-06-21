@@ -330,7 +330,7 @@ export default class blofin extends blofinRest {
         const channel = 'tickers';
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchBidsAsks', firstMarket, params);
-        const url = this.implodeHostname ((this.urls['api'])['ws'][marketType as string]['public']);
+        const url = this.implodeHostname ((this.urls['api'])['ws'][marketType]['public']);
         const messageHashes: List = [];
         const args: List = [];
         for (let i = 0; i < symbolsList.length; i++) {
@@ -481,7 +481,7 @@ export default class blofin extends blofinRest {
             'channel': 'account',
         };
         const request = this.getSubscriptionRequest ([ sub ]);
-        const url = this.implodeHostname ((this.urls['api'])['ws'][marketType as string]['private']);
+        const url = this.implodeHostname ((this.urls['api'])['ws'][marketType]['private']);
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
@@ -657,7 +657,7 @@ export default class blofin extends blofinRest {
             'instId': market['id'],
         };
         const request = this.getSubscriptionRequest ([ requestParams ]);
-        const url = this.implodeHostname ((this.urls['api'])['ws'][marketType as string]['public']);
+        const url = this.implodeHostname ((this.urls['api'])['ws'][marketType]['public']);
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
