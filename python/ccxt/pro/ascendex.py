@@ -180,8 +180,8 @@ class ascendex(ccxt.async_support.ascendex):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False, True, True)
-        marketIds = []
-        messageHashes = []
+        marketIds: List = []
+        messageHashes: List = []
         if symbols is not None:
             for i in range(0, len(symbols)):
                 market = self.market(symbols[i])
@@ -483,7 +483,7 @@ class ascendex(ccxt.async_support.ascendex):
             type = self.safe_string(categoriesAccounts, accountType, 'spot')
             result = self.safe_value(self.balance, type, {})
             data = self.safe_value(message, 'data')
-            balances = None
+            balances: NullableList = None
             if data is None:
                 balances = self.safe_value(message, 'col')
             else:

@@ -285,7 +285,7 @@ class grvt extends \ccxt\async\grvt {
         $client->resolve ($ticker, 'ticker::' . $symbol);
     }
 
-    public function parse_ws_ticker($message, $market = null) {
+    public function parse_ws_ticker($message, ?array $market = null) {
         // same dict api
         return $this->parse_ticker($message, $market);
     }
@@ -386,7 +386,7 @@ class grvt extends \ccxt\async\grvt {
         $client->resolve ($stored, 'trade::' . $symbol);
     }
 
-    public function parse_ws_trade($trade, $market = null) {
+    public function parse_ws_trade($trade, ?array $market = null) {
         // same api
         return $this->parse_trade($trade, $market);
     }
@@ -495,7 +495,7 @@ class grvt extends \ccxt\async\grvt {
         $client->resolve ($resolveData, $messageHash);
     }
 
-    public function parse_ws_ohlcv($ohlcv, $market = null): array {
+    public function parse_ws_ohlcv($ohlcv, ?array $market = null): array {
         // same api
         return $this->parse_ohlcv($ohlcv, $market);
     }
@@ -746,7 +746,7 @@ class grvt extends \ccxt\async\grvt {
         $client->resolve ($this->myTrades, 'myTrades');
     }
 
-    public function parse_ws_my_trade($trade, $market = null) {
+    public function parse_ws_my_trade($trade, ?array $market = null) {
         return $this->parse_trade($trade, $market);
     }
 
@@ -834,7 +834,7 @@ class grvt extends \ccxt\async\grvt {
         $client->resolve ($newPositions, 'positions');
     }
 
-    public function parse_ws_position($position, $market = null) {
+    public function parse_ws_position($position, ?array $market = null) {
         // same api
         return $this->parse_position($position, $market);
     }
@@ -953,12 +953,12 @@ class grvt extends \ccxt\async\grvt {
         $client->resolve ($this->orders, 'order::' . $order['symbol']);
     }
 
-    public function parse_ws_order($order, $market = null): array {
+    public function parse_ws_order($order, ?array $market = null): array {
         // same api
         return $this->parse_order($order, $market);
     }
 
-    public function handle_error_message(Client $client, $response): Bool {
+    public function handle_error_message(Client $client, $response): ?bool {
         //
         //    {
         //        "jsonrpc" => "2.0",

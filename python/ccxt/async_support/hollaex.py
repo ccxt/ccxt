@@ -361,7 +361,7 @@ class hollaex(Exchange, ImplicitAPI):
         #
         pairs = self.safe_value(response, 'pairs', {})
         keys = list(pairs.keys())
-        result = []
+        result: List = []
         for i in range(0, len(keys)):
             key = keys[i]
             market = pairs[key]
@@ -811,7 +811,7 @@ class hollaex(Exchange, ImplicitAPI):
         amountString = self.safe_string(trade, 'size')
         feeCostString = self.safe_string(trade, 'fee')
         feeCoin = self.safe_string(trade, 'fee_coin')
-        fee = None
+        fee: NullableDict = None
         if feeCostString is not None:
             fee = {
                 'cost': feeCostString,
@@ -1139,7 +1139,7 @@ class hollaex(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         request: dict = {
             # 'symbol': market['id'],
             # 'side': 'buy',  # 'sell'
@@ -1375,7 +1375,7 @@ class hollaex(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
         await self.load_markets()
         request: dict = {}
-        market = None
+        market: Market = None
         market = self.market(symbol)
         request['symbol'] = market['id']
         response = await self.privateDeleteOrderAll(self.extend(request, params))
@@ -1418,7 +1418,7 @@ class hollaex(Exchange, ImplicitAPI):
             # 'start_date': 123,  # starting date of queried data
             # 'end_date': 321,  # ending date of queried data
         }
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -1457,7 +1457,7 @@ class hollaex(Exchange, ImplicitAPI):
         #     }
         #
         address = self.safe_string(depositAddress, 'address')
-        tag = None
+        tag: Str = None
         if address is not None:
             parts = address.split(':')
             address = self.safe_string(parts, 0)
@@ -1559,7 +1559,7 @@ class hollaex(Exchange, ImplicitAPI):
             # 'start_date': 123,  # starting date of queried data
             # 'end_date': 321,  # ending date of queried data
         }
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
             request['currency'] = currency['id']
@@ -1609,7 +1609,7 @@ class hollaex(Exchange, ImplicitAPI):
         request: dict = {
             'transaction_id': id,
         }
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
             request['currency'] = currency['id']
@@ -1663,7 +1663,7 @@ class hollaex(Exchange, ImplicitAPI):
             # 'start_date': 123,  # starting date of queried data
             # 'end_date': 321,  # ending date of queried data
         }
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
             request['currency'] = currency['id']
@@ -1737,10 +1737,10 @@ class hollaex(Exchange, ImplicitAPI):
         type = self.safe_string(transaction, 'type')
         amount = self.safe_number(transaction, 'amount')
         address = self.safe_string(transaction, 'address')
-        addressTo = None
+        addressTo: Str = None
         addressFrom = None
-        tag = None
-        tagTo = None
+        tag: Str = None
+        tagTo: Str = None
         tagFrom = None
         if address is not None:
             parts = address.split(':')
@@ -1764,7 +1764,7 @@ class hollaex(Exchange, ImplicitAPI):
         feeCurrencyId = self.safe_string(transaction, 'fee_coin')
         feeCurrencyCode = self.safe_currency_code(feeCurrencyId, currency)
         feeCost = self.safe_number(transaction, 'fee')
-        fee = None
+        fee: NullableDict = None
         if feeCost is not None:
             fee = {
                 'currency': feeCurrencyCode,
@@ -1948,7 +1948,7 @@ class hollaex(Exchange, ImplicitAPI):
         coins = self.safe_dict(response, 'coins', {})
         return self.parse_deposit_withdraw_fees(coins, codes, 'symbol')
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         query = self.omit(params, self.extract_params(path))
         path = '/' + self.version + '/' + self.implode_params(path, params)
         if (method == 'GET') or (method == 'DELETE'):

@@ -933,7 +933,7 @@ class woo extends Exchange {
         return $result;
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          *
@@ -3116,7 +3116,7 @@ class woo extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function sign($path, $section = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $section = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $version = $section[0];
         $access = $section[1];
         $pathWithParams = $this->implode_params($path, $params);
@@ -4201,7 +4201,7 @@ class woo extends Exchange {
         );
     }
 
-    public function fetch_convert_currencies($params = array ()): ?array {
+    public function fetch_convert_currencies($params = array ()): array {
         /**
          * fetches all available currencies that can be converted
          *

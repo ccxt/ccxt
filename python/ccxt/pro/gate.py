@@ -406,7 +406,7 @@ class gate(ccxt.async_support.gate):
             limit = 50 if (market['spot']) else 100  # max 100 atm
             if messageType == 'options':
                 limit = 50  # max 50 for options
-        payload = []
+        payload: List = []
         channel = ''
         if market['spot']:
             channel = 'spot.obu'
@@ -1298,7 +1298,7 @@ class gate(ccxt.async_support.gate):
         type = self.get_market_type_by_url(client.url)
         data = self.safe_value(message, 'result', [])
         cache = self.positions[type]
-        newPositions = []
+        newPositions: List[Position] = []
         for i in range(0, len(data)):
             rawPosition = data[i]
             position = self.parse_position(rawPosition)
@@ -1579,7 +1579,7 @@ class gate(ccxt.async_support.gate):
             client.resolve(symbolLiquidations, 'myLiquidations::' + symbol)
         client.resolve(newLiquidations, 'myLiquidations')
 
-    def parse_ws_liquidation(self, liquidation, market=None):
+    def parse_ws_liquidation(self, liquidation, market: Market = None):
         #
         # future / delivery
         #    {

@@ -11222,7 +11222,7 @@ export default class kucoin extends Exchange {
         return this.safeBool (this.options, 'uta', false);
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         //
         // the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
         //                                ↑                 ↑

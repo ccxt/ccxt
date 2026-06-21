@@ -3185,7 +3185,7 @@ export default class pacifica extends Exchange {
         return undefined;
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const isTestnet = this.isSandboxModeEnabled;
         const urlKey = (isTestnet) ? 'test' : 'api';
         const host = this.implodeHostname (this.urls[urlKey][api]);

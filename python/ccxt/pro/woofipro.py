@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
-from ccxt.base.types import Any, Balances, Bool, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import AuthenticationError
@@ -172,7 +172,7 @@ class woofipro(ccxt.async_support.woofipro):
         message = self.extend(request, params)
         return await self.watch_public(topic, message)
 
-    def parse_ws_ticker(self, ticker, market=None):
+    def parse_ws_ticker(self, ticker, market: Market = None):
         #
         #     {
         #         "symbol": "PERP_BTC_USDC",
@@ -339,7 +339,7 @@ class woofipro(ccxt.async_support.woofipro):
             result.append(ticker)
         client.resolve(result, topic)
 
-    def parse_ws_bid_ask(self, ticker, market=None):
+    def parse_ws_bid_ask(self, ticker, market: Market = None):
         marketId = self.safe_string(ticker, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = self.safe_string(market, 'symbol')
@@ -484,7 +484,7 @@ class woofipro(ccxt.async_support.woofipro):
         self.trades[symbol] = trades
         client.resolve(trades, topic)
 
-    def parse_ws_trade(self, trade, market=None):
+    def parse_ws_trade(self, trade, market: Market = None):
         #
         #     {
         #         "symbol":"PERP_ADA_USDC",
@@ -533,7 +533,7 @@ class woofipro(ccxt.async_support.woofipro):
         maker = self.safe_bool(trade, 'maker')
         if maker is not None:
             takerOrMaker = 'maker' if maker else 'taker'
-        fee: dict = None
+        fee: NullableDict = None
         feeValue = self.safe_string(trade, 'fee')
         if feeValue is not None:
             fee = {
@@ -691,7 +691,7 @@ class woofipro(ccxt.async_support.woofipro):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def parse_ws_order(self, order, market=None):
+    def parse_ws_order(self, order, market: Market = None):
         #
         #     {
         #         "symbol": "PERP_BTC_USDT",
@@ -1038,7 +1038,7 @@ class woofipro(ccxt.async_support.woofipro):
             client.resolve(position, messageHash)
         client.resolve(newPositions, 'positions')
 
-    def parse_ws_position(self, position, market=None):
+    def parse_ws_position(self, position, market: Market = None):
         #
         #     {
         #         "symbol":"PERP_ETH_USDC",

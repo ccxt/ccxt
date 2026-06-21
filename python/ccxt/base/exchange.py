@@ -3302,7 +3302,7 @@ class Exchange(object):
             self.urls = newUrls
         self.options['enableDemoTrading'] = enable
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: Any = None, body: Any = None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         return {}
 
     def fetch_accounts(self, params={}):

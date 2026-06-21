@@ -9622,7 +9622,7 @@ func (this *KucoinCore) TransferUta(code any, amount any, fromAccount any, toAcc
 		PanicOnError(response)
 		//
 		//
-		var data any = this.SafeDict(response, "data")
+		var data any = this.SafeDict(response, "data", map[string]any{})
 		var transfer any = this.ParseTransfer(data, currency)
 		var transferOptions any = this.SafeDict(this.Options, "transfer", map[string]any{})
 		var fillResponseFromRequest any = this.SafeBool(transferOptions, "fillResponseFromRequest", true)
@@ -9725,7 +9725,7 @@ func (this *KucoinCore) TransferClassic(code any, amount any, fromAccount any, t
 			response = (<-this.PrivatePostAccountsUniversalTransfer(this.Extend(request, params)))
 			PanicOnError(response)
 		}
-		var data any = this.SafeDict(response, "data")
+		var data any = this.SafeDict(response, "data", map[string]any{})
 		var transfer any = this.ParseTransfer(data, currency)
 		var transferOptions any = this.SafeDict(this.Options, "transfer", map[string]any{})
 		var fillResponseFromRequest any = this.SafeBool(transferOptions, "fillResponseFromRequest", true)

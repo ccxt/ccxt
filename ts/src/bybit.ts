@@ -9659,7 +9659,7 @@ export default class bybit extends Exchange {
         return this.safeString (marginModes, marginMode, marginMode);
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         let url = this.implodeHostname (this.urls['api'][api]) + '/' + path;
         if (api === 'public') {
             if (Object.keys (params).length) {

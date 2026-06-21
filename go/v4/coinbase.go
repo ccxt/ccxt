@@ -6060,7 +6060,7 @@ func (this *CoinbaseCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 		//
 		var data any = this.SafeDict(response, "fee_tier", map[string]any{})
 		var taker_fee any = this.SafeNumber(data, "taker_fee_rate")
-		var marker_fee any = this.SafeNumber(data, "maker_fee_rate")
+		var maker_fee any = this.SafeNumber(data, "maker_fee_rate")
 		var result any = map[string]any{}
 		for i := 0; IsLessThan(i, GetArrayLength(this.Symbols)); i++ {
 			var symbol any = GetValue(this.Symbols, i)
@@ -6069,8 +6069,8 @@ func (this *CoinbaseCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 				AddElementToObject(result, symbol, map[string]any{
 					"info":       response,
 					"symbol":     symbol,
-					"maker":      taker_fee,
-					"taker":      marker_fee,
+					"maker":      maker_fee,
+					"taker":      taker_fee,
 					"percentage": true,
 				})
 			}

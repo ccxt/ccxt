@@ -454,7 +454,7 @@ class toobit extends Exchange {
         return $this->safe_integer($response, 'serverTime');
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2977,7 +2977,7 @@ class toobit extends Exchange {
         ));
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api'][$api] . '/' . $this->implode_params($path, $params);
         $isPost = $method === 'POST';
         $isDelete = $method === 'DELETE';

@@ -1,5 +1,5 @@
 import Exchange from './abstract/cex.js';
-import type { Currency, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, TradingFeeInterface, int, Account, Balances, LedgerEntry, Transaction, TransferEntry, DepositAddress } from './base/types.js';
+import type { Currency, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, TradingFeeInterface, int, Account, Balances, LedgerEntry, Transaction, TransferEntry, DepositAddress, NullableDict } from './base/types.js';
 /**
  * @class cex
  * @augments Exchange
@@ -276,11 +276,11 @@ export default class cex extends Exchange {
      */
     fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
     parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: string;
+        headers: Dict;
     };
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
 }

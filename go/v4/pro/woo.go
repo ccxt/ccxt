@@ -1077,7 +1077,7 @@ func  (this *WooCore) ParseWsTrade(trade any, optionalArgs ...any) any  {
     var cost any = ccxt.Precise.StringMul(price, amount)
     var side any = this.SafeStringLower(trade, "side")
     var timestamp any = this.SafeInteger(trade, "timestamp")
-    var maker any = this.SafeBool(trade, "marker")
+    var maker any = this.SafeBool(trade, "maker")
     var takerOrMaker any = nil
     if ccxt.IsTrue(!ccxt.IsEqual(maker, nil)) {
         takerOrMaker = ccxt.Ternary(ccxt.IsTrue(maker), "maker", "taker")

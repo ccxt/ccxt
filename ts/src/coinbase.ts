@@ -5002,7 +5002,7 @@ export default class coinbase extends Exchange {
         //
         const data = this.safeDict (response, 'fee_tier', {});
         const taker_fee = this.safeNumber (data, 'taker_fee_rate');
-        const marker_fee = this.safeNumber (data, 'maker_fee_rate');
+        const maker_fee = this.safeNumber (data, 'maker_fee_rate');
         const result: Dict = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
@@ -5011,8 +5011,8 @@ export default class coinbase extends Exchange {
                 result[symbol] = {
                     'info': response,
                     'symbol': symbol,
-                    'maker': taker_fee,
-                    'taker': marker_fee,
+                    'maker': maker_fee,
+                    'taker': taker_fee,
                     'percentage': true,
                 };
             }
@@ -5133,7 +5133,7 @@ export default class coinbase extends Exchange {
         return this.milliseconds () - this.options['timeDifference'];
     }
 
-    sign (path, api: any = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = [], method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const version = api[0];
         const signed = api[1] === 'private';
         const isV3 = version === 'v3';

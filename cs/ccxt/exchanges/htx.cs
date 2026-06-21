@@ -8118,7 +8118,7 @@ public partial class htx : Exchange
                         bodyRequest = query;
                     }
                     body = this.json(bodyRequest);
-                    if (isTrue(!isTrue(isArrayParams) && isTrue((isEqual(getArrayLength(body), 2)))))
+                    if (isTrue(!isTrue(isArrayParams) && isTrue((isEqual(((string)body).Length, 2)))))
                     {
                         body = "{}";
                     }

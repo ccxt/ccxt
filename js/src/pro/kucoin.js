@@ -109,7 +109,7 @@ export default class kucoin extends kucoinRest {
         return await future;
     }
     async negotiateHelper(privateChannel, connectId, params = {}) {
-        let response = undefined;
+        let response;
         try {
             if (connectId === 'private') {
                 response = await this.privatePostBulletPrivate(params);

@@ -316,11 +316,11 @@ class btcturk(Exchange, ImplicitAPI):
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         filters = self.safe_list(entry, 'filters', [])
-        minPrice = None
-        maxPrice = None
-        minAmount = None
-        maxAmount = None
-        minCost = None
+        minPrice: Num = None
+        maxPrice: Num = None
+        minAmount: Num = None
+        maxAmount: Num = None
+        minCost: Num = None
         for j in range(0, len(filters)):
             filter = filters[j]
             filterType = self.safe_string(filter, 'filterType')
@@ -575,7 +575,7 @@ class btcturk(Exchange, ImplicitAPI):
         marketId = self.safe_string(trade, 'pair')
         symbol = self.safe_symbol(marketId, market)
         side = self.safe_string_2(trade, 'side', 'orderType')
-        fee = None
+        fee: dict = None
         feeAmountString = self.safe_string(trade, 'fee')
         if feeAmountString is not None:
             feeCurrency = self.safe_string(trade, 'denominatorSymbol')
@@ -828,7 +828,7 @@ class btcturk(Exchange, ImplicitAPI):
         """
         self.load_markets()
         request: dict = {}
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['pairSymbol'] = market['id']
@@ -972,7 +972,7 @@ class btcturk(Exchange, ImplicitAPI):
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         self.load_markets()
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
         response = self.privateGetUsersTransactionsTrade()
@@ -1003,7 +1003,7 @@ class btcturk(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         if self.id == 'btctrader':
             raise ExchangeError(self.id + ' is an abstract base API for BTCExchange, BTCTurk')
         url = self.urls['api'][api] + '/' + path

@@ -458,7 +458,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function parse_ws_trade($trade, $market = null) {
+    public function parse_ws_trade($trade, ?array $market = null) {
         //
         //    array(
         //        1128060969, // $id
@@ -589,7 +589,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         $client->resolve ($parsed, $messageHash);
     }
 
-    public function parse_ws_ticker($ticker, $market = null) {
+    public function parse_ws_ticker($ticker, ?array $market = null) {
         //
         //     array(
         //         236.62,        // 1 BID float Price of $last highest bid
@@ -1172,7 +1172,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_ws_order($order, $market = null) {
+    public function parse_ws_order($order, ?array $market = null) {
         //
         //   array(
         //       97084883506, // $order $id

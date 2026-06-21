@@ -6,7 +6,7 @@ import Exchange from './abstract/cex.js';
 import { ExchangeError, ArgumentsRequired, NullResponse, PermissionDenied, InsufficientFunds, BadRequest, AuthenticationError, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Currency, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, TradingFeeInterface, int, Account, Balances, LedgerEntry, Transaction, TransferEntry, DepositAddress } from './base/types.js';
+import type { Currency, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, TradingFeeInterface, int, Account, Balances, LedgerEntry, Transaction, TransferEntry, DepositAddress, NullableDict } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1767,7 +1767,7 @@ export default class cex extends Exchange {
         } as DepositAddress;
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {

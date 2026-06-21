@@ -186,7 +186,7 @@ class coinex(ccxt.async_support.coinex):
                 client.resolve(tickers, messageHash)
         client.resolve(newTickers, 'tickers')
 
-    def parse_ws_ticker(self, ticker, market=None):
+    def parse_ws_ticker(self, ticker, market: Market = None):
         #
         #  spot
         #
@@ -335,7 +335,7 @@ class coinex(ccxt.async_support.coinex):
         isSpot = (updated is not None)
         isSwap = (unrealizedPnl is not None)
         info = None
-        account = None
+        account: Str = None
         rawBalances = []
         if isSpot:
             account = 'spot'
@@ -359,7 +359,7 @@ class coinex(ccxt.async_support.coinex):
             messageHash = 'balances:' + account
             client.resolve(self.balance[account], messageHash)
 
-    def parse_ws_balance(self, balance, accountType=None):
+    def parse_ws_balance(self, balance, accountType: Str = None):
         #
         # spot
         #
@@ -537,7 +537,7 @@ class coinex(ccxt.async_support.coinex):
         self.trades[symbol] = stored
         client.resolve(self.trades[symbol], messageHash)
 
-    def parse_ws_trade(self, trade, market=None):
+    def parse_ws_trade(self, trade, market: Market = None):
         #
         # spot watchTrades
         #
@@ -870,7 +870,7 @@ class coinex(ccxt.async_support.coinex):
         params = self.omit(params, ['trigger', 'stop'])
         messageHash = 'orders'
         market: Market = None
-        marketList = None
+        marketList: NullableList = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
@@ -1036,7 +1036,7 @@ class coinex(ccxt.async_support.coinex):
         messageHash += ':' + symbol
         client.resolve(self.orders, messageHash)
 
-    def parse_ws_order(self, order, market=None):
+    def parse_ws_order(self, order, market: Market = None):
         #
         # spot
         #
@@ -1131,7 +1131,7 @@ class coinex(ccxt.async_support.coinex):
         isSpot = ('margin_market' in order)
         defaultType = 'spot' if isSpot else 'swap'
         market = self.safe_market(marketId, market, None, defaultType)
-        fee = None
+        fee: dict = None
         feeCost = self.omit_zero(self.safe_string_2(order, 'fee', 'quote_ccy_fee'))
         if feeCost is not None:
             feeCurrencyId = self.safe_string(order, 'fee_ccy', market['quote'])
@@ -1231,7 +1231,7 @@ class coinex(ccxt.async_support.coinex):
         messageHash = 'bidsasks:' + symbol
         client.resolve(parsedTicker, messageHash)
 
-    def parse_ws_bid_ask(self, ticker, market=None):
+    def parse_ws_bid_ask(self, ticker, market: Market = None):
         #
         #     {
         #         "market": "BTCUSDT",

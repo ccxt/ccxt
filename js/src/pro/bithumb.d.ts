@@ -1,5 +1,5 @@
 import bithumbRest from '../bithumb.js';
-import type { Int, OrderBook, Ticker, Trade, Strings, Tickers, Bool, Order, Str } from '../base/types.js';
+import type { Int, OrderBook, Ticker, Trade, Strings, Tickers, Bool, Order, Str, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Balances } from '../base/types.js';
 export default class bithumb extends bithumbRest {
@@ -26,7 +26,7 @@ export default class bithumb extends bithumbRest {
      */
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     handleTicker(client: Client, message: any): void;
-    parseWsTicker(ticker: any, market?: any): Ticker;
+    parseWsTicker(ticker: any, market?: Market): Ticker;
     /**
      * @method
      * @name bithumb#watchOrderBook
@@ -54,7 +54,7 @@ export default class bithumb extends bithumbRest {
      */
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleTrades(client: any, message: any): void;
-    parseWsTrade(trade: any, market?: any): Trade;
+    parseWsTrade(trade: any, market?: Market): Trade;
     handleErrorMessage(client: Client, message: any): Bool;
     /**
      * @method
@@ -81,6 +81,6 @@ export default class bithumb extends bithumbRest {
      */
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     handleOrders(client: Client, message: any): void;
-    parseWsOrder(order: any, market?: any): Order;
+    parseWsOrder(order: any, market?: Market): Order;
     handleMessage(client: Client, message: any): void;
 }

@@ -4144,7 +4144,7 @@ export default class xt extends Exchange {
         };
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('setLeverage', market, params);
-        let response = undefined;
+        let response;
         if (subType === 'inverse') {
             response = await this.privateInversePostFutureUserV1PositionAdjustLeverage(this.extend(request, params));
         }

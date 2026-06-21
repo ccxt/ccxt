@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Str, Ticker, Trade
+from ccxt.base.types import Any, Balances, Int, Market, Order, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -254,7 +254,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         marketId = self.safe_string(message, 'symbol')
         market = self.safe_market(marketId)
         symbol = market['symbol']
-        ticker = None
+        ticker: Ticker | None = None
         if event == 'subscribed':
             return
         elif event == 'snapshot':
@@ -266,7 +266,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         self.tickers[symbol] = ticker
         client.resolve(ticker, messageHash)
 
-    def parse_ws_updated_ticker(self, ticker, lastTicker=None, market=None):
+    def parse_ws_updated_ticker(self, ticker, lastTicker=None, market: Market = None):
         #
         #     {
         #         "seqnum": 2,
@@ -367,7 +367,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         self.trades[symbol] = stored
         client.resolve(self.trades[symbol], messageHash)
 
-    def parse_ws_trade(self, trade, market=None):
+    def parse_ws_trade(self, trade, market: Market = None):
         #
         #     {
         #         "seqnum": 1,
@@ -524,7 +524,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         self.orders = cachedOrders
         client.resolve(self.orders, messageHash)
 
-    def parse_ws_order(self, order, market=None):
+    def parse_ws_order(self, order, market: Market = None):
         #
         #     {
         #         "seqnum": 3,

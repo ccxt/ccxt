@@ -1090,7 +1090,7 @@ class bitbns extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
-    public function parse_transaction_status_by_type($status, $type = null) {
+    public function parse_transaction_status_by_type($status, ?string $type = null) {
         $statusesByType = array(
             'deposit' => array(
                 '0' => 'pending',
@@ -1218,7 +1218,7 @@ class bitbns extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, $api = 'www', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'www', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $urls = $this->urls;
         if (!(is_array($urls['api']) && array_key_exists($api, $urls['api']))) {
             throw new ExchangeError($this->id . ' does not have a testnet/sandbox URL for ' . $api . ' endpoints');
