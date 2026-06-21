@@ -6537,9 +6537,6 @@ export default class Exchange {
         if (this.markets === undefined) {
             throw new ExchangeError(this.id + ' markets not loaded');
         }
-        if (symbol === undefined) {
-            throw new BadSymbol(this.id + ' does not have market symbol ' + symbol);
-        }
         if (symbol in this.markets) {
             return this.markets[symbol];
         }

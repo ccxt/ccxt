@@ -2933,6 +2933,7 @@ class bullish extends bullish$1["default"] {
                 }
             }
             if (path === 'v1/users/hmac/login') {
+                headers = (headers === undefined) ? {} : headers;
                 headers['BX-PUBLIC-KEY'] = this.apiKey;
             }
             else {
@@ -2940,6 +2941,7 @@ class bullish extends bullish$1["default"] {
                 if ((token === undefined)) {
                     throw new errors.AuthenticationError(this.id + ' requires a token, please call signIn() first');
                 }
+                headers = (headers === undefined) ? {} : headers;
                 headers['Authorization'] = 'Bearer ' + token;
                 // headers['BX-NONCE-WINDOW-ENABLED'] = 'false'; // default is false
             }

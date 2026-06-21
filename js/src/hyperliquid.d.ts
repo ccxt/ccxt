@@ -7,7 +7,7 @@ import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, Fundi
 export default class hyperliquid extends Exchange {
     describe(): any;
     setSandboxMode(enabled: any): void;
-    market(symbol: Str): MarketInterface;
+    market(symbol: string): MarketInterface;
     /**
      * @method
      * @name hyperliquid#fetchStatus

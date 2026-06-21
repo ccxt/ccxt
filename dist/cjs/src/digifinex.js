@@ -1509,7 +1509,7 @@ class digifinex extends digifinex$1["default"] {
         //         0.029927
         //     ]
         //
-        if (market['swap']) {
+        if (this.safeBool(market, 'swap')) {
             return [
                 this.safeInteger(ohlcv, 0),
                 this.safeNumber(ohlcv, 1), // open
@@ -1949,7 +1949,7 @@ class digifinex extends digifinex$1["default"] {
             if (symbol === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
             }
-            request['instrument_id'] = market['id'];
+            request['instrument_id'] = this.safeString(market, 'id');
         }
         else {
             request['market'] = marketType;
@@ -2007,8 +2007,8 @@ class digifinex extends digifinex$1["default"] {
         }
     }
     parseCancelOrders(response) {
-        const success = this.safeList(response, 'success');
-        const error = this.safeList(response, 'error');
+        const success = this.safeList(response, 'success', []);
+        const error = this.safeList(response, 'error', []);
         const result = [];
         for (let i = 0; i < success.length; i++) {
             const order = success[i];
@@ -2568,7 +2568,7 @@ class digifinex extends digifinex$1["default"] {
         }
         const marketIdRequest = (marketType === 'swap') ? 'instrument_id' : 'symbol';
         if (symbol !== undefined) {
-            request[marketIdRequest] = market['id'];
+            request[marketIdRequest] = this.safeString(market, 'id');
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -4274,7 +4274,7 @@ class digifinex extends digifinex$1["default"] {
             'marginMode': 'isolated',
             'amount': this.safeNumber(data, 'amount'),
             'total': undefined,
-            'code': market['settle'],
+            'code': this.safeString(market, 'settle'),
             'status': undefined,
             'timestamp': undefined,
             'datetime': undefined,

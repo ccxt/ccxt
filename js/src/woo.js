@@ -1531,7 +1531,7 @@ export default class woo extends Exchange {
             response = await this.v3PrivateDeleteTradeAlgoOrder(this.extend(request, params));
         }
         else {
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
             if (isByClientOrder) {
                 request['clientOrderId'] = clientOrderIdExchangeSpecific;
             }
@@ -3692,18 +3692,18 @@ export default class woo extends Exchange {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        if ((symbol === undefined) || market['spot']) {
+        if ((symbol === undefined) || this.safeBool(market, 'spot')) {
             return await this.v3PrivatePostSpotMarginLeverage(this.extend(request, params));
         }
-        else if (market['swap']) {
-            request['symbol'] = market['id'];
+        else if (this.safeBool(market, 'swap')) {
+            request['symbol'] = this.safeString(market, 'id');
             let marginMode = undefined;
             [marginMode, params] = this.handleMarginModeAndParams('fetchLeverage', params, 'cross');
             request['marginMode'] = this.encodeMarginMode(marginMode);
             return await this.v3PrivatePutFuturesLeverage(this.extend(request, params));
         }
         else {
-            throw new NotSupported(this.id + ' fetchLeverage() is not supported for ' + market['type'] + ' markets');
+            throw new NotSupported(this.id + ' fetchLeverage() is not supported for ' + this.safeString(market, 'type') + ' markets');
         }
     }
     /**
