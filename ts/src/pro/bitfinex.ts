@@ -413,7 +413,7 @@ export default class bitfinex extends bitfinexRest {
         //
         //
         const channel = this.safeValue (subscription, 'channel');
-        const marketId = this.valueOr (this.safeString (subscription, 'symbol'), '');
+        const marketId = this.safeString (subscription, 'symbol');
         const market = this.safeMarket (marketId);
         const messageHash = channel + ':' + marketId;
         const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -570,7 +570,7 @@ export default class bitfinex extends bitfinexRest {
         //  ]
         //
         const ticker = this.safeValue (message, 1);
-        const marketId = this.valueOr (this.safeString (subscription, 'symbol'), '');
+        const marketId = this.safeString (subscription, 'symbol');
         const market = this.safeMarket (marketId);
         const symbol = this.safeSymbol (marketId);
         const parsed = this.parseWsTicker (ticker, market);
@@ -679,7 +679,7 @@ export default class bitfinex extends bitfinexRest {
         //         ]
         //     ]
         //
-        const marketId = this.valueOr (this.safeString (subscription, 'symbol'), '');
+        const marketId = this.safeString (subscription, 'symbol');
         const symbol = this.safeSymbol (marketId);
         const channel = 'book';
         const messageHash = channel + ':' + marketId;
@@ -754,7 +754,7 @@ export default class bitfinex extends bitfinexRest {
         //
         // [ 173904, "cs", -890884919 ]
         //
-        const marketId = this.valueOr (this.safeString (subscription, 'symbol'), '');
+        const marketId = this.safeString (subscription, 'symbol');
         const symbol = this.safeSymbol (marketId);
         const channel = 'book';
         const messageHash = channel + ':' + marketId;
@@ -998,7 +998,7 @@ export default class bitfinex extends bitfinexRest {
             const subKeyId = 'unsubscribe:' + key;
             client.subscriptions[subKeyId] = channelId;
         } else {
-            const marketId = this.valueOr (this.safeString (message, 'symbol'), '');
+            const marketId = this.safeString (message, 'symbol');
             const symbol = this.safeSymbol (marketId);
             if (unifiedChannel !== undefined) {
                 const subId = 'unsubscribe:' + unifiedChannel + ':' + symbol;
@@ -1200,7 +1200,7 @@ export default class bitfinex extends bitfinexRest {
         //
         const id = this.safeString (order, 0);
         const clientOrderId = this.safeString (order, 1);
-        const marketId = this.valueOr (this.safeString (order, 3), '');
+        const marketId = this.safeString (order, 3);
         const symbol = this.safeSymbol (marketId);
         market = this.safeMarket (symbol);
         let amount = this.valueOr (this.safeString (order, 7), '');

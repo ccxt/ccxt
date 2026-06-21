@@ -1707,7 +1707,7 @@ export default class htx extends htxRest {
         this.balance['info'] = data;
         if (channel !== undefined) {
             // spot balance
-            const currencyId = this.valueOr (this.safeString (data, 'currency'), '');
+            const currencyId = this.safeString (data, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['free'] = this.safeString (data, 'available');
@@ -1732,7 +1732,7 @@ export default class htx extends htxRest {
                 // Example: topic = 'accounts'
                 // client.subscription hash = 'accounts.usdt'
                 // we do 'accounts' + '.' + data[0]]['margin_asset'] to get it
-                const currencyId = this.valueOr (this.safeString2 (first, 'margin_asset', 'symbol'), '');
+                const currencyId = this.safeString2 (first, 'margin_asset', 'symbol');
                 messageHash += '.' + currencyId.toLowerCase ();
                 subscription = this.safeValue (client.subscriptions, messageHash);
             }
@@ -1772,7 +1772,7 @@ export default class htx extends htxRest {
                             const balance = balances[i];
                             const marketId = this.safeString2 (balance, 'contract_code', 'margin_account');
                             const market = this.safeMarket (marketId);
-                            const currencyId = this.valueOr (this.safeString (balance, 'margin_asset'), '');
+                            const currencyId = this.safeString (balance, 'margin_asset');
                             const currency = this.safeCurrency (currencyId);
                             const code = this.safeString (market, 'settle', currency['code']);
                             // the exchange outputs positions for delisted markets
@@ -1796,7 +1796,7 @@ export default class htx extends htxRest {
                         const account = this.account ();
                         account['free'] = this.safeString (isolatedBalance, 'margin_balance', 'margin_available');
                         account['used'] = this.safeString (isolatedBalance, 'margin_frozen');
-                        const currencyId = this.valueOr (this.safeString2 (isolatedBalance, 'margin_asset', 'symbol'), '');
+                        const currencyId = this.safeString2 (isolatedBalance, 'margin_asset', 'symbol');
                         const code = this.safeCurrencyCode (currencyId);
                         this.balance[code] = account;
                         this.balance = this.safeBalance (this.balance);
@@ -1806,7 +1806,7 @@ export default class htx extends htxRest {
                 // inverse branch
                 for (let i = 0; i < data.length; i++) {
                     const balance = data[i];
-                    const currencyId = this.valueOr (this.safeString (balance, 'symbol'), '');
+                    const currencyId = this.safeString (balance, 'symbol');
                     const code = this.safeCurrencyCode (currencyId);
                     const account = this.account ();
                     account['free'] = this.safeString (balance, 'margin_available');

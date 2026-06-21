@@ -230,7 +230,7 @@ export default class cex extends cexRest {
 
     handleTradesInner (client: Client, message) {
         const data = this.valueOr (this.safeList (message, 'data', []), []);
-        const symbol = this.valueOr (this.safeString (this.options['watchTrades'], 'symbol'), '');
+        const symbol = this.safeString (this.options['watchTrades'], 'symbol');
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             this.trades[symbol] = new ArrayCache (limit);

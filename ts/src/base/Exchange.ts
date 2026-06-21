@@ -43,7 +43,7 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook, OrderBook
 // ----------------------------------------------------------------------------
 //
 // import types
-import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL, NullableDict } from './types.js';
+import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL } from './types.js';
 // ----------------------------------------------------------------------------
 // move this elsewhere.
 import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
@@ -3105,7 +3105,7 @@ export default class Exchange {
         this.options['enableDemoTrading'] = enable;
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         return {};
     }
 
@@ -3837,7 +3837,7 @@ export default class Exchange {
 
     safeCurrencyStructure (currency: object): CurrencyInterface {
         // derive data from networks: deposit, withdraw, active, fee, limits, precision
-        const networks = this.valueOr (this.safeDict (currency, 'networks', {}), {});
+        const networks = this.safeDict (currency, 'networks', {});
         const keys = Object.keys (networks);
         const length = keys.length;
         if (length !== 0) {
@@ -4101,7 +4101,7 @@ export default class Exchange {
             const resultingCurrencies = [];
             for (let i = 0; i < codes.length; i++) {
                 const code = codes[i];
-                const groupedCurrenciesCode = this.valueOr (this.safeList (groupedCurrencies, code, []), []);
+                const groupedCurrenciesCode = this.safeList (groupedCurrencies, code, []);
                 let highestPrecisionCurrency = this.safeValue (groupedCurrenciesCode, 0);
                 for (let j = 1; j < groupedCurrenciesCode.length; j++) {
                     const currentCurrency = groupedCurrenciesCode[j];
@@ -4142,7 +4142,7 @@ export default class Exchange {
         this.quoteCurrencies = sourceExchange.quoteCurrencies;
         this.codes = sourceExchange.codes;
         // check marketHelperProps
-        const sourceExchangeHelpers = this.valueOr (this.safeList (sourceExchange.options, 'marketHelperProps', []), []);
+        const sourceExchangeHelpers = this.safeList (sourceExchange.options, 'marketHelperProps', []);
         for (let i = 0; i < sourceExchangeHelpers.length; i++) {
             const helper = sourceExchangeHelpers[i];
             if (sourceExchange.options[helper] !== undefined) {
@@ -4209,7 +4209,7 @@ export default class Exchange {
         let average = this.omitZero (this.safeString (order, 'average'));
         let price = this.omitZero (this.safeString (order, 'price'));
         let lastTradeTimeTimestamp = this.safeInteger (order, 'lastTradeTimestamp');
-        let symbol = this.valueOr (this.safeString (order, 'symbol'), '');
+        let symbol = this.safeString (order, 'symbol');
         let side = this.safeString (order, 'side');
         const status = this.safeString (order, 'status');
         const parseFilled = (filled === undefined);
@@ -4221,7 +4221,7 @@ export default class Exchange {
         const parseSymbol = symbol === undefined;
         const parseSide = side === undefined;
         const shouldParseFees = parseFee || parseFees;
-        const fees = this.valueOr (this.safeList (order, 'fees', []), []);
+        const fees = this.safeList (order, 'fees', []);
         let trades = [];
         const isTriggerOrSLTpOrder = ((this.safeString (order, 'triggerPrice') !== undefined || (this.safeString (order, 'stopLossPrice') !== undefined)) || (this.safeString (order, 'takeProfitPrice') !== undefined));
         if (parseFilled || parseCost || shouldParseFees) {
@@ -4275,7 +4275,7 @@ export default class Exchange {
                         cost = Precise.stringAdd (cost, tradeCost);
                     }
                     if (parseSymbol) {
-                        symbol = this.valueOr (this.safeString (trade, 'symbol'), '');
+                        symbol = this.safeString (trade, 'symbol');
                     }
                     if (parseSide) {
                         side = this.safeString (trade, 'side');
@@ -4402,12 +4402,12 @@ export default class Exchange {
             entry['amount'] = this.safeNumber (entry, 'amount');
             entry['price'] = this.safeNumber (entry, 'price');
             entry['cost'] = this.safeNumber (entry, 'cost');
-            const tradeFee = this.valueOr (this.safeDict (entry, 'fee', {}), {});
+            const tradeFee = this.safeDict (entry, 'fee', {});
             tradeFee['cost'] = this.safeNumber (tradeFee, 'cost');
             if ('rate' in tradeFee) {
                 tradeFee['rate'] = this.safeNumber (tradeFee, 'rate');
             }
-            const entryFees = this.valueOr (this.safeList (entry, 'fees', []), []);
+            const entryFees = this.safeList (entry, 'fees', []);
             for (let j = 0; j < entryFees.length; j++) {
                 entryFees[j]['cost'] = this.safeNumber (entryFees[j], 'cost');
             }
@@ -4640,7 +4640,7 @@ export default class Exchange {
 
     parsedFeeAndFees (container:any) {
         let fee = this.safeDict (container, 'fee');
-        let fees = this.valueOr (this.safeList (container, 'fees'), []);
+        let fees = this.safeList (container, 'fees');
         const feeDefined = fee !== undefined;
         const feesDefined = fees !== undefined;
         // parsing only if at least one of them is defined
@@ -4968,7 +4968,7 @@ export default class Exchange {
 
     convertTradingViewToOHLCV (ohlcvs: number[][], timestamp = 't', open = 'o', high = 'h', low = 'l', close = 'c', volume = 'v', ms = false) {
         const result = [];
-        const timestamps = this.valueOr (this.safeList (ohlcvs, timestamp, []), []);
+        const timestamps = this.safeList (ohlcvs, timestamp, []);
         const opens = this.safeList (ohlcvs, open, []);
         const highs = this.safeList (ohlcvs, high, []);
         const lows = this.safeList (ohlcvs, low, []);
@@ -5139,7 +5139,7 @@ export default class Exchange {
             if (!market['spot']) {
                 isLinearSubType = market['linear'];
             }
-            const symbol = this.valueOr (this.safeString (market, 'symbol', symbols[i]), '');
+            const symbol = this.safeString (market, 'symbol', symbols[i]);
             result.push (symbol);
         }
         return result;
@@ -5254,7 +5254,7 @@ export default class Exchange {
         if (networkCode === undefined) {
             return undefined;
         }
-        const replacements = this.valueOr (this.safeDict (this.options, 'defaultNetworkCodeReplacements', {}), {});
+        const replacements = this.safeDict (this.options, 'defaultNetworkCodeReplacements', {});
         const keys = Object.keys (replacements);
         for (let i = 0; i < keys.length; i++) {
             const baseCoin = keys[i];
@@ -5293,7 +5293,7 @@ export default class Exchange {
         if (networkCode === undefined) {
             return undefined;
         }
-        const networkIdsByCodes = this.valueOr (this.safeDict (this.options, 'networks', {}), {});
+        const networkIdsByCodes = this.safeDict (this.options, 'networks', {});
         // try the preferred form first, fall back to its alternative (e.g. when only 'ETH' or only 'ERC20' is defined)
         const [ preferredChain, alternativeChain ] = this.prioritizedNetworkAliases (networkCode, currencyCode, false);
         const networkId = this.safeString2 (networkIdsByCodes, preferredChain, alternativeChain);
@@ -5308,7 +5308,7 @@ export default class Exchange {
             currenciesToCheck = [ this.safeDict (this.currencies, currencyCode) ];
         }
         for (let i = 0; i < currenciesToCheck.length; i++) {
-            const networks = this.valueOr (this.safeDict (currenciesToCheck[i], 'networks', {}), {});
+            const networks = this.safeDict (currenciesToCheck[i], 'networks', {});
             if (networkCode in networks) {
                 return this.safeString (networks[networkCode], 'id');
             }
@@ -5335,7 +5335,7 @@ export default class Exchange {
         // when the exchange explicitly defines both forms in options.networks (e.g. BTC + BRC20),
         // it disambiguates them — trust the direct id→code inversion instead of guessing
         if (currencyCode === undefined) {
-            const networkIdsByCodes = this.valueOr (this.safeDict (this.options, 'networks', {}), {});
+            const networkIdsByCodes = this.safeDict (this.options, 'networks', {});
             if ((preferredChain in networkIdsByCodes) && (alternativeChain in networkIdsByCodes)) {
                 return networkCode;
             }
@@ -5354,7 +5354,7 @@ export default class Exchange {
 
     defaultNetworkCode (currencyCode: string) {
         let defaultNetworkCode = undefined;
-        const defaultNetworks = this.valueOr (this.safeDict (this.options, 'defaultNetworks', {}), {});
+        const defaultNetworks = this.safeDict (this.options, 'defaultNetworks', {});
         if (currencyCode in defaultNetworks) {
             // if currency had set its network in "defaultNetworks", use it
             defaultNetworkCode = defaultNetworks[currencyCode];
@@ -5438,7 +5438,7 @@ export default class Exchange {
 
     parseLeverageTiers (response: any, symbols: string[] = undefined, marketIdKey = undefined): LeverageTiers {
         // marketIdKey should only be undefined when response is a dictionary.
-        symbols = this.valueOr (this.marketSymbols (symbols), []);
+        symbols = this.marketSymbols (symbols);
         const tiers = {};
         let symbolsLength = 0;
         if (symbols !== undefined) {
@@ -5501,7 +5501,7 @@ export default class Exchange {
         }
         // if contractSize is undefined get from market
         let contractSize = this.safeNumber (position, 'contractSize');
-        const symbol = this.valueOr (this.safeString (position, 'symbol'), '');
+        const symbol = this.safeString (position, 'symbol');
         let market = undefined;
         if (symbol !== undefined) {
             market = this.safeValue (this.markets, symbol);
@@ -5514,7 +5514,7 @@ export default class Exchange {
     }
 
     parsePositions (positions: any[], symbols: string[] = undefined, params = {}): Position[] {
-        symbols = this.valueOr (this.marketSymbols (symbols), []);
+        symbols = this.marketSymbols (symbols);
         positions = this.toArray (positions);
         const result = [];
         for (let i = 0; i < positions.length; i++) {
@@ -5529,7 +5529,7 @@ export default class Exchange {
     }
 
     parseADLRanks (ranks: any[], symbols: string[] = undefined, params = {}): ADL[] {
-        symbols = this.valueOr (this.marketSymbols (symbols), []);
+        symbols = this.marketSymbols (symbols);
         ranks = this.toArray (ranks);
         const result = [];
         for (let i = 0; i < ranks.length; i++) {
@@ -5626,7 +5626,7 @@ export default class Exchange {
     }
 
     currencyId (code: string): string {
-        let currency = this.valueOr (this.safeDict (this.currencies, code), {});
+        let currency = this.safeDict (this.currencies, code);
         if (currency === undefined) {
             currency = this.safeCurrency (code);
         }
@@ -6268,7 +6268,7 @@ export default class Exchange {
         return this.safeValue (res, 0);
     }
 
-    handleMarketTypeAndParams (methodName: string, market: Market = undefined, params = {}, defaultValue = undefined): [string, object] {
+    handleMarketTypeAndParams (methodName: string, market: Market = undefined, params = {}, defaultValue = undefined): any {
         /**
          * @ignore
          * @method
@@ -6310,7 +6310,7 @@ export default class Exchange {
         return [ defaultType, params ];
     }
 
-    handleSubTypeAndParams (methodName: string, market = undefined, params = {}, defaultValue = undefined): [string, object] {
+    handleSubTypeAndParams (methodName: string, market = undefined, params = {}, defaultValue = undefined) {
         let subType = undefined;
         // if set in params, it takes precedence
         const subTypeInParams = this.safeString2 (params, 'subType', 'defaultSubType');
@@ -7463,7 +7463,7 @@ export default class Exchange {
         const currency = this.currencies[code];
         let precision = this.safeValue (currency, 'precision');
         if (networkCode !== undefined) {
-            const networks = this.valueOr (this.safeDict (currency, 'networks', {}), {});
+            const networks = this.safeDict (currency, 'networks', {});
             const networkItem = this.safeDict (networks, networkCode, {});
             precision = this.safeValue (networkItem, 'precision', precision);
         }
@@ -7724,7 +7724,7 @@ export default class Exchange {
                 results.push (priceData);
             }
         }
-        symbols = this.valueOr (this.marketSymbols (symbols), []);
+        symbols = this.marketSymbols (symbols);
         return this.filterByArray (results, 'symbol', symbols);
     }
 
@@ -7768,7 +7768,7 @@ export default class Exchange {
                 results.push (ticker);
             }
         }
-        symbols = this.valueOr (this.marketSymbols (symbols), []);
+        symbols = this.marketSymbols (symbols);
         return this.filterByArray (results, 'symbol', symbols);
     }
 
@@ -7816,7 +7816,7 @@ export default class Exchange {
         for (let i = 0; i < info.length; i++) {
             const item = info[i];
             const borrowRate = this.parseIsolatedBorrowRate (item);
-            const symbol = this.valueOr (this.safeString (borrowRate, 'symbol'), '');
+            const symbol = this.safeString (borrowRate, 'symbol');
             result[symbol] = borrowRate;
         }
         return result as any;
@@ -8042,7 +8042,7 @@ export default class Exchange {
             interests.push (interest);
         }
         const sorted = this.sortBy (interests, 'timestamp');
-        const symbol = this.valueOr (this.safeString (market, 'symbol'), '');
+        const symbol = this.safeString (market, 'symbol');
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
@@ -8178,7 +8178,7 @@ export default class Exchange {
          * @param {string} account key for account name in this.options['accountsByType']
          * @returns the exchange specific account name or the isolated margin id for transfers
          */
-        const accountsByType = this.valueOr (this.safeDict (this.options, 'accountsByType', {}), {});
+        const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         const lowercaseAccount = account.toLowerCase ();
         if (lowercaseAccount in accountsByType) {
             return accountsByType[lowercaseAccount];
@@ -8322,7 +8322,7 @@ export default class Exchange {
             result.push (parsed);
         }
         const sorted = this.sortBy (result, 'timestamp');
-        const symbol = this.valueOr (this.safeString (market, 'symbol'), '');
+        const symbol = this.safeString (market, 'symbol');
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
@@ -8570,7 +8570,7 @@ export default class Exchange {
         let i = 0;
         let errors = 0;
         let result = [];
-        const timeframe = this.valueOr (this.safeString (params, 'timeframe'), '');
+        const timeframe = this.safeString (params, 'timeframe');
         params = this.omit (params, 'timeframe'); // reading the timeframe from the method arguments to avoid changing the signature
         while (i < maxCalls) {
             try {
@@ -8711,7 +8711,7 @@ export default class Exchange {
             if (id === undefined) {
                 const price = this.safeString (entry, 'price');
                 const amount = this.safeString (entry, 'amount');
-                const timestamp = this.valueOr (this.safeString (entry, 'timestamp'), '');
+                const timestamp = this.safeString (entry, 'timestamp');
                 const side = this.safeString (entry, 'side');
                 // unique trade identifier
                 id = 't_' + timestamp.toString () + '_' + side + '_' + price + '_' + amount;
@@ -8746,9 +8746,9 @@ export default class Exchange {
     }
 
     safeOpenInterest (interest: Dict, market: Market = undefined): OpenInterest {
-        let symbol = this.valueOr (this.safeString (interest, 'symbol'), '');
+        let symbol = this.safeString (interest, 'symbol');
         if (symbol === undefined) {
-            symbol = this.valueOr (this.safeString (market, 'symbol'), '');
+            symbol = this.safeString (market, 'symbol');
         }
         return this.extend (interest, {
             'symbol': symbol,
@@ -8784,7 +8784,7 @@ export default class Exchange {
             result.push (parsed);
         }
         const sorted = this.sortBy (result, 'timestamp');
-        const symbol = this.valueOr (this.safeString (market, 'symbol'), '');
+        const symbol = this.safeString (market, 'symbol');
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
@@ -8813,7 +8813,7 @@ export default class Exchange {
                 results.push (greek);
             }
         }
-        symbols = this.valueOr (this.marketSymbols (symbols), []);
+        symbols = this.marketSymbols (symbols);
         return this.filterByArray (results, 'symbol', symbols);
     }
 
@@ -8825,7 +8825,7 @@ export default class Exchange {
         const optionStructures = {};
         for (let i = 0; i < response.length; i++) {
             const info = response[i];
-            const currencyId = this.valueOr (this.safeString (info, currencyKey), '');
+            const currencyId = this.safeString (info, currencyKey);
             const currency = this.safeCurrency (currencyId);
             const marketId = this.safeString (info, symbolKey);
             const market = this.safeMarket (marketId, undefined, undefined, 'option');
@@ -9199,14 +9199,14 @@ export default class Exchange {
 
     cleanCache (subscription: Dict) {
         const topic = this.safeString (subscription, 'topic');
-        const symbols = this.valueOr (this.safeList (subscription, 'symbols', []), []);
+        const symbols = this.safeList (subscription, 'symbols', []);
         const symbolsLength = symbols.length;
         if (topic === 'ohlcv') {
-            const symbolsAndTimeframes = this.valueOr (this.safeList (subscription, 'symbolsAndTimeframes', []), []);
+            const symbolsAndTimeframes = this.safeList (subscription, 'symbolsAndTimeframes', []);
             for (let i = 0; i < symbolsAndTimeframes.length; i++) {
                 const symbolAndTimeFrame = symbolsAndTimeframes[i];
-                const symbol = this.valueOr (this.safeString (symbolAndTimeFrame, 0), '');
-                const timeframe = this.valueOr (this.safeString (symbolAndTimeFrame, 1), '');
+                const symbol = this.safeString (symbolAndTimeFrame, 0);
+                const timeframe = this.safeString (symbolAndTimeFrame, 1);
                 if ((this.ohlcvs !== undefined) && (symbol in this.ohlcvs)) {
                     if (timeframe in this.ohlcvs[symbol]) {
                         delete this.ohlcvs[symbol][timeframe];

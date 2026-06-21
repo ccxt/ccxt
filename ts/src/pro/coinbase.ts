@@ -477,7 +477,7 @@ export default class coinbase extends coinbaseRest {
         //         "best_ask_quantity": "300.0"
         //     }
         //
-        const marketId = this.valueOr (this.safeString (ticker, 'product_id'), '');
+        const marketId = this.safeString (ticker, 'product_id');
         const timestamp = undefined;
         const last = this.safeNumber (ticker, 'price');
         return this.safeTicker ({
@@ -695,7 +695,7 @@ export default class coinbase extends coinbaseRest {
         const event = this.safeValue (events, 0);
         const trades = this.safeList (event, 'trades');
         const trade = this.safeDict (trades, 0);
-        const marketId = this.valueOr (this.safeString (trade, 'product_id'), '');
+        const marketId = this.safeString (trade, 'product_id');
         const symbol = this.safeSymbol (marketId);
         const messageHash = 'market_trades::' + symbol;
         let tradesArray = this.safeValue (this.trades, symbol);
@@ -758,7 +758,7 @@ export default class coinbase extends coinbaseRest {
                 const responseOrder = responseOrders[j];
                 const parsed = this.parseWsOrder (responseOrder);
                 const cachedOrders = this.orders;
-                const marketId = this.valueOr (this.safeString (responseOrder, 'product_id'), '');
+                const marketId = this.safeString (responseOrder, 'product_id');
                 if (!(marketId in marketIds)) {
                     marketIds.push (marketId);
                 }
@@ -793,7 +793,7 @@ export default class coinbase extends coinbaseRest {
         //
         const id = this.safeString (order, 'order_id');
         const clientOrderId = this.safeString (order, 'client_order_id');
-        const marketId = this.valueOr (this.safeString (order, 'product_id'), '');
+        const marketId = this.safeString (order, 'product_id');
         const datetime = this.safeString2 (order, 'time', 'creation_time');
         market = this.safeMarket (marketId, market);
         const stopPrice = this.safeString (order, 'stop_price');
@@ -872,7 +872,7 @@ export default class coinbase extends coinbaseRest {
         for (let i = 0; i < events.length; i++) {
             const event = events[i];
             const updates = this.safeList (event, 'updates', []);
-            const marketId = this.valueOr (this.safeString (event, 'product_id'), '');
+            const marketId = this.safeString (event, 'product_id');
             // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];

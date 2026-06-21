@@ -160,7 +160,7 @@ export default class aftermath extends aftermathRest {
         //     "timestamp": 9007199254740991
         // }
         //
-        const symbol = this.valueOr (this.safeString (message, 'symbol'), '');
+        const symbol = this.safeString (message, 'symbol');
         const market = this.market (symbol);
         const topic = market['id'] + '@orderbook';
         if (!(symbol in this.orderbooks)) {
@@ -182,7 +182,7 @@ export default class aftermath extends aftermathRest {
     }
 
     async fetchOrderBookSnapshot (client, message, subscription) {
-        const symbol = this.valueOr (this.safeString (message, 'symbol'), '');
+        const symbol = this.safeString (message, 'symbol');
         const market = this.market (symbol);
         const messageHash = market['id'] + '@orderbook';
         try {
@@ -328,7 +328,7 @@ export default class aftermath extends aftermathRest {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
         const cache = this.positions;
-        const symbol = this.valueOr (this.safeString (message, 'symbol'), '');
+        const symbol = this.safeString (message, 'symbol');
         const market = this.safeMarket (symbol);
         const position = this.parsePosition (message, market);
         cache.append (position);

@@ -474,7 +474,7 @@ export default class mexc extends mexcRest {
         //    }
         //
         const parsedTicker = this.parseWsBidAsk (message);
-        const symbol = this.valueOr (this.safeString (parsedTicker, 'symbol'), '');
+        const symbol = this.safeString (parsedTicker, 'symbol');
         if (symbol === undefined) {
             return;
         }
@@ -487,7 +487,7 @@ export default class mexc extends mexcRest {
         const data = this.valueOr (this.safeDict (ticker, 'd'), {});
         const marketId = this.safeString (ticker, 's');
         market = this.safeMarket (marketId, market);
-        const symbol = this.valueOr (this.safeString (market, 'symbol'), '');
+        const symbol = this.safeString (market, 'symbol');
         const timestamp = this.safeInteger (ticker, 't');
         return this.safeTicker ({
             'symbol': symbol,
@@ -1929,7 +1929,7 @@ export default class mexc extends mexcRest {
                 }
             } else if (messageHash.indexOf ('candles') >= 0) {
                 const splitHashes = messageHash.split (':');
-                let symbol = this.valueOr (this.safeString (splitHashes, 2), '');
+                let symbol = this.safeString (splitHashes, 2);
                 if (splitHashes.length > 4) {
                     symbol += ':' + this.safeString (splitHashes, 3);
                 }

@@ -1693,7 +1693,7 @@ export default class aster extends asterRest {
             const orderId = this.safeString (trade, 'order');
             let tradeFee = this.safeDict (trade, 'fee', {});
             tradeFee = this.extend ({}, tradeFee);
-            const symbol = this.valueOr (this.safeString (trade, 'symbol'), '');
+            const symbol = this.safeString (trade, 'symbol');
             if (orderId !== undefined && tradeFee !== undefined && symbol !== undefined) {
                 const cachedOrders = this.orders;
                 if (cachedOrders !== undefined) {

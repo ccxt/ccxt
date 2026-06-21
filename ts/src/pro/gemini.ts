@@ -330,7 +330,7 @@ export default class gemini extends geminiRest {
         let timeframeId = type.slice (8);
         const timeframeEndIndex = timeframeId.indexOf ('_');
         timeframeId = timeframeId.slice (0, timeframeEndIndex);
-        const marketId = this.valueOr (this.safeString (message, 'symbol', '').toLowerCase (), '');
+        const marketId = this.safeString (message, 'symbol', '').toLowerCase ();
         const market = this.safeMarket (marketId);
         const symbol = this.safeSymbol (marketId, market);
         const changes = this.safeValue (message, 'changes', []);
@@ -746,7 +746,7 @@ export default class gemini extends geminiRest {
         //
         const timestamp = this.safeInteger (order, 'timestampms');
         const status = this.safeString (order, 'type');
-        const marketId = this.valueOr (this.safeString (order, 'symbol'), '');
+        const marketId = this.safeString (order, 'symbol');
         const typeId = this.safeString (order, 'order_type');
         const behavior = this.safeString (order, 'behavior');
         let timeInForce = 'GTC';

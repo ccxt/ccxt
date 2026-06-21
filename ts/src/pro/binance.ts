@@ -391,7 +391,7 @@ export default class binance extends binanceRest {
         //    }
         //
         const rawLiquidation = this.safeValue (message, 'o', {});
-        const marketId = this.valueOr (this.safeString (rawLiquidation, 's'), '');
+        const marketId = this.safeString (rawLiquidation, 's');
         const market = this.safeMarket (marketId, undefined, '', 'contract');
         const symbol = market['symbol'];
         const liquidation = this.parseWsLiquidation (rawLiquidation, market);
@@ -480,7 +480,7 @@ export default class binance extends binanceRest {
         //        "gtd":0                     // TIF GTD order auto cancel time
         //    }
         //
-        const marketId = this.valueOr (this.safeString (liquidation, 's'), '');
+        const marketId = this.safeString (liquidation, 's');
         market = this.safeMarket (marketId, market, undefined, 'swap');
         const timestamp = this.safeInteger (liquidation, 'T');
         return this.safeLiquidation ({
@@ -605,7 +605,7 @@ export default class binance extends binanceRest {
         if (orderType !== 'LIQUIDATION') {
             return;
         }
-        const marketId = this.valueOr (this.safeString (message, 's'), '');
+        const marketId = this.safeString (message, 's');
         const market = this.safeMarket (marketId, undefined, undefined, 'swap');
         const symbol = this.safeSymbol (marketId, market);
         const liquidation = this.parseWsLiquidation (message, market);
@@ -1001,7 +1001,7 @@ export default class binance extends binanceRest {
         //
         const isSpot = this.isSpotUrl (client);
         const marketType = (isSpot) ? 'spot' : 'swap';
-        const marketId = this.valueOr (this.safeString (message, 's'), '');
+        const marketId = this.safeString (message, 's');
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         const messageHash = 'orderbook::' + symbol;
@@ -1419,7 +1419,7 @@ export default class binance extends binanceRest {
                 cost = Precise.stringMul (price, amount);
             }
         }
-        const marketId = this.valueOr (this.safeString (trade, 's'), '');
+        const marketId = this.safeString (trade, 's');
         const marketType = ('ps' in trade) ? 'contract' : 'spot';
         const symbol = this.safeSymbol (marketId, undefined, undefined, marketType);
         let side = this.safeStringLower (trade, 'S');
@@ -1464,7 +1464,7 @@ export default class binance extends binanceRest {
         // each trade has a unique buyer and seller
         const isSpot = this.isSpotUrl (client);
         const marketType = (isSpot) ? 'spot' : 'contract';
-        const marketId = this.valueOr (this.safeString (message, 's'), '');
+        const marketId = this.safeString (message, 's');
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         const messageHash = 'trade::' + symbol;
@@ -1694,7 +1694,7 @@ export default class binance extends binanceRest {
         };
         event = this.safeString (eventMap, event, event);
         const kline = this.safeValue (message, 'k');
-        let marketId = this.valueOr (this.safeString2 (kline, 's', 'ps'), '');
+        let marketId = this.safeString2 (kline, 's', 'ps');
         if (event === 'indexPriceKline') {
             // indexPriceKline doesn't have the _PERP suffix
             marketId = this.valueOr (this.safeString (message, 'ps'), '');
@@ -2219,7 +2219,7 @@ export default class binance extends binanceRest {
         //         "time":1589437530011,
         //      }
         //
-        const marketId = this.valueOr (this.safeString2 (message, 's', 'symbol'), '');
+        const marketId = this.safeString2 (message, 's', 'symbol');
         const symbol = this.safeSymbol (marketId, undefined, undefined, marketType);
         let event = this.safeString (message, 'e', 'bookTicker');
         if (event === '24hrTicker') {
@@ -3917,7 +3917,7 @@ export default class binance extends binanceRest {
         //     }
         //
         const executionType = this.safeString (order, 'x');
-        const marketId = this.valueOr (this.safeString (order, 's'), '');
+        const marketId = this.safeString (order, 's');
         const marketType = ('ps' in order) ? 'contract' : 'spot';
         const symbol = this.safeSymbol (marketId, undefined, undefined, marketType);
         let timestamp = this.safeInteger (order, 'O');
@@ -4294,7 +4294,7 @@ export default class binance extends binanceRest {
         //         "ps": "BOTH" // Position Side
         //     }
         //
-        const marketId = this.valueOr (this.safeString (position, 's'), '');
+        const marketId = this.safeString (position, 's');
         const contracts = this.valueOr (this.safeString (position, 'pa'), '');
         const contractsAbs = Precise.stringAbs (this.safeString (position, 'pa'));
         let positionSide = this.safeStringLower (position, 'ps');
