@@ -209,8 +209,12 @@ export default class kalshi extends Exchange {
         const eventsDict: Dict = {};
         let cursor: Str = undefined;
         const limit = this.safeInteger (this.options, 'maxFetchMarketsLimit', 1000);
+        // default to tradeable (open) markets; kalshi has thousands of closed/settled markets and
+        // an unfiltered cursor pages through those, so loadMarkets would otherwise return mostly
+        // closed markets. Pass params.status (e.g. 'closed', 'settled', 'unopened') to override
+        const status = this.safeString (rest, 'status', 'open');
         while (true) {
-            const request: Dict = { 'limit': limit };
+            const request: Dict = { 'limit': limit, 'status': status };
             if (cursor !== undefined) {
                 request['cursor'] = cursor;
             }
