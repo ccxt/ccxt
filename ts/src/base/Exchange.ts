@@ -2739,6 +2739,10 @@ export default class Exchange {
         return defaultValue;
     }
 
+    valueOr<T> (value: T | undefined, defaultValue: T): T {
+        return (value === undefined) ? defaultValue : value;
+    }
+
     safeList (dictionaryOrList, key: IndexType, defaultValue: any[] = undefined): any[] | undefined {
         /**
          * @ignore

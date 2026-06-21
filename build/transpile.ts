@@ -585,6 +585,8 @@ class Transpiler {
     getTypescripSignaturetRemovalRegexes() {
         // currently they can't be mixin with the ones above
         return [
+            // remove generic type parameters from the method name, e.g. "valueOr<T> (" -> "valueOr ("
+            [ /^(\s*(?:async\s)?[\w$]+)<[^>]*>(\s*\()/, "$1$2" ],
             [ /(\s*(?:async\s)?\w+\s\([^)]+\)):[^{]+({)/, "$1 $2" ], // remove return type
             // remove param types
             // Currently supported: single name (object, number, mytype, etc)
@@ -1551,6 +1553,9 @@ class Transpiler {
             let lines = part.split ("\n")
             let signature = lines[0].trim ()
             signature = signature.replace('function ', '')
+            // detect generic methods, e.g. "valueOr<T> (value: T, defaultValue: T): T {"
+            // their type parameters (T) are not valid types in Python/PHP, so we transpile them untyped
+            const isGenericMethod = /^(?:async\s)?[\w$]+\s*<[^>]*>\s*\(/.test (signature)
 
             // Typescript types trim from signature
             // will be improved in the future
@@ -1595,6 +1600,16 @@ class Transpiler {
 
             // get names of all method arguments for later substitutions
             let variables = argsArray.map (arg => arg.split ('=').map (x => x.split (':')[0].trim ().replace (/\?$/, '')) [0])
+
+            if (isGenericMethod) {
+                // drop generic-typed annotations (e.g. ": T") that are not valid Python/PHP types
+                for (let a = 0; a < argsArray.length; a++) {
+                    const eqParts = argsArray[a].split ('=')
+                    const name = eqParts[0].split (':')[0].trim ().replace (/\?$/, '')
+                    argsArray[a] = (eqParts.length > 1) ? (name + ' = ' + eqParts[1].trim ()) : name
+                }
+                returnType = undefined as any
+            }
 
             let phpArgs = ''
             let syncPhpSignature = ''
