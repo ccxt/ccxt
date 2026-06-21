@@ -110,7 +110,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             #
         else:
             raise BadRequest(self.id + ' transfer() only supports transfers between future/swap, spot and funding accounts')
-        data = self.safe_dict(response, 'data', {})
+        data: dict = self.safe_dict(response, 'data', {})
         return self.extend(self.parse_transfer(data, currency), {
             'amount': self.parse_number(amountToPrecision),
             'fromAccount': fromAccount,

@@ -389,9 +389,9 @@ class lbank(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
-        type = None
+        type: Str = None
         type, params = self.handle_market_type_and_params('fetchTime', None, params)
-        response = None
+        response: dict = None
         if type == 'swap':
             response = await self.contractPublicGetCfdOpenApiV1PubGetTime(params)
         else:
@@ -826,16 +826,16 @@ class lbank(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         if symbols is not None:
             symbols = self.market_symbols(symbols)
             symbolsLength = len(symbols)
             if symbolsLength > 0:
                 market = self.market(symbols[0])
         request: dict = {}
-        type = None
+        type: Str = None
         type, params = self.handle_market_type_and_params('fetchTickers', market, params)
-        response = None
+        response: dict = None
         if type == 'swap':
             request['productGroup'] = 'SwapU'
             response = await self.contractPublicGetCfdOpenApiV1PubMarketData(self.extend(request, params))
@@ -909,9 +909,9 @@ class lbank(Exchange, ImplicitAPI):
         request: dict = {
             'symbol': market['id'],
         }
-        type = None
+        type: Str = None
         type, params = self.handle_market_type_and_params('fetchOrderBook', market, params)
-        response = None
+        response: dict = None
         if type == 'swap':
             request['depth'] = limit
             response = await self.contractPublicGetCfdOpenApiV1PubMarketOrder(self.extend(request, params))
@@ -1023,8 +1023,8 @@ class lbank(Exchange, ImplicitAPI):
         if costString is None:
             costString = self.safe_string(trade, 'dealVolumePrice')
         side = self.safe_string_2(trade, 'tradeType', 'type')
-        type = None
-        takerOrMaker = None
+        type: Str = None
+        takerOrMaker: Str = None
         if side is not None:
             parts = side.split('_')
             side = self.safe_string(parts, 0)
@@ -1041,7 +1041,7 @@ class lbank(Exchange, ImplicitAPI):
             id = self.safe_string(trade, 'txUuid')
         order = self.safe_string(trade, 'orderUuid')
         symbol = self.safe_symbol(None, market)
-        fee = None
+        fee: dict = None
         feeCost = self.safe_string(trade, 'tradeFee')
         if feeCost is not None:
             feeCurr = market['base'] if (side == 'buy') else market['quote']
@@ -1094,7 +1094,7 @@ class lbank(Exchange, ImplicitAPI):
         defaultMethod = self.safe_string(options, 'method', 'spotPublicGetTrades')
         method = self.safe_string(params, 'method', defaultMethod)
         params = self.omit(params, 'method')
-        response = None
+        response: dict = None
         if method == 'spotPublicGetSupplementTrades':
             response = await self.spotPublicGetSupplementTrades(self.extend(request, params))
         else:
@@ -1342,7 +1342,7 @@ class lbank(Exchange, ImplicitAPI):
         fundingRate = self.safe_number(ticker, 'fundingRate')
         fundingTime = self.safe_integer(ticker, 'nextFeeTime')
         positionFeeTime = self.safe_integer(ticker, 'positionFeeTime')
-        intervalString = None
+        intervalString: Str = None
         if positionFeeTime is not None:
             interval = self.parse_to_int(positionFeeTime / 60 / 60)
             intervalString = str(interval) + 'h'
@@ -1437,7 +1437,7 @@ class lbank(Exchange, ImplicitAPI):
         options = self.safe_value(self.options, 'fetchBalance', {})
         defaultMethod = self.safe_string(options, 'method', 'spotPrivatePostSupplementUserInfo')
         method = self.safe_string(params, 'method', defaultMethod)
-        response = None
+        response: dict = None
         if method == 'spotPrivatePostSupplementUserInfoAccount':
             response = await self.spotPrivatePostSupplementUserInfoAccount()
         elif method == 'spotPrivatePostUserInfo':
@@ -1593,7 +1593,7 @@ class lbank(Exchange, ImplicitAPI):
                 request['amount'] = self.amount_to_precision(symbol, amount)
             elif side == 'buy':
                 request['type'] = side + '_' + 'market'
-                quoteAmount = None
+                quoteAmount: Str = None
                 createMarketBuyOrderRequiresPrice = True
                 createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
                 cost = self.safe_number(params, 'cost')
@@ -1618,7 +1618,7 @@ class lbank(Exchange, ImplicitAPI):
         defaultMethod = self.safe_string(options, 'method', 'spotPrivatePostSupplementCreateOrder')
         method = self.safe_string(params, 'method', defaultMethod)
         params = self.omit(params, 'method')
-        response = None
+        response: dict = None
         if method == 'spotPrivatePostCreateOrder':
             response = await self.spotPrivatePostCreateOrder(self.extend(request, params))
         else:
@@ -1745,7 +1745,7 @@ class lbank(Exchange, ImplicitAPI):
         rawStatus = self.safe_string(order, 'status')
         marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
-        timeInForce = None
+        timeInForce: Str = None
         postOnly = False
         type = 'limit'
         rawType = self.safe_string_2(order, 'type', 'tradeType')  # buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
@@ -1763,7 +1763,7 @@ class lbank(Exchange, ImplicitAPI):
             timeInForce = 'FOK'
         price = self.safe_string(order, 'price')
         costString = self.safe_string(order, 'cummulativeQuoteQty')
-        amountString = None
+        amountString: Str = None
         if rawType != 'buy_market':
             amountString = self.safe_string_2(order, 'origQty', 'amount')
         filledString = self.safe_string_2(order, 'executedQty', 'deal_amount')
@@ -2161,7 +2161,7 @@ class lbank(Exchange, ImplicitAPI):
         defaultMethod = self.safe_string(options, 'method', 'fetchDepositAddressDefault')
         method = self.safe_string(params, 'method', defaultMethod)
         params = self.omit(params, 'method')
-        response = None
+        response: dict = None
         if method == 'fetchDepositAddressSupplement':
             response = await self.fetch_deposit_address_supplement(code, params)
         else:
@@ -2348,7 +2348,7 @@ class lbank(Exchange, ImplicitAPI):
         #      }
         #
         id = self.safe_string(transaction, 'id')
-        type = None
+        type: Str = None
         if id is None:
             type = 'deposit'
         else:
@@ -2356,8 +2356,8 @@ class lbank(Exchange, ImplicitAPI):
         txid = self.safe_string(transaction, 'txId')
         timestamp = self.safe_integer_2(transaction, 'insertTime', 'applyTime')
         address = self.safe_string(transaction, 'address')
-        addressFrom = None
-        addressTo = None
+        addressFrom: Str = None
+        addressTo: Str = None
         if type == 'deposit':
             addressFrom = address
         else:
@@ -2366,7 +2366,7 @@ class lbank(Exchange, ImplicitAPI):
         currencyId = self.safe_string_2(transaction, 'coin', 'coid')
         code = self.safe_currency_code(currencyId, currency)
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'), type)
-        fee = None
+        fee: Fee = None
         feeCost = self.safe_number(transaction, 'fee')
         if feeCost is not None:
             fee = {
@@ -2413,7 +2413,7 @@ class lbank(Exchange, ImplicitAPI):
             # 'status': Recharge status: ("1","Applying"),("2","Recharge successful"),("3","Recharge failed"),("4","Already Cancel"),("5", "Transfer")
             # 'endTime': end time, timestamp in milliseconds, default now
         }
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
             request['coin'] = currency['id']
@@ -2465,7 +2465,7 @@ class lbank(Exchange, ImplicitAPI):
             # 'endTime': end time, timestamp in milliseconds, default now
             # 'withdrawOrderId': Custom withdrawal id
         }
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
             request['coin'] = currency['id']
@@ -2513,7 +2513,7 @@ class lbank(Exchange, ImplicitAPI):
         # private only returns information for currencies with non-zero balance
         await self.load_markets()
         isAuthorized = self.check_required_credentials(False)
-        result = None
+        result: dict = None
         if isAuthorized is True:
             options = self.safe_value(self.options, 'fetchTransactionFees', {})
             defaultMethod = self.safe_string(options, 'method', 'fetchPrivateTransactionFees')
@@ -2648,7 +2648,7 @@ class lbank(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         isAuthorized = self.check_required_credentials(False)
-        response = None
+        response: dict = None
         if isAuthorized is True:
             options = self.safe_value(self.options, 'fetchDepositWithdrawFees', {})
             defaultMethod = self.safe_string(options, 'method', 'fetchPrivateDepositWithdrawFees')
@@ -2835,7 +2835,7 @@ class lbank(Exchange, ImplicitAPI):
                 }
         return result
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers=None, body=None):
         query = self.omit(params, self.extract_params(path))
         url = self.urls['api']['rest'] + '/' + self.version + '/' + self.implode_params(path, params)
         # Every spot endpoint ends with ".do"
@@ -2853,7 +2853,7 @@ class lbank(Exchange, ImplicitAPI):
             query = self.extend({
                 'api_key': self.apiKey,
             }, query)
-            signatureMethod = None
+            signatureMethod: Str = None
             if len(self.secret) > 32:
                 signatureMethod = 'RSA'
             else:
@@ -2867,10 +2867,10 @@ class lbank(Exchange, ImplicitAPI):
             encoded = self.encode(auth)
             hash = self.hash(encoded, 'md5')
             uppercaseHash = hash.upper()
-            sign = None
+            sign: Str = None
             if signatureMethod == 'RSA':
                 cacheSecretAsPem = self.safe_bool(self.options, 'cacheSecretAsPem', True)
-                pem = None
+                pem: Str = None
                 if cacheSecretAsPem:
                     pem = self.safe_value(self.options, 'pem')
                     if pem is None:

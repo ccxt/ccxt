@@ -370,7 +370,7 @@ class indodax(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        result = []
+        result: List = []
         for i in range(0, len(response)):
             market = response[i]
             id = self.safe_string(market, 'id')
@@ -619,7 +619,7 @@ class indodax(Exchange, ImplicitAPI):
         response = self.publicGetApiTickerAll(params)
         tickers = self.safe_dict(response, 'tickers', {})
         keys = list(tickers.keys())
-        parsedTickers = {}
+        parsedTickers: dict = {}
         for i in range(0, len(keys)):
             key = keys[i]
             rawTicker = tickers[key]
@@ -786,10 +786,10 @@ class indodax(Exchange, ImplicitAPI):
             side = order['type']
         status = self.parse_order_status(self.safe_string(order, 'status', 'open'))
         symbol: Str = None
-        cost = None
+        cost: Str = None
         price = self.safe_string(order, 'price')
-        amount = None
-        remaining = None
+        amount: Str = None
+        remaining: Str = None
         marketId = self.safe_string(order, 'pair')
         market = self.safe_market(marketId, market)
         if market is not None:
@@ -884,7 +884,7 @@ class indodax(Exchange, ImplicitAPI):
             return self.parse_orders(rawOrders, market, since, limit)
         # {success: 1, return: {orders: {marketid: [... objects]}}} if all orders are fetched
         marketIds = list(rawOrders.keys())
-        exchangeOrders = []
+        exchangeOrders: List = []
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             marketOrders = rawOrders[marketId]
@@ -942,7 +942,7 @@ class indodax(Exchange, ImplicitAPI):
         quantityIsRequired = False
         if type == 'market':
             if side == 'buy':
-                quoteAmount = None
+                quoteAmount: Str = None
                 cost = self.safe_number(params, 'cost')
                 params = self.omit(params, 'cost')
                 if cost is not None:
@@ -1135,7 +1135,7 @@ class indodax(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'return', {})
         withdraw = self.safe_value(data, 'withdraw', {})
         deposit = self.safe_value(data, 'deposit', {})
-        transactions = []
+        transactions: List = []
         currency: Currency = None
         if code is None:
             keys = list(withdraw.keys())
@@ -1365,7 +1365,7 @@ class indodax(Exchange, ImplicitAPI):
                 }
         return result
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]
         if api == 'public':
             query = self.omit(params, self.extract_params(path))

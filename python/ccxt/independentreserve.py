@@ -333,7 +333,7 @@ class independentreserve(Exchange, ImplicitAPI):
         #         "Xrp": 1.0,
         #     }
         #
-        result = []
+        result: List = []
         for i in range(0, len(baseCurrencies)):
             baseId = baseCurrencies[i]
             base = self.safe_currency_code(baseId)
@@ -450,7 +450,7 @@ class independentreserve(Exchange, ImplicitAPI):
         timestamp = self.parse8601(self.safe_string(ticker, 'CreatedTimestampUtc'))
         baseId = self.safe_string(ticker, 'PrimaryCurrencyCode')
         quoteId = self.safe_string(ticker, 'SecondaryCurrencyCode')
-        defaultMarketId = None
+        defaultMarketId: Str = None
         if (baseId is not None) and (quoteId is not None):
             defaultMarketId = baseId + '/' + quoteId
         market = self.safe_market(defaultMarketId, market, '/')
@@ -558,11 +558,11 @@ class independentreserve(Exchange, ImplicitAPI):
         #        "VolumeFilled": 0,
         #        "VolumeOrdered": 0.358
         #    }
-        symbol = None
+        symbol: Str = None
         baseId = self.safe_string(order, 'PrimaryCurrencyCode')
         quoteId = self.safe_string(order, 'SecondaryCurrencyCode')
-        base = None
-        quote = None
+        base: Str = None
+        quote: Str = None
         if (baseId is not None) and (quoteId is not None):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
@@ -572,7 +572,7 @@ class independentreserve(Exchange, ImplicitAPI):
             base = market['base']
             quote = market['quote']
         orderType = self.safe_string_2(order, 'Type', 'OrderType')
-        side = None
+        side: Str = None
         if orderType is not None:
             if orderType.find('Bid') >= 0:
                 side = 'buy'
@@ -585,7 +585,7 @@ class independentreserve(Exchange, ImplicitAPI):
         timestamp = self.parse8601(self.safe_string(order, 'CreatedTimestampUtc'))
         filled = self.safe_string(order, 'VolumeFilled')
         feeRate = self.safe_string(order, 'FeePercent')
-        feeCost = None
+        feeCost: Str = None
         if feeRate is not None and filled is not None:
             feeCost = Precise.string_mul(feeRate, filled)
         return self.safe_order({
@@ -650,7 +650,7 @@ class independentreserve(Exchange, ImplicitAPI):
         response = self.privatePostGetOrderDetails(self.extend({
             'orderGuid': id,
         }, params))
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
         return self.parse_order(response, market)
@@ -666,7 +666,7 @@ class independentreserve(Exchange, ImplicitAPI):
         """
         self.load_markets()
         request = {}
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['primaryCurrencyCode'] = market['baseId']
@@ -690,7 +690,7 @@ class independentreserve(Exchange, ImplicitAPI):
         """
         self.load_markets()
         request = {}
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['primaryCurrencyCode'] = market['baseId']
@@ -721,7 +721,7 @@ class independentreserve(Exchange, ImplicitAPI):
             'pageSize': limit,
         }
         response = self.privatePostGetTrades(self.extend(request, params))
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
         return self.parse_trades(response['Data'], market, since, limit)
@@ -737,7 +737,7 @@ class independentreserve(Exchange, ImplicitAPI):
         cost = self.parse_number(Precise.string_mul(priceString, amountString))
         baseId = self.safe_string(trade, 'PrimaryCurrencyCode')
         quoteId = self.safe_string(trade, 'SecondaryCurrencyCode')
-        marketId = None
+        marketId: Str = None
         if (baseId is not None) and (quoteId is not None):
             marketId = baseId + '/' + quoteId
         symbol = self.safe_symbol(marketId, market, '/')
@@ -844,7 +844,7 @@ class independentreserve(Exchange, ImplicitAPI):
             'secondaryCurrencyCode': market['quoteId'],
             'orderType': orderType,
         }
-        response = None
+        response: dict
         request['volume'] = amount
         if type == 'limit':
             request['price'] = price
@@ -960,7 +960,7 @@ class independentreserve(Exchange, ImplicitAPI):
         }
         if tag is not None:
             request['destinationTag'] = tag
-        networkCode = None
+        networkCode: Str = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:
             raise BadRequest(self.id + ' withdraw() does not accept params["networkCode"]')
@@ -1036,7 +1036,7 @@ class independentreserve(Exchange, ImplicitAPI):
             'internal': False,
         }
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers: dict = None, body: Any = None):
         url = self.urls['api'][api] + '/' + path
         if api == 'public':
             if params:

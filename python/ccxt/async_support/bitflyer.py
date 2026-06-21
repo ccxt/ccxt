@@ -296,7 +296,7 @@ class bitflyer(Exchange, ImplicitAPI):
         #
         markets = self.array_concat(jp_markets, us_markets)
         markets = self.array_concat(markets, eu_markets)
-        result = []
+        result: List = []
         for i in range(0, len(markets)):
             market = markets[i]
             id = self.safe_string(market, 'product_code')
@@ -542,7 +542,7 @@ class bitflyer(Exchange, ImplicitAPI):
         if side is not None:
             if len(side) < 1:
                 side = None
-        order = None
+        order: Str = None
         if side is not None:
             idInner = side + '_child_order_acceptance_id'
             if idInner in trade:
@@ -713,7 +713,7 @@ class bitflyer(Exchange, ImplicitAPI):
         side = self.safe_string_lower(order, 'side')
         marketId = self.safe_string(order, 'product_code')
         symbol = self.safe_symbol(marketId, market)
-        fee: dict = None
+        fee: NullableDict = None
         feeCost = self.safe_number(order, 'total_commission')
         if feeCost is not None:
             fee = {
@@ -1065,7 +1065,7 @@ class bitflyer(Exchange, ImplicitAPI):
         rawStatus = self.safe_string(transaction, 'status')
         type: Str = None
         status: Str = None
-        fee = None
+        fee: NullableDict = None
         if 'fee' in transaction:
             type = 'withdrawal'
             status = self.parse_withdrawal_status(rawStatus)
@@ -1152,7 +1152,7 @@ class bitflyer(Exchange, ImplicitAPI):
             'interval': None,
         }
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers=None, body=None):
         request = '/' + self.version + '/'
         if api == 'private':
             request += 'me/'

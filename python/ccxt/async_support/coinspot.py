@@ -656,7 +656,7 @@ class coinspot(Exchange, ImplicitAPI):
             'amount': amount,
             'rate': price,
         }
-        response = None
+        response: dict
         if sideUpper == 'BUY':
             response = await self.privatePostMyBuy(self.extend(request, params))
         elif sideUpper == 'SELL':
@@ -689,7 +689,7 @@ class coinspot(Exchange, ImplicitAPI):
         request: dict = {
             'id': id,
         }
-        response: dict = None
+        response: dict
         if side == 'buy':
             response = await self.privatePostMyBuyCancel(self.extend(request, params))
         else:
@@ -710,7 +710,7 @@ class coinspot(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers=None, body=None):
         isVersionedApi = isinstance(api, list)
         version = api[0] if isVersionedApi else None
         accessType = api[1] if isVersionedApi else api

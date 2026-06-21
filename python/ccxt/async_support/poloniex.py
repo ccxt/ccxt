@@ -501,7 +501,7 @@ class poloniex(Exchange, ImplicitAPI):
                     '10020': BadSymbol,  # Invalid currency
                     '10041': BadSymbol,  # Symbol frozen for trading
                     '21340': OnMaintenance,  # No order creation/cancelation is allowed is in Maintenane Mode
-                    '21341': InvalidOrder,  # Post-only orders type allowed is in Post Only Mode
+                    '21341': InvalidOrder,  # Post-only orders(type) allowed is in Post Only Mode
                     '21342': InvalidOrder,  # Price is higher than highest bid is in Maintenance Mode
                     '21343': InvalidOrder,  # Price is lower than lowest bid is in Maintenance Mode
                     '21351': AccountSuspended,  # Trading for self account is frozen. Contact support
@@ -1385,7 +1385,7 @@ class poloniex(Exchange, ImplicitAPI):
         market = self.safe_market(marketId, market, '_')
         symbol = market['symbol']
         side = self.safe_string_lower_2(trade, 'side', 'takerSide')
-        fee = None
+        fee: dict = None
         priceString = self.safe_string_2(trade, 'price', 'px')
         amountString = self.safe_string_2(trade, 'quantity', 'qty')
         costString = self.safe_string_2(trade, 'amount', 'amt')
@@ -1695,7 +1695,7 @@ class poloniex(Exchange, ImplicitAPI):
         rawType = self.safe_string(order, 'type')
         type = self.parse_order_type(rawType)
         id = self.safe_string_n(order, ['orderNumber', 'id', 'orderId', 'ordId'])
-        fee = None
+        fee: dict = None
         feeCurrency = self.safe_string_2(order, 'tokenFeeCurrency', 'feeCcy')
         feeCost: Str = None
         feeCurrencyCode: Str = None
@@ -2174,7 +2174,7 @@ class poloniex(Exchange, ImplicitAPI):
             request['symbols'] = [
                 market['id'],
             ]
-        response = None
+        response: dict = None
         marketType: Str = None
         marketType, params = self.handle_market_type_and_params('cancelAllOrders', market, params)
         if marketType == 'swap' or marketType == 'future':
@@ -2248,7 +2248,7 @@ class poloniex(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' fetchOrder() is not supported for ' + marketType + ' markets yet')
         isTrigger = self.safe_value_2(params, 'trigger', 'stop')
         params = self.omit(params, ['trigger', 'stop'])
-        response = None
+        response: dict = None
         if isTrigger:
             response = await self.privateGetSmartordersId(self.extend(request, params))
             response = self.safe_value(response, 0)
@@ -3444,7 +3444,7 @@ class poloniex(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api']['spot']
         if self.in_array(api, ['swapPublic', 'swapPrivate']):
             url = self.urls['api']['swap']

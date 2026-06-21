@@ -68,7 +68,7 @@ class kucoinfutures(kucoin):
             'amount': amountToPrecision,
         }
         toAccountString = self.parse_transfer_type(toAccount)
-        response = None
+        response: NullableDict = None
         if toAccountString == 'TRADE' or toAccountString == 'MAIN':
             request['recAccountType'] = toAccountString
             response = await self.futuresPrivatePostTransferOut(self.extend(request, params))

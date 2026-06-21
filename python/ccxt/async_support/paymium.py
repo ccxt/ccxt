@@ -590,7 +590,7 @@ class paymium(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api']['rest'] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':

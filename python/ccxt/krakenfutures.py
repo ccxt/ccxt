@@ -2962,7 +2962,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             raise BadRequest(feedback)
         raise ExchangeError(feedback)  # unknown message
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers=None, body=None):
         apiVersions = self.safe_value(self.options['versions'], api, {})
         methodVersions = self.safe_value(apiVersions, method, {})
         defaultVersion = self.safe_string(methodVersions, path, self.version)

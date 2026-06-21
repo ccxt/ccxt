@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.blockchaincom import ImplicitAPI
-from ccxt.base.types import Any, Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
+from ccxt.base.types import Any, Balances, Bool, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -331,7 +331,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         #
         markets = self.publicGetSymbols(params)
         marketIds = list(markets.keys())
-        result = []
+        result: List = []
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             market = self.safe_value(markets, marketId)
@@ -340,7 +340,7 @@ class blockchaincom(Exchange, ImplicitAPI):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             numericId = self.safe_number(market, 'id')
-            active = None
+            active: Bool = None
             marketState = self.safe_string(market, 'status')
             if marketState == 'open':
                 active = True
@@ -363,15 +363,13 @@ class blockchaincom(Exchange, ImplicitAPI):
             minOrderSizePreciseString = Precise.string_mul(minOrderSizeString, minOrderSizeScalePrecisionString)
             minOrderSize = self.parse_number(minOrderSizePreciseString)
             # maximum order size
-            maxOrderSize = None
-            maxOrderSize = self.safe_string(market, 'max_order_size')
-            if maxOrderSize != '0':
+            maxOrderSize: Num = None
+            maxOrderSizeRaw = self.safe_string(market, 'max_order_size')
+            if maxOrderSizeRaw != '0':
                 maxOrderSizeScaleString = self.safe_string(market, 'max_order_size_scale')
                 maxOrderSizeScalePrecisionString = self.parse_precision(maxOrderSizeScaleString)
-                maxOrderSizeString = Precise.string_mul(maxOrderSize, maxOrderSizeScalePrecisionString)
-                maxOrderSize = self.parse_number(maxOrderSizeString)
-            else:
-                maxOrderSize = None
+                maxOrderSizeValueString = Precise.string_mul(maxOrderSizeRaw, maxOrderSizeScalePrecisionString)
+                maxOrderSize = self.parse_number(maxOrderSizeValueString)
             result.append({
                 'info': market,
                 'id': marketId,
@@ -792,7 +790,7 @@ class blockchaincom(Exchange, ImplicitAPI):
             'status': state,
             'limit': 100,
         }
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -815,7 +813,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         #
         orderId = self.safe_string(trade, 'exOrdId')
         tradeId = self.safe_string(trade, 'tradeId')
-        side = self.safe_string(trade, 'side').lower()
+        side = self.safe_string_lower(trade, 'side')
         marketId = self.safe_string(trade, 'symbol')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'qty')
@@ -823,7 +821,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         datetime = self.iso8601(timestamp)
         market = self.safe_market(marketId, market, '-')
         symbol = market['symbol']
-        fee = None
+        fee: NullableDict = None
         feeCostString = self.safe_string(trade, 'fee')
         if feeCostString is not None:
             feeCurrency = market['quote']
@@ -860,7 +858,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         request: dict = {}
         if limit is not None:
             request['limit'] = limit
-        market = None
+        market: Market = None
         if symbol is not None:
             request['symbol'] = self.market_id(symbol)
             market = self.market(symbol)
@@ -884,8 +882,8 @@ class blockchaincom(Exchange, ImplicitAPI):
         }
         response = self.privatePostDepositsCurrency(self.extend(request, params))
         rawAddress = self.safe_string(response, 'address')
-        tag = None
-        address = None
+        tag: Str = None
+        address: Str = None
         if rawAddress is not None:
             addressParts = rawAddress.split(';')
             # if a tag or memo is used it is separated by a colon in the 'address' value
@@ -935,8 +933,8 @@ class blockchaincom(Exchange, ImplicitAPI):
         #         "timestamp":1634218452549
         #     }
         #
-        type = None
-        id = None
+        type: Str = None
+        id: Str = None
         amount = self.safe_number(transaction, 'amount')
         timestamp = self.safe_integer(transaction, 'timestamp')
         currencyId = self.safe_string(transaction, 'currency')
@@ -949,7 +947,7 @@ class blockchaincom(Exchange, ImplicitAPI):
             type = 'withdrawal'
             id = self.safe_string(transaction, 'withdrawalId')
         feeCost = self.safe_number(transaction, 'fee') if (type == 'withdrawal') else None
-        fee = None
+        fee: Fee = None
         if feeCost is not None:
             fee = {'currency': code, 'cost': feeCost}
         address = self.safe_string(transaction, 'address')
@@ -1031,7 +1029,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         }
         if since is not None:
             request['from'] = since
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
         response = self.privateGetWithdrawals(self.extend(request, params))
@@ -1074,7 +1072,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         }
         if since is not None:
             request['from'] = since
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
         response = self.privateGetDeposits(self.extend(request, params))
@@ -1182,7 +1180,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers=None, body=None):
         requestPath = '/' + self.implode_params(path, params)
         url = self.urls['api'][api] + requestPath
         query = self.omit(params, self.extract_params(path))

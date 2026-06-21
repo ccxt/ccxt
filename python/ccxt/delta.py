@@ -355,7 +355,7 @@ class delta(Exchange, ImplicitAPI):
         optionParts = symbol.split('-')
         symbolBase = symbol.split('/')
         base: Str = None
-        expiry = None
+        expiry: Str = None
         optionType: Str = None
         if symbol.find('/') > -1:
             base = self.safe_string(symbolBase, 0)
@@ -833,7 +833,7 @@ class delta(Exchange, ImplicitAPI):
         #     }
         #
         markets = self.safe_list(response, 'result', [])
-        result = []
+        result: List[Market] = []
         for i in range(0, len(markets)):
             market = markets[i]
             type = self.safe_string(market, 'contract_type')
@@ -904,7 +904,7 @@ class delta(Exchange, ImplicitAPI):
                 'settleId': settleId,
                 'type': type,
                 'spot': spot,
-                'margin': None if spot else False,
+                'margin': False,
                 'swap': swap,
                 'future': future,
                 'option': option,
@@ -1496,7 +1496,7 @@ class delta(Exchange, ImplicitAPI):
         if type is not None:
             type = type.replace('_order', '')
         feeCostString = self.safe_string(trade, 'commission')
-        fee = None
+        fee: NullableDict = None
         if feeCostString is not None:
             settlingAsset = self.safe_dict(product, 'settling_asset', {})
             feeCurrencyId = self.safe_string(settlingAsset, 'symbol')
@@ -1902,7 +1902,7 @@ class delta(Exchange, ImplicitAPI):
         amount = self.safe_string(order, 'size')
         remaining = self.safe_string(order, 'unfilled_size')
         average = self.safe_string(order, 'average_fill_price')
-        fee = None
+        fee: NullableDict = None
         feeCostString = self.safe_string(order, 'paid_commission')
         if feeCostString is not None:
             feeCurrencyCode: Str = None
@@ -2173,7 +2173,7 @@ class delta(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string_n(params, ['clientOrderId', 'client_oid', 'clientOid'])
         params = self.omit(params, ['clientOrderId', 'client_oid', 'clientOid'])
         request: dict = {}
-        response: dict = None
+        response: NullableDict = None
         if clientOrderId is not None:
             request['client_oid'] = clientOrderId
             response = self.privateGetOrdersClientOrderIdClientOid(self.extend(request, params))
@@ -2255,7 +2255,7 @@ class delta(Exchange, ImplicitAPI):
             request['start_time'] = str(since) + '000'
         if limit is not None:
             request['page_size'] = limit
-        response: dict = None
+        response: NullableDict = None
         if method == 'privateGetOrders':
             response = self.privateGetOrders(self.extend(request, params))
         elif method == 'privateGetOrdersHistory':
@@ -3360,7 +3360,7 @@ class delta(Exchange, ImplicitAPI):
             'bidPrice': self.safe_number(quotes, 'best_bid'),
             'askPrice': self.safe_number(quotes, 'best_ask'),
             'markPrice': self.safe_number(greeks, 'mark_price'),
-            'lastPrice': None,
+            'lastPrice': self.safe_number(greeks, 'last_price'),
             'underlyingPrice': self.safe_number(greeks, 'spot_price'),
             'info': greeks,
         }
@@ -3469,7 +3469,7 @@ class delta(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_margin_mode(result, market)
 
-    def parse_margin_mode(self, marginMode: dict, market=None) -> MarginMode:
+    def parse_margin_mode(self, marginMode: dict, market: Market = None) -> MarginMode:
         symbol: Str = None
         if market is not None:
             symbol = market['symbol']
@@ -3606,7 +3606,7 @@ class delta(Exchange, ImplicitAPI):
         timestamp = self.safe_integer_product(chain, 'timestamp', 0.001)
         return {
             'info': chain,
-            'currency': None,
+            'currency': self.safe_string(chain, 'currency'),
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -3616,12 +3616,12 @@ class delta(Exchange, ImplicitAPI):
             'askPrice': self.safe_number(quotes, 'best_ask'),
             'midPrice': self.safe_number(quotes, 'impact_mid_price'),
             'markPrice': self.safe_number(chain, 'mark_price'),
-            'lastPrice': None,
+            'lastPrice': self.safe_number(chain, 'last_price'),
             'underlyingPrice': self.safe_number(chain, 'spot_price'),
-            'change': None,
-            'percentage': None,
+            'change': self.safe_number(chain, 'change'),
+            'percentage': self.safe_number(chain, 'percentage'),
             'baseVolume': self.safe_number(chain, 'volume'),
-            'quoteVolume': None,
+            'quoteVolume': self.safe_number(chain, 'quote_volume'),
         }
 
     def fetch_positions_adl_rank(self, symbols: Strings = None, params={}) -> List[ADL]:
@@ -3989,7 +3989,7 @@ class delta(Exchange, ImplicitAPI):
             'datetime': datetime,
         }
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers: dict = {}, body: Any = None):
         requestPath = '/' + self.version + '/' + self.implode_params(path, params)
         url = self.urls['api'][api] + requestPath
         query = self.omit(params, self.extract_params(path))

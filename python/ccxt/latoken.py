@@ -416,7 +416,7 @@ class latoken(Exchange, ImplicitAPI):
             self.load_time_difference()
         currencies = self.safe_dict(self.options, 'cachedCurrencies', {})
         currenciesById = self.index_by(currencies, 'id')
-        result = []
+        result: List = []
         for i in range(0, len(response)):
             market = response[i]
             id = self.safe_string(market, 'id')
@@ -593,7 +593,7 @@ class latoken(Exchange, ImplicitAPI):
             'timestamp': None,
             'datetime': None,
         }
-        maxTimestamp = None
+        maxTimestamp: Int = None
         defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         types = self.safe_value(self.options, 'types', {})
@@ -837,7 +837,7 @@ class latoken(Exchange, ImplicitAPI):
         id = self.safe_string(trade, 'id')
         orderId = self.safe_string(trade, 'order')
         feeCost = self.safe_string(trade, 'fee')
-        fee = None
+        fee: NullableDict = None
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
@@ -983,10 +983,10 @@ class latoken(Exchange, ImplicitAPI):
             # 'from': self.milliseconds(),
             # 'limit': limit,  # default '100'
         }
-        market = None
+        market: Market = None
         if limit is not None:
             request['limit'] = limit  # default 100
-        response = None
+        response: List
         if symbol is not None:
             market = self.market(symbol)
             request['currency'] = market['baseId']
@@ -1087,13 +1087,13 @@ class latoken(Exchange, ImplicitAPI):
         quoteId = self.safe_string(order, 'quoteCurrency')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        symbol = None
+        symbol: Str = None
         if (base is not None) and (quote is not None):
             symbol = base + '/' + quote
             if symbol in self.markets:
                 market = self.market(symbol)
         orderSide = self.safe_string(order, 'side')
-        side = None
+        side: Str = None
         if orderSide is not None:
             parts = orderSide.split('_')
             partsLength = len(parts)
@@ -1153,7 +1153,7 @@ class latoken(Exchange, ImplicitAPI):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         self.load_markets()
-        response = None
+        response: dict
         isTrigger = self.safe_value_2(params, 'trigger', 'stop')
         params = self.omit(params, 'stop')
         # privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
@@ -1213,12 +1213,12 @@ class latoken(Exchange, ImplicitAPI):
             # 'from': self.milliseconds(),
             # 'limit': limit,  # default '100'
         }
-        market = None
+        market: Market = None
         isTrigger = self.safe_value_2(params, 'trigger', 'stop')
         params = self.omit(params, ['stop', 'trigger'])
         if limit is not None:
             request['limit'] = limit  # default 100
-        response = None
+        response: dict
         if symbol is not None:
             market = self.market(symbol)
             request['currency'] = market['baseId']
@@ -1275,7 +1275,7 @@ class latoken(Exchange, ImplicitAPI):
         }
         isTrigger = self.safe_value_2(params, 'trigger', 'stop')
         params = self.omit(params, ['stop', 'trigger'])
-        response = None
+        response: dict
         if isTrigger:
             response = self.privateGetAuthStopOrderGetOrderId(self.extend(request, params))
         else:
@@ -1341,7 +1341,7 @@ class latoken(Exchange, ImplicitAPI):
             request['price'] = self.price_to_precision(symbol, price)
         triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
         params = self.omit(params, ['triggerPrice', 'stopPrice'])
-        response = None
+        response: dict
         if triggerPrice is not None:
             request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
             response = self.privatePostAuthStopOrderPlace(self.extend(request, params))
@@ -1380,7 +1380,7 @@ class latoken(Exchange, ImplicitAPI):
         }
         isTrigger = self.safe_value_2(params, 'trigger', 'stop')
         params = self.omit(params, ['stop', 'trigger'])
-        response = None
+        response: dict
         if isTrigger:
             response = self.privatePostAuthStopOrderCancel(self.extend(request, params))
         else:
@@ -1413,10 +1413,10 @@ class latoken(Exchange, ImplicitAPI):
             # 'currency': market['baseId'],
             # 'quote': market['quoteId'],
         }
-        market = None
+        market: Market = None
         isTrigger = self.safe_value_2(params, 'trigger', 'stop')
         params = self.omit(params, ['stop', 'trigger'])
-        response = None
+        response: dict
         if symbol is not None:
             market = self.market(symbol)
             request['currency'] = market['baseId']
@@ -1487,7 +1487,7 @@ class latoken(Exchange, ImplicitAPI):
         #         "pageSize":10
         #     }
         #
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
         content = self.safe_list(response, 'content', [])
@@ -1522,7 +1522,7 @@ class latoken(Exchange, ImplicitAPI):
         addressTo = self.safe_string(transaction, 'recipientAddress')
         txid = self.safe_string(transaction, 'transactionHash')
         tagTo = self.safe_string(transaction, 'memo')
-        fee = {
+        fee: FeeInterface = {
             'currency': None,
             'cost': None,
             'rate': None,
@@ -1644,7 +1644,7 @@ class latoken(Exchange, ImplicitAPI):
             'recipient': toAccount,
             'value': self.currency_to_precision(code, amount),
         }
-        response = None
+        response: dict
         if toAccount.find('@') >= 0:
             response = self.privatePostAuthTransferEmail(self.extend(request, params))
         elif len(toAccount) == 36:
@@ -1723,7 +1723,7 @@ class latoken(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def sign(self, path, api='public', method='GET', params=None, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers: dict = None, body: Any = None):
         request = '/' + self.version + '/' + self.implode_params(path, params)
         requestString = request
         query = self.omit(params, self.extract_params(path))
@@ -1743,7 +1743,7 @@ class latoken(Exchange, ImplicitAPI):
             if method == 'POST':
                 headers['Content-Type'] = 'application/json'
                 body = self.json(query)
-        url = self.urls['api']['rest'] + requestString
+        url = (self.urls['api'])['rest'] + requestString
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):

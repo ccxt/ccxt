@@ -1779,7 +1779,7 @@ class bitopro(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_deposit_withdraw_fees(data, codes, 'currency')
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers=None, body=None):
         url = '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if headers is None:

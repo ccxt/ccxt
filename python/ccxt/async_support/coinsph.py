@@ -1253,7 +1253,7 @@ class coinsph(Exchange, ImplicitAPI):
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'qty')
         type = None
-        fee = None
+        fee: dict = None
         feeCost = self.safe_string(trade, 'commission')
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'commissionAsset')
@@ -2117,7 +2117,7 @@ class coinsph(Exchange, ImplicitAPI):
         urlEncodedParam = key + '=' + stringifiedArray
         return urlEncodedParam
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]
         query = self.omit(params, self.extract_params(path))
         endpoint = self.implode_params(path, params)

@@ -312,7 +312,7 @@ class coincheck(Exchange, ImplicitAPI):
         response = self.privateGetExchangeOrdersOpens(params)
         rawOrders = self.safe_value(response, 'orders', [])
         parsedOrders = self.parse_orders(rawOrders, market, since, limit)
-        result = []
+        result: List[Order] = []
         for i in range(0, len(parsedOrders)):
             result.append(self.extend(parsedOrders[i], {'status': 'open'}))
         return result
@@ -496,7 +496,7 @@ class coincheck(Exchange, ImplicitAPI):
         amountString: Str = None
         costString: Str = None
         side: Str = None
-        fee = None
+        fee: NullableDict = None
         orderId: Str = None
         if 'liquidity' in trade:
             if self.safe_string(trade, 'liquidity') == 'T':
@@ -888,7 +888,7 @@ class coincheck(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers: dict = None, body: Any = None):
         url = self.urls['api']['rest'] + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':

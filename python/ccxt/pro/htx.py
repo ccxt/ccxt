@@ -773,7 +773,7 @@ class htx(ccxt.async_support.htx):
         messageHash: Str = None
         channel: Str = None
         trades = None
-        subType = None
+        subType: Str = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
@@ -856,7 +856,7 @@ class htx(ccxt.async_support.htx):
         """
         await self.load_markets()
         type: Str = None
-        subType = None
+        subType: Str = None
         market: Market = None
         suffix = '*'  # wildcard
         if symbol is not None:
@@ -1201,7 +1201,7 @@ class htx(ccxt.async_support.htx):
         filled = self.safe_string(order, 'execAmt')
         typeSide = self.safe_string(order, 'type')
         feeCost = self.safe_string(order, 'fee')
-        fee = None
+        fee: dict = None
         if feeCost is not None:
             feeCurrencyId = self.safe_string(order, 'fee_asset')
             fee = {
@@ -2230,7 +2230,7 @@ class htx(ccxt.async_support.htx):
         if orderType is not None:
             orderTypeParts = orderType.split('-')
             type = self.safe_string(orderTypeParts, 1)
-        fee = None
+        fee: dict = None
         feeCurrency = self.safe_currency_code(self.safe_string(trade, 'feeCurrency'))
         if feeCurrency is not None:
             fee = {
@@ -2320,7 +2320,7 @@ class htx(ccxt.async_support.htx):
             'params': params,
         }
         extendedSubsription = self.extend(subscription, subscriptionParams)
-        request = None
+        request: dict = None
         if type == 'spot':
             request = {
                 'action': 'sub',
@@ -2357,7 +2357,7 @@ class htx(ccxt.async_support.htx):
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             timestamp = self.ymdhms(self.milliseconds(), 'T')
-            signatureParams = None
+            signatureParams: dict = None
             if type == 'spot':
                 signatureParams = {
                     'accessKey': self.apiKey,
@@ -2376,7 +2376,7 @@ class htx(ccxt.async_support.htx):
             auth = self.urlencode(signatureParams, True)  # True required in go
             payload = "\n".join(['GET', hostname, relativePath, auth])  # eslint-disable-line quotes
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
-            request = None
+            request: dict = None
             if type == 'spot':
                 newParams: dict = {
                     'authType': 'api',

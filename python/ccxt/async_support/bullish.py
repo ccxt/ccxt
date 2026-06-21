@@ -896,7 +896,7 @@ class bullish(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    def parse_market_type(self, type: str, defaultType: Str = None) -> str:
+    def parse_market_type(self, type: Str = None, defaultType: Str = None) -> Str:
         types = {
             'SPOT': 'spot',
             'PERPETUAL': 'swap',
@@ -1017,7 +1017,7 @@ class bullish(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['symbol'] = market['id']
         clientOrderId = self.safe_string(params, 'clientOrderId')
-        response = None
+        response: List
         if clientOrderId is not None:
             response = await self.privateGetV1TradesClientOrderIdClientOrderId(self.extend(request, params))
         else:
@@ -2822,7 +2822,7 @@ class bullish(Exchange, ImplicitAPI):
             'quoteVolume': None,
         }, market)
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers=None, body=None):
         request = self.omit(params, self.extract_params(path))
         endpoint = '/' + self.implode_params(path, params)
         url = self.urls['api'][api] + endpoint

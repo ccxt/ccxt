@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitmex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, ADL, Balances, Bool, Currencies, Currency, DepositAddress, Int, LedgerEntry, Leverage, Leverages, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, Transaction
+from ccxt.base.types import Any, ADL, Balances, Bool, Currencies, Currency, DepositAddress, Int, LedgerEntry, Leverage, Leverages, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -797,7 +797,7 @@ class bitmex(Exchange, ImplicitAPI):
         # 'positionCurrency' may be empty("", currently returns for ETHUSD)
         # so let's take the settlCurrency first and then adjust if needed
         typ = self.safe_string(market, 'typ')  # type definitions at: https://www.bitmex.com/api/explorer/#not /Instrument/Instrument_get
-        type = None
+        type: MarketType = None
         swap = False
         spot = False
         future = False
@@ -822,7 +822,7 @@ class bitmex(Exchange, ImplicitAPI):
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         contract = swap or future
-        contractSize = None
+        contractSize: Str = None
         isInverse = self.safe_value(market, 'isInverse')  # self is True when BASE and SETTLE are same, i.e. BTC/XXX:BTC
         isQuanto = self.safe_value(market, 'isQuanto')  # self is True when BASE and SETTLE are different, i.e. AXS/XXX:BTC
         linear = (not isInverse and not isQuanto) if contract else None
@@ -1793,7 +1793,7 @@ class bitmex(Exchange, ImplicitAPI):
         order = self.safe_string(trade, 'orderID')
         side = self.safe_string_lower(trade, 'side')
         # price * amount doesn't work for all symbols(e.g. XBT, ETH)
-        fee = None
+        fee: dict = None
         feeCostString = self.number_to_string(self.convert_from_raw_cost(symbol, self.safe_string(trade, 'execComm')))
         if feeCostString is not None:
             currencyId = self.safe_string_2(trade, 'settlCurrency', 'currency')
@@ -1892,8 +1892,8 @@ class bitmex(Exchange, ImplicitAPI):
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
         qty = self.safe_string(order, 'orderQty')
-        cost = None
-        amount = None
+        cost: Num = None
+        amount: Num = None
         isInverse = False
         if marketId is None:
             defaultSubType = self.safe_string(self.options, 'defaultSubType', 'linear')
@@ -2045,7 +2045,7 @@ class bitmex(Exchange, ImplicitAPI):
             'ordType': capitalizeOrderType,
             'text': brokerId,
         }
-        execInstructions = []
+        execInstructions: List = []
         if reduceOnly is True:
             execInstructions.append('ReduceOnly')
         if postOnly is True:
@@ -2618,7 +2618,7 @@ class bitmex(Exchange, ImplicitAPI):
         await self.load_markets()
         response = await self.publicGetInstrumentActiveAndIndices(params)
         # same response "fetchMarkets"
-        filteredResponse = []
+        filteredResponse: List = []
         for i in range(0, len(response)):
             item = response[i]
             marketId = self.safe_string(item, 'symbol')
@@ -3379,7 +3379,7 @@ class bitmex(Exchange, ImplicitAPI):
         return self.parse_settlements(response, market, since, limit)
 
     def parse_settlements(self, settlements, market=None, since=None, limit=None):
-        result = []
+        result: List = []
         for i in range(0, len(settlements)):
             result.append(self.parse_settlement(settlements[i], market))
         sorted = self.sort_by(result, 'timestamp')
@@ -3470,7 +3470,7 @@ class bitmex(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers=None, body=None):
         query = '/api/' + self.version + '/' + path
         if method == 'GET':
             if params:

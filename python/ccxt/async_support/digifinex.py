@@ -1748,7 +1748,7 @@ class digifinex(Exchange, ImplicitAPI):
         marketIdRequest = 'instrument_id' if swap else 'symbol'
         request[marketIdRequest] = market['id']
         postOnly = self.is_post_only(isMarketOrder, False, params)
-        postOnlyParsed = None
+        postOnlyParsed: Int = None
         if swap:
             reduceOnly = self.safe_bool(params, 'reduceOnly', False)
             timeInForce = self.safe_string(params, 'timeInForce')
@@ -4116,7 +4116,7 @@ class digifinex(Exchange, ImplicitAPI):
         }
         return await self.privateSwapPostAccountPositionMode(self.extend(request, params))
 
-    def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = [], method='GET', params={}, headers=None, body=None):
         signed = api[0] == 'private'
         endpoint = api[1]
         pathPart = '/v3' if (endpoint == 'spot') else '/swap/v2'

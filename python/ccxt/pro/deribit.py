@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -331,7 +331,7 @@ class deribit(ccxt.async_support.deribit):
         messageHash = self.safe_string(params, 'channel')
         client.resolve(ticker, messageHash)
 
-    def parse_ws_bid_ask(self, ticker, market=None):
+    def parse_ws_bid_ask(self, ticker, market: Market = None):
         marketId = self.safe_string(ticker, 'instrument_name')
         market = self.safe_market(marketId, market)
         symbol = self.safe_string(market, 'symbol')
@@ -375,7 +375,7 @@ class deribit(ccxt.async_support.deribit):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        interval = None
+        interval: Str = None
         interval, params = self.handle_option_and_params(params, 'watchTradesForSymbols', 'interval', '100ms')
         if interval == 'raw':
             await self.authenticate()
@@ -536,17 +536,17 @@ class deribit(ccxt.async_support.deribit):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
-        interval = None
+        interval: Str = None
         interval, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'interval', '100ms')
         if interval == 'raw':
             await self.authenticate()
         descriptor = ''
-        useDepthEndpoint = None  # for more info, see comment in .options
+        useDepthEndpoint: Bool = None  # for more info, see comment in .options
         useDepthEndpoint, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'useDepthEndpoint', False)
         if useDepthEndpoint:
-            depth = None
+            depth: Str = None
             depth, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'depth', '20')
-            group = None
+            group: Str = None
             group, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'group', 'none')
             descriptor = group + '.' + depth + '.' + interval
         else:
@@ -828,7 +828,7 @@ class deribit(ccxt.async_support.deribit):
         messageHash = 'chart.trades|' + symbol + '|' + rawTimeframe
         client.resolve(resolveData, messageHash)
 
-    def parse_ws_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ws_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #    {
         #        "c": "28909.0",
@@ -859,7 +859,7 @@ class deribit(ccxt.async_support.deribit):
         self.market_symbols(symbols, None, False)
         for i in range(0, len(symbolsArray)):
             current = symbolsArray[i]
-            market = None
+            market: Market = None
             if isOHLCV:
                 market = self.market(current[0])
                 unifiedTf = current[1]

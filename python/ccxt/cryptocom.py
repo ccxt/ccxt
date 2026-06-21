@@ -3170,7 +3170,7 @@ class cryptocom(Exchange, ImplicitAPI):
         if isinstance(object, str):
             return object
         returnString = ''
-        paramsKeys = None
+        paramsKeys: Strings = None
         if isinstance(object, list):
             paramsKeys = object
         else:
@@ -3343,7 +3343,7 @@ class cryptocom(Exchange, ImplicitAPI):
             'tierBased': None,
         }
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers=None, body=None):
         type = self.safe_string(api, 0)
         access = self.safe_string(api, 1)
         url = self.urls['api'][type] + '/' + path

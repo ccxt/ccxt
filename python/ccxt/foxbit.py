@@ -1690,7 +1690,7 @@ class foxbit(Exchange, ImplicitAPI):
         filled = self.safe_string(order, 'quantity_executed')
         remaining = self.safe_string(order, 'quantity')
         # TODO: validate logic of amount here, should self be calculated?
-        amount = None
+        amount: Str = None
         if remaining is not None and filled is not None:
             amount = Precise.string_add(remaining, filled)
         cost = self.safe_string(order, 'funds_received')
@@ -1871,7 +1871,7 @@ class foxbit(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = [], method='GET', params={}, headers=None, body=None):
         version = api[0]
         urlPath = api[1]
         fullPath = '/rest/' + version + '/' + self.implode_params(path, params)

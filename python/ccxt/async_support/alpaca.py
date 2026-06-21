@@ -1358,7 +1358,7 @@ class alpaca(Exchange, ImplicitAPI):
         alpacaStatus = self.safe_string(order, 'status')
         status = self.parse_order_status(alpacaStatus)
         feeValue = self.safe_string(order, 'commission')
-        fee = None
+        fee: NullableDict = None
         if feeValue is not None:
             fee = {
                 'cost': feeValue,
@@ -1823,7 +1823,7 @@ class alpaca(Exchange, ImplicitAPI):
         result[code] = account
         return self.safe_balance(result)
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers=None, body=None):
         endpoint = '/' + self.implode_params(path, params)
         url = self.implode_hostname(self.urls['api'][api[0]])
         headers = headers if (headers is not None) else {}

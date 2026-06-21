@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinbase import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Any, Balances, Conversion, Currencies, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, MarketInterface
+from ccxt.base.types import Account, Any, Balances, Bool, Conversion, Currencies, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, MarketInterface
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -530,7 +530,7 @@ class coinbase(Exchange, ImplicitAPI):
         defaultMethod = self.safe_string(self.options, 'fetchTime', 'v2PublicGetTime')
         method = self.safe_string(params, 'method', defaultMethod)
         params = self.omit(params, 'method')
-        response = None
+        response: NullableDict = None
         if method == 'v2PublicGetTime':
             response = self.v2PublicGetTime(params)
             #
@@ -890,7 +890,7 @@ class coinbase(Exchange, ImplicitAPI):
         return self.parse_trades(buys['data'], None, since, limit)
 
     def fetch_transactions_with_method(self, method, code: Str = None, since: Int = None, limit: Int = None, params={}):
-        request = None
+        request: NullableDict = None
         request, params = self.prepare_account_request_with_currency_code(code, limit, params)
         self.load_markets()
         response = getattr(self, method)(self.extend(request, params))
@@ -910,7 +910,7 @@ class coinbase(Exchange, ImplicitAPI):
         :param str [params.currencyType]: "fiat" or "crypto"
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        currencyType = None
+        currencyType: Str = None
         currencyType, params = self.handle_option_and_params(params, 'fetchWithdrawals', 'currencyType')
         if currencyType == 'crypto':
             results = self.fetch_transactions_with_method('v2PrivateGetAccountsAccountIdTransactions', code, since, limit, params)
@@ -931,7 +931,7 @@ class coinbase(Exchange, ImplicitAPI):
         :param str [params.currencyType]: "fiat" or "crypto"
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        currencyType = None
+        currencyType: Str = None
         currencyType, params = self.handle_option_and_params(params, 'fetchWithdrawals', 'currencyType')
         if currencyType == 'crypto':
             results = self.fetch_transactions_with_method('v2PrivateGetAccountsAccountIdTransactions', code, since, limit, params)
@@ -1117,8 +1117,8 @@ class coinbase(Exchange, ImplicitAPI):
         #    }
         #
         transactionType = self.safe_string(transaction, 'type')
-        amountAndCurrencyObject = None
-        feeObject = None
+        amountAndCurrencyObject: NullableDict = None
+        feeObject: NullableDict = None
         network = self.safe_dict(transaction, 'network', {})
         if transactionType == 'send':
             amountAndCurrencyObject = self.safe_dict(network, 'transaction_amount')
@@ -1235,7 +1235,7 @@ class coinbase(Exchange, ImplicitAPI):
         #         "side": "BUY"
         #     }
         #
-        symbol = None
+        symbol: Str = None
         totalObject = self.safe_dict(trade, 'total', {})
         amountObject = self.safe_dict(trade, 'amount', {})
         subtotalObject = self.safe_dict(trade, 'subtotal', {})
@@ -1253,7 +1253,7 @@ class coinbase(Exchange, ImplicitAPI):
                 symbol = base + '/' + quote
         sizeInQuote = self.safe_bool(trade, 'size_in_quote')
         v3Price = self.safe_string(trade, 'price')
-        v3Cost = None
+        v3Cost: Str = None
         v3Amount = self.safe_string(trade, 'size')
         if sizeInQuote:
             # calculate base size
@@ -1262,8 +1262,8 @@ class coinbase(Exchange, ImplicitAPI):
         v3FeeCost = self.safe_string(trade, 'commission')
         amountString = self.safe_string(amountObject, 'amount', v3Amount)
         costString = self.safe_string(subtotalObject, 'amount', v3Cost)
-        priceString = None
-        cost = None
+        priceString: Str = None
+        cost: Str = None
         if (costString is not None) and (amountString is not None):
             priceString = Precise.string_div(costString, amountString)
         else:
@@ -1390,7 +1390,7 @@ class coinbase(Exchange, ImplicitAPI):
     def fetch_markets_v3(self, params={}) -> List[Market]:
         usePrivate = False
         usePrivate, params = self.handle_option_and_params(params, 'fetchMarkets', 'usePrivate', False)
-        spotUnresolvedPromises = []
+        spotUnresolvedPromises: List = []
         if usePrivate:
             spotUnresolvedPromises.append(self.v3PrivateGetBrokerageProducts(params))
         else:
@@ -1466,7 +1466,7 @@ class coinbase(Exchange, ImplicitAPI):
         #    }
         #
         promises = spotUnresolvedPromises
-        unresolvedContractPromises = []
+        unresolvedContractPromises: List = []
         try:
             unresolvedContractPromises = [
                 self.v3PublicGetBrokerageMarketProducts(self.extend(params, {'product_type': 'FUTURE'})),
@@ -1474,7 +1474,7 @@ class coinbase(Exchange, ImplicitAPI):
             ]
         except Exception as e:
             unresolvedContractPromises = []  # the sync version of ccxt won't have the promise.all line so the request is made here. Some users can't access perpetual products
-        contractPromises = None
+        contractPromises: NullableList = None
         try:
             contractPromises = unresolvedContractPromises  # some users don't have access to contracts
         except Exception as e:
@@ -1758,7 +1758,7 @@ class coinbase(Exchange, ImplicitAPI):
         quote = self.safe_currency_code(quoteId)
         tradingDisabled = self.safe_bool(market, 'is_disabled')
         symbol = base + '/' + quote
-        type = None
+        type: Str = None
         if isSwap:
             type = 'swap'
             symbol = symbol + ':' + quote
@@ -2028,11 +2028,11 @@ class coinbase(Exchange, ImplicitAPI):
         request: dict = {}
         if symbols is not None:
             request['product_ids'] = self.market_ids(symbols)
-        marketType = None
+        marketType: Str = None
         marketType, params = self.handle_market_type_and_params('fetchTickers', self.get_market_from_symbols(symbols), params, 'default')
         if marketType is not None and marketType != 'default':
             request['product_type'] = 'FUTURE' if (marketType == 'swap') else 'SPOT'
-        response = None
+        response: NullableDict = None
         usePrivate = False
         usePrivate, params = self.handle_option_and_params(params, 'fetchTickers', 'usePrivate', False)
         if usePrivate:
@@ -2141,7 +2141,7 @@ class coinbase(Exchange, ImplicitAPI):
         }
         usePrivate = False
         usePrivate, params = self.handle_option_and_params(params, 'fetchTicker', 'usePrivate', False)
-        response = None
+        response: NullableDict = None
         if usePrivate:
             response = self.v3PrivateGetBrokerageProductsProductIdTicker(self.extend(request, params))
         else:
@@ -2264,8 +2264,8 @@ class coinbase(Exchange, ImplicitAPI):
         #
         bid = self.safe_number(ticker, 'bid')
         ask = self.safe_number(ticker, 'ask')
-        bidVolume = None
-        askVolume = None
+        bidVolume: Num = None
+        askVolume: Num = None
         if ('bids' in ticker):
             bids = self.safe_list(ticker, 'bids', [])
             asks = self.safe_list(ticker, 'asks', [])
@@ -2364,10 +2364,10 @@ class coinbase(Exchange, ImplicitAPI):
         """
         self.load_markets()
         request: dict = {}
-        response = None
+        response: NullableDict = None
         isV3 = self.safe_bool(params, 'v3', False)
         params = self.omit(params, ['v3'])
-        marketType = None
+        marketType: Str = None
         marketType, params = self.handle_market_type_and_params('fetchBalance', None, params)
         method = self.safe_string(self.options, 'fetchBalance', 'v3PrivateGetBrokerageAccounts')
         if marketType == 'future':
@@ -2470,10 +2470,10 @@ class coinbase(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchLedger', 'paginate')
         if paginate:
             return self.fetch_paginated_call_cursor('fetchLedger', code, since, limit, params, 'next_starting_after', 'starting_after', None, 100)
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
-        request = None
+        request: NullableDict = None
         request, params = self.prepare_account_request_with_currency_code(code, limit, params)
         # for pagination use parameter 'starting_after'
         # the value for the next page can be obtained from the result of the previous call in the 'pagination' field
@@ -2758,7 +2758,7 @@ class coinbase(Exchange, ImplicitAPI):
         #
         amountInfo = self.safe_dict(item, 'amount', {})
         amount = self.safe_string(amountInfo, 'amount')
-        direction = None
+        direction: Str = None
         if Precise.string_lt(amount, '0'):
             direction = 'out'
             amount = Precise.string_neg(amount)
@@ -2776,7 +2776,7 @@ class coinbase(Exchange, ImplicitAPI):
         #     }
         #     txid = None
         #
-        fee = None
+        fee: NullableDict = None
         networkInfo = self.safe_dict(item, 'network', {})
         # txid = network['hash']  # txid does not belong to the unified ledger structure
         feeInfo = self.safe_dict(networkInfo, 'transaction_fee')
@@ -2793,7 +2793,7 @@ class coinbase(Exchange, ImplicitAPI):
         type = self.parse_ledger_entry_type(self.safe_string(item, 'type'))
         status = self.parse_ledger_entry_status(self.safe_string(item, 'status'))
         path = self.safe_string(item, 'resource_path')
-        accountId = None
+        accountId: Str = None
         if path is not None:
             parts = path.split('/')
             numParts = len(parts)
@@ -2950,7 +2950,7 @@ class coinbase(Exchange, ImplicitAPI):
                         },
                     }
             elif isStopLoss or isTakeProfit:
-                tpslPrice = None
+                tpslPrice: Str = None
                 if isStopLoss:
                     if stopDirection is None:
                         stopDirection = 'STOP_DIRECTION_STOP_UP' if (side == 'buy') else 'STOP_DIRECTION_STOP_DOWN'
@@ -3005,7 +3005,7 @@ class coinbase(Exchange, ImplicitAPI):
             if isStop or isStopLoss or isTakeProfit:
                 raise NotSupported(self.id + ' createOrder() only stop limit orders are supported')
             if market['spot'] and (side == 'buy'):
-                total = None
+                total: Str = None
                 createMarketBuyOrderRequiresPrice = True
                 createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
                 cost = self.safe_number(params, 'cost')
@@ -3041,7 +3041,7 @@ class coinbase(Exchange, ImplicitAPI):
                 request['margin_type'] = 'CROSS'
         params = self.omit(params, ['timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'stop_price', 'stopDirection', 'stop_direction', 'clientOrderId', 'postOnly', 'post_only', 'end_time', 'marginMode'])
         preview = self.safe_bool_2(params, 'preview', 'test', False)
-        response = None
+        response: NullableDict = None
         if preview:
             params = self.omit(params, ['preview', 'test'])
             request = self.omit(request, 'client_order_id')
@@ -3173,12 +3173,12 @@ class coinbase(Exchange, ImplicitAPI):
         marketIOC = self.safe_dict(orderConfiguration, 'market_market_ioc')
         isLimit = ((limitGTC is not None) or (limitGTD is not None) or (limitIOC is not None))
         isStop = ((stopLimitGTC is not None) or (stopLimitGTD is not None))
-        price = None
-        amount = None
-        postOnly = None
-        triggerPrice = None
+        price: Str = None
+        amount: Str = None
+        postOnly: Bool = None
+        triggerPrice: Str = None
         if isLimit:
-            target = None
+            target: NullableDict = None
             if limitGTC is not None:
                 target = limitGTC
             elif limitGTD is not None:
@@ -3198,7 +3198,7 @@ class coinbase(Exchange, ImplicitAPI):
             amount = self.safe_string(marketIOC, 'base_size')
         datetime = self.safe_string(order, 'created_time')
         totalFees = self.safe_string(order, 'total_fees')
-        currencyFee = None
+        currencyFee: Str = None
         if (totalFees is not None) and (market is not None):
             currencyFee = market['quote']
         return self.safe_order({
@@ -3287,7 +3287,7 @@ class coinbase(Exchange, ImplicitAPI):
         :returns dict: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
         request: dict = {
@@ -3338,7 +3338,7 @@ class coinbase(Exchange, ImplicitAPI):
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
         preview = self.safe_bool_2(params, 'preview', 'test', False)
-        response = None
+        response: NullableDict = None
         if preview:
             params = self.omit(params, ['preview', 'test'])
             response = self.v3PrivatePostBrokerageOrdersEditPreview(self.extend(request, params))
@@ -3367,7 +3367,7 @@ class coinbase(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
         request: dict = {
@@ -3435,7 +3435,7 @@ class coinbase(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate')
         if paginate:
             return self.fetch_paginated_call_cursor('fetchOrders', symbol, since, limit, params, 'cursor', 'cursor', None, 1000)
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
         request: dict = {}
@@ -3502,7 +3502,7 @@ class coinbase(Exchange, ImplicitAPI):
 
     def fetch_orders_by_status(self, status, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         self.load_markets()
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
         request: dict = {
@@ -3659,7 +3659,7 @@ class coinbase(Exchange, ImplicitAPI):
         params = self.omit(params, ['until'])
         duration = self.parse_timeframe(timeframe)
         requestedDuration = limit * duration
-        sinceString = None
+        sinceString: Str = None
         if since is not None:
             sinceString = self.number_to_string(self.parse_to_int(since / 1000))
         else:
@@ -3671,7 +3671,7 @@ class coinbase(Exchange, ImplicitAPI):
         else:
             # 300 candles max
             request['end'] = Precise.string_add(sinceString, str(requestedDuration))
-        response = None
+        response: NullableDict = None
         usePrivate = False
         usePrivate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'usePrivate', False)
         if usePrivate:
@@ -3740,13 +3740,13 @@ class coinbase(Exchange, ImplicitAPI):
             request['start'] = self.number_to_string(self.parse_to_int(since / 1000))
         if limit is not None:
             request['limit'] = min(limit, 1000)
-        until = None
+        until: Int = None
         until, params = self.handle_option_and_params(params, 'fetchTrades', 'until')
         if until is not None:
             request['end'] = self.number_to_string(self.parse_to_int(until / 1000))
         elif since is not None:
             raise ArgumentsRequired(self.id + ' fetchTrades() requires a `until` parameter when you use `since` argument')
-        response = None
+        response: NullableDict = None
         usePrivate = False
         usePrivate, params = self.handle_option_and_params(params, 'fetchTrades', 'usePrivate', False)
         if usePrivate:
@@ -3791,7 +3791,7 @@ class coinbase(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
         if paginate:
             return self.fetch_paginated_call_cursor('fetchMyTrades', symbol, since, limit, params, 'cursor', 'cursor', None, 250)
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
         request: dict = {}
@@ -3857,7 +3857,7 @@ class coinbase(Exchange, ImplicitAPI):
         }
         if limit is not None:
             request['limit'] = limit
-        response = None
+        response: NullableDict = None
         usePrivate = False
         usePrivate, params = self.handle_option_and_params(params, 'fetchOrderBook', 'usePrivate', False)
         if usePrivate:
@@ -4036,7 +4036,7 @@ class coinbase(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = self.currency(code)
-        request = None
+        request: NullableDict = None
         request, params = self.prepare_account_request_with_currency_code(currency['code'], None, params)
         response = self.v2PrivateGetAccountsAccountIdAddresses(self.extend(request, params))
         #
@@ -4160,7 +4160,7 @@ class coinbase(Exchange, ImplicitAPI):
         networkId = self.safe_string(depositAddress, 'network')
         code = self.safe_currency_code(None, currency)
         addressLabel = self.safe_string(depositAddress, 'address_label')
-        currencyId = None
+        currencyId: Str = None
         if addressLabel is not None:
             splitAddressLabel = addressLabel.split(' ')
             currencyId = self.safe_string(splitAddressLabel, 0)
@@ -4533,16 +4533,16 @@ class coinbase(Exchange, ImplicitAPI):
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
-        market = None
+        market: Market = None
         if symbols is not None:
             market = self.market(symbols[0])
-        type = None
+        type: Str = None
         type, params = self.handle_market_type_and_params('fetchPositions', market, params)
-        response = None
+        response: NullableDict = None
         if type == 'future':
             response = self.v3PrivateGetBrokerageCfmPositions(params)
         else:
-            portfolio = None
+            portfolio: Str = None
             portfolio, params = self.handle_option_and_params(params, 'fetchPositions', 'portfolio')
             if portfolio is None:
                 raise ArgumentsRequired(self.id + ' fetchPositions() requires a "portfolio" value in params(eg: dbcb91e7-2bc9-515), or set.options["portfolio"]. You can get a list of portfolios with fetchPortfolios()')
@@ -4568,7 +4568,7 @@ class coinbase(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        response = None
+        response: NullableDict = None
         if market['future']:
             productId = self.safe_string(market, 'product_id')
             if productId is None:
@@ -4578,7 +4578,7 @@ class coinbase(Exchange, ImplicitAPI):
             }
             response = self.v3PrivateGetBrokerageCfmPositionsProductId(self.extend(futureRequest, params))
         else:
-            portfolio = None
+            portfolio: Str = None
             portfolio, params = self.handle_option_and_params(params, 'fetchPositions', 'portfolio')
             if portfolio is None:
                 raise ArgumentsRequired(self.id + ' fetchPosition() requires a "portfolio" value in params(eg: dbcb91e7-2bc9-515), or set.options["portfolio"]. You can get a list of portfolios with fetchPortfolios()')
@@ -4683,7 +4683,7 @@ class coinbase(Exchange, ImplicitAPI):
         marketId = self.safe_string(position, 'symbol', '')
         market = self.safe_market(marketId, market)
         rawMargin = self.safe_string(position, 'margin_type')
-        marginMode = None
+        marginMode: Str = None
         if rawMargin is not None:
             marginMode = 'cross' if (rawMargin == 'MARGIN_TYPE_CROSS') else 'isolated'
         notionalObject = self.safe_dict(position, 'position_notional', {})
@@ -4736,7 +4736,7 @@ class coinbase(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
         """
         self.load_markets()
-        type = None
+        type: Str = None
         type, params = self.handle_market_type_and_params('fetchTradingFees', None, params)
         isSpot = (type == 'spot')
         productType = 'SPOT' if isSpot else 'FUTURE'
@@ -4851,7 +4851,7 @@ class coinbase(Exchange, ImplicitAPI):
     def create_auth_token(self, seconds: Int, method: Str = None, url: Str = None, useEddsa=False):
         # v1 https://docs.cdp.coinbase.com/api-reference/authentication#php-2
         # v2  https://docs.cdp.coinbase.com/api-reference/v2/authentication
-        uri = None
+        uri: Str = None
         if url is not None:
             uri = method + ' ' + url.replace('https://', '')
             quesPos = uri.find('?')
@@ -4887,7 +4887,7 @@ class coinbase(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
-    def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = [], method='GET', params={}, headers=None, body=None):
         version = api[0]
         signed = api[1] == 'private'
         isV3 = version == 'v3'
@@ -4901,7 +4901,7 @@ class coinbase(Exchange, ImplicitAPI):
         url = self.urls['api']['rest'] + fullPath
         if signed:
             authorization = self.safe_string(self.headers, 'Authorization')
-            authorizationString = None
+            authorizationString: Str = None
             if authorization is not None:
                 authorizationString = authorization
             elif self.token and not self.check_required_credentials(False):

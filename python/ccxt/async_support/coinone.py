@@ -566,7 +566,7 @@ class coinone(Exchange, ImplicitAPI):
             'quote_currency': 'KRW',
         }
         market: Market = None
-        response = None
+        response: NullableDict = None
         if symbols is not None:
             first = self.safe_string(symbols, 0)
             market = self.market(first)
@@ -757,7 +757,7 @@ class coinone(Exchange, ImplicitAPI):
         amountString = self.safe_string(trade, 'qty')
         orderId = self.safe_string(trade, 'orderId')
         feeCostString = self.safe_string(trade, 'fee')
-        fee = None
+        fee: NullableDict = None
         if feeCostString is not None:
             feeCostString = Precise.string_abs(feeCostString)
             feeRateString = self.safe_string(trade, 'feeRate')
@@ -958,8 +958,8 @@ class coinone(Exchange, ImplicitAPI):
         id = self.safe_string(order, 'orderId')
         baseId = self.safe_string(order, 'baseCurrency')
         quoteId = self.safe_string(order, 'targetCurrency')
-        base = None
-        quote = None
+        base: Str = None
+        quote: Str = None
         if baseId is not None:
             base = self.safe_currency_code(baseId)
         if quoteId is not None:
@@ -984,7 +984,7 @@ class coinone(Exchange, ImplicitAPI):
                 if isLessThan:
                     status = 'canceled'
         status = self.parse_order_status(status)
-        fee = None
+        fee: NullableDict = None
         feeCostString = self.safe_string(order, 'fee')
         if feeCostString is not None:
             feeCurrencyCode = quote if (side == 'sell') else base
@@ -1182,7 +1182,7 @@ class coinone(Exchange, ImplicitAPI):
             result[code] = depositAddress
         return result
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers=None, body=None):
         request = self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         url = self.urls['api']['rest'] + '/'

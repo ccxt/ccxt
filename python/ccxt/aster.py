@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.aster import ImplicitAPI
-from ccxt.base.types import Any, Balances, Currencies, Currency, Int, LedgerEntry, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Bool, Currencies, Currency, Int, LedgerEntry, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, SubType, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -838,7 +838,7 @@ class aster(Exchange, ImplicitAPI):
         #     ]
         #
         #
-        fapiRowsFiltered = []
+        fapiRowsFiltered: List = []
         for i in range(0, len(fapiRows)):
             market = fapiRows[i]
             # tmp skip some markets with base = None
@@ -854,14 +854,14 @@ class aster(Exchange, ImplicitAPI):
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         active = self.safe_string(market, 'status') == 'TRADING'
-        spot = None
+        spot: Bool = None
         symbol: Str = None
-        settle = None
-        settleId = None
-        swap = None
-        linear = None
-        inverse = None
-        contractSize = None
+        settle: Str = None
+        settleId: Str = None
+        swap: Bool = None
+        linear: Bool = None
+        inverse: Bool = None
+        contractSize: Num = None
         contractType = self.safe_string(market, 'contractType')
         isContract = contractType is not None
         if isContract:
@@ -957,9 +957,9 @@ class aster(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
-        marketType = None
+        marketType: Str = None
         marketType, params = self.handle_market_type_and_params('fetchTime', None, params)
-        response = None
+        response: dict
         if marketType == 'swap':
             response = self.fapiPublicGetV3Time(params)
         else:
@@ -1032,7 +1032,7 @@ class aster(Exchange, ImplicitAPI):
         isMark = (price == 'mark')
         isIndex = (price == 'index')
         params = self.omit(params, 'price')
-        response = None
+        response: List
         if isMark:
             request['symbol'] = market['id']
             response = self.fapiPublicGetV3MarkPriceKlines(self.extend(request, params))
@@ -1129,7 +1129,7 @@ class aster(Exchange, ImplicitAPI):
         timestamp = self.safe_integer_2(trade, 'time', 'T')
         side = self.safe_string_lower(trade, 'side')
         isMaker = self.safe_bool(trade, 'maker')
-        takerOrMaker = None
+        takerOrMaker: Str = None
         if isMaker is not None:
             takerOrMaker = 'maker' if isMaker else 'taker'
             if side is None:
@@ -1180,7 +1180,7 @@ class aster(Exchange, ImplicitAPI):
         }
         if limit is not None:
             request['limit'] = min(limit, 1000)
-        response = None
+        response: List
         sinceDefined = since is not None
         untilDefined = ('until' in params)
         if sinceDefined:
@@ -1245,18 +1245,18 @@ class aster(Exchange, ImplicitAPI):
         """
         self.load_markets_and_sign_in()
         request: dict = {}
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        marketType = None
+        marketType: Str = None
         marketType, params = self.handle_market_type_and_params('fetchTickers', market, params)
         if since is not None:
             request['startTime'] = since
         if limit is not None:
             request['limit'] = min(limit, 1000)
         request, params = self.handle_until_option('endTime', request, params)
-        response = None
+        response: List
         if marketType == 'swap':
             response = self.fapiPrivateGetV3UserTrades(self.extend(request, params))
         else:
@@ -1303,7 +1303,7 @@ class aster(Exchange, ImplicitAPI):
         request: dict = {
             'symbol': market['id'],
         }
-        response = None
+        response: dict
         if limit is not None:
             request['limit'] = self.find_nearest_ceiling([5, 10, 20, 50, 100, 500, 1000], limit)
         if market['swap']:
@@ -1434,7 +1434,7 @@ class aster(Exchange, ImplicitAPI):
         request: dict = {
             'symbol': market['id'],
         }
-        response = None
+        response: dict
         if market['swap']:
             response = self.fapiPublicGetV3Ticker24hr(self.extend(request, params))
         else:
@@ -1485,9 +1485,9 @@ class aster(Exchange, ImplicitAPI):
         self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True, True)
         market = self.get_market_from_symbols(symbols)
-        marketType = None
+        marketType: Str = None
         marketType, params = self.handle_market_type_and_params('fetchTickers', market, params)
-        response = None
+        response: NullableDict = None
         if marketType == 'swap':
             response = self.fapiPublicGetV3Ticker24hr(params)
         elif marketType == 'spot':
@@ -1537,9 +1537,9 @@ class aster(Exchange, ImplicitAPI):
         self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True, True)
         market = self.get_market_from_symbols(symbols)
-        marketType = None
+        marketType: Str = None
         marketType, params = self.handle_market_type_and_params('fetchLastPrices', market, params)
-        response = None
+        response: dict = None
         if marketType == 'swap':
             response = self.fapiPublicGetV3TickerPrice(params)
         elif marketType == 'spot':
@@ -1556,7 +1556,7 @@ class aster(Exchange, ImplicitAPI):
         #         ...
         #     ]
         #
-        results = []
+        results: List = []
         for i in range(0, len(response)):
             marketId = self.safe_string(response[i], 'symbol')
             safeMarket = self.safe_market(marketId, None, None, marketType)
@@ -1600,9 +1600,9 @@ class aster(Exchange, ImplicitAPI):
         self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True, True)
         market = self.get_market_from_symbols(symbols)
-        marketType = None
+        marketType: Str = None
         marketType, params = self.handle_market_type_and_params('fetchBidsAsks', market, params)
-        response = None
+        response: NullableDict = None
         if marketType == 'swap':
             response = self.fapiPublicGetV3TickerBookTicker(params)
         elif marketType == 'spot':
@@ -1653,7 +1653,7 @@ class aster(Exchange, ImplicitAPI):
         nextFundingTimestamp = self.safe_integer(contract, 'nextFundingTime')
         timestamp = self.safe_integer(contract, 'time')
         interval = self.safe_string(contract, 'fundingIntervalHours')
-        intervalString = None
+        intervalString: Str = None
         if interval is not None:
             intervalString = interval + 'h'
         return {
@@ -1832,10 +1832,10 @@ class aster(Exchange, ImplicitAPI):
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         self.load_markets_and_sign_in()
-        marketType = None
+        marketType: Str = None
         marketType, params = self.handle_market_type_and_params('fetchBalance', None, params)
-        response = None
-        data = None
+        response: NullableDict = None
+        data: NullableList = None
         if marketType == 'swap':
             data = self.fapiPrivateGetV3Balance(params)
             #
@@ -1982,7 +1982,7 @@ class aster(Exchange, ImplicitAPI):
         request: dict = {
             'symbol': market['id'],
         }
-        response = None
+        response: dict
         if market['swap']:
             response = self.fapiPrivateGetV3CommissionRate(self.extend(request, params))
         else:
@@ -2137,7 +2137,7 @@ class aster(Exchange, ImplicitAPI):
             request['origClientOrderId'] = clientOrderId
         else:
             request['orderId'] = id
-        response = None
+        response: dict
         if market['swap']:
             response = self.fapiPrivateGetV3Order(self.extend(request, params))
         else:
@@ -2198,7 +2198,7 @@ class aster(Exchange, ImplicitAPI):
             request['origClientOrderId'] = clientOrderId
         else:
             request['orderId'] = id
-        response = None
+        response: dict
         if market['spot']:
             response = self.sapiPrivateGetV3OpenOrder(self.extend(request, params))
         else:
@@ -2260,7 +2260,7 @@ class aster(Exchange, ImplicitAPI):
         if since is not None:
             request['startTime'] = since
         request, params = self.handle_until_option('endTime', request, params)
-        response = None
+        response: dict
         if market['swap']:
             response = self.fapiPrivateGetV3AllOrders(self.extend(request, params))
         else:
@@ -2314,8 +2314,8 @@ class aster(Exchange, ImplicitAPI):
         """
         self.load_markets_and_sign_in()
         request: dict = {}
-        market = None
-        marketType = None
+        market: Market = None
+        marketType: Str = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -2326,9 +2326,9 @@ class aster(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['symbol'] = market['id']
         marketType, params = self.handle_market_type_and_params('fetchOpenOrders', market, params)
-        subType = None
+        subType: SubType = None
         subType, params = self.handle_sub_type_and_params('fetchOpenOrders', market, params)
-        response = None
+        response: dict = None
         if self.is_linear(marketType, subType):
             response = self.fapiPrivateGetV3OpenOrders(self.extend(request, params))
         elif marketType == 'spot':
@@ -2392,7 +2392,7 @@ class aster(Exchange, ImplicitAPI):
         self.load_markets_and_sign_in()
         market = self.market(symbol)
         request = self.create_order_request(symbol, type, side, amount, price, params)
-        response = None
+        response: dict
         if market['swap']:
             response = self.fapiPrivatePostV3Order(request)
         else:
@@ -2440,8 +2440,8 @@ class aster(Exchange, ImplicitAPI):
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets_and_sign_in()
-        ordersRequests = []
-        orderSymbols = []
+        ordersRequests: List = []
+        orderSymbols: List = []
         if len(orders) > 5:
             raise InvalidOrder(self.id + ' createOrders() order list max 5 orders')
         for i in range(0, len(orders)):
@@ -2529,7 +2529,7 @@ class aster(Exchange, ImplicitAPI):
         isStopLoss = stopLossPrice is not None or trailingDelta is not None
         isTakeProfit = takeProfitPrice is not None
         uppercaseType = initialUppercaseType
-        stopPrice = None
+        stopPrice: Str = None
         if isTrailingPercentOrder:
             if market['swap']:
                 uppercaseType = 'TRAILING_STOP_MARKET'
@@ -2653,7 +2653,7 @@ class aster(Exchange, ImplicitAPI):
         request: dict = {
             'symbol': market['id'],
         }
-        response = None
+        response: dict
         if market['swap']:
             response = self.fapiPrivateDeleteV3AllOpenOrders(self.extend(request, params))
         else:
@@ -2697,7 +2697,7 @@ class aster(Exchange, ImplicitAPI):
         else:
             request['orderId'] = id
         params = self.omit(params, ['origClientOrderId', 'clientOrderId'])
-        response = None
+        response: dict
         if market['swap']:
             response = self.fapiPrivateDeleteV3Order(self.extend(request, params))
         else:
@@ -2732,7 +2732,7 @@ class aster(Exchange, ImplicitAPI):
             request['origClientOrderIdList'] = clientOrderIdList
         else:
             request['orderIdList'] = ids
-        response = None
+        response: dict
         if market['swap']:
             response = self.fapiPrivateDeleteV3BatchOrders(self.extend(request, params))
             #
@@ -2863,8 +2863,8 @@ class aster(Exchange, ImplicitAPI):
         marketId = self.safe_string(leverage, 'symbol')
         marginMode = self.safe_string_lower(leverage, 'marginType')
         side = self.safe_string_lower(leverage, 'positionSide')
-        longLeverage = None
-        shortLeverage = None
+        longLeverage: Int = None
+        shortLeverage: Int = None
         leverageValue = self.safe_integer(leverage, 'leverage')
         if (side is None) or (side == 'both'):
             longLeverage = leverageValue
@@ -3120,7 +3120,7 @@ class aster(Exchange, ImplicitAPI):
         :returns dict: a `funding history structure <https://docs.ccxt.com/?id=funding-history-structure>`
         """
         self.load_markets_and_sign_in()
-        market = None
+        market: Market = None
         request: dict = {
             'incomeType': 'FUNDING_FEE',  # "TRANSFER"，"WELCOME_BONUS", "REALIZED_PNL"，"FUNDING_FEE", "COMMISSION", "INSURANCE_CLEAR", and "MARKET_MERCHANT_RETURN_REWARD"
         }
@@ -3149,7 +3149,7 @@ class aster(Exchange, ImplicitAPI):
         #     }
         #
         amount = self.safe_string(item, 'income')
-        direction = None
+        direction: Str = None
         if Precise.string_le(amount, '0'):
             direction = 'out'
             amount = Precise.string_mul('-1', amount)
@@ -3204,7 +3204,7 @@ class aster(Exchange, ImplicitAPI):
         :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger>`
         """
         self.load_markets_and_sign_in()
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
         request: dict = {}
@@ -3259,7 +3259,7 @@ class aster(Exchange, ImplicitAPI):
         leverageBracket = self.safe_list(leverageBrackets, symbol, [])
         notionalString = self.safe_string_2(position, 'notional', 'notionalValue')
         notionalStringAbs = Precise.string_abs(notionalString)
-        maintenanceMarginPercentageString = None
+        maintenanceMarginPercentageString: Str = None
         for i in range(0, len(leverageBracket)):
             bracket = leverageBracket[i]
             if Precise.string_lt(notionalStringAbs, bracket[0]):
@@ -3272,11 +3272,11 @@ class aster(Exchange, ImplicitAPI):
         unrealizedPnl = self.parse_number(unrealizedPnlString)
         liquidationPriceString = self.omit_zero(self.safe_string(position, 'liquidationPrice'))
         liquidationPrice = self.parse_number(liquidationPriceString)
-        collateralString = None
+        collateralString: Str = None
         marginMode = self.safe_string(position, 'marginType')
         if marginMode is None and isolatedMarginString is not None:
             marginMode = 'cross' if Precise.string_eq(isolatedMarginString, '0') else 'isolated'
-        side = None
+        side: Str = None
         if Precise.string_gt(notionalString, '0'):
             side = 'long'
         elif Precise.string_lt(notionalString, '0'):
@@ -3296,7 +3296,7 @@ class aster(Exchange, ImplicitAPI):
             if not precisionIsUndefined:
                 if linear:
                     # walletBalance = (liquidationPrice * (±1 + mmp) ± entryPrice) * contracts
-                    onePlusMaintenanceMarginPercentageString = None
+                    onePlusMaintenanceMarginPercentageString: Str = None
                     entryPriceSignString = entryPriceString
                     if side == 'short':
                         onePlusMaintenanceMarginPercentageString = Precise.string_add('1', maintenanceMarginPercentageString)
@@ -3310,7 +3310,7 @@ class aster(Exchange, ImplicitAPI):
                         collateralString = Precise.string_div(Precise.string_mul(leftSide, contractsAbs), '1', quotePrecision)
                 else:
                     # walletBalance = (contracts * contractSize) * (±1/entryPrice - (±1 - mmp) / liquidationPrice)
-                    onePlusMaintenanceMarginPercentageString = None
+                    onePlusMaintenanceMarginPercentageString: Str = None
                     entryPriceSignString = entryPriceString
                     if side == 'short':
                         onePlusMaintenanceMarginPercentageString = Precise.string_sub('1', maintenanceMarginPercentageString)
@@ -3336,8 +3336,8 @@ class aster(Exchange, ImplicitAPI):
             # for a while, self new value was a backup to the existing calculations, but in future we might prioritize self
             maintenanceMarginString = self.safe_string(position, 'maintMargin')
         maintenanceMargin = self.parse_number(maintenanceMarginString)
-        initialMarginString = None
-        initialMarginPercentageString = None
+        initialMarginString: Str = None
+        initialMarginPercentageString: Str = None
         leverageString = self.safe_string(position, 'leverage')
         if leverageString is not None:
             leverage = int(leverageString)
@@ -3351,8 +3351,8 @@ class aster(Exchange, ImplicitAPI):
             initialMarginString = self.safe_string(position, 'initialMargin')
             unrounded = Precise.string_mul(initialMarginString, '1')
             initialMarginPercentageString = Precise.string_div(unrounded, notionalStringAbs, 8)
-        marginRatio = None
-        percentage = None
+        marginRatio: Num = None
+        percentage: Num = None
         if not Precise.string_equals(collateralString, '0'):
             marginRatio = self.parse_number(Precise.string_div(Precise.string_add(Precise.string_div(maintenanceMarginString, collateralString), '5e-5'), '1', 4))
             percentage = self.parse_number(Precise.string_mul(Precise.string_div(unrealizedPnlString, initialMarginString, 4), '100'))
@@ -3422,7 +3422,7 @@ class aster(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        result = []
+        result: List = []
         for i in range(0, len(response)):
             rawPosition = response[i]
             entryPriceString = self.safe_string(rawPosition, 'entryPrice')
@@ -3442,7 +3442,7 @@ class aster(Exchange, ImplicitAPI):
         :param str [params.method]: method name to call, "positionRisk", "account" or "option", default is "positionRisk"
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
-        defaultMethod = None
+        defaultMethod: Str = None
         defaultMethod, params = self.handle_option_and_params(params, 'fetchPositions', 'method')
         if defaultMethod is None:
             options = self.safe_dict(self.options, 'fetchPositions')
@@ -3471,7 +3471,7 @@ class aster(Exchange, ImplicitAPI):
                 'crossMargin': Precise.string_add(crossWalletBalance, crossUnPnl),
                 'crossWalletBalance': crossWalletBalance,
             }
-        result = []
+        result: List = []
         for i in range(0, len(positions)):
             position = positions[i]
             marketId = self.safe_string(position, 'symbol')
@@ -3498,7 +3498,7 @@ class aster(Exchange, ImplicitAPI):
         leverage = int(leverageString) if (leverageString is not None) else None
         initialMarginString = self.safe_string(position, 'initialMargin')
         initialMargin = self.parse_number(initialMarginString)
-        initialMarginPercentageString = None
+        initialMarginPercentageString: Str = None
         if leverageString is not None:
             initialMarginPercentageString = Precise.string_div('1', leverageString, 8)
             rational = self.is_round_number(1000 % leverage)
@@ -3523,7 +3523,7 @@ class aster(Exchange, ImplicitAPI):
         contracts = self.parse_number(contractsStringAbs)
         leverageBrackets = self.safe_dict(self.options, 'leverageBrackets', {})
         leverageBracket = self.safe_list(leverageBrackets, symbol, [])
-        maintenanceMarginPercentageString = None
+        maintenanceMarginPercentageString: Str = None
         for i in range(0, len(leverageBracket)):
             bracket = leverageBracket[i]
             if Precise.string_lt(notionalStringAbs, bracket[0]):
@@ -3539,9 +3539,9 @@ class aster(Exchange, ImplicitAPI):
         if isolated is None:
             isolatedMarginRaw = self.safe_string(position, 'isolatedMargin')
             isolated = not Precise.string_eq(isolatedMarginRaw, '0')
-        marginMode = None
-        collateralString = None
-        walletBalance = None
+        marginMode: Str = None
+        collateralString: Str = None
+        walletBalance: Str = None
         if isolated:
             marginMode = 'isolated'
             walletBalance = self.safe_string(position, 'isolatedWallet')
@@ -3551,11 +3551,11 @@ class aster(Exchange, ImplicitAPI):
             walletBalance = self.safe_string(position, 'crossWalletBalance')
             collateralString = self.safe_string(position, 'crossMargin')
         collateral = self.parse_number(collateralString)
-        marginRatio = None
-        side = None
-        percentage = None
-        liquidationPriceStringRaw = None
-        liquidationPrice = None
+        marginRatio: Num = None
+        side: Str = None
+        percentage: Num = None
+        liquidationPriceStringRaw: Str = None
+        liquidationPrice: Num = None
         contractSize = self.safe_value(market, 'contractSize')
         contractSizeString = self.number_to_string(contractSize)
         if Precise.string_equals(notionalString, '0'):
@@ -3572,7 +3572,7 @@ class aster(Exchange, ImplicitAPI):
                 # mmp = maintenanceMarginPercentage
                 # where ± is negative for long and positive for short
                 # TODO: calculate liquidation price for coinm contracts
-                onePlusMaintenanceMarginPercentageString = None
+                onePlusMaintenanceMarginPercentageString: Str = None
                 entryPriceSignString = entryPriceString
                 if side == 'short':
                     onePlusMaintenanceMarginPercentageString = Precise.string_add('1', maintenanceMarginPercentageString)
@@ -3587,7 +3587,7 @@ class aster(Exchange, ImplicitAPI):
                 #
                 # liquidationPrice = (contracts * contractSize(±1 - mmp)) / (±1/entryPrice * contracts * contractSize - walletBalance)
                 #
-                onePlusMaintenanceMarginPercentageString = None
+                onePlusMaintenanceMarginPercentageString: Str = None
                 entryPriceSignString = entryPriceString
                 if side == 'short':
                     onePlusMaintenanceMarginPercentageString = Precise.string_sub('1', maintenanceMarginPercentageString)
@@ -3654,7 +3654,7 @@ class aster(Exchange, ImplicitAPI):
         self.load_markets_and_sign_in()
         self.load_leverage_brackets(False, params)
         response = self.fapiPrivateGetV4Account(params)
-        filterClosed = None
+        filterClosed: Bool = None
         filterClosed, params = self.handle_option_and_params(params, 'fetchAccountPositions', 'filterClosed', False)
         result = self.parse_account_positions(response, filterClosed)
         symbols = self.market_symbols(symbols)
@@ -3696,7 +3696,7 @@ class aster(Exchange, ImplicitAPI):
                 marketId = self.safe_string(entry, 'symbol')
                 symbol = self.safe_symbol(marketId, None, None, 'contract')
                 brackets = self.safe_list(entry, 'brackets', [])
-                result = []
+                result: List = []
                 for j in range(0, len(brackets)):
                     bracket = brackets[j]
                     floorValue = self.safe_string(bracket, 'notionalFloor')
@@ -3841,11 +3841,11 @@ class aster(Exchange, ImplicitAPI):
             'asset': currency['id'],
             'amount': self.currency_to_precision(code, amount),
         }
-        type = None
-        fromId = None
+        type: Str = None
+        fromId: Str = None
         if fromAccount is not None:
             fromId = self.convert_type_to_account(fromAccount).upper()
-        toId = None
+        toId: Str = None
         if toAccount is not None:
             toId = self.convert_type_to_account(toAccount).upper()
         if fromId == 'SPOT' and toId == 'FUTURE':
@@ -3854,7 +3854,6 @@ class aster(Exchange, ImplicitAPI):
             type = 'FUTURE_SPOT'
         if type is None:
             raise ArgumentsRequired(self.id + ' transfer() requires fromAccount and toAccount parameters to be either SPOT or FUTURE')
-        response = None
         defaultClientTranId = self.number_to_string(self.milliseconds())
         clientTranId = self.safe_string(params, 'clientTranId', defaultClientTranId)
         request['kindType'] = type
@@ -3898,7 +3897,7 @@ class aster(Exchange, ImplicitAPI):
         v = self.int_to_base16(self.sum(27, signature['v']))
         return '0x' + r.rjust(64, '0') + s.rjust(64, '0') + v
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers: dict = None, body: Any = None):
         url = self.implode_hostname(self.urls['api'][api]) + '/' + path
         if api == 'fapiPublic' or api == 'sapiPublic':
             if params:
@@ -3932,7 +3931,7 @@ class aster(Exchange, ImplicitAPI):
                 'signer': signerAddress,
             }, params)
             paramString: Str = None
-            paramsToEncode: dict = None
+            paramsToEncode: dict
             isApproveBuilder = (path.find('/approveBuilder') >= 0)
             if isApproveBuilder:
                 # domain['name'] = 'Aster'

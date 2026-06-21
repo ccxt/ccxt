@@ -89,9 +89,9 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         """
         await self.load_markets()
         self.check_required_credentials()
-        market = None
+        market: Market = None
         messageHash = name
-        productIds = None
+        productIds: Strings = None
         if symbols is None:
             symbols = self.get_active_symbols()
         symbolsLength = len(symbols)
