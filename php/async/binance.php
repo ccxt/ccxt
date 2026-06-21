@@ -2801,7 +2801,7 @@ class binance extends Exchange {
         );
     }
 
-    public function market(string $symbol): array {
+    public function market(?string $symbol): array {
         if ($this->markets === null) {
             throw new ExchangeError($this->id . ' $markets not loaded');
         }
