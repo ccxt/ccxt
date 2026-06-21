@@ -384,7 +384,7 @@ class coinmate(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        result = []
+        result: List = []
         for i in range(0, len(data)):
             market = data[i]
             id = self.safe_string(market, 'name')
@@ -840,7 +840,7 @@ class coinmate(Exchange, ImplicitAPI):
         orderId = self.safe_string(trade, 'orderId')
         id = self.safe_string(trade, 'transactionId')
         timestamp = self.safe_integer_2(trade, 'timestamp', 'createdTimestamp')
-        fee = None
+        fee: NullableDict = None
         feeCostString = self.safe_string(trade, 'fee')
         if feeCostString is not None:
             fee = {
@@ -1139,7 +1139,7 @@ class coinmate(Exchange, ImplicitAPI):
         request: dict = {
             'orderId': id,
         }
-        market = None
+        market: Market = None
         if symbol:
             market = self.market(symbol)
         response = self.privatePostOrderById(self.extend(request, params))
@@ -1176,8 +1176,8 @@ class coinmate(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api']['rest'] + '/' + path
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
+        url = (self.urls['api'])['rest'] + '/' + path
         if api == 'public':
             if params:
                 url += '?' + self.urlencode(params)

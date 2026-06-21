@@ -737,7 +737,7 @@ class p2b(Exchange, ImplicitAPI):
             'amount': self.safe_string(trade, 'amount'),
             'cost': self.safe_string(trade, 'deal'),
             'fee': {
-                'currency': market['quote'],
+                'currency': self.safe_string(market, 'quote'),
                 'cost': self.safe_string_2(trade, 'fee', 'deal_fee'),
             },
         }, market)
@@ -1212,7 +1212,7 @@ class p2b(Exchange, ImplicitAPI):
         #    }
         #
         result = self.safe_value(response, 'result')
-        orders = []
+        orders: List[Order] = []
         keys = list(result.keys())
         for i in range(0, len(keys)):
             marketId = keys[i]
@@ -1289,7 +1289,7 @@ class p2b(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api] + '/' + self.implode_params(path, params)
         params = self.omit(params, self.extract_params(path))
         if method == 'GET':

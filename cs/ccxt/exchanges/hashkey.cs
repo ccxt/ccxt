@@ -1521,7 +1521,7 @@ public partial class hashkey : Exchange
             return await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 1000);
         }
         object market = this.market(symbol);
-        timeframe = this.safeString(this.timeframes, timeframe, timeframe);
+        timeframe = ((string)this.safeString(this.timeframes, timeframe, timeframe));
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "interval", timeframe },
@@ -3516,7 +3516,7 @@ public partial class hashkey : Exchange
         {
             type = "market";
         }
-        object price = this.omitZero(this.safeString(order, "price"));
+        object price = this.omitZero(((string)this.safeString(order, "price")));
         if (isTrue(isEqual(type, "STOP")))
         {
             if (isTrue(isEqual(price, null)))
@@ -3533,7 +3533,7 @@ public partial class hashkey : Exchange
         type = ((IList<object>)typetimeInForcepostOnlyVariable)[0];
         timeInForce = ((IList<object>)typetimeInForcepostOnlyVariable)[1];
         postOnly = ((IList<object>)typetimeInForcepostOnlyVariable)[2];
-        object average = this.omitZero(this.safeString(order, "avgPrice"));
+        object average = this.omitZero(((string)this.safeString(order, "avgPrice")));
         if (isTrue(isEqual(price, null)))
         {
             price = average;
@@ -3562,17 +3562,17 @@ public partial class hashkey : Exchange
             { "side", side },
             { "price", price },
             { "average", average },
-            { "amount", this.omitZero(this.safeString(order, "origQty")) },
+            { "amount", this.omitZero(((string)this.safeString(order, "origQty"))) },
             { "filled", this.safeString(order, "executedQty") },
             { "remaining", null },
-            { "triggerPrice", this.omitZero(this.safeString(order, "stopPrice")) },
+            { "triggerPrice", this.omitZero(((string)this.safeString(order, "stopPrice"))) },
             { "takeProfitPrice", null },
             { "stopLossPrice", null },
-            { "cost", this.omitZero(this.safeString2(order, "cumulativeQuoteQty", "cummulativeQuoteQty")) },
+            { "cost", this.omitZero(((string)this.safeString2(order, "cumulativeQuoteQty", "cummulativeQuoteQty"))) },
             { "trades", null },
             { "fee", new Dictionary<string, object>() {
                 { "currency", this.safeCurrencyCode(feeCurrncyId) },
-                { "amount", this.omitZero(this.safeString(order, "feeAmount")) },
+                { "amount", this.omitZero(((string)this.safeString(order, "feeAmount"))) },
             } },
             { "reduceOnly", reduceOnly },
             { "postOnly", postOnly },
@@ -4183,7 +4183,7 @@ public partial class hashkey : Exchange
         {
             object fee = this.safeDict(data, i, new Dictionary<string, object>() {});
             object parsedFee = this.parseTradingFee(fee);
-            ((IDictionary<string,object>)result)[(string)getValue(parsedFee, "symbol")] = parsedFee;
+            ((IDictionary<string,object>)result)[(string)((string)getValue(parsedFee, "symbol"))] = parsedFee;
         }
         return result;
     }

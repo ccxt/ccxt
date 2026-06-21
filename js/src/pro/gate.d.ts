@@ -368,7 +368,7 @@ export default class gate extends gateRest {
      */
     watchMyLiquidationsForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
     handleLiquidation(client: Client, message: any): void;
-    parseWsLiquidation(liquidation: any, market?: any): Liquidation;
+    parseWsLiquidation(liquidation: any, market?: Market): Liquidation;
     handleErrorMessage(client: Client, message: any): Bool;
     handleBalanceSubscription(client: Client, message: any, subscription?: any): void;
     handleSubscriptionStatus(client: Client, message: any): void;

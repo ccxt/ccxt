@@ -284,7 +284,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         $client->resolve ($ticker, $messageHash);
     }
 
-    public function parse_ws_updated_ticker($ticker, $lastTicker = null, $market = null) {
+    public function parse_ws_updated_ticker($ticker, $lastTicker = null, ?array $market = null) {
         //
         //     {
         //         "seqnum" => 2,
@@ -392,7 +392,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         $client->resolve ($this->trades[$symbol], $messageHash);
     }
 
-    public function parse_ws_trade($trade, $market = null) {
+    public function parse_ws_trade($trade, ?array $market = null) {
         //
         //     {
         //         "seqnum" => 1,
@@ -559,7 +559,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         $client->resolve ($this->orders, $messageHash);
     }
 
-    public function parse_ws_order($order, $market = null) {
+    public function parse_ws_order($order, ?array $market = null) {
         //
         //     {
         //         "seqnum" => 3,

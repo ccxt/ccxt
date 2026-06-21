@@ -606,7 +606,7 @@ public class BitfinexCore extends BitfinexApi
                 Object market = this.safeValue(pairObj, 1, new java.util.HashMap<String, Object>() {{}});
                 Object spot = true;
                 Object type = null;
-                if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(id, "F0"), 0)))
+                if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(((String)id), "F0"), 0)))
                 {
                     spot = false;
                     type = "swap";
@@ -617,20 +617,20 @@ public class BitfinexCore extends BitfinexApi
                 Object swap = Helpers.isEqual(type, "swap");
                 Object baseId = null;
                 Object quoteId = null;
-                if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(id, ":"), 0)))
+                if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(((String)id), ":"), 0)))
                 {
-                    Object parts = Helpers.split(id, ":");
+                    Object parts = Helpers.split(((String)id), ":");
                     baseId = Helpers.GetValue(parts, 0);
                     quoteId = Helpers.GetValue(parts, 1);
                 } else
                 {
-                    baseId = Helpers.slice(id, 0, 3);
-                    quoteId = Helpers.slice(id, 3, 6);
+                    baseId = Helpers.slice(((String)id), 0, 3);
+                    quoteId = Helpers.slice(((String)id), 3, 6);
                 }
                 Object base = this.safeCurrencyCode(baseId);
                 Object quote = this.safeCurrencyCode(quoteId);
-                Object splitBase = Helpers.split(base, "F0");
-                Object splitQuote = Helpers.split(quote, "F0");
+                Object splitBase = Helpers.split(((String)base), "F0");
+                Object splitQuote = Helpers.split(((String)quote), "F0");
                 base = this.safeString(splitBase, 0);
                 quote = this.safeString(splitQuote, 0);
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
@@ -974,8 +974,8 @@ public class BitfinexCore extends BitfinexApi
                 }
                 Object type = this.safeString(balance, 0);
                 Object currencyId = this.safeStringLower(balance, 1, "");
-                Object start = Helpers.subtract(((String)currencyId).length(), 2);
-                Object isDerivativeCode = Helpers.isEqual(Helpers.slice(currencyId, start, null), "f0");
+                Object start = Helpers.subtract(((String)((String)currencyId)).length(), 2);
+                Object isDerivativeCode = Helpers.isEqual(Helpers.slice(((String)currencyId), start, null), "f0");
                 // this will only filter the derivative codes if the requestedType is 'derivatives'
                 Object derivativeCondition = (!Helpers.isTrue(isDerivative) || Helpers.isTrue(isDerivativeCode));
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(accountType, type))) && Helpers.isTrue(derivativeCondition)))
@@ -1146,8 +1146,8 @@ public class BitfinexCore extends BitfinexApi
         if (Helpers.isTrue(Helpers.isEqual(type, "derivatives")))
         {
             currencyId = this.safeString(underlying, 0, transferId);
-            Object start = Helpers.subtract(Helpers.getArrayLength(currencyId), 2);
-            Object isDerivativeCode = Helpers.isEqual(Helpers.slice(currencyId, start, null), "F0");
+            Object start = Helpers.subtract(((String)((String)currencyId)).length(), 2);
+            Object isDerivativeCode = Helpers.isEqual(Helpers.slice(((String)currencyId), start, null), "F0");
             if (!Helpers.isTrue(isDerivativeCode))
             {
                 currencyId = Helpers.add(currencyId, "F0");
@@ -1482,7 +1482,7 @@ public class BitfinexCore extends BitfinexApi
         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(amountString, 0), "-")))
         {
             side = "sell";
-            amountString = Precise.stringAbs(amountString);
+            amountString = Precise.stringAbs(((String)amountString));
         } else
         {
             side = "buy";
@@ -2853,7 +2853,7 @@ public class BitfinexCore extends BitfinexApi
             tag = this.safeString(data, 3);
             type = "withdrawal";
             Object networkId = this.safeString(data, 2);
-            network = this.networkIdToCode(((String)networkId).toUpperCase(), code); // withdraw returns in lowercase
+            network = this.networkIdToCode(((String)((String)networkId)).toUpperCase(), code); // withdraw returns in lowercase
         } else if (Helpers.isTrue(Helpers.isEqual(transactionLength, 22)))
         {
             id = this.safeString(transaction, 0);

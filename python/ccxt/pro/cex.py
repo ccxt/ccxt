@@ -775,7 +775,7 @@ class cex(ccxt.async_support.cex):
         #
         isTransaction = self.safe_value(order, 'd') is not None
         remainsPrecision = self.safe_string(order, 'remains')
-        remaining = None
+        remaining: Str = None
         if remainsPrecision is not None:
             remaining = self.currency_from_precision(market['base'], remainsPrecision)
         amount = self.safe_string(order, 'amount')

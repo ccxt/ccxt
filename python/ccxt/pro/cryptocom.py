@@ -119,8 +119,8 @@ class cryptocom(ccxt.async_support.cryptocom):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
-        topics = []
-        messageHashes = []
+        topics: List[str] = []
+        messageHashes: List[str] = []
         if not limit:
             limit = 50
         topicParams = self.safe_value(params, 'params')
@@ -162,9 +162,9 @@ class cryptocom(ccxt.async_support.cryptocom):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
-        topics = []
-        subMessageHashes = []
-        messageHashes = []
+        topics: List[str] = []
+        subMessageHashes: List[str] = []
+        messageHashes: List[str] = []
         limit = self.safe_integer(params, 'limit', 50)
         topicParams = self.safe_value(params, 'params')
         if topicParams is None:
@@ -330,7 +330,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
-        topics = []
+        topics: List[str] = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
@@ -355,8 +355,8 @@ class cryptocom(ccxt.async_support.cryptocom):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
-        topics = []
-        messageHashes = []
+        topics: List[str] = []
+        messageHashes: List[str] = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
@@ -476,7 +476,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
-        messageHashes = []
+        messageHashes: List[str] = []
         marketIds = self.market_ids(symbols)
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
@@ -509,8 +509,8 @@ class cryptocom(ccxt.async_support.cryptocom):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
-        messageHashes = []
-        subMessageHashes = []
+        messageHashes: List[str] = []
+        subMessageHashes: List[str] = []
         marketIds = self.market_ids(symbols)
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
@@ -614,8 +614,8 @@ class cryptocom(ccxt.async_support.cryptocom):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
-        messageHashes = []
-        topics = []
+        messageHashes: List[str] = []
+        topics: List[str] = []
         marketIds = self.market_ids(symbols)
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
@@ -906,7 +906,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         if self.positions is None:
             self.positions = ArrayCacheBySymbolBySide()
         cache = self.positions
-        newPositions = []
+        newPositions: List[Position] = []
         for i in range(0, len(rawPositions)):
             rawPosition = rawPositions[i]
             position = self.parse_position(rawPosition)

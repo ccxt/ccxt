@@ -938,7 +938,7 @@ class onetrading(ccxt.async_support.onetrading):
         if self.myTrades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             self.myTrades = ArrayCacheBySymbolById(limit)
-        symbol = None
+        symbol: Str = None
         orders = self.orders
         update = self.safe_value(message, 'update', {})
         updateType = self.safe_string(update, 'type')
@@ -1048,7 +1048,7 @@ class onetrading(ccxt.async_support.onetrading):
         if subscriptionMarketId is None:
             subscription[marketId] = {}
         subscription[marketId][timeframe] = True
-        properties = []
+        properties: List = []
         marketIds = list(subscription.keys())
         for i in range(0, len(marketIds)):
             marketIdtimeframes = list(subscription[marketIds[i]].keys())
@@ -1248,7 +1248,7 @@ class onetrading(ccxt.async_support.onetrading):
         return message
 
     async def watch_many(self, messageHash, request, subscriptionHash, symbols: Strings = [], params={}):
-        marketIds = []
+        marketIds: List[str] = []
         numSymbols = len(symbols)
         if numSymbols == 0:
             marketIds = list(self.markets_by_id.keys())

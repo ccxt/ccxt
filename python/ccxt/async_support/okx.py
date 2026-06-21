@@ -1681,7 +1681,7 @@ class okx(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        result = []
+        result: List = []
         for i in range(0, len(data)):
             account = data[i]
             accountId = self.safe_string(account, 'uid')
@@ -1715,8 +1715,8 @@ class okx(Exchange, ImplicitAPI):
             types = self.safe_list(fetchMarketsOption, 'types', types)
         else:
             types = self.safe_list(self.options, 'fetchMarkets', types)  # backward-support
-        promises = []
-        result = []
+        promises: List = []
+        result: List = []
         for i in range(0, len(types)):
             promises.append(self.fetch_markets_by_type(types[i], params))
         promises = await asyncio.gather(*promises)
@@ -1895,7 +1895,7 @@ class okx(Exchange, ImplicitAPI):
         }
         if type == 'option':
             optionsUnderlying = self.safe_list(self.options, 'defaultUnderlying', ['BTC-USD', 'ETH-USD'])
-            promises = []
+            promises: List = []
             for i in range(0, len(optionsUnderlying)):
                 underlying = optionsUnderlying[i]
                 request['uly'] = underlying
@@ -1942,7 +1942,7 @@ class okx(Exchange, ImplicitAPI):
         #     }
         #
         dataResponse = self.safe_list(response, 'data', [])
-        marketsWithoutTest = []
+        marketsWithoutTest: List = []
         for i in range(0, len(dataResponse)):
             data = dataResponse[i]
             instId = self.safe_string(data, 'instId', '')
@@ -2105,7 +2105,7 @@ class okx(Exchange, ImplicitAPI):
         limit = 100 if (limit is None) else limit
         if limit is not None:
             request['sz'] = limit  # max 400
-        response = None
+        response: NullableDict = None
         if (method == 'publicGetMarketBooksFull') or (limit > 400):
             response = await self.publicGetMarketBooksFull(self.extend(request, params))
         else:
@@ -2437,7 +2437,7 @@ class okx(Exchange, ImplicitAPI):
         side = self.safe_string(trade, 'side')
         orderId = self.safe_string(trade, 'ordId')
         feeCostString = self.safe_string(trade, 'fee')
-        fee = None
+        fee: NullableDict = None
         if feeCostString is not None:
             feeCostSigned = Precise.string_neg(feeCostString)
             feeCurrencyId = self.safe_string(trade, 'feeCcy')
@@ -2491,7 +2491,7 @@ class okx(Exchange, ImplicitAPI):
         request: dict = {
             'instId': market['id'],
         }
-        response = None
+        response: NullableDict = None
         if market['option']:
             response = await self.publicGetPublicOptionTrades(self.extend(request, params))
         else:
@@ -2636,7 +2636,7 @@ class okx(Exchange, ImplicitAPI):
         type = self.safe_string(params, 'type', defaultType)
         params = self.omit(params, 'type')
         isHistoryCandles = (type == 'HistoryCandles')
-        response = None
+        response: NullableDict = None
         if priceType == 'mark':
             if isHistoryCandles:
                 response = await self.publicGetMarketHistoryMarkPriceCandles(self.extend(request, params))
@@ -2721,7 +2721,7 @@ class okx(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        rates = []
+        rates: List = []
         data = self.safe_list(response, 'data', [])
         for i in range(0, len(data)):
             rate = data[i]
@@ -2869,7 +2869,7 @@ class okx(Exchange, ImplicitAPI):
         request: dict = {
             # 'ccy': 'BTC,ETH',  # comma-separated list of currency ids
         }
-        response = None
+        response: NullableDict = None
         if marketType == 'funding':
             response = await self.privateGetAssetBalances(self.extend(request, query))
         else:
@@ -3323,7 +3323,7 @@ class okx(Exchange, ImplicitAPI):
             # submit a single order in an array to the batch order endpoint
             # because it has a lower ratelimit
             request = [request]
-        response = None
+        response: NullableDict = None
         if method == 'privatePostTradeOrder':
             response = await self.privatePostTradeOrder(request)
         elif method == 'privatePostTradeOrderAlgo':
@@ -3348,7 +3348,7 @@ class okx(Exchange, ImplicitAPI):
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        ordersRequests = []
+        ordersRequests: List = []
         for i in range(0, len(orders)):
             rawOrder = orders[i]
             marketId = self.safe_string(rawOrder, 'symbol')
@@ -3500,7 +3500,7 @@ class okx(Exchange, ImplicitAPI):
         isAlgoOrder: Bool = None
         if (type == 'trigger') or (type == 'conditional') or (type == 'move_order_stop') or (type == 'oco') or (type == 'iceberg') or (type == 'twap'):
             isAlgoOrder = True
-        response = None
+        response: NullableDict = None
         if isAlgoOrder:
             response = await self.privatePostTradeAmendAlgos(self.extend(request, params))
         else:
@@ -3597,7 +3597,7 @@ class okx(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        request = []
+        request: List = []
         options = self.safe_value(self.options, 'cancelOrders', {})
         defaultMethod = self.safe_string(options, 'method', 'privatePostTradeCancelBatchOrders')
         method = self.safe_string(params, 'method', defaultMethod)
@@ -3638,7 +3638,7 @@ class okx(Exchange, ImplicitAPI):
                         'instId': market['id'],
                         'clOrdId': clientOrderIds[i],
                     })
-        response = None
+        response: NullableDict = None
         if method == 'privatePostTradeCancelAlgos':
             response = await self.privatePostTradeCancelAlgos(request)  # * dont self.extend with params, otherwise ARRAY will be turned into OBJECT
         else:
@@ -3689,7 +3689,7 @@ class okx(Exchange, ImplicitAPI):
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        request = []
+        request: List = []
         options = self.safe_dict(self.options, 'cancelOrders', {})
         defaultMethod = self.safe_string(options, 'method', 'privatePostTradeCancelBatchOrders')
         method = self.safe_string(params, 'method', defaultMethod)
@@ -3717,7 +3717,7 @@ class okx(Exchange, ImplicitAPI):
             }
             requestItem[idKey] = clientOrderId if (clientOrderId is not None) else id
             request.append(requestItem)
-        response = None
+        response: NullableDict = None
         if method == 'privatePostTradeCancelAlgos':
             response = await self.privatePostTradeCancelAlgos(request)  # * dont self.extend with params, otherwise ARRAY will be turned into OBJECT
         else:
@@ -4024,7 +4024,7 @@ class okx(Exchange, ImplicitAPI):
         else:
             # "sz" refers to the trade currency amount
             amount = self.safe_string(order, 'sz')
-        fee = None
+        fee: NullableDict = None
         if feeCostString is not None:
             feeCostSigned = Precise.string_neg(feeCostString)
             feeCurrencyId = self.safe_string(order, 'feeCcy')
@@ -4110,7 +4110,7 @@ class okx(Exchange, ImplicitAPI):
             else:
                 request['ordId'] = id
         query = self.omit(params, ['method', 'clOrdId', 'clientOrderId', 'stop', 'trigger'])
-        response = None
+        response: NullableDict = None
         if method == 'privateGetTradeOrderAlgo':
             response = await self.privateGetTradeOrderAlgo(self.extend(request, query))
         else:
@@ -4249,7 +4249,7 @@ class okx(Exchange, ImplicitAPI):
             # 'before': orderId,
             # 'limit': limit,  # default 100, max 100
         }
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['instId'] = market['id']
@@ -4269,7 +4269,7 @@ class okx(Exchange, ImplicitAPI):
         elif trigger and (ordType is None):
             request['ordType'] = 'trigger'
         query = self.omit(params, ['method', 'stop', 'trigger', 'trailing'])
-        response = None
+        response: NullableDict = None
         if method == 'privateGetTradeOrdersAlgoPending':
             response = await self.privateGetTradeOrdersAlgoPending(self.extend(request, query))
         else:
@@ -4402,12 +4402,12 @@ class okx(Exchange, ImplicitAPI):
             # 'limit': limit,  # default 100, max 100
             # 'algoId': "'433845797218942976'",  # Algo order
         }
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['instId'] = market['id']
-        type: Str = None
-        query: dict = None
+        type = None
+        query: dict
         type, query = self.handle_market_type_and_params('fetchCanceledOrders', market, params)
         request['instType'] = self.convert_to_instrument_type(type)
         if limit is not None:
@@ -4440,7 +4440,7 @@ class okx(Exchange, ImplicitAPI):
                 request['end'] = until
                 query = self.omit(query, ['until'])
         send = self.omit(query, ['method', 'stop', 'trigger', 'trailing'])
-        response = None
+        response: NullableDict = None
         if method == 'privateGetTradeOrdersAlgoHistory':
             response = await self.privateGetTradeOrdersAlgoHistory(self.extend(request, send))
         else:
@@ -4585,12 +4585,12 @@ class okx(Exchange, ImplicitAPI):
             # 'limit': limit,  # default 100, max 100
             # 'algoId': "'433845797218942976'",  # Algo order
         }
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['instId'] = market['id']
-        type: Str = None
-        query: dict = None
+        type = None
+        query: dict
         type, query = self.handle_market_type_and_params('fetchClosedOrders', market, params)
         request['instType'] = self.convert_to_instrument_type(type)
         if limit is not None:
@@ -4619,7 +4619,7 @@ class okx(Exchange, ImplicitAPI):
                 query = self.omit(query, ['until'])
             request['state'] = 'filled'
         send = self.omit(query, ['method', 'stop', 'trigger', 'trailing'])
-        response = None
+        response: NullableDict = None
         if method == 'privateGetTradeOrdersAlgoHistory':
             response = await self.privateGetTradeOrdersAlgoHistory(self.extend(request, send))
         elif method == 'privateGetTradeOrdersHistoryArchive':
@@ -4752,7 +4752,7 @@ class okx(Exchange, ImplicitAPI):
             # 'before': billId,
             # 'limit': limit,  # default 100, max 100
         }
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['instId'] = market['id']
@@ -4865,12 +4865,12 @@ class okx(Exchange, ImplicitAPI):
             request['instType'] = self.convert_to_instrument_type(type)
         if limit is not None:
             request['limit'] = limit
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
             request['ccy'] = currency['id']
         request, params = self.handle_until_option('end', request, params)
-        response = None
+        response: NullableDict = None
         if method == 'privateGetAccountBillsArchive':
             response = await self.privateGetAccountBillsArchive(self.extend(request, query))
         elif method == 'privateGetAssetBills':
@@ -4986,7 +4986,7 @@ class okx(Exchange, ImplicitAPI):
         currency = self.safe_currency(currencyId, currency)
         timestamp = self.safe_integer(item, 'ts')
         feeCostString = self.safe_string(item, 'fee')
-        fee = None
+        fee: NullableDict = None
         if feeCostString is not None:
             fee = {
                 'cost': self.parse_number(Precise.string_neg(feeCostString)),
@@ -5264,7 +5264,7 @@ class okx(Exchange, ImplicitAPI):
             # 'before' self.milliseconds(),
             # 'limit': limit,  # default 100, max 100
         }
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
             request['ccy'] = currency['id']
@@ -5330,7 +5330,7 @@ class okx(Exchange, ImplicitAPI):
         request: dict = {
             'depId': id,
         }
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
             request['ccy'] = currency['id']
@@ -5365,7 +5365,7 @@ class okx(Exchange, ImplicitAPI):
             # 'before': self.milliseconds(),
             # 'limit': limit,  # default 100, max 100
         }
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
             request['ccy'] = currency['id']
@@ -5423,7 +5423,7 @@ class okx(Exchange, ImplicitAPI):
         request: dict = {
             'wdId': id,
         }
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
             request['ccy'] = currency['id']
@@ -5538,7 +5538,7 @@ class okx(Exchange, ImplicitAPI):
         #         "depId": "4703879"
         #     }
         #
-        type: Str = None
+        type = None
         id: Str = None
         withdrawalId = self.safe_string(transaction, 'wdId')
         addressFrom = self.safe_string(transaction, 'from')
@@ -5758,7 +5758,7 @@ class okx(Exchange, ImplicitAPI):
             # 'posId': '307173036051017730',  # optional string, Single or multiple position IDs(no more than 20) separated with commas
         }
         if symbols is not None:
-            marketIds = []
+            marketIds: List = []
             for i in range(0, len(symbols)):
                 entry = symbols[i]
                 market = self.market(entry)
@@ -5768,7 +5768,7 @@ class okx(Exchange, ImplicitAPI):
                 request['instId'] = ','.join(marketIds)
         fetchPositionsOptions = self.safe_dict(self.options, 'fetchPositions', {})
         method = self.safe_string(fetchPositionsOptions, 'method', 'privateGetAccountPositions')
-        response = None
+        response: NullableDict = None
         if method == 'privateGetAccountPositionsHistory':
             response = await self.privateGetAccountPositionsHistory(self.extend(request, params))
         else:
@@ -5820,7 +5820,7 @@ class okx(Exchange, ImplicitAPI):
         #     }
         #
         positions = self.safe_list(response, 'data', [])
-        result = []
+        result: List = []
         for i in range(0, len(positions)):
             result.append(self.parse_position(positions[i]))
         return self.filter_by_array_positions(result, 'symbol', self.market_symbols(symbols), False)
@@ -6184,7 +6184,7 @@ class okx(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/?id=transfer-structure>`
         """
         await self.load_markets()
-        currency = None
+        currency: Currency = None
         request: dict = {
             'type': '1',  # https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-3-months
         }
@@ -6231,7 +6231,7 @@ class okx(Exchange, ImplicitAPI):
         transfers = self.safe_list(response, 'data', [])
         return self.parse_transfers(transfers, currency, since, limit, params)
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         isArray = isinstance(params, list)
         request = '/api/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
@@ -6527,7 +6527,7 @@ class okx(Exchange, ImplicitAPI):
         }
         if limit is not None:
             request['limit'] = str(limit)  # default 100, max 100
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
@@ -6568,7 +6568,7 @@ class okx(Exchange, ImplicitAPI):
         #    }
         #
         data = self.safe_list(response, 'data', [])
-        result = []
+        result: List = []
         for i in range(0, len(data)):
             entry = data[i]
             timestamp = self.safe_integer(entry, 'ts')
@@ -6662,7 +6662,7 @@ class okx(Exchange, ImplicitAPI):
         """
         accounts = await self.fetch_accounts()
         length = len(accounts)
-        selectedAccount = None
+        selectedAccount: dict
         if length > 1:
             accountId = self.safe_string(params, 'accountId')
             if accountId is None:
@@ -6785,7 +6785,7 @@ class okx(Exchange, ImplicitAPI):
         #    }
         #
         data = self.safe_list(response, 'data', [])
-        rates = []
+        rates: List = []
         for i in range(0, len(data)):
             rates.append(self.parse_borrow_rate(data[i]))
         return rates
@@ -7164,7 +7164,7 @@ class okx(Exchange, ImplicitAPI):
         #        ...
         #    ]
         #
-        tiers = []
+        tiers: List = []
         for i in range(0, len(info)):
             tier = info[i]
             marketId = self.safe_string(tier, 'instId')
@@ -7203,7 +7203,7 @@ class okx(Exchange, ImplicitAPI):
         request: dict = {
             'mgnMode': marginMode,
         }
-        market = None
+        market: Market = None
         if code is not None:
             currency = self.currency(code)
             request['ccy'] = currency['id']
@@ -7415,7 +7415,7 @@ class okx(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True)
-        market = None
+        market: Market = None
         if symbols is not None:
             market = self.market(symbols[0])
         marketType: Str = None
@@ -7476,7 +7476,7 @@ class okx(Exchange, ImplicitAPI):
         await self.load_markets()
         # handle unified currency code or symbol
         currencyId: Str = None
-        market = None
+        market: Market = None
         if (symbol in self.markets) or (symbol in self.markets_by_id):
             market = self.market(symbol)
             currencyId = market['baseId']
@@ -7487,8 +7487,8 @@ class okx(Exchange, ImplicitAPI):
             'ccy': currencyId,
             'period': timeframe,
         }
-        type: Str = None
-        response = None
+        type = None
+        response: NullableDict = None
         type, params = self.handle_market_type_and_params('fetchOpenInterestHistory', market, params)
         if type == 'option':
             response = await self.publicGetRubikStatOptionOpenInterestVolume(self.extend(request, params))
@@ -7714,7 +7714,7 @@ class okx(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchSettlementHistory() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        type: Str = None
+        type = None
         type, params = self.handle_market_type_and_params('fetchSettlementHistory', market, params)
         if type != 'future' and type != 'option':
             raise NotSupported(self.id + ' fetchSettlementHistory() supports futures and options markets only')
@@ -7780,7 +7780,7 @@ class okx(Exchange, ImplicitAPI):
         #         "ts":"1684656000000"
         #     }
         #
-        result = []
+        result: List = []
         for i in range(0, len(settlements)):
             entry = settlements[i]
             timestamp = self.safe_integer(entry, 'ts')
@@ -7913,7 +7913,7 @@ class okx(Exchange, ImplicitAPI):
                 request['instFamily'] = instFamily
             if (uly is None) and (instFamily is None):
                 raise BadRequest(self.id + ' fetchAllGreeks() requires either a uly or instFamily parameter')
-        market = None
+        market: Market = None
         if symbols is not None:
             if symbolsLength == 1:
                 market = self.market(symbols[0])
@@ -8350,8 +8350,8 @@ class okx(Exchange, ImplicitAPI):
         result = self.safe_dict(data, 0, {})
         fromCurrencyId = self.safe_string(result, 'baseCcy')
         toCurrencyId = self.safe_string(result, 'quoteCcy')
-        fromCurrency = None
-        toCurrency = None
+        fromCurrency: Currency = None
+        toCurrency: Currency = None
         if fromCurrencyId is not None:
             fromCurrency = self.currency(fromCurrencyId)
         if toCurrencyId is not None:
@@ -8609,7 +8609,7 @@ class okx(Exchange, ImplicitAPI):
             request['limit'] = limit
         if until is not None:
             request['endTime'] = until
-        response = None
+        response: NullableDict = None
         now = self.milliseconds()
         oneWeekAgo = now - 604800000
         threeMonthsAgo = now - 7776000000
@@ -8783,7 +8783,7 @@ class okx(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        result = []
+        result: List = []
         for i in range(0, len(data)):
             entry = data[i]
             result.append({

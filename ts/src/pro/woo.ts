@@ -821,7 +821,7 @@ export default class woo extends wooRest {
         const cost = Precise.stringMul (price, amount);
         const side = this.safeStringLower (trade, 'side');
         const timestamp = this.safeInteger (trade, 'timestamp');
-        const maker = this.safeBool (trade, 'marker');
+        const maker = this.safeBool (trade, 'maker');
         let takerOrMaker: Str = undefined;
         if (maker !== undefined) {
             takerOrMaker = maker ? 'maker' : 'taker';

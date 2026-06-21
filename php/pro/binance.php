@@ -2689,7 +2689,6 @@ class binance extends \ccxt\async\binance {
             $listenKeyRefreshRate = $this->safe_integer($this->options, 'listenKeyRefreshRate', 1200000);
             $delay = $this->sum($listenKeyRefreshRate, 10000);
             if ($time - $lastAuthenticatedTime > $delay) {
-                $response = null;
                 if ($isPortfolioMargin) {
                     $response = Async\await($this->papiPostListenKey ($params));
                     $params = $this->extend($params, array( 'portfolioMargin' => true ));
@@ -3557,7 +3556,6 @@ class binance extends \ccxt\async\binance {
         $messageHash = $this->safe_string($message, 'id');
         $result = $this->safe_dict($message, 'result', array());
         $newSpotOrder = $this->safe_dict($result, 'newOrderResponse');
-        $order = null;
         if ($newSpotOrder !== null) {
             $order = $this->parse_order($newSpotOrder);
         } else {

@@ -315,7 +315,6 @@ class exmo extends Exchange {
                 'position_id' => $market['id'],
                 'quantity' => $amount,
             );
-            $response = null;
             if ($type === 'add') {
                 $response = Async\await($this->privatePostMarginUserPositionMarginAdd ($this->extend($request, $params)));
             } elseif ($type === 'reduce') {
@@ -1118,7 +1117,6 @@ class exmo extends Exchange {
             if ($marginMode === 'cross') {
                 throw new BadRequest($this->id . ' does not support cross margin');
             }
-            $response = null;
             if ($marginMode === 'isolated') {
                 $response = Async\await($this->privatePostMarginUserWalletList ($params));
                 //
@@ -1502,7 +1500,6 @@ class exmo extends Exchange {
             }
             $offset = $this->safe_integer($params, 'offset', 0);
             $request['offset'] = $offset;
-            $response = null;
             if ($isSpot) {
                 $response = Async\await($this->privatePostUserTrades ($this->extend($request, $params)));
                 //
@@ -1684,7 +1681,6 @@ class exmo extends Exchange {
             if ($price !== null) {
                 $request['price'] = $this->price_to_precision($market['symbol'], $price);
             }
-            $response = null;
             if ($isSpot) {
                 if ($triggerPrice !== null) {
                     if ($type === 'limit') {
@@ -1761,7 +1757,6 @@ class exmo extends Exchange {
             if ($marginMode === 'cross') {
                 throw new BadRequest($this->id . ' only supports isolated margin');
             }
-            $response = null;
             if (($marginMode === 'isolated')) {
                 $request['order_id'] = $id;
                 $response = Async\await($this->privatePostMarginUserOrderCancel ($this->extend($request, $params)));
@@ -1862,7 +1857,6 @@ class exmo extends Exchange {
             $request = array(
                 'order_id' => (string) $id,
             );
-            $response = null;
             if ($marginMode === 'isolated') {
                 $response = Async\await($this->privatePostMarginUserOrderTrades ($this->extend($request, $params)));
                 //
@@ -1938,7 +1932,6 @@ class exmo extends Exchange {
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOpenOrders', $params);
             $isMargin = (($marginMode === 'cross') || ($marginMode === 'isolated'));
-            $response = null;
             $orders = array();
             if ($isMargin) {
                 $response = Async\await($this->privatePostMarginUserOrderList ($params));
@@ -2218,7 +2211,6 @@ class exmo extends Exchange {
             if ($symbol !== null) {
                 $market = $this->market($symbol);
             }
-            $response = null;
             if ($isSpot) {
                 $response = Async\await($this->privatePostUserCancelledOrders ($this->extend($request, $params)));
                 //
@@ -2819,7 +2811,7 @@ class exmo extends Exchange {
         }) ();
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api'][$api] . '/';
         if ($api !== 'web') {
             $url .= $this->version . '/';

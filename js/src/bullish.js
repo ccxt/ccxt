@@ -887,7 +887,7 @@ export default class bullish extends Exchange {
             'info': market,
         });
     }
-    parseMarketType(type, defaultType = undefined) {
+    parseMarketType(type = undefined, defaultType = undefined) {
         const types = {
             'SPOT': 'spot',
             'PERPETUAL': 'swap',
@@ -1011,7 +1011,7 @@ export default class bullish extends Exchange {
             request['symbol'] = market['id'];
         }
         const clientOrderId = this.safeString(params, 'clientOrderId');
-        let response = undefined;
+        let response;
         if (clientOrderId !== undefined) {
             response = await this.privateGetV1TradesClientOrderIdClientOrderId(this.extend(request, params));
         }

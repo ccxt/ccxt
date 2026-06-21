@@ -4630,7 +4630,7 @@ export default class okx extends Exchange {
             request['instId'] = market['id'];
         }
         let type = undefined;
-        let query = undefined;
+        let query;
         [type, query] = this.handleMarketTypeAndParams('fetchCanceledOrders', market, params);
         request['instType'] = this.convertToInstrumentType(type);
         if (limit !== undefined) {
@@ -4826,7 +4826,7 @@ export default class okx extends Exchange {
             request['instId'] = market['id'];
         }
         let type = undefined;
-        let query = undefined;
+        let query;
         [type, query] = this.handleMarketTypeAndParams('fetchClosedOrders', market, params);
         request['instType'] = this.convertToInstrumentType(type);
         if (limit !== undefined) {
@@ -7015,7 +7015,7 @@ export default class okx extends Exchange {
     async fetchPositionMode(symbol = undefined, params = {}) {
         const accounts = await this.fetchAccounts();
         const length = accounts.length;
-        let selectedAccount = undefined;
+        let selectedAccount;
         if (length > 1) {
             const accountId = this.safeString(params, 'accountId');
             if (accountId === undefined) {

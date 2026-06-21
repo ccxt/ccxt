@@ -385,7 +385,7 @@ class extended(ccxt.async_support.extended):
         stored = self.positions
         data = self.safe_dict(message, 'data', {})
         rawPositions = self.safe_list(data, 'positions', [])
-        newPositions = []
+        newPositions: List[Position] = []
         first = self.safe_dict(rawPositions, 0)
         if first is None:
             return

@@ -4664,7 +4664,6 @@ class okx extends Exchange {
                 $request['instId'] = $market['id'];
             }
             $type = null;
-            $query = null;
             list($type, $query) = $this->handle_market_type_and_params('fetchCanceledOrders', $market, $params);
             $request['instType'] = $this->convert_to_instrument_type($type);
             if ($limit !== null) {
@@ -4860,7 +4859,6 @@ class okx extends Exchange {
                 $request['instId'] = $market['id'];
             }
             $type = null;
-            $query = null;
             list($type, $query) = $this->handle_market_type_and_params('fetchClosedOrders', $market, $params);
             $request['instType'] = $this->convert_to_instrument_type($type);
             if ($limit !== null) {
@@ -6633,7 +6631,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $isArray = (gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params)));
         $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
@@ -7107,7 +7105,6 @@ class okx extends Exchange {
              */
             $accounts = Async\await($this->fetch_accounts());
             $length = count($accounts);
-            $selectedAccount = null;
             if ($length > 1) {
                 $accountId = $this->safe_string($params, 'accountId');
                 if ($accountId === null) {
@@ -8760,7 +8757,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function parse_option(array $chain, ?array $currency = null, ?array $market = null): Option {
+    public function parse_option(array $chain, ?array $currency = null, ?array $market = null): array {
         //
         //     {
         //         "instType" => "OPTION",

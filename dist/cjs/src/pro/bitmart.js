@@ -273,6 +273,9 @@ class bitmart extends bitmart$1["default"] {
         //    }
         //
         const channel = this.safeString2(message, 'table', 'group');
+        if (channel === undefined) {
+            return;
+        }
         const data = this.safeValue(message, 'data');
         if (data === undefined) {
             return;
@@ -576,7 +579,7 @@ class bitmart extends bitmart$1["default"] {
         let type = 'spot';
         [type, params] = this.handleMarketTypeAndParams('watchOrders', market, params);
         await this.authenticate(type, params);
-        let request = undefined;
+        let request;
         if (type === 'spot') {
             let argsRequest = 'spot/user/order:';
             if (symbol !== undefined) {
@@ -628,7 +631,7 @@ class bitmart extends bitmart$1["default"] {
         let type = 'spot';
         [type, params] = this.handleMarketTypeAndParams('watchOrders', market, params);
         await this.authenticate(type, params);
-        let request = undefined;
+        let request;
         if (type === 'spot') {
             let argsRequest = 'spot/user/order:';
             if (symbol !== undefined) {
@@ -1816,7 +1819,7 @@ class bitmart extends bitmart$1["default"] {
             const path = 'bitmart.WebSocket';
             const auth = timestamp + '#' + memo + '#' + path;
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
-            let request = undefined;
+            let request;
             if (type === 'spot') {
                 request = {
                     'op': 'login',

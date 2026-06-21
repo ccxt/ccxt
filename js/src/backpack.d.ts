@@ -1,5 +1,5 @@
 import Exchange from './abstract/backpack.js';
-import type { Balances, Currencies, Currency, DepositAddress, Dict, FundingRate, FundingRateHistory, int, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderType, OrderSide, Position, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currencies, Currency, DepositAddress, Dict, FundingRate, FundingRateHistory, int, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderType, OrderSide, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, NullableDict } from './base/types.js';
 /**
  * @class backpack
  * @augments Exchange
@@ -361,11 +361,11 @@ export default class backpack extends Exchange {
         rate: number;
     };
     nonce(): number;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: any;
         method: string;
-        body: any;
-        headers: any;
+        body: string;
+        headers: Dict;
     };
     generateBatchPayload(params: any, ts: any, recvWindow: any, instruction: any): string;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;

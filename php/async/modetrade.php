@@ -1825,7 +1825,6 @@ class modetrade extends Exchange {
             $clientOrderIdUnified = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
             $clientOrderIdExchangeSpecific = $this->safe_string($params, 'client_order_id', $clientOrderIdUnified);
             $isByClientOrder = $clientOrderIdExchangeSpecific !== null;
-            $response = null;
             if ($trigger) {
                 if ($isByClientOrder) {
                     $request['client_order_id'] = $clientOrderIdExchangeSpecific;
@@ -2953,7 +2952,7 @@ class modetrade extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, $section = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $section = 'public', $method = 'GET', $params = array (), ?array $headers = null, mixed $body = null) {
         $version = $section[0];
         $access = $section[1];
         $pathWithParams = $this->implode_params($path, $params);

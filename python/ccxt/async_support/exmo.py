@@ -322,7 +322,7 @@ class exmo(Exchange, ImplicitAPI):
             'position_id': market['id'],
             'quantity': amount,
         }
-        response: dict = None
+        response: dict
         if type == 'add':
             response = await self.privatePostMarginUserPositionMarginAdd(self.extend(request, params))
         elif type == 'reduce':
@@ -635,8 +635,8 @@ class exmo(Exchange, ImplicitAPI):
             code = self.safe_string(currency, 'code')
             networkCode = self.network_id_to_code(networkId, code)
             commissionDesc = self.safe_string(provider, 'commission_desc')
-            splitCommissionDesc = []
-            percentage = None
+            splitCommissionDesc: List = []
+            percentage: Bool = None
             if commissionDesc is not None:
                 splitCommissionDesc = commissionDesc.split('%')
                 splitCommissionDescLength = len(splitCommissionDesc)
@@ -669,7 +669,7 @@ class exmo(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
-        promises = []
+        promises: List = []
         #
         promises.append(self.publicGetCurrencyListExtended(params))
         #
@@ -708,7 +708,7 @@ class exmo(Exchange, ImplicitAPI):
         responses = await asyncio.gather(*promises)
         currencyList = responses[0]
         cryptoList = responses[1]
-        newArray = []
+        newArray: List = []
         for i in range(0, len(currencyList)):
             currency = currencyList[i]
             currencyId = self.safe_string(currency, 'name')
@@ -722,7 +722,7 @@ class exmo(Exchange, ImplicitAPI):
         currencyId = self.safe_string(currency, 'name')
         code = self.safe_currency_code(currencyId)
         type = 'crypto'
-        networks = {}
+        networks: dict = {}
         if providers is None:
             type = 'fiat'
         else:
@@ -808,7 +808,7 @@ class exmo(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        promises = []
+        promises: List = []
         promises.append(self.publicGetPairSettings(params))
         #
         #     {
@@ -865,7 +865,7 @@ class exmo(Exchange, ImplicitAPI):
             pairs = self.safe_list(marginPairs, 'pairs')
             marginPairsDict = self.index_by(pairs, 'name')
         keys = list(spotResponse.keys())
-        result = []
+        result: List = []
         for i in range(0, len(keys)):
             id = keys[i]
             market = spotResponse[id]
@@ -1054,7 +1054,7 @@ class exmo(Exchange, ImplicitAPI):
         marginMode, params = self.handle_margin_mode_and_params('fetchBalance', params)
         if marginMode == 'cross':
             raise BadRequest(self.id + ' does not support cross margin')
-        response: dict = None
+        response: dict
         if marginMode == 'isolated':
             response = await self.privatePostMarginUserWalletList(params)
             #
@@ -1294,7 +1294,7 @@ class exmo(Exchange, ImplicitAPI):
         if isMaker is not None:
             takerOrMakerDefault = 'maker' if isMaker else 'taker'
         takerOrMaker = self.safe_string(trade, 'exec_type', takerOrMakerDefault)
-        fee: dict = None
+        fee: NullableDict = None
         feeCostString = self.safe_string(trade, 'commission_amount')
         if feeCostString is not None:
             feeCurrencyId = self.safe_string(trade, 'commission_currency')
@@ -1403,7 +1403,7 @@ class exmo(Exchange, ImplicitAPI):
             request['limit'] = limit
         offset = self.safe_integer(params, 'offset', 0)
         request['offset'] = offset
-        response: dict = None
+        response: dict
         if isSpot:
             response = await self.privatePostUserTrades(self.extend(request, params))
             #
@@ -1450,7 +1450,7 @@ class exmo(Exchange, ImplicitAPI):
             #    }
             #
             response = self.safe_value(responseFromExchange, 'trades')
-        result = []
+        result: List = []
         marketIdsInner = list(response.keys())
         for i in range(0, len(marketIdsInner)):
             marketId = marketIdsInner[i]
@@ -1565,7 +1565,7 @@ class exmo(Exchange, ImplicitAPI):
         params = self.omit(params, ['stopPrice', 'stop_price', 'triggerPrice', 'timeInForce', 'client_id', 'clientOrderId', 'cost'])
         if price is not None:
             request['price'] = self.price_to_precision(market['symbol'], price)
-        response: dict = None
+        response: dict
         if isSpot:
             if triggerPrice is not None:
                 if type == 'limit':
@@ -1630,7 +1630,7 @@ class exmo(Exchange, ImplicitAPI):
         marginMode, params = self.handle_margin_mode_and_params('cancelOrder', params)
         if marginMode == 'cross':
             raise BadRequest(self.id + ' only supports isolated margin')
-        response: dict = None
+        response: dict
         if (marginMode == 'isolated'):
             request['order_id'] = id
             response = await self.privatePostMarginUserOrderCancel(self.extend(request, params))
@@ -1721,7 +1721,7 @@ class exmo(Exchange, ImplicitAPI):
         request: dict = {
             'order_id': str(id),
         }
-        response: dict = None
+        response: dict
         if marginMode == 'isolated':
             response = await self.privatePostMarginUserOrderTrades(self.extend(request, params))
             #
@@ -1792,8 +1792,8 @@ class exmo(Exchange, ImplicitAPI):
         marginMode: Str = None
         marginMode, params = self.handle_margin_mode_and_params('fetchOpenOrders', params)
         isMargin = ((marginMode == 'cross') or (marginMode == 'isolated'))
-        response: dict = None
-        orders = []
+        response: dict
+        orders: List = []
         if isMargin:
             response = await self.privatePostMarginUserOrderList(params)
             #
@@ -2053,7 +2053,7 @@ class exmo(Exchange, ImplicitAPI):
         market: Market = None
         if symbol is not None:
             market = self.market(symbol)
-        response: dict = None
+        response: dict
         if isSpot:
             response = await self.privatePostUserCancelledOrders(self.extend(request, params))
             #
@@ -2077,7 +2077,7 @@ class exmo(Exchange, ImplicitAPI):
         responseSwap = await self.privatePostMarginUserOrderHistory(self.extend(request, params))
         items = self.safe_value(responseSwap, 'items')
         orders = self.parse_orders(items, market, since, limit, params)
-        result = []
+        result: List = []
         for i in range(0, len(orders)):
             order = orders[i]
             if order['status'] == 'canceled':
@@ -2146,7 +2146,7 @@ class exmo(Exchange, ImplicitAPI):
         #
         depositAddress = self.safe_string(response, code)
         address: Str = None
-        tag = None
+        tag: Str = None
         if depositAddress:
             addressAndTag = depositAddress.split(',')
             address = addressAndTag[0]
@@ -2594,7 +2594,7 @@ class exmo(Exchange, ImplicitAPI):
         items = self.safe_list(response, 'items', [])
         return self.parse_transactions(items, currency, since, limit)
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api] + '/'
         if api != 'web':
             url += self.version + '/'
