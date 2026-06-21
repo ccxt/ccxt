@@ -1614,6 +1614,7 @@ class Transpiler {
                 'string': 'str',
                 'number': 'float',
                 'any': 'Any',
+                'unknown': 'Any',
                 'boolean': 'bool',
                 'Int': 'Int',
                 'OHLCV': 'list',
@@ -1634,6 +1635,7 @@ class Transpiler {
                 // add $ to each argument name in PHP method signature
                 const phpTypes: dict = {
                     'any': 'mixed',
+                    'unknown': 'mixed',
                     'string': 'string',
                     'MarketType': 'string',
                     'SubType': 'string',
