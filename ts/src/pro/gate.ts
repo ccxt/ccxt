@@ -1286,7 +1286,7 @@ export default class gate extends gateRest {
         if (!this.isEmpty (symbols)) {
             market = this.getMarketFromSymbols (symbols);
         }
-        let type = undefined;
+        let type: Str = undefined;
         let query: Dict = undefined;
         [ type, query ] = this.handleMarketTypeAndParams ('watchPositions', market, params);
         if (type === 'spot') {
@@ -1305,7 +1305,7 @@ export default class gate extends gateRest {
         let subType: Str = undefined;
         [ subType, query ] = this.handleSubTypeAndParams ('watchPositions', market, query);
         const isInverse = (subType === 'inverse');
-        const url = this.getUrlByMarketType (type, isInverse);
+        const url = this.getUrlByMarketType (type as MarketType, isInverse);
         const client = this.client (url);
         this.setPositionsCache (client, type, symbols);
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
