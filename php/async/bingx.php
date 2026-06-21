@@ -1206,7 +1206,6 @@ class bingx extends Exchange {
                 $params = $this->omit($params, array( 'until' ));
                 $request['endTime'] = $until;
             }
-            $response = null;
             if ($market['spot']) {
                 $response = Async\await($this->spotV1PublicGetMarketKline ($this->extend($request, $params)));
             } else {
@@ -1341,7 +1340,6 @@ class bingx extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = min ($limit, 100); // avoid API exception "limit should less than 100"
             }
-            $response = null;
             $marketType = null;
             list($marketType, $params) = $this->handle_market_type_and_params('fetchTrades', $market, $params);
             if ($marketType === 'spot') {
@@ -1578,7 +1576,6 @@ class bingx extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = null;
             $marketType = null;
             list($marketType, $params) = $this->handle_market_type_and_params('fetchOrderBook', $market, $params);
             if ($marketType === 'spot') {
@@ -1690,7 +1687,6 @@ class bingx extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = null;
             if ($market['inverse']) {
                 $response = Async\await($this->cswapV1PublicGetMarketPremiumIndex ($this->extend($request, $params)));
             } else {
@@ -1735,7 +1731,6 @@ class bingx extends Exchange {
             $firstMarket = $this->get_market_from_symbols($symbols);
             $subType = 'linear';
             list($subType, $params) = $this->handle_sub_type_and_params('fetchFundingRates', $firstMarket, $params, $subType);
-            $response = null;
             if ($subType === 'inverse') {
                 $response = Async\await($this->cswapV1PublicGetMarketPremiumIndex ($params));
             } else {
@@ -1961,7 +1956,6 @@ class bingx extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = null;
             if ($market['inverse']) {
                 $response = Async\await($this->cswapV1PublicGetMarketOpenInterest ($this->extend($request, $params)));
             } else {
@@ -2058,7 +2052,6 @@ class bingx extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = null;
             if ($market['spot']) {
                 $response = Async\await($this->spotV1PublicGetTicker24hr ($this->extend($request, $params)));
             } else {
@@ -2132,7 +2125,6 @@ class bingx extends Exchange {
             list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('fetchTickers', $market, $params);
-            $response = null;
             if ($type === 'spot') {
                 $response = Async\await($this->spotV1PublicGetTicker24hr ($params));
             } else {
@@ -2195,7 +2187,6 @@ class bingx extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = null;
             if ($subType === 'inverse') {
                 $response = Async\await($this->cswapV1PublicGetMarketPremiumIndex ($this->extend($request, $params)));
                 //
@@ -2260,7 +2251,6 @@ class bingx extends Exchange {
             }
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('fetchMarkPrices', $market, $params, 'linear');
-            $response = null;
             if ($subType === 'inverse') {
                 $response = Async\await($this->cswapV1PublicGetMarketPremiumIndex ($params));
             } else {
@@ -2419,7 +2409,6 @@ class bingx extends Exchange {
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
-            $response = null;
             $standard = null;
             list($standard, $params) = $this->handle_option_and_params($params, 'fetchBalance', 'standard', false);
             $subType = null;
@@ -2666,7 +2655,6 @@ class bingx extends Exchange {
                 $request['startTs'] = $since;
             }
             list($request, $params) = $this->handle_until_option('endTs', $request, $params);
-            $response = null;
             if ($market['linear']) {
                 $response = Async\await($this->swapV1PrivateGetTradePositionHistory ($this->extend($request, $params)));
             } else {
@@ -2725,7 +2713,6 @@ class bingx extends Exchange {
             $symbols = $this->market_symbols($symbols);
             $standard = null;
             list($standard, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'standard', false);
-            $response = null;
             if ($standard) {
                 $response = Async\await($this->contractV1PrivateGetAllPosition ($params));
             } else {
@@ -2827,7 +2814,6 @@ class bingx extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = null;
             if ($market['inverse']) {
                 $response = Async\await($this->cswapV1PrivateGetUserPositions ($this->extend($request, $params)));
                 //
@@ -3961,7 +3947,6 @@ class bingx extends Exchange {
             Async\await($this->load_markets());
             $isTwapOrder = $this->safe_bool($params, 'twap', false);
             $params = $this->omit($params, 'twap');
-            $response = null;
             $market = null;
             if ($isTwapOrder) {
                 $twapRequest = array(
@@ -4151,7 +4136,6 @@ class bingx extends Exchange {
             $subType = null;
             list($marketType, $params) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
             list($subType, $params) = $this->handle_sub_type_and_params('cancelAllOrders', $market, $params);
-            $response = null;
             if ($marketType === 'spot') {
                 $response = Async\await($this->spotV1PrivatePostTradeCancelOpenOrders ($this->extend($request, $params)));
                 //
@@ -4310,7 +4294,6 @@ class bingx extends Exchange {
                 $stringId = (string) $id;
                 $parsedIds[] = $stringId;
             }
-            $response = null;
             if ($market['spot']) {
                 $spotReqKey = $areClientOrderIds ? 'clientOrderIDs' : 'orderIds';
                 $request[$spotReqKey] = implode(',', $parsedIds);
@@ -4403,7 +4386,6 @@ class bingx extends Exchange {
                 'type' => ($isActive) ? 'ACTIVATE' : 'CLOSE',
                 'timeOut' => ($isActive) ? ($this->parse_to_int($timeout / 1000)) : 0,
             );
-            $response = null;
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('cancelAllOrdersAfter', null, $params);
             if ($type === 'spot') {
@@ -4727,7 +4709,6 @@ class bingx extends Exchange {
             }
             $type = null;
             $subType = null;
-            $response = null;
             list($type, $params) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
             list($subType, $params) = $this->handle_sub_type_and_params('fetchOpenOrders', $market, $params);
             if ($type === 'spot') {
@@ -4966,7 +4947,6 @@ class bingx extends Exchange {
             $type = null;
             $subType = null;
             $standard = null;
-            $response = null;
             list($type, $params) = $this->handle_market_type_and_params('fetchClosedOrders', $market, $params);
             list($subType, $params) = $this->handle_sub_type_and_params('fetchClosedOrders', $market, $params);
             list($standard, $params) = $this->handle_option_and_params($params, 'fetchClosedOrders', 'standard', false);
@@ -5292,7 +5272,7 @@ class bingx extends Exchange {
         );
     }
 
-    public function parse_transfer_status(?string $status): string {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             'CONFIRMED' => 'ok',
         );
@@ -5760,7 +5740,6 @@ class bingx extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = null;
             if ($market['inverse']) {
                 $response = Async\await($this->cswapV1PrivateGetTradeLeverage ($this->extend($request, $params)));
                 //
@@ -5934,8 +5913,6 @@ class bingx extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array();
-            $fills = null;
-            $response = null;
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('fetchMyTrades', $market, $params);
             if ($subType === 'inverse') {
@@ -6227,7 +6204,6 @@ class bingx extends Exchange {
             }
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('fetchMyLiquidations', $market, $params);
-            $response = null;
             $liquidations = null;
             if ($subType === 'inverse') {
                 $response = Async\await($this->cswapV1PrivateGetTradeForceOrders ($this->extend($request, $params)));
@@ -6358,7 +6334,6 @@ class bingx extends Exchange {
             $market = $this->market($symbol);
             $positionId = $this->safe_string($params, 'positionId');
             $request = array();
-            $response = null;
             if ($positionId !== null) {
                 $response = Async\await($this->swapV1PrivatePostTradeClosePosition ($this->extend($request, $params)));
                 //
@@ -6438,7 +6413,6 @@ class bingx extends Exchange {
             $request = array(
                 'recvWindow' => $recvWindow,
             );
-            $response = null;
             if ($subType === 'inverse') {
                 $response = Async\await($this->cswapV1PrivatePostTradeCloseAllPositions ($this->extend($request, $params)));
                 //
@@ -6581,7 +6555,6 @@ class bingx extends Exchange {
             $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
             $request['cancelOrderId'] = $id;
             $request['cancelReplaceMode'] = 'STOP_ON_FAILURE';
-            $response = null;
             if ($market['swap']) {
                 $response = Async\await($this->swapV1PrivatePostTradeCancelReplace ($this->extend($request, $params)));
                 //
@@ -6701,7 +6674,6 @@ class bingx extends Exchange {
                 'symbol' => $market['id'],
             );
             $subType = null;
-            $response = null;
             list($subType, $params) = $this->handle_sub_type_and_params('fetchMarginMode', $market, $params);
             if ($subType === 'inverse') {
                 $response = Async\await($this->cswapV1PrivateGetTradeMarginType ($this->extend($request, $params)));
@@ -6949,7 +6921,7 @@ class bingx extends Exchange {
         return $tiers;
     }
 
-    public function sign($path, $section = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $section = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $type = $section[0];
         $version = $section[1];
         $access = $section[2];

@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
-from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import NotSupported
@@ -425,7 +425,7 @@ class upbit(ccxt.async_support.upbit):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_ws_order(self, order, market=None):
+    def parse_ws_order(self, order, market: Market = None):
         #
         # {
         #     "type": "myOrder",
@@ -460,7 +460,7 @@ class upbit(ccxt.async_support.upbit):
         status = self.parse_ws_order_status(self.safe_string(order, 'state'))
         marketId = self.safe_string(order, 'code')
         market = self.safe_market(marketId, market)
-        fee = None
+        fee: NullableDict = None
         feeCost = self.safe_string(order, 'paid_fee')
         if feeCost is not None:
             fee = {
@@ -492,7 +492,7 @@ class upbit(ccxt.async_support.upbit):
             'trades': None,
         })
 
-    def parse_ws_trade(self, trade, market=None):
+    def parse_ws_trade(self, trade, market: Market = None):
         # see: parseWsOrder
         side = self.safe_string_lower(trade, 'ask_bid')
         if side == 'bid':
@@ -502,7 +502,7 @@ class upbit(ccxt.async_support.upbit):
         timestamp = self.parse8601(self.safe_string(trade, 'trade_timestamp'))
         marketId = self.safe_string(trade, 'code')
         market = self.safe_market(marketId, market)
-        fee = None
+        fee: NullableDict = None
         feeCost = self.safe_string(trade, 'paid_fee')
         if feeCost is not None:
             fee = {

@@ -3765,7 +3765,7 @@ class ascendex extends Exchange {
         );
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, mixed $body = null) {
         $version = $api[0];
         $access = $api[1];
         $type = $this->safe_string($api, 2);

@@ -1928,7 +1928,7 @@ func (this *KrakenCore) CreateOrder(symbol any, typeVar any, side any, amount an
 		//         }
 		//     }
 		//
-		var result any = this.SafeDict(response, "result")
+		var result any = this.SafeDict(response, "result", map[string]any{})
 		AddElementToObject(result, "usingCost", isUsingCost)
 
 		// it's impossible to know if the order was created using cost or base currency

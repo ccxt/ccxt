@@ -1266,7 +1266,7 @@ class zebpay extends zebpay$1["default"] {
         //         }
         //     }
         //
-        const responseData = this.safeDict(response, 'data');
+        const responseData = this.safeDict(response, 'data', {});
         return this.parseOrder(responseData, market);
     }
     parseOrder(order, market = undefined) {

@@ -121,7 +121,7 @@ class bingx(ccxt.async_support.bingx):
             'dataType': dataType,
             'reqType': 'unsub',
         }
-        symbols = []
+        symbols: List = []
         if market is not None:
             symbols.append(market['symbol'])
         subscription: dict = {
@@ -496,7 +496,7 @@ class bingx(ccxt.async_support.bingx):
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
         messageHash = 'trade::' + symbol
-        trades: List[Trade] = None
+        trades: List[Trade]
         if isinstance(data, list):
             trades = self.parse_trades(data, market)
         else:
@@ -678,7 +678,7 @@ class bingx(ccxt.async_support.bingx):
             limit = self.safe_integer(subscription, 'limit', 100)
             self.orderbooks[symbol] = self.order_book({}, limit)
         orderbook = self.orderbooks[symbol]
-        snapshot: OrderBook = None
+        snapshot: OrderBook
         timestamp = self.safe_integer_2(message, 'timestamp', 'ts')
         timestamp = self.safe_integer_2(data, 'timestamp', 'ts', timestamp)
         if market['inverse']:
@@ -794,7 +794,7 @@ class bingx(ccxt.async_support.bingx):
         marketId = self.safe_string(message, 's', firstPart)
         marketType = 'swap' if isSwap else 'spot'
         market = self.safe_market(marketId, None, None, marketType)
-        candles = None
+        candles: NullableList = None
         if isSwap:
             if market['inverse']:
                 candles = [self.safe_dict(message, 'data', {})]
@@ -943,7 +943,7 @@ class bingx(ccxt.async_support.bingx):
             messageHash += ':' + symbol
         uuid = self.uuid()
         baseUrl: Str = None
-        request: dict = None
+        request = None
         if type == 'swap':
             if subType == 'inverse':
                 raise NotSupported(self.id + ' watchOrders is not supported for inverse swap markets yet')
@@ -1000,7 +1000,7 @@ class bingx(ccxt.async_support.bingx):
             messageHash += ':' + symbol
         uuid = self.uuid()
         baseUrl: Str = None
-        request: dict = None
+        request = None
         if type == 'swap':
             if subType == 'inverse':
                 raise NotSupported(self.id + ' watchMyTrades is not supported for inverse swap markets yet')
@@ -1046,7 +1046,7 @@ class bingx(ccxt.async_support.bingx):
         swapMessageHash = 'swap:balance'
         messageHash = spotMessageHash if isSpot else swapMessageHash
         subscriptionHash = spotSubHash if isSpot else swapSubHash
-        request: dict = None
+        request = None
         baseUrl: Str = None
         uuid = self.uuid()
         if type == 'swap':
@@ -1252,7 +1252,7 @@ class bingx(ccxt.async_support.bingx):
         cache = self.positions
         data = self.safe_dict(message, 'a', {})
         rawPositions = self.safe_list(data, 'P', [])
-        newPositions = []
+        newPositions: List = []
         for i in range(0, len(rawPositions)):
             rawPosition = rawPositions[i]
             position = self.parse_ws_position(rawPosition)

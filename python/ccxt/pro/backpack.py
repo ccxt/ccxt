@@ -191,8 +191,8 @@ class backpack(ccxt.async_support.backpack):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
-        messageHashes = []
-        topics = []
+        messageHashes: List[str] = []
+        topics: List[str] = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             marketId = self.market_id(symbol)
@@ -213,8 +213,8 @@ class backpack(ccxt.async_support.backpack):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
-        topics = []
-        messageHashes = []
+        topics: List[str] = []
+        messageHashes: List[str] = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             marketId = self.market_id(symbol)
@@ -306,8 +306,8 @@ class backpack(ccxt.async_support.backpack):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
-        topics = []
-        messageHashes = []
+        topics: List[str] = []
+        messageHashes: List[str] = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             marketId = self.market_id(symbol)
@@ -325,8 +325,8 @@ class backpack(ccxt.async_support.backpack):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
-        topics = []
-        messageHashes = []
+        topics: List[str] = []
+        messageHashes: List[str] = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             marketId = self.market_id(symbol)
@@ -359,7 +359,7 @@ class backpack(ccxt.async_support.backpack):
         self.bidsasks[symbol] = parsedBidAsk
         client.resolve(parsedBidAsk, messageHash)
 
-    def parse_ws_bid_ask(self, ticker, market=None):
+    def parse_ws_bid_ask(self, ticker, market: Market = None):
         #
         #     {
         #         A: '0.4087',
@@ -438,8 +438,8 @@ class backpack(ccxt.async_support.backpack):
         if symbolsLength == 0 or not isinstance(symbolsAndTimeframes[0], list):
             raise ArgumentsRequired(self.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")
         await self.load_markets()
-        topics = []
-        messageHashes = []
+        topics: List[str] = []
+        messageHashes: List[str] = []
         for i in range(0, len(symbolsAndTimeframes)):
             symbolAndTimeframe = symbolsAndTimeframes[i]
             marketId = self.safe_string(symbolAndTimeframe, 0)
@@ -468,8 +468,8 @@ class backpack(ccxt.async_support.backpack):
         if symbolsLength == 0 or not isinstance(symbolsAndTimeframes[0], list):
             raise ArgumentsRequired(self.id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")
         await self.load_markets()
-        topics = []
-        messageHashes = []
+        topics: List[str] = []
+        messageHashes: List[str] = []
         for i in range(0, len(symbolsAndTimeframes)):
             symbolAndTimeframe = symbolsAndTimeframes[i]
             marketId = self.safe_string(symbolAndTimeframe, 0)
@@ -588,8 +588,8 @@ class backpack(ccxt.async_support.backpack):
         symbolsLength = len(symbols)
         if symbolsLength == 0:
             raise ArgumentsRequired(self.id + ' watchTradesForSymbols() requires a non-empty array of symbols')
-        topics = []
-        messageHashes = []
+        topics: List[str] = []
+        messageHashes: List[str] = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             marketId = self.market_id(symbol)
@@ -618,8 +618,8 @@ class backpack(ccxt.async_support.backpack):
         symbolsLength = len(symbols)
         if symbolsLength == 0:
             raise ArgumentsRequired(self.id + ' unWatchTradesForSymbols() requires a non-empty array of symbols')
-        topics = []
-        messageHashes = []
+        topics: List[str] = []
+        messageHashes: List[str] = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             marketId = self.market_id(symbol)
@@ -660,7 +660,7 @@ class backpack(ccxt.async_support.backpack):
         client.resolve(cache, messageHash)
         client.resolve(cache, 'trades')
 
-    def parse_ws_trade(self, trade, market=None):
+    def parse_ws_trade(self, trade, market: Market = None):
         #
         #     {
         #         E: '1754601477746429',
@@ -691,7 +691,7 @@ class backpack(ccxt.async_support.backpack):
                 side = 'buy'
         price = self.safe_string(trade, 'p')
         amount = self.safe_string(trade, 'q')
-        orderId = None
+        orderId: Str = None
         if side == 'buy':
             orderId = self.safe_string(trade, 'b')
         else:
@@ -743,8 +743,8 @@ class backpack(ccxt.async_support.backpack):
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         marketIds = self.market_ids(symbols)
-        messageHashes = []
-        topics = []
+        messageHashes: List[str] = []
+        topics: List[str] = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             messageHashes.append('orderbook:' + symbol)
@@ -774,8 +774,8 @@ class backpack(ccxt.async_support.backpack):
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         marketIds = self.market_ids(symbols)
-        messageHashes = []
-        topics = []
+        messageHashes: List[str] = []
+        topics: List[str] = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             messageHashes.append('unsubscribe:orderbook:' + symbol)
@@ -872,7 +872,7 @@ class backpack(ccxt.async_support.backpack):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
@@ -897,7 +897,7 @@ class backpack(ccxt.async_support.backpack):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
@@ -949,7 +949,7 @@ class backpack(ccxt.async_support.backpack):
         symbolSpecificMessageHash = messageHash + ':' + symbol
         client.resolve(orders, symbolSpecificMessageHash)
 
-    def parse_ws_order(self, order, market=None):
+    def parse_ws_order(self, order, market: Market = None):
         #
         #     {
         #         E: '1754939110175879',
@@ -992,7 +992,7 @@ class backpack(ccxt.async_support.backpack):
         amount = self.safe_string(order, 'q')
         cost = self.safe_string(order, 'Z')
         filled = self.safe_string(order, 'l')
-        fee = None
+        fee: dict = None
         feeCurrency = self.safe_string(order, 'N')
         if feeCurrency is not None:
             fee = {
@@ -1056,8 +1056,8 @@ class backpack(ccxt.async_support.backpack):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
-        messageHashes = []
-        topics = []
+        messageHashes: List[str] = []
+        topics: List[str] = []
         if symbols is not None:
             for i in range(0, len(symbols)):
                 symbol = symbols[i]
@@ -1083,8 +1083,8 @@ class backpack(ccxt.async_support.backpack):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
-        messageHashes = []
-        topics = []
+        messageHashes: List[str] = []
+        topics: List[str] = []
         if symbols is not None:
             for i in range(0, len(symbols)):
                 symbol = symbols[i]

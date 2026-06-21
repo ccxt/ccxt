@@ -919,7 +919,7 @@ class coinmetro extends Exchange {
             $priceString = $this->safe_string($prices, $i);
             $price = $this->safe_number($prices, $i);
             $volume = $this->safe_number($bidasks, $priceString);
-            $result[] = array( $price, $volume );
+            ($result)[] = array( $price, $volume );
         }
         return $result;
     }
@@ -1447,7 +1447,7 @@ class coinmetro extends Exchange {
             //         "takerQty" => 0.002
             //     }
             //
-            return $this->parse_order($response, $market);
+            return $this->parse_order($response);
         }) ();
     }
 
@@ -2021,7 +2021,7 @@ class coinmetro extends Exchange {
         );
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = array (), mixed $body = null) {
         $request = $this->omit($params, $this->extract_params($path));
         $endpoint = '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . $endpoint;

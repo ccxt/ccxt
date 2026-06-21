@@ -1,5 +1,5 @@
 import upbitRest from '../upbit.js';
-import type { Int, Str, Order, OrderBook, Trade, Ticker, Balances, Tickers, Strings, OHLCV } from '../base/types.js';
+import type { Int, Str, Order, OrderBook, Trade, Ticker, Balances, Tickers, Strings, OHLCV, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class upbit extends upbitRest {
     describe(): any;
@@ -104,8 +104,8 @@ export default class upbit extends upbitRest {
      */
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseWsOrderStatus(status: Str): string;
-    parseWsOrder(order: any, market?: any): Order;
-    parseWsTrade(trade: any, market?: any): Trade;
+    parseWsOrder(order: any, market?: Market): Order;
+    parseWsTrade(trade: any, market?: Market): Trade;
     handleMyOrder(client: Client, message: any): void;
     handleMyTrade(client: Client, message: any): void;
     handleOrder(client: Client, message: any): void;

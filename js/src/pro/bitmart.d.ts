@@ -66,7 +66,7 @@ export default class bitmart extends bitmartRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     unWatchTradesForSymbols(symbols: string[], params?: {}): Promise<any>;
-    getParamsForMultipleSub(methodName: string, symbols: string[], limit?: Int, params?: {}): any[];
+    getParamsForMultipleSub(methodName: string, symbols: string[], limit?: Int, params?: {}): [string[], Str, Dict];
     /**
      * @method
      * @name bitmart#watchTicker
@@ -123,7 +123,7 @@ export default class bitmart extends bitmartRest {
      */
     watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
     handleBidAsk(client: Client, message: any): void;
-    parseWsBidAsk(ticker: any, market?: any): Ticker;
+    parseWsBidAsk(ticker: any, market?: Market): Ticker;
     /**
      * @method
      * @name bitmart#watchOrders

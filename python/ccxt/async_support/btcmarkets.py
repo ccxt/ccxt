@@ -838,7 +838,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
         orderId = self.safe_string(trade, 'orderId')
-        fee = None
+        fee: NullableDict = None
         feeCostString = self.safe_string(trade, 'fee')
         if feeCostString is not None:
             fee = {
@@ -993,7 +993,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        numericIds = []
+        numericIds: List = []
         for i in range(0, len(ids)):
             # numericIds[i] = int(ids[i])
             numericIds.append(int(ids[i]))
@@ -1062,7 +1062,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         """
         market = self.markets[symbol]
         currency: Currency = None
-        cost = None
+        cost: Str = None
         if market['quote'] == 'AUD':
             currency = market['quote']
             amountString = self.number_to_string(amount)
@@ -1330,7 +1330,7 @@ class btcmarkets(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         request = '/' + self.version + '/' + self.implode_params(path, params)
         query = self.keysort(self.omit(params, self.extract_params(path)))
         if api == 'private':
