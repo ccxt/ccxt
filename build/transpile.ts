@@ -1549,6 +1549,12 @@ class Transpiler {
             let part = this.moveJsDocInside(methods[i].trim());
             // let part = methods[i].trim ()
             let lines = part.split ("\n")
+            // strip TypeScript overload signature lines (body-less declarations ending with ';')
+            // they carry no runtime code and the implementation signature below handles all cases
+            while (lines.length > 1 && /^\s*(?:async\s+)?[a-zA-Z0-9_$]+\s*\([^{]*\)\s*:\s*[^{};]+;\s*$/.test (lines[0])) {
+                lines.shift ()
+            }
+            part = lines.join ("\n")
             let signature = lines[0].trim ()
             signature = signature.replace('function ', '')
 

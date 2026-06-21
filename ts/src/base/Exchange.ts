@@ -2648,7 +2648,9 @@ export default class Exchange {
         return defaultValue;
     }
 
-    safeDictN (dictionaryOrList, keys: IndexType[], defaultValue: Dictionary<any> = undefined): Dictionary<any> | undefined {
+    safeDictN (dictionaryOrList, keys: IndexType[], defaultValue: Dictionary<any>): Dictionary<any>;
+    safeDictN (dictionaryOrList, keys: IndexType[], defaultValue?: Dictionary<any>): Dictionary<any> | undefined;
+    safeDictN (dictionaryOrList, keys: IndexType[], defaultValue: Dictionary<any> | undefined = undefined): Dictionary<any> | undefined {
         /**
          * @ignore
          * @method
@@ -2665,7 +2667,9 @@ export default class Exchange {
         return defaultValue;
     }
 
-    safeDict (dictionaryOrList, key: IndexType, defaultValue: Dictionary<any> = undefined): Dictionary<any> | undefined {
+    safeDict (dictionaryOrList, key: IndexType, defaultValue: Dictionary<any>): Dictionary<any>;
+    safeDict (dictionaryOrList, key: IndexType, defaultValue?: Dictionary<any>): Dictionary<any> | undefined;
+    safeDict (dictionaryOrList, key: IndexType, defaultValue: Dictionary<any> | undefined = undefined): Dictionary<any> | undefined {
         /**
          * @ignore
          * @method
@@ -2682,7 +2686,9 @@ export default class Exchange {
         return defaultValue;
     }
 
-    safeDict2 (dictionaryOrList, key1: IndexType, key2: string, defaultValue: Dictionary<any> = undefined): Dictionary<any> | undefined {
+    safeDict2 (dictionaryOrList, key1: IndexType, key2: string, defaultValue: Dictionary<any>): Dictionary<any>;
+    safeDict2 (dictionaryOrList, key1: IndexType, key2: string, defaultValue?: Dictionary<any>): Dictionary<any> | undefined;
+    safeDict2 (dictionaryOrList, key1: IndexType, key2: string, defaultValue: Dictionary<any> | undefined = undefined): Dictionary<any> | undefined {
         /**
          * @ignore
          * @method
@@ -2700,7 +2706,9 @@ export default class Exchange {
         return defaultValue;
     }
 
-    safeListN (dictionaryOrList, keys: IndexType[], defaultValue: any[] = undefined): any[] | undefined {
+    safeListN (dictionaryOrList, keys: IndexType[], defaultValue: any[]): any[];
+    safeListN (dictionaryOrList, keys: IndexType[], defaultValue?: any[]): any[] | undefined;
+    safeListN (dictionaryOrList, keys: IndexType[], defaultValue: any[] | undefined = undefined): any[] | undefined {
         /**
          * @ignore
          * @method
@@ -2721,7 +2729,9 @@ export default class Exchange {
         return (value !== undefined) && (typeof value === 'object') && !Array.isArray (value);
     }
 
-    safeList2 (dictionaryOrList, key1: IndexType, key2: string, defaultValue: any[] = undefined): any[] | undefined {
+    safeList2 (dictionaryOrList, key1: IndexType, key2: string, defaultValue: any[]): any[];
+    safeList2 (dictionaryOrList, key1: IndexType, key2: string, defaultValue?: any[]): any[] | undefined;
+    safeList2 (dictionaryOrList, key1: IndexType, key2: string, defaultValue: any[] | undefined = undefined): any[] | undefined {
         /**
          * @ignore
          * @method
@@ -2739,7 +2749,9 @@ export default class Exchange {
         return defaultValue;
     }
 
-    safeList (dictionaryOrList, key: IndexType, defaultValue: any[] = undefined): any[] | undefined {
+    safeList (dictionaryOrList, key: IndexType, defaultValue: any[]): any[];
+    safeList (dictionaryOrList, key: IndexType, defaultValue?: any[]): any[] | undefined;
+    safeList (dictionaryOrList, key: IndexType, defaultValue: any[] | undefined = undefined): any[] | undefined {
         /**
          * @ignore
          * @method
