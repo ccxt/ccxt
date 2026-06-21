@@ -787,7 +787,7 @@ export default class exmo extends Exchange {
                     networkEntry['limits']['withdraw']['min'] = minValue;
                     networkEntry['limits']['withdraw']['max'] = maxValue;
                 }
-                const info = this.safeList (networkEntry, 'info');
+                const info = this.safeList (networkEntry, 'info', []);
                 info.push (provider);
                 networkEntry['info'] = info;
                 networks[networkCode] = networkEntry;

@@ -1988,8 +1988,8 @@ export default class digifinex extends Exchange {
     }
 
     parseCancelOrders (response) {
-        const success = this.safeList (response, 'success');
-        const error = this.safeList (response, 'error');
+        const success = this.safeList (response, 'success', []);
+        const error = this.safeList (response, 'error', []);
         const result = [];
         for (let i = 0; i < success.length; i++) {
             const order = success[i];

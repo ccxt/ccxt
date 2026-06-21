@@ -2972,7 +2972,7 @@ export default class bybit extends Exchange {
         //
         const rates: List = [];
         const result = this.safeDict (response, 'result');
-        const resultList = this.safeList (result, 'list');
+        const resultList = this.safeList (result, 'list', []);
         for (let i = 0; i < resultList.length; i++) {
             const entry = resultList[i];
             const timestamp = this.safeInteger (entry, 'fundingRateTimestamp');
@@ -3476,7 +3476,7 @@ export default class bybit extends Exchange {
                 const entry = currencyList[i];
                 const accountType = this.safeString (entry, 'accountType');
                 if (accountType === 'UNIFIED' || accountType === 'CONTRACT' || accountType === 'SPOT') {
-                    const coins = this.safeList (entry, 'coin');
+                    const coins = this.safeList (entry, 'coin', []);
                     for (let j = 0; j < coins.length; j++) {
                         const account = this.account ();
                         const coinEntry = coins[j];
@@ -8569,7 +8569,7 @@ export default class bybit extends Exchange {
         const first = this.safeDict (result, 0);
         const total = result.length;
         const lastIndex = total - 1;
-        const last = this.safeDict (result, lastIndex);
+        const last = this.safeDict (result, lastIndex, {});
         const cursorValue = this.safeString (first, 'nextPageCursor');
         last['info'] = {
             'nextPageCursor': cursorValue,

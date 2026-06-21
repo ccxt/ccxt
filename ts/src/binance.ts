@@ -3713,7 +3713,7 @@ export default class binance extends Exchange {
                 result[code] = account;
             }
         } else if (isolated) {
-            const assets = this.safeList (response, 'assets');
+            const assets = this.safeList (response, 'assets', []);
             for (let i = 0; i < assets.length; i++) {
                 const asset = assets[i];
                 const marketId = this.safeString (asset, 'symbol');
@@ -10108,7 +10108,7 @@ export default class binance extends Exchange {
     }
 
     parseAccountPositions (account, filterClosed = false) {
-        const positions = this.safeList (account, 'positions');
+        const positions = this.safeList (account, 'positions', []);
         const assets = this.safeList (account, 'assets', []);
         const balances: Dict = {};
         for (let i = 0; i < assets.length; i++) {
@@ -12117,7 +12117,7 @@ export default class binance extends Exchange {
             let query: Str = undefined;
             // handle batchOrders
             if ((path === 'batchOrders') && ((method === 'POST') || (method === 'PUT'))) {
-                const batchOrders = this.safeList (params, 'batchOrders');
+                const batchOrders = this.safeList (params, 'batchOrders', []);
                 let checkedBatchOrders = batchOrders;
                 if (method === 'POST' && api === 'fapiPrivate') {
                     // check broker id if batchOrders are called with fapiPrivatePostBatchOrders

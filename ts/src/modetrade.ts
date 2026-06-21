@@ -665,7 +665,7 @@ export default class modetrade extends Exchange {
 
     parseCurrency (rawCurrency: Dict): Currency {
         const currencyId = this.safeString (rawCurrency, 'token');
-        const networks = this.safeList (rawCurrency, 'chain_details');
+        const networks = this.safeList (rawCurrency, 'chain_details', []);
         const code = this.safeCurrencyCode (currencyId);
         let minPrecision: Str = undefined;
         const resultingNetworks: Dict = {};
@@ -1620,7 +1620,7 @@ export default class modetrade extends Exchange {
             // }
             //
         }
-        const data = this.safeDict (response, 'data');
+        const data = this.safeDict (response, 'data', {});
         data['timestamp'] = this.safeInteger (response, 'timestamp');
         const order = this.parseOrder (data, market);
         order['type'] = type;

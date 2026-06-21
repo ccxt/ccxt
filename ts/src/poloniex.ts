@@ -3315,7 +3315,7 @@ export default class poloniex extends Exchange {
         let longLeverage: Int = undefined;
         let marketId: Str = undefined;
         let marginMode: Str = undefined;
-        const data = this.safeList (leverage, 'data');
+        const data = this.safeList (leverage, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             marketId = this.safeString (entry, 'symbol');

@@ -3633,7 +3633,7 @@ export default class aster extends Exchange {
     }
 
     parseAccountPositions (account, filterClosed = false) {
-        const positions = this.safeList (account, 'positions');
+        const positions = this.safeList (account, 'positions', []);
         const assets = this.safeList (account, 'assets', []);
         const balances: Dict = {};
         for (let i = 0; i < assets.length; i++) {

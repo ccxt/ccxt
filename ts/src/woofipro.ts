@@ -704,7 +704,7 @@ export default class woofipro extends Exchange {
     parseCurrency (rawCurrency: Dict): Currency {
         const token = this.safeDict (rawCurrency, '_token', {});
         const currencyId = this.safeString (token, 'token');
-        const networks = this.safeList (token, 'chain_details');
+        const networks = this.safeList (token, 'chain_details', []);
         const code = this.safeCurrencyCode (currencyId);
         const indexedChains = this.safeDict (rawCurrency, '_indexedChains', {});
         const resultingNetworks: Dict = {};
@@ -1657,7 +1657,7 @@ export default class woofipro extends Exchange {
             // }
             //
         }
-        const data = this.safeDict (response, 'data');
+        const data = this.safeDict (response, 'data', {});
         data['timestamp'] = this.safeInteger (response, 'timestamp');
         const order = this.parseOrder (data, market);
         order['type'] = type;
