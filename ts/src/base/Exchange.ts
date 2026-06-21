@@ -43,7 +43,7 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook, OrderBook
 // ----------------------------------------------------------------------------
 //
 // import types
-import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL, NullableDict } from './types.js';
+import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL, NullableDict, NullableList } from './types.js';
 // ----------------------------------------------------------------------------
 // move this elsewhere.
 import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
@@ -2650,7 +2650,7 @@ export default class Exchange {
 
     safeDictN (dictionaryOrList, keys: IndexType[], defaultValue: Dictionary<any>): Dictionary<any>;
     safeDictN (dictionaryOrList, keys: IndexType[], defaultValue?: Dictionary<any>): Dictionary<any> | undefined;
-    safeDictN (dictionaryOrList, keys: IndexType[], defaultValue: Dictionary<any> | undefined = undefined): Dictionary<any> | undefined {
+    safeDictN (dictionaryOrList, keys: IndexType[], defaultValue: NullableDict = undefined): Dictionary<any> | undefined {
         /**
          * @ignore
          * @method
@@ -2669,7 +2669,7 @@ export default class Exchange {
 
     safeDict (dictionaryOrList, key: IndexType, defaultValue: Dictionary<any>): Dictionary<any>;
     safeDict (dictionaryOrList, key: IndexType, defaultValue?: Dictionary<any>): Dictionary<any> | undefined;
-    safeDict (dictionaryOrList, key: IndexType, defaultValue: Dictionary<any> | undefined = undefined): Dictionary<any> | undefined {
+    safeDict (dictionaryOrList, key: IndexType, defaultValue: NullableDict = undefined): Dictionary<any> | undefined {
         /**
          * @ignore
          * @method
@@ -2688,7 +2688,7 @@ export default class Exchange {
 
     safeDict2 (dictionaryOrList, key1: IndexType, key2: string, defaultValue: Dictionary<any>): Dictionary<any>;
     safeDict2 (dictionaryOrList, key1: IndexType, key2: string, defaultValue?: Dictionary<any>): Dictionary<any> | undefined;
-    safeDict2 (dictionaryOrList, key1: IndexType, key2: string, defaultValue: Dictionary<any> | undefined = undefined): Dictionary<any> | undefined {
+    safeDict2 (dictionaryOrList, key1: IndexType, key2: string, defaultValue: NullableDict = undefined): Dictionary<any> | undefined {
         /**
          * @ignore
          * @method
@@ -2708,7 +2708,7 @@ export default class Exchange {
 
     safeListN (dictionaryOrList, keys: IndexType[], defaultValue: any[]): any[];
     safeListN (dictionaryOrList, keys: IndexType[], defaultValue?: any[]): any[] | undefined;
-    safeListN (dictionaryOrList, keys: IndexType[], defaultValue: any[] | undefined = undefined): any[] | undefined {
+    safeListN (dictionaryOrList, keys: IndexType[], defaultValue: NullableList = undefined): any[] | undefined {
         /**
          * @ignore
          * @method
@@ -2731,7 +2731,7 @@ export default class Exchange {
 
     safeList2 (dictionaryOrList, key1: IndexType, key2: string, defaultValue: any[]): any[];
     safeList2 (dictionaryOrList, key1: IndexType, key2: string, defaultValue?: any[]): any[] | undefined;
-    safeList2 (dictionaryOrList, key1: IndexType, key2: string, defaultValue: any[] | undefined = undefined): any[] | undefined {
+    safeList2 (dictionaryOrList, key1: IndexType, key2: string, defaultValue: NullableList = undefined): any[] | undefined {
         /**
          * @ignore
          * @method
@@ -2751,7 +2751,7 @@ export default class Exchange {
 
     safeList (dictionaryOrList, key: IndexType, defaultValue: any[]): any[];
     safeList (dictionaryOrList, key: IndexType, defaultValue?: any[]): any[] | undefined;
-    safeList (dictionaryOrList, key: IndexType, defaultValue: any[] | undefined = undefined): any[] | undefined {
+    safeList (dictionaryOrList, key: IndexType, defaultValue: NullableList = undefined): any[] | undefined {
         /**
          * @ignore
          * @method

@@ -1625,7 +1625,8 @@ class Transpiler {
                 'OHLCV': 'list',
                 'Dictionary<any>': 'dict',
                 'Dict': 'dict',
-                'NullableDict': 'dict'
+                'NullableDict': 'dict',
+                'NullableList': 'List[Any]'
             }
             const unwrapLists = (type: string) => {
                 let count = 0
@@ -1656,6 +1657,7 @@ class Transpiler {
                     'Dictionary<any>': 'array',
                     'Dict': 'array',
                     'NullableDict': '?array',
+                    'NullableList': '?array',
                 }
                 const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|ADL|Order|OrderBooks?|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRates?|IsolatedBorrowRates?|FundingRates|FundingRate|FundingRateHistory|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|LongShortRatio|Position|BorrowInterest|OpenInterests?|Options?|OptionChain|Liquidations?)( \| undefined)?$|\w+\[\]/
 

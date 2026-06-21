@@ -2628,7 +2628,8 @@ export default class bybit extends Exchange {
         //         "2.4343353100000003"
         //     ]
         //
-        const volumeIndex = (this.safeBool (market, 'inverse')) ? 6 : 5;
+        const isInverse = this.safeBool (market, 'inverse');
+        const volumeIndex = (isInverse) ? 6 : 5;
         return [
             this.safeInteger (ohlcv, 0),
             this.safeNumber (ohlcv, 1),
