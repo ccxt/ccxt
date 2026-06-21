@@ -1549,6 +1549,13 @@ class Transpiler {
             let part = this.moveJsDocInside(methods[i].trim());
             // let part = methods[i].trim ()
             let lines = part.split ("\n")
+            // strip leading TypeScript overload signatures (declaration-only lines ending
+            // in `;` with no body) — only the implementation signature+body is transpiled
+            const overloadSignatureRegex = /^(async\s+)?[A-Za-z_$][\w$]*\s*\(.*\)\s*(:\s*[^{;]+)?;$/
+            while ((lines.length > 1) && overloadSignatureRegex.test (lines[0].trim ())) {
+                lines.shift ()
+            }
+            part = lines.join ("\n")
             let signature = lines[0].trim ()
             signature = signature.replace('function ', '')
 
