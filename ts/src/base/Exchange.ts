@@ -1334,7 +1334,7 @@ export default class Exchange {
         return this.clients[url];
     }
 
-    watchMultiple (url: string, messageHashes: string[], message = undefined, subscribeHashes = undefined, subscription = undefined) {
+    watchMultiple (url: string, messageHashes: string[], message: any = undefined, subscribeHashes: Strings = undefined, subscription: any = undefined) {
         //
         // Without comments the code of this method is short and easy:
         //
@@ -1427,7 +1427,7 @@ export default class Exchange {
         return future;
     }
 
-    watch (url: string, messageHash: string, message = undefined, subscribeHash = undefined, subscription = undefined) {
+    watch (url: string, messageHash: string, message: any = undefined, subscribeHash: any = undefined, subscription: any = undefined) {
         //
         // Without comments the code of this method is short and easy:
         //
@@ -5751,7 +5751,7 @@ export default class Exchange {
         return this.getListFromObjectValues (filteredMarkets, 'symbol');
     }
 
-    filterByArray (objects, key: IndexType, values = undefined, indexed = true) {
+    filterByArray (objects, key: IndexType, values: any = undefined, indexed = true) {
         objects = this.toArray (objects);
         // return all of them if no values were passed
         if (values === undefined || !values) {
@@ -6219,7 +6219,7 @@ export default class Exchange {
         return rate;
     }
 
-    handleOptionAndParams (params: object, methodName: string, optionName: string, defaultValue = undefined): [any, Dict] {
+    handleOptionAndParams (params: object, methodName: string, optionName: string, defaultValue: any = undefined): [any, Dict] {
         // This method can be used to obtain method specific properties, i.e: this.handleOptionAndParams (params, 'fetchPosition', 'marginMode', 'isolated')
         const defaultOptionName = 'default' + this.capitalize (optionName); // we also need to check the 'defaultXyzWhatever'
         // check if params contain the key
@@ -6259,12 +6259,12 @@ export default class Exchange {
         return [ value2, params ];
     }
 
-    handleOption (methodName: string, optionName: string, defaultValue = undefined) {
+    handleOption (methodName: string, optionName: string, defaultValue: any = undefined) {
         const res = this.handleOptionAndParams ({}, methodName, optionName, defaultValue);
         return this.safeValue (res, 0);
     }
 
-    handleMarketTypeAndParams (methodName: string, market: Market = undefined, params = {}, defaultValue = undefined): [string, Dict] {
+    handleMarketTypeAndParams (methodName: string, market: Market = undefined, params = {}, defaultValue: any = undefined): [string, Dict] {
         /**
          * @ignore
          * @method
@@ -6306,7 +6306,7 @@ export default class Exchange {
         return [ defaultType, params ];
     }
 
-    handleSubTypeAndParams (methodName: string, market = undefined, params = {}, defaultValue = undefined): [SubType, Dict] {
+    handleSubTypeAndParams (methodName: string, market: Market = undefined, params = {}, defaultValue: any = undefined): [SubType, Dict] {
         let subType = undefined;
         // if set in params, it takes precedence
         const subTypeInParams = this.safeString2 (params, 'subType', 'defaultSubType');
@@ -6332,7 +6332,7 @@ export default class Exchange {
         return [ subType, params ];
     }
 
-    handleMarginModeAndParams (methodName: string, params = {}, defaultValue = undefined): [any, Dict] {
+    handleMarginModeAndParams (methodName: string, params = {}, defaultValue: any = undefined): [any, Dict] {
         /**
          * @ignore
          * @method
@@ -8358,7 +8358,7 @@ export default class Exchange {
         }
     }
 
-    filterByArrayPositions (objects, key: IndexType, values = undefined, indexed = true): Position[] {
+    filterByArrayPositions (objects, key: IndexType, values: any = undefined, indexed = true): Position[] {
         /**
          * @ignore
          * @method
@@ -8367,7 +8367,7 @@ export default class Exchange {
         return this.filterByArray (objects, key, values, indexed) as Position[];
     }
 
-    filterByArrayTickers (objects, key: IndexType, values = undefined, indexed = true): Dictionary<Ticker> {
+    filterByArrayTickers (objects, key: IndexType, values: any = undefined, indexed = true): Dictionary<Ticker> {
         /**
          * @ignore
          * @method
@@ -8515,7 +8515,7 @@ export default class Exchange {
         return [];
     }
 
-    async fetchPaginatedCallDeterministic (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, timeframe: Str = undefined, params = {}, maxEntriesPerRequest = undefined): Promise<any> {
+    async fetchPaginatedCallDeterministic (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, timeframe: Str = undefined, params = {}, maxEntriesPerRequest: Int = undefined): Promise<any> {
         let maxCalls = undefined;
         [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', 10);
         [ maxEntriesPerRequest, params ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, params);
@@ -8556,7 +8556,7 @@ export default class Exchange {
         return this.filterBySinceLimit (uniqueResults, since, limit, key);
     }
 
-    async fetchPaginatedCallCursor (method: string, symbol: Str = undefined, since = undefined, limit = undefined, params = {}, cursorReceived = undefined, cursorSent = undefined, cursorIncrement = undefined, maxEntriesPerRequest = undefined): Promise<any> {
+    async fetchPaginatedCallCursor (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}, cursorReceived: Str = undefined, cursorSent: Str = undefined, cursorIncrement: Int = undefined, maxEntriesPerRequest: Int = undefined): Promise<any> {
         let maxCalls = undefined;
         [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', 10);
         let maxRetries = undefined;
@@ -8631,7 +8631,7 @@ export default class Exchange {
         return this.filterBySinceLimit (sorted, since, limit, key);
     }
 
-    async fetchPaginatedCallIncremental (method: string, symbol: Str = undefined, since = undefined, limit = undefined, params = {}, pageKey = undefined, maxEntriesPerRequest = undefined): Promise<any> {
+    async fetchPaginatedCallIncremental (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}, pageKey: Str = undefined, maxEntriesPerRequest: Int = undefined): Promise<any> {
         let maxCalls = undefined;
         [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', 10);
         let maxRetries = undefined;
