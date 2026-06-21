@@ -5125,8 +5125,8 @@ class coinbase extends Exchange {
                     $result[$symbol] = array(
                         'info' => $response,
                         'symbol' => $symbol,
-                        'maker' => $taker_fee,
-                        'taker' => $marker_fee,
+                        'maker' => $marker_fee,
+                        'taker' => $taker_fee,
                         'percentage' => true,
                     );
                 }
