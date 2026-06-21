@@ -1548,14 +1548,10 @@ class Transpiler {
             // parse the method signature
             let part = this.moveJsDocInside(methods[i].trim());
             // let part = methods[i].trim ()
+            // strip declaration-only TS overload signatures (lines ending in `;`
+            // with no body) — only the implementation signature+body is transpiled
+            part = stripOverloadSignatures (part)
             let lines = part.split ("\n")
-            // strip leading TypeScript overload signatures (declaration-only lines ending
-            // in `;` with no body) — only the implementation signature+body is transpiled
-            const overloadSignatureRegex = /^(async\s+)?[A-Za-z_$][\w$]*\s*\(.*\)\s*(:\s*[^{;]+)?;$/
-            while ((lines.length > 1) && overloadSignatureRegex.test (lines[0].trim ())) {
-                lines.shift ()
-            }
-            part = lines.join ("\n")
             let signature = lines[0].trim ()
             signature = signature.replace('function ', '')
 
@@ -3186,8 +3182,48 @@ if (isMainEntry(metaFileUrl)) {
 
 // ============================================================================
 
+// ============================================================================
+
+// TypeScript function/method overload signatures are declaration-only (no body)
+// and are not understood by the regex transpiler nor the AST transpiler
+// (ast-transpiler). Strip them from a source string, keeping only the
+// implementation signature + body, so transpilation is unaffected. An overload
+// line is `name (...): ReturnType;` immediately followed (after any further
+// overload lines) by the implementation `name (...) ... {` of the same method.
+function stripOverloadSignatures (content: string): string {
+    const overloadRegex = /^\s*(?:async\s+)?([$A-Za-z_][\w$]*)\s*\(.*\)\s*:\s*[^{;]+;\s*$/
+    const lines = content.split ('\n')
+    const kept: string[] = []
+    for (let i = 0; i < lines.length; i++) {
+        const match = overloadRegex.exec (lines[i])
+        if (match) {
+            const name = match[1].replace (/[.*+?^${}()|[\]\\]/g, '\\$&')
+            const implRegex = new RegExp ('^\\s*(?:async\\s+)?' + name + '\\s*\\(.*\\)\\s*(?::\\s*.+?)?\\s*{\\s*$')
+            let isOverload = false
+            for (let j = i + 1; j < lines.length; j++) {
+                if (lines[j].trim () === '') {
+                    continue
+                }
+                if (overloadRegex.test (lines[j])) {
+                    continue
+                }
+                isOverload = implRegex.test (lines[j])
+                break
+            }
+            if (isOverload) {
+                continue
+            }
+        }
+        kept.push (lines[i])
+    }
+    return kept.join ('\n')
+}
+
+// ============================================================================
+
 export {
     Transpiler,
     parallelizeTranspiling,
-    isMainEntry
+    isMainEntry,
+    stripOverloadSignatures
 }

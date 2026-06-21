@@ -11,7 +11,7 @@ import ansi from 'ansicolor';
 import {Transpiler as OldTranspiler, parallelizeTranspiling } from "./transpile.js";
 import errorHierarchy from '../js/src/base/errorHierarchy.js';
 import Piscina from 'piscina';
-import { isMainEntry } from "./transpile.js";
+import { isMainEntry, stripOverloadSignatures } from "./transpile.js";
 
 type dict = { [key: string]: string };
 
@@ -1613,7 +1613,23 @@ ${constStatements.join('\n')}
         const baseMethods = VIRTUAL_BASE_METHODS;
         const allVirtual = Object.keys(baseMethods);
         this.transpiler.goTranspiler.wrapCallMethods = allVirtual;
-        const baseFile = this.transpiler.transpileGoByPath(baseExchangeFile);
+        // The AST transpiler can't parse TS overload signatures, so transpile a
+        // copy of the base file with overload signatures stripped (the file is
+        // restored immediately after).
+        const originalBaseSource = fs.readFileSync (baseExchangeFile, 'utf8');
+        const strippedBaseSource = stripOverloadSignatures (originalBaseSource);
+        const baseSourceWasStripped = strippedBaseSource !== originalBaseSource;
+        if (baseSourceWasStripped) {
+            fs.writeFileSync (baseExchangeFile, strippedBaseSource);
+        }
+        let baseFile: any;
+        try {
+            baseFile = this.transpiler.transpileGoByPath(baseExchangeFile);
+        } finally {
+            if (baseSourceWasStripped) {
+                fs.writeFileSync (baseExchangeFile, originalBaseSource);
+            }
+        }
         this.transpiler.goTranspiler.wrapCallMethods = [];
         let baseClass = baseFile.content as any; // remove this later
 

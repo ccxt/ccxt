@@ -12,7 +12,7 @@ import ansi from 'ansicolor'
 import { Transpiler as OldTranspiler, parallelizeTranspiling } from "./transpile.js";
 import errorHierarchy from '../js/src/base/errorHierarchy.js'
 import Piscina from 'piscina';
-import { isMainEntry } from "./transpile.js";
+import { isMainEntry, stripOverloadSignatures } from "./transpile.js";
 import { unCamelCase } from "../js/src/base/functions.js";
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
 
@@ -887,7 +887,23 @@ class NewTranspiler {
         const javaExchangeBase = BASE_METHODS_FILE;
         const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT'
 
-        const baseFile: any = this.transpiler.transpileJavaByPath(baseExchangeFile);
+        // The AST transpiler can't parse TS overload signatures, so transpile a
+        // copy of the base file with overload signatures stripped (the file is
+        // restored immediately after).
+        const originalBaseSource = fs.readFileSync (baseExchangeFile, 'utf8');
+        const strippedBaseSource = stripOverloadSignatures (originalBaseSource);
+        const baseSourceWasStripped = strippedBaseSource !== originalBaseSource;
+        if (baseSourceWasStripped) {
+            fs.writeFileSync (baseExchangeFile, strippedBaseSource);
+        }
+        let baseFile: any;
+        try {
+            baseFile = this.transpiler.transpileJavaByPath(baseExchangeFile);
+        } finally {
+            if (baseSourceWasStripped) {
+                fs.writeFileSync (baseExchangeFile, originalBaseSource);
+            }
+        }
         let baseClass = baseFile.content as any;// remove this later
 
         // custom transformations needed for Java

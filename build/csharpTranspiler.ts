@@ -12,7 +12,7 @@ import {Transpiler as OldTranspiler, parallelizeTranspiling } from "./transpile.
 import { writeFile } from 'fs/promises';
 import errorHierarchy from '../js/src/base/errorHierarchy.js'
 import Piscina from 'piscina';
-import { isMainEntry } from "./transpile.js";
+import { isMainEntry, stripOverloadSignatures } from "./transpile.js";
 import { unCamelCase } from "../js/src/base/functions.js";
 
 ansi.nice
@@ -758,7 +758,23 @@ class NewTranspiler {
         // to c#
         // const tsContent = fs.readFileSync (baseExchangeFile, 'utf8');
         // const delimited = tsContent.split (delimiter)
-        const baseFile: any = this.transpiler.transpileCSharpByPath(baseExchangeFile);
+        // The AST transpiler can't parse TS overload signatures, so transpile a
+        // copy of the base file with overload signatures stripped (the file is
+        // restored immediately after).
+        const originalBaseSource = fs.readFileSync (baseExchangeFile, 'utf8');
+        const strippedBaseSource = stripOverloadSignatures (originalBaseSource);
+        const baseSourceWasStripped = strippedBaseSource !== originalBaseSource;
+        if (baseSourceWasStripped) {
+            fs.writeFileSync (baseExchangeFile, strippedBaseSource);
+        }
+        let baseFile: any;
+        try {
+            baseFile = this.transpiler.transpileCSharpByPath(baseExchangeFile);
+        } finally {
+            if (baseSourceWasStripped) {
+                fs.writeFileSync (baseExchangeFile, originalBaseSource);
+            }
+        }
         let baseClass = baseFile.content as any;// remove this later
 
         // create wrappers with specific types

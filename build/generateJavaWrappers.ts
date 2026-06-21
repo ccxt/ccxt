@@ -15,6 +15,7 @@
 
 import Transpiler from "ast-transpiler";
 import * as fs from 'fs';
+import { stripOverloadSignatures } from "./transpile.js";
 
 const TS_BASE_FILE = './ts/src/base/Exchange.ts';
 const EXCHANGES_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/';
@@ -187,7 +188,22 @@ const WATCH_ZERO_ARG_WHITELIST = new Set([
 
 function parseMethodsFromTS(): MethodInfo[] {
     const transpiler = new Transpiler({ verbose: false, csharp: { parser: { ELEMENT_ACCESS_WRAPPER_OPEN: "getValue(", ELEMENT_ACCESS_WRAPPER_CLOSE: ")" } } });
-    const baseFile: any = transpiler.transpileJavaByPath(TS_BASE_FILE);
+    // The AST transpiler can't parse TS overload signatures, so transpile a copy
+    // of the base file with overload signatures stripped (restored immediately after).
+    const originalBaseSource = fs.readFileSync(TS_BASE_FILE, 'utf8');
+    const strippedBaseSource = stripOverloadSignatures(originalBaseSource);
+    const baseSourceWasStripped = strippedBaseSource !== originalBaseSource;
+    if (baseSourceWasStripped) {
+        fs.writeFileSync(TS_BASE_FILE, strippedBaseSource);
+    }
+    let baseFile: any;
+    try {
+        baseFile = transpiler.transpileJavaByPath(TS_BASE_FILE);
+    } finally {
+        if (baseSourceWasStripped) {
+            fs.writeFileSync(TS_BASE_FILE, originalBaseSource);
+        }
+    }
     const methodsTypes = baseFile.methodsTypes || [];
 
     const methods: MethodInfo[] = [];
