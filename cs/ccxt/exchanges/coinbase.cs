@@ -5352,8 +5352,8 @@ public partial class coinbase : Exchange
                 ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                     { "info", response },
                     { "symbol", symbol },
-                    { "maker", taker_fee },
-                    { "taker", marker_fee },
+                    { "maker", marker_fee },
+                    { "taker", taker_fee },
                     { "percentage", true },
                 };
             }
