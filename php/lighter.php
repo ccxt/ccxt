@@ -3265,7 +3265,7 @@ class lighter extends Exchange {
         );
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, mixed $body = null) {
         $url = null;
         if ($api === 'root') {
             $url = $this->implode_hostname($this->urls['api']['public']);

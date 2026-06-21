@@ -5819,7 +5819,7 @@ class bitmart extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $parts = explode('/', $path);
         // to do => refactor $api endpoints with spot/swap sections
         $category = $this->safe_string($parts, 0, 'spot');

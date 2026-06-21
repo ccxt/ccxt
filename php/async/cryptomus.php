@@ -1151,7 +1151,7 @@ class cryptomus extends Exchange {
         );
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $endpoint = $this->implode_params($path, $params);
         $params = $this->omit($params, $this->extract_params($path));
         $url = $this->urls['api'][$api] . '/' . $endpoint;

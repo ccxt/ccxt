@@ -3537,7 +3537,7 @@ class extended extends Exchange {
         return null;
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $version = $this->safe_string($api, 0);
         $accessibility = $this->safe_string($api, 1);
         $endpoint = '/' . $this->implode_params($path, $params);

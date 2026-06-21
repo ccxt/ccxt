@@ -11110,7 +11110,7 @@ class bitget extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function sign($path, $api = [], $method = 'GET', $params = array (), ?array $headers = null, mixed $body = null) {
+    public function sign($path, mixed $api = [], $method = 'GET', $params = array (), ?array $headers = null, mixed $body = null) {
         $signed = $api[0] === 'private';
         $endpoint = $api[1];
         $pathPart = '/api';

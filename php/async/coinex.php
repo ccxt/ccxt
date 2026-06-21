@@ -6169,7 +6169,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function handle_margin_mode_and_params($methodName, $params = array (), $defaultValue = null) {
+    public function handle_margin_mode_and_params($methodName, $params = array (), $defaultValue = null): array {
         /**
          * @ignore
          * $marginMode specified by $params["marginMode"], $this->options["marginMode"], $this->options["defaultMarginMode"], $params["margin"] = true or $this->options["defaultType"] = 'margin'
@@ -6192,7 +6192,7 @@ class coinex extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, mixed $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = [], $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $path = $this->implode_params($path, $params);
         $version = $api[0];
         $requestUrl = $api[1];

@@ -1395,7 +1395,7 @@ class aftermath extends Exchange {
         return null;
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'POST', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'POST', $params = array (), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api']['rest'] . '/' . $path;
         if ($api === 'private') {
             $this->check_required_credentials();

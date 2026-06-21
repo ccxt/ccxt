@@ -3683,7 +3683,7 @@ class poloniex extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api']['spot'];
         if ($this->in_array($api, array( 'swapPublic', 'swapPrivate' ))) {
             $url = $this->urls['api']['swap'];

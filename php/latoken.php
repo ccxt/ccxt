@@ -1770,7 +1770,7 @@ class latoken extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, mixed $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, mixed $body = null) {
         $request = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $requestString = $request;
         $query = $this->omit($params, $this->extract_params($path));

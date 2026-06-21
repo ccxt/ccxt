@@ -851,7 +851,7 @@ class woo extends \ccxt\async\woo {
         $cost = Precise::string_mul($price, $amount);
         $side = $this->safe_string_lower($trade, 'side');
         $timestamp = $this->safe_integer($trade, 'timestamp');
-        $maker = $this->safe_bool($trade, 'marker');
+        $maker = $this->safe_bool($trade, 'maker');
         $takerOrMaker = null;
         if ($maker !== null) {
             $takerOrMaker = $maker ? 'maker' : 'taker';

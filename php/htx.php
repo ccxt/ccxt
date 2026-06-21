@@ -7555,7 +7555,7 @@ class htx extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $url = '/';
         $isArrayParams = (gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params)));
         $query = null;

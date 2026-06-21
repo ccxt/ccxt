@@ -3055,7 +3055,7 @@ class deepcoin extends Exchange {
         }) ();
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $requestPath = $path;
         if ($method === 'GET') {
             $query = $this->urlencode($params);
