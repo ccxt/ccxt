@@ -8,7 +8,7 @@ var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 
-// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class cryptomus
@@ -707,7 +707,7 @@ class cryptomus extends cryptomus$1["default"] {
         const priceToString = this.numberToString(price);
         let cost = undefined;
         [cost, params] = this.handleParamString(params, 'cost');
-        let response = undefined;
+        let response;
         if (type === 'market') {
             if (sideBuy) {
                 let createMarketBuyOrderRequiresPrice = true;

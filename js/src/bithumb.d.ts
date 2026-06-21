@@ -155,7 +155,7 @@ export default class bithumb extends Exchange {
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     fixCommaNumber(numberStr: any): any;
     nonce(): number;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;

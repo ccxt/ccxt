@@ -1,5 +1,5 @@
 import Exchange from './abstract/deepcoin.js';
-import type { Balances, Currency, DepositAddress, Dict, FundingRate, FundingRates, int, Int, LedgerEntry, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
+import type { Balances, Currency, DepositAddress, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, LedgerEntry, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
 /**
  * @class deepcoin
  * @augments Exchange
@@ -437,14 +437,8 @@ export default class deepcoin extends Exchange {
      * @param {int} [params.page] pagination page number
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").FundingRateHistory[]>;
-    parseFundingRateHistory(info: any, market?: Market): {
-        info: any;
-        symbol: string;
-        fundingRate: number;
-        timestamp: number;
-        datetime: string;
-    };
+    fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
+    parseFundingRateHistory(info: any, market?: Market): FundingRateHistory;
     /**
      * @method
      * @name deepcoin#fetchMyTrades
@@ -488,7 +482,7 @@ export default class deepcoin extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     closePosition(symbol: string, side?: OrderSide, params?: {}): Promise<Order>;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;

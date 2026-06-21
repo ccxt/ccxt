@@ -8,7 +8,7 @@ var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class kraken
@@ -1691,7 +1691,7 @@ class kraken extends kraken$1["default"] {
         //         }
         //     }
         //
-        const result = this.safeDict(response, 'result');
+        const result = this.safeDict(response, 'result', {});
         result['usingCost'] = isUsingCost;
         // it's impossible to know if the order was created using cost or base currency
         // because kraken only returns something like this: { order: 'buy 10.00000000 LTCUSD @ market' }

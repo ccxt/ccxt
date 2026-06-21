@@ -623,7 +623,7 @@ export default class coinbase extends Exchange {
     parsePortfolioDetails(portfolioData: Dict): any[];
     createAuthToken(seconds: Int, method?: Str, url?: Str, useEddsa?: boolean): string;
     nonce(): number;
-    sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;

@@ -8,7 +8,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class independentreserve
@@ -891,7 +891,7 @@ class independentreserve extends independentreserve$1["default"] {
             'secondaryCurrencyCode': market['quoteId'],
             'orderType': orderType,
         };
-        let response = undefined;
+        let response;
         request['volume'] = amount;
         if (type === 'limit') {
             request['price'] = price;

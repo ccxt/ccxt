@@ -162,7 +162,7 @@ export default class bitbns extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    parseTransactionStatusByType(status: any, type?: any): string;
+    parseTransactionStatusByType(status: any, type?: Str): string;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     /**
      * @method
@@ -174,7 +174,7 @@ export default class bitbns extends Exchange {
      */
     fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
     nonce(): number;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;

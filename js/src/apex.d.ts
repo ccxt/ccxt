@@ -326,7 +326,7 @@ export default class apex extends Exchange {
      */
     fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
     parsePosition(position: Dict, market?: Market): Position;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;

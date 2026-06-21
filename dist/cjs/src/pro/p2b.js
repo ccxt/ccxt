@@ -6,7 +6,7 @@ var p2b$1 = require('../p2b.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class p2b extends p2b$1["default"] {
     describe() {
@@ -370,7 +370,7 @@ class p2b extends p2b$1["default"] {
         const splitMethod = method.split('.');
         const messageHashStart = this.safeString(splitMethod, 0);
         const tickerData = this.safeDict(data, 1);
-        let ticker = undefined;
+        let ticker;
         if (method === 'price.update') {
             const lastPrice = this.safeString(data, 1);
             ticker = this.safeTicker({

@@ -374,8 +374,8 @@ export default class bitrue extends Exchange {
      * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
      */
     setMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
-        url: any;
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
+        url: string;
         method: string;
         body: any;
         headers: any;

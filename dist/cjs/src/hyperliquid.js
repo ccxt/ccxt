@@ -10,7 +10,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var crypto = require('./base/functions/crypto.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class hyperliquid
@@ -4087,7 +4087,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         params = this.omit(params, 'vaultAddress');
         const nonce = this.milliseconds();
         let action = {};
-        let sig = undefined;
+        let sig;
         if (vaultAddress !== undefined) {
             action = {
                 'type': 'vaultTransfer',

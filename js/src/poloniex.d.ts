@@ -432,7 +432,7 @@ export default class poloniex extends Exchange {
      */
     addMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     nonce(): number;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: any;
         method: string;
         body: any;

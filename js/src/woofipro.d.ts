@@ -52,7 +52,7 @@ export default class woofipro extends Exchange {
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
     parseCurrency(rawCurrency: Dict): Currency;
-    parseTokenAndFeeTemp(item: any, feeTokenKey: any, feeAmountKey: any): any;
+    parseTokenAndFeeTemp(item: any, feeTokenKey: any, feeAmountKey: any): Dict;
     parseTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method

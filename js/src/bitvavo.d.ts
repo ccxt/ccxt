@@ -80,7 +80,7 @@ export default class bitvavo extends Exchange {
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     fetchTradingFees(params?: {}): Promise<TradingFees>;
-    parseTradingFees(fees: any, market?: any): Dict;
+    parseTradingFees(fees: any, market?: Market): Dict;
     /**
      * @method
      * @name bitvavo#fetchTradingFee
@@ -391,7 +391,7 @@ export default class bitvavo extends Exchange {
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;

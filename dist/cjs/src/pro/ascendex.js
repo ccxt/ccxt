@@ -7,7 +7,7 @@ var ascendex$1 = require('../ascendex.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class ascendex extends ascendex$1["default"] {
     describe() {

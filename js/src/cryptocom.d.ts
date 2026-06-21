@@ -454,7 +454,7 @@ export default class cryptocom extends Exchange {
     fetchTradingFees(params?: {}): Promise<TradingFees>;
     parseTradingFees(response: any): Dict;
     parseTradingFee(fee: Dict, market?: Market): TradingFeeInterface;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;

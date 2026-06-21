@@ -530,7 +530,7 @@ export default class bingx extends Exchange {
      */
     fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<TransferEntry[]>;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
-    parseTransferStatus(status: Str): string;
+    parseTransferStatus(status: Str): Str;
     /**
      * @method
      * @name bingx#fetchDepositAddressesByNetwork

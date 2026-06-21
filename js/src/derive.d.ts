@@ -316,7 +316,7 @@ export default class derive extends Exchange {
     handleDeriveSubaccountId(methodName: string, params: Dict): any[];
     handleDeriveWalletAddress(methodName: string, params: Dict): any[];
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;

@@ -343,7 +343,7 @@ export default class foxbit extends Exchange {
             currency: string;
         };
     };
-    sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;

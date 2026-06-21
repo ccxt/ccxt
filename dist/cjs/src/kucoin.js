@@ -8,7 +8,7 @@ var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class kucoin
@@ -8387,7 +8387,7 @@ class kucoin extends kucoin$1["default"] {
         const response = await this.utaPrivatePostAccountTransfer(this.extend(request, params));
         //
         //
-        const data = this.safeDict(response, 'data');
+        const data = this.safeDict(response, 'data', {});
         const transfer = this.parseTransfer(data, currency);
         const transferOptions = this.safeDict(this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
@@ -8472,7 +8472,7 @@ class kucoin extends kucoin$1["default"] {
             //
             response = await this.privatePostAccountsUniversalTransfer(this.extend(request, params));
         }
-        const data = this.safeDict(response, 'data');
+        const data = this.safeDict(response, 'data', {});
         const transfer = this.parseTransfer(data, currency);
         const transferOptions = this.safeDict(this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);

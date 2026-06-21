@@ -282,7 +282,7 @@ export default class aftermath extends Exchange {
     signTxEd25519(tx: Dict): Dict;
     parseOrder(order: Dict, market?: Market): Order;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;

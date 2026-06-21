@@ -8,7 +8,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class xt
@@ -4143,7 +4143,7 @@ class xt extends xt$1["default"] {
         };
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('setLeverage', market, params);
-        let response = undefined;
+        let response;
         if (subType === 'inverse') {
             response = await this.privateInversePostFutureUserV1PositionAdjustLeverage(this.extend(request, params));
         }

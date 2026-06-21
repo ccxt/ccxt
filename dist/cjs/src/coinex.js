@@ -9,7 +9,7 @@ var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class coinex
@@ -1095,7 +1095,7 @@ class coinex extends coinex$1["default"] {
         const request = {
             'market': market['id'],
         };
-        let response = undefined;
+        let response;
         if (market['swap']) {
             response = await this.v2PublicGetFuturesTicker(this.extend(request, params));
         }
@@ -1273,7 +1273,7 @@ class coinex extends coinex$1["default"] {
             'limit': limit,
             'interval': '0',
         };
-        let response = undefined;
+        let response;
         if (market['swap']) {
             response = await this.v2PublicGetFuturesDepth(this.extend(request, params));
             //
@@ -1430,7 +1430,7 @@ class coinex extends coinex$1["default"] {
         if (limit !== undefined) {
             request['limit'] = Math.min(limit, 1000);
         }
-        let response = undefined;
+        let response;
         if (market['swap']) {
             response = await this.v2PublicGetFuturesDeals(this.extend(request, params));
         }
@@ -1472,7 +1472,7 @@ class coinex extends coinex$1["default"] {
         const request = {
             'market': market['id'],
         };
-        let response = undefined;
+        let response;
         if (market['spot']) {
             response = await this.v2PublicGetSpotMarket(this.extend(request, params));
             //
@@ -1537,7 +1537,7 @@ class coinex extends coinex$1["default"] {
         await this.loadMarkets();
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchTradingFees', undefined, params);
-        let response = undefined;
+        let response;
         if (type === 'swap') {
             response = await this.v2PublicGetFuturesMarket(params);
             //
@@ -1653,7 +1653,7 @@ class coinex extends coinex$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response = undefined;
+        let response;
         if (market['swap']) {
             response = await this.v2PublicGetFuturesKline(this.extend(request, params));
         }
@@ -2709,7 +2709,7 @@ class coinex extends coinex$1["default"] {
                 }
             }
             const innerData = this.safeDict(entry, 'data', {});
-            let order = undefined;
+            let order;
             if (market['spot'] && !isTriggerOrder) {
                 entry['status'] = status;
                 order = this.parseOrder(entry, market);
@@ -4163,7 +4163,7 @@ class coinex extends coinex$1["default"] {
             market = this.market(symbol);
             request['market'] = market['id'];
         }
-        let response = undefined;
+        let response;
         if (defaultMethod === 'v2PrivateGetFuturesPendingPosition') {
             response = await this.v2PrivateGetFuturesPendingPosition(this.extend(request, params));
         }

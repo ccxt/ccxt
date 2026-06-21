@@ -100,7 +100,7 @@ export default class coinspot extends Exchange {
      */
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<import("./base/types.js").Order>;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;

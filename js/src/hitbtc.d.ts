@@ -354,7 +354,7 @@ export default class hitbtc extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    fetchMarginModes(symbols?: Str[], params?: {}): Promise<MarginModes>;
+    fetchMarginModes(symbols?: Strings, params?: {}): Promise<MarginModes>;
     parseMarginMode(marginMode: Dict, market?: any): MarginMode;
     /**
      * @method
@@ -550,7 +550,7 @@ export default class hitbtc extends Exchange {
     closePosition(symbol: string, side?: OrderSide, params?: {}): Promise<Order>;
     handleMarginModeAndParams(methodName: any, params?: {}, defaultValue?: any): any[];
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;

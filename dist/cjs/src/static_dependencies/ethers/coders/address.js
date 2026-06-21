@@ -18,7 +18,6 @@ require('@noble/hashes/sha2.js');
 var typed = require('../typed.js');
 var abstractCoder = require('./abstract-coder.js');
 
-// ----------------------------------------------------------------------------
 /**
  *  @_ignore
  */

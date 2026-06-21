@@ -8,7 +8,7 @@ var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class exmo
@@ -311,7 +311,7 @@ class exmo extends exmo$1["default"] {
             'position_id': market['id'],
             'quantity': amount,
         };
-        let response = undefined;
+        let response;
         if (type === 'add') {
             response = await this.privatePostMarginUserPositionMarginAdd(this.extend(request, params));
         }
@@ -1083,7 +1083,7 @@ class exmo extends exmo$1["default"] {
         if (marginMode === 'cross') {
             throw new errors.BadRequest(this.id + ' does not support cross margin');
         }
-        let response = undefined;
+        let response;
         if (marginMode === 'isolated') {
             response = await this.privatePostMarginUserWalletList(params);
             //
@@ -1450,7 +1450,7 @@ class exmo extends exmo$1["default"] {
         }
         const offset = this.safeInteger(params, 'offset', 0);
         request['offset'] = offset;
-        let response = undefined;
+        let response;
         if (isSpot) {
             response = await this.privatePostUserTrades(this.extend(request, params));
             //
@@ -1623,7 +1623,7 @@ class exmo extends exmo$1["default"] {
         if (price !== undefined) {
             request['price'] = this.priceToPrecision(market['symbol'], price);
         }
-        let response = undefined;
+        let response;
         if (isSpot) {
             if (triggerPrice !== undefined) {
                 if (type === 'limit') {
@@ -1706,7 +1706,7 @@ class exmo extends exmo$1["default"] {
         if (marginMode === 'cross') {
             throw new errors.BadRequest(this.id + ' only supports isolated margin');
         }
-        let response = undefined;
+        let response;
         if ((marginMode === 'isolated')) {
             request['order_id'] = id;
             response = await this.privatePostMarginUserOrderCancel(this.extend(request, params));
@@ -1803,7 +1803,7 @@ class exmo extends exmo$1["default"] {
         const request = {
             'order_id': id.toString(),
         };
-        let response = undefined;
+        let response;
         if (marginMode === 'isolated') {
             response = await this.privatePostMarginUserOrderTrades(this.extend(request, params));
             //
@@ -1877,7 +1877,7 @@ class exmo extends exmo$1["default"] {
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('fetchOpenOrders', params);
         const isMargin = ((marginMode === 'cross') || (marginMode === 'isolated'));
-        let response = undefined;
+        let response;
         let orders = [];
         if (isMargin) {
             response = await this.privatePostMarginUserOrderList(params);
@@ -2154,7 +2154,7 @@ class exmo extends exmo$1["default"] {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        let response = undefined;
+        let response;
         if (isSpot) {
             response = await this.privatePostUserCancelledOrders(this.extend(request, params));
             //

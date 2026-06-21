@@ -202,7 +202,7 @@ export default class mexc extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    createSpotOrderRequest(market: any, type: any, side: any, amount: any, price?: any, marginMode?: any, params?: {}): any;
+    createSpotOrderRequest(market: any, type: any, side: any, amount: any, price?: Num, marginMode?: Str, params?: {}): any;
     /**
      * @ignore
      * @method
@@ -219,7 +219,7 @@ export default class mexc extends Exchange {
      * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createSpotOrder(market: any, type: any, side: any, amount: any, price?: any, marginMode?: any, params?: {}): Promise<Order>;
+    createSpotOrder(market: any, type: any, side: any, amount: any, price?: Num, marginMode?: Str, params?: {}): Promise<Order>;
     /**
      * @ignore
      * @method
@@ -248,7 +248,7 @@ export default class mexc extends Exchange {
      * @param {int} [params.positionMode] 1:hedge, 2:one-way, default: the user's current config
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createSwapOrder(market: any, type: any, side: any, amount: any, price?: any, marginMode?: any, params?: {}): Promise<Order>;
+    createSwapOrder(market: any, type: any, side: any, amount: any, price?: Num, marginMode?: Str, params?: {}): Promise<Order>;
     /**
      * @method
      * @name mexc#createOrders
@@ -588,7 +588,7 @@ export default class mexc extends Exchange {
      */
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    parseTransactionStatusByType(status: any, type?: any): string;
+    parseTransactionStatusByType(status: any, type?: Str): string;
     /**
      * @method
      * @name mexc#fetchPosition
@@ -708,7 +708,7 @@ export default class mexc extends Exchange {
         deposit: {};
         info: any;
     }>;
-    parseTransactionFees(response: any, codes?: any): {
+    parseTransactionFees(response: any, codes?: Strings): {
         withdraw: Dict;
         deposit: {};
         info: any;
@@ -767,7 +767,7 @@ export default class mexc extends Exchange {
      */
     setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
     nonce(): number;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;

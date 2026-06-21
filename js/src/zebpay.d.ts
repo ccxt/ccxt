@@ -20,7 +20,7 @@ export default class zebpay extends Exchange {
         updated: any;
         eta: any;
         url: any;
-        info: any;
+        info: Dict;
     }>;
     /**
      * @method
@@ -352,7 +352,7 @@ export default class zebpay extends Exchange {
     parseTradingFee(fee: Dict, market?: Market): TradingFeeInterface;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     parseMarginModification(info: any, market?: Market): MarginModification;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: any;
         method: string;
         body: any;

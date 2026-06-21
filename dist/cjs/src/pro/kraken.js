@@ -7,7 +7,7 @@ var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 var Precise = require('../base/Precise.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class kraken extends kraken$1["default"] {
     describe() {
@@ -820,8 +820,9 @@ class kraken extends kraken$1["default"] {
         let marketsByWsName = this.safeValue(this.options, 'marketsByWsName');
         if ((marketsByWsName === undefined) || reload) {
             marketsByWsName = {};
-            for (let i = 0; i < this.symbols.length; i++) {
-                const symbol = this.symbols[i];
+            const symbols = this.symbols; // do not cast `as string[]`: this.symbols is List<Object> in Java, and List<Object>->List<String> is an illegal cast
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
                 const market = this.markets[symbol];
                 const info = this.safeValue(market, 'info', {});
                 const wsName = this.safeString(info, 'wsname');

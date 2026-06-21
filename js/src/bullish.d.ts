@@ -35,7 +35,7 @@ export default class bullish extends Exchange {
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
     parseMarket(market: Dict): Market;
-    parseMarketType(type: string, defaultType?: Str): string;
+    parseMarketType(type?: Str, defaultType?: Str): Str;
     /**
      * @method
      * @name bullish#fetchOrderBook
@@ -438,7 +438,7 @@ export default class bullish extends Exchange {
      */
     fetchOpenInterest(symbol: string, params?: {}): Promise<OpenInterest>;
     parseOpenInterest(interest: any, market?: Market): OpenInterest;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;

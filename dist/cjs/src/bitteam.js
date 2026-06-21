@@ -7,7 +7,7 @@ var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bitteam
@@ -1029,7 +1029,7 @@ class bitteam extends bitteam$1["default"] {
         //         }
         //     }
         //
-        const result = this.safeDict(response, 'result');
+        const result = this.safeDict(response, 'result', {});
         return this.parseOrder(result, market);
     }
     /**

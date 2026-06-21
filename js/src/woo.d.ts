@@ -53,7 +53,7 @@ export default class woo extends Exchange {
      */
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseTrade(trade: Dict, market?: Market): Trade;
-    parseTokenAndFeeTemp(item: any, feeTokenKeys: any, feeAmountKeys: any): any;
+    parseTokenAndFeeTemp(item: any, feeTokenKeys: any, feeAmountKeys: any): Dict;
     parseTradingFee(fee: Dict, market?: Market): TradingFeeInterface;
     /**
      * @method

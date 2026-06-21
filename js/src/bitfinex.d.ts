@@ -69,7 +69,7 @@ export default class bitfinex extends Exchange {
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     parseTransferStatus(status: Str): Str;
-    convertDerivativesId(currency: any, type: any): any;
+    convertDerivativesId(currency: any, type: any): string;
     /**
      * @method
      * @name bitfinex#fetchOrderBook
@@ -350,7 +350,7 @@ export default class bitfinex extends Exchange {
     fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
     parsePosition(position: Dict, market?: Market): Position;
     nonce(): number;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;
@@ -479,7 +479,7 @@ export default class bitfinex extends Exchange {
      * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
      */
     setMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
-    parseMarginModification(data: any, market?: any): MarginModification;
+    parseMarginModification(data: any, market?: Market): MarginModification;
     /**
      * @method
      * @name bitfinex#fetchOrder
