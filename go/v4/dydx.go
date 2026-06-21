@@ -649,7 +649,7 @@ func (this *DydxCore) ParseTrade(trade any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var timestamp any = this.Parse8601(this.SafeString(trade, "createdAt"))
-	var symbol any = GetValue(market, "symbol")
+	var symbol any = this.SafeString(market, "symbol")
 	var price any = this.SafeString(trade, "price")
 	var amount any = this.SafeString(trade, "size")
 	var side any = this.SafeStringLower(trade, "side")
@@ -1476,7 +1476,7 @@ func (this *DydxCore) FetchDydxAccount() <-chan any {
 
 		response := (<-this.NodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress(request))
 		PanicOnError(response)
-		var account any = this.SafeDict(response, "info")
+		var account any = this.SafeDict(response, "info", map[string]any{})
 		AddElementToObject(account, "pub_key", map[string]any{
 			"key": GetValue(GetValue(account, "pub_key"), "key"),
 		})
@@ -1519,7 +1519,7 @@ func (this *DydxCore) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	var postOnly any = this.IsPostOnly(isMarket, nil, params)
 	var amountStr any = this.AmountToPrecision(symbol, amount)
 	var priceStr any = this.PriceToPrecision(symbol, price)
-	var marketInfo any = this.SafeDict(market, "info")
+	var marketInfo any = this.SafeDict(market, "info", map[string]any{})
 	var atomicResolution any = GetValue(marketInfo, "atomicResolution")
 	var quantumScale any = this.Pow("10", Precise.StringNeg(atomicResolution))
 	var quantums any = Precise.StringMul(amountStr, quantumScale)
@@ -2163,7 +2163,7 @@ func (this *DydxCore) EstimateTxFee(message any, memo any, account any) <-chan a
 		}
 		var defaultFeeDenom any = this.SafeString(this.Options, "defaultFeeDenom")
 		var defaultFeeMultiplier any = this.SafeString(this.Options, "defaultFeeMultiplier")
-		var feeDenom any = this.SafeDict(this.Options, "feeDenom")
+		var feeDenom any = this.SafeDict(this.Options, "feeDenom", map[string]any{})
 		var gasPrice any = nil
 		var denom any = nil
 		if IsTrue(IsEqual(defaultFeeDenom, "uusdc")) {

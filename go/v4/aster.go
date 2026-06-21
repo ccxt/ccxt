@@ -1740,7 +1740,7 @@ func (this *AsterCore) ParseLastPrice(entry any, optionalArgs ...any) any {
 	_ = market
 	var timestamp any = this.SafeInteger(entry, "time")
 	return map[string]any{
-		"symbol":    GetValue(market, "symbol"),
+		"symbol":    this.SafeString(market, "symbol"),
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
 		"price":     this.SafeNumberOmitZero(entry, "price"),
@@ -3560,7 +3560,7 @@ func (this *AsterCore) ParseMarginMode(marginMode any, optionalArgs ...any) any 
 	market = this.SafeMarket(marketId, market, nil, "swap")
 	return map[string]any{
 		"info":       marginMode,
-		"symbol":     GetValue(market, "symbol"),
+		"symbol":     this.SafeString(market, "symbol"),
 		"marginMode": this.SafeStringLower(marginMode, "marginType"),
 	}
 }
@@ -4279,7 +4279,7 @@ func (this *AsterCore) FetchPositions(optionalArgs ...any) <-chan any {
 func (this *AsterCore) ParseAccountPositions(account any, optionalArgs ...any) any {
 	filterClosed := GetArg(optionalArgs, 0, false)
 	_ = filterClosed
-	var positions any = this.SafeList(account, "positions")
+	var positions any = this.SafeList(account, "positions", []any{})
 	var assets any = this.SafeList(account, "assets", []any{})
 	var balances any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(assets)); i++ {

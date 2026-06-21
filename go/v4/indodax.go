@@ -572,8 +572,8 @@ func (this *IndodaxCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	_ = market
 	var symbol any = this.SafeSymbol(nil, market)
 	var timestamp any = this.SafeTimestamp(ticker, "server_time")
-	var baseVolume any = Add("vol_", ToLower(GetValue(market, "baseId")))
-	var quoteVolume any = Add("vol_", ToLower(GetValue(market, "quoteId")))
+	var baseVolume any = Add("vol_", ToLower(this.SafeString(market, "baseId")))
+	var quoteVolume any = Add("vol_", ToLower(this.SafeString(market, "quoteId")))
 	var last any = this.SafeString(ticker, "last")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
