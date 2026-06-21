@@ -1,5 +1,4 @@
 
-import { Str } from '../types.js';
 // ------------------------------------------------------------------------
 //
 //  NB: initially, I used objects for options passing:
@@ -315,7 +314,7 @@ const _decimalToPrecision = (x: any, roundingMode: number, numPrecisionDigits: a
     return String.fromCharCode (...out);
 };
 
-function omitZero (stringNumber: Str) {
+function omitZero (stringNumber: string) {
     try {
         if (stringNumber === undefined || stringNumber === '') {
             return undefined;
