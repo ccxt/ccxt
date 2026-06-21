@@ -1000,7 +1000,7 @@ func (this *CoinmetroCore) ParseOrderBookBidsAsks(bidasks any, optionalArgs ...a
 		var priceString any = this.SafeString(prices, i)
 		var price any = this.SafeNumber(prices, i)
 		var volume any = this.SafeNumber(bidasks, priceString)
-		AppendToArray(&result, []any{price, volume})
+		AppendToArray(&(result), []any{price, volume})
 	}
 	return result
 }
@@ -1602,7 +1602,7 @@ func (this *CoinmetroCore) CreateOrder(symbol any, typeVar any, side any, amount
 		//         "takerQty": 0.002
 		//     }
 		//
-		ch <- this.ParseOrder(response, market)
+		ch <- this.ParseOrder(response)
 		return nil
 
 	}()
@@ -2280,7 +2280,7 @@ func (this *CoinmetroCore) Sign(path any, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
+	headers := GetArg(optionalArgs, 3, map[string]any{})
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body

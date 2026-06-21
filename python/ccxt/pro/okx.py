@@ -135,8 +135,8 @@ class okx(ccxt.async_support.okx):
             symbols = self.symbols
         symbols = self.market_symbols(symbols)
         url = self.get_url(channel, access)
-        messageHashes = []
-        args = []
+        messageHashes: List = []
+        args: List = []
         for i in range(0, len(symbols)):
             marketId = self.market_id(symbols[i])
             arg: dict = {
@@ -205,8 +205,8 @@ class okx(ccxt.async_support.okx):
         symbols = self.market_symbols(symbols)
         channel: Str = None
         channel, params = self.handle_option_and_params(params, 'watchTrades', 'channel', 'trades')
-        topics = []
-        messageHashes = []
+        topics: List = []
+        messageHashes: List = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             messageHashes.append(channel + ':' + symbol)
@@ -244,8 +244,8 @@ class okx(ccxt.async_support.okx):
         symbols = self.market_symbols(symbols, None, False)
         channel: Str = None
         channel, params = self.handle_option_and_params(params, 'watchTrades', 'channel', 'trades')
-        topics = []
-        messageHashes = []
+        topics: List = []
+        messageHashes: List = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             messageHashes.append('unsubscribe:' + channel + ':' + symbol)
@@ -353,8 +353,8 @@ class okx(ccxt.async_support.okx):
         await self.load_markets()
         symbols = self.market_symbols(symbols)
         channel = 'funding-rate'
-        topics = []
-        messageHashes = []
+        topics: List = []
+        messageHashes: List = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             messageHashes.append(channel + ':' + symbol)
@@ -511,8 +511,8 @@ class okx(ccxt.async_support.okx):
         symbols = self.market_symbols(symbols, None, False)
         channel: Str = None
         channel, params = self.handle_option_and_params(params, 'watchTickers', 'channel', 'tickers')
-        topics = []
-        messageHashes = []
+        topics: List = []
+        messageHashes: List = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             messageHashes.append('unsubscribe:ticker:' + symbol)
@@ -585,8 +585,8 @@ class okx(ccxt.async_support.okx):
         channel: Str = None
         channel, params = self.handle_option_and_params(params, 'watchBidsAsks', 'channel', 'tickers')
         url = self.get_url(channel, 'public')
-        messageHashes = []
-        args = []
+        messageHashes: List = []
+        args: List = []
         for i in range(0, len(symbols)):
             marketId = self.market_id(symbols[i])
             arg: dict = {
@@ -640,7 +640,7 @@ class okx(ccxt.async_support.okx):
         messageHash = 'bidask::' + symbol
         client.resolve(parsedTicker, messageHash)
 
-    def parse_ws_bid_ask(self, ticker, market=None):
+    def parse_ws_bid_ask(self, ticker, market: Market = None):
         marketId = self.safe_string(ticker, 'instId')
         market = self.safe_market(marketId, market)
         symbol = self.safe_string(market, 'symbol')
@@ -671,7 +671,7 @@ class okx(ccxt.async_support.okx):
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True)
         messageHash = 'liquidations'
-        messageHashes = []
+        messageHashes: List = []
         if symbols is not None:
             for i in range(0, len(symbols)):
                 symbol = symbols[i]
@@ -761,7 +761,7 @@ class okx(ccxt.async_support.okx):
         await self.authenticate({'access': 'business' if isTrigger else 'private'})
         symbols = self.market_symbols(symbols, None, True, True)
         messageHash = 'myLiquidations'
-        messageHashes = []
+        messageHashes: List = []
         if symbols is not None:
             for i in range(0, len(symbols)):
                 symbol = symbols[i]
@@ -834,7 +834,7 @@ class okx(ccxt.async_support.okx):
             client.resolve([liquidation], 'myLiquidations')
             client.resolve([liquidation], 'myLiquidations::' + symbol)
 
-    def parse_ws_my_liquidation(self, liquidation, market=None):
+    def parse_ws_my_liquidation(self, liquidation, market: Market = None):
         #
         #    {
         #        "pTime": "1597026383085",
@@ -880,7 +880,7 @@ class okx(ccxt.async_support.okx):
             'datetime': self.iso8601(timestamp),
         })
 
-    def parse_ws_liquidation(self, liquidation, market=None):
+    def parse_ws_liquidation(self, liquidation, market: Market = None):
         #
         # public liquidation
         #    {
@@ -962,8 +962,8 @@ class okx(ccxt.async_support.okx):
         if symbolsLength == 0 or not isinstance(symbolsAndTimeframes[0], list):
             raise ArgumentsRequired(self.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")
         await self.load_markets()
-        topics = []
-        messageHashes = []
+        topics: List = []
+        messageHashes: List = []
         for i in range(0, len(symbolsAndTimeframes)):
             symbolAndTimeframe = symbolsAndTimeframes[i]
             sym = symbolAndTimeframe[0]
@@ -999,8 +999,8 @@ class okx(ccxt.async_support.okx):
         if symbolsLength == 0 or not isinstance(symbolsAndTimeframes[0], list):
             raise ArgumentsRequired(self.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")
         await self.load_markets()
-        topics = []
-        messageHashes = []
+        topics: List = []
+        messageHashes: List = []
         for i in range(0, len(symbolsAndTimeframes)):
             symbolAndTimeframe = symbolsAndTimeframes[i]
             sym = symbolAndTimeframe[0]
@@ -1130,8 +1130,8 @@ class okx(ccxt.async_support.okx):
             if not self.check_required_credentials(False):
                 raise AuthenticationError(self.id + ' watchOrderBook/watchOrderBookForSymbols requires authentication for self depth. Add credentials or change the depth option to books or books5')
             await self.authenticate({'access': 'public'})
-        topics = []
-        messageHashes = []
+        topics: List = []
+        messageHashes: List = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             messageHashes.append(depth + ':' + symbol)
@@ -1175,9 +1175,9 @@ class okx(ccxt.async_support.okx):
                 depth = 'books50-l2-tbt'  # Make sure you have VIP4 and above
             elif limit == 400:
                 depth = 'books'
-        topics = []
-        subMessageHashes = []
-        messageHashes = []
+        topics: List = []
+        subMessageHashes: List = []
+        messageHashes: List = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             subMessageHashes.append(depth + ':' + symbol)
@@ -1730,7 +1730,7 @@ class okx(ccxt.async_support.okx):
         if self.positions is None:
             self.positions = ArrayCacheBySymbolBySide()
         cache = self.positions
-        newPositions = []
+        newPositions: List = []
         for i in range(0, len(data)):
             rawPosition = data[i]
             position = self.parse_position(rawPosition)
@@ -1857,7 +1857,7 @@ class okx(ccxt.async_support.okx):
                 self.orders = ArrayCacheBySymbolById(limit)
                 self.triggerOrders = ArrayCacheBySymbolById(limit)
             stored = self.triggerOrders if (channel == 'orders-algo') else self.orders
-            marketIds = []
+            marketIds: List = []
             parsed = self.parse_orders(orders)
             for i in range(0, len(parsed)):
                 order = parsed[i]
@@ -1928,7 +1928,7 @@ class okx(ccxt.async_support.okx):
         arg = self.safe_value(message, 'arg', {})
         channel = self.safe_string(arg, 'channel')
         rawOrders = self.safe_value(message, 'data', [])
-        filteredOrders = []
+        filteredOrders: List = []
         # filter orders with no last trade id
         for i in range(0, len(rawOrders)):
             rawOrder = rawOrders[i]
@@ -2125,7 +2125,7 @@ class okx(ccxt.async_support.okx):
         await self.authenticate()
         url = self.get_url('private', 'private')
         messageHash = self.request_id()
-        args = []
+        args: List = []
         market = self.market(symbol)
         instIdCode = self.safe_integer(market, 'instIdCode')
         instParams = {

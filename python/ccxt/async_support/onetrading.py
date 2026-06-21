@@ -753,8 +753,8 @@ class onetrading(Exchange, ImplicitAPI):
         return result
 
     def parse_fee_tiers(self, feeTiers, market: Market = None):
-        takerFees = []
-        makerFees = []
+        takerFees: List = []
+        makerFees: List = []
         for i in range(0, len(feeTiers)):
             tier = feeTiers[i]
             volume = self.safe_number(tier, 'volume')
@@ -1065,7 +1065,7 @@ class onetrading(Exchange, ImplicitAPI):
         #         {"instrument_code":"BTC_EUR","granularity":{"unit":"HOURS","period":1},"high":"9135.7","low":"9002.59","open":"9055.45","close":"9133.98","total_amount":"26.21919","volume":"238278.8724959","time":"2020-05-09T00:59:59.999Z","last_sequence":461521},
         #     ]
         #
-        ohlcv = self.safe_list(response, 'candlesticks')
+        ohlcv: List = self.safe_list(response, 'candlesticks')
         return self.parse_ohlcvs(ohlcv, market, timeframe, since, limit)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
@@ -1119,8 +1119,8 @@ class onetrading(Exchange, ImplicitAPI):
         marketId = self.safe_string(trade, 'instrument_code')
         symbol = self.safe_symbol(marketId, market, '_')
         feeCostString = self.safe_string(feeInfo, 'fee_amount')
-        takerOrMaker = None
-        fee = None
+        takerOrMaker: Str = None
+        fee: NullableDict = None
         if feeCostString is not None:
             feeCurrencyId = self.safe_string(feeInfo, 'fee_currency')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
@@ -1417,7 +1417,7 @@ class onetrading(Exchange, ImplicitAPI):
             request['client_id'] = clientOrderId
         else:
             request['order_id'] = id
-        response = None
+        response: NullableDict = None
         if method == 'privateDeleteAccountOrdersOrderId':
             response = await self.privateDeleteAccountOrdersOrderId(self.extend(request, params))
         else:
@@ -1489,7 +1489,7 @@ class onetrading(Exchange, ImplicitAPI):
         request: dict = {
             'order_id': id,
         }
-        response = await self.privateGetAccountOrdersOrderId(self.extend(request, params))
+        response: NullableDict = await self.privateGetAccountOrdersOrderId(self.extend(request, params))
         #
         #     {
         #         "order": {
@@ -1556,7 +1556,7 @@ class onetrading(Exchange, ImplicitAPI):
             # 'max_page_size': 100,
             # 'cursor': 'string',  # pointer specifying the position from which the next pages should be returned
         }
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['instrument_code'] = market['id']
@@ -1647,7 +1647,7 @@ class onetrading(Exchange, ImplicitAPI):
         #         "max_page_size": 100
         #     }
         #
-        orderHistory = self.safe_list(response, 'order_history', [])
+        orderHistory: List = self.safe_list(response, 'order_history', [])
         return self.parse_orders(orderHistory, market, since, limit)
 
     async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -1720,7 +1720,7 @@ class onetrading(Exchange, ImplicitAPI):
         #     }
         #
         tradeHistory = self.safe_value(response, 'trade_history', [])
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
         return self.parse_trades(tradeHistory, market, since, limit)
@@ -1745,7 +1745,7 @@ class onetrading(Exchange, ImplicitAPI):
             # 'max_page_size': 100,
             # 'cursor': 'string',  # pointer specifying the position from which the next pages should be returned
         }
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['instrument_code'] = market['id']
@@ -1787,10 +1787,10 @@ class onetrading(Exchange, ImplicitAPI):
         #         "cursor": "string"
         #     }
         #
-        tradeHistory = self.safe_list(response, 'trade_history', [])
+        tradeHistory: List = self.safe_list(response, 'trade_history', [])
         return self.parse_trades(tradeHistory, market, since, limit)
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':

@@ -533,7 +533,7 @@ class modetrade(ccxt.async_support.modetrade):
         maker = self.safe_bool(trade, 'maker')
         if maker is not None:
             takerOrMaker = 'maker' if maker else 'taker'
-        fee = None
+        fee: dict = None
         feeValue = self.safe_string(trade, 'fee')
         if feeValue is not None:
             fee = {

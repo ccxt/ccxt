@@ -777,7 +777,7 @@ public partial class bullish : Exchange
         //         "premiumCapRatio": "0.1000"
         //     }
         //
-        object id = this.safeString(market, "symbol");
+        object id = ((string)this.safeString(market, "symbol"));
         object baseId = this.safeString(market, "baseSymbol");
         object quoteId = this.safeString(market, "quoteSymbol");
         object bs = this.safeCurrencyCode(baseId);
@@ -827,7 +827,7 @@ public partial class bullish : Exchange
             {
                 expiryDatetime = this.safeString(market, "expiryDatetime");
                 object idParts = ((string)id).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
-                object datePart = this.safeString(idParts, 2);
+                object datePart = ((string)this.safeString(idParts, 2));
                 object dateYmd = slice(datePart, 2, null);
                 symbol = add(symbol, add("-", dateYmd));
                 if (isTrue(isEqual(type, "future")))
@@ -898,7 +898,7 @@ public partial class bullish : Exchange
         });
     }
 
-    public virtual object parseMarketType(object type, object defaultType = null)
+    public virtual object parseMarketType(object type = null, object defaultType = null)
     {
         object types = new Dictionary<string, object>() {
             { "SPOT", "spot" },

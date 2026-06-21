@@ -625,7 +625,7 @@ class lbank(ccxt.async_support.lbank):
         timestamp = self.safe_integer(orderUpdate, 'updateTime')
         status = self.safe_string(orderUpdate, 'orderStatus')
         orderAmount = self.safe_string(orderUpdate, 'orderAmt')
-        cost = None
+        cost: Str = None
         if (type == 'market') and (side == 'buy'):
             cost = orderAmount
         return self.safe_order({

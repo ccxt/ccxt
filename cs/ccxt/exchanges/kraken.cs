@@ -1752,7 +1752,7 @@ public partial class kraken : Exchange
         //         }
         //     }
         //
-        object result = this.safeDict(response, "result");
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         ((IDictionary<string,object>)result)["usingCost"] = isUsingCost;
         // it's impossible to know if the order was created using cost or base currency
         // because kraken only returns something like this: { order: 'buy 10.00000000 LTCUSD @ market' }

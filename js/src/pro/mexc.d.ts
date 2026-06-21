@@ -1,5 +1,5 @@
 import mexcRest from '../mexc.js';
-import type { Int, OHLCV, Str, OrderBook, Order, Trade, Ticker, Balances, Tickers, Strings, FundingRate } from '../base/types.js';
+import type { Int, OHLCV, Str, OrderBook, Order, Trade, Ticker, Balances, Tickers, Strings, FundingRate, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class mexc extends mexcRest {
     describe(): any;
@@ -31,7 +31,7 @@ export default class mexc extends mexcRest {
      */
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     handleTickers(client: Client, message: any): void;
-    parseWsTicker(ticker: any, market?: any): Ticker;
+    parseWsTicker(ticker: any, market?: Market): Ticker;
     /**
      * @method
      * @name mexc#watchBidsAsks
@@ -43,7 +43,7 @@ export default class mexc extends mexcRest {
      */
     watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
     handleBidAsk(client: Client, message: any): void;
-    parseWsBidAsk(ticker: any, market?: any): Ticker;
+    parseWsBidAsk(ticker: any, market?: Market): Ticker;
     watchSpotPublic(channel: any, messageHash: any, params?: {}): Promise<any>;
     watchSpotPrivate(channel: any, messageHash: any, params?: {}): Promise<any>;
     watchSwapPublic(channel: any, messageHash: any, requestParams: any, params?: {}): Promise<any>;
@@ -62,7 +62,7 @@ export default class mexc extends mexcRest {
      */
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     handleOHLCV(client: Client, message: any): void;
-    parseWsOHLCV(ohlcv: any, market?: any): OHLCV;
+    parseWsOHLCV(ohlcv: any, market?: Market): OHLCV;
     /**
      * @method
      * @name mexc#watchOrderBook
@@ -109,7 +109,7 @@ export default class mexc extends mexcRest {
      */
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleMyTrade(client: Client, message: any, subscription?: any): void;
-    parseWsTrade(trade: any, market?: any): Trade;
+    parseWsTrade(trade: any, market?: Market): Trade;
     /**
      * @method
      * @name mexc#watchOrders
@@ -125,8 +125,8 @@ export default class mexc extends mexcRest {
      */
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     handleOrder(client: Client, message: any): void;
-    parseWsOrder(order: any, market?: any): Order;
-    parseWsOrderStatus(status: any, market?: any): string;
+    parseWsOrder(order: any, market?: Market): Order;
+    parseWsOrderStatus(status: any, market?: Market): string;
     parseWsOrderType(type: any): string;
     parseWsTimeInForce(timeInForce: any): string;
     /**

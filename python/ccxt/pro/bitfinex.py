@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Str, Ticker, Trade
+from ccxt.base.types import Any, Balances, Int, Market, Order, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -218,7 +218,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         #   ]
         #
         data = self.safe_value(message, 1, [])
-        ohlcvs = None
+        ohlcvs: NullableList = None
         first = self.safe_value(data, 0)
         if isinstance(first, list):
             # snapshot
@@ -412,7 +412,7 @@ class bitfinex(ccxt.async_support.bitfinex):
             stored.append(parsed)
         client.resolve(stored, messageHash)
 
-    def parse_ws_trade(self, trade, market=None):
+    def parse_ws_trade(self, trade, market: Market = None):
         #
         #    [
         #        1128060969,  # id
@@ -475,12 +475,12 @@ class bitfinex(ccxt.async_support.bitfinex):
         price = self.safe_string(trade, priceKey)
         amountString = self.safe_string(trade, amountKey)
         amount = self.parse_number(Precise.string_abs(amountString))
-        side = None
+        side: Str = None
         if amount is not None:
             side = 'buy' if Precise.string_gt(amountString, '0') else 'sell'
         symbol = self.safe_symbol(marketId, market)
         feeValue = self.safe_string(trade, 9)
-        fee = None
+        fee: NullableDict = None
         if feeValue is not None:
             currencyId = self.safe_string(trade, 10)
             code = self.safe_currency_code(currencyId)
@@ -489,7 +489,7 @@ class bitfinex(ccxt.async_support.bitfinex):
                 'currency': code,
             }
         maker = self.safe_integer(trade, 8)
-        takerOrMaker = None
+        takerOrMaker: Str = None
         if maker is not None:
             takerOrMaker = 'taker' if (maker == -1) else 'maker'
         return self.safe_trade({
@@ -536,7 +536,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         self.tickers[symbol] = parsed
         client.resolve(parsed, messageHash)
 
-    def parse_ws_ticker(self, ticker, market=None):
+    def parse_ws_ticker(self, ticker, market: Market = None):
         #
         #     [
         #         236.62,        # 1 BID float Price of last highest bid
@@ -809,7 +809,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         #   ]
         #
         updateType = self.safe_value(message, 1)
-        data = None
+        data: NullableList = None
         if updateType == 'ws':
             data = self.safe_value(message, 2)
         else:
@@ -1064,7 +1064,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_ws_order(self, order, market=None):
+    def parse_ws_order(self, order, market: Market = None):
         #
         #   [
         #       97084883506,  # order id

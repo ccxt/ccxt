@@ -156,8 +156,8 @@ public partial class bithumb : ccxt.bithumb
         //        "volumePower" : "60.80"         // 체결강도
         //    }
         //
-        object date = this.safeString(ticker, "date", "");
-        object time = this.safeString(ticker, "time", "");
+        object date = ((string)this.safeString(ticker, "date", ""));
+        object time = ((string)this.safeString(ticker, "time", ""));
         object datetime = add(add(add(add(add(add(add(add(add(add(slice(date, 0, 4), "-"), slice(date, 4, 6)), "-"), slice(date, 6, 8)), "T"), slice(time, 0, 2)), ":"), slice(time, 2, 4)), ":"), slice(time, 4, 6));
         object marketId = this.safeString(ticker, "symbol");
         return this.safeTicker(new Dictionary<string, object>() {
@@ -240,7 +240,7 @@ public partial class bithumb : ccxt.bithumb
         object first = this.safeDict(list, 0, new Dictionary<string, object>() {});
         object marketId = this.safeString(first, "symbol");
         object symbol = this.safeSymbol(marketId, null, "_");
-        object timestampStr = this.safeString(content, "datetime");
+        object timestampStr = ((string)this.safeString(content, "datetime"));
         object timestamp = this.parseToInt(slice(timestampStr, 0, 13));
         if (!isTrue((inOp(this.orderbooks, symbol))))
         {

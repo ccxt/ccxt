@@ -1871,7 +1871,7 @@ class bitstamp(Exchange, ImplicitAPI):
         #         },
         #     ]
         #
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
         transactions = self.filter_by_array(response, 'type', ['0', '1'], False)
@@ -2250,7 +2250,7 @@ class bitstamp(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         response = await self.privatePostUserTransactions(self.extend(request, params))
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
         return self.parse_ledger(response, currency, since, limit)
@@ -2409,7 +2409,7 @@ class bitstamp(Exchange, ImplicitAPI):
         request: dict = {
             'amount': amount,
         }
-        currency = None
+        currency: Currency = None
         method: Str = None
         if not self.is_fiat(code):
             name = self.get_currency_name(code)
@@ -2494,7 +2494,7 @@ class bitstamp(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api] + '/'
         url += self.version + '/'
         url += self.implode_params(path, params)

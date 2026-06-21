@@ -491,7 +491,7 @@ class poloniex extends Exchange {
                     '10020' => '\\ccxt\\BadSymbol', // Invalid currency
                     '10041' => '\\ccxt\\BadSymbol', // Symbol frozen for trading
                     '21340' => '\\ccxt\\OnMaintenance', // No order creation/cancelation is allowed is in Maintenane Mode
-                    '21341' => '\\ccxt\\InvalidOrder', // Post-only orders type allowed is in Post Only Mode
+                    '21341' => '\\ccxt\\InvalidOrder', // Post-only orders (type) allowed is in Post Only Mode
                     '21342' => '\\ccxt\\InvalidOrder', // Price is higher than highest bid is in Maintenance Mode
                     '21343' => '\\ccxt\\InvalidOrder', // Price is lower than lowest bid is in Maintenance Mode
                     '21351' => '\\ccxt\\AccountSuspended', // Trading for this account is frozen. Contact support
@@ -3683,7 +3683,7 @@ class poloniex extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api']['spot'];
         if ($this->in_array($api, array( 'swapPublic', 'swapPrivate' ))) {
             $url = $this->urls['api']['swap'];

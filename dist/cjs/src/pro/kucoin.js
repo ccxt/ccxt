@@ -108,7 +108,7 @@ class kucoin extends kucoin$1["default"] {
         return await future;
     }
     async negotiateHelper(privateChannel, connectId, params = {}) {
-        let response = undefined;
+        let response;
         try {
             if (connectId === 'private') {
                 response = await this.privatePostBulletPrivate(params);

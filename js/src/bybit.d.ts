@@ -1,5 +1,5 @@
 import Exchange from './abstract/bybit.js';
-import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Liquidation, Leverage, Num, FundingHistory, Option, OptionChain, TradingFeeInterface, Currencies, TradingFees, CancellationRequest, Position, CrossBorrowRate, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, Conversion, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, MarginMode, ADL } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Liquidation, Leverage, List, Num, FundingHistory, Option, OptionChain, TradingFeeInterface, Currencies, TradingFees, CancellationRequest, Position, CrossBorrowRate, Dict, NullableDict, LeverageTier, LeverageTiers, int, LedgerEntry, Conversion, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, MarginMode, ADL } from './base/types.js';
 /**
  * @class bybit
  * @augments Exchange
@@ -37,7 +37,7 @@ export default class bybit extends Exchange {
     upgradeUnifiedTradeAccount(params?: {}): Promise<any>;
     createExpiredOptionMarket(symbol: string): MarketInterface;
     safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
-    getBybitType(method: any, market: any, params?: {}): {}[];
+    getBybitType(method: any, market: any, params?: {}): [Str, Dict];
     getAmount(symbol: string, amount: number): string;
     getPrice(symbol: string, price: string): string;
     getCost(symbol: string, cost: string): string;
@@ -909,7 +909,7 @@ export default class bybit extends Exchange {
         timestamp: number;
         datetime: string;
     };
-    parseSettlements(settlements: any, market: any): any[];
+    parseSettlements(settlements: any, market: any): List;
     /**
      * @method
      * @name bybit#fetchVolatilityHistory
@@ -920,8 +920,8 @@ export default class bybit extends Exchange {
      * @param {int} [params.period] the period in days to fetch the volatility for: 7,14,21,30,60,90,180,270
      * @returns {object[]} a list of [volatility history objects]{@link https://docs.ccxt.com/?id=volatility-structure}
      */
-    fetchVolatilityHistory(code: string, params?: {}): Promise<any[]>;
-    parseVolatilityHistory(volatility: any): any[];
+    fetchVolatilityHistory(code: string, params?: {}): Promise<List>;
+    parseVolatilityHistory(volatility: any): List;
     /**
      * @method
      * @name bybit#fetchGreeks
@@ -1123,11 +1123,11 @@ export default class bybit extends Exchange {
     fetchMarginMode(symbol: string, params?: {}): Promise<MarginMode>;
     parseMarginMode(marginMode: Dict, market?: any): MarginMode;
     parseMarginModeType(marginMode: Str): Str;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: any): {
         url: string;
         method: string;
         body: any;
-        headers: any;
+        headers: Dict;
     };
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
 }

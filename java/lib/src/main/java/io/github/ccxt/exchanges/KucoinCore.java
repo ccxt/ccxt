@@ -9289,7 +9289,7 @@ public class KucoinCore extends KucoinApi
             Object response = (this.utaPrivatePostAccountTransfer(this.extend(request, parameters))).join();
             //
             //
-            Object data = this.safeDict(response, "data");
+            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object transfer = this.parseTransfer(data, currency);
             Object transferOptions = this.safeDict(this.options, "transfer", new java.util.HashMap<String, Object>() {{}});
             Object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
@@ -9392,7 +9392,7 @@ public class KucoinCore extends KucoinApi
                 //
                 response = (this.privatePostAccountsUniversalTransfer(this.extend(request, parameters))).join();
             }
-            Object data = this.safeDict(response, "data");
+            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object transfer = this.parseTransfer(data, currency);
             Object transferOptions = this.safeDict(this.options, "transfer", new java.util.HashMap<String, Object>() {{}});
             Object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);

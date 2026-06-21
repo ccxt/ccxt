@@ -995,7 +995,7 @@ class latoken extends latoken$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100
         }
-        let response = undefined;
+        let response;
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['currency'] = market['baseId'];
@@ -1171,7 +1171,7 @@ class latoken extends latoken$1["default"] {
             throw new errors.ArgumentsRequired(this.id + ' fetchOpenOrders() requires a symbol argument');
         }
         await this.loadMarkets();
-        let response = undefined;
+        let response;
         const isTrigger = this.safeValue2(params, 'trigger', 'stop');
         params = this.omit(params, 'stop');
         // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
@@ -1239,7 +1239,7 @@ class latoken extends latoken$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100
         }
-        let response = undefined;
+        let response;
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['currency'] = market['baseId'];
@@ -1302,7 +1302,7 @@ class latoken extends latoken$1["default"] {
         };
         const isTrigger = this.safeValue2(params, 'trigger', 'stop');
         params = this.omit(params, ['stop', 'trigger']);
-        let response = undefined;
+        let response;
         if (isTrigger) {
             response = await this.privateGetAuthStopOrderGetOrderId(this.extend(request, params));
         }
@@ -1371,7 +1371,7 @@ class latoken extends latoken$1["default"] {
         }
         const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
         params = this.omit(params, ['triggerPrice', 'stopPrice']);
-        let response = undefined;
+        let response;
         if (triggerPrice !== undefined) {
             request['stopPrice'] = this.priceToPrecision(symbol, triggerPrice);
             response = await this.privatePostAuthStopOrderPlace(this.extend(request, params));
@@ -1412,7 +1412,7 @@ class latoken extends latoken$1["default"] {
         };
         const isTrigger = this.safeValue2(params, 'trigger', 'stop');
         params = this.omit(params, ['stop', 'trigger']);
-        let response = undefined;
+        let response;
         if (isTrigger) {
             response = await this.privatePostAuthStopOrderCancel(this.extend(request, params));
         }
@@ -1450,7 +1450,7 @@ class latoken extends latoken$1["default"] {
         let market = undefined;
         const isTrigger = this.safeValue2(params, 'trigger', 'stop');
         params = this.omit(params, ['stop', 'trigger']);
-        let response = undefined;
+        let response;
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['currency'] = market['baseId'];
@@ -1686,7 +1686,7 @@ class latoken extends latoken$1["default"] {
             'recipient': toAccount,
             'value': this.currencyToPrecision(code, amount),
         };
-        let response = undefined;
+        let response;
         if (toAccount.indexOf('@') >= 0) {
             response = await this.privatePostAuthTransferEmail(this.extend(request, params));
         }
@@ -1768,7 +1768,7 @@ class latoken extends latoken$1["default"] {
         };
         return this.safeString(statuses, status, status);
     }
-    sign(path, api = 'public', method = 'GET', params = undefined, headers = undefined, body = undefined) {
+    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const request = '/' + this.version + '/' + this.implodeParams(path, params);
         let requestString = request;
         const query = this.omit(params, this.extractParams(path));

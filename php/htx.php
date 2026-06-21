@@ -3390,7 +3390,7 @@ class htx extends Exchange {
         return $this->safe_string($defaultAccount, 'id');
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          *
@@ -7025,7 +7025,7 @@ class htx extends Exchange {
         return $this->parse_transfer($response, $currency);
     }
 
-    public function fetch_isolated_borrow_rates($params = array ()): IsolatedBorrowRates {
+    public function fetch_isolated_borrow_rates($params = array ()): array {
         /**
          * fetch the borrow interest rates of all currencies
          *
@@ -7555,7 +7555,7 @@ class htx extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $url = '/';
         $isArrayParams = (gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params)));
         $query = null;

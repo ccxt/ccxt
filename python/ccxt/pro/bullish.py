@@ -329,7 +329,7 @@ class bullish(ccxt.async_support.bullish):
         client.resolve(orderbook, messageHash)
 
     def separate_bids_or_asks(self, entry):
-        result = []
+        result: List = []
         # 300 = '54885.0000000'
         # 301 = '0.06141566'
         # 302 ='53714.0000000'
@@ -418,7 +418,7 @@ class bullish(ccxt.async_support.bullish):
         #     }
         #
         type = self.safe_string(message, 'type')
-        rawOrders = []
+        rawOrders: List = []
         if type == 'update':
             data = self.safe_dict(message, 'data', {})
             rawOrders.append(data)  # update is a single order
@@ -514,7 +514,7 @@ class bullish(ccxt.async_support.bullish):
         #     }
         #
         type = self.safe_string(message, 'type')
-        rawTrades = []
+        rawTrades: List = []
         if type == 'update':
             data = self.safe_dict(message, 'data', {})
             rawTrades.append(data)  # update is a single trade
@@ -657,7 +657,7 @@ class bullish(ccxt.async_support.bullish):
         # current method is implemented blindly
         # todo: check if self works with not-sandbox mode
         messageType = self.safe_string(message, 'type')
-        rawPositions = []
+        rawPositions: List = []
         if messageType == 'update':
             data = self.safe_dict(message, 'data', {})
             rawPositions.append(data)
@@ -666,7 +666,7 @@ class bullish(ccxt.async_support.bullish):
         if self.positions is None:
             self.positions = ArrayCacheBySymbolBySide()
         positions = self.positions
-        newPositions = []
+        newPositions: List = []
         for i in range(0, len(rawPositions)):
             rawPosition = rawPositions[i]
             position = self.parse_position(rawPosition)

@@ -1775,7 +1775,7 @@ export default class modetrade extends Exchange {
         const clientOrderIdUnified = this.safeString2(params, 'clOrdID', 'clientOrderId');
         const clientOrderIdExchangeSpecific = this.safeString(params, 'client_order_id', clientOrderIdUnified);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
-        let response = undefined;
+        let response;
         if (trigger) {
             if (isByClientOrder) {
                 request['client_order_id'] = clientOrderIdExchangeSpecific;

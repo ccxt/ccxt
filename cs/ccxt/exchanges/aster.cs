@@ -4331,12 +4331,11 @@ public partial class aster : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " transfer() requires fromAccount and toAccount parameters to be either SPOT or FUTURE")) ;
         }
-        object response = null;
         object defaultClientTranId = this.numberToString(this.milliseconds());
         object clientTranId = this.safeString(parameters, "clientTranId", defaultClientTranId);
         ((IDictionary<string,object>)request)["kindType"] = type;
         ((IDictionary<string,object>)request)["clientTranId"] = clientTranId;
-        response = await this.sapiPrivatePostV3AssetWalletTransfer(this.extend(request, parameters));
+        object response = await this.sapiPrivatePostV3AssetWalletTransfer(this.extend(request, parameters));
         return this.parseTransfer(response, currency);
     }
 

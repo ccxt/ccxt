@@ -905,7 +905,7 @@ export default class tokocrypto extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
         }
-        let response = undefined;
+        let response;
         if (market['quote'] === 'USDT') {
             request['symbol'] = market['baseId'] + market['quoteId'];
             response = await this.binanceGetDepth(this.extend(request, params));

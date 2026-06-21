@@ -92,8 +92,8 @@ class bitmex(ccxt.async_support.bitmex):
         symbols = self.market_symbols(symbols, None, True)
         name = 'instrument'
         url = self.urls['api']['ws']
-        messageHashes = []
-        rawSubscriptions = []
+        messageHashes: List = []
+        rawSubscriptions: List = []
         if symbols is not None:
             for i in range(0, len(symbols)):
                 symbol = symbols[i]
@@ -388,8 +388,8 @@ class bitmex(ccxt.async_support.bitmex):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True)
-        messageHashes = []
-        subscriptionHashes = []
+        messageHashes: List = []
+        subscriptionHashes: List = []
         if self.is_empty(symbols):
             subscriptionHashes.append('liquidation')
             messageHashes.append('liquidations')
@@ -437,7 +437,7 @@ class bitmex(ccxt.async_support.bitmex):
         #    }
         #
         rawLiquidations = self.safe_value(message, 'data', [])
-        newLiquidations = []
+        newLiquidations: List = []
         if self.liquidations is None:
             limit = self.safe_integer(self.options, 'liquidationsLimit', 1000)
             self.liquidations = ArrayCache(limit)
@@ -892,7 +892,7 @@ class bitmex(ccxt.async_support.bitmex):
             self.positions = ArrayCacheBySymbolBySide()
         cache = self.positions
         rawPositions = self.safe_value(message, 'data', [])
-        newPositions = []
+        newPositions: List = []
         for i in range(0, len(rawPositions)):
             rawPosition = rawPositions[i]
             position = self.parse_position(rawPosition)
@@ -1265,8 +1265,8 @@ class bitmex(ccxt.async_support.bitmex):
             raise ExchangeError(self.id + ' watchOrderBookForSymbols limit argument must be None(L2), 25(L2) or 10(L3)')
         await self.load_markets()
         symbols = self.market_symbols(symbols)
-        topics = []
-        messageHashes = []
+        topics: List = []
+        messageHashes: List = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
@@ -1297,8 +1297,8 @@ class bitmex(ccxt.async_support.bitmex):
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         table = 'trade'
-        topics = []
-        messageHashes = []
+        topics: List = []
+        messageHashes: List = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)

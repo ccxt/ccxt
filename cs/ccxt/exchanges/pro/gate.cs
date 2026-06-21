@@ -631,7 +631,7 @@ public partial class gate : ccxt.gate
         //         }
         //     }
         //
-        object channel = this.safeString(message, "channel");
+        object channel = ((string)this.safeString(message, "channel"));
         if (isTrue(isEqual(channel, "spot.obu")))
         {
             this.handleNewSpotOrderBook(client as WebSocketClient, message);
@@ -883,7 +883,7 @@ public partial class gate : ccxt.gate
 
     public virtual void handleTickerAndBidAsk(object objectName, object client, object message)
     {
-        object channel = this.safeString(message, "channel");
+        object channel = ((string)this.safeString(message, "channel"));
         object parts = ((string)channel).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         object rawMarketType = this.safeString(parts, 0);
         object marketType = ((bool) isTrue((isEqual(rawMarketType, "futures")))) ? "contract" : "spot";
@@ -1116,7 +1116,7 @@ public partial class gate : ccxt.gate
         //     }
         //   }
         //
-        object channel = this.safeString(message, "channel");
+        object channel = ((string)this.safeString(message, "channel"));
         object channelParts = ((string)channel).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         object rawMarketType = this.safeString(channelParts, 0);
         object marketType = ((bool) isTrue((isEqual(rawMarketType, "spot")))) ? "spot" : "contract";
@@ -1394,7 +1394,7 @@ public partial class gate : ccxt.gate
             ((IDictionary<string,object>)account)["total"] = this.safeString2(rawBalance, "total", "balance");
             ((IDictionary<string,object>)this.balance)[(string)code] = account;
         }
-        object channel = this.safeString(message, "channel");
+        object channel = ((string)this.safeString(message, "channel"));
         object parts = ((string)channel).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         object rawType = this.safeString(parts, 0);
         object channelType = this.getSupportedMapping(rawType, new Dictionary<string, object>() {
@@ -2032,7 +2032,7 @@ public partial class gate : ccxt.gate
                     ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
                 }
                 // remove subscriptions for watchSymbols
-                object channel = this.safeString(message, "channel");
+                object channel = ((string)this.safeString(message, "channel"));
                 if (isTrue(isTrue((!isEqual(channel, null))) && isTrue((isGreaterThan(getIndexOf(channel, "."), 0)))))
                 {
                     object parsedChannel = ((string)channel).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
@@ -2065,7 +2065,7 @@ public partial class gate : ccxt.gate
 
     public virtual void handleSubscriptionStatus(WebSocketClient client, object message)
     {
-        object channel = this.safeString(message, "channel");
+        object channel = ((string)this.safeString(message, "channel"));
         object methods = new Dictionary<string, object>() {
             { "balance", this.handleBalanceSubscription },
             { "spot.order_book_update", this.handleOrderBookSubscription },

@@ -1,7 +1,7 @@
 import { ed25519 } from '@noble/curves/ed25519.js';
 import Exchange from './abstract/aftermath.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Account, Balances, Currencies, Currency, Market, Dict, int, Int, List, Strings, OHLCV, Order, OrderBook, OrderRequest, Str, Ticker, Trade, TradingFeeInterface, MarginModification, TransferEntry, Position, Transaction, OrderType, OrderSide, Num , NullableDict } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, Market, Dict, int, Int, List, Strings, OHLCV, Order, OrderBook, OrderRequest, Str, Ticker, Trade, TradingFeeInterface, MarginModification, TransferEntry, Position, Transaction, OrderType, OrderSide, Num, NullableDict } from './base/types.js';
 import { eddsa } from './base/functions/crypto.js';
 import { ArgumentsRequired, NotSupported, ExchangeError } from './base/errors.js';
 
@@ -1344,7 +1344,7 @@ export default class aftermath extends Exchange {
         return undefined;
     }
 
-    sign (path, api: any = 'public', method = 'POST', params = {}, headers: NullableDict = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'POST', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const url = this.urls['api']['rest'] + '/' + path;
         if (api === 'private') {
             this.checkRequiredCredentials ();

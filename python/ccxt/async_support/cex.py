@@ -646,7 +646,7 @@ class cex(Exchange, ImplicitAPI):
         }
         if since is not None:
             request['fromDateISO'] = self.iso8601(since)
-        until = None
+        until: Int = None
         until, params = self.handle_param_integer_2(params, 'until', 'till')
         if until is not None:
             request['toDateISO'] = self.iso8601(until)
@@ -756,7 +756,7 @@ class cex(Exchange, ImplicitAPI):
         :param int [params.until]: timestamp in ms of the latest entry
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        dataType = None
+        dataType: Str = None
         dataType, params = self.handle_option_and_params(params, 'fetchOHLCV', 'dataType')
         if dataType is None:
             raise ArgumentsRequired(self.id + ' fetchOHLCV requires a parameter "dataType" to be either "bestBid" or "bestAsk"')
@@ -769,7 +769,7 @@ class cex(Exchange, ImplicitAPI):
         }
         if since is not None:
             request['fromISO'] = self.iso8601(since)
-        until = None
+        until: Int = None
         until, params = self.handle_param_integer_2(params, 'until', 'till')
         if until is not None:
             request['toISO'] = self.iso8601(until)
@@ -843,7 +843,7 @@ class cex(Exchange, ImplicitAPI):
         keys = list(response.keys())
         for i in range(0, len(keys)):
             key = keys[i]
-            market = None
+            market: Market = None
             if useKeyAsId:
                 market = self.safe_market(key)
             parsed = self.parse_trading_fee(response[key], market)
@@ -912,11 +912,11 @@ class cex(Exchange, ImplicitAPI):
         :param dict [params.account]:  in case 'privatePostGetMyAccountStatusV3' is chosen, self can specify the account name(default is empty string)
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        accountName = None
+        accountName: Str = None
         accountName, params = self.handle_param_string(params, 'account', '')  # default is empty string
-        method = None
+        method: Str = None
         method, params = self.handle_param_string(params, 'method', 'privatePostGetMyWalletBalance')
-        accountBalance = None
+        accountBalance: dict = None
         if method == 'privatePostGetMyAccountStatusV3':
             response = await self.privatePostGetMyAccountStatusV3(params)
             #
@@ -987,7 +987,7 @@ class cex(Exchange, ImplicitAPI):
         isClosedOrders = (status == 'closed')
         if isClosedOrders:
             request['archived'] = True
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['pair'] = market['id']
@@ -998,7 +998,7 @@ class cex(Exchange, ImplicitAPI):
         elif isClosedOrders:
             # exchange requires a `since` parameter for closed orders, so set default to allowed 365
             request['serverCreateTimestampFrom'] = self.milliseconds() - 364 * 24 * 60 * 60 * 1000
-        until = None
+        until: Int = None
         until, params = self.handle_param_integer_2(params, 'until', 'till')
         if until is not None:
             request['serverCreateTimestampTo'] = until
@@ -1158,7 +1158,7 @@ class cex(Exchange, ImplicitAPI):
         #
         currency1 = self.safe_string(order, 'currency1')
         currency2 = self.safe_string(order, 'currency2')
-        marketId = None
+        marketId: Str = None
         if currency1 is not None and currency2 is not None:
             marketId = currency1 + '-' + currency2
         market = self.safe_market(marketId, market)
@@ -1217,7 +1217,7 @@ class cex(Exchange, ImplicitAPI):
         :param float [params.triggerPrice]: the price at which a trigger order is triggered at
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        accountId = None
+        accountId: Str = None
         accountId, params = self.handle_option_and_params(params, 'createOrder', 'accountId')
         if accountId is None:
             raise ArgumentsRequired(self.id + ' createOrder() : API trading is now allowed from main account, set params["accountId"] or .options["createOrder"]["accountId"] to the name of your sub-account')
@@ -1233,12 +1233,12 @@ class cex(Exchange, ImplicitAPI):
             'timestamp': self.milliseconds(),
             'amountCcy1': self.amount_to_precision(symbol, amount),
         }
-        timeInForce = None
+        timeInForce: Str = None
         timeInForce, params = self.handle_option_and_params(params, 'createOrder', 'timeInForce', 'GTC')
         if type == 'limit':
             request['price'] = self.price_to_precision(symbol, price)
             request['timeInForce'] = timeInForce
-        triggerPrice = None
+        triggerPrice: Str = None
         triggerPrice, params = self.handle_param_string(params, 'triggerPrice')
         if triggerPrice is not None:
             request['type'] = 'Stop Limit'
@@ -1363,7 +1363,7 @@ class cex(Exchange, ImplicitAPI):
         :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
         await self.load_markets()
-        currency = None
+        currency: Currency = None
         request: dict = {}
         if code is not None:
             currency = self.currency(code)
@@ -1372,7 +1372,7 @@ class cex(Exchange, ImplicitAPI):
             request['dateFrom'] = since
         if limit is not None:
             request['pageSize'] = limit
-        until = None
+        until: Int = None
         until, params = self.handle_param_integer_2(params, 'until', 'till')
         if until is not None:
             request['dateTo'] = until
@@ -1397,7 +1397,7 @@ class cex(Exchange, ImplicitAPI):
 
     def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
         amount = self.safe_string(item, 'amount')
-        direction = None
+        direction: Str = None
         if Precise.string_le(amount, '0'):
             direction = 'out'
             amount = Precise.string_mul('-1', amount)
@@ -1449,14 +1449,14 @@ class cex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         request: dict = {}
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
         if since is not None:
             request['dateFrom'] = since
         if limit is not None:
             request['pageSize'] = limit
-        until = None
+        until: Int = None
         until, params = self.handle_param_integer_2(params, 'until', 'till')
         if until is not None:
             request['dateTo'] = until
@@ -1536,7 +1536,7 @@ class cex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        transfer = None
+        transfer: dict = None
         if toAccount != '' and fromAccount != '':
             transfer = await self.transfer_between_sub_accounts(code, amount, fromAccount, toAccount, params)
         else:
@@ -1559,7 +1559,7 @@ class cex(Exchange, ImplicitAPI):
             'accountId': targetAccount,
             'clientTxId': guid,
         }
-        response = None
+        response: dict = None
         if fromMain:
             response = await self.privatePostDoDepositFundsFromWallet(self.extend(request, params))
         else:
@@ -1649,12 +1649,12 @@ class cex(Exchange, ImplicitAPI):
         :param str [params.accountId]: account-id(default to empty string) to refer to(at self moment, only sub-accounts allowed by exchange)
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        accountId = None
+        accountId: Str = None
         accountId, params = self.handle_option_and_params(params, 'createOrder', 'accountId')
         if accountId is None:
             raise ArgumentsRequired(self.id + ' fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set params["accountId"] or .options["createOrder"]["accountId"] to the name of your sub-account')
         await self.load_markets()
-        networkCode = None
+        networkCode: Str = None
         networkCode, params = self.handle_network_code_and_params(params)
         currency = self.currency(code)
         request: dict = {
@@ -1690,7 +1690,7 @@ class cex(Exchange, ImplicitAPI):
             'tag': None,
         }
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api] + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':

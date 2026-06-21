@@ -537,7 +537,7 @@ class cryptocom extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          *
@@ -3517,7 +3517,7 @@ class cryptocom extends Exchange {
         );
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $type = $this->safe_string($api, 0);
         $access = $this->safe_string($api, 1);
         $url = $this->urls['api'][$type] . '/' . $path;
