@@ -4182,7 +4182,7 @@ export default class whitebit extends Exchange {
                     errorInfo = status;
                 } else {
                     const errorObject = this.safeDict (response, 'errors', {});
-                    const errorKeys = Object.keys (errorObject);
+                    const errorKeys = Object.keys (errorObject as Dict);
                     const errorsLength = errorKeys.length;
                     if (errorsLength > 0) {
                         const errorKey = errorKeys[0];
@@ -4199,7 +4199,7 @@ export default class whitebit extends Exchange {
             const success = this.safeBool (response, 'success', true);
             if (!success) {
                 const errMsg = this.safeDict (response, 'message', {});
-                const errKeys = Object.keys (errMsg);
+                const errKeys = Object.keys (errMsg as Dict);
                 const errKeysLength = errKeys.length;
                 let errorInfo = body;
                 if (errKeysLength > 0) {

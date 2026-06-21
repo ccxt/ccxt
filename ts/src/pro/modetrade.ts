@@ -1232,7 +1232,7 @@ export default class modetrade extends modetradeRest {
         //
         const data = this.safeDict (message, 'data', {});
         const balances = this.safeDict (data, 'balances', {});
-        const keys = Object.keys (balances);
+        const keys = Object.keys (balances as Dict);
         const ts = this.safeInteger (message, 'ts');
         this.balance['info'] = data;
         this.balance['timestamp'] = ts;

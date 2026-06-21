@@ -508,7 +508,7 @@ export default class bitbns extends Exchange {
             'datetime': this.iso8601 (timestamp),
         };
         const data = this.safeDict (response, 'data', {});
-        const keys = Object.keys (data);
+        const keys = Object.keys (data as Dict);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             const parts = key.split ('availableorder');

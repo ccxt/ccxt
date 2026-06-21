@@ -622,7 +622,7 @@ export default class indodax extends Exchange {
         //
         const response = await this.publicGetApiTickerAll (params);
         const tickers = this.safeDict (response, 'tickers', {});
-        const keys = Object.keys (tickers);
+        const keys = Object.keys (tickers as Dict);
         const parsedTickers: Dict = {};
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
@@ -1388,7 +1388,7 @@ export default class indodax extends Exchange {
         const data = this.safeDict (response, 'return');
         const addresses = this.safeDict (data, 'address', {});
         const networks = this.safeDict (data, 'network', {});
-        const addressKeys = Object.keys (addresses);
+        const addressKeys = Object.keys (addresses as Dict);
         const result: Dict = {
             'info': data,
         };

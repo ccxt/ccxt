@@ -493,7 +493,7 @@ export default class hollaex extends Exchange {
         //     }
         //
         const coins = this.safeDict (response, 'coins', {});
-        const values = Object.values (coins);
+        const values = Object.values (coins as Dict);
         return this.parseCurrencies (values);
     }
 
@@ -505,7 +505,7 @@ export default class hollaex extends Exchange {
         const type = (rawType === 'blockchain') ? 'crypto' : 'other';
         const rawNetworks = this.safeDict (rawCurrency, 'withdrawal_fees', {});
         const networks = {};
-        const networkIds = Object.keys (rawNetworks);
+        const networkIds = Object.keys (rawNetworks as Dict);
         for (let j = 0; j < networkIds.length; j++) {
             const networkId = networkIds[j];
             const networkEntry = this.safeDict (rawNetworks, networkId);

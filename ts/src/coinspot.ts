@@ -478,7 +478,7 @@ export default class coinspot extends Exchange {
         //
         const result: Dict = {};
         const prices = this.safeDict (response, 'prices', {});
-        const ids = Object.keys (prices);
+        const ids = Object.keys (prices as Dict);
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const market = this.safeMarket (id);

@@ -2601,7 +2601,7 @@ export default class kucoin extends Exchange {
         const accountsByType = this.safeDict (this.options, 'accountsByType');
         const type = this.safeString (accountsByType, requestedType);
         if (type === undefined) {
-            const keys = Object.keys (accountsByType);
+            const keys = Object.keys (accountsByType as Dict);
             throw new ExchangeError (this.id + ' isFuturesMethod() type must be one of ' + keys.join (', '));
         }
         params = this.omit (params, 'type');

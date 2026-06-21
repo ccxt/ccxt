@@ -1769,7 +1769,7 @@ export default class htx extends Exchange {
         [ types, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'types', {});
         let allMarkets: List = [];
         let promises: List = [];
-        const keys = Object.keys (types);
+        const keys = Object.keys (types as Dict);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             if (this.safeBool (types, key)) {
@@ -7620,7 +7620,7 @@ export default class htx extends Exchange {
                     };
                 }
             } else {
-                if (Object.keys (query).length) {
+                if (Object.keys (query as Dict).length) {
                     url += '?' + this.urlencode (query);
                 }
             }
@@ -7645,7 +7645,7 @@ export default class htx extends Exchange {
             hostname = hostnames;
             url += this.implodeParams (path, params);
             if (access === 'public') {
-                if (Object.keys (query).length) {
+                if (Object.keys (query as Dict).length) {
                     url += '?' + this.urlencode (query);
                 }
             } else if (access === 'private') {

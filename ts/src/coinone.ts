@@ -1197,7 +1197,7 @@ export default class coinone extends Exchange {
         //     }
         //
         const walletAddress = this.safeDict (response, 'walletAddress', {});
-        const keys = Object.keys (walletAddress);
+        const keys = Object.keys (walletAddress as Dict);
         const result: Dict = {};
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];

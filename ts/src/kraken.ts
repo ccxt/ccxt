@@ -646,7 +646,7 @@ export default class kraken extends Exchange {
         //
         const markets = this.safeDict (assetsResponse, 'result', {});
         const cachedCurrencies = this.safeDict (this.options, 'cachedCurrencies', {});
-        const keys = Object.keys (markets);
+        const keys = Object.keys (markets as Dict);
         const result: List = [];
         for (let i = 0; i < keys.length; i++) {
             const id = keys[i];
@@ -2779,7 +2779,7 @@ export default class kraken extends Exchange {
         const result = this.safeDict (response, 'result', {});
         const open = this.safeDict (result, 'open', {});
         const orders: List = [];
-        const orderIds = Object.keys (open);
+        const orderIds = Object.keys (open as Dict);
         for (let i = 0; i < orderIds.length; i++) {
             const id = orderIds[i];
             const item = open[id];
@@ -2866,7 +2866,7 @@ export default class kraken extends Exchange {
         const result = this.safeDict (response, 'result', {});
         const closed = this.safeDict (result, 'closed', {});
         const orders: List = [];
-        const orderIds = Object.keys (closed);
+        const orderIds = Object.keys (closed as Dict);
         for (let i = 0; i < orderIds.length; i++) {
             const id = orderIds[i];
             const item = closed[id];

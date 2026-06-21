@@ -634,7 +634,7 @@ export default class aftermath extends Exchange {
             'info': response,
         };
         const balances = this.safeDict (response, 'balances', []);
-        const currencies = Object.keys (balances);
+        const currencies = Object.keys (balances as Dict);
         for (let i = 0; i < currencies.length; i++) {
             const code = currencies[i];
             const balance = balances[code];

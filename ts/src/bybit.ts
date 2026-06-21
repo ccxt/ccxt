@@ -3874,7 +3874,7 @@ export default class bybit extends Exchange {
         const side = this.safeStringLower (order, 'side');
         let fee: Fee = undefined;
         const cumFeeDetail = this.safeDict (order, 'cumFeeDetail', {});
-        const feeCoins = Object.keys (cumFeeDetail);
+        const feeCoins = Object.keys (cumFeeDetail as Dict);
         const feeCoinId = this.safeString (feeCoins, 0);
         if (feeCoinId !== undefined) {
             fee = {

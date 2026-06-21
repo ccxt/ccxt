@@ -371,7 +371,7 @@ export default class cex extends Exchange {
         const currencyPrecision = this.parseNumber (this.parsePrecision (this.safeString (rawCurrency, 'precision')));
         const networks: Dict = {};
         const rawNetworks = this.safeDict (rawCurrency, 'blockchains', {});
-        const keys = Object.keys (rawNetworks);
+        const keys = Object.keys (rawNetworks as Dict);
         for (let j = 0; j < keys.length; j++) {
             const networkId = keys[j];
             const rawNetwork = rawNetworks[networkId];

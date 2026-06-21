@@ -620,7 +620,7 @@ export default class dydx extends Exchange {
         // }
         //
         const data = this.safeDict (response, 'markets', {});
-        const markets = Object.values (data);
+        const markets = Object.values (data as Dict);
         return this.parseMarkets (markets);
     }
 

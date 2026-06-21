@@ -753,7 +753,7 @@ export default class Exchange {
                     }
                 }
             } else {
-                this.defineRestApi (value, methodName, paths.concat ([ key ]));
+                this.defineRestApi (value, methodName, paths.concat ([ key as string ]));
             }
         }
     }
@@ -2786,7 +2786,7 @@ export default class Exchange {
         return result;
     }
 
-    findTimeframe (timeframe, timeframes = undefined) {
+    findTimeframe (timeframe, timeframes: NullableDict = undefined) {
         if (timeframes === undefined) {
             timeframes = this.timeframes;
         }
@@ -3834,7 +3834,7 @@ export default class Exchange {
     safeCurrencyStructure (currency: object): CurrencyInterface {
         // derive data from networks: deposit, withdraw, active, fee, limits, precision
         const networks = this.safeDict (currency, 'networks', {});
-        const keys = Object.keys (networks);
+        const keys = Object.keys (networks as Dict);
         const length = keys.length;
         if (length !== 0) {
             for (let i = 0; i < length; i++) {
@@ -4806,7 +4806,7 @@ export default class Exchange {
         let result = [];
         const feeValues = Object.values (reduced);
         for (let i = 0; i < feeValues.length; i++) {
-            const reducedFeeValues = Object.values (feeValues[i]);
+            const reducedFeeValues = Object.values (feeValues[i] as Dict);
             result = this.arrayConcat (result, reducedFeeValues);
         }
         return result;
@@ -5251,7 +5251,7 @@ export default class Exchange {
             return undefined;
         }
         const replacements = this.safeDict (this.options, 'defaultNetworkCodeReplacements', {});
-        const keys = Object.keys (replacements);
+        const keys = Object.keys (replacements as Dict);
         for (let i = 0; i < keys.length; i++) {
             const baseCoin = keys[i];
             const entry = replacements[baseCoin];

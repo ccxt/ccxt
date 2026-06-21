@@ -9126,11 +9126,11 @@ export default class binance extends Exchange {
             const toId = this.safeString (accountsByType, toAccount);
             if (type === undefined) {
                 if (fromId === undefined) {
-                    const keys = Object.keys (accountsByType);
+                    const keys = Object.keys (accountsByType as Dict);
                     throw new ExchangeError (this.id + ' fromAccount parameter must be one of ' + keys.join (', '));
                 }
                 if (toId === undefined) {
-                    const keys = Object.keys (accountsByType);
+                    const keys = Object.keys (accountsByType as Dict);
                     throw new ExchangeError (this.id + ' toAccount parameter must be one of ' + keys.join (', '));
                 }
                 type = fromId + '_' + toId;
@@ -12038,7 +12038,7 @@ export default class binance extends Exchange {
         let networkCode: Str = undefined;
         const currency = this.currency (currencyCode);
         const networks = this.safeDict (currency, 'networks', {});
-        const networkCodes = Object.keys (networks);
+        const networkCodes = Object.keys (networks as Dict);
         for (let i = 0; i < networkCodes.length; i++) {
             const currentNetworkCode = networkCodes[i];
             const info = this.safeDict (networks[currentNetworkCode], 'info', {});

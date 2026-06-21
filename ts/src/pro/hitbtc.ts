@@ -269,7 +269,7 @@ export default class hitbtc extends hitbtcRest {
         const update = this.safeDict (message, 'update');
         const data = snapshot ? snapshot : update;
         const type = snapshot ? 'snapshot' : 'update';
-        const marketIds = Object.keys (data);
+        const marketIds = Object.keys (data as Dict);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket (marketId);
@@ -542,7 +542,7 @@ export default class hitbtc extends hitbtcRest {
         //     }
         //
         const data = this.safeDict (message, 'data', {});
-        const marketIds = Object.keys (data);
+        const marketIds = Object.keys (data as Dict);
         const result = [];
         const topic = 'bidask';
         for (let i = 0; i < marketIds.length; i++) {

@@ -927,7 +927,7 @@ export default class alpaca extends Exchange {
         //
         const results = [];
         const snapshots = this.safeDict (response, 'snapshots', {});
-        const marketIds = Object.keys (snapshots);
+        const marketIds = Object.keys (snapshots as Dict);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket (marketId);
