@@ -4981,8 +4981,8 @@ class coinbase extends coinbase$1["default"] {
                 result[symbol] = {
                     'info': response,
                     'symbol': symbol,
-                    'maker': taker_fee,
-                    'taker': marker_fee,
+                    'maker': marker_fee,
+                    'taker': taker_fee,
                     'percentage': true,
                 };
             }
