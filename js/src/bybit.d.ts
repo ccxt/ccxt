@@ -1123,7 +1123,7 @@ export default class bybit extends Exchange {
     fetchMarginMode(symbol: string, params?: {}): Promise<MarginMode>;
     parseMarginMode(marginMode: Dict, market?: any): MarginMode;
     parseMarginModeType(marginMode: Str): Str;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: NullableDict, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: any): {
         url: string;
         method: string;
         body: any;

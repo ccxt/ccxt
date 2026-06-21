@@ -9,11 +9,7 @@ function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'defau
 
 var http__default = /*#__PURE__*/_interopDefaultLegacy(http);
 
-/**
- * Headers.js
- *
- * Headers class offers convenient helpers
- */
+// ----------------------------------------------------------------------------
 /* c8 ignore next 9 */
 const validateHeaderName = typeof http__default["default"].validateHeaderName === 'function' ?
     http__default["default"].validateHeaderName :

@@ -436,7 +436,7 @@ export default class grvt extends Exchange {
     };
     handleUntilOptionString(key: string, request: any, params: any, multiplier?: number): any[];
     requestId(): any;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: NullableDict, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: any): {
         url: any;
         method: string;
         body: any;

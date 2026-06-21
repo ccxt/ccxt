@@ -1190,7 +1190,7 @@ export default class binance extends Exchange {
     parseLedgerEntryType(type: any): string;
     getNetworkCodeByNetworkUrl(currencyCode: string, depositUrl?: Str): Str;
     getBaseDomainFromUrl(url: Str): Str;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: NullableDict, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: any): {
         url: any;
         method: string;
         body: any;
