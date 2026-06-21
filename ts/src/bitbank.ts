@@ -715,7 +715,7 @@ export default class bitbank extends Exchange {
             'CANCELED_UNFILLED': 'canceled',
             'CANCELED_PARTIALLY_FILLED': 'canceled',
         };
-        return this.safeString (statuses, (status as string), status);
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -798,7 +798,7 @@ export default class bitbank extends Exchange {
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market ((symbol as string));
+        const market = this.market (symbol);
         const request: Dict = {
             'order_id': id,
             'pair': market['id'],
@@ -843,7 +843,7 @@ export default class bitbank extends Exchange {
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market ((symbol as string));
+        const market = this.market (symbol);
         const request: Dict = {
             'order_id': id,
             'pair': market['id'],
@@ -888,7 +888,7 @@ export default class bitbank extends Exchange {
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        const market = this.market ((symbol as string));
+        const market = this.market (symbol);
         const request: Dict = {
             'pair': market['id'],
         };
@@ -1161,7 +1161,7 @@ export default class bitbank extends Exchange {
                 '70010': 'We are temporarily raising the minimum order quantity as the system load is now rising.',
             };
             const code = this.safeString (data, 'code');
-            const message = this.safeString (errorMessages, (code as string), 'Error');
+            const message = this.safeString (errorMessages, code, 'Error');
             this.throwExactlyMatchedException (this.exceptions['exact'], code, message);
             throw new ExchangeError (this.id + ' ' + this.json (response));
         }

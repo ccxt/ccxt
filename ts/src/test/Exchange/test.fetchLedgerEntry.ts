@@ -10,7 +10,7 @@ async function testFetchLedgerEntry (exchange: Exchange, skippedProperties: obje
     if (length > 0) {
         const firstItem = items[0];
         const id = firstItem["id"];
-        const item = await exchange.fetchLedgerEntry ((id as string));
+        const item = await exchange.fetchLedgerEntry (id);
         const now = exchange.milliseconds ();
         testLedgerEntry (exchange, skippedProperties, method, item, code, now);
     }

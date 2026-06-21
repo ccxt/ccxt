@@ -659,7 +659,7 @@ export default class mexc extends mexcRest {
         let symbol: Str = undefined;
         let timeframe: Str = undefined;
         if ('publicSpotKline' in message) {
-            symbol = this.symbol ((this.safeString (message, 'symbol') as string));
+            symbol = this.symbol (this.safeString (message, 'symbol'));
             const data = this.safeDict (message, 'publicSpotKline', {});
             const timeframeId = this.safeString (data, 'interval');
             timeframe = this.findTimeframe (timeframeId, this.options['timeframes']);
@@ -677,7 +677,7 @@ export default class mexc extends mexcRest {
         }
         const messageHash = 'candles:' + symbol + ':' + timeframe;
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.ohlcvs[symbol], (timeframe as string));
+        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
@@ -1641,7 +1641,7 @@ export default class mexc extends mexcRest {
         };
         url = this.urls['api']['ws']['swap'];
         this.watchSwapPublic (channel, messageHash, requestParams, params);
-        const client = this.client ((url as string));
+        const client = this.client (url);
         this.handleUnsubscriptions (client, [ messageHash ]);
         return undefined;
     }
@@ -1694,7 +1694,7 @@ export default class mexc extends mexcRest {
             url = this.urls['api']['ws']['swap'];
             this.watchSwapPublic (channel, messageHash, requestParams, params);
         }
-        const client = this.client ((url as string));
+        const client = this.client (url);
         this.handleUnsubscriptions (client, [ messageHash ]);
         return undefined;
     }
@@ -1833,7 +1833,7 @@ export default class mexc extends mexcRest {
             };
             this.watchSwapPublic (channel, messageHash, requestParams, params);
         }
-        const client = this.client ((url as string));
+        const client = this.client (url);
         this.handleUnsubscriptions (client, [ messageHash ]);
         return undefined;
     }
@@ -1868,7 +1868,7 @@ export default class mexc extends mexcRest {
             };
             this.watchSwapPublic (channel, messageHash, requestParams, params);
         }
-        const client = this.client ((url as string));
+        const client = this.client (url);
         this.handleUnsubscriptions (client, [ messageHash ]);
         return undefined;
     }
@@ -1901,7 +1901,7 @@ export default class mexc extends mexcRest {
             };
             this.watchSwapPublic (channel, messageHash, requestParams, params);
         }
-        const client = this.client ((url as string));
+        const client = this.client (url);
         this.handleUnsubscriptions (client, [ messageHash ]);
         return undefined;
     }
@@ -2017,7 +2017,7 @@ export default class mexc extends mexcRest {
                 'public.increase.depth.v3.api': this.handleOrderBookSubscription,
                 'public.aggre.depth.v3.api.pb': this.handleOrderBookSubscription,
             };
-            const method = this.safeValue (methods, (channel as string));
+            const method = this.safeValue (methods, channel);
             if (method !== undefined) {
                 method.call (this, client, message);
             }

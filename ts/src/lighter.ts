@@ -567,8 +567,8 @@ export default class lighter extends Exchange {
             accountIndex = this.safeString (res, 0);
         }
         const auths = this.safeDict (this.options, 'auths');
-        const accountAuths = this.safeDict (auths, (accountIndex as string));
-        const cachedAuth = this.safeDict (accountAuths, (apiKeyIndex as string));
+        const accountAuths = this.safeDict (auths, accountIndex);
+        const cachedAuth = this.safeDict (accountAuths, apiKeyIndex);
         const cachedDeadline = this.safeInteger (cachedAuth, 'deadline');
         if (cachedDeadline !== undefined) {
             const minimumDeadline = this.seconds () + this.safeInteger (this.options, 'authDeadlineMinimumRemaining');
@@ -611,7 +611,7 @@ export default class lighter extends Exchange {
         const binaryMessageLength = this.binaryLength (binaryMessage);
         const x19 = this.base16ToBinary ('19');
         const newline = this.base16ToBinary ('0a');
-        const prefix = this.binaryConcat (x19, this.encode ('Ethereum Signed Message:'), newline, this.encode ((this.numberToString (binaryMessageLength) as string)));
+        const prefix = this.binaryConcat (x19, this.encode ('Ethereum Signed Message:'), newline, this.encode (this.numberToString (binaryMessageLength)));
         return '0x' + this.hash (this.binaryConcat (prefix, binaryMessage), keccak, 'hex');
     }
 
@@ -855,7 +855,7 @@ export default class lighter extends Exchange {
             const takeProfitOrderLimitPrice = this.safeNumberN (takeProfit, [ 'price', 'takeProfitPrice' ], takeProfitOrderTriggerPrice);
             // amount should be 0 for child orders
             if (stopLoss !== undefined) {
-                const orderObj = this.createOrderRequest (symbol, (stopLossOrderType as string), triggerOrderSide, 0, stopLossOrderLimitPrice, this.extend (params, {
+                const orderObj = this.createOrderRequest (symbol, stopLossOrderType, triggerOrderSide, 0, stopLossOrderLimitPrice, this.extend (params, {
                     'stopLossPrice': stopLossOrderTriggerPrice,
                     'reduceOnly': true,
                 }))[0];
@@ -863,7 +863,7 @@ export default class lighter extends Exchange {
                 orders.push (orderObj);
             }
             if (takeProfit !== undefined) {
-                const orderObj = this.createOrderRequest (symbol, (takeProfitOrderType as string), triggerOrderSide, 0, takeProfitOrderLimitPrice, this.extend (params, {
+                const orderObj = this.createOrderRequest (symbol, takeProfitOrderType, triggerOrderSide, 0, takeProfitOrderLimitPrice, this.extend (params, {
                     'takeProfitPrice': takeProfitOrderTriggerPrice,
                     'reduceOnly': true,
                 }))[0];
@@ -1818,7 +1818,7 @@ export default class lighter extends Exchange {
                     const asset = assets[j];
                     const codeId = this.safeString (asset, 'symbol');
                     const code = this.safeCurrencyCode (codeId);
-                    const balance = this.safeDict (result, (code as string), this.account ());
+                    const balance = this.safeDict (result, code, this.account ());
                     balance['total'] = Precise.stringAdd (balance['total'], this.safeString (asset, 'balance'));
                     balance['used'] = Precise.stringAdd (balance['used'], this.safeString (asset, 'locked_balance'));
                     result[code] = balance;
@@ -2303,7 +2303,7 @@ export default class lighter extends Exchange {
             const typeAsInteger = this.safeInteger (order, 'order_type');
             type = this.parseOrderTypeInteger (typeAsInteger);
         }
-        const triggerPrice = this.parseNumber (this.omitZero ((this.safeString (order, 'trigger_price') as string)));
+        const triggerPrice = this.parseNumber (this.omitZero (this.safeString (order, 'trigger_price')));
         let stopLossPrice: Num = undefined;
         let takeProfitPrice: Num = undefined;
         if (type !== undefined) {
@@ -2333,7 +2333,7 @@ export default class lighter extends Exchange {
         return this.safeOrder ({
             'info': order,
             'id': this.safeString (order, 'order_id'),
-            'clientOrderId': this.omitZero ((this.safeString2 (order, 'client_order_id', 'client_order_index') as string)),
+            'clientOrderId': this.omitZero (this.safeString2 (order, 'client_order_id', 'client_order_index')),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -2378,7 +2378,7 @@ export default class lighter extends Exchange {
             'canceled-child': 'canceled',
             'canceled-liquidation': 'canceled',
         };
-        return this.safeString (statuses, (status as string), status);
+        return this.safeString (statuses, status, status);
     }
 
     parseOrderType (type) {
@@ -2787,7 +2787,7 @@ export default class lighter extends Exchange {
             'completed': 'ok',
             'claimable': 'ok',
         };
-        return this.safeString (statuses, (status as string), status);
+        return this.safeString (statuses, status, status);
     }
 
     /**

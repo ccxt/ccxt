@@ -624,7 +624,7 @@ export default class alpaca extends Exchange {
             //    }
             //
             const trades = this.safeDict (response, 'trades', {});
-            symbolTrades = this.safeList (trades, (marketId as string), []);
+            symbolTrades = this.safeList (trades, marketId, []);
         } else if (method === 'marketPublicGetV1beta3CryptoLocLatestTrades') {
             const response = await this.marketPublicGetV1beta3CryptoLocLatestTrades (this.extend (request, params));
             //
@@ -641,7 +641,7 @@ export default class alpaca extends Exchange {
             //    }
             //
             const trades = this.safeDict (response, 'trades', {});
-            symbolTrades = this.safeDict (trades, (marketId as string), {});
+            symbolTrades = this.safeDict (trades, marketId, {});
             symbolTrades = [ symbolTrades ];
         } else {
             throw new NotSupported (this.id + ' fetchTrades() does not support ' + method + ', marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported');
@@ -708,7 +708,7 @@ export default class alpaca extends Exchange {
         //   }
         //
         const orderbooks = this.safeDict (response, 'orderbooks', {});
-        const rawOrderbook = this.safeDict (orderbooks, (id as string), {});
+        const rawOrderbook = this.safeDict (orderbooks, id, {});
         const timestamp = this.parse8601 (this.safeString (rawOrderbook, 't'));
         return this.parseOrderBook (rawOrderbook as Dict, market['symbol'], timestamp, 'b', 'a', 'p', 's');
     }
@@ -779,7 +779,7 @@ export default class alpaca extends Exchange {
             //     }
             //
             const bars = this.safeDict (response, 'bars', {});
-            ohlcvs = this.safeList (bars, (marketId as string), []);
+            ohlcvs = this.safeList (bars, marketId, []);
         } else if (method === 'marketPublicGetV1beta3CryptoLocLatestBars') {
             const response = await this.marketPublicGetV1beta3CryptoLocLatestBars (this.extend (request, params));
             //
@@ -799,7 +799,7 @@ export default class alpaca extends Exchange {
             //     }
             //
             const bars = this.safeDict (response, 'bars', {});
-            ohlcvs = this.safeDict (bars, (marketId as string), {});
+            ohlcvs = this.safeDict (bars, marketId, {});
             ohlcvs = [ ohlcvs ];
         } else {
             throw new NotSupported (this.id + ' fetchOHLCV() does not support ' + method + ', marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported');
@@ -969,7 +969,7 @@ export default class alpaca extends Exchange {
         const uuid = this.uuid ();
         const parts = uuid.split ('-');
         const random_id = parts.join ('');
-        const defaultClientId = this.implodeParams ((clientOrderIdprefix as string), { 'id': random_id });
+        const defaultClientId = this.implodeParams (clientOrderIdprefix, { 'id': random_id });
         const clientOrderId = this.safeString (params, 'clientOrderId', defaultClientId);
         return clientOrderId;
     }
@@ -1445,14 +1445,14 @@ export default class alpaca extends Exchange {
             'activated': 'open',
             'filled': 'closed',
         };
-        return this.safeString (statuses, (status as string), status);
+        return this.safeString (statuses, status, status);
     }
 
     parseTimeInForce (timeInForce: Str) {
         const timeInForces: Dict = {
             'day': 'Day',
         };
-        return this.safeString (timeInForces, (timeInForce as string), timeInForce);
+        return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
     /**
@@ -1806,7 +1806,7 @@ export default class alpaca extends Exchange {
             'FAILED': 'failed',
             'COMPLETE': 'ok',
         };
-        return this.safeString (statuses, (status as string), status);
+        return this.safeString (statuses, status, status);
     }
 
     parseTransactionType (type) {

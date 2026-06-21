@@ -1606,7 +1606,7 @@ export default class poloniex extends Exchange {
             'CANCELED': 'canceled',
             'FAILED': 'canceled',
         };
-        return this.safeString (statuses, (status as string), status);
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -1718,7 +1718,7 @@ export default class poloniex extends Exchange {
         let resultingTrades = this.safeValue (order, 'resultingTrades');
         if (resultingTrades !== undefined) {
             if (!Array.isArray (resultingTrades)) {
-                resultingTrades = this.safeValue (resultingTrades, (this.safeString (market, 'id', marketId) as string));
+                resultingTrades = this.safeValue (resultingTrades, this.safeString (market, 'id', marketId));
             }
         }
         const price = this.safeStringN (order, [ 'price', 'rate', 'px' ]);
@@ -3038,7 +3038,7 @@ export default class poloniex extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             const feeInfo = response[currencyId];
             if ((codes === undefined) || (this.inArray (code, codes))) {
-                const currency = this.currency ((code as string));
+                const currency = this.currency (code);
                 depositWithdrawFees[code] = this.parseDepositWithdrawFee (feeInfo, currency);
                 const childChains = this.safeValue (feeInfo, 'childChains');
                 const chainsLength = childChains.length;
@@ -3124,7 +3124,7 @@ export default class poloniex extends Exchange {
             'COMPLETE ERROR': 'failed',
             'COMPLETE_ERROR': 'failed',
         };
-        return this.safeString (statuses, (status as string), status);
+        return this.safeString (statuses, status, status);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -3513,7 +3513,7 @@ export default class poloniex extends Exchange {
             'collateral': collateral,
             'initialMargin': initialMargin,
             'initialMarginPercentage': undefined,
-            'leverage': parseInt ((leverage as string)),
+            'leverage': parseInt (leverage),
             'marginRatio': this.safeNumber (position, 'mgnRatio'),
             'stopLossPrice': this.safeNumber (position, 'slTrgPx'),
             'takeProfitPrice': this.safeNumber (position, 'tpTrgPx'),

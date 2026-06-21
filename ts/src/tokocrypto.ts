@@ -1536,7 +1536,7 @@ export default class tokocrypto extends Exchange {
             'REJECTED': 'rejected',
             'EXPIRED': 'expired',
         };
-        return this.safeString (statuses, (status as string), status);
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -1679,7 +1679,7 @@ export default class tokocrypto extends Exchange {
             'reduceOnly': this.safeValue (order, 'reduceOnly'),
             'side': side,
             'price': price,
-            'triggerPrice': this.parseNumber (this.omitZero ((this.safeString (order, 'stopPrice') as string))),
+            'triggerPrice': this.parseNumber (this.omitZero (this.safeString (order, 'stopPrice'))),
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -2161,7 +2161,7 @@ export default class tokocrypto extends Exchange {
         };
         const networks = this.safeValue (this.options, 'networks', {});
         let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString (networks, (network as string), network); // handle ERC20>ETH alias
+        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
         if (network !== undefined) {
             request['network'] = network;
             params = this.omit (params, 'network');

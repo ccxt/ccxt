@@ -737,7 +737,7 @@ export default class krakenfutures extends krakenfuturesRest {
             const symbol = this.safeSymbol (marketId);
             const orderId = this.safeString (order, 'order_id');
             const previousOrders = this.safeValue (orders.hashmap, symbol, {});
-            const previousOrder = this.safeValue (previousOrders, (orderId as string));
+            const previousOrder = this.safeValue (previousOrders, orderId);
             const reason = this.safeString (message, 'reason');
             if ((previousOrder === undefined) || (reason === 'edited_by_user')) {
                 const parsed = this.parseWsOrder (order);
@@ -1619,7 +1619,7 @@ export default class krakenfutures extends krakenfuturesRest {
                 'balances_snapshot': this.handleBalance,
                 'open_positions': this.handlePositions,
             };
-            const method = this.safeValue (methods, (feed as string));
+            const method = this.safeValue (methods, feed);
             if (method !== undefined) {
                 method.call (this, client, message);
             }

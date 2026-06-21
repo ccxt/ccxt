@@ -1499,7 +1499,7 @@ export default class bigone extends Exchange {
         if (immediateOrCancel) {
             timeInForce = 'IOC';
         }
-        const type = this.parseType ((this.safeString (order, 'type') as string));
+        const type = this.parseType (this.safeString (order, 'type'));
         const price = this.safeString (order, 'price');
         let amount: Str = undefined;
         let filled: Str = undefined;
@@ -1706,7 +1706,7 @@ export default class bigone extends Exchange {
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market ((symbol as string));
+        const market = this.market (symbol);
         const request: Dict = {
             'asset_pair_name': market['id'],
         };
@@ -1885,7 +1885,7 @@ export default class bigone extends Exchange {
             'FILLED': 'closed',
             'CANCELLED': 'canceled',
         };
-        return this.safeString (statuses, (status as string));
+        return this.safeString (statuses, status);
     }
 
     /**
@@ -2003,7 +2003,7 @@ export default class bigone extends Exchange {
         }
         const chainsIndexedById = this.indexBy (data, 'chain');
         const selectedNetworkId = this.selectNetworkIdFromRawNetworks (code, networkCode, chainsIndexedById);
-        const addressObject = this.safeDict (chainsIndexedById, (selectedNetworkId as string), {});
+        const addressObject = this.safeDict (chainsIndexedById, selectedNetworkId, {});
         const address = this.safeString (addressObject, 'value');
         const tag = this.safeString (addressObject, 'memo');
         this.checkAddress (address);
@@ -2025,7 +2025,7 @@ export default class bigone extends Exchange {
             'COMPLETED': 'ok',
             'PENDING': 'pending',
         };
-        return this.safeString (statuses, (status as string), status);
+        return this.safeString (statuses, status, status);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -2294,7 +2294,7 @@ export default class bigone extends Exchange {
         const statuses: Dict = {
             '0': 'ok',
         };
-        return this.safeString (statuses, (status as string), 'failed');
+        return this.safeString (statuses, status, 'failed');
     }
 
     /**

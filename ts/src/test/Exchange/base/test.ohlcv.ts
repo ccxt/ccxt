@@ -25,10 +25,10 @@ function testOHLCV (exchange: Exchange, skippedProperties: object, method: strin
     if ('compareOHLCV' in skippedProperties) {
         return;
     }
-    testSharedMethods.assertLessOrEqual (exchange, skippedProperties, method, entry, '1', (high as string));
-    testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, '1', (low as string));
-    testSharedMethods.assertLessOrEqual (exchange, skippedProperties, method, entry, '4', (high as string));
-    testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, '4', (low as string));
+    testSharedMethods.assertLessOrEqual (exchange, skippedProperties, method, entry, '1', high);
+    testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, '1', low);
+    testSharedMethods.assertLessOrEqual (exchange, skippedProperties, method, entry, '4', high);
+    testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, '4', low);
     assert ((symbol === undefined) || (typeof symbol === 'string'), 'symbol ' + symbol + ' is incorrect' + logText); // todo: check with standard symbol check
 }
 

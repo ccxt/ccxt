@@ -573,22 +573,22 @@ export default class weex extends weexRest {
         const messageHashes = [];
         const firstEntry = this.safeList (symbolsAndTimeframes, 0, []);
         const firstSymbol = this.safeString (firstEntry, 0);
-        const firstMarket = this.market ((firstSymbol as string));
+        const firstMarket = this.market (firstSymbol);
         const isContract = firstMarket['contract'];
         let priceType = 'LAST_PRICE';
         if (isContract) {
-            [ priceType, params ] = this.handleOptionAndParams2 (params, (callerMethodName as string), 'price', 'priceType', priceType);
+            [ priceType, params ] = this.handleOptionAndParams2 (params, callerMethodName, 'price', 'priceType', priceType);
         }
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = this.safeList (symbolsAndTimeframes, i);
             let symbolString = this.safeString (data, 0);
-            const market = this.market ((symbolString as string));
+            const market = this.market (symbolString);
             if (market['type'] !== firstMarket['type']) {
                 throw new BadRequest (this.id + ' ' + callerMethodName + ' market symbols must be of the same type');
             }
             symbolString = market['symbol'];
             const unifiedTimeframe = this.safeString (data, 1, '1');
-            const interval = this.safeString (this.timeframes, (unifiedTimeframe as string), unifiedTimeframe);
+            const interval = this.safeString (this.timeframes, unifiedTimeframe, unifiedTimeframe);
             const channel = market['id'] + '@kline_' + interval + '_' + priceType;
             const messageHash = 'ohlcv::' + symbolString + '::' + unifiedTimeframe;
             channels.push (channel);
@@ -637,22 +637,22 @@ export default class weex extends weexRest {
         const unSubHashes = [];
         const firstEntry = this.safeList (symbolsAndTimeframes, 0, []);
         const firstSymbol = this.safeString (firstEntry, 0);
-        const firstMarket = this.market ((firstSymbol as string));
+        const firstMarket = this.market (firstSymbol);
         const isContract = firstMarket['contract'];
         let priceType = 'LAST_PRICE';
         if (isContract) {
-            [ priceType, params ] = this.handleOptionAndParams2 (params, (callerMethodName as string), 'price', 'priceType', priceType);
+            [ priceType, params ] = this.handleOptionAndParams2 (params, callerMethodName, 'price', 'priceType', priceType);
         }
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = this.safeList (symbolsAndTimeframes, i);
             let symbolString = this.safeString (data, 0);
-            const market = this.market ((symbolString as string));
+            const market = this.market (symbolString);
             if (market['type'] !== firstMarket['type']) {
                 throw new BadRequest (this.id + ' ' + callerMethodName + ' market symbols must be of the same type');
             }
             symbolString = market['symbol'];
             const unifiedTimeframe = this.safeString (data, 1, '1');
-            const interval = this.safeString (this.timeframes, (unifiedTimeframe as string), unifiedTimeframe);
+            const interval = this.safeString (this.timeframes, unifiedTimeframe, unifiedTimeframe);
             const channel = market['id'] + '@kline_' + interval + '_' + priceType;
             const messageHash = 'ohlcv::' + symbolString + '::' + unifiedTimeframe;
             const unSubMessageHash = 'unsubscribe::' + messageHash;
@@ -785,7 +785,7 @@ export default class weex extends weexRest {
         const callerMethodName = this.safeString (params, 'callerMethodName', 'watchOrderBookForSymbols');
         params = this.omit (params, 'callerMethodName');
         let depth = '200';
-        [ depth, params ] = this.handleOptionAndParams (params, (callerMethodName as string), 'depth', depth);
+        [ depth, params ] = this.handleOptionAndParams (params, callerMethodName, 'depth', depth);
         const messageHashes = [];
         const channels = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -838,7 +838,7 @@ export default class weex extends weexRest {
         const callerMethodName = this.safeString (params, 'callerMethodName', 'unWatchOrderBookForSymbols');
         params = this.omit (params, 'callerMethodName');
         let depth = '200';
-        [ depth, params ] = this.handleOptionAndParams (params, (callerMethodName as string), 'depth', depth);
+        [ depth, params ] = this.handleOptionAndParams (params, callerMethodName, 'depth', depth);
         const subHashes = [];
         const channels = [];
         const unSubHashes = [];
@@ -1481,7 +1481,7 @@ export default class weex extends weexRest {
         }
         const rawStatus = this.safeStringLower (order, 'status');
         const rawType = this.safeString (order, 'type');
-        const triggerPrice = this.omitZero ((this.safeString (order, 'triggerPrice') as string));
+        const triggerPrice = this.omitZero (this.safeString (order, 'triggerPrice'));
         let stopLossPrice: Str = undefined;
         let takeProfitPrice: Str = undefined;
         if (rawType === 'TAKE_PROFIT_MARKET' || rawType === 'TAKE_PROFIT') {
@@ -1860,7 +1860,7 @@ export default class weex extends weexRest {
         //
         const id = this.safeString (message, 'id');
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-        const subscription = this.safeDict (subscriptionsById, (id as string), {});
+        const subscription = this.safeDict (subscriptionsById, id, {});
         const unsubscribe = this.safeBool (subscription, 'unsubscribe', false);
         if (unsubscribe) {
             const subHashIsPrefix = this.safeBool (subscription, 'subHashIsPrefix', false);
@@ -1869,7 +1869,7 @@ export default class weex extends weexRest {
             for (let i = 0; i < messageHashes.length; i++) {
                 const unSubHash = this.safeString (messageHashes, i);
                 const subHash = this.safeString (subHashes, i);
-                this.cleanUnsubscription (client, (subHash as string), (unSubHash as string), subHashIsPrefix);
+                this.cleanUnsubscription (client, subHash, unSubHash, subHashIsPrefix);
             }
             this.cleanCache (subscription);
         }

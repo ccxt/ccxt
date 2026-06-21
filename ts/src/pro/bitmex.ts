@@ -1141,7 +1141,7 @@ export default class bitmex extends bitmexRest {
             for (let i = 0; i < dataLength; i++) {
                 const currentOrder = data[i];
                 const orderId = this.safeString (currentOrder, 'orderID');
-                const previousOrder = this.safeValue (stored.hashmap, (orderId as string));
+                const previousOrder = this.safeValue (stored.hashmap, orderId);
                 let rawOrder = currentOrder;
                 if (previousOrder !== undefined) {
                     rawOrder = this.extend (previousOrder['info'], currentOrder);
@@ -1476,7 +1476,7 @@ export default class bitmex extends bitmexRest {
         const table = this.safeString (message, 'table');
         const interval = table.replace ('tradeBin', '');
         const timeframe = this.findTimeframe (interval);
-        const duration = this.parseTimeframe ((timeframe as string));
+        const duration = this.parseTimeframe (timeframe);
         const candles = this.safeValue (message, 'data', []);
         const results: Dict = {};
         for (let i = 0; i < candles.length; i++) {
@@ -1494,7 +1494,7 @@ export default class bitmex extends bitmexRest {
                 this.safeFloat (candle, 'volume'),
             ];
             this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-            let stored = this.safeValue (this.ohlcvs[symbol], (timeframe as string));
+            let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
@@ -1762,7 +1762,7 @@ export default class bitmex extends bitmexRest {
                 'liquidation': this.handleLiquidation,
                 'position': this.handlePositions,
             };
-            const method = this.safeValue (methods, (table as string));
+            const method = this.safeValue (methods, table);
             if (method === undefined) {
                 const request = this.safeValue (message, 'request', {});
                 const op = this.safeValue (request, 'op');

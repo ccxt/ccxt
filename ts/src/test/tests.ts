@@ -1308,7 +1308,7 @@ class testMainClass {
         }
         try {
             const callOutput = exchange.safeValue (data, 'output');
-            this.assertStaticRequestOutput (exchange, type, skipKeys, data['url'], (requestUrl as string), callOutput, output);
+            this.assertStaticRequestOutput (exchange, type, skipKeys, data['url'], requestUrl, callOutput, output);
         }
         catch (e) {
             this.requestTestsFailed = true;
@@ -1491,7 +1491,7 @@ class testMainClass {
                 }
                 const type = exchange.safeString (exchangeData, 'outputType');
                 const skipKeys = exchange.safeValue (exchangeData, 'skipKeys', []);
-                await this.testRequestStatically (exchange, method, result, (type as string), skipKeys);
+                await this.testRequestStatically (exchange, method, result, type, skipKeys);
                 // reset options
                 exchange.options = exchange.convertToSafeDictionary (exchange.deepExtend (oldExchangeOptions, {}));
                 // exchange.extendExchangeOptions (exchange.deepExtend (oldExchangeOptions, {}));

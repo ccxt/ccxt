@@ -578,7 +578,7 @@ export default class derive extends deriveRest {
                 }
                 const cachedOrders = this.orders;
                 const orders = this.safeValue (cachedOrders.hashmap, symbol, {});
-                const order = this.safeValue (orders, (orderId as string));
+                const order = this.safeValue (orders, orderId);
                 if (order !== undefined) {
                     const fee = this.safeValue (order, 'fee');
                     if (fee !== undefined) {
@@ -724,7 +724,7 @@ export default class derive extends deriveRest {
                 }
             }
         }
-        const method = this.safeValue (methods, (event as string));
+        const method = this.safeValue (methods, event);
         if (method !== undefined) {
             method.call (this, client, message);
             return;
@@ -732,7 +732,7 @@ export default class derive extends deriveRest {
         if ('id' in message) {
             const id = this.safeString (message, 'id');
             const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-            const subscription = this.safeValue (subscriptionsById, (id as string), {});
+            const subscription = this.safeValue (subscriptionsById, id, {});
             if ('method' in subscription) {
                 if (subscription['method'] === 'public/login') {
                     this.handleAuth (client, message);

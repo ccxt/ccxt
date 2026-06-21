@@ -1150,9 +1150,9 @@ export default class bitstamp extends Exchange {
         const feeCostString = this.safeString (trade, 'fee');
         const feeCurrency = market['quote'];
         const priceId = (rawMarketId !== undefined) ? rawMarketId : market['id'];
-        priceString = this.safeString (trade, (priceId as string), priceString);
-        amountString = this.safeString (trade, (market['baseId'] as string), amountString);
-        costString = this.safeString (trade, (market['quoteId'] as string), costString);
+        priceString = this.safeString (trade, priceId, priceString);
+        amountString = this.safeString (trade, market['baseId'], amountString);
+        costString = this.safeString (trade, market['quoteId'], costString);
         // this endpoint is not aligned with "markets" endpoint
         const baseIdLower = market['baseId'].toLowerCase ();
         const quoteIdLower = market['quoteId'].toLowerCase ();
@@ -1423,7 +1423,7 @@ export default class bitstamp extends Exchange {
         //     ]
         //
         const tradingFeesByMarketId = this.indexBy (response, 'currency_pair');
-        const tradingFee = this.safeDict (tradingFeesByMarketId, (market['id'] as string));
+        const tradingFee = this.safeDict (tradingFeesByMarketId, market['id']);
         return this.parseTradingFee (tradingFee, market);
     }
 
@@ -1747,7 +1747,7 @@ export default class bitstamp extends Exchange {
             'Canceled': 'canceled',
             'Cancel pending': 'canceling',
         };
-        return this.safeString (statuses, (status as string), status);
+        return this.safeString (statuses, status, status);
     }
 
     async fetchOrderStatus (id: string, symbol: Str = undefined, params = {}) {
@@ -2141,7 +2141,7 @@ export default class bitstamp extends Exchange {
             '3': 'canceled', // Canceled
             '4': 'failed', // Failed
         };
-        return this.safeString (statuses, (status as string), status);
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -2312,7 +2312,7 @@ export default class bitstamp extends Exchange {
                 direction = Precise.stringGt (amount, '0') ? 'in' : 'out';
             } else if (('currency' in parsedTransaction) && parsedTransaction['currency'] !== undefined) {
                 const currencyCode = this.safeString (parsedTransaction, 'currency');
-                currency = this.currency ((currencyCode as string));
+                currency = this.currency (currencyCode);
                 const amount = this.safeString (item, currency['id']);
                 direction = Precise.stringGt (amount, '0') ? 'in' : 'out';
             }
@@ -2612,7 +2612,7 @@ export default class bitstamp extends Exchange {
             'ok': 'ok',
             'error': 'failed',
         };
-        return this.safeString (statuses, (status as string), status);
+        return this.safeString (statuses, status, status);
     }
 
     nonce () {

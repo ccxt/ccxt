@@ -1727,10 +1727,10 @@ export default class digifinex extends Exchange {
                     }
                 }
             }
-            const orderRequest = this.createOrderRequest ((marketId as string), (type as string), side, amount, price, orderParams);
+            const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
-        const market = this.market ((symbol as string));
+        const market = this.market (symbol);
         const request: Dict = {};
         let response = undefined;
         if (market['swap']) {
@@ -2053,7 +2053,7 @@ export default class digifinex extends Exchange {
             '3': 'canceled',
             '4': 'canceled', // partially filled and canceled
         };
-        return this.safeString (statuses, (status as string), status);
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -2889,7 +2889,7 @@ export default class digifinex extends Exchange {
             '3': 'ok', // Completed
             '4': 'failed', // Rejected
         };
-        return this.safeString (statuses, (status as string), status);
+        return this.safeString (statuses, status, status);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -2961,7 +2961,7 @@ export default class digifinex extends Exchange {
         const statuses: Dict = {
             '0': 'ok',
         };
-        return this.safeString (statuses, (status as string), status);
+        return this.safeString (statuses, status, status);
     }
 
     parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
@@ -4141,7 +4141,7 @@ export default class digifinex extends Exchange {
             const currencyId = this.safeString (entry, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             if ((codes === undefined) || (this.inArray (code, codes))) {
-                const depositWithdrawFee = this.safeValue (depositWithdrawFees, (code as string));
+                const depositWithdrawFee = this.safeValue (depositWithdrawFees, code);
                 if (depositWithdrawFee === undefined) {
                     depositWithdrawFees[code] = this.depositWithdrawFee ({});
                     depositWithdrawFees[code]['info'] = [];

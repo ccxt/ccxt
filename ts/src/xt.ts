@@ -906,7 +906,7 @@ export default class xt extends Exchange {
             const entry = currenciesData[i];
             const currencyId = this.safeString (entry, 'currency');
             const code = this.safeCurrencyCode (currencyId);
-            const networkEntry = this.safeValue (chainsDataIndexed, (currencyId as string), {});
+            const networkEntry = this.safeValue (chainsDataIndexed, currencyId, {});
             const rawNetworks = this.safeValue (networkEntry, 'supportChains', []);
             const networks = {};
             for (let j = 0; j < rawNetworks.length; j++) {
@@ -3788,7 +3788,7 @@ export default class xt extends Exchange {
         let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         const currency = this.currency (code);
-        const networkId = this.networkCodeToId ((networkCode as string), code);
+        const networkId = this.networkCodeToId (networkCode, code);
         this.checkRequiredArgument ('fetchDepositAddress', networkId, 'network');
         const request = {
             'currency': currency['id'],
@@ -3962,7 +3962,7 @@ export default class xt extends Exchange {
         let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         const networkIdsByCodes = this.safeValue (this.options, 'networks', {});
-        const networkId = this.safeString2 (networkIdsByCodes, (networkCode as string), code, code);
+        const networkId = this.safeString2 (networkIdsByCodes, networkCode, code, code);
         const request = {
             'currency': currency['id'],
             'chain': networkId,
@@ -4560,7 +4560,7 @@ export default class xt extends Exchange {
      */
     async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market ((symbol as string));
+        const market = this.market (symbol);
         if (!market['swap']) {
             throw new BadSymbol (this.id + ' fetchFundingHistory() supports swap contracts only');
         }

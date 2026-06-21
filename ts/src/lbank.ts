@@ -1709,7 +1709,7 @@ export default class lbank extends Exchange {
             '3': 'canceled', // filled partially and cancelled
             '4': 'closed', // disposal processing
         };
-        return this.safeString (statuses, (status as string), status);
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -2232,7 +2232,7 @@ export default class lbank extends Exchange {
         const defaultNetwork = this.safeStringUpper (defaultNetworks, currencyCode);
         const networks = this.safeValue (this.options, 'networks', {});
         let network = this.safeStringUpper (params, 'network', defaultNetwork); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString (networks, (network as string), network); // handle ERC20>ETH alias
+        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
         return network;
     }
 
@@ -2307,7 +2307,7 @@ export default class lbank extends Exchange {
         };
         const networks = this.safeValue (this.options, 'networks');
         let network = this.safeStringUpper (params, 'network');
-        network = this.safeString (networks, (network as string), network);
+        network = this.safeString (networks, network, network);
         if (network !== undefined) {
             request['networkName'] = network;
             params = this.omit (params, 'network');
@@ -2376,7 +2376,7 @@ export default class lbank extends Exchange {
         const network = this.safeStringUpper2 (params, 'network', 'networkName');
         params = this.omit (params, [ 'network', 'networkName' ]);
         const networks = this.safeValue (this.options, 'networks');
-        const networkId = this.safeString (networks, (network as string), network);
+        const networkId = this.safeString (networks, network, network);
         if (networkId !== undefined) {
             request['networkName'] = networkId;
         }
@@ -2888,7 +2888,7 @@ export default class lbank extends Exchange {
                 if (codes === undefined || this.inArray (code, codes)) {
                     const withdrawFee = this.safeNumber (fee, 'fee');
                     if (withdrawFee !== undefined) {
-                        const resultValue = this.safeValue (result, (code as string));
+                        const resultValue = this.safeValue (result, code);
                         if (resultValue === undefined) {
                             result[code] = this.depositWithdrawFee ([ fee ]);
                         } else {
@@ -3115,7 +3115,7 @@ export default class lbank extends Exchange {
                 '10601': 'Interface closed unavailable',
                 '10701': 'invalid asset code',
                 '10702': 'not allowed deposit',
-            }, (errorCode as string), this.json (response));
+            }, errorCode, this.json (response));
             const ErrorClass = this.safeValue ({
                 '10001': BadRequest,
                 '10002': AuthenticationError,
@@ -3166,7 +3166,7 @@ export default class lbank extends Exchange {
                 '10601': ExchangeError, // 'Interface closed unavailable',
                 '10701': BadSymbol, // 'invalid asset code',
                 '10702': PermissionDenied, // 'not allowed deposit',
-            }, (errorCode as string), ExchangeError);
+            }, errorCode, ExchangeError);
             throw new ErrorClass (message);
         }
         return undefined;

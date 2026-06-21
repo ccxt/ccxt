@@ -204,7 +204,7 @@ export default class lbank extends lbankRest {
             const timeframeId = this.safeString (message, 'kbar');
             const timeframe = this.findTimeframe (timeframeId, timeframes);
             this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-            let stored = this.safeValue (this.ohlcvs[symbol], (timeframe as string));
+            let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
@@ -227,7 +227,7 @@ export default class lbank extends lbankRest {
             ];
             const timeframe = this.findTimeframe (timeframeId, timeframes);
             this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-            let stored = this.safeValue (this.ohlcvs[symbol], (timeframe as string));
+            let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
@@ -924,7 +924,7 @@ export default class lbank extends lbankRest {
             'orderUpdate': this.handleOrders,
             'assetUpdate': this.handleBalance,
         };
-        const handler = this.safeValue (handlers, (type as string));
+        const handler = this.safeValue (handlers, type);
         if (handler !== undefined) {
             handler.call (this, client, message);
         }

@@ -595,7 +595,7 @@ export default class luno extends Exchange {
             // todo add other statuses
             'PENDING': 'open',
         };
-        return this.safeString (statuses, (status as string), status);
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -1282,7 +1282,7 @@ export default class luno extends Exchange {
         const firstWord = this.safeString (words, 0);
         const thirdWord = this.safeString (words, 2);
         const fourthWord = this.safeString (words, 3);
-        let type = this.safeString (types, (firstWord as string));
+        let type = this.safeString (types, firstWord);
         if ((type === undefined) && (thirdWord === 'fee')) {
             type = 'fee';
         }

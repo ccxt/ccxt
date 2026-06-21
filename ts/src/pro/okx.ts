@@ -229,7 +229,7 @@ export default class okx extends okxRest {
             access = 'business';
             await this.authenticate ({ 'access': access });
         }
-        const url = this.getUrl ((channel as string), access);
+        const url = this.getUrl (channel, access);
         const trades = await this.watchMultiple (url, messageHashes, request, messageHashes);
         if (this.newUpdates) {
             const first = this.safeValue (trades, 0);
@@ -274,7 +274,7 @@ export default class okx extends okxRest {
             access = 'business';
             await this.authenticate ({ 'access': access });
         }
-        const url = this.getUrl ((channel as string), access);
+        const url = this.getUrl (channel, access);
         return await this.watchMultiple (url, messageHashes, request, messageHashes);
     }
 
@@ -559,7 +559,7 @@ export default class okx extends okxRest {
             'op': 'unsubscribe',
             'args': topics,
         };
-        const url = this.getUrl ((channel as string), 'public');
+        const url = this.getUrl (channel, 'public');
         return await this.watchMultiple (url, messageHashes, request, messageHashes);
     }
 
@@ -620,7 +620,7 @@ export default class okx extends okxRest {
         symbols = this.marketSymbols (symbols, undefined, false);
         let channel: Str = undefined;
         [ channel, params ] = this.handleOptionAndParams (params, 'watchBidsAsks', 'channel', 'tickers');
-        const url = this.getUrl ((channel as string), 'public');
+        const url = this.getUrl (channel, 'public');
         const messageHashes: List = [];
         const args: List = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -1127,7 +1127,7 @@ export default class okx extends okxRest {
         for (let i = 0; i < data.length; i++) {
             const parsed = this.parseOHLCV (data[i], market);
             this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-            let stored = this.safeValue (this.ohlcvs[symbol], (timeframe as string));
+            let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
@@ -1231,7 +1231,7 @@ export default class okx extends okxRest {
             'op': 'subscribe',
             'args': topics,
         };
-        const url = this.getUrl ((depth as string), 'public');
+        const url = this.getUrl (depth, 'public');
         const orderbook = await this.watchMultiple (url, messageHashes, request, messageHashes);
         return orderbook.limit ();
     }
@@ -1282,7 +1282,7 @@ export default class okx extends okxRest {
             'op': 'unsubscribe',
             'args': topics,
         };
-        const url = this.getUrl ((depth as string), 'public');
+        const url = this.getUrl (depth, 'public');
         return await this.watchMultiple (url, messageHashes, request, messageHashes);
     }
 
@@ -1470,7 +1470,7 @@ export default class okx extends okxRest {
             'books-l2-tbt': 400,
             'books50-l2-tbt': 50,
         };
-        const limit = this.safeInteger (depths, (channel as string));
+        const limit = this.safeInteger (depths, channel);
         const messageHash = channel + ':' + symbol;
         if (action === 'snapshot') {
             for (let i = 0; i < data.length; i++) {
@@ -2179,7 +2179,7 @@ export default class okx extends okxRest {
         if (this.isEmpty (args)) {
             const method = this.safeString (message, 'op');
             const stringMsg = this.json (message);
-            this.handleErrors (1, '', client.url, (method as string), {}, stringMsg, message, {}, {});
+            this.handleErrors (1, '', client.url, method, {}, stringMsg, message, {}, {});
         }
         const orders = this.parseOrders (args, undefined, undefined, undefined);
         const first = this.safeDict (orders, 0, {});
@@ -2531,7 +2531,7 @@ export default class okx extends okxRest {
                 'liquidation-orders': this.handleLiquidation,
                 'balance_and_position': this.handleBalanceAndPosition,
             };
-            const method = this.safeValue (methods, (channel as string));
+            const method = this.safeValue (methods, channel);
             if (method === undefined) {
                 if (channel.indexOf ('candle') === 0) {
                     this.handleOHLCV (client, message);
@@ -2598,11 +2598,11 @@ export default class okx extends okxRest {
         if (channel === 'trades' || channel === 'trades-all') {
             this.handleUnSubscriptionTrades (client, symbol, channel);
         } else if (channel.startsWith ('bbo') || channel.startsWith ('book')) {
-            this.handleUnsubscriptionOrderBook (client, symbol, (channel as string));
+            this.handleUnsubscriptionOrderBook (client, symbol, channel);
         } else if (channel.indexOf ('tickers') > -1) {
             this.handleUnsubscriptionTicker (client, symbol, channel);
         } else if (channel.startsWith ('candle')) {
-            this.handleUnsubscriptionOHLCV (client, symbol, (channel as string));
+            this.handleUnsubscriptionOHLCV (client, symbol, channel);
         }
     }
 }

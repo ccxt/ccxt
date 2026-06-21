@@ -990,7 +990,7 @@ export default class foxbit extends Exchange {
         for (let i = 0; i < orders.length; i++) {
             const order = this.safeDict (orders, i);
             const symbol = this.safeString (order, 'symbol');
-            const market = this.market ((symbol as string));
+            const market = this.market (symbol);
             const type = this.safeStringUpper (order, 'type');
             const orderParams = this.safeDict (order, 'params', {});
             if (type !== 'LIMIT' && type !== 'MARKET' && type !== 'STOP_MARKET' && type !== 'STOP_LIMIT' && type !== 'INSTANT') {
@@ -1022,16 +1022,16 @@ export default class foxbit extends Exchange {
                 delete orderParams['postOnly'];
             }
             if (triggerPrice !== undefined) {
-                request['stop_price'] = this.priceToPrecision ((symbol as string), triggerPrice);
+                request['stop_price'] = this.priceToPrecision (symbol, triggerPrice);
                 delete orderParams['triggerPrice'];
             }
             if (type === 'INSTANT') {
-                request['amount'] = this.priceToPrecision ((symbol as string), this.safeString (order, 'amount'));
+                request['amount'] = this.priceToPrecision (symbol, this.safeString (order, 'amount'));
             } else {
-                request['quantity'] = this.amountToPrecision ((symbol as string), this.safeString (order, 'amount'));
+                request['quantity'] = this.amountToPrecision (symbol, this.safeString (order, 'amount'));
             }
             if (type === 'LIMIT' || type === 'STOP_LIMIT') {
-                request['price'] = this.priceToPrecision ((symbol as string), this.safeString (order, 'price'));
+                request['price'] = this.priceToPrecision (symbol, this.safeString (order, 'price'));
             }
             ordersRequests.push (this.extend (request, orderParams));
         }
@@ -1460,7 +1460,7 @@ export default class foxbit extends Exchange {
             'UNDER_MAINTENANCE': 'maintenance',
         };
         return {
-            'status': this.safeString (statusMap, (statusRaw as string), statusRaw),
+            'status': this.safeString (statusMap, statusRaw, statusRaw),
             'updated': this.safeString (attributes, 'updatedAt'),
             'eta': undefined,
             'url': undefined,
@@ -1762,7 +1762,7 @@ export default class foxbit extends Exchange {
             'PENDING_CANCEL': 'canceled',
             'CANCELED': 'canceled',
         };
-        return this.safeString (statuses, (status as string), status);
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order, market = undefined): Order {
@@ -1856,7 +1856,7 @@ export default class foxbit extends Exchange {
             'FAILED': 'failed',
             'DONE': 'ok',
         };
-        return this.safeString (statuses, (status as string), status);
+        return this.safeString (statuses, status, status);
     }
 
     parseTransaction (transaction, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined): Transaction {

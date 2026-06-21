@@ -1923,7 +1923,7 @@ export default class woo extends Exchange {
             'fok': 'FOK',
             'post_only': 'PO',
         };
-        return this.safeString (timeInForces, (timeInForce as string));
+        return this.safeString (timeInForces, timeInForce);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -2021,7 +2021,7 @@ export default class woo extends Exchange {
             timestamp = this.safeInteger (order, 'timestamp');
         }
         const orderId = this.safeString2 (order, 'orderId', 'algoOrderId');
-        const clientOrderId = this.omitZero ((this.safeString2 (order, 'clientOrderId', 'clientAlgoOrderId') as string)); // Somehow, this always returns 0 for limit order
+        const clientOrderId = this.omitZero (this.safeString2 (order, 'clientOrderId', 'clientAlgoOrderId')); // Somehow, this always returns 0 for limit order
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
@@ -2032,7 +2032,7 @@ export default class woo extends Exchange {
         const status = this.safeValue2 (order, 'status', 'algoStatus');
         const side = this.safeStringLower (order, 'side');
         const filled = this.omitZero (this.safeValue2 (order, 'executed', 'totalExecutedQuantity'));
-        const average = this.omitZero ((this.safeString (order, 'averageExecutedPrice') as string));
+        const average = this.omitZero (this.safeString (order, 'averageExecutedPrice'));
         // const remaining = Precise.stringSub (cost, filled);
         const fee = this.safeNumber (order, 'totalFee');
         const feeCurrency = this.safeString (order, 'feeAsset');
@@ -2504,7 +2504,7 @@ export default class woo extends Exchange {
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         const request: Dict = {
             'token': currency['id'],
-            'network': this.networkCodeToId ((networkCode as string), currency['code']),
+            'network': this.networkCodeToId (networkCode, currency['code']),
         };
         const response = await this.v3PrivateGetAssetWalletDeposit (this.extend (request, params));
         //
@@ -2825,7 +2825,7 @@ export default class woo extends Exchange {
             'COMPLETED': 'ok',
             'CANCELED': 'canceled',
         };
-        return this.safeString (statuses, (status as string), status);
+        return this.safeString (statuses, status, status);
     }
 
     /**
@@ -3009,7 +3009,7 @@ export default class woo extends Exchange {
             'COMPLETED': 'ok',
             'CANCELED': 'canceled',
         };
-        return this.safeString (statuses, (status as string), status);
+        return this.safeString (statuses, status, status);
     }
 
     /**
@@ -3338,7 +3338,7 @@ export default class woo extends Exchange {
         //     }
         //
         const symbol = this.safeString (fundingRate, 'symbol');
-        market = this.market ((symbol as string));
+        market = this.market (symbol);
         const nextFundingTimestamp = this.safeInteger2 (fundingRate, 'nextFundingTime', 'fundingTs');
         const estFundingRateTimestamp = this.safeInteger (fundingRate, 'estFundingRateTimestamp');
         const lastFundingRateTimestamp = this.safeInteger (fundingRate, 'lastFundingRateTimestamp');
@@ -3789,7 +3789,7 @@ export default class woo extends Exchange {
      */
     async fetchPosition (symbol: Str, params = {}) {
         await this.loadMarkets ();
-        const market = this.market ((symbol as string));
+        const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
         };
@@ -4022,9 +4022,9 @@ export default class woo extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const fromCurrencyId = this.safeString (data, 'sellToken', fromCode);
-        const fromCurrency = this.currency ((fromCurrencyId as string));
+        const fromCurrency = this.currency (fromCurrencyId);
         const toCurrencyId = this.safeString (data, 'buyToken', toCode);
-        const toCurrency = this.currency ((toCurrencyId as string));
+        const toCurrency = this.currency (toCurrencyId);
         return this.parseConversion (data, fromCurrency, toCurrency);
     }
 

@@ -904,7 +904,7 @@ export default class coinmetro extends Exchange {
         for (let i = 0; i < prices.length; i++) {
             const priceString = this.safeString (prices, i);
             const price = this.safeNumber (prices, i);
-            const volume = this.safeNumber (bidasks, (priceString as string));
+            const volume = this.safeNumber (bidasks, priceString);
             (result).push ([ price, volume ]);
         }
         return result;

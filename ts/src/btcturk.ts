@@ -877,7 +877,7 @@ export default class btcturk extends Exchange {
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        const market = this.market ((symbol as string));
+        const market = this.market (symbol);
         const request: Dict = {
             'pairSymbol': market['id'],
         };
@@ -920,7 +920,7 @@ export default class btcturk extends Exchange {
             'Canceled': 'canceled',
             'Closed': 'closed',
         };
-        return this.safeString (statuses, (status as string), status);
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {

@@ -1146,7 +1146,7 @@ export default class grvt extends Exchange {
             // 'median': 'MEDIAN',
         };
         const selectedPriceType = this.safeString (params, 'priceType', 'last');
-        request['type'] = this.safeString (priceTypeMap, (selectedPriceType as string));
+        request['type'] = this.safeString (priceTypeMap, selectedPriceType);
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
@@ -1616,7 +1616,7 @@ export default class grvt extends Exchange {
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
         if ('transfer_metadata' in transaction) {
-            const metaData = this.omitZero ((this.safeString (transaction, 'transfer_metadata') as string));
+            const metaData = this.omitZero (this.safeString (transaction, 'transfer_metadata'));
             if (metaData !== undefined) {
                 const parsedMeta = this.parseJson (metaData);
                 direction = this.safeStringLower (parsedMeta, 'direction');
@@ -2174,7 +2174,7 @@ export default class grvt extends Exchange {
             const leg = orderLegs[i];
             const market = this.market (leg['instrument']);
             const bigInt10 = this.convertToBigIntCustom ('10');
-            const precisionValue = this.precisionFromString ((this.safeString (market['precision'], 'base') as string));
+            const precisionValue = this.precisionFromString (this.safeString (market['precision'], 'base'));
             const precisionValueStr = precisionValue.toString ();
             const sizeMultiplier = Math.pow (bigInt10, this.convertToBigIntCustom (precisionValueStr));
             const size = leg['size'];
@@ -2189,7 +2189,7 @@ export default class grvt extends Exchange {
                 'isBuyingContract': leg['is_buying_asset'],
             };
             const limitPrice = this.safeString (leg, 'limit_price');
-            if (this.omitZero ((limitPrice as string)) !== undefined) {
+            if (this.omitZero (limitPrice) !== undefined) {
                 const price = leg['limit_price'];
                 const limitParts = price.split ('.');
                 const limitDec = this.safeString (limitParts, 1, '');
@@ -3042,7 +3042,7 @@ export default class grvt extends Exchange {
             'ALL_OR_NONE': 'ALL_OR_NONE',
             'RETAIL_PRICE_IMPROVEMENT': 'RETAIL_PRICE_IMPROVEMENT',
         };
-        return this.safeStringUpper (types, (type as string), type);
+        return this.safeStringUpper (types, type, type);
     }
 
     timeInForceToInt (timeInForce: Str): Int {
@@ -3053,7 +3053,7 @@ export default class grvt extends Exchange {
             'FILL_OR_KILL': 4,
             'RETAIL_PRICE_IMPROVEMENT': 5,
         };
-        return this.safeInteger (timeInForces, (timeInForce as string), 0);
+        return this.safeInteger (timeInForces, timeInForce, 0);
     }
 
     parseOrderStatus (status: Str) {
@@ -3064,7 +3064,7 @@ export default class grvt extends Exchange {
             'REJECTED': 'rejected',
             'CANCELLED': 'canceled',
         };
-        return this.safeString (statuses, (status as string), status);
+        return this.safeString (statuses, status, status);
     }
 
     /**

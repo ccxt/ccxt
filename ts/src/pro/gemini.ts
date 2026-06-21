@@ -167,7 +167,7 @@ export default class gemini extends geminiRest {
         const trade = this.parseWsTrade (message);
         const symbol = trade['symbol'];
         const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
-        let stored = this.safeValue (this.trades, (symbol as string));
+        let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
             stored = new ArrayCache (tradesLimit);
             this.trades[symbol] = stored;
@@ -339,7 +339,7 @@ export default class gemini extends geminiRest {
         if (ohlcvsBySymbol === undefined) {
             this.ohlcvs[symbol] = {};
         }
-        let stored = this.safeValue (this.ohlcvs[symbol], (timeframe as string));
+        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
@@ -871,7 +871,7 @@ export default class gemini extends geminiRest {
             this.handleOHLCV (client, message);
             return;
         }
-        const method = this.safeValue (methods, (type as string));
+        const method = this.safeValue (methods, type);
         if (method !== undefined) {
             method.call (this, client, message);
         }
@@ -946,7 +946,7 @@ export default class gemini extends geminiRest {
             'X-GEMINI-SIGNATURE': signature,
         };
         this.options['ws']['options']['headers'] = headers;
-        this.client ((url as string));
+        this.client (url);
         this.options['ws']['options']['headers'] = originalHeaders;
     }
 }

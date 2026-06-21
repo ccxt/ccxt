@@ -1080,7 +1080,7 @@ export default class onetrading extends onetradingRest {
         if (client !== undefined) {
             subscription = this.safeValue (client.subscriptions, subscriptionHash);
             if (subscription !== undefined) {
-                const ohlcvMarket = this.safeValue (subscription, (marketId as string), {});
+                const ohlcvMarket = this.safeValue (subscription, marketId, {});
                 const marketSubscribed = this.safeBool (ohlcvMarket, timeframe, false);
                 if (!marketSubscribed) {
                     type = 'UPDATE_SUBSCRIPTION';
@@ -1090,7 +1090,7 @@ export default class onetrading extends onetradingRest {
                 subscription = {};
             }
         }
-        const subscriptionMarketId = this.safeValue (subscription, (marketId as string));
+        const subscriptionMarketId = this.safeValue (subscription, marketId);
         if (subscriptionMarketId === undefined) {
             subscription[marketId] = {};
         }
@@ -1175,7 +1175,7 @@ export default class onetrading extends onetradingRest {
             this.safeNumber (message, 'volume'),
         ];
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.ohlcvs[symbol], (timeframe as string));
+        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);

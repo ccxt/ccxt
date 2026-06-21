@@ -465,7 +465,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         symbol = market['symbol'];
         const options = this.safeDict (this.options, 'timeframes', {});
         const interval = this.safeString (options, timeframe, timeframe);
-        const ohlcv = await this.subscribe ((interval as string), [ symbol ], params);
+        const ohlcv = await this.subscribe (interval, [ symbol ], params);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
@@ -497,7 +497,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const symbol = market['symbol'];
         const timeframe = this.findTimeframe (messageHash);
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        if (this.safeValue (this.ohlcvs[symbol], (timeframe as string)) === undefined) {
+        if (this.safeValue (this.ohlcvs[symbol], timeframe) === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
         }
@@ -815,12 +815,12 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const type = this.safeString (message, 'type');
         if (type === 'error') {
             const errorMessage = this.safeString (message, 'message');
-            throw new ExchangeError ((errorMessage as string));
+            throw new ExchangeError (errorMessage);
         }
         if (channel.indexOf ('CANDLES') > -1) {
             this.handleOHLCV (client, message);
         }
-        const method = this.safeValue (methods, (channel as string));
+        const method = this.safeValue (methods, channel);
         if (method !== undefined) {
             method.call (this, client, message);
         }

@@ -724,7 +724,7 @@ export default class bitflyer extends Exchange {
             'EXPIRED': 'canceled',
             'REJECTED': 'canceled',
         };
-        return this.safeString (statuses, (status as string), status);
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {

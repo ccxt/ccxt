@@ -468,7 +468,7 @@ export default class bitteam extends Exchange {
         const created = this.parse8601 (timeStart);
         let minCost: Num = undefined;
         const currenciesValuedInUsd = this.safeValue (this.options, 'currenciesValuedInUsd', {});
-        const quoteInUsd = this.safeBool (currenciesValuedInUsd, (quote as string), false);
+        const quoteInUsd = this.safeBool (currenciesValuedInUsd, quote, false);
         if (quoteInUsd) {
             const settings = this.safeValue (market, 'settings', {});
             minCost = this.safeNumber (settings, 'limit_usd');
@@ -1369,7 +1369,7 @@ export default class bitteam extends Exchange {
             'executing': 'open',
             'created': 'open',
         };
-        return this.safeString (statuses, (status as string), status);
+        return this.safeString (statuses, status, status);
     }
 
     parseOrderType (status) {
@@ -2388,7 +2388,7 @@ export default class bitteam extends Exchange {
             'approving': 'pending',
             'success': 'ok',
         };
-        return this.safeString (statuses, (status as string), status);
+        return this.safeString (statuses, status, status);
     }
 
     sign (path, api: any = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

@@ -1886,7 +1886,7 @@ export default class bitfinex extends Exchange {
             const amount = this.safeNumber (rawOrder, 'amount');
             const price = this.safeNumber (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
-            const orderRequest = this.createOrderRequest ((symbol as string), type as OrderType, side as OrderSide, amount, price, orderParams);
+            const orderRequest = this.createOrderRequest (symbol, type as OrderType, side as OrderSide, amount, price, orderParams);
             ordersRequests.push ([ 'on', orderRequest ]);
         }
         const request: Dict = {

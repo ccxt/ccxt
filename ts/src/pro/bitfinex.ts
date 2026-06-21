@@ -247,7 +247,7 @@ export default class bitfinex extends bitfinexRest {
         const symbol = market['symbol'];
         const messageHash = channel + ':' + interval + ':' + marketId;
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.ohlcvs[symbol], (timeframe as string));
+        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
@@ -366,7 +366,7 @@ export default class bitfinex extends bitfinexRest {
         const data = this.safeValue (message, 2);
         const trade = this.parseWsTrade (data);
         const symbol = trade['symbol'];
-        const market = this.market ((symbol as string));
+        const market = this.market (symbol);
         const messageHash = name + ':' + market['id'];
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -890,7 +890,7 @@ export default class bitfinex extends bitfinexRest {
             const code = this.safeCurrencyCode (currencyId);
             const balance = this.parseWsBalance (rawBalance);
             const balanceType = this.safeString (rawBalance, 0);
-            const oldBalance = this.safeValue (this.balance, (balanceType as string), {});
+            const oldBalance = this.safeValue (this.balance, balanceType, {});
             oldBalance[code] = balance;
             oldBalance['info'] = message;
             this.balance[balanceType] = this.safeBalance (oldBalance);
@@ -991,7 +991,7 @@ export default class bitfinex extends bitfinexRest {
             'ticker': 'ticker',
             'trades': 'trades',
         };
-        const unifiedChannel = this.safeString (mappings, (this.safeString (message, 'channel') as string));
+        const unifiedChannel = this.safeString (mappings, this.safeString (message, 'channel'));
         if ('key' in message) {
             // handle ohlcv differently because the message is different
             const key = this.safeString (message, 'key');
@@ -1223,7 +1223,7 @@ export default class bitfinex extends bitfinexRest {
         const price = this.safeString (order, 16);
         const timestamp = this.safeInteger2 (order, 5, 4);
         const average = this.safeString (order, 17);
-        const stopPrice = this.omitZero ((this.safeString (order, 18) as string));
+        const stopPrice = this.omitZero (this.safeString (order, 18));
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -1279,7 +1279,7 @@ export default class bitfinex extends bitfinexRest {
             if (message[1] === 'hb') {
                 return; // skip heartbeats within subscription channels for now
             }
-            const subscription = this.safeValue (client.subscriptions, (channelId as string), {});
+            const subscription = this.safeValue (client.subscriptions, channelId, {});
             const channel = this.safeString (subscription, 'channel');
             const name = this.safeString (message, 1);
             const publicMethods: Dict = {
@@ -1300,9 +1300,9 @@ export default class bitfinex extends bitfinexRest {
             };
             let method = undefined;
             if (channelId === '0') {
-                method = this.safeValue (privateMethods, (name as string));
+                method = this.safeValue (privateMethods, name);
             } else {
-                method = this.safeValue2 (publicMethods, (name as string), (channel as string));
+                method = this.safeValue2 (publicMethods, name, channel);
             }
             if (method !== undefined) {
                 method.call (this, client, message, subscription);

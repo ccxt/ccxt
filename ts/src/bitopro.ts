@@ -1031,7 +1031,7 @@ export default class bitopro extends Exchange {
             '4': 'canceled',
             '6': 'canceled',
         };
-        return this.safeString (statuses, (status as string));
+        return this.safeString (statuses, status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -1514,7 +1514,7 @@ export default class bitopro extends Exchange {
             'EMAIL_VERIFICATION': 'pending',
             'WAIT_CONFIRMATION': 'pending',
         };
-        return this.safeString (states, (status as string), status);
+        return this.safeString (states, status, status);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -1772,7 +1772,7 @@ export default class bitopro extends Exchange {
             const networks = this.safeDict (this.options, 'networks', {});
             const requestedNetwork = this.safeStringUpper (params, 'network');
             params = this.omit (params, [ 'network' ]);
-            const networkId = this.safeString (networks, (requestedNetwork as string));
+            const networkId = this.safeString (networks, requestedNetwork);
             if (networkId === undefined) {
                 throw new ExchangeError (this.id + ' invalid network ' + requestedNetwork);
             }

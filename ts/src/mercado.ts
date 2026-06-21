@@ -645,7 +645,7 @@ export default class mercado extends Exchange {
             '3': 'canceled',
             '4': 'closed',
         };
-        return this.safeString (statuses, (status as string), status);
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {

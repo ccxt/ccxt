@@ -574,7 +574,7 @@ export default class coinone extends Exchange {
         let response: NullableDict = undefined;
         if (symbols !== undefined) {
             const first = this.safeString (symbols, 0);
-            market = this.market ((first as string));
+            market = this.market (first);
             request['quote_currency'] = market['quote'];
             request['target_currency'] = market['base'];
             response = await this.v2PublicGetTickerNewQuoteCurrencyTargetCurrency (this.extend (request, params));
@@ -929,7 +929,7 @@ export default class coinone extends Exchange {
             'filled': 'closed',
             'canceled': 'canceled',
         };
-        return this.safeString (statuses, (status as string), status);
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -1209,7 +1209,7 @@ export default class coinone extends Exchange {
             const currencyId = this.safeValue (parts, 0);
             const secondPart = this.safeValue (parts, 1);
             const code = this.safeCurrencyCode (currencyId);
-            let depositAddress = this.safeValue (result, (code as string));
+            let depositAddress = this.safeValue (result, code);
             if (depositAddress === undefined) {
                 depositAddress = {
                     'info': value,

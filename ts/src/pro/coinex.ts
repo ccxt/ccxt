@@ -603,7 +603,7 @@ export default class coinex extends coinexRest {
         const marketId = this.safeString (trade, 'market');
         market = this.safeMarket (marketId, market, undefined, defaultType);
         let fee: Dict = {};
-        const feeCost = this.omitZero ((this.safeString (trade, 'fee') as string));
+        const feeCost = this.omitZero (this.safeString (trade, 'fee'));
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fee_ccy', market['quote']);
             fee = {
@@ -1188,7 +1188,7 @@ export default class coinex extends coinexRest {
         const defaultType = isSpot ? 'spot' : 'swap';
         market = this.safeMarket (marketId, market, undefined, defaultType);
         let fee: Dict = undefined;
-        const feeCost = this.omitZero ((this.safeString2 (order, 'fee', 'quote_ccy_fee') as string));
+        const feeCost = this.omitZero (this.safeString2 (order, 'fee', 'quote_ccy_fee'));
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (order, 'fee_ccy', market['quote']);
             fee = {
@@ -1326,7 +1326,7 @@ export default class coinex extends coinexRest {
         const method = this.safeString (message, 'method');
         const error = this.safeString (message, 'message');
         if (error !== undefined) {
-            this.handleErrors (1, '', client.url, (method as string), {}, this.json (error), message, {}, {});
+            this.handleErrors (1, '', client.url, method, {}, this.json (error), message, {}, {});
         }
         const handlers: Dict = {
             'state.update': this.handleTicker,
@@ -1338,7 +1338,7 @@ export default class coinex extends coinexRest {
             'stop.update': this.handleOrders,
             'bbo.update': this.handleBidAsk,
         };
-        const handler = this.safeValue (handlers, (method as string));
+        const handler = this.safeValue (handlers, method);
         if (handler !== undefined) {
             handler.call (this, client, message);
             return;
@@ -1406,7 +1406,7 @@ export default class coinex extends coinexRest {
         const subscription = this.safeValue (client.subscriptions, id);
         if (subscription !== undefined) {
             const futureIndex = this.safeString (subscription, 'future');
-            const future = this.safeValue (client.futures, (futureIndex as string));
+            const future = this.safeValue (client.futures, futureIndex);
             if (future !== undefined) {
                 future.resolve (true);
             }

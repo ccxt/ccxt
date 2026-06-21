@@ -856,7 +856,7 @@ export default class modetrade extends Exchange {
         //         }
         //
         const symbol = this.safeString (fundingRate, 'symbol');
-        market = this.market ((symbol as string));
+        market = this.market (symbol);
         const nextFundingTimestamp = this.safeInteger (fundingRate, 'next_funding_time');
         const estFundingRateTimestamp = this.safeInteger (fundingRate, 'est_funding_rate_timestamp');
         const lastFundingRateTimestamp = this.safeInteger (fundingRate, 'last_funding_rate_timestamp');
@@ -1352,7 +1352,7 @@ export default class modetrade extends Exchange {
         //
         const timestamp = this.safeIntegerN (order, [ 'timestamp', 'created_time', 'createdTime' ]);
         const orderId = this.safeStringN (order, [ 'order_id', 'orderId', 'algoOrderId' ]);
-        const clientOrderId = this.omitZero ((this.safeString2 (order, 'client_order_id', 'clientOrderId') as string)); // Somehow, this always returns 0 for limit order
+        const clientOrderId = this.omitZero (this.safeString2 (order, 'client_order_id', 'clientOrderId')); // Somehow, this always returns 0 for limit order
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
@@ -1367,7 +1367,7 @@ export default class modetrade extends Exchange {
         }
         const side = this.safeStringLower (order, 'side');
         const filled = this.omitZero (this.safeValue2 (order, 'executed', 'totalExecutedQuantity'));
-        const average = this.omitZero ((this.safeString2 (order, 'average_executed_price', 'averageExecutedPrice') as string));
+        const average = this.omitZero (this.safeString2 (order, 'average_executed_price', 'averageExecutedPrice'));
         const remaining = Precise.stringSub (cost, filled);
         const fee = this.safeValue2 (order, 'total_fee', 'totalFee');
         const feeCurrency = this.safeString2 (order, 'fee_asset', 'feeAsset');
@@ -1426,7 +1426,7 @@ export default class modetrade extends Exchange {
             'fok': 'FOK',
             'post_only': 'PO',
         };
-        return this.safeString (timeInForces, (timeInForce as string));
+        return this.safeString (timeInForces, timeInForce);
     }
 
     parseOrderStatus (status: Str) {
@@ -1453,7 +1453,7 @@ export default class modetrade extends Exchange {
             'MARKET': 'market',
             'POST_ONLY': 'limit',
         };
-        return this.safeStringLower (types, (type as string), type);
+        return this.safeStringLower (types, type, type);
     }
 
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -1654,7 +1654,7 @@ export default class modetrade extends Exchange {
             if (isConditional) {
                 throw new NotSupported (this.id + ' createOrders() only support non-stop order');
             }
-            const orderRequest = this.createOrderRequest ((marketId as string), (type as string), side, amount, price, orderParams);
+            const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
         const request: Dict = {
@@ -2447,7 +2447,7 @@ export default class modetrade extends Exchange {
             'COMPLETED': 'ok',
             'CANCELED': 'canceled',
         };
-        return this.safeString (statuses, (status as string), status);
+        return this.safeString (statuses, status, status);
     }
 
     /**
@@ -2572,7 +2572,7 @@ export default class modetrade extends Exchange {
         const verifyingContractAddress = this.safeString (this.options, 'verifyingContractAddress');
         const chainId = this.safeString (params, 'chainId');
         const currencyNetworks = this.safeDict (currency, 'networks', {});
-        const coinNetwork = this.safeDict (currencyNetworks, (chainId as string), {});
+        const coinNetwork = this.safeDict (currencyNetworks, chainId, {});
         const coinNetworkId = this.safeNumber (coinNetwork, 'id');
         if (coinNetworkId === undefined) {
             throw new BadRequest (this.id + ' withdraw() require chainId parameter');
@@ -2788,7 +2788,7 @@ export default class modetrade extends Exchange {
      */
     async fetchPosition (symbol: Str, params = {}) {
         await this.loadMarkets ();
-        const market = this.market ((symbol as string));
+        const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
         };

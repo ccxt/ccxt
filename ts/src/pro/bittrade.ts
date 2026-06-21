@@ -258,7 +258,7 @@ export default class bittrade extends bittradeRest {
         const interval = this.safeString (parts, 3);
         const timeframe = this.findTimeframe (interval);
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.ohlcvs[symbol], (timeframe as string));
+        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
@@ -336,7 +336,7 @@ export default class bittrade extends bittradeRest {
         const timestamp = this.safeInteger (message, 'ts');
         const orderbook = this.orderbooks[symbol];
         const data = this.safeValue (message, 'data');
-        const snapshot = this.parseOrderBook (data, (symbol as string));
+        const snapshot = this.parseOrderBook (data, symbol);
         snapshot['nonce'] = this.safeInteger (data, 'seqNum');
         snapshot['timestamp'] = timestamp;
         snapshot['datetime'] = this.iso8601 (timestamp);
@@ -491,7 +491,7 @@ export default class bittrade extends bittradeRest {
         //
         const id = this.safeString (message, 'id');
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-        const subscription = this.safeValue (subscriptionsById, (id as string));
+        const subscription = this.safeValue (subscriptionsById, id);
         if (subscription !== undefined) {
             const method = this.safeValue (subscription, 'method');
             if (method !== undefined) {
@@ -552,7 +552,7 @@ export default class bittrade extends bittradeRest {
                 'kline': this.handleOHLCV,
                 // ...
             };
-            const method = this.safeValue (methods, (methodName as string));
+            const method = this.safeValue (methods, methodName);
             if (method !== undefined) {
                 method.call (this, client, message);
             }
@@ -584,7 +584,7 @@ export default class bittrade extends bittradeRest {
         if (status === 'error') {
             const id = this.safeString (message, 'id');
             const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-            const subscription = this.safeValue (subscriptionsById, (id as string));
+            const subscription = this.safeValue (subscriptionsById, id);
             if (subscription !== undefined) {
                 const errorCode = this.safeString (message, 'err-code');
                 try {

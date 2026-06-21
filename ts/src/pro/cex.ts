@@ -236,7 +236,7 @@ export default class cex extends cexRest {
             this.trades[symbol] = new ArrayCache (limit);
         }
         const stored = this.trades[symbol];
-        const market = this.market ((symbol as string));
+        const market = this.market (symbol);
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
             const index = dataLength - 1 - i;
@@ -752,7 +752,7 @@ export default class cex extends cexRest {
         }
         const storedOrders = this.orders;
         const ordersBySymbol = this.safeValue (storedOrders.hashmap, symbol, {});
-        let order = this.safeValue (ordersBySymbol, (orderId as string));
+        let order = this.safeValue (ordersBySymbol, orderId);
         if (order === undefined) {
             order = this.parseWsOrderUpdate (data, market);
         }
@@ -1490,7 +1490,7 @@ export default class cex extends cexRest {
             throw new ExchangeError (feedback);
         } catch (error) {
             const messageHash = this.safeString (message, 'oid');
-            const future = this.safeValue (client['futures'], (messageHash as string));
+            const future = this.safeValue (client['futures'], messageHash);
             if (future !== undefined) {
                 client.reject (error, messageHash);
                 return true;
@@ -1530,7 +1530,7 @@ export default class cex extends cexRest {
             'mass-cancel-place-orders': this.resolveData,
             'get-order': this.resolveData,
         };
-        const handler = this.safeValue (handlers, (event as string));
+        const handler = this.safeValue (handlers, event);
         if (handler !== undefined) {
             handler.call (this, client, message);
         }

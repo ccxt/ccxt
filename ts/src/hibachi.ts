@@ -623,7 +623,7 @@ export default class hibachi extends Exchange {
      */
     async fetchTicker (symbol: Str, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
-        const market = this.market ((symbol as string));
+        const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
         };
@@ -714,7 +714,7 @@ export default class hibachi extends Exchange {
             'timestamp': undefined,
             'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': undefined,
-            'status': this.parseOrderStatus ((status as string)),
+            'status': this.parseOrderStatus (status),
             'symbol': market['symbol'],
             'type': type,
             'timeInForce': timeInForce,
@@ -801,7 +801,7 @@ export default class hibachi extends Exchange {
         // - Quantity: Internal = External * (10^underlyingDecimals)
         // - Price: Internal = External * (2^32) * (10^(settlementDecimals-underlyingDecimals))
         // - FeeRate: Internal = External * (10^8)
-        const amountStr = this.amountToPrecision ((this.safeString (market, 'symbol') as string), amount);
+        const amountStr = this.amountToPrecision (this.safeString (market, 'symbol'), amount);
         const feeRateStr = this.numberToString (feeRate);
         const info = this.safeDict (market, 'info');
         const underlying = '1e' + this.safeString (info, 'underlyingDecimals');
@@ -829,7 +829,7 @@ export default class hibachi extends Exchange {
         const encodedFeeRate = this.base16ToBinary (feeRatePadded);
         let encodedPrice = this.binaryConcat ();
         if (type === 'limit') {
-            const priceStr = this.priceToPrecision ((this.safeString (market, 'symbol') as string), price);
+            const priceStr = this.priceToPrecision (this.safeString (market, 'symbol'), price);
             const priceInternal = Precise.stringDiv (Precise.stringDiv (Precise.stringMul (Precise.stringMul (priceStr, priceFactor), settlement), underlying), one, 0);
             const price16 = this.intToBase16 (this.parseToInt (priceInternal));
             const pricePadded = price16.padStart (16, '0');
@@ -934,7 +934,7 @@ export default class hibachi extends Exchange {
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
-            const orderRequest = this.createOrderRequest (nonce + i, (symbol as string), (type as string), side, amount, price, orderParams);
+            const orderRequest = this.createOrderRequest (nonce + i, symbol, type, side, amount, price, orderParams);
             orderRequest['action'] = 'place';
             requestOrders.push (orderRequest);
         }
@@ -1027,7 +1027,7 @@ export default class hibachi extends Exchange {
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
-            const orderRequest = this.editOrderRequest (nonce + i, (id as string), (symbol as string), type, side, amount, price, orderParams);
+            const orderRequest = this.editOrderRequest (nonce + i, id, symbol, type, side, amount, price, orderParams);
             orderRequest['action'] = 'modify';
             requestOrders.push (orderRequest);
         }
@@ -2133,7 +2133,7 @@ export default class hibachi extends Exchange {
      */
     async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market ((symbol as string));
+        const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
         };

@@ -3341,7 +3341,7 @@ export default class htx extends Exchange {
         //
         const typeId = this.safeString (account, 'type');
         const accountsById = this.safeValue (this.options, 'accountsById', {});
-        const type = this.safeValue (accountsById, (typeId as string), typeId);
+        const type = this.safeValue (accountsById, typeId, typeId);
         return {
             'info': account,
             'id': this.safeString (account, 'id'),
@@ -3525,7 +3525,7 @@ export default class htx extends Exchange {
         if (keysLength === 0) {
             throw new ExchangeError (this.id + ' networkIdToCode() - markets need to be loaded at first');
         }
-        const networkTitle = this.safeValue (this.options['networkNamesByChainIds'], (networkId as string), networkId);
+        const networkTitle = this.safeValue (this.options['networkNamesByChainIds'], networkId, networkId);
         return super.networkIdToCode (networkTitle, currencyCode);
     }
 
@@ -4882,7 +4882,7 @@ export default class htx extends Exchange {
             'partially_filled': 'open',
             'partially_canceled': 'canceled',
         };
-        return this.safeString (statuses, (status as string), status);
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -5789,12 +5789,12 @@ export default class htx extends Exchange {
                     }
                 }
             }
-            market = this.market ((symbol as string));
+            market = this.market (symbol);
             let orderRequest: NullableDict = undefined;
             if (market['spot']) {
-                orderRequest = await this.createSpotOrderRequest ((marketId as string), (type as string), side, amount, price, orderParams);
+                orderRequest = await this.createSpotOrderRequest (marketId, type, side, amount, price, orderParams);
             } else {
-                orderRequest = this.createContractOrderRequest ((marketId as string), (type as string), side, amount, price, orderParams);
+                orderRequest = this.createContractOrderRequest (marketId, type, side, amount, price, orderParams);
             }
             orderRequest = this.omit (orderRequest, 'marginMode');
             ordersRequests.push (orderRequest);
@@ -6857,7 +6857,7 @@ export default class htx extends Exchange {
             'pre-transfer': 'pending',
             'verifying': 'pending',
         };
-        return this.safeString (statuses, (status as string), status);
+        return this.safeString (statuses, status, status);
     }
 
     /**
@@ -6889,14 +6889,14 @@ export default class htx extends Exchange {
         if (networkCode !== undefined) {
             request['chain'] = this.networkCodeToId (networkCode, code);
         }
-        amount = parseFloat ((this.currencyToPrecision (code, amount, networkCode) as string));
+        amount = parseFloat (this.currencyToPrecision (code, amount, networkCode));
         const withdrawOptions = this.safeValue (this.options, 'withdraw', {});
         if (this.safeBool (withdrawOptions, 'includeFee', false)) {
             let fee = this.safeNumber (params, 'fee');
             if (fee === undefined) {
                 const currencies = await this.fetchCurrencies ();
                 this.currencies = this.mapToSafeMap (this.deepExtend (this.currencies, currencies));
-                const targetNetwork = this.safeValue (currency['networks'], (networkCode as string), {});
+                const targetNetwork = this.safeValue (currency['networks'], networkCode, {});
                 fee = this.safeNumber (targetNetwork, 'fee');
                 if (fee === undefined) {
                     throw new ArgumentsRequired (this.id + ' withdraw() function can not find withdraw fee for chosen network. You need to re-load markets with "exchange.loadMarkets(true)", or provide the "fee" parameter');
@@ -6907,9 +6907,9 @@ export default class htx extends Exchange {
             params = this.omit (params, 'fee');
             const amountString = this.numberToString (amount);
             const amountSubtractedString = Precise.stringSub (amountString, feeString);
-            const amountSubtracted = parseFloat ((amountSubtractedString as string));
-            request['fee'] = parseFloat ((feeString as string));
-            amount = parseFloat ((this.currencyToPrecision (code, amountSubtracted, networkCode) as string));
+            const amountSubtracted = parseFloat (amountSubtractedString);
+            request['fee'] = parseFloat (feeString);
+            amount = parseFloat (this.currencyToPrecision (code, amountSubtracted, networkCode));
         }
         request['amount'] = amount;
         const response = await this.spotPrivatePostV1DwWithdrawApiCreate (this.extend (request, params));
@@ -6971,7 +6971,7 @@ export default class htx extends Exchange {
         const currency = this.currency (code);
         const request: Dict = {
             'currency': currency['id'],
-            'amount': parseFloat ((this.currencyToPrecision (code, amount) as string)),
+            'amount': parseFloat (this.currencyToPrecision (code, amount)),
         };
         let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('transfer', undefined, params);
@@ -7398,7 +7398,7 @@ export default class htx extends Exchange {
         [ subType, params ] = this.handleOptionAndParams (params, 'fetchFundingRates', 'subType', defaultSubType);
         if (symbols !== undefined) {
             const firstSymbol = this.safeString (symbols, 0);
-            const market = this.market ((firstSymbol as string));
+            const market = this.market (firstSymbol);
             const isLinear = market['linear'];
             subType = isLinear ? 'linear' : 'inverse';
         }
@@ -7635,9 +7635,9 @@ export default class htx extends Exchange {
             const levelOneNestedPath = this.safeString (api, 2);
             const levelTwoNestedPath = this.safeString (api, 3);
             let hostname = undefined;
-            let hostnames = this.safeValue (this.urls['hostnames'], (type as string));
+            let hostnames = this.safeValue (this.urls['hostnames'], type);
             if (typeof hostnames !== 'string') {
-                hostnames = this.safeValue (hostnames, (levelOneNestedPath as string));
+                hostnames = this.safeValue (hostnames, levelOneNestedPath);
                 if ((typeof hostnames !== 'string') && (levelTwoNestedPath !== undefined)) {
                     hostnames = this.safeValue (hostnames, levelTwoNestedPath);
                 }
@@ -7771,7 +7771,7 @@ export default class htx extends Exchange {
      */
     async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market ((symbol as string));
+        const market = this.market (symbol);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchFundingHistory', market, params);
         const request: Dict = {
             'type': '30,31',
@@ -8106,7 +8106,7 @@ export default class htx extends Exchange {
             const symbolsLength = symbols.length;
             if (symbolsLength > 0) {
                 const first = this.safeString (symbols, 0);
-                market = this.market ((first as string));
+                market = this.market (first);
             }
         }
         let subType: SubType = undefined;
@@ -8745,7 +8745,7 @@ export default class htx extends Exchange {
             const symbolsLength = symbols.length;
             if (symbolsLength > 0) {
                 const first = this.safeString (symbols, 0);
-                market = this.market ((first as string));
+                market = this.market (first);
             }
         }
         const request: Dict = {};
@@ -9701,7 +9701,7 @@ export default class htx extends Exchange {
             const symbolsLength = symbols.length;
             if (symbolsLength > 0) {
                 const first = this.safeString (symbols, 0);
-                market = this.market ((first as string));
+                market = this.market (first);
             }
         }
         let subType: SubType = undefined;

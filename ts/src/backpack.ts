@@ -551,7 +551,7 @@ export default class backpack extends Exchange {
                 'limits': {
                     'withdraw': {
                         'min': this.safeNumber (network, 'minimumWithdrawal'),
-                        'max': this.parseNumber (this.omitZero ((this.safeString (network, 'maximumWithdrawal') as string))),
+                        'max': this.parseNumber (this.omitZero (this.safeString (network, 'maximumWithdrawal'))),
                     },
                     'deposit': {
                         'min': this.safeNumber (network, 'minimumDeposit'),
@@ -1623,7 +1623,7 @@ export default class backpack extends Exchange {
             'refunded': 'refunded',
             'information required': 'pending',
         };
-        return this.safeString (statuses, (status as string), status);
+        return this.safeString (statuses, status, status);
     }
 
     /**
@@ -1728,7 +1728,7 @@ export default class backpack extends Exchange {
             const price = this.safeNumber (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
             const extendedParams = this.extend (orderParams, params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
-            const orderRequest = this.createOrderRequest ((marketId as string), (type as string), side, amount, price, extendedParams);
+            const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, extendedParams);
             ordersRequests.push (orderRequest);
         }
         const response = await this.privatePostApiV1Orders (ordersRequests);
@@ -2090,7 +2090,7 @@ export default class backpack extends Exchange {
             'TriggerPending': 'open',
             'TriggerFailed': 'rejected',
         };
-        return this.safeString (statuses, (status as string), status);
+        return this.safeString (statuses, status, status);
     }
 
     parseOrderSide (side: Str) {
@@ -2098,7 +2098,7 @@ export default class backpack extends Exchange {
             'Bid': 'buy',
             'Ask': 'sell',
         };
-        return this.safeString (sides, (side as string), side);
+        return this.safeString (sides, side, side);
     }
 
     /**

@@ -1016,7 +1016,7 @@ export default class onetrading extends Exchange {
             'WEEKS': 'w',
             'MONTHS': 'M',
         };
-        const lowercaseUnit = this.safeString (units, (unit as string));
+        const lowercaseUnit = this.safeString (units, unit);
         const timeframe = period + lowercaseUnit;
         const durationInSeconds = this.parseTimeframe (timeframe);
         const duration = durationInSeconds * 1000;
@@ -1030,7 +1030,7 @@ export default class onetrading extends Exchange {
             this.safeNumber (ohlcv, 'high'),
             this.safeNumber (ohlcv, 'low'),
             this.safeNumber (ohlcv, 'close'),
-            this.safeNumber (ohlcv, (volumeField as string)),
+            this.safeNumber (ohlcv, volumeField),
         ];
     }
 
@@ -1223,7 +1223,7 @@ export default class onetrading extends Exchange {
             'STOP_TRIGGERED': 'triggered',
             'DONE': 'closed',
         };
-        return this.safeString (statuses, (status as string), status);
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -1338,7 +1338,7 @@ export default class onetrading extends Exchange {
         const types: Dict = {
             'booked': 'limit',
         };
-        return this.safeString (types, (type as string), type);
+        return this.safeString (types, type, type);
     }
 
     parseTimeInForce (timeInForce: Str) {
@@ -1348,7 +1348,7 @@ export default class onetrading extends Exchange {
             'IMMEDIATE_OR_CANCELLED': 'IOC',
             'FILL_OR_KILL': 'FOK',
         };
-        return this.safeString (timeInForces, (timeInForce as string), timeInForce);
+        return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
     /**

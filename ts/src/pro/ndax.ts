@@ -60,7 +60,7 @@ export default class ndax extends ndaxRest {
         const requestId = this.requestId ();
         const payload: Dict = {
             'OMSId': omsId,
-            'InstrumentId': parseInt ((market['id'] as string)), // conditionally optional
+            'InstrumentId': parseInt (market['id']), // conditionally optional
             // 'Symbol': market['info']['symbol'], // conditionally optional
         };
         const request: Dict = {
@@ -131,7 +131,7 @@ export default class ndax extends ndaxRest {
         const requestId = this.requestId ();
         const payload: Dict = {
             'OMSId': omsId,
-            'InstrumentId': parseInt ((market['id'] as string)), // conditionally optional
+            'InstrumentId': parseInt (market['id']), // conditionally optional
             'IncludeLastCount': 100, // the number of previous trades to retrieve in the immediate snapshot, 100 by default
         };
         const request: Dict = {
@@ -174,7 +174,7 @@ export default class ndax extends ndaxRest {
         for (let i = 0; i < payload.length; i++) {
             const trade = this.parseTrade (payload[i]);
             const symbol = trade['symbol'];
-            let tradesArray = this.safeValue (this.trades, (symbol as string));
+            let tradesArray = this.safeValue (this.trades, symbol);
             if (tradesArray === undefined) {
                 const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
                 tradesArray = new ArrayCache (limit);
@@ -216,8 +216,8 @@ export default class ndax extends ndaxRest {
         const requestId = this.requestId ();
         const payload: Dict = {
             'OMSId': omsId,
-            'InstrumentId': parseInt ((market['id'] as string)), // conditionally optional
-            'Interval': parseInt ((this.safeString (this.timeframes, timeframe, timeframe) as string)),
+            'InstrumentId': parseInt (market['id']), // conditionally optional
+            'Interval': parseInt (this.safeString (this.timeframes, timeframe, timeframe)),
             'IncludeLastCount': 100, // the number of previous candles to retrieve in the immediate snapshot, 100 by default
         };
         const request: Dict = {
@@ -272,7 +272,7 @@ export default class ndax extends ndaxRest {
             for (let j = 0; j < keys.length; j++) {
                 const timeframe = keys[j];
                 const interval = this.safeString (this.timeframes, timeframe, timeframe);
-                const duration = parseInt ((interval as string)) * 1000;
+                const duration = parseInt (interval) * 1000;
                 const timestamp = this.safeInteger (ohlcv, 0);
                 const parsed = [
                     this.parseToInt ((timestamp / duration) * duration),
@@ -348,7 +348,7 @@ export default class ndax extends ndaxRest {
         limit = (limit === undefined) ? 100 : limit;
         const payload: Dict = {
             'OMSId': omsId,
-            'InstrumentId': parseInt ((market['id'] as string)), // conditionally optional
+            'InstrumentId': parseInt (market['id']), // conditionally optional
             // 'Symbol': market['info']['symbol'], // conditionally optional
             'Depth': limit, // default 100
         };
@@ -543,7 +543,7 @@ export default class ndax extends ndaxRest {
             'TickerDataUpdateEvent': this.handleOHLCV,
         };
         const event = this.safeString (message, 'n');
-        const method = this.safeValue (methods, (event as string));
+        const method = this.safeValue (methods, event);
         if (method !== undefined) {
             method.call (this, client, message);
         }

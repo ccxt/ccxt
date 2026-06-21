@@ -1581,7 +1581,7 @@ export default class bitrue extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
         const first = this.safeString (symbols, 0);
-        const market = this.market ((first as string));
+        const market = this.market (first);
         let response: NullableDict = undefined;
         if (market['swap']) {
             const request: Dict = {
@@ -1649,7 +1649,7 @@ export default class bitrue extends Exchange {
         let type: Str = undefined;
         if (symbols !== undefined) {
             const first = this.safeString (symbols, 0);
-            const market = this.market ((first as string));
+            const market = this.market (first);
             if (market['swap']) {
                 throw new NotSupported (this.id + ' fetchTickers does not support swap markets, please use fetchTicker instead');
             } else if (market['spot']) {
@@ -1866,7 +1866,7 @@ export default class bitrue extends Exchange {
             'REJECTED': 'rejected',
             'EXPIRED': 'expired',
         };
-        return this.safeString (statuses, (status as string), status);
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -1960,7 +1960,7 @@ export default class bitrue extends Exchange {
         if (type === 'limit_maker') {
             type = 'limit';
         }
-        const triggerPrice = this.parseNumber (this.omitZero ((this.safeString (order, 'stopPrice') as string)));
+        const triggerPrice = this.parseNumber (this.omitZero (this.safeString (order, 'stopPrice')));
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -2461,7 +2461,7 @@ export default class bitrue extends Exchange {
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market ((symbol as string));
+        const market = this.market (symbol);
         let response: NullableDict = undefined;
         let data = undefined;
         if (market['swap']) {

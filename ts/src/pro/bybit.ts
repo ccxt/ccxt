@@ -193,7 +193,7 @@ export default class bybit extends bybitRest {
             isUsdcSettled = market['settle'] === 'USDC';
             type = market['type'];
         } else {
-            [ type, params ] = this.handleMarketTypeAndParams ((method as string), undefined, params);
+            [ type, params ] = this.handleMarketTypeAndParams (method, undefined, params);
             let defaultSettle = this.safeString (this.options, 'defaultSettle');
             defaultSettle = this.safeString2 (params, 'settle', 'defaultSettle', defaultSettle);
             isUsdcSettled = (defaultSettle === 'USDC');
@@ -213,7 +213,7 @@ export default class bybit extends bybitRest {
                 url = url[accessibility]['spot'];
             } else if ((type === 'swap') || (type === 'future')) {
                 let subType: Str = undefined;
-                [ subType, params ] = this.handleSubTypeAndParams ((method as string), market, params, 'linear');
+                [ subType, params ] = this.handleSubTypeAndParams (method, market, params, 'linear');
                 url = url[accessibility][subType];
             } else {
                 // option
@@ -705,10 +705,10 @@ export default class bybit extends bybitRest {
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = symbolsAndTimeframes[i];
             let symbolString = this.safeString (data, 0);
-            const market = this.market ((symbolString as string));
+            const market = this.market (symbolString);
             symbolString = market['symbol'];
             const unfiedTimeframe = this.safeString (data, 1);
-            const timeframeId = this.safeString (this.timeframes, (unfiedTimeframe as string), unfiedTimeframe);
+            const timeframeId = this.safeString (this.timeframes, unfiedTimeframe, unfiedTimeframe);
             rawHashes.push ('kline.' + timeframeId + '.' + market['id']);
             messageHashes.push ('ohlcv::' + symbolString + '::' + unfiedTimeframe);
         }
@@ -742,10 +742,10 @@ export default class bybit extends bybitRest {
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = symbolsAndTimeframes[i];
             let symbolString = this.safeString (data, 0);
-            const market = this.market ((symbolString as string));
+            const market = this.market (symbolString);
             symbolString = market['symbol'];
             const unfiedTimeframe = this.safeString (data, 1);
-            const timeframeId = this.safeString (this.timeframes, (unfiedTimeframe as string), unfiedTimeframe);
+            const timeframeId = this.safeString (this.timeframes, unfiedTimeframe, unfiedTimeframe);
             rawHashes.push ('kline.' + timeframeId + '.' + market['id']);
             subMessageHashes.push ('ohlcv::' + symbolString + '::' + unfiedTimeframe);
             messageHashes.push ('unsubscribe::ohlcv::' + symbolString + '::' + unfiedTimeframe);
@@ -810,7 +810,7 @@ export default class bybit extends bybitRest {
         if (ohlcvsByTimeframe === undefined) {
             this.ohlcvs[symbol] = {};
         }
-        if (this.safeValue (ohlcvsByTimeframe, (timeframe as string)) === undefined) {
+        if (this.safeValue (ohlcvsByTimeframe, timeframe) === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
         }
@@ -2470,7 +2470,7 @@ export default class bybit extends bybitRest {
             'auth': this.handleAuthenticate,
             'unsubscribe': this.handleUnSubscribe,
         };
-        const exacMethod = this.safeValue (methods, (topic as string));
+        const exacMethod = this.safeValue (methods, topic);
         if (exacMethod !== undefined) {
             exacMethod.call (this, client, message);
             return;

@@ -140,7 +140,7 @@ export default class toobit extends toobitRest {
             'ticketInfo': this.handleMyTrade,
             'outboundContractPositionInfo': this.handlePositions,
         };
-        const method = this.safeValue (methods, (topic as string));
+        const method = this.safeValue (methods, topic);
         if (method !== undefined) {
             method.call (this, client, message);
         } else {
@@ -148,7 +148,7 @@ export default class toobit extends toobitRest {
             for (let i = 0; i < message.length; i++) {
                 const item = message[i];
                 const event = this.safeString (item, 'e');
-                const method2 = this.safeValue (methods, (event as string));
+                const method2 = this.safeValue (methods, event);
                 if (method2 !== undefined) {
                     method2.call (this, client, item);
                 }
@@ -301,10 +301,10 @@ export default class toobit extends toobitRest {
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = symbolsAndTimeframes[i];
             const symbolStr = this.safeString (data, 0);
-            const market = this.market ((symbolStr as string));
+            const market = this.market (symbolStr);
             const marketId = market['id'];
             const unfiedTimeframe = this.safeString (data, 1, '1m');
-            const rawTimeframe = this.safeString (timeframes, (unfiedTimeframe as string), unfiedTimeframe);
+            const rawTimeframe = this.safeString (timeframes, unfiedTimeframe, unfiedTimeframe);
             if (selectedTimeframe !== undefined && selectedTimeframe !== rawTimeframe) {
                 throw new NotSupported (this.id + ' watchOHLCVForSymbols() only supports a single timeframe for all symbols');
             } else {
@@ -353,7 +353,7 @@ export default class toobit extends toobitRest {
         //     }
         //
         const marketId = this.safeString (message, 'symbol');
-        const market = this.market ((marketId as string));
+        const market = this.market (marketId);
         const symbol = market['symbol'];
         const params = this.safeDict (message, 'params', {});
         const timeframeId = this.safeString (params, 'klineType');
@@ -1100,7 +1100,7 @@ export default class toobit extends toobitRest {
             'info': position,
             'id': undefined,
             'symbol': this.safeSymbol (marketId, undefined),
-            'notional': this.omitZero ((this.safeString (position, 'pv') as string)),
+            'notional': this.omitZero (this.safeString (position, 'pv')),
             'marginMode': this.safeStringLower (position, 'mt'),
             'liquidationPrice': this.safeString (position, 'f'),
             'entryPrice': this.safeString (position, 'p'),
@@ -1117,7 +1117,7 @@ export default class toobit extends toobitRest {
             'maintenanceMargin': this.safeString (position, 'mm'),
             'maintenanceMarginPercentage': undefined,
             'collateral': undefined,
-            'initialMargin': this.omitZero ((this.safeString (position, 'm') as string)),
+            'initialMargin': this.omitZero (this.safeString (position, 'm')),
             'initialMarginPercentage': undefined,
             'leverage': this.safeString (position, 'v'),
             'marginRatio': undefined,

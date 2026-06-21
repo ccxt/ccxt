@@ -1880,7 +1880,7 @@ export default class coinex extends Exchange {
             'done': 'closed',
             'cancel': 'canceled',
         };
-        return this.safeString (statuses, (status as string), status);
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -2561,10 +2561,10 @@ export default class coinex extends Exchange {
             const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
             const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
             isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
-            const orderRequest = this.createOrderRequest ((marketId as string), type, side, amount, price, orderParams);
+            const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
-        const market = this.market ((symbol as string));
+        const market = this.market (symbol);
         const request: Dict = {
             'market': market['id'],
             'orders': ordersRequests,
@@ -3061,7 +3061,7 @@ export default class coinex extends Exchange {
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const marketId = this.safeString (rawOrder, 'symbol');
-            const market = this.market ((marketId as string));
+            const market = this.market (marketId);
             orderSymbols.push (marketId);
             const id = this.safeString (rawOrder, 'id');
             const amount = this.safeValue (rawOrder, 'amount');
@@ -3081,16 +3081,16 @@ export default class coinex extends Exchange {
                 'market_type': market_type,
             };
             if (amount !== undefined) {
-                orderRequest['amount'] = this.amountToPrecision ((marketId as string), amount);
+                orderRequest['amount'] = this.amountToPrecision (marketId, amount);
             }
             if (price !== undefined) {
-                orderRequest['price'] = this.priceToPrecision ((marketId as string), price);
+                orderRequest['price'] = this.priceToPrecision (marketId, price);
             }
             ordersRequests.push (this.extend (orderRequest, orderParams));
         }
         orderSymbols = this.marketSymbols (orderSymbols, undefined, false, true, true);
         const firstSymbol = this.safeString (orderSymbols, 0);
-        const firstMarket = this.market ((firstSymbol as string));
+        const firstMarket = this.market (firstSymbol);
         const request: Dict = {
             'orders': ordersRequests,
         };
@@ -4320,8 +4320,8 @@ export default class coinex extends Exchange {
             'initialMarginPercentage': undefined,
             'leverage': this.safeNumber (position, 'leverage'),
             'marginRatio': this.safeNumber (position, 'position_margin_rate'),
-            'stopLossPrice': this.omitZero ((this.safeString (position, 'stop_loss_price') as string)),
-            'takeProfitPrice': this.omitZero ((this.safeString (position, 'take_profit_price') as string)),
+            'stopLossPrice': this.omitZero (this.safeString (position, 'stop_loss_price')),
+            'takeProfitPrice': this.omitZero (this.safeString (position, 'take_profit_price')),
         });
     }
 
@@ -4955,7 +4955,7 @@ export default class coinex extends Exchange {
             'finished': 'ok',
             'fail': 'failed',
         };
-        return this.safeString (statuses, (status as string), status);
+        return this.safeString (statuses, status, status);
     }
 
     /**
@@ -5212,8 +5212,8 @@ export default class coinex extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'currency': this.safeCurrencyCode (currencyId, currency),
             'amount': this.safeNumber (transfer, 'amount'),
-            'fromAccount': this.safeString (accountsById, (fromId as string), fromId),
-            'toAccount': this.safeString (accountsById, (toId as string), toId),
+            'fromAccount': this.safeString (accountsById, fromId, fromId),
+            'toAccount': this.safeString (accountsById, toId, toId),
             'status': this.parseTransferStatus (this.safeString2 (transfer, 'code', 'status')),
         };
     }

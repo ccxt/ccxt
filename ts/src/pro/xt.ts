@@ -309,7 +309,7 @@ export default class xt extends xtRest {
         const method = this.safeString (params, 'method', defaultMethod);
         const name = method + '@' + market['id'];
         const messageHash = 'unsubscribe::' + name;
-        return await this.unSubscribe (messageHash, name, 'public', 'unWatchTicker', (defaultMethod as string), market, undefined, params);
+        return await this.unSubscribe (messageHash, name, 'public', 'unWatchTicker', defaultMethod, market, undefined, params);
     }
 
     /**
@@ -333,7 +333,7 @@ export default class xt extends xtRest {
         if (symbols !== undefined) {
             market = this.market (symbols[0]);
         }
-        const tickers = await this.subscribe ((name as string), 'public', 'watchTickers', market, symbols, params);
+        const tickers = await this.subscribe (name, 'public', 'watchTickers', market, symbols, params);
         if (this.newUpdates) {
             return tickers;
         }
@@ -361,7 +361,7 @@ export default class xt extends xtRest {
             throw new NotSupported (this.id + ' unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only');
         }
         const messageHash = 'unsubscribe::' + name;
-        const tickers = await this.unSubscribe (messageHash, (name as string), 'public', 'unWatchTickers', 'ticker', undefined, symbols, params);
+        const tickers = await this.unSubscribe (messageHash, name, 'public', 'unWatchTickers', 'ticker', undefined, symbols, params);
         if (this.newUpdates) {
             return tickers;
         }
@@ -911,7 +911,7 @@ export default class xt extends xtRest {
             const symbol = market['symbol'];
             const parsed = this.parseOHLCV (data, market);
             this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
-            let stored = this.safeValue (this.ohlcvs[symbol], (timeframe as string));
+            let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
@@ -1380,7 +1380,7 @@ export default class xt extends xtRest {
             this.myTrades = stored;
         }
         const parsedTrade = this.parseTrade (data);
-        const market = this.market ((parsedTrade['symbol'] as string));
+        const market = this.market (parsedTrade['symbol']);
         stored.append (parsedTrade);
         const tradeType = market['contract'] ? 'contract' : 'spot';
         client.resolve (stored, 'trade::' + tradeType);
@@ -1404,7 +1404,7 @@ export default class xt extends xtRest {
                 'order': this.handleOrder,
                 'position': this.handlePosition,
             };
-            let method = this.safeValue (methods, (topic as string));
+            let method = this.safeValue (methods, topic);
             if (topic === 'trade') {
                 const data = this.safeDict (message, 'data');
                 if (('oi' in data) || ('orderId' in data)) {

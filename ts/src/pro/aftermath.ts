@@ -109,7 +109,7 @@ export default class aftermath extends aftermathRest {
         //
         const trade = this.parseTrade (message);
         const symbol = trade['symbol'];
-        const market = this.market ((symbol as string));
+        const market = this.market (symbol);
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             const stored = new ArrayCache (limit);
@@ -161,7 +161,7 @@ export default class aftermath extends aftermathRest {
         // }
         //
         const symbol = this.safeString (message, 'symbol');
-        const market = this.market ((symbol as string));
+        const market = this.market (symbol);
         const topic = market['id'] + '@orderbook';
         if (!(symbol in this.orderbooks)) {
             const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
@@ -183,14 +183,14 @@ export default class aftermath extends aftermathRest {
 
     async fetchOrderBookSnapshot (client, message, subscription) {
         const symbol = this.safeString (message, 'symbol');
-        const market = this.market ((symbol as string));
+        const market = this.market (symbol);
         const messageHash = market['id'] + '@orderbook';
         try {
             const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
             const limit = this.safeInteger (subscription, 'limit', defaultLimit);
             const params = this.safeDict (subscription, 'params');
             const snapshot = await this.fetchRestOrderBookSafe (symbol, limit, params);
-            if (this.safeValue (this.orderbooks, (symbol as string)) === undefined) {
+            if (this.safeValue (this.orderbooks, symbol) === undefined) {
                 // if the orderbook is dropped before the snapshot is received
                 return;
             }

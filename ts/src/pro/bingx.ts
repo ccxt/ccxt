@@ -135,7 +135,7 @@ export default class bingx extends bingxRest {
             subscription['symbolsAndTimeframes'] = symbolsAndTimeframes;
             params = this.omit (params, 'symbolsAndTimeframes');
         }
-        return await this.watch ((url as string), messageHash, this.extend (request, params), subscribeHash, subscription);
+        return await this.watch (url, messageHash, this.extend (request, params), subscribeHash, subscription);
     }
 
     /**
@@ -176,7 +176,7 @@ export default class bingx extends bingxRest {
             'unsubscribe': false,
             'id': uuid,
         };
-        return await this.watch ((url as string), messageHash, this.extend (request, params), messageHash, subscription);
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
     }
 
     /**
@@ -389,7 +389,7 @@ export default class bingx extends bingxRest {
             'unsubscribe': false,
             'id': uuid,
         };
-        const trades = await this.watch ((url as string), messageHash, this.extend (request, params), messageHash, subscription);
+        const trades = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -586,7 +586,7 @@ export default class bingx extends bingxRest {
                 'params': params,
             };
         }
-        const orderbook = await this.watch ((url as string), messageHash, this.deepExtend (request, params), subscriptionHash, subscriptionArgs);
+        const orderbook = await this.watch (url, messageHash, this.deepExtend (request, params), subscriptionHash, subscriptionArgs);
         return orderbook.limit ();
     }
 
@@ -1772,7 +1772,7 @@ export default class bingx extends bingxRest {
         //
         const id = this.safeString (message, 'id');
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-        const subscription = this.safeDict (subscriptionsById, (id as string), {});
+        const subscription = this.safeDict (subscriptionsById, id, {});
         const isUnSubMessage = this.safeBool (subscription, 'unsubscribe', false);
         if (isUnSubMessage) {
             this.handleUnSubscription (client, subscription);

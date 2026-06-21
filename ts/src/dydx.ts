@@ -929,7 +929,7 @@ export default class dydx extends Exchange {
             'CANCELED': 'canceled',
             'BEST_EFFORT_CANCELED': 'canceling',
         };
-        return this.safeString (statuses, (status as string), status);
+        return this.safeString (statuses, status, status);
     }
 
     parseOrderType (type: Str) {
@@ -942,7 +942,7 @@ export default class dydx extends Exchange {
             'TAKE_PROFIT_MARKET': 'MARKET',
             'TRAILING_STOP': 'MARKET',
         };
-        return this.safeStringUpper (types, (type as string), type);
+        return this.safeStringUpper (types, type, type);
     }
 
     /**
@@ -1245,7 +1245,7 @@ export default class dydx extends Exchange {
             const signature = this.signOnboardingAction ();
             entropy = this.hashMessage (this.base16ToBinary (signature['r'] + signature['s']));
         }
-        credentials = this.retrieveDydxCredentials ((entropy as string));
+        credentials = this.retrieveDydxCredentials (entropy);
         credentials['privateKey'] = this.binaryToBase16 (credentials['privateKey']);
         credentials['publicKey'] = this.binaryToBase16 (credentials['publicKey']);
         this.options['dydxCredentials'] = credentials;
@@ -1319,10 +1319,10 @@ export default class dydx extends Exchange {
         const priceStr = this.priceToPrecision (symbol, price);
         const marketInfo = this.safeDict (market, 'info');
         const atomicResolution = marketInfo['atomicResolution'];
-        const quantumScale = this.pow ('10', (Precise.stringNeg (atomicResolution) as string));
+        const quantumScale = this.pow ('10', Precise.stringNeg (atomicResolution));
         const quantums = Precise.stringMul (amountStr, quantumScale);
         const quantumConversionExponent = marketInfo['quantumConversionExponent'];
-        const priceScale = this.pow ('10', (Precise.stringSub (Precise.stringSub (atomicResolution, quantumConversionExponent), '-6') as string));
+        const priceScale = this.pow ('10', Precise.stringSub (Precise.stringSub (atomicResolution, quantumConversionExponent), '-6'));
         const subticks = Precise.stringMul (priceStr, priceScale);
         let clientMetadata = 0;
         let conditionalType = 0;
@@ -1401,8 +1401,8 @@ export default class dydx extends Exchange {
                     'clobPairId': marketInfo['clobPairId'],
                 },
                 'side': sideNumber,
-                'quantums': this.toDydxLong ((quantums as string)),
-                'subticks': this.toDydxLong ((subticks as string)),
+                'quantums': this.toDydxLong (quantums),
+                'subticks': this.toDydxLong (subticks),
                 'goodTilBlock': goodTillBlock,
                 'goodTilBlockTime': goodTillBlockTime,
                 'timeInForce': timeInForceNumber,
@@ -1425,9 +1425,9 @@ export default class dydx extends Exchange {
     createOrderIdFromParts (address: string, subAccountNumber: number, clientOrderId: number, orderFlags: number, clobPairId: number): string {
         const nameSp = this.safeString (this.options, 'namespace', '0f9da948-a6fb-4c45-9edc-4685c3f3317d');
         const prefixAddress = address + '-' + subAccountNumber.toString ();
-        const prefix = this.uuid5 ((nameSp as string), prefixAddress);
+        const prefix = this.uuid5 (nameSp, prefixAddress);
         const orderInfo = prefix + '-' + this.numberToString (clientOrderId) + '-' + this.numberToString (clobPairId) + '-' + this.numberToString (orderFlags);
-        return this.uuid5 ((nameSp as string), orderInfo);
+        return this.uuid5 (nameSp, orderInfo);
     }
 
     async fetchLatestBlockHeight (params = {}): Promise<int> {
@@ -1534,7 +1534,7 @@ export default class dydx extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
-        const market: Market = this.market ((symbol as string));
+        const market: Market = this.market (symbol);
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clientId', id);
         if (clientOrderId === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported.');
@@ -1627,7 +1627,7 @@ export default class dydx extends Exchange {
      */
     async cancelOrders (ids:string[], symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        const market: Market = this.market ((symbol as string));
+        const market: Market = this.market (symbol);
         const clientOrderIds = this.safeList (params, 'clientOrderIds');
         if (!clientOrderIds) {
             throw new NotSupported (this.id + ' cancelOrders only support clientOrderIds.');
@@ -2114,9 +2114,9 @@ export default class dydx extends Exchange {
             'typeUrl': '/dydxprotocol.sending.MsgWithdrawFromSubaccount',
             'value': payload,
         };
-        const txFee = await this.estimateTxFee (signingPayload, (tag as string), account);
+        const txFee = await this.estimateTxFee (signingPayload, tag, account);
         const chainName = this.options['chainName'];
-        const signedTx = this.signDydxTx (credentials['privateKey'], signingPayload, (tag as string), chainName, account, undefined, txFee);
+        const signedTx = this.signDydxTx (credentials['privateKey'], signingPayload, tag, chainName, account, undefined, txFee);
         const request = {
             'tx': signedTx,
         };
@@ -2218,8 +2218,8 @@ export default class dydx extends Exchange {
         params = this.omit (params, 'methodName');
         let userAddress: Str = undefined;
         let subAccountNumber: Str = undefined;
-        [ userAddress, params ] = this.handlePublicAddress ((methodName as string), params);
-        [ subAccountNumber, params ] = this.handleOptionAndParams (params, (methodName as string), 'subAccountNumber', '0');
+        [ userAddress, params ] = this.handlePublicAddress (methodName, params);
+        [ subAccountNumber, params ] = this.handleOptionAndParams (params, methodName, 'subAccountNumber', '0');
         const request: Dict = {
             'address': userAddress,
             'subaccountNumber': subAccountNumber,

@@ -98,7 +98,7 @@ export default class hitbtc extends hitbtcRest {
         const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const timestamp = this.milliseconds ();
-            const signature = this.hmac (this.encode ((this.numberToString (timestamp) as string)), this.encode (this.secret), sha256, 'hex');
+            const signature = this.hmac (this.encode (this.numberToString (timestamp)), this.encode (this.secret), sha256, 'hex');
             const request: Dict = {
                 'method': 'login',
                 'params': {
@@ -181,7 +181,7 @@ export default class hitbtc extends hitbtcRest {
             'params': params,
             'id': this.nonce (),
         };
-        return await this.watch (url, (messageHash as string), subscribe, messageHash);
+        return await this.watch (url, messageHash, subscribe, messageHash);
     }
 
     /**
@@ -237,7 +237,7 @@ export default class hitbtc extends hitbtcRest {
                 'symbols': [ market['id'] ],
             },
         };
-        const orderbook = await this.subscribePublic ((name as string), 'orderbooks', [ symbol ], this.deepExtend (request, params));
+        const orderbook = await this.subscribePublic (name, 'orderbooks', [ symbol ], this.deepExtend (request, params));
         return orderbook.limit ();
     }
 
@@ -350,7 +350,7 @@ export default class hitbtc extends hitbtcRest {
         const defaultMethod = this.safeString (options, 'method', 'ticker/{speed}/batch');
         const method = this.safeString2 (params, 'method', 'defaultMethod', defaultMethod);
         const speed = this.safeString (params, 'speed', '1s');
-        const name = this.implodeParams ((method as string), { 'speed': speed });
+        const name = this.implodeParams (method, { 'speed': speed });
         params = this.omit (params, [ 'method', 'speed' ]);
         const marketIds = [];
         if (symbols === undefined) {
@@ -507,7 +507,7 @@ export default class hitbtc extends hitbtcRest {
         const defaultMethod = this.safeString (options, 'method', 'orderbook/top/{speed}/batch');
         const method = this.safeString2 (params, 'method', 'defaultMethod', defaultMethod);
         const speed = this.safeString (params, 'speed', '100ms');
-        const name = this.implodeParams ((method as string), { 'speed': speed });
+        const name = this.implodeParams (method, { 'speed': speed });
         params = this.omit (params, [ 'method', 'speed' ]);
         const marketIds = this.marketIds (symbols);
         const request: Dict = {
@@ -780,7 +780,7 @@ export default class hitbtc extends hitbtcRest {
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
             this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-            let stored = this.safeValue (this.ohlcvs[symbol], (timeframe as string));
+            let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
@@ -1337,7 +1337,7 @@ export default class hitbtc extends hitbtcRest {
                 'spot_balance': this.handleBalance,
                 'futures_balance': this.handleBalance,
             };
-            const method = this.safeValue (methods, (channel as string));
+            const method = this.safeValue (methods, channel);
             if (method !== undefined) {
                 method.call (this, client, message);
             }

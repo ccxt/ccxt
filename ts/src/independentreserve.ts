@@ -652,7 +652,7 @@ export default class independentreserve extends Exchange {
             'Expired': 'canceled',
             'Failed': 'canceled',
         };
-        return this.safeString (statuses, (status as string), status);
+        return this.safeString (statuses, status, status);
     }
 
     parseTimeInForce (timeInForce: Str) {
@@ -662,7 +662,7 @@ export default class independentreserve extends Exchange {
             'Fok': 'FOK',
             'Ioc': 'IOC',
         };
-        return this.safeString (timeInForces, (timeInForce as string), timeInForce);
+        return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
     /**

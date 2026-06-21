@@ -884,7 +884,7 @@ export default class whitebit extends Exchange {
             const feeInfo = response[entry];
             const code = this.safeCurrencyCode (currencyId);
             if ((codes === undefined) || (this.inArray (code, codes))) {
-                const depositWithdrawFee = this.safeValue (depositWithdrawFees, (code as string));
+                const depositWithdrawFee = this.safeValue (depositWithdrawFees, code);
                 if (depositWithdrawFee === undefined) {
                     depositWithdrawFees[code] = this.depositWithdrawFee ({});
                 }
@@ -957,7 +957,7 @@ export default class whitebit extends Exchange {
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             const market = this.market (symbol);
-            const fee = this.safeValue (response, (market['baseId'] as string), {});
+            const fee = this.safeValue (response, market['baseId'], {});
             let makerFee = this.safeString (fee, 'maker_fee');
             let takerFee = this.safeString (fee, 'taker_fee');
             makerFee = Precise.stringDiv (makerFee, '100');
@@ -2462,7 +2462,7 @@ export default class whitebit extends Exchange {
             'margin limit': 'limit',
             'margin market': 'market',
         };
-        return this.safeString (types, (type as string), type);
+        return this.safeString (types, type, type);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -2570,7 +2570,7 @@ export default class whitebit extends Exchange {
             'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
         };
-        return this.safeStringLower (statuses, (status as string), status);
+        return this.safeStringLower (statuses, status, status);
     }
 
     /**
@@ -3106,7 +3106,7 @@ export default class whitebit extends Exchange {
             '16': 'pending',
             '17': 'pending',
         };
-        return this.safeString (statuses, (status as string), status);
+        return this.safeString (statuses, status, status);
     }
 
     /**

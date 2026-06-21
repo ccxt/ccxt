@@ -675,7 +675,7 @@ export default class alpaca extends alpacaRest {
                 't': this.handleTrades,
                 'o': this.handleOrderBook,
             };
-            const method = this.safeValue (methods, (T as string));
+            const method = this.safeValue (methods, T);
             if (method !== undefined) {
                 method.call (this, client, data);
             }
@@ -689,7 +689,7 @@ export default class alpaca extends alpacaRest {
             'listening': this.handleSubscription,
             'trade_updates': this.handleTradeUpdate,
         };
-        const method = this.safeValue (methods, (stream as string));
+        const method = this.safeValue (methods, stream);
         if (method !== undefined) {
             method.call (this, client, message);
         }
