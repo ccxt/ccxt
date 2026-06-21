@@ -7288,7 +7288,7 @@ export default class Exchange {
         return this.safeString (this.commonCurrencies, code, code);
     }
 
-    currency (code: string) {
+    currency (code: Str) {
         const keys = Object.keys (this.currencies);
         const numCurrencies = keys.length;
         if (numCurrencies === 0) {
@@ -7304,9 +7304,12 @@ export default class Exchange {
         throw new ExchangeError (this.id + ' does not have currency code ' + code);
     }
 
-    market (symbol: string): MarketInterface {
+    market (symbol: Str): MarketInterface {
         if (this.markets === undefined) {
             throw new ExchangeError (this.id + ' markets not loaded');
+        }
+        if (symbol === undefined) {
+            throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
         }
         if (symbol in this.markets) {
             return this.markets[symbol];
