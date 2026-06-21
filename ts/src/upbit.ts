@@ -632,12 +632,15 @@ export default class upbit extends Exchange {
      */
     async fetchOrderBooks (symbols: Strings = undefined, limit: Int = undefined, params = {}): Promise<OrderBooks> {
         await this.loadMarkets ();
-        let ids = undefined;
+        let ids: Str = undefined;
         if (symbols === undefined) {
-            ids = this.ids.join (',');
+            const allIds = this.ids;
+            if (allIds !== undefined) {
+                ids = allIds.join (',');
+            }
         } else {
-            ids = this.marketIds (symbols);
-            ids = ids.join (',');
+            const marketIds = this.marketIds (symbols);
+            ids = marketIds.join (',');
         }
         const request: Dict = {
             'markets': ids,
