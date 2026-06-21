@@ -2993,7 +2993,7 @@ export default class deepcoin extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let requestPath = path;
         if (method === 'GET') {
             const query = this.urlencode (params);

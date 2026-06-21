@@ -3298,7 +3298,7 @@ export default class lighter extends Exchange {
         };
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url: Str = undefined;
         if (api === 'root') {
             url = this.implodeHostname (this.urls['api']['public']);

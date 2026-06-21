@@ -4657,7 +4657,7 @@ export default class phemex extends Exchange {
         return tiers as LeverageTier[];
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
         const requestPath = '/' + this.implodeParams (path, params);
         let url = requestPath;

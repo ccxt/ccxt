@@ -1615,7 +1615,7 @@ export default class hibachi extends Exchange {
         });
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const endpoint = '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + endpoint;
         headers = { 'Hibachi-Client': 'HibachiCCXT/unversioned' };

@@ -1929,7 +1929,7 @@ export default class bigone extends Exchange {
         return this.sum (this.microseconds () * 1000, exchangeTimeCorrection);
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
         const baseUrl = this.implodeHostname (this.urls['api'][api]);
         let url = baseUrl + '/' + this.implodeParams (path, params);

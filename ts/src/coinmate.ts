@@ -1214,7 +1214,7 @@ export default class coinmate extends Exchange {
         return this.milliseconds ();
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = (this.urls['api'] as Dict)['rest'] + '/' + path;
         if (api === 'public') {
             if (Object.keys (params).length) {
