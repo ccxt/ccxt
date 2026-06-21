@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.ascendex import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Account, Any, Balances, Currencies, Currency, DepositAddress, Int, Leverage, Leverages, LeverageTier, LeverageTiers, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Any, Balances, Bool, Currencies, Currency, DepositAddress, Int, Leverage, Leverages, LeverageTier, LeverageTiers, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -664,7 +664,7 @@ class ascendex(Exchange, ImplicitAPI):
         cashAndPerpetualsById = self.index_by(cashData, 'symbol')
         dataById = self.deep_extend(productsById, cashAndPerpetualsById)
         ids = list(dataById.keys())
-        result = []
+        result: List = []
         for i in range(0, len(ids)):
             id = ids[i]
             if id.find('-PERP') >= 0:
@@ -780,7 +780,7 @@ class ascendex(Exchange, ImplicitAPI):
         #    }
         #
         data = self.safe_list(contracts, 'data', [])
-        result = []
+        result: List = []
         for i in range(0, len(data)):
             market = data[i]
             id = self.safe_string(market, 'symbol')
@@ -881,7 +881,7 @@ class ascendex(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `account structures <https://docs.ccxt.com/?id=account-structure>` indexed by the account type
         """
         accountGroup = self.safe_string(self.options, 'account-group')
-        response: dict = None
+        response: NullableDict = None
         if accountGroup is None:
             response = await self.v1PrivateGetInfo(params)
             #
@@ -999,7 +999,7 @@ class ascendex(Exchange, ImplicitAPI):
             raise BadRequest(self.id + ' does not supported isolated margin trading')
         if (accountCategory == 'cash') or (accountCategory == 'margin'):
             request['account-category'] = accountCategory
-        response: dict = None
+        response: NullableDict = None
         if (marketType == 'spot') or (marketType == 'margin'):
             response = await self.v1PrivateAccountCategoryGetBalance(self.extend(request, params))
         elif marketType == 'swap':
@@ -1199,7 +1199,7 @@ class ascendex(Exchange, ImplicitAPI):
             request['symbol'] = ','.join(marketIds)
         type: Str = None
         type, params = self.handle_market_type_and_params('fetchTickers', market, params)
-        response: dict = None
+        response: NullableDict = None
         if type == 'spot':
             response = await self.v1PublicGetTicker(self.extend(request, params))
         else:
@@ -1534,7 +1534,7 @@ class ascendex(Exchange, ImplicitAPI):
                 type = 'market'
         side = self.safe_string_lower(order, 'side')
         feeCost = self.safe_number_2(order, 'cumFee', 'fee')
-        fee: dict = None
+        fee: NullableDict = None
         if feeCost is not None:
             feeCurrencyId = self.safe_string(order, 'feeAsset')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
@@ -1543,11 +1543,11 @@ class ascendex(Exchange, ImplicitAPI):
                 'currency': feeCurrencyCode,
             }
         triggerPrice = self.omit_zero(self.safe_string(order, 'stopPrice'))
-        reduceOnly = None
+        reduceOnly: Bool = None
         execInst = self.safe_string_lower(order, 'execInst')
         if execInst == 'reduceonly':
             reduceOnly = True
-        postOnly = None
+        postOnly: Bool = None
         if execInst == 'post':
             postOnly = True
         return self.safe_order({
@@ -1721,7 +1721,7 @@ class ascendex(Exchange, ImplicitAPI):
         await self.load_accounts()
         market = self.market(symbol)
         request = self.create_order_request(symbol, type, side, amount, price, params)
-        response: dict = None
+        response: NullableDict = None
         if market['swap']:
             response = await self.v2PrivateAccountGroupPostFuturesOrder(request)
         else:
@@ -1809,7 +1809,7 @@ class ascendex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         await self.load_accounts()
-        ordersRequests = []
+        ordersRequests: List = []
         symbol: Str = None
         marginMode: Str = None
         for i in range(0, len(orders)):
@@ -1843,7 +1843,7 @@ class ascendex(Exchange, ImplicitAPI):
         account = self.safe_dict(self.accounts, 0, {})
         accountGroup = self.safe_string(account, 'id')
         request: dict = {}
-        response: dict = None
+        response: NullableDict = None
         if market['swap']:
             raise NotSupported(self.id + ' createOrders() is not currently supported for swap markets on ascendex')
             # request['account-group'] = accountGroup
@@ -1908,7 +1908,7 @@ class ascendex(Exchange, ImplicitAPI):
             'account-category': accountCategory,
             'orderId': id,
         }
-        response: dict = None
+        response: NullableDict = None
         if (type == 'spot') or (type == 'margin'):
             response = await self.v1PrivateAccountCategoryGetOrderStatus(self.extend(request, query))
         elif type == 'swap':
@@ -2014,7 +2014,7 @@ class ascendex(Exchange, ImplicitAPI):
             'account-group': accountGroup,
             'account-category': accountCategory,
         }
-        response: dict = None
+        response: NullableDict = None
         if (type == 'spot') or (type == 'margin'):
             response = await self.v1PrivateAccountCategoryGetOrderOpen(self.extend(request, query))
         elif type == 'swap':
@@ -2093,7 +2093,7 @@ class ascendex(Exchange, ImplicitAPI):
         if accountCategory == 'futures':
             return self.parse_orders(data, market, since, limit)
         # a workaround for https://github.com/ccxt/ccxt/issues/7187
-        orders = []
+        orders: List = []
         for i in range(0, len(data)):
             order = self.parse_order(data[i], market)
             orders.append(order)
@@ -2147,7 +2147,7 @@ class ascendex(Exchange, ImplicitAPI):
             request['endTime'] = until
         accountsByType = self.safe_dict(self.options, 'accountsByType', {})
         accountCategory = self.safe_string(accountsByType, type, 'cash')  # margin, futures
-        response: dict = None
+        response: NullableDict = None
         if method == 'v1PrivateAccountCategoryGetOrderHistCurrent':
             request['account-group'] = accountGroup
             request['account-category'] = accountCategory
@@ -2298,7 +2298,7 @@ class ascendex(Exchange, ImplicitAPI):
         else:
             request['id'] = clientOrderId
             params = self.omit(params, ['clientOrderId', 'id'])
-        response: dict = None
+        response: NullableDict = None
         if (type == 'spot') or (type == 'margin'):
             response = await self.v1PrivateAccountCategoryDeleteOrder(self.extend(request, query))
         elif type == 'swap':
@@ -2401,7 +2401,7 @@ class ascendex(Exchange, ImplicitAPI):
         }
         if symbol is not None:
             request['symbol'] = market['id']
-        response: dict = None
+        response: NullableDict = None
         if (type == 'spot') or (type == 'margin'):
             response = await self.v1PrivateAccountCategoryDeleteOrderAll(self.extend(request, query))
         elif type == 'swap':
@@ -2533,7 +2533,7 @@ class ascendex(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         addresses = self.safe_list(data, 'address', [])
         numAddresses = len(addresses)
-        address = None
+        address: NullableDict = None
         if numAddresses > 1:
             addressesByChainName = self.index_by(addresses, 'chainName')
             if networkId is None:
@@ -2753,7 +2753,7 @@ class ascendex(Exchange, ImplicitAPI):
         #
         data = self.safe_dict(response, 'data', {})
         position = self.safe_list(data, 'contracts', [])
-        result = []
+        result: List = []
         for i in range(0, len(position)):
             result.append(self.parse_position(position[i]))
         symbols = self.market_symbols(symbols)
@@ -3102,7 +3102,7 @@ class ascendex(Exchange, ImplicitAPI):
         marginRequirements = self.safe_list(info, 'marginRequirements', [])
         marketId = self.safe_string(info, 'symbol')
         market = self.safe_market(marketId, market)
-        tiers = []
+        tiers: List = []
         for i in range(0, len(marginRequirements)):
             tier = marginRequirements[i]
             initialMarginRate = self.safe_string(tier, 'initialMarginRate')
@@ -3534,7 +3534,7 @@ class ascendex(Exchange, ImplicitAPI):
             'shortLeverage': leverageValue,
         }
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
         version = api[0]
         access = api[1]
         type = self.safe_string(api, 2)

@@ -1517,7 +1517,7 @@ class bydfi extends bydfi$1["default"] {
             'symbol': market['id'],
             'wallet': wallet,
         };
-        let response = undefined;
+        let response;
         let trigger = false;
         [trigger, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'trigger', trigger);
         if (!trigger) {
@@ -1594,7 +1594,7 @@ class bydfi extends bydfi$1["default"] {
         let wallet = 'W001';
         [wallet, params] = this.handleOptionAndParams(params, 'fetchOpenOrder', 'wallet', wallet);
         request['wallet'] = wallet;
-        let response = undefined;
+        let response;
         let trigger = false;
         [trigger, params] = this.handleOptionAndParams(params, 'fetchOpenOrder', 'trigger', trigger);
         if (!trigger) {
@@ -2434,7 +2434,7 @@ class bydfi extends bydfi$1["default"] {
         let wallet = undefined;
         [wallet, params] = this.handleOptionAndParams(params, 'fetchBalance', 'wallet');
         const request = {};
-        let response = undefined;
+        let response;
         if (wallet === undefined) {
             const options = this.safeDict(this.options, 'accountsByType', {});
             const parsedAccountType = this.safeStringUpper(options, type, type);
@@ -2747,7 +2747,7 @@ class bydfi extends bydfi$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response = undefined;
+        let response;
         if (type === 'deposit') {
             //
             //     {

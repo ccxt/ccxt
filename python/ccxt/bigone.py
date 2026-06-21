@@ -925,7 +925,7 @@ class bigone(Exchange, ImplicitAPI):
         isSpot = type == 'spot'
         request: dict = {}
         symbols = self.market_symbols(symbols)
-        data = None
+        data: NullableList = None
         if isSpot:
             if symbols is not None:
                 ids = self.market_ids(symbols)
@@ -1023,7 +1023,7 @@ class bigone(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        response: dict = None
+        response: dict
         if market['contract']:
             request: dict = {
                 'symbol': market['id'],
@@ -1390,7 +1390,7 @@ class bigone(Exchange, ImplicitAPI):
         self.load_markets()
         type = self.safe_string(params, 'type', '')
         params = self.omit(params, 'type')
-        response: dict = None
+        response: dict
         if type == 'funding' or type == 'fund':
             response = self.privateGetFundAccounts(params)
         else:
@@ -1852,7 +1852,7 @@ class bigone(Exchange, ImplicitAPI):
         exchangeTimeCorrection = self.safe_integer(self.options, 'exchangeMillisecondsCorrection', 0) * 1000000
         return self.sum(self.microseconds() * 1000, exchangeTimeCorrection)
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         query = self.omit(params, self.extract_params(path))
         baseUrl = self.implode_hostname(self.urls['api'][api])
         url = baseUrl + '/' + self.implode_params(path, params)

@@ -535,7 +535,7 @@ class hibachi(Exchange, ImplicitAPI):
         timestamp = self.safe_integer_product(trade, 'timestamp', 1000)
         cost = Precise.string_mul(price, amount)
         side: Str = None
-        fee = None
+        fee: dict = None
         orderType: Str = None
         orderId: Str = None
         takerOrMaker: Str = None
@@ -676,7 +676,7 @@ class hibachi(Exchange, ImplicitAPI):
         remaining = self.safe_string(order, 'availableQuantity')
         totalQuantity = self.safe_string(order, 'totalQuantity')
         availableQuantity = self.safe_string(order, 'availableQuantity')
-        filled = None
+        filled: Str = None
         if totalQuantity is not None and availableQuantity is not None:
             filled = Precise.string_sub(totalQuantity, availableQuantity)
         timeInForce = 'GTC'
@@ -1553,7 +1553,7 @@ class hibachi(Exchange, ImplicitAPI):
             'percentage': None,
         })
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         endpoint = '/' + self.implode_params(path, params)
         url = self.urls['api'][api] + endpoint
         headers = {'Hibachi-Client': 'HibachiCCXT/unversioned'}

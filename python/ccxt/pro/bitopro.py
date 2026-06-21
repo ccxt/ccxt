@@ -73,7 +73,7 @@ class bitopro(ccxt.async_support.bitopro):
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'ORDER_BOOK' + ':' + symbol
-        endPart = None
+        endPart: Str = None
         if limit is None:
             endPart = market['id']
         else:
@@ -275,7 +275,7 @@ class bitopro(ccxt.async_support.bitopro):
             elif side == 'bid':
                 side = 'buy'
         amount = self.safe_string(trade, 'volume')
-        fee = None
+        fee: NullableDict = None
         feeAmount = self.safe_string(trade, 'fee')
         feeSymbol = self.safe_currency_code(self.safe_string(trade, 'feeCurrency'))
         if feeAmount is not None:
@@ -285,7 +285,7 @@ class bitopro(ccxt.async_support.bitopro):
                 'rate': None,
             }
         isMaker = self.safe_value(trade, 'isMaker')
-        takerOrMaker = None
+        takerOrMaker: Str = None
         if isMaker is not None:
             if isMaker:
                 takerOrMaker = 'maker'
@@ -344,7 +344,7 @@ class bitopro(ccxt.async_support.bitopro):
         #
         marketId = self.safe_string(message, 'pair')
         # market-ids are lowercase in REST API and uppercase in WS API
-        market = self.safe_market(marketId.lower(), None, '_')
+        market = self.safe_market(marketId is not marketId.lower() if None else None, None, '_')
         symbol = market['symbol']
         event = self.safe_string(message, 'event')
         messageHash = event + ':' + symbol

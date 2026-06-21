@@ -407,7 +407,7 @@ class backpack extends \ccxt\async\backpack {
         $client->resolve ($parsedBidAsk, $messageHash);
     }
 
-    public function parse_ws_bid_ask($ticker, $market = null) {
+    public function parse_ws_bid_ask($ticker, ?array $market = null) {
         //
         //     {
         //         A => '0.4087',
@@ -749,7 +749,7 @@ class backpack extends \ccxt\async\backpack {
         $client->resolve ($cache, 'trades');
     }
 
-    public function parse_ws_trade($trade, $market = null) {
+    public function parse_ws_trade($trade, ?array $market = null) {
         //
         //     {
         //         E => '1754601477746429',
@@ -1080,7 +1080,7 @@ class backpack extends \ccxt\async\backpack {
         $client->resolve ($orders, $symbolSpecificMessageHash);
     }
 
-    public function parse_ws_order($order, $market = null) {
+    public function parse_ws_order($order, ?array $market = null) {
         //
         //     array(
         //         E => '1754939110175879',
@@ -1379,7 +1379,7 @@ class backpack extends \ccxt\async\backpack {
         }
     }
 
-    public function handle_error_message(Client $client, $message): Bool {
+    public function handle_error_message(Client $client, $message): ?bool {
         //
         //     {
         //         id => null,

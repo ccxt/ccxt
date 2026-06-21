@@ -541,7 +541,7 @@ class bittrade(Exchange, ImplicitAPI):
         numMarkets = len(markets)
         if numMarkets < 1:
             raise NetworkError(self.id + ' fetchMarkets() returned empty response: ' + self.json(markets))
-        result = []
+        result: List = []
         for i in range(0, len(markets)):
             market = markets[i]
             baseId = self.safe_string(market, 'base-currency')
@@ -844,7 +844,7 @@ class bittrade(Exchange, ImplicitAPI):
         price = self.safe_string(trade, 'price')
         amount = self.safe_string_2(trade, 'filled-amount', 'amount')
         cost = Precise.string_mul(price, amount)
-        fee: dict = None
+        fee: NullableDict = None
         feeCost = self.safe_string(trade, 'filled-fees')
         feeCurrency = self.safe_currency_code(self.safe_string(trade, 'fee-currency'))
         filledPoints = self.safe_string(trade, 'filled-points')
@@ -957,7 +957,7 @@ class bittrade(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        result = []
+        result: List = []
         for i in range(0, len(data)):
             trades = self.safe_value(data[i], 'data', [])
             for j in range(0, len(trades)):
@@ -1134,7 +1134,7 @@ class bittrade(Exchange, ImplicitAPI):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
-            account = None
+            account: NullableDict = None
             if code in result:
                 account = result[code]
             else:
@@ -1352,7 +1352,7 @@ class bittrade(Exchange, ImplicitAPI):
         price = self.safe_string(order, 'price')
         cost = self.safe_string_2(order, 'filled-cash-amount', 'field-cash-amount')  # same typo
         feeCost = self.safe_string_2(order, 'filled-fees', 'field-fees')  # typo in their API, filled fees
-        fee: dict = None
+        fee: NullableDict = None
         if feeCost is not None:
             feeCurrency = market['quote'] if (side == 'sell') else market['base']
             fee = {
@@ -1584,7 +1584,7 @@ class bittrade(Exchange, ImplicitAPI):
         else:
             success = self.safe_list(orders, 'success', [])
         failed = self.safe_list_2(orders, 'errors', 'failed', [])
-        result = []
+        result: List = []
         for i in range(0, len(success)):
             order = success[i]
             result.append(self.safe_order({
@@ -1679,7 +1679,7 @@ class bittrade(Exchange, ImplicitAPI):
         if limit is None or limit > 100:
             limit = 100
         await self.load_markets()
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
         request: dict = {
@@ -1706,7 +1706,7 @@ class bittrade(Exchange, ImplicitAPI):
         if limit is None or limit > 100:
             limit = 100
         await self.load_markets()
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
         request: dict = {
@@ -1862,7 +1862,7 @@ class bittrade(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
         url = '/'
         if api == 'market':
             url += api

@@ -91,7 +91,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         await self.load_markets()
         symbols = self.market_symbols(symbols)
         messageHashes = [methodName]
-        args = []
+        args: List[str] = []
         for i in range(0, len(symbols)):
             market = self.market(symbols[i])
             args.append(market['id'])
@@ -161,7 +161,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         self.handle_bid_ask(client, message)
         event = self.safe_string(message, 'event')
         tickers = self.safe_value(message, 'data', [])
-        result = []
+        result: List = []
         for i in range(0, len(tickers)):
             data = tickers[i]
             marketId = self.safe_string(data, 'market')
@@ -193,7 +193,7 @@ class bitvavo(ccxt.async_support.bitvavo):
     def handle_bid_ask(self, client: Client, message):
         event = 'bidask'
         tickers = self.safe_value(message, 'data', [])
-        result = []
+        result: List = []
         for i in range(0, len(tickers)):
             data = tickers[i]
             ticker = self.parse_ws_bid_ask(data)

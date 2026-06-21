@@ -415,7 +415,7 @@ class cryptomus(Exchange, ImplicitAPI):
         # currency here is array of networks
         id: Str = None  # all entried have same id, were grouped by
         code: Str = None
-        networks = {}
+        networks: dict = {}
         for i in range(0, len(rawCurrency)):
             networkEntry = rawCurrency[i]
             # set ID on first loop
@@ -703,9 +703,9 @@ class cryptomus(Exchange, ImplicitAPI):
         sideBuy = side == 'buy'
         amountToString = self.number_to_string(amount)
         priceToString = self.number_to_string(price)
-        cost = None
+        cost: Str = None
         cost, params = self.handle_param_string(params, 'cost')
-        response: dict = None
+        response: dict
         if type == 'market':
             if sideBuy:
                 createMarketBuyOrderRequiresPrice = True
@@ -824,7 +824,7 @@ class cryptomus(Exchange, ImplicitAPI):
         #     }
         #
         result = self.safe_list(response, 'result', [])
-        orders = []
+        orders: List = []
         for i in range(0, len(result)):
             order = result[i]
             orders.append(self.parse_order(order, market))
@@ -1077,8 +1077,8 @@ class cryptomus(Exchange, ImplicitAPI):
         return result
 
     def parse_fee_tiers(self, feeTiers, market: Market = None):
-        takerFees = []
-        makerFees = []
+        takerFees: List = []
+        makerFees: List = []
         for i in range(0, len(feeTiers)):
             tier = feeTiers[i]
             turnover = self.safe_number(tier, 'from_turnover')
@@ -1093,7 +1093,7 @@ class cryptomus(Exchange, ImplicitAPI):
             'taker': takerFees,
         }
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         endpoint = self.implode_params(path, params)
         params = self.omit(params, self.extract_params(path))
         url = self.urls['api'][api] + '/' + endpoint

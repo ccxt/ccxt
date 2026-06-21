@@ -1504,7 +1504,7 @@ public class ZebpayCore extends ZebpayApi
             //         }
             //     }
             //
-            Object responseData = this.safeDict(response, "data");
+            Object responseData = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(responseData, market);
         });
 

@@ -663,7 +663,7 @@ class modetrade(Exchange, ImplicitAPI):
         currencyId = self.safe_string(rawCurrency, 'token')
         networks = self.safe_list(rawCurrency, 'chain_details')
         code = self.safe_currency_code(currencyId)
-        minPrecision = None
+        minPrecision: Str = None
         resultingNetworks: dict = {}
         for j in range(0, len(networks)):
             network = networks[j]
@@ -717,7 +717,7 @@ class modetrade(Exchange, ImplicitAPI):
 
     def parse_token_and_fee_temp(self, item, feeTokenKey, feeAmountKey):
         feeCost = self.safe_string(item, feeAmountKey)
-        fee = None
+        fee: NullableDict = None
         if feeCost is not None:
             feeCurrencyId = self.safe_string(item, feeTokenKey)
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
@@ -1009,7 +1009,7 @@ class modetrade(Exchange, ImplicitAPI):
         #
         data = self.safe_dict(response, 'data', {})
         result = self.safe_list(data, 'rows', [])
-        rates = []
+        rates: List = []
         for i in range(0, len(result)):
             entry = result[i]
             marketId = self.safe_string(entry, 'symbol')
@@ -1578,7 +1578,7 @@ class modetrade(Exchange, ImplicitAPI):
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        ordersRequests = []
+        ordersRequests: List = []
         for i in range(0, len(orders)):
             rawOrder = orders[i]
             marketId = self.safe_string(rawOrder, 'symbol')
@@ -1723,7 +1723,7 @@ class modetrade(Exchange, ImplicitAPI):
         clientOrderIdUnified = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
         clientOrderIdExchangeSpecific = self.safe_string(params, 'client_order_id', clientOrderIdUnified)
         isByClientOrder = clientOrderIdExchangeSpecific is not None
-        response = None
+        response: dict
         if trigger:
             if isByClientOrder:
                 request['client_order_id'] = clientOrderIdExchangeSpecific
@@ -2744,7 +2744,7 @@ class modetrade(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, section='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, section='public', method='GET', params={}, headers: dict = None, body: Any = None):
         version = section[0]
         access = section[1]
         pathWithParams = self.implode_params(path, params)

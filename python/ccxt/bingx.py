@@ -1177,7 +1177,7 @@ class bingx(Exchange, ImplicitAPI):
         if until is not None:
             params = self.omit(params, ['until'])
             request['endTime'] = until
-        response: dict = None
+        response: dict
         if market['spot']:
             response = self.spotV1PublicGetMarketKline(self.extend(request, params))
         else:
@@ -1302,7 +1302,7 @@ class bingx(Exchange, ImplicitAPI):
         }
         if limit is not None:
             request['limit'] = min(limit, 100)  # avoid API exception "limit should less than 100"
-        response: dict = None
+        response: dict
         marketType: Str = None
         marketType, params = self.handle_market_type_and_params('fetchTrades', market, params)
         if marketType == 'spot':
@@ -1525,7 +1525,7 @@ class bingx(Exchange, ImplicitAPI):
         }
         if limit is not None:
             request['limit'] = limit
-        response: dict = None
+        response: dict
         marketType: Str = None
         marketType, params = self.handle_market_type_and_params('fetchOrderBook', market, params)
         if marketType == 'spot':
@@ -1632,7 +1632,7 @@ class bingx(Exchange, ImplicitAPI):
         request: dict = {
             'symbol': market['id'],
         }
-        response: dict = None
+        response: dict
         if market['inverse']:
             response = self.cswapV1PublicGetMarketPremiumIndex(self.extend(request, params))
         else:
@@ -1673,7 +1673,7 @@ class bingx(Exchange, ImplicitAPI):
         firstMarket = self.get_market_from_symbols(symbols)
         subType = 'linear'
         subType, params = self.handle_sub_type_and_params('fetchFundingRates', firstMarket, params, subType)
-        response: dict = None
+        response: dict
         if subType == 'inverse':
             response = self.cswapV1PublicGetMarketPremiumIndex(params)
         else:
@@ -1876,7 +1876,7 @@ class bingx(Exchange, ImplicitAPI):
         request: dict = {
             'symbol': market['id'],
         }
-        response: dict = None
+        response: dict
         if market['inverse']:
             response = self.cswapV1PublicGetMarketOpenInterest(self.extend(request, params))
         else:
@@ -1909,7 +1909,7 @@ class bingx(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        result: dict = {}
+        result: NullableDict = {}
         if market['inverse']:
             data = self.safe_list(response, 'data', [])
             result = self.safe_dict(data, 0, {})
@@ -1967,7 +1967,7 @@ class bingx(Exchange, ImplicitAPI):
         request: dict = {
             'symbol': market['id'],
         }
-        response: dict = None
+        response: dict
         if market['spot']:
             response = self.spotV1PublicGetTicker24hr(self.extend(request, params))
         else:
@@ -2033,7 +2033,7 @@ class bingx(Exchange, ImplicitAPI):
         type, params = self.handle_market_type_and_params('fetchTickers', market, params)
         subType: Str = None
         subType, params = self.handle_sub_type_and_params('fetchTickers', market, params)
-        response: dict = None
+        response: dict
         if type == 'spot':
             response = self.spotV1PublicGetTicker24hr(params)
         else:
@@ -2091,7 +2091,7 @@ class bingx(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
         }
-        response: dict = None
+        response: dict
         if subType == 'inverse':
             response = self.cswapV1PublicGetMarketPremiumIndex(self.extend(request, params))
             #
@@ -2149,7 +2149,7 @@ class bingx(Exchange, ImplicitAPI):
                 market = self.market(firstSymbol)
         subType: Str = None
         subType, params = self.handle_sub_type_and_params('fetchMarkPrices', market, params, 'linear')
-        response: dict = None
+        response: dict
         if subType == 'inverse':
             response = self.cswapV1PublicGetMarketPremiumIndex(params)
         else:
@@ -2301,7 +2301,7 @@ class bingx(Exchange, ImplicitAPI):
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         self.load_markets()
-        response: dict = None
+        response: dict
         standard: Bool = None
         standard, params = self.handle_option_and_params(params, 'fetchBalance', 'standard', False)
         subType: Str = None
@@ -2536,7 +2536,7 @@ class bingx(Exchange, ImplicitAPI):
         if since is not None:
             request['startTs'] = since
         request, params = self.handle_until_option('endTs', request, params)
-        response: dict = None
+        response: dict
         if market['linear']:
             response = self.swapV1PrivateGetTradePositionHistory(self.extend(request, params))
         else:
@@ -2591,7 +2591,7 @@ class bingx(Exchange, ImplicitAPI):
         symbols = self.market_symbols(symbols)
         standard: Bool = None
         standard, params = self.handle_option_and_params(params, 'fetchPositions', 'standard', False)
-        response: dict = None
+        response: dict
         if standard:
             response = self.contractV1PrivateGetAllPosition(params)
         else:
@@ -2685,7 +2685,7 @@ class bingx(Exchange, ImplicitAPI):
         request: dict = {
             'symbol': market['id'],
         }
-        response: dict = None
+        response: dict
         if market['inverse']:
             response = self.cswapV1PrivateGetUserPositions(self.extend(request, params))
             #
@@ -3652,7 +3652,7 @@ class bingx(Exchange, ImplicitAPI):
             else:
                 feeCurrencyCode = market['quote']
         stopLoss = self.safe_value(order, 'stopLoss')
-        stopLossPrice = None
+        stopLossPrice: Str = None
         if (stopLoss is not None) and (stopLoss != ''):
             stopLossPrice = self.omit_zero(self.safe_string(stopLoss, 'stopLoss'))
         if (stopLoss is not None) and ((not isinstance(stopLoss, numbers.Real))) and (stopLoss != ''):
@@ -3661,7 +3661,7 @@ class bingx(Exchange, ImplicitAPI):
                 stopLoss = self.parse_json(stopLoss)
             stopLossPrice = self.omit_zero(self.safe_string(stopLoss, 'stopPrice'))
         takeProfit = self.safe_value(order, 'takeProfit')
-        takeProfitPrice = None
+        takeProfitPrice: Str = None
         if takeProfit is not None and (takeProfit != ''):
             takeProfitPrice = self.omit_zero(self.safe_string(takeProfit, 'takeProfit'))
         if (takeProfit is not None) and ((not isinstance(takeProfit, numbers.Real))) and (takeProfit != ''):
@@ -3741,7 +3741,7 @@ class bingx(Exchange, ImplicitAPI):
         self.load_markets()
         isTwapOrder = self.safe_bool(params, 'twap', False)
         params = self.omit(params, 'twap')
-        response: dict = None
+        response: dict
         market: Market = None
         if isTwapOrder:
             twapRequest: dict = {
@@ -3922,7 +3922,7 @@ class bingx(Exchange, ImplicitAPI):
         subType: Str = None
         marketType, params = self.handle_market_type_and_params('cancelAllOrders', market, params)
         subType, params = self.handle_sub_type_and_params('cancelAllOrders', market, params)
-        response: dict = None
+        response: dict
         if marketType == 'spot':
             response = self.spotV1PrivatePostTradeCancelOpenOrders(self.extend(request, params))
             #
@@ -4073,7 +4073,7 @@ class bingx(Exchange, ImplicitAPI):
             id = idsToParse[i]
             stringId = str(id)
             parsedIds.append(stringId)
-        response: dict = None
+        response: dict
         if market['spot']:
             spotReqKey = 'clientOrderIDs' if areClientOrderIds else 'orderIds'
             request[spotReqKey] = ','.join(parsedIds)
@@ -4161,7 +4161,7 @@ class bingx(Exchange, ImplicitAPI):
             'type': 'ACTIVATE' if (isActive) else 'CLOSE',
             'timeOut': (self.parse_to_int(timeout / 1000)) if (isActive) else 0,
         }
-        response: dict = None
+        response: dict
         type: Str = None
         type, params = self.handle_market_type_and_params('cancelAllOrdersAfter', None, params)
         if type == 'spot':
@@ -4201,7 +4201,7 @@ class bingx(Exchange, ImplicitAPI):
         self.load_markets()
         isTwapOrder = self.safe_bool(params, 'twap', False)
         params = self.omit(params, 'twap')
-        response: dict = None
+        response: NullableDict = None
         market: Market = None
         if isTwapOrder:
             twapRequest: dict = {
@@ -4466,7 +4466,7 @@ class bingx(Exchange, ImplicitAPI):
             request['symbol'] = market['id']
         type: Str = None
         subType: Str = None
-        response: dict = None
+        response: dict
         type, params = self.handle_market_type_and_params('fetchOpenOrders', market, params)
         subType, params = self.handle_sub_type_and_params('fetchOpenOrders', market, params)
         if type == 'spot':
@@ -4693,7 +4693,7 @@ class bingx(Exchange, ImplicitAPI):
         type: Str = None
         subType: Str = None
         standard: Bool = None
-        response: dict = None
+        response: dict
         type, params = self.handle_market_type_and_params('fetchClosedOrders', market, params)
         subType, params = self.handle_sub_type_and_params('fetchClosedOrders', market, params)
         standard, params = self.handle_option_and_params(params, 'fetchClosedOrders', 'standard', False)
@@ -4996,7 +4996,7 @@ class bingx(Exchange, ImplicitAPI):
             'status': self.parse_transfer_status(status),
         }
 
-    def parse_transfer_status(self, status: Str) -> str:
+    def parse_transfer_status(self, status: Str) -> Str:
         statuses: dict = {
             'CONFIRMED': 'ok',
         }
@@ -5416,7 +5416,7 @@ class bingx(Exchange, ImplicitAPI):
         request: dict = {
             'symbol': market['id'],
         }
-        response: dict = None
+        response: dict
         if market['inverse']:
             response = self.cswapV1PrivateGetTradeLeverage(self.extend(request, params))
             #
@@ -5579,8 +5579,8 @@ class bingx(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         request: dict = {}
-        fills: List[Trade] = None
-        response: dict = None
+        fills: List[Trade]
+        response: dict
         subType: Str = None
         subType, params = self.handle_sub_type_and_params('fetchMyTrades', market, params)
         if subType == 'inverse':
@@ -5761,7 +5761,7 @@ class bingx(Exchange, ImplicitAPI):
         self.load_markets()
         currency = self.currency(code)
         defaultWalletType = 15  # spot
-        walletType = None
+        walletType: Int = None
         walletType, params = self.handle_option_and_params_2(params, 'withdraw', 'type', 'walletType', defaultWalletType)
         walletTypes = {
             'funding': 1,
@@ -5841,8 +5841,8 @@ class bingx(Exchange, ImplicitAPI):
             request['limit'] = limit
         subType: Str = None
         subType, params = self.handle_sub_type_and_params('fetchMyLiquidations', market, params)
-        response: dict = None
-        liquidations = None
+        response: dict
+        liquidations: NullableList = None
         if subType == 'inverse':
             response = self.cswapV1PrivateGetTradeForceOrders(self.extend(request, params))
             #
@@ -5967,7 +5967,7 @@ class bingx(Exchange, ImplicitAPI):
         market = self.market(symbol)
         positionId = self.safe_string(params, 'positionId')
         request: dict = {}
-        response: dict = None
+        response: dict
         if positionId is not None:
             response = self.swapV1PrivatePostTradeClosePosition(self.extend(request, params))
             #
@@ -6041,7 +6041,7 @@ class bingx(Exchange, ImplicitAPI):
         request: dict = {
             'recvWindow': recvWindow,
         }
-        response: dict = None
+        response: dict
         if subType == 'inverse':
             response = self.cswapV1PrivatePostTradeCloseAllPositions(self.extend(request, params))
             #
@@ -6117,7 +6117,7 @@ class bingx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: response from the exchange
         """
-        dualSidePosition = None
+        dualSidePosition: Str = None
         if hedged:
             dualSidePosition = 'true'
         else:
@@ -6172,7 +6172,7 @@ class bingx(Exchange, ImplicitAPI):
         request = self.create_order_request(symbol, type, side, amount, price, params)
         request['cancelOrderId'] = id
         request['cancelReplaceMode'] = 'STOP_ON_FAILURE'
-        response: dict = None
+        response: dict
         if market['swap']:
             response = self.swapV1PrivatePostTradeCancelReplace(self.extend(request, params))
             #
@@ -6288,7 +6288,7 @@ class bingx(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         subType: Str = None
-        response: dict = None
+        response: dict
         subType, params = self.handle_sub_type_and_params('fetchMarginMode', market, params)
         if subType == 'inverse':
             response = self.cswapV1PrivateGetTradeMarginType(self.extend(request, params))
@@ -6344,7 +6344,7 @@ class bingx(Exchange, ImplicitAPI):
         request: dict = {
             'symbol': market['id'],
         }
-        response: dict = None
+        response: NullableDict = None
         commission: dict = {}
         data = self.safe_dict(response, 'data', {})
         if market['spot']:
@@ -6512,7 +6512,7 @@ class bingx(Exchange, ImplicitAPI):
             })
         return tiers
 
-    def sign(self, path, section='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, section='public', method='GET', params={}, headers: dict = None, body: Str = None):
         type = section[0]
         version = section[1]
         access = section[2]

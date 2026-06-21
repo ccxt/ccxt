@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
 import hashlib
-from ccxt.base.types import Any, Balances, Bool, Int, Order, OrderBook, Str, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Market, Order, OrderBook, Str, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import AuthenticationError
@@ -184,7 +184,7 @@ class hollaex(ccxt.async_support.hollaex):
         """
         await self.load_markets()
         messageHash = 'usertrade'
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
@@ -259,7 +259,7 @@ class hollaex(ccxt.async_support.hollaex):
         """
         await self.load_markets()
         messageHash = 'order'
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
@@ -337,7 +337,7 @@ class hollaex(ccxt.async_support.hollaex):
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)
         stored = self.orders
-        rawOrders = None
+        rawOrders: NullableList = None
         if not isinstance(data, list):
             rawOrders = [data]
         else:
