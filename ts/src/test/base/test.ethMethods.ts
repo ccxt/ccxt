@@ -15,8 +15,8 @@ function testEthMethods () {
     const generatedAddress = exchange.ethGetAddressFromPrivateKey (privateKey);
     assert (generatedAddress.toLowerCase () === publicKey.toLowerCase (), 'ethGetAddressFromPrivateKey did not generate the expected address: ' + generatedAddress + ' != ' + publicKey);
     // ethAbiEncode (standard ABI parameter encoding)
-    const abiEncoded = exchange.binaryToBase16 (exchange.ethAbiEncode ([ 'uint256', 'address', 'bool' ], [ 12345, '0x1111111111111111111111111111111111111111', true ]));
-    const abiExpected = '000000000000000000000000000000000000000000000000000000000000303900000000000000000000000011111111111111111111111111111111111111110000000000000000000000000000000000000000000000000000000000000001';
+    const abiEncoded = exchange.binaryToBase16 (exchange.ethAbiEncode ([ 'uint256', 'address', 'bool' ], [ 12345, '0xb8d20c2b7a1ad2ee33bc50ef10876ed3035b5e7b', true ]));
+    const abiExpected = '0000000000000000000000000000000000000000000000000000000000003039000000000000000000000000b8d20c2b7a1ad2ee33bc50ef10876ed3035b5e7b0000000000000000000000000000000000000000000000000000000000000001';
     assert (abiEncoded === abiExpected, 'ethAbiEncode did not produce the expected output: ' + abiEncoded + ' != ' + abiExpected);
     // ethEncodeStructuredData (EIP-712 "0x1901" + domainSeparator + hashStruct preimage)
     const domain = {
