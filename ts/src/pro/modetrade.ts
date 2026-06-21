@@ -255,7 +255,7 @@ export default class modetrade extends modetradeRest {
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols), []);
+        symbols = this.marketSymbols (symbols);
         const name = 'tickers';
         const topic = name;
         const request: Dict = {
@@ -312,7 +312,7 @@ export default class modetrade extends modetradeRest {
      */
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols), []);
+        symbols = this.marketSymbols (symbols);
         const name = 'bbos';
         const topic = name;
         const request: Dict = {
@@ -995,7 +995,7 @@ export default class modetrade extends modetradeRest {
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         const messageHashes = [];
-        symbols = this.valueOr (this.marketSymbols (symbols), []);
+        symbols = this.marketSymbols (symbols);
         if (!this.isEmpty (symbols)) {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];

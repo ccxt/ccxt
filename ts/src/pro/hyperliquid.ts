@@ -352,7 +352,7 @@ export default class hyperliquid extends hyperliquidRest {
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols, undefined, true), []);
+        symbols = this.marketSymbols (symbols, undefined, true);
         let messageHash = 'tickers';
         const url = this.urls['api']['ws']['public'];
         let channel = 'webData2';
@@ -398,7 +398,7 @@ export default class hyperliquid extends hyperliquidRest {
      */
     async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols, undefined, true), []);
+        symbols = this.marketSymbols (symbols, undefined, true);
         const subMessageHash = 'tickers';
         let channel = 'webData2';
         [ channel, params ] = this.handleOptionAndParams (params, 'unWatchTickers', 'channel', channel);
@@ -1185,7 +1185,7 @@ export default class hyperliquid extends hyperliquidRest {
         const topic = 'clearinghouseState';
         let messageHash = topic + '::positions';
         if (!this.isEmpty (symbols)) {
-            symbols = this.valueOr (this.marketSymbols (symbols), []);
+            symbols = this.marketSymbols (symbols);
             messageHash += '::' + symbols.join (',');
         }
         const url = this.urls['api']['ws']['public'];

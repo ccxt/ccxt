@@ -91,7 +91,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const symbolsLength = symbols.length;
         const messageHashes = [];
         if (symbolsLength > 1) {
-            const parsedSymbols = this.valueOr (this.marketSymbols (symbols), []);
+            const parsedSymbols = this.marketSymbols (symbols);
             const marketIds = this.marketIds (parsedSymbols);
             productIds = marketIds;
             for (let i = 0; i < parsedSymbols.length; i++) {

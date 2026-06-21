@@ -1396,7 +1396,7 @@ export default class htx extends htxRest {
             }
             [ subType, params ] = this.handleOptionAndParams (params, 'watchPositions', 'subType', subType);
         }
-        symbols = this.valueOr (this.marketSymbols (symbols), []);
+        symbols = this.marketSymbols (symbols);
         let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('watchPositions', params, 'cross');
         const isLinear = (subType === 'linear');

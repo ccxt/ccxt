@@ -459,7 +459,7 @@ export default class kucoin extends kucoinRest {
                 return tickers;
             }
         } else {
-            const marketIds = this.valueOr (this.marketIds (symbols), []);
+            const marketIds = this.marketIds (symbols);
             const symbolsTopic = method + ':' + marketIds.join (',');
             tickers = await this.subscribeMultiple (url, messageHashes, symbolsTopic, topics, params);
             if (this.newUpdates) {
@@ -750,7 +750,7 @@ export default class kucoin extends kucoinRest {
             messageHashes.push ('bidask@' + market['symbol']);
         }
         const url = await this.negotiate (false, isFuturesChannel);
-        const marketIds = this.valueOr (this.marketIds (symbols), []);
+        const marketIds = this.marketIds (symbols);
         const joined = marketIds.join (',');
         const requestId = this.requestId ().toString ();
         const request: Dict = {
@@ -1117,7 +1117,7 @@ export default class kucoin extends kucoinRest {
         symbols = this.marketSymbols (symbols, undefined, false, true);
         const firstMarket = this.getMarketFromSymbols (symbols);
         const isFuturesMethod = firstMarket['contract'];
-        const marketIds = this.valueOr (this.marketIds (symbols), []);
+        const marketIds = this.marketIds (symbols);
         const url = await this.negotiate (false, isFuturesMethod);
         const messageHashes = [];
         const subscriptionHashes = [];
@@ -1154,7 +1154,7 @@ export default class kucoin extends kucoinRest {
     async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false, true);
-        const marketIds = this.valueOr (this.marketIds (symbols), []);
+        const marketIds = this.marketIds (symbols);
         const firstMarket = this.getMarketFromSymbols (symbols);
         const isFuturesMethod = firstMarket['contract'];
         const url = await this.negotiate (false, isFuturesMethod);
@@ -1472,7 +1472,7 @@ export default class kucoin extends kucoinRest {
         }
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const marketIds = this.valueOr (this.marketIds (symbols), []);
+        const marketIds = this.marketIds (symbols);
         const firstMarket = this.getMarketFromSymbols (symbols);
         const isFuturesMethod = firstMarket['contract'];
         const url = await this.negotiate (false, isFuturesMethod);
@@ -1528,7 +1528,7 @@ export default class kucoin extends kucoinRest {
         params = this.omit (params, 'limit');
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false, true);
-        const marketIds = this.valueOr (this.marketIds (symbols), []);
+        const marketIds = this.marketIds (symbols);
         const firstMarket = this.getMarketFromSymbols (symbols);
         const isFuturesMethod = firstMarket['contract'];
         const url = await this.negotiate (false, isFuturesMethod);

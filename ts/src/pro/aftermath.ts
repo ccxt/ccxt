@@ -242,7 +242,7 @@ export default class aftermath extends aftermathRest {
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         const messageHashes = [];
-        symbols = this.valueOr (this.marketSymbols (symbols), []);
+        symbols = this.marketSymbols (symbols);
         if (!this.isEmpty (symbols)) {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];

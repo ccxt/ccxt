@@ -83,7 +83,7 @@ export default class apex extends apexRest {
      */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols), []);
+        symbols = this.marketSymbols (symbols);
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
@@ -221,7 +221,7 @@ export default class apex extends apexRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
         }
-        symbols = this.valueOr (this.marketSymbols (symbols), []);
+        symbols = this.marketSymbols (symbols);
         const url = this.getWsPublicUrl ();
         const topics: string[] = [];
         const messageHashes: string[] = [];
@@ -635,7 +635,7 @@ export default class apex extends apexRest {
         await this.loadMarkets ();
         let messageHash = '';
         if (!this.isEmpty (symbols)) {
-            symbols = this.valueOr (this.marketSymbols (symbols), []);
+            symbols = this.marketSymbols (symbols);
             messageHash = '::' + symbols.join (',');
         }
         const url = this.getWsPrivateUrl ();

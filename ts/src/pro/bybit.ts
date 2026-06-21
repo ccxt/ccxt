@@ -409,7 +409,7 @@ export default class bybit extends bybitRest {
         params = this.cleanParams (params);
         const options = this.safeValue (this.options, 'watchTickers', {});
         const topic = this.valueOr (this.safeString (options, 'name', 'tickers'), '');
-        const marketIds = this.valueOr (this.marketIds (symbols), []);
+        const marketIds = this.marketIds (symbols);
         const topics = [ ];
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
@@ -442,7 +442,7 @@ export default class bybit extends bybitRest {
         const topic = this.valueOr (this.safeString (options, 'name', 'tickers'), '');
         const messageHashes = [];
         const subMessageHashes = [];
-        const marketIds = this.valueOr (this.marketIds (symbols), []);
+        const marketIds = this.marketIds (symbols);
         const topics = [ ];
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
@@ -630,7 +630,7 @@ export default class bybit extends bybitRest {
         const messageHashes = [];
         const url = await this.getUrlByMarketType (symbols[0], false, 'watchBidsAsks', params);
         params = this.cleanParams (params);
-        const marketIds = this.valueOr (this.marketIds (symbols), []);
+        const marketIds = this.marketIds (symbols);
         const topics = [ ];
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
@@ -881,7 +881,7 @@ export default class bybit extends bybitRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
         }
-        symbols = this.valueOr (this.marketSymbols (symbols), []);
+        symbols = this.marketSymbols (symbols);
         const url = await this.getUrlByMarketType (symbols[0], false, 'watchOrderBook', params);
         params = this.cleanParams (params);
         const market = this.market (symbols[0]);
@@ -1080,7 +1080,7 @@ export default class bybit extends bybitRest {
      */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols), []);
+        symbols = this.marketSymbols (symbols);
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
@@ -1495,7 +1495,7 @@ export default class bybit extends bybitRest {
         const method = 'watchPositions';
         let messageHash = '';
         if (!this.isEmpty (symbols)) {
-            symbols = this.valueOr (this.marketSymbols (symbols), []);
+            symbols = this.marketSymbols (symbols);
             messageHash = '::' + symbols.join (',');
         }
         const firstSymbol = this.safeString (symbols, 0);

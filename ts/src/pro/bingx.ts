@@ -1180,7 +1180,7 @@ export default class bingx extends bingxRest {
         await this.authenticate ();
         let market: Market = undefined;
         let messageHash = '';
-        symbols = this.valueOr (this.marketSymbols (symbols), []);
+        symbols = this.marketSymbols (symbols);
         if (!this.isEmpty (symbols)) {
             market = this.getMarketFromSymbols (symbols);
             messageHash = '::' + symbols.join (',');

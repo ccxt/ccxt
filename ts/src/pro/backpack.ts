@@ -805,7 +805,7 @@ export default class backpack extends backpackRest {
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
-        const marketIds = this.valueOr (this.marketIds (symbols), []);
+        const marketIds = this.marketIds (symbols);
         const messageHashes: string[] = [];
         const topics: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -843,7 +843,7 @@ export default class backpack extends backpackRest {
     async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
-        const marketIds = this.valueOr (this.marketIds (symbols), []);
+        const marketIds = this.marketIds (symbols);
         const messageHashes: string[] = [];
         const topics: string[] = [];
         for (let i = 0; i < symbols.length; i++) {

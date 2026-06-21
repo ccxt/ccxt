@@ -790,7 +790,7 @@ export default class bitget extends bitgetRest {
      */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols), []);
+        symbols = this.marketSymbols (symbols);
         let channel = 'books';
         let incrementalFeed = true;
         if ((limit === 1) || (limit === 5) || (limit === 15) || (limit === 50)) {
@@ -1011,7 +1011,7 @@ export default class bitget extends bitgetRest {
             throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
         }
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols), []);
+        symbols = this.marketSymbols (symbols);
         let uta: Bool = undefined;
         [ uta, params ] = this.handleOptionAndParams (params, 'watchTradesForSymbols', 'uta', false);
         const topics = [];
@@ -1286,7 +1286,7 @@ export default class bitget extends bitgetRest {
         let instType = 'USDT-FUTURES';
         let uta: Bool = undefined;
         [ uta, params ] = this.handleOptionAndParams (params, 'watchPositions', 'uta', false);
-        symbols = this.valueOr (this.marketSymbols (symbols), []);
+        symbols = this.marketSymbols (symbols);
         if (!this.isEmpty (symbols)) {
             market = this.getMarketFromSymbols (symbols);
             [ instType, params ] = this.getInstType ('watchPositions', market, uta, params);

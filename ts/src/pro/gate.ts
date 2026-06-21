@@ -855,7 +855,7 @@ export default class gate extends gateRest {
      */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols), []);
+        symbols = this.marketSymbols (symbols);
         const marketIds = this.marketIds (symbols);
         const market = this.market (symbols[0]);
         const messageType = this.getTypeByMarket (market);
@@ -885,7 +885,7 @@ export default class gate extends gateRest {
      */
     async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols), []);
+        symbols = this.marketSymbols (symbols);
         const marketIds = this.marketIds (symbols);
         const market = this.market (symbols[0]);
         const messageType = this.getTypeByMarket (market);
@@ -1281,7 +1281,7 @@ export default class gate extends gateRest {
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         let market: Market = undefined;
-        symbols = this.valueOr (this.marketSymbols (symbols), []);
+        symbols = this.marketSymbols (symbols);
         const payload = [ '!' + 'all' ];
         if (!this.isEmpty (symbols)) {
             market = this.getMarketFromSymbols (symbols);
@@ -1601,7 +1601,7 @@ export default class gate extends gateRest {
      */
     async watchMyLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols, undefined, true, true), []);
+        symbols = this.marketSymbols (symbols, undefined, true, true);
         const market = this.getMarketFromSymbols (symbols);
         let type = undefined;
         let query: Dict = undefined;

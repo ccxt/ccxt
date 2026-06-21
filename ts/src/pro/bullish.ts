@@ -685,7 +685,7 @@ export default class bullish extends bullishRest {
         const subscribeHash = 'positions';
         let messageHash = subscribeHash;
         if (!this.isEmpty (symbols)) {
-            symbols = this.valueOr (this.marketSymbols (symbols), []);
+            symbols = this.marketSymbols (symbols);
             messageHash += '::' + symbols.join (',');
         }
         const request: Dict = {

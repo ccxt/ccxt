@@ -199,7 +199,7 @@ export default class toobit extends toobitRest {
             const rawHash = market['id'];
             subParams.push (rawHash);
         }
-        const marketIds = this.valueOr (this.marketIds (symbols), []);
+        const marketIds = this.marketIds (symbols);
         const url = this.urls['api']['ws']['common'] + '/quote/ws/v1';
         const request: Dict = {
             'symbol': marketIds.join (','),
@@ -431,7 +431,7 @@ export default class toobit extends toobitRest {
             const rawHash = market['id'];
             subParams.push (rawHash);
         }
-        const marketIds = this.valueOr (this.marketIds (symbols), []);
+        const marketIds = this.marketIds (symbols);
         const url = this.urls['api']['ws']['common'] + '/quote/ws/v1';
         const request: Dict = {
             'symbol': marketIds.join (','),
@@ -539,7 +539,7 @@ export default class toobit extends toobitRest {
             const rawHash = market['id'];
             subParams.push (rawHash);
         }
-        const marketIds = this.valueOr (this.marketIds (symbols), []);
+        const marketIds = this.marketIds (symbols);
         const url = this.urls['api']['ws']['common'] + '/quote/ws/v1';
         const request: Dict = {
             'symbol': marketIds.join (','),
@@ -979,7 +979,7 @@ export default class toobit extends toobitRest {
         await this.authenticate ();
         let messageHash = '';
         if (!this.isEmpty (symbols)) {
-            symbols = this.valueOr (this.marketSymbols (symbols), []);
+            symbols = this.marketSymbols (symbols);
             messageHash = '::' + symbols.join (',');
         }
         const url = this.getUserStreamUrl ();
