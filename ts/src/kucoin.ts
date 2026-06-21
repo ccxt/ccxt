@@ -6000,7 +6000,7 @@ export default class kucoin extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    handleTradeType (isContractMarket = false, marginMode = undefined, isUnified = false, params = {}) {
+    handleTradeType (isContractMarket = false, marginMode: Str = undefined, isUnified = false, params = {}) {
         let tradeType = this.safeString (params, 'tradeType');
         if (tradeType === undefined) {
             if (isContractMarket) {

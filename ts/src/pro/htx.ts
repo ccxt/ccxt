@@ -848,13 +848,13 @@ export default class htx extends htxRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    getOrderChannelAndMessageHash (type, subType, market = undefined, params = {}) {
+    getOrderChannelAndMessageHash (type, subType, market: Market = undefined, params = {}) {
         let messageHash: Str = undefined;
         let channel: Str = undefined;
         let orderType = this.safeString (this.options, 'orderType', 'orders'); // orders or matchOrders
         orderType = this.safeString (params, 'orderType', orderType);
         params = this.omit (params, 'orderType');
-        const marketCode = (market !== undefined) ? market['lowercaseId'].toLowerCase () : undefined;
+        const marketCode = (market !== undefined) ? (market['lowercaseId'] as string).toLowerCase () : undefined;
         const baseId = (market !== undefined) ? market['baseId'] : undefined;
         const prefix = orderType;
         messageHash = prefix;
