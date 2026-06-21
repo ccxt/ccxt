@@ -6069,8 +6069,8 @@ func (this *CoinbaseCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 				AddElementToObject(result, symbol, map[string]any{
 					"info":       response,
 					"symbol":     symbol,
-					"maker":      taker_fee,
-					"taker":      marker_fee,
+					"maker":      marker_fee,
+					"taker":      taker_fee,
 					"percentage": true,
 				})
 			}
