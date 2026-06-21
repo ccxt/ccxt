@@ -913,7 +913,7 @@ class hibachi(Exchange, ImplicitAPI):
         # {"orders": [{nonce: '1754349993908', orderId: '589642085255349248'}]}
         #
         ret = []
-        responseOrders = self.safe_list(response, 'orders')
+        responseOrders = self.safe_list(response, 'orders', [])
         for i in range(0, len(responseOrders)):
             responseOrder = responseOrders[i]
             ret.append(self.safe_order({
@@ -1001,7 +1001,7 @@ class hibachi(Exchange, ImplicitAPI):
         # {"orders": [{"orderId": "589636801329628160"}]}
         #
         ret = []
-        responseOrders = self.safe_list(response, 'orders')
+        responseOrders = self.safe_list(response, 'orders', [])
         for i in range(0, len(responseOrders)):
             responseOrder = responseOrders[i]
             ret.append(self.safe_order({
@@ -1071,7 +1071,7 @@ class hibachi(Exchange, ImplicitAPI):
         # {"orders": [{"orderId": "589636801329628160"}]}
         #
         ret = []
-        responseOrders = self.safe_list(response, 'orders')
+        responseOrders = self.safe_list(response, 'orders', [])
         for i in range(0, len(responseOrders)):
             responseOrder = responseOrders[i]
             ret.append(self.safe_order({
@@ -1865,7 +1865,7 @@ class hibachi(Exchange, ImplicitAPI):
         #         },
         #     ]
         # }
-        transactions = self.safe_list(response, 'transactions')
+        transactions = self.safe_list(response, 'transactions', [])
         deposits = []
         for i in range(0, len(transactions)):
             transaction = transactions[i]
@@ -1921,7 +1921,7 @@ class hibachi(Exchange, ImplicitAPI):
         #         },
         #     ]
         # }
-        transactions = self.safe_list(response, 'transactions')
+        transactions = self.safe_list(response, 'transactions', [])
         withdrawals = []
         for i in range(0, len(transactions)):
             transaction = transactions[i]
@@ -2057,7 +2057,7 @@ class hibachi(Exchange, ImplicitAPI):
         #     ]
         # }
         #
-        data = self.safe_list(response, 'data')
+        data = self.safe_list(response, 'data', [])
         rates = []
         for i in range(0, len(data)):
             entry = data[i]

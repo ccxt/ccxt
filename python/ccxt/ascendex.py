@@ -2399,7 +2399,7 @@ class ascendex(Exchange, ImplicitAPI):
             'time': self.milliseconds(),
         }
         if symbol is not None:
-            request['symbol'] = market['id']
+            request['symbol'] = self.safe_string(market, 'id')
         response: NullableDict = None
         if (type == 'spot') or (type == 'margin'):
             response = self.v1PrivateAccountCategoryDeleteOrderAll(self.extend(request, query))
@@ -2937,12 +2937,12 @@ class ascendex(Exchange, ImplicitAPI):
         status = 'ok' if (errorCode == '0') else 'failed'
         return {
             'info': data,
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'type': None,
             'marginMode': 'isolated',
             'amount': None,
             'total': None,
-            'code': market['quote'],
+            'code': self.safe_string(market, 'quote'),
             'status': status,
             'timestamp': None,
             'datetime': None,

@@ -630,7 +630,7 @@ class coinbase(Exchange, ImplicitAPI):
         accounts = self.safe_list(response, 'data', [])
         length = len(accounts)
         lastIndex = length - 1
-        last = self.safe_dict(accounts, lastIndex)
+        last = self.safe_dict(accounts, lastIndex, {})
         if (cursor is not None) and (cursor != ''):
             last['next_starting_after'] = cursor
             accounts[lastIndex] = last
@@ -681,7 +681,7 @@ class coinbase(Exchange, ImplicitAPI):
         cursor = self.safe_string(response, 'cursor')
         if (accountsLength > 0) and (cursor is not None) and (cursor != ''):
             lastIndex = accountsLength - 1
-            last = self.safe_dict(accounts, lastIndex)
+            last = self.safe_dict(accounts, lastIndex, {})
             last['cursor'] = cursor
             accounts[lastIndex] = last
         return self.parse_accounts(accounts, params)
@@ -3494,7 +3494,7 @@ class coinbase(Exchange, ImplicitAPI):
         #     }
         #
         orders = self.safe_list(response, 'orders', [])
-        first = self.safe_dict(orders, 0)
+        first = self.safe_dict(orders, 0, {})
         cursor = self.safe_string(response, 'cursor')
         if (cursor is not None) and (cursor != ''):
             first['cursor'] = cursor
@@ -3564,7 +3564,7 @@ class coinbase(Exchange, ImplicitAPI):
         #     }
         #
         orders = self.safe_list(response, 'orders', [])
-        first = self.safe_dict(orders, 0)
+        first = self.safe_dict(orders, 0, {})
         cursor = self.safe_string(response, 'cursor')
         if (cursor is not None) and (cursor != ''):
             first['cursor'] = cursor
@@ -3831,7 +3831,7 @@ class coinbase(Exchange, ImplicitAPI):
         #     }
         #
         trades = self.safe_list(response, 'fills', [])
-        first = self.safe_dict(trades, 0)
+        first = self.safe_dict(trades, 0, {})
         cursor = self.safe_string(response, 'cursor')
         if (cursor is not None) and (cursor != ''):
             first['cursor'] = cursor

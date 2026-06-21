@@ -377,7 +377,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         super(hyperliquid, self).set_sandbox_mode(enabled)
         self.options['sandboxMode'] = enabled
 
-    def market(self, symbol: Str) -> MarketInterface:
+    def market(self, symbol: str) -> MarketInterface:
         if self.markets is None:
             raise ExchangeError(self.id + ' markets not loaded')
         if (symbol is not None) and not (symbol in self.markets):
@@ -520,7 +520,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :returns dict[]: an array of objects representing market data
         """
         options = self.safe_dict(self.options, 'fetchMarkets', {})
-        types = self.safe_list(options, 'types')
+        types = self.safe_list(options, 'types', [])
         rawPromises = []
         for i in range(0, len(types)):
             marketType = types[i]
@@ -2301,7 +2301,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         #
         innerResponse = self.safe_dict(response, 'response')
         data = self.safe_dict(innerResponse, 'data')
-        statuses = self.safe_list(data, 'statuses')
+        statuses = self.safe_list(data, 'statuses', [])
         orders: List = []
         for i in range(0, len(statuses)):
             status = statuses[i]
@@ -4192,7 +4192,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             for i in range(0, len(records)):
                 record = records[i]
                 if record['type'] == 'vaultDeposit':
-                    delta = self.safe_dict(record, 'delta')
+                    delta = self.safe_dict(record, 'delta', {})
                     if delta['vault'] == '0x' + vaultAddress:
                         deposits.append(record)
         else:
@@ -4247,7 +4247,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             for i in range(0, len(records)):
                 record = records[i]
                 if record['type'] == 'vaultWithdraw':
-                    delta = self.safe_dict(record, 'delta')
+                    delta = self.safe_dict(record, 'delta', {})
                     if delta['vault'] == '0x' + vaultAddress:
                         withdrawals.append(record)
         else:

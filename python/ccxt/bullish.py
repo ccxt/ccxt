@@ -2853,11 +2853,13 @@ class bullish(Exchange, ImplicitAPI):
                 if rateLimitToken is not None:
                     headers['BX-RATE-LIMIT-TOKEN'] = rateLimitToken
             if path == 'v1/users/hmac/login':
+                headers = {} if (headers is None) else headers
                 headers['BX-PUBLIC-KEY'] = self.apiKey
             else:
                 token = self.token
                 if (token is None):
                     raise AuthenticationError(self.id + ' requires a token, please call signIn() first')
+                headers = {} if (headers is None) else headers
                 headers['Authorization'] = 'Bearer ' + token
                 # headers['BX-NONCE-WINDOW-ENABLED'] = 'false'  # default is False
         if method == 'GET':

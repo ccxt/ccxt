@@ -1914,7 +1914,7 @@ class mexc(Exchange, ImplicitAPI):
         marketType, query = self.handle_market_type_and_params('fetchTickers', market, params)
         tickers = None
         if isSingularMarket:
-            request['symbol'] = market['id']
+            request['symbol'] = self.safe_string(market, 'id')
         if marketType == 'spot':
             tickers = await self.spotPublicGetTicker24hr(self.extend(request, query))
             #
@@ -2937,7 +2937,7 @@ class mexc(Exchange, ImplicitAPI):
         marketType, params = self.handle_market_type_and_params('fetchOpenOrders', market, params)
         if marketType == 'spot':
             if symbol is not None:
-                request['symbol'] = market['id']
+                request['symbol'] = self.safe_string(market, 'id')
             marginMode, query = self.handle_margin_mode_and_params('fetchOpenOrders', params)
             response: dict
             if marginMode is not None:
@@ -3075,7 +3075,7 @@ class mexc(Exchange, ImplicitAPI):
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
             requestInner: dict = {
-                'symbol': market['id'],
+                'symbol': self.safe_string(market, 'id'),
             }
             clientOrderId = self.safe_string(params, 'clientOrderId')
             if clientOrderId is not None:
@@ -3210,7 +3210,7 @@ class mexc(Exchange, ImplicitAPI):
         if marketType == 'spot':
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument on spot')
-            request['symbol'] = market['id']
+            request['symbol'] = self.safe_string(market, 'id')
             response: dict
             if marginMode is not None:
                 if marginMode != 'isolated':
@@ -3257,7 +3257,7 @@ class mexc(Exchange, ImplicitAPI):
             return self.parse_orders(response, market)
         else:
             if symbol is not None:
-                request['symbol'] = market['id']
+                request['symbol'] = self.safe_string(market, 'id')
             # method can be either: contractPrivatePostOrderCancelAll or contractPrivatePostPlanorderCancelAll
             # the Planorder endpoints work not only for stop-market orders but also for stop-limit orders that are supposed to have separate endpoint
             method = self.safe_string(self.options, 'cancelAllOrders', 'contractPrivatePostOrderCancelAll')
@@ -4032,7 +4032,7 @@ class mexc(Exchange, ImplicitAPI):
         if marketType == 'spot':
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' fetchOrderTrades() requires a symbol argument')
-            request['symbol'] = market['id']
+            request['symbol'] = self.safe_string(market, 'id')
             request['orderId'] = id
             trades = await self.spotPrivateGetMyTrades(self.extend(request, query))
             #
@@ -5724,7 +5724,7 @@ class mexc(Exchange, ImplicitAPI):
             marginMode = 'isolated' if (openType == 1) else 'cross'
         return {
             'info': leverage,
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'marginMode': marginMode,
             'longLeverage': longLeverage,
             'shortLeverage': shortLeverage,
@@ -5892,6 +5892,7 @@ class mexc(Exchange, ImplicitAPI):
                     'source': self.safe_string(self.options, 'broker', 'CCXT'),
                 }
             if (method == 'POST') or (method == 'PUT') or (method == 'DELETE'):
+                headers = {} if (headers is None) else headers
                 headers['Content-Type'] = 'application/json'
         elif section == 'contract' or section == 'spot2':
             url = self.urls['api'][section][access] + '/' + self.implode_params(path, params)

@@ -635,7 +635,7 @@ class dydx(Exchange, ImplicitAPI):
         # }
         #
         timestamp = self.parse8601(self.safe_string(trade, 'createdAt'))
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol')
         price = self.safe_string(trade, 'price')
         amount = self.safe_string(trade, 'size')
         side = self.safe_string_lower(trade, 'side')
@@ -1239,7 +1239,7 @@ class dydx(Exchange, ImplicitAPI):
         # }
         #
         response = self.nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress(request)
-        account = self.safe_dict(response, 'info')
+        account = self.safe_dict(response, 'info', {})
         account['pub_key'] = {
             # encode with binary key would fail in python
             'key': account['pub_key']['key'],
@@ -1271,7 +1271,7 @@ class dydx(Exchange, ImplicitAPI):
         postOnly = self.is_post_only(isMarket, None, params)
         amountStr = self.amount_to_precision(symbol, amount)
         priceStr = self.price_to_precision(symbol, price)
-        marketInfo = self.safe_dict(market, 'info')
+        marketInfo = self.safe_dict(market, 'info', {})
         atomicResolution = marketInfo['atomicResolution']
         quantumScale = self.pow('10', Precise.string_neg(atomicResolution))
         quantums = Precise.string_mul(amountStr, quantumScale)
@@ -1748,7 +1748,7 @@ class dydx(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' failed to simulate transaction.')
         defaultFeeDenom = self.safe_string(self.options, 'defaultFeeDenom')
         defaultFeeMultiplier = self.safe_string(self.options, 'defaultFeeMultiplier')
-        feeDenom = self.safe_dict(self.options, 'feeDenom')
+        feeDenom = self.safe_dict(self.options, 'feeDenom', {})
         gasPrice: Str = None
         denom: Str = None
         if defaultFeeDenom == 'uusdc':

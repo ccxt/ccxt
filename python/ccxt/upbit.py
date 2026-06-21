@@ -626,12 +626,14 @@ class upbit(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbol
         """
         self.load_markets()
-        ids = None
+        ids: Str = None
         if symbols is None:
-            ids = ','.join(self.ids)
+            allIds = self.ids
+            if allIds is not None:
+                ids = ','.join(allIds)
         else:
-            ids = self.market_ids(symbols)
-            ids = ','.join(ids)
+            marketIds = self.market_ids(symbols)
+            ids = ','.join(marketIds)
         request: dict = {
             'markets': ids,
             # 'count': limit,

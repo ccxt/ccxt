@@ -4445,7 +4445,7 @@ class coinex(Exchange, ImplicitAPI):
             'marginMode': 'isolated',
             'amount': self.parse_number(Precise.string_abs(change)),
             'total': self.safe_number(data, 'margin_avbl'),
-            'code': market['quote'],
+            'code': self.safe_string(market, 'quote'),
             'status': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),

@@ -870,11 +870,11 @@ class luno(Exchange, ImplicitAPI):
         feeCost: Str = None
         if feeBaseString is not None:
             if not Precise.string_equals(feeBaseString, '0.0'):
-                feeCurrency = market['base']
+                feeCurrency = self.safe_string(market, 'base')
                 feeCost = feeBaseString
         elif feeCounterString is not None:
             if not Precise.string_equals(feeCounterString, '0.0'):
-                feeCurrency = market['quote']
+                feeCurrency = self.safe_string(market, 'quote')
                 feeCost = feeCounterString
         timestamp = self.safe_integer(trade, 'timestamp')
         return self.safe_trade({
@@ -882,7 +882,7 @@ class luno(Exchange, ImplicitAPI):
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'order': orderId,
             'type': None,
             'side': side,
