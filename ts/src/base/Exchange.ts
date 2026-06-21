@@ -43,7 +43,7 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook, OrderBook
 // ----------------------------------------------------------------------------
 //
 // import types
-import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL, NullableDict } from './types.js';
+import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL, NullableDict, NestedDictionary } from './types.js';
 // ----------------------------------------------------------------------------
 // move this elsewhere.
 import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
@@ -232,7 +232,7 @@ export default class Exchange {
     httpAgent: any = undefined;
     httpsAgent: any = undefined;
 
-    minFundingAddressLength: Int = 1;  // used in checkAddress
+    minFundingAddressLength: number = 1;  // used in checkAddress
     substituteCommonCurrencyCodes: boolean = true;  // reserved
     quoteJsonNumbers: boolean = true;  // treat numbers in json as quoted precise strings
     // eslint-disable-next-line no-unused-vars
@@ -250,7 +250,7 @@ export default class Exchange {
     validateServerSsl: boolean = true;
     validateClientSsl: boolean = false;
 
-    timeout: Int = 10000;  // milliseconds
+    timeout: number = 10000;  // milliseconds
     verbose: boolean = false;
 
     apiKey: string;
@@ -280,8 +280,8 @@ export default class Exchange {
     positions: any;
     urls: {
         logo?: string;
-        api?: string | Dictionary<string>;
-        test?: string | Dictionary<string>;
+        api: string | NestedDictionary;
+        test: string | NestedDictionary;
         www?: string;
         doc?: string[];
         api_management?: string;
@@ -366,14 +366,14 @@ export default class Exchange {
     };
 
     markets_by_id: Dictionary<any> = undefined;
-    symbols: Strings = undefined;
-    ids: Strings = undefined;
+    symbols: string[] = [];
+    ids: string[] = [];
     currencies: Currencies = {};
 
     baseCurrencies: Dictionary<CurrencyInterface> = undefined;
     quoteCurrencies: Dictionary<CurrencyInterface> = undefined;
     currencies_by_id: Dictionary<CurrencyInterface> = undefined;
-    codes: Strings = undefined;
+    codes: string[] = [];
 
     reloadingMarkets: Bool = undefined;
     marketsLoading: Promise<Dictionary<Market>> = undefined;
@@ -643,9 +643,9 @@ export default class Exchange {
     }
 
     uuid5 (namespace: string, name: string): string {
-        const nsBytes = namespace
+        const nsBytes = (namespace
             .replace (/-/g, '')
-            .match (/.{1,2}/g)
+            .match (/.{1,2}/g) as string[])
             .map ((byte) => parseInt (byte, 16));
         const nameBytes = new TextEncoder ().encode (name);
         const data = new Uint8Array ([ ...nsBytes, ...nameBytes ]);
@@ -8470,7 +8470,7 @@ export default class Exchange {
                     errors = 0;
                     result = this.arrayConcat (result, response);
                     const last = this.safeValue (response, responseLength - 1);
-                    paginationTimestamp = this.safeInteger (last, 'timestamp') + 1;
+                    paginationTimestamp = (this.safeInteger (last, 'timestamp') as number) + 1;
                     if ((until !== undefined) && (paginationTimestamp >= until)) {
                         break;
                     }

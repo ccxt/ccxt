@@ -296,7 +296,7 @@ export default class ndax extends ndaxRest {
                     ];
                     updates[marketId][timeframe] = true;
                 } else {
-                    if (length && (parsed[0] < stored[length - 1][0])) {
+                    if (length && ((parsed[0] as number) < stored[length - 1][0])) {
                         continue;
                     } else {
                         stored.push (parsed);

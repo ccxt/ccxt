@@ -11645,7 +11645,7 @@ export default class binance extends Exchange {
         const request: Dict = {};
         if (symbol !== undefined) {
             symbol = market['symbol'];
-            request['underlying'] = market['baseId'] + market['quoteId'];
+            request['underlying'] = this.safeString (market, 'baseId', '') + this.safeString (market, 'quoteId', '');
         }
         if (since !== undefined) {
             request['startTime'] = since;

@@ -2625,7 +2625,7 @@ export default class krakenfutures extends Exchange {
             throw new BadRequest (this.id + ' fetchFundingRateHistory() supports swap contracts only');
         }
         const request: Dict = {
-            'symbol': market['id'].toUpperCase (),
+            'symbol': this.safeStringUpper (market, 'id'),
         };
         const response = await this.publicGetHistoricalfundingrates (this.extend (request, params));
         //

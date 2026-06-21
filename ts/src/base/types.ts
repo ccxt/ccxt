@@ -15,6 +15,10 @@ export interface Dictionary<T> {
     [key: string]: T;
 }
 
+export interface NestedDictionary {
+    [key: string]: string | NestedDictionary;
+}
+
 export type Dict = Dictionary<any>;
 export type NullableDict = Dict | undefined;
 

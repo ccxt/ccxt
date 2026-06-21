@@ -440,7 +440,7 @@ export default class alpaca extends Exchange {
         const jetlagStrStart = timestamp.length - 6;
         const jetlagStrEnd = timestamp.length - 3;
         const jetlag = timestamp.slice (jetlagStrStart, jetlagStrEnd);
-        const iso = this.parse8601 (localTime) - this.parseToNumeric (jetlag) * 3600 * 1000;
+        const iso = (this.parse8601 (localTime) as number) - this.parseToNumeric (jetlag) * 3600 * 1000;
         return iso;
     }
 

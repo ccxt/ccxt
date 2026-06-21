@@ -634,7 +634,7 @@ export default class derive extends Exchange {
 
     parseMarket (market: Dict): Market {
         const type = this.safeString (market, 'instrument_type');
-        let marketType: MarketType;
+        let marketType: MarketType | undefined = undefined;
         let spot = false;
         let margin = true;
         let swap = false;

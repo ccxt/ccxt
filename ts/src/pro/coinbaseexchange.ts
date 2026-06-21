@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import coinbaseexchangeRest from '../coinbaseexchange.js';
 import { AuthenticationError, ExchangeError, BadSymbol, BadRequest, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Tickers, Int, Ticker, Str, Strings, OrderBook, Trade, Order, Dict, Bool, Market } from '../base/types.js';
+import type { Tickers, Int, Ticker, Str, Strings, OrderBook, Trade, Order, Dict, Bool, Market, FeeInterface } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import Precise from '../base/Precise.js';
 
@@ -668,11 +668,11 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
                         if (previousOrder['fee'] === undefined) {
                             previousOrder['fee'] = {
                                 'cost': 0,
-                                'currency': trade['fee']['currency'],
+                                'currency': (trade['fee'] as FeeInterface)['currency'],
                             };
                         }
-                        if ((previousOrder['fee']['cost'] !== undefined) && (trade['fee']['cost'] !== undefined)) {
-                            previousOrder['fee']['cost'] = this.sum (previousOrder['fee']['cost'], trade['fee']['cost']);
+                        if ((previousOrder['fee']['cost'] !== undefined) && ((trade['fee'] as FeeInterface)['cost'] !== undefined)) {
+                            previousOrder['fee']['cost'] = this.sum (previousOrder['fee']['cost'], (trade['fee'] as FeeInterface)['cost']);
                             const previousOrderFee = this.safeDict (previousOrder, 'fee');
                             const tradeFee = this.safeDict (trade, 'fee');
                             previousOrder['fee']['cost'] = this.parseNumber (Precise.stringAdd (this.safeString (previousOrderFee, 'cost'), this.safeString (tradeFee, 'cost')));

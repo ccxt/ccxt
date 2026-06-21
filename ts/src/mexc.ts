@@ -1041,7 +1041,7 @@ export default class mexc extends Exchange {
      */
     async fetchStatus (params = {}) {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchStatus', undefined, params);
-        let response: Dict;
+        let response: Dict = {};
         let status: Str = undefined;
         let updated: Int = undefined;
         if (marketType === 'spot') {
@@ -1495,7 +1495,7 @@ export default class mexc extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let orderbook: OrderBook;
+        let orderbook: OrderBook | undefined = undefined;
         if (market['spot']) {
             const response = await this.spotPublicGetDepth (this.extend (request, params));
             //
@@ -1576,7 +1576,7 @@ export default class mexc extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let trades: Trade[];
+        let trades: Trade[] = [];
         if (market['spot']) {
             const until = this.safeIntegerN (params, [ 'endTime', 'until' ]);
             if (since !== undefined) {
@@ -1834,7 +1834,7 @@ export default class mexc extends Exchange {
             'symbol': market['id'],
             'interval': timeframeValue,
         };
-        let candles: OHLCV[];
+        let candles: OHLCV[] = [];
         const until = this.safeIntegerN (params, [ 'until', 'endTime' ]);
         let start = since;
         if ((until !== undefined) && (since === undefined)) {
@@ -2032,7 +2032,7 @@ export default class mexc extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTicker', market, params);
-        let ticker: Ticker;
+        let ticker: Ticker | undefined = undefined;
         const request: Dict = {
             'symbol': market['id'],
         };
@@ -2677,7 +2677,7 @@ export default class mexc extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        let data: Dict;
+        let data: Dict = {};
         if (market['spot']) {
             const clientOrderId = this.safeString (params, 'clientOrderId');
             if (clientOrderId !== undefined) {
@@ -3403,7 +3403,7 @@ export default class mexc extends Exchange {
             // the Planorder endpoints work not only for stop-market orders but also for stop-limit orders that are supposed to have separate endpoint
             let method = this.safeString (this.options, 'cancelAllOrders', 'contractPrivatePostOrderCancelAll');
             method = this.safeString (query, 'method', method);
-            let response: Dict;
+            let response: Dict = {};
             if (method === 'contractPrivatePostOrderCancelAll') {
                 response = await this.contractPrivatePostOrderCancelAll (this.extend (request, query));
             } else if (method === 'contractPrivatePostPlanorderCancelAll') {
@@ -3984,7 +3984,7 @@ export default class mexc extends Exchange {
             if (symbol === undefined) {
                 const symbols = this.safeValue (params, 'symbols');
                 if (symbols !== undefined) {
-                    parsedSymbols = this.marketIds (symbols).join (',');
+                    parsedSymbols = (this.marketIds (symbols) as string[]).join (',');
                 }
             } else {
                 const market = this.market (symbol);

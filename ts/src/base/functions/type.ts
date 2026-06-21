@@ -39,7 +39,11 @@ const safeFloat = (o: implicitReturnType, k: IndexType, $default?: number): Num 
     return isNumber (n) ? n : $default;
 };
 
-const safeInteger = (o: implicitReturnType, k: IndexType, $default?: number): Int => {
+const safeInteger: {
+    (o: implicitReturnType, k: IndexType): Int;
+    (o: implicitReturnType, k: IndexType, $default: number): number;
+    (o: implicitReturnType, k: IndexType, $default: Num): Int;
+} = (o: implicitReturnType, k: IndexType, $default?: number): Int => {
     const n = asInteger (prop (o, k));
     return isNumber (n) ? n : $default;
 };
@@ -59,7 +63,11 @@ const safeValue = (o: implicitReturnType, k: IndexType, $default?: any) => {
     return hasProps (x) ? x : $default;
 }
 
-const safeString = (o: implicitReturnType, k: IndexType, $default?: string): Str => {
+const safeString: {
+    (o: implicitReturnType, k: IndexType): Str;
+    (o: implicitReturnType, k: IndexType, $default: string): string;
+    (o: implicitReturnType, k: IndexType, $default: Str): Str;
+} = (o: implicitReturnType, k: IndexType, $default?: string): Str => {
     const x = prop (o, k);
     return isStringCoercible (x) ? String (x) : $default;
 }

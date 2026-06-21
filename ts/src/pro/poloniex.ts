@@ -4,7 +4,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import poloniexRest from '../poloniex.js';
 import { BadRequest, AuthenticationError, ExchangeError, InvalidOrder } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Tickers, Int, OHLCV, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Balances, Num, Dict, Bool, NullableList } from '../base/types.js';
+import type { Tickers, Int, OHLCV, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Balances, FeeInterface, Num, Dict, Bool, NullableList } from '../base/types.js';
 import { Precise } from '../base/Precise.js';
 import Client from '../base/ws/Client.js';
 
@@ -876,12 +876,12 @@ export default class poloniex extends poloniexRest {
                         previousOrder['fee'] = {
                             'rate': undefined,
                             'cost': 0,
-                            'currency': trade['fee']['currency'],
+                            'currency': (trade['fee'] as FeeInterface)['currency'],
                         };
                     }
-                    if ((previousOrder['fee']['cost'] !== undefined) && (trade['fee']['cost'] !== undefined)) {
+                    if ((previousOrder['fee']['cost'] !== undefined) && ((trade['fee'] as FeeInterface)['cost'] !== undefined)) {
                         const stringOrderCost = this.numberToString (previousOrder['fee']['cost']);
-                        const stringTradeCost = this.numberToString (trade['fee']['cost']);
+                        const stringTradeCost = this.numberToString ((trade['fee'] as FeeInterface)['cost']);
                         previousOrder['fee']['cost'] = Precise.stringAdd (stringOrderCost, stringTradeCost);
                     }
                     const rawState = this.safeString (order, 'state');

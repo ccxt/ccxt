@@ -618,9 +618,9 @@ export class ParamType {
             const name = this.name || "";
 
             if (this.isArray()) {
-                const result = JSON.parse(this.arrayChildren.format("json"));
+                const result = JSON.parse(this.arrayChildren!.format("json"));
                 result.name = name;
-                result.type += `[${ (this.arrayLength < 0 ? "": String(this.arrayLength)) }]`;
+                result.type += `[${ (this.arrayLength! < 0 ? "": String(this.arrayLength!)) }]`;
                 return JSON.stringify(result);
             }
 
@@ -632,7 +632,7 @@ export class ParamType {
 
             if (typeof(this.indexed) === "boolean") { result.indexed = this.indexed; }
             if (this.isTuple()) {
-                result.components = this.components.map((c) => JSON.parse(c.format(format)));
+                result.components = this.components!.map((c) => JSON.parse(c.format(format)));
             }
             return JSON.stringify(result);
         }
@@ -641,11 +641,11 @@ export class ParamType {
 
         // Array
         if (this.isArray()) {
-            result += this.arrayChildren.format(format);
-            result += `[${ (this.arrayLength < 0 ? "": String(this.arrayLength)) }]`;
+            result += this.arrayChildren!.format(format);
+            result += `[${ (this.arrayLength! < 0 ? "": String(this.arrayLength!)) }]`;
         } else {
             if (this.isTuple()) {
-                result += "(" + this.components.map(
+                result += "(" + this.components!.map(
                     (comp) => comp.format(format)
                 ).join((format === "full") ? ", ": ",") + ")";
             } else {
@@ -704,16 +704,16 @@ export class ParamType {
                 throw new Error("array is wrong length");
             }
             const _this = this;
-            return value.map((v) => (_this.arrayChildren.walk(v, process)));
+            return value.map((v) => (_this.arrayChildren!.walk(v, process)));
         }
 
         if (this.isTuple()) {
             if (!Array.isArray(value)) { throw new Error("invalid tuple value"); }
-            if (value.length !== this.components.length) {
+            if (value.length !== this.components!.length) {
                 throw new Error("array is wrong length");
             }
             const _this = this;
-            return value.map((v, i) => (_this.components[i].walk(v, process)));
+            return value.map((v, i) => (_this.components![i].walk(v, process)));
         }
 
         return process(this.type, value);
@@ -726,7 +726,7 @@ export class ParamType {
             if (this.arrayLength !== -1 && value.length !== this.arrayLength) {
                 throw new Error("array is wrong length");
             }
-            const childType = this.arrayChildren;
+            const childType = this.arrayChildren!;
 
             const result = value.slice();
             result.forEach((value, index) => {
@@ -739,7 +739,7 @@ export class ParamType {
         }
 
         if (this.isTuple()) {
-            const components = this.components;
+            const components = this.components!;
 
             // Convert the object into an array
             let result: Array<any>;
@@ -760,7 +760,7 @@ export class ParamType {
                 });
             }
 
-            if (result.length !== this.components.length) {
+            if (result.length !== this.components!.length) {
                 throw new Error("array is wrong length");
             }
 
