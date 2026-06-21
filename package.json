@@ -365,6 +365,7 @@
     "@scure/bip32": "2.2.0",
     "@scure/bip39": "2.2.0",
     "@scure/starknet": "2.2.0",
+    "ox": "0.14.29",
     "ws": "8.21.0"
   },
   "optionalDependencies": {

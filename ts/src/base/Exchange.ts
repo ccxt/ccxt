@@ -48,8 +48,8 @@ import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, B
 // move this elsewhere.
 import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
 import { totp } from './functions/totp.js';
-import ethers from '../static_dependencies/ethers/index.js';
-import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
+import { encode as encodeAbiParameters } from 'ox/AbiParameters';
+import { hashStruct } from 'ox/TypedData';
 import { SecureRandom } from '../static_dependencies/jsencrypt/lib/jsbn/rng.js';
 import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';
 import * as Starknet from '../static_dependencies/starknet/index.js';
@@ -1623,11 +1623,51 @@ export default class Exchange {
     }
 
     ethAbiEncode (types, args) {
-        return this.base16ToBinary (ethers.encode (types, args).slice (2));
+        const params = [];
+        for (let i = 0; i < types.length; i++) {
+            params.push ({ 'type': types[i] });
+        }
+        return this.base16ToBinary (encodeAbiParameters (params, args).slice (2));
     }
 
     ethEncodeStructuredData (domain, messageTypes, messageData) {
-        return this.base16ToBinary (TypedDataEncoder.encode (domain, messageTypes, messageData).slice (-132));
+        // builds the EIP-712 preimage "0x1901" + domainSeparator + hashStruct(message)
+        // matching the previous (ethers) behaviour, then strips the "0x" prefix
+        const domainFieldTypes = { 'name': 'string', 'version': 'string', 'chainId': 'uint256', 'verifyingContract': 'address', 'salt': 'bytes32' };
+        const domainFieldNames = [ 'name', 'version', 'chainId', 'verifyingContract', 'salt' ];
+        const domainFields = [];
+        for (let i = 0; i < domainFieldNames.length; i++) {
+            const fieldName = domainFieldNames[i];
+            const fieldValue = domain[fieldName];
+            if (fieldValue !== undefined && fieldValue !== null) {
+                domainFields.push ({ 'name': fieldName, 'type': domainFieldTypes[fieldName] });
+            }
+        }
+        const domainSeparator = hashStruct ({ 'data': domain, 'primaryType': 'EIP712Domain', 'types': { 'EIP712Domain': domainFields }});
+        // derive the primary type: the only struct not referenced as a field by any other struct
+        const typeNames = Object.keys (messageTypes);
+        const referenced = {};
+        for (let i = 0; i < typeNames.length; i++) {
+            const fields = messageTypes[typeNames[i]];
+            for (let j = 0; j < fields.length; j++) {
+                const fieldType = fields[j]['type'];
+                const bracketIndex = fieldType.indexOf ('[');
+                const baseType = (bracketIndex >= 0) ? fieldType.slice (0, bracketIndex) : fieldType;
+                if ((baseType in messageTypes) && (baseType !== typeNames[i])) {
+                    referenced[baseType] = true;
+                }
+            }
+        }
+        let primaryType = undefined;
+        for (let i = 0; i < typeNames.length; i++) {
+            if (!(typeNames[i] in referenced)) {
+                primaryType = typeNames[i];
+                break;
+            }
+        }
+        const structHash = hashStruct ({ 'data': messageData, 'primaryType': primaryType, 'types': messageTypes });
+        const encoded = '0x1901' + this.remove0xPrefix (domainSeparator) + this.remove0xPrefix (structHash);
+        return this.base16ToBinary (encoded.slice (-132));
     }
 
     ethGetAddressFromPrivateKey (privateKey: string): string {
