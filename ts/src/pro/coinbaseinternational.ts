@@ -144,7 +144,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         if (this.isEmpty (symbols)) {
             symbols = this.symbols;
         } else {
-            symbols = this.valueOr (this.marketSymbols (symbols), []);
+            symbols = this.marketSymbols (symbols);
         }
         const messageHashes = [];
         const productIds = [];
@@ -538,7 +538,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false, true, true), []);
+        symbols = this.marketSymbols (symbols, undefined, false, true, true);
         const trades = await this.subscribeMultiple ('MATCH', symbols, params);
         if (this.newUpdates) {
             const first = this.safeDict (trades, 0);

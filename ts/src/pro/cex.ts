@@ -1000,7 +1000,7 @@ export default class cex extends cexRest {
         //     }
         //
         const data = this.safeValue (message, 'data', {});
-        const pair = this.valueOr (this.safeString (data, 'pair'), '');
+        const pair = this.safeString (data, 'pair');
         const symbol = this.pairToSymbol (pair);
         const messageHash = 'orderbook:' + symbol;
         const timestamp = this.safeInteger2 (data, 'timestamp_ms', 'timestamp');
@@ -1043,7 +1043,7 @@ export default class cex extends cexRest {
         //
         const data = this.safeValue (message, 'data', {});
         const incrementalId = this.safeInteger (data, 'id');
-        const pair = this.valueOr (this.safeString (data, 'pair', ''), '');
+        const pair = this.safeString (data, 'pair', '');
         const symbol = this.pairToSymbol (pair);
         const storedOrderBook = this.safeValue (this.orderbooks, symbol);
         const messageHash = 'orderbook:' + symbol;
@@ -1124,7 +1124,7 @@ export default class cex extends cexRest {
         //         "pair": "BTC:USDT"
         //     }
         //
-        const pair = this.valueOr (this.safeString (message, 'pair'), '');
+        const pair = this.safeString (message, 'pair');
         const parts = pair.split (':');
         const baseId = this.safeString (parts, 0);
         const quoteId = this.safeString (parts, 1);
@@ -1175,7 +1175,7 @@ export default class cex extends cexRest {
         //     }
         //
         const data = this.safeValue (message, 'data', {});
-        const pair = this.valueOr (this.safeString (data, 'pair'), '');
+        const pair = this.safeString (data, 'pair');
         const symbol = this.pairToSymbol (pair);
         const messageHash = 'ohlcv:' + symbol;
         const ohlcv = [
@@ -1202,7 +1202,7 @@ export default class cex extends cexRest {
         //     }
         //
         const data = this.safeValue (message, 'data', []);
-        const pair = this.valueOr (this.safeString (message, 'pair'), '');
+        const pair = this.safeString (message, 'pair');
         const symbol = this.pairToSymbol (pair);
         const messageHash = 'ohlcv:' + symbol;
         // const stored = this.safeValue (this.ohlcvs, symbol);

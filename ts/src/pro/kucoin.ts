@@ -423,7 +423,7 @@ export default class kucoin extends kucoinRest {
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols, undefined, true, true), []);
+        symbols = this.marketSymbols (symbols, undefined, true, true);
         const firstMarket = this.getMarketFromSymbols (symbols);
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchTickers', firstMarket, params);
@@ -500,7 +500,7 @@ export default class kucoin extends kucoinRest {
 
     async watchUtaTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false, true), []);
+        symbols = this.marketSymbols (symbols, undefined, false, true);
         const messageHash = 'uta:ticker';
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -590,7 +590,7 @@ export default class kucoin extends kucoinRest {
         //     }
         //    }
         //
-        const topic = this.valueOr (this.safeString (message, 'topic'), '');
+        const topic = this.safeString (message, 'topic');
         if (topic.indexOf ('contractMarket') < 0) {
             let market: Market = undefined;
             if (topic !== undefined) {
@@ -720,7 +720,7 @@ export default class kucoin extends kucoinRest {
      */
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false, true, false), []);
+        symbols = this.marketSymbols (symbols, undefined, false, true, false);
         const firstMarket = this.getMarketFromSymbols (symbols);
         const isFuturesMethod = firstMarket['contract'];
         let channelName = '/spotMarket/level1:';
@@ -738,7 +738,7 @@ export default class kucoin extends kucoinRest {
 
     async watchMultiHelper (methodName, channelName: string, isFuturesChannel: boolean, symbols: Strings = undefined, params = {}) {
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false, true, false), []);
+        symbols = this.marketSymbols (symbols, undefined, false, true, false);
         const length = symbols.length;
         if (length > 100) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() accepts a maximum of 100 symbols');
@@ -800,7 +800,7 @@ export default class kucoin extends kucoinRest {
     }
 
     parseWsBidAsk (ticker, market = undefined) {
-        const topic = this.valueOr (this.safeString (ticker, 'topic'), '');
+        const topic = this.safeString (ticker, 'topic');
         if (topic.indexOf ('contractMarket') < 0) {
             const parts = topic.split (':');
             const marketId = parts[1];
@@ -987,7 +987,7 @@ export default class kucoin extends kucoinRest {
         const data = this.safeDict (message, 'data', {});
         const marketId = this.safeString (data, 'symbol');
         const candles = this.safeList (data, 'candles', []);
-        const topic = this.valueOr (this.safeString (message, 'topic'), '');
+        const topic = this.safeString (message, 'topic');
         const parts = topic.split ('_');
         const interval = this.safeString (parts, 1);
         // use a reverse lookup in a static map instead
@@ -1114,7 +1114,7 @@ export default class kucoin extends kucoinRest {
             throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
         }
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false, true), []);
+        symbols = this.marketSymbols (symbols, undefined, false, true);
         const firstMarket = this.getMarketFromSymbols (symbols);
         const isFuturesMethod = firstMarket['contract'];
         const marketIds = this.valueOr (this.marketIds (symbols), []);
@@ -1153,7 +1153,7 @@ export default class kucoin extends kucoinRest {
      */
     async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false, true), []);
+        symbols = this.marketSymbols (symbols, undefined, false, true);
         const marketIds = this.valueOr (this.marketIds (symbols), []);
         const firstMarket = this.getMarketFromSymbols (symbols);
         const isFuturesMethod = firstMarket['contract'];
@@ -1471,7 +1471,7 @@ export default class kucoin extends kucoinRest {
             }
         }
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols), []);
+        symbols = this.marketSymbols (symbols);
         const marketIds = this.valueOr (this.marketIds (symbols), []);
         const firstMarket = this.getMarketFromSymbols (symbols);
         const isFuturesMethod = firstMarket['contract'];
@@ -1527,7 +1527,7 @@ export default class kucoin extends kucoinRest {
         const limit = this.safeInteger (params, 'limit');
         params = this.omit (params, 'limit');
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false, true), []);
+        symbols = this.marketSymbols (symbols, undefined, false, true);
         const marketIds = this.valueOr (this.marketIds (symbols), []);
         const firstMarket = this.getMarketFromSymbols (symbols);
         const isFuturesMethod = firstMarket['contract'];
@@ -1608,7 +1608,7 @@ export default class kucoin extends kucoinRest {
         //     }
         //
         const data = this.safeDict (message, 'data');
-        const topic = this.valueOr (this.safeString (message, 'topic'), '');
+        const topic = this.safeString (message, 'topic');
         const topicParts = topic.split (':');
         const topicSymbol = this.safeString (topicParts, 1);
         const topicChannel = this.safeString (topicParts, 0);
@@ -1781,7 +1781,7 @@ export default class kucoin extends kucoinRest {
 
     handleOrderBookSubscription (client: Client, message, subscription) {
         const limit = this.safeInteger (subscription, 'limit');
-        const symbols = this.valueOr (this.safeList (subscription, 'symbols'), []);
+        const symbols = this.safeList (subscription, 'symbols');
         if (symbols === undefined) {
             const symbol = this.safeString (subscription, 'symbol');
             this.orderbooks[symbol] = this.orderBook ({}, limit);
@@ -2187,7 +2187,7 @@ export default class kucoin extends kucoinRest {
         }
         cachedOrders.append (parsed);
         const messageHash = 'orders';
-        const topic = this.valueOr (this.safeString (message, 'topic'), '');
+        const topic = this.safeString (message, 'topic');
         const suffix = this.getOrdersMessageHashSuffix (topic);
         const typeSpecificMessageHash = messageHash + suffix;
         client.resolve (cachedOrders, typeSpecificMessageHash);
@@ -2360,7 +2360,7 @@ export default class kucoin extends kucoinRest {
         const myTrades = this.myTrades;
         myTrades.append (parsed);
         const messageHash = 'myTrades';
-        const topic = this.valueOr (this.safeString (message, 'topic'), '');
+        const topic = this.safeString (message, 'topic');
         const suffix = this.getMyTradesMessageHashSuffix (topic);
         const typeSpecificMessageHash = messageHash + suffix;
         client.resolve (this.myTrades, typeSpecificMessageHash);
@@ -2658,7 +2658,7 @@ export default class kucoin extends kucoinRest {
             const relationEventParts = relationEvent.split ('.');
             requestAccountType = this.safeString (relationEventParts, 0);
         }
-        const topic = this.valueOr (this.safeString (message, 'topic'), '');
+        const topic = this.safeString (message, 'topic');
         if (topic === '/contractAccount/wallet') {
             requestAccountType = 'contract';
         }
@@ -2776,7 +2776,7 @@ export default class kucoin extends kucoinRest {
         const tradeType = uta ? 'UNIFIED' : 'TRADE';
         const messageHash = 'positions';
         const messageHashes = [];
-        symbols = this.valueOr (this.marketSymbols (symbols), []);
+        symbols = this.marketSymbols (symbols);
         if (symbols === undefined) {
             messageHashes.push (messageHash);
         } else {
@@ -2968,7 +2968,7 @@ export default class kucoin extends kucoinRest {
         //         }
         //     }
         //
-        const topic = this.valueOr (this.safeString (message, 'topic', ''), '');
+        const topic = this.safeString (message, 'topic', '');
         const parts = topic.split (':');
         const marketId = this.safeString (parts, 1);
         const symbol = this.safeSymbol (marketId, undefined, '');
@@ -3116,7 +3116,7 @@ export default class kucoin extends kucoinRest {
         //         }
         //     }
         //
-        const topic = this.valueOr (this.safeString (message, 'topic'), '');
+        const topic = this.safeString (message, 'topic');
         if (topic === '/market/ticker:all') {
             this.handleTicker (client, message);
             return;

@@ -164,7 +164,7 @@ export default class grvt extends grvtRest {
         let interval: Str = undefined;
         [ interval, params ] = this.handleOptionAndParams (params, 'watchTickers', 'interval', 500);
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols), []);
+        symbols = this.marketSymbols (symbols);
         const rawHashes: string[] = [];
         const messageHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -309,7 +309,7 @@ export default class grvt extends grvtRest {
      */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols), []);
+        symbols = this.marketSymbols (symbols);
         const rawHashes: string[] = [];
         const messageHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -524,7 +524,7 @@ export default class grvt extends grvtRest {
         }
         let interval: Str = undefined;
         [ interval, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'interval', 500);
-        symbols = this.valueOr (this.marketSymbols (symbols), []);
+        symbols = this.marketSymbols (symbols);
         const extraPart = isSnapshot ? (interval.toString () + '-' + limit.toString ()) : interval.toString ();
         const rawHashes: string[] = [];
         const messageHashes: string[] = [];
@@ -739,7 +739,7 @@ export default class grvt extends grvtRest {
         await this.authenticate ();
         await this.loadMarkets ();
         const subAccountId = this.getSubAccountId (params);
-        symbols = this.valueOr (this.marketSymbols (symbols), []);
+        symbols = this.marketSymbols (symbols);
         const rawHashes: string[] = [];
         const messageHashes: string[] = [];
         if (symbols !== undefined) {

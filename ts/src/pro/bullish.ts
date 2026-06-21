@@ -382,7 +382,7 @@ export default class bullish extends bullishRest {
         const request: Dict = {
             'topic': 'orders',
         };
-        const tradingAccountId = this.valueOr (this.safeString (params, 'tradingAccountId'), '');
+        const tradingAccountId = this.safeString (params, 'tradingAccountId');
         if (tradingAccountId !== undefined) {
             request['tradingAccountId'] = tradingAccountId;
             params = this.omit (params, 'tradingAccountId');
@@ -495,7 +495,7 @@ export default class bullish extends bullishRest {
         const request: Dict = {
             'topic': 'trades',
         };
-        const tradingAccountId = this.valueOr (this.safeString (params, 'tradingAccountId'), '');
+        const tradingAccountId = this.safeString (params, 'tradingAccountId');
         if (tradingAccountId !== undefined) {
             request['tradingAccountId'] = tradingAccountId;
             params = this.omit (params, 'tradingAccountId');
@@ -593,7 +593,7 @@ export default class bullish extends bullishRest {
             'topic': 'assetAccounts',
         };
         let messageHash = 'balance';
-        const tradingAccountId = this.valueOr (this.safeString (params, 'tradingAccountId'), '');
+        const tradingAccountId = this.safeString (params, 'tradingAccountId');
         if (tradingAccountId !== undefined) {
             params = this.omit (params, 'tradingAccountId');
             request['tradingAccountId'] = tradingAccountId;
@@ -644,7 +644,7 @@ export default class bullish extends bullishRest {
         //         }
         //     }
         //
-        const tradingAccountId = this.valueOr (this.safeString (message, 'tradingAccountId'), '');
+        const tradingAccountId = this.safeString (message, 'tradingAccountId');
         if (!(tradingAccountId in this.balance)) {
             this.balance[tradingAccountId] = {};
         }

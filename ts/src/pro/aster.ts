@@ -150,7 +150,7 @@ export default class aster extends asterRest {
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols, undefined, true, true, true), []);
+        symbols = this.marketSymbols (symbols, undefined, true, true, true);
         const firstMarket = this.getMarketFromSymbols (symbols);
         const type = this.safeString (firstMarket, 'type', 'swap');
         const symbolsLength = symbols.length;
@@ -196,7 +196,7 @@ export default class aster extends asterRest {
      */
     async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols, undefined, true, true, true), []);
+        symbols = this.marketSymbols (symbols, undefined, true, true, true);
         const firstMarket = this.getMarketFromSymbols (symbols);
         const type = this.safeString (firstMarket, 'type', 'swap');
         const symbolsLength = symbols.length;
@@ -270,7 +270,7 @@ export default class aster extends asterRest {
      */
     async watchMarkPrices (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols, undefined, true, true, true), []);
+        symbols = this.marketSymbols (symbols, undefined, true, true, true);
         const firstMarket = this.getMarketFromSymbols (symbols);
         const type = this.safeString (firstMarket, 'type', 'swap');
         const symbolsLength = symbols.length;
@@ -317,7 +317,7 @@ export default class aster extends asterRest {
      */
     async unWatchMarkPrices (symbols: Strings = undefined, params = {}): Promise<any> {
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols, undefined, true, true, true), []);
+        symbols = this.marketSymbols (symbols, undefined, true, true, true);
         const firstMarket = this.getMarketFromSymbols (symbols);
         const type = this.safeString (firstMarket, 'type', 'swap');
         const symbolsLength = symbols.length;
@@ -441,7 +441,7 @@ export default class aster extends asterRest {
      */
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols, undefined, true, true, true), []);
+        symbols = this.marketSymbols (symbols, undefined, true, true, true);
         const firstMarket = this.getMarketFromSymbols (symbols);
         const type = this.safeString (firstMarket, 'type', 'swap');
         const symbolsLength = symbols.length;
@@ -484,7 +484,7 @@ export default class aster extends asterRest {
      */
     async unWatchBidsAsks (symbols: Strings = undefined, params = {}): Promise<any> {
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols, undefined, true, true, true), []);
+        symbols = this.marketSymbols (symbols, undefined, true, true, true);
         const firstMarket = this.getMarketFromSymbols (symbols);
         const type = this.safeString (firstMarket, 'type', 'swap');
         const symbolsLength = symbols.length;
@@ -595,7 +595,7 @@ export default class aster extends asterRest {
      */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols, undefined, true, true, true), []);
+        symbols = this.marketSymbols (symbols, undefined, true, true, true);
         const firstMarket = this.getMarketFromSymbols (symbols);
         const type = this.safeString (firstMarket, 'type', 'swap');
         const symbolsLength = symbols.length;
@@ -641,7 +641,7 @@ export default class aster extends asterRest {
      */
     async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols, undefined, true, true, true), []);
+        symbols = this.marketSymbols (symbols, undefined, true, true, true);
         const firstMarket = this.getMarketFromSymbols (symbols);
         const type = this.safeString (firstMarket, 'type', 'swap');
         const symbolsLength = symbols.length;
@@ -897,7 +897,7 @@ export default class aster extends asterRest {
      */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols, undefined, true, true, true), []);
+        symbols = this.marketSymbols (symbols, undefined, true, true, true);
         const firstMarket = this.getMarketFromSymbols (symbols);
         const type = this.safeString (firstMarket, 'type', 'swap');
         const symbolsLength = symbols.length;
@@ -942,7 +942,7 @@ export default class aster extends asterRest {
      */
     async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols, undefined, true, true, true), []);
+        symbols = this.marketSymbols (symbols, undefined, true, true, true);
         const firstMarket = this.getMarketFromSymbols (symbols);
         const type = this.safeString (firstMarket, 'type', 'swap');
         const symbolsLength = symbols.length;
@@ -1424,7 +1424,7 @@ export default class aster extends asterRest {
         this.setPositionsCache (client);
         const messageHashes: string[] = [];
         const messageHash = 'positions';
-        symbols = this.valueOr (this.marketSymbols (symbols, 'swap', true, true), []);
+        symbols = this.marketSymbols (symbols, 'swap', true, true);
         if (symbols === undefined) {
             messageHashes.push (messageHash);
         } else {

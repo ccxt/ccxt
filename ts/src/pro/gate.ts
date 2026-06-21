@@ -1011,7 +1011,7 @@ export default class gate extends gateRest {
         const marketIds: Dict = {};
         for (let i = 0; i < result.length; i++) {
             const ohlcv = result[i];
-            const subscription = this.valueOr (this.safeString (ohlcv, 'n', ''), '');
+            const subscription = this.safeString (ohlcv, 'n', '');
             const parts = subscription.split ('_');
             const timeframeId = this.safeString (parts, 0);
             const timeframe = this.findTimeframe (timeframeId);
@@ -1805,7 +1805,7 @@ export default class gate extends gateRest {
         const errs = this.safeDict (data, 'errs');
         const error = this.safeDict (message, 'error', errs);
         const code = this.safeString2 (error, 'code', 'label');
-        const id = this.valueOr (this.safeStringN (message, [ 'id', 'requestId', 'request_id' ]), '');
+        const id = this.safeStringN (message, [ 'id', 'requestId', 'request_id' ]);
         if (error !== undefined) {
             const messageHash = this.safeString (client.subscriptions, id);
             try {
@@ -1823,7 +1823,7 @@ export default class gate extends gateRest {
                 const channel = this.safeString (message, 'channel') as string;
                 if ((channel !== undefined) && (channel.indexOf ('.') > 0)) {
                     const parsedChannel = channel.split ('.');
-                    const payload = this.valueOr (this.safeList (message, 'payload', []), []);
+                    const payload = this.safeList (message, 'payload', []);
                     for (let i = 0; i < payload.length; i++) {
                         const marketType = parsedChannel[0] === 'futures' ? 'swap' : parsedChannel[0];
                         const symbol = this.safeSymbol (payload[i], undefined, '_', marketType);
@@ -1854,7 +1854,7 @@ export default class gate extends gateRest {
             'futures.order_book_update': this.handleOrderBookSubscription,
             'options.order_book_update': this.handleOrderBookSubscription,
         };
-        const id = this.valueOr (this.safeString (message, 'id'), '');
+        const id = this.safeString (message, 'id');
         if (channel in methods) {
             const subscriptionHash = this.safeString (client.subscriptions, id);
             const subscription = this.safeValue (client.subscriptions, subscriptionHash);
@@ -1885,7 +1885,7 @@ export default class gate extends gateRest {
         //     "requestId":"efe1d282b630b4aa266b84bee177791a"
         // }
         //
-        const id = this.valueOr (this.safeString (message, 'id'), '');
+        const id = this.safeString (message, 'id');
         const keys = Object.keys (client.subscriptions);
         for (let i = 0; i < keys.length; i++) {
             const messageHash = keys[i];
@@ -2013,7 +2013,7 @@ export default class gate extends gateRest {
             this.handleUnSubscribe (client, message);
             return;
         }
-        const channel = this.valueOr (this.safeString (message, 'channel', ''), '');
+        const channel = this.safeString (message, 'channel', '');
         // after supporting more method we can create a mapping for this
         if (channel === 'spot.obu') {
             this.handleOrderBook (client, message);

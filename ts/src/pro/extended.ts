@@ -89,7 +89,7 @@ export default class extended extends extendedRest {
         //         "seq": 1
         //     }
         //
-        const data = this.valueOr (this.safeDict (message, 'data', {}), {});
+        const data = this.safeDict (message, 'data', {});
         const marketId = this.safeString (data, 'm');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
@@ -99,7 +99,7 @@ export default class extended extends extendedRest {
         const type = this.safeString (message, 'type', this.safeString (data, 't'));
         if (!(symbol in this.orderbooks)) {
             const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
-            const subscription = this.valueOr (this.safeDict (client.subscriptions, messageHash, {}), {});
+            const subscription = this.safeDict (client.subscriptions, messageHash, {});
             const limit = this.safeInteger (subscription, 'limit', defaultLimit);
             this.orderbooks[symbol] = this.orderBook ({}, limit);
         }
@@ -234,7 +234,7 @@ export default class extended extends extendedRest {
         //         "seq": 1
         //     }
         //
-        const data = this.valueOr (this.safeDict (message, 'data', {}), {});
+        const data = this.safeDict (message, 'data', {});
         const result: Dict = {
             'info': data,
         };
@@ -329,7 +329,7 @@ export default class extended extends extendedRest {
             this.myTrades = new ArrayCacheBySymbolById (limit);
         }
         const stored = this.myTrades;
-        const data = this.valueOr (this.safeDict (message, 'data', {}), {});
+        const data = this.safeDict (message, 'data', {});
         const rawTrades = this.valueOr (this.safeList (data, 'trades', []), []);
         const symbols: Dict = {};
         const first = this.safeDict (rawTrades, 0);
@@ -413,7 +413,7 @@ export default class extended extends extendedRest {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
         const stored = this.positions;
-        const data = this.valueOr (this.safeDict (message, 'data', {}), {});
+        const data = this.safeDict (message, 'data', {});
         const rawPositions = this.valueOr (this.safeList (data, 'positions', []), []);
         const newPositions: Position[] = [];
         const first = this.safeDict (rawPositions, 0);
@@ -480,7 +480,7 @@ export default class extended extends extendedRest {
             this.orders = new ArrayCacheBySymbolById (limit);
         }
         const orders = this.orders;
-        const data = this.valueOr (this.safeDict (message, 'data', {}), {});
+        const data = this.safeDict (message, 'data', {});
         const rawOrders = this.valueOr (this.safeList (data, 'orders'), []);
         const symbols: Dict = {};
         const first = this.safeDict (rawOrders, 0);
@@ -545,7 +545,7 @@ export default class extended extends extendedRest {
         //         "seq": 2
         //     }
         //
-        const data = this.valueOr (this.safeDict (message, 'data', {}), {});
+        const data = this.safeDict (message, 'data', {});
         const fundingRate = this.parseWsFundingRate (data, undefined, message);
         const symbol = this.safeString (fundingRate, 'symbol');
         this.fundingRates[symbol] = fundingRate;
@@ -619,7 +619,7 @@ export default class extended extends extendedRest {
         //         "seq": 1
         //     }
         //
-        const data = this.valueOr (this.safeDict (message, 'data', {}), {});
+        const data = this.safeDict (message, 'data', {});
         const marketId = this.safeString (data, 'm');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
@@ -688,7 +688,7 @@ export default class extended extends extendedRest {
         //         "seq": 2
         //     }
         //
-        const data = this.valueOr (this.safeList (message, 'data', []), []);
+        const data = this.safeList (message, 'data', []);
         const first = this.safeDict (data, 0);
         if (first === undefined) {
             return;
@@ -697,7 +697,7 @@ export default class extended extends extendedRest {
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const messageHash = 'trades:' + symbol;
-        const subscription = this.valueOr (this.safeDict (client.subscriptions, messageHash, {}), {});
+        const subscription = this.safeDict (client.subscriptions, messageHash, {});
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
             const defaultLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -806,7 +806,7 @@ export default class extended extends extendedRest {
             return;
         }
         subscription['nonce'] = nonce;
-        const data = this.valueOr (this.safeList (message, 'data', []), []);
+        const data = this.safeList (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const parsed = this.parseOHLCV (data[i]);
             stored.append (parsed);
@@ -818,7 +818,7 @@ export default class extended extends extendedRest {
         const keys = Object.keys (client.subscriptions);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const subscription = this.valueOr (this.safeDict (client.subscriptions, key), {});
+            const subscription = this.safeDict (client.subscriptions, key);
             const subscriptionName = this.safeString (subscription, 'name');
             if (subscriptionName === name) {
                 return subscription;

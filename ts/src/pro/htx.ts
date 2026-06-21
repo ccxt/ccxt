@@ -509,7 +509,7 @@ export default class htx extends htxRest {
         //     }
         //
         const symbol = this.safeString (subscription, 'symbol');
-        const messageHash = this.valueOr (this.safeString (subscription, 'messageHash'), '');
+        const messageHash = this.safeString (subscription, 'messageHash');
         const id = this.valueOr (this.safeString (message, 'id'), '');
         const lastTimestamp = this.safeInteger (subscription, 'lastTimestamp');
         try {
@@ -562,7 +562,7 @@ export default class htx extends htxRest {
     }
 
     async watchOrderBookSnapshot (client, message, subscription) {
-        const messageHash = this.valueOr (this.safeString (subscription, 'messageHash'), '');
+        const messageHash = this.safeString (subscription, 'messageHash');
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');
         const timestamp = this.safeInteger (message, 'ts');
@@ -758,7 +758,7 @@ export default class htx extends htxRest {
         //         "ts":1645023376098
         //     }
         //
-        const messageHash = this.valueOr (this.safeString (message, 'ch'), '');
+        const messageHash = this.safeString (message, 'ch');
         const tick = this.safeDict (message, 'tick');
         const event = this.safeString (tick, 'event');
         const ch = this.valueOr (this.safeString (message, 'ch'), '');
@@ -927,7 +927,7 @@ export default class htx extends htxRest {
         } else {
             const channelAndMessageHash = this.getOrderChannelAndMessageHash (type, subType, market, params);
             channel = this.safeString (channelAndMessageHash, 0);
-            messageHash = this.valueOr (this.safeString (channelAndMessageHash, 1), '');
+            messageHash = this.safeString (channelAndMessageHash, 1);
         }
         const orders = await this.subscribePrivate (channel, messageHash, type, subType, params);
         if (this.newUpdates) {
@@ -1057,7 +1057,7 @@ export default class htx extends htxRest {
         //   }
         //
         //
-        const messageHash = this.valueOr (this.safeString2 (message, 'ch', 'topic'), '');
+        const messageHash = this.safeString2 (message, 'ch', 'topic');
         const data = this.safeValue (message, 'data');
         let marketId = this.safeString (message, 'contract_code');
         if (marketId === undefined) {
@@ -1724,7 +1724,7 @@ export default class htx extends htxRest {
             const first = this.safeValue (data, 0, {});
             const topic = this.valueOr (this.safeString (message, 'topic'), '');
             const splitTopic = topic.split ('.');
-            let messageHash = this.valueOr (this.safeString (splitTopic, 0), '');
+            let messageHash = this.safeString (splitTopic, 0);
             let subscription = this.safeValue2 (client.subscriptions, messageHash, messageHash + '.*');
             if (subscription === undefined) {
                 // if subscription not found means that we subscribed to a specific currency/symbol
@@ -2112,7 +2112,7 @@ export default class htx extends htxRest {
                     this.throwExactlyMatchedException (this.exceptions['ws']['exact'], errorCode, this.json (message));
                     throw new ExchangeError (this.json (message));
                 } catch (e) {
-                    const messageHash = this.valueOr (this.safeString (subscription, 'messageHash'), '');
+                    const messageHash = this.safeString (subscription, 'messageHash');
                     client.reject (e, messageHash);
                     client.reject (e, id);
                     if (id in client.subscriptions) {
@@ -2297,7 +2297,7 @@ export default class htx extends htxRest {
             this.myTrades = new ArrayCacheBySymbolById (limit);
         }
         const cachedTrades = this.myTrades;
-        const messageHash = this.valueOr (this.safeString (message, 'ch'), '');
+        const messageHash = this.safeString (message, 'ch');
         if (messageHash !== undefined) {
             const data = this.safeValue (message, 'data');
             if (data !== undefined) {

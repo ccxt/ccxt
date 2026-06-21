@@ -152,7 +152,7 @@ export default class p2b extends p2bRest {
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false), []);
+        symbols = this.marketSymbols (symbols, undefined, false);
         const watchTickerOptions = this.safeDict (this.options, 'watchTicker');
         let name = this.safeString (watchTickerOptions, 'name', 'state');  // or price
         [ name, params ] = this.handleOptionAndParams (params, 'method', 'name', name);
@@ -201,7 +201,7 @@ export default class p2b extends p2bRest {
      */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false, true, true), []);
+        symbols = this.marketSymbols (symbols, undefined, false, true, true);
         const messageHashes: string[] = [];
         if (symbols !== undefined) {
             for (let i = 0; i < symbols.length; i++) {

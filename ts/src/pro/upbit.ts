@@ -42,7 +42,7 @@ export default class upbit extends upbitRest {
         if (symbols === undefined) {
             symbols = this.symbols;
         }
-        symbols = this.valueOr (this.marketSymbols (symbols), []);
+        symbols = this.marketSymbols (symbols);
         const marketIds = this.valueOr (this.marketIds (symbols), []);
         const url = this.implodeParams (this.urls['api']['ws'], {
             'hostname': this.hostname,

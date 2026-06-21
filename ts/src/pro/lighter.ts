@@ -347,7 +347,7 @@ export default class lighter extends lighterRest {
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols), []);
+        symbols = this.marketSymbols (symbols);
         const request: Dict = {
             'channel': 'market_stats/all',
         };
@@ -1145,7 +1145,7 @@ export default class lighter extends lighterRest {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket (marketId);
-            const orders = this.valueOr (this.safeList (data, marketId, []), []);
+            const orders = this.safeList (data, marketId, []);
             for (let j = 0; j < orders.length; j++) {
                 const order = this.parseOrder (orders[j], market);
                 stored.append (order);

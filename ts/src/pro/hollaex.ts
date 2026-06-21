@@ -444,7 +444,7 @@ export default class hollaex extends hollaexRest {
 
     async watchPrivate (messageHash, params = {}) {
         this.checkRequiredCredentials ();
-        let expires = this.valueOr (this.safeString (this.options, 'ws-expires'), '');
+        let expires = this.safeString (this.options, 'ws-expires');
         if (expires === undefined) {
             const timeout = parseInt ((this.timeout / 1000).toString ());
             expires = this.sum (this.seconds (), timeout);

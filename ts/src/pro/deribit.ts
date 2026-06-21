@@ -424,7 +424,7 @@ export default class deribit extends deribitRest {
         //     }
         //
         const params = this.safeDict (message, 'params', {});
-        const channel = this.valueOr (this.safeString (params, 'channel', ''), '');
+        const channel = this.safeString (params, 'channel', '');
         const parts = channel.split ('.');
         const marketId = this.safeString (parts, 1);
         const interval = this.safeString (parts, 2);
@@ -515,7 +515,7 @@ export default class deribit extends deribitRest {
         //     }
         //
         const params = this.safeValue (message, 'params', {});
-        const channel = this.valueOr (this.safeString (params, 'channel', ''), '');
+        const channel = this.safeString (params, 'channel', '');
         const trades = this.safeValue (params, 'data', []);
         let cachedTrades = this.myTrades;
         if (cachedTrades === undefined) {
@@ -629,7 +629,7 @@ export default class deribit extends deribitRest {
         //
         const params = this.safeValue (message, 'params', {});
         const data = this.safeValue (params, 'data', {});
-        const channel = this.valueOr (this.safeString (params, 'channel'), '');
+        const channel = this.safeString (params, 'channel');
         const parts = channel.split ('.');
         let descriptor = '';
         const partsLength = parts.length;
@@ -774,7 +774,7 @@ export default class deribit extends deribitRest {
             this.orders = new ArrayCacheBySymbolById (limit);
         }
         const params = this.safeValue (message, 'params', {});
-        const channel = this.valueOr (this.safeString (params, 'channel', ''), '');
+        const channel = this.safeString (params, 'channel', '');
         const data = this.safeValue (params, 'data', {});
         let orders = [];
         if (Array.isArray (data)) {
@@ -853,7 +853,7 @@ export default class deribit extends deribitRest {
         //     }
         //
         const params = this.safeDict (message, 'params', {});
-        const channel = this.valueOr (this.safeString (params, 'channel', ''), '');
+        const channel = this.safeString (params, 'channel', '');
         const parts = channel.split ('.');
         const marketId = this.safeString (parts, 2);
         const rawTimeframe = this.safeString (parts, 3);
@@ -1005,7 +1005,7 @@ export default class deribit extends deribitRest {
             throw new ExchangeError (this.id + ' ' + this.json (error));
         }
         const params = this.safeValue (message, 'params');
-        const channel = this.valueOr (this.safeString (params, 'channel'), '');
+        const channel = this.safeString (params, 'channel');
         if (channel !== undefined) {
             const parts = channel.split ('.');
             const channelId = this.safeString (parts, 0);

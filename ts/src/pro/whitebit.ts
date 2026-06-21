@@ -739,7 +739,7 @@ export default class whitebit extends whitebitRest {
         //       "id":null
         //   }
         //
-        const method = this.valueOr (this.safeString (message, 'method'), '');
+        const method = this.safeString (message, 'method');
         const data = this.safeValue (message, 'params');
         const balanceDict = this.safeValue (data, 0);
         this.balance['info'] = balanceDict;

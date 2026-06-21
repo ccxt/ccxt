@@ -1068,7 +1068,7 @@ export default class bydfi extends bydfiRest {
                 if (balancesLength > 0) {
                     this.handleBalance (client, message);
                 }
-                const positions = this.valueOr (this.safeList (account, 'p', []), []);
+                const positions = this.safeList (account, 'p', []);
                 const positionsLength = positions.length;
                 if (positionsLength > 0) {
                     this.handlePositions (client, message);

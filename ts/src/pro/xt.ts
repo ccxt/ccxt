@@ -131,8 +131,8 @@ export default class xt extends xtRest {
 
     handleDelta (orderbook, delta) {
         orderbook['nonce'] = this.safeInteger2 (delta, 'i', 'u');
-        const obAsks = this.valueOr (this.safeList (delta, 'a', []), []);
-        const obBids = this.valueOr (this.safeList (delta, 'b', []), []);
+        const obAsks = this.safeList (delta, 'a', []);
+        const obBids = this.safeList (delta, 'b', []);
         const bids = orderbook['bids'];
         const asks = orderbook['asks'];
         for (let i = 0; i < obBids.length; i++) {
@@ -758,7 +758,7 @@ export default class xt extends xtRest {
             const ticker = this.parseTicker (data);
             const symbol = ticker['symbol'];
             this.tickers[symbol] = ticker;
-            const event = this.valueOr (this.safeString (message, 'event'), '');
+            const event = this.safeString (message, 'event');
             const messageHashTail = isSpot ? 'spot' : 'contract';
             const messageHash = event + '::' + messageHashTail;
             client.resolve (ticker, messageHash);
@@ -918,7 +918,7 @@ export default class xt extends xtRest {
                 this.ohlcvs[symbol][timeframe] = stored;
             }
             stored.append (parsed);
-            const event = this.valueOr (this.safeString (message, 'event'), '');
+            const event = this.safeString (message, 'event');
             const messageHash = event + '::' + tradeType;
             client.resolve (stored, messageHash);
         }
@@ -964,7 +964,7 @@ export default class xt extends xtRest {
             const tradeType = (i !== undefined) ? 'spot' : 'contract';
             const market = this.safeMarket (marketId, undefined, undefined, tradeType);
             const symbol = market['symbol'];
-            const event = this.valueOr (this.safeString (message, 'event'), '');
+            const event = this.safeString (message, 'event');
             let tradesArray = this.safeValue (this.trades, symbol);
             if (tradesArray === undefined) {
                 const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -1041,14 +1041,14 @@ export default class xt extends xtRest {
         const data = this.valueOr (this.safeDict (message, 'data'), {});
         const marketId = this.safeString (data, 's');
         if (marketId !== undefined) {
-            let event = this.valueOr (this.safeString (message, 'event'), '');
+            let event = this.safeString (message, 'event');
             const splitEvent = event.split (',');
-            event = this.valueOr (this.safeString (splitEvent, 0), '');
+            event = this.safeString (splitEvent, 0);
             const tradeType = ('fu' in data) ? 'contract' : 'spot';
             const market = this.safeMarket (marketId, undefined, undefined, tradeType);
             const symbol = market['symbol'];
-            const obAsks = this.valueOr (this.safeList (data, 'a'), []);
-            const obBids = this.valueOr (this.safeList (data, 'b'), []);
+            const obAsks = this.safeList (data, 'a');
+            const obBids = this.safeList (data, 'b');
             const messageHash = event + '::' + tradeType;
             if (!(symbol in this.orderbooks)) {
                 const subscription = this.safeDict (client.subscriptions, messageHash, {});
@@ -1387,7 +1387,7 @@ export default class xt extends xtRest {
     }
 
     handleMessage (client: Client, message) {
-        const event = this.valueOr (this.safeString (message, 'event'), '');
+        const event = this.safeString (message, 'event');
         if (event === 'pong') {
             client.onPong ();
         } else if (event !== undefined) {

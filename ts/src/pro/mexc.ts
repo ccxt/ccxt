@@ -1046,9 +1046,9 @@ export default class mexc extends mexcRest {
             this.trades[symbol] = stored;
         }
         const d = this.safeDictN (message, [ 'd', 'publicAggreDeals' ]);
-        let trades = this.valueOr (this.safeList2 (d, 'deals', 'dealsList', [ d ]), []);
+        let trades = this.safeList2 (d, 'deals', 'dealsList', [ d ]);
         if (d === undefined) {
-            trades = this.valueOr (this.safeList (message, 'data', []), []);
+            trades = this.safeList (message, 'data', []);
         }
         for (let j = 0; j < trades.length; j++) {
             let parsedTrade: Trade;

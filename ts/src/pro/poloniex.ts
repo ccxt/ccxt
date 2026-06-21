@@ -389,7 +389,7 @@ export default class poloniex extends poloniexRest {
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         const name = 'ticker';
-        symbols = this.valueOr (this.marketSymbols (symbols), []);
+        symbols = this.marketSymbols (symbols);
         const newTickers = await this.subscribe (name, name, false, symbols, params);
         if (this.newUpdates) {
             return newTickers;
@@ -425,7 +425,7 @@ export default class poloniex extends poloniexRest {
      */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false, true, true), []);
+        symbols = this.marketSymbols (symbols, undefined, false, true, true);
         const name = 'trades';
         const url = this.urls['api']['ws']['public'];
         const marketIds = this.marketIds (symbols);

@@ -130,7 +130,7 @@ export default class okx extends okxRest {
         if (symbols === undefined) {
             symbols = this.symbols;
         }
-        symbols = this.valueOr (this.marketSymbols (symbols), []);
+        symbols = this.marketSymbols (symbols);
         const url = this.getUrl (channel, access);
         const messageHashes: List = [];
         const args: List = [];
@@ -205,7 +205,7 @@ export default class okx extends okxRest {
             throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
         }
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols), []);
+        symbols = this.marketSymbols (symbols);
         let channel: Str = undefined;
         [ channel, params ] = this.handleOptionAndParams (params, 'watchTrades', 'channel', 'trades');
         const topics: List = [];
@@ -250,7 +250,7 @@ export default class okx extends okxRest {
      */
     async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false), []);
+        symbols = this.marketSymbols (symbols, undefined, false);
         let channel: Str = undefined;
         [ channel, params ] = this.handleOptionAndParams (params, 'watchTrades', 'channel', 'trades');
         const topics: List = [];
@@ -371,7 +371,7 @@ export default class okx extends okxRest {
             throw new ArgumentsRequired (this.id + ' watchFundingRates() requires an array of symbols');
         }
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols), []);
+        symbols = this.marketSymbols (symbols);
         const channel = 'funding-rate';
         const topics: List = [];
         const messageHashes: List = [];
@@ -476,7 +476,7 @@ export default class okx extends okxRest {
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false), []);
+        symbols = this.marketSymbols (symbols, undefined, false);
         let channel: Str = undefined;
         [ channel, params ] = this.handleOptionAndParams (params, 'watchTickers', 'channel', 'tickers');
         const newTickers = await this.subscribeMultiple ('public', channel, symbols, params);
@@ -518,7 +518,7 @@ export default class okx extends okxRest {
      */
     async watchMarkPrices (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false), []);
+        symbols = this.marketSymbols (symbols, undefined, false);
         let channel: Str = undefined;
         [ channel, params ] = this.handleOptionAndParams (params, 'watchMarkPrices', 'channel', 'mark-price');
         const newTickers = await this.subscribeMultiple ('public', channel, symbols, params);
@@ -540,7 +540,7 @@ export default class okx extends okxRest {
      */
     async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false), []);
+        symbols = this.marketSymbols (symbols, undefined, false);
         let channel: Str = undefined;
         [ channel, params ] = this.handleOptionAndParams (params, 'watchTickers', 'channel', 'tickers');
         const topics: List = [];
@@ -617,7 +617,7 @@ export default class okx extends okxRest {
      */
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false), []);
+        symbols = this.marketSymbols (symbols, undefined, false);
         let channel: Str = undefined;
         [ channel, params ] = this.handleOptionAndParams (params, 'watchBidsAsks', 'channel', 'tickers');
         const url = this.getUrl (channel, 'public');
@@ -710,7 +710,7 @@ export default class okx extends okxRest {
      */
     async watchLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols, undefined, true, true), []);
+        symbols = this.marketSymbols (symbols, undefined, true, true);
         const messageHash = 'liquidations';
         const messageHashes: List = [];
         if (symbols !== undefined) {
@@ -808,7 +808,7 @@ export default class okx extends okxRest {
         const isTrigger = this.safeValue2 (params, 'stop', 'trigger', false);
         params = this.omit (params, [ 'stop', 'trigger' ]);
         await this.authenticate ({ 'access': isTrigger ? 'business' : 'private' });
-        symbols = this.valueOr (this.marketSymbols (symbols, undefined, true, true), []);
+        symbols = this.marketSymbols (symbols, undefined, true, true);
         const messageHash = 'myLiquidations';
         const messageHashes: List = [];
         if (symbols !== undefined) {
@@ -1195,7 +1195,7 @@ export default class okx extends okxRest {
      */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols), []);
+        symbols = this.marketSymbols (symbols);
         let depth: Str = undefined;
         [ depth, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'depth', 'books');
         if (limit !== undefined) {
@@ -1249,7 +1249,7 @@ export default class okx extends okxRest {
      */
     async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false), []);
+        symbols = this.marketSymbols (symbols, undefined, false);
         let depth: Str = undefined;
         [ depth, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'depth', 'books');
         const limit = this.safeInteger (params, 'limit');
@@ -1749,7 +1749,7 @@ export default class okx extends okxRest {
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         await this.authenticate (params);
-        symbols = this.valueOr (this.marketSymbols (symbols), []);
+        symbols = this.marketSymbols (symbols);
         const request: Dict = {
             'instType': 'ANY',
         };

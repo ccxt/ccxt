@@ -72,7 +72,7 @@ export default class coinbase extends coinbaseRest {
         let messageHash = name;
         let productIds = [];
         if (Array.isArray (symbol)) {
-            const symbols = this.valueOr (this.marketSymbols (symbol), []);
+            const symbols = this.marketSymbols (symbol);
             const marketIds = this.marketIds (symbols);
             productIds = marketIds;
             messageHash = messageHash + '::' + symbol.join (',');
@@ -118,7 +118,7 @@ export default class coinbase extends coinbaseRest {
         let unWatchMessageHash = 'unsubscribe:' + name;
         let productIds = [];
         if (Array.isArray (symbol)) {
-            const symbols = this.valueOr (this.marketSymbols (symbol), []);
+            const symbols = this.marketSymbols (symbol);
             const marketIds = this.marketIds (symbols);
             productIds = marketIds;
             watchMessageHash = watchMessageHash + '::' + symbol.join (',');
@@ -168,7 +168,7 @@ export default class coinbase extends coinbaseRest {
         await this.loadMarkets ();
         const productIds = [];
         const messageHashes = [];
-        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false), []);
+        symbols = this.marketSymbols (symbols, undefined, false);
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
@@ -209,7 +209,7 @@ export default class coinbase extends coinbaseRest {
         const productIds = [];
         const watchMessageHashes = [];
         const unWatchMessageHashes = [];
-        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false), []);
+        symbols = this.marketSymbols (symbols, undefined, false);
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);

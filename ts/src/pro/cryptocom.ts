@@ -278,7 +278,7 @@ export default class cryptocom extends cryptocomRest {
             this.orderbooks[symbol] = this.countedOrderBook ({}, limit);
         }
         const orderbook = this.orderbooks[symbol];
-        const channel = this.valueOr (this.safeString (message, 'channel'), '');
+        const channel = this.safeString (message, 'channel');
         const nonce = this.safeInteger2 (data, 'u', 's');
         let books = data;
         if (channel === 'book') {  // snapshot
@@ -411,7 +411,7 @@ export default class cryptocom extends cryptocomRest {
         //       ]
         // }
         //
-        const channel = this.valueOr (this.safeString (message, 'channel'), '');
+        const channel = this.safeString (message, 'channel');
         const marketId = this.safeString (message, 'instrument_name');
         const symbolSpecificMessageHash = this.safeString (message, 'subscription');
         const market = this.safeMarket (marketId);
@@ -846,7 +846,7 @@ export default class cryptocom extends cryptocomRest {
         //        }
         //    }
         //
-        const channel = this.valueOr (this.safeString (message, 'channel'), '');
+        const channel = this.safeString (message, 'channel');
         const symbolSpecificMessageHash = this.safeString (message, 'subscription');
         const orders = this.safeValue (message, 'data', []);
         const ordersLength = orders.length;
@@ -1329,7 +1329,7 @@ export default class cryptocom extends cryptocomRest {
             'user.position_balance': this.handlePositions,
         };
         const result = this.safeValue2 (message, 'result', 'info');
-        const channel = this.valueOr (this.safeString (result, 'channel'), '');
+        const channel = this.safeString (result, 'channel');
         if ((channel !== undefined) && channel.indexOf ('user.trade') > -1) {
             // channel might be user.trade.BTC_USDT
             this.handleTrades (client, result);

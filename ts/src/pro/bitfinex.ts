@@ -436,7 +436,7 @@ export default class bitfinex extends bitfinexRest {
             }
         } else {
             // update
-            const type = this.valueOr (this.safeString (message, 1), '');
+            const type = this.safeString (message, 1);
             if (type === 'tu') {
                 // don't resolve for a duplicate update
                 // since te and tu updates are duplicated on the public stream
@@ -500,7 +500,7 @@ export default class bitfinex extends bitfinexRest {
         const priceKey = isPublic ? 3 : 5;
         const amountKey = isPublic ? 2 : 4;
         marketId = market['id'];
-        let type = this.valueOr (this.safeString (trade, 6), '');
+        let type = this.safeString (trade, 6);
         if (type !== undefined) {
             if (type.indexOf ('LIMIT') > -1) {
                 type = 'limit';
@@ -738,7 +738,7 @@ export default class bitfinex extends bitfinexRest {
                 const idString = this.safeString (deltas, 0);
                 bookside.storeArray ([ this.parseNumber (price), this.parseNumber (amount), idString ]);
             } else {
-                const amount = this.valueOr (this.safeString (deltas, 2), '');
+                const amount = this.safeString (deltas, 2);
                 const counter = this.safeString (deltas, 1);
                 const price = this.safeString (deltas, 0);
                 const size = Precise.stringLt (amount, '0') ? Precise.stringNeg (amount) : amount;
@@ -1203,14 +1203,14 @@ export default class bitfinex extends bitfinexRest {
         const marketId = this.safeString (order, 3);
         const symbol = this.safeSymbol (marketId);
         market = this.safeMarket (symbol);
-        let amount = this.valueOr (this.safeString (order, 7), '');
+        let amount = this.safeString (order, 7);
         let side = 'buy';
         if (Precise.stringLt (amount, '0')) {
             amount = Precise.stringAbs (amount);
             side = 'sell';
         }
         const remaining = Precise.stringAbs (this.safeString (order, 6));
-        let type = this.valueOr (this.safeString (order, 8), '');
+        let type = this.safeString (order, 8);
         if (type.indexOf ('LIMIT') > -1) {
             type = 'limit';
         } else if (type.indexOf ('MARKET') > -1) {

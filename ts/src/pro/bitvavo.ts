@@ -213,7 +213,7 @@ export default class bitvavo extends bitvavoRest {
     parseWsBidAsk (ticker, market = undefined) {
         const marketId = this.safeString (ticker, 'market');
         market = this.safeMarket (marketId, undefined, '-');
-        const symbol = this.valueOr (this.safeString (market, 'symbol'), '');
+        const symbol = this.safeString (market, 'symbol');
         const timestamp = this.safeInteger (ticker, 'timestamp');
         return this.safeTicker ({
             'symbol': symbol,
@@ -545,7 +545,7 @@ export default class bitvavo extends bitvavoRest {
     }
 
     handleOrderBookSubscription (client: Client, message, subscription) {
-        const symbol = this.valueOr (this.safeString (subscription, 'symbol'), '');
+        const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
@@ -1242,7 +1242,7 @@ export default class bitvavo extends bitvavoRest {
     }
 
     actionAndMarketMessageHash (action, params = {}) {
-        const symbol = this.valueOr (this.safeString (params, 'market', ''), '');
+        const symbol = this.safeString (params, 'market', '');
         return action + symbol;
     }
 

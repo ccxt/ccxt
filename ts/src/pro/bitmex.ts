@@ -86,7 +86,7 @@ export default class bitmex extends bitmexRest {
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols, undefined, true), []);
+        symbols = this.marketSymbols (symbols, undefined, true);
         const name = 'instrument';
         const url = this.urls['api']['ws'];
         const messageHashes: List = [];
@@ -392,7 +392,7 @@ export default class bitmex extends bitmexRest {
      */
     async watchLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols, undefined, true, true), []);
+        symbols = this.marketSymbols (symbols, undefined, true, true);
         const messageHashes: List = [];
         const subscriptionHashes: List = [];
         if (this.isEmpty (symbols)) {
@@ -1307,7 +1307,7 @@ export default class bitmex extends bitmexRest {
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         let table: Str = undefined;
         if (limit === undefined) {
-            table = this.valueOr (this.safeString (this.options, 'watchOrderBookLevel', 'orderBookL2'), '');
+            table = this.safeString (this.options, 'watchOrderBookLevel', 'orderBookL2');
         } else if (limit === 25) {
             table = 'orderBookL2_25';
         } else if (limit === 10) {
@@ -1316,7 +1316,7 @@ export default class bitmex extends bitmexRest {
             throw new ExchangeError (this.id + ' watchOrderBookForSymbols limit argument must be undefined (L2), 25 (L2) or 10 (L3)');
         }
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols), []);
+        symbols = this.marketSymbols (symbols);
         const topics: List = [];
         const messageHashes: List = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -1349,7 +1349,7 @@ export default class bitmex extends bitmexRest {
      */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        symbols = this.valueOr (this.marketSymbols (symbols, undefined, false), []);
+        symbols = this.marketSymbols (symbols, undefined, false);
         const table = 'trade';
         const topics: List = [];
         const messageHashes: List = [];
@@ -1473,7 +1473,7 @@ export default class bitmex extends bitmexRest {
         //         ]
         //     }
         //
-        const table = this.valueOr (this.safeString (message, 'table'), '');
+        const table = this.safeString (message, 'table');
         const interval = table.replace ('tradeBin', '');
         const timeframe = this.findTimeframe (interval);
         const duration = this.parseTimeframe (timeframe);
@@ -1568,7 +1568,7 @@ export default class bitmex extends bitmexRest {
         //     }
         //
         const action = this.safeString (message, 'action');
-        const table = this.valueOr (this.safeString (message, 'table'), '');
+        const table = this.safeString (message, 'table');
         if (table === undefined) {
             return; // protecting from weird updates
         }
@@ -1745,7 +1745,7 @@ export default class bitmex extends bitmexRest {
         //     }
         //
         if (this.handleErrorMessage (client, message)) {
-            const table = this.valueOr (this.safeString (message, 'table'), '');
+            const table = this.safeString (message, 'table');
             const methods: Dict = {
                 'orderBookL2': this.handleOrderBook,
                 'orderBookL2_25': this.handleOrderBook,
