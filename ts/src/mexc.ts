@@ -6,7 +6,7 @@ import Exchange from './abstract/mexc.js';
 import { BadRequest, InvalidNonce, BadSymbol, InvalidOrder, InvalidAddress, ExchangeError, ArgumentsRequired, NotSupported, InsufficientFunds, PermissionDenied, AuthenticationError, AccountSuspended, OnMaintenance } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Account, Balances, Bool, Currencies, Currency, DepositAddress, Dict, FundingHistory, FundingRate, FundingRateHistory, IndexType, int, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, DepositAddress, Dict, NullableDict, FundingHistory, FundingRate, FundingRateHistory, IndexType, int, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1661,7 +1661,7 @@ export default class mexc extends Exchange {
         let timestamp: Int = undefined;
         let orderId: Str = undefined;
         let symbol: Str = undefined;
-        let fee: Dict;
+        let fee: NullableDict = undefined;
         const type = undefined;
         let side: Str = undefined;
         let takerOrMaker: Str = undefined;
@@ -3614,7 +3614,7 @@ export default class mexc extends Exchange {
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeIntegerN (order, [ 'time', 'createTime', 'transactTime' ]);
-        let fee: Dict;
+        let fee: NullableDict = undefined;
         const feeCurrency = this.safeString (order, 'feeCurrency');
         if (feeCurrency !== undefined) {
             const takerFee = this.safeString (order, 'takerFee');
@@ -5093,7 +5093,7 @@ export default class mexc extends Exchange {
         let amountString = this.safeString (transaction, 'amount');
         const address = this.safeString (transaction, 'address');
         const txid = this.safeString2 (transaction, 'transHash', 'txId');
-        let fee: Dict;
+        let fee: NullableDict = undefined;
         const feeCostString = this.safeString (transaction, 'transactionFee');
         if (feeCostString !== undefined) {
             fee = {
