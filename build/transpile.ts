@@ -112,6 +112,12 @@ class Transpiler {
     getCommonRegexes (): any[] {
 
         return [
+            // normalize a typed declaration with no initializer (`let fee: Dict;`) into an
+            // explicit `= undefined` assignment. Otherwise Python emits a bare annotation
+            // (`fee: dict`) that never binds the variable, so a conditionally-assigned var
+            // raises UnboundLocalError (e.g. parse_order/parse_trade `fee`). PHP previously
+            // dropped the line entirely (undefined-variable warning); this fixes both.
+            [ /^([ \t]*)(let|var)\s+([A-Za-z0-9_]+)\s*:\s*[^=;\n]+;/mg, '$1$2 $3 = undefined;' ],
             [ /(?<!assert|equals|verify)(\s\(?)(rsa|ecdsa|eddsa|jwt|totp|inflate)\s/g, '$1this.$2' ],
             [ /errorHierarchy/g, 'error_hierarchy'],
             [ /\.featuresGenerator/g, '.features_generator'],
