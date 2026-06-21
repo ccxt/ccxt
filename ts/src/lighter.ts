@@ -582,9 +582,9 @@ export default class lighter extends Exchange {
             'api_key_index': this.parseToInt (apiKeyIndex),
             'account_index': this.parseToInt (accountIndex),
         };
-        const token = this.lighterCreateAuthToken (this.options['auths'][accountIndex as string][apiKeyIndex]['signer'], request);
-        this.options['auths'][accountIndex as string][apiKeyIndex]['deadline'] = deadline;
-        this.options['auths'][accountIndex as string][apiKeyIndex]['token'] = token;
+        const token = this.lighterCreateAuthToken (this.options['auths'][accountIndex as string][apiKeyIndex as string]['signer'], request);
+        this.options['auths'][accountIndex as string][apiKeyIndex as string]['deadline'] = deadline;
+        this.options['auths'][accountIndex as string][apiKeyIndex as string]['token'] = token;
         return token;
     }
 

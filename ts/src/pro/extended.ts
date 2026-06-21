@@ -798,7 +798,7 @@ export default class extended extends extendedRest {
             const defaultLimit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             const limit = this.safeInteger (subscription, 'limit', defaultLimit);
             stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol as string][cacheKey] = stored;
+            this.ohlcvs[symbol as string][cacheKey as string] = stored;
         }
         const previousNonce = this.safeInteger (subscription, 'nonce');
         const nonce = this.safeInteger (message, 'seq');

@@ -1060,7 +1060,7 @@ export default class upbit extends Exchange {
             element['percentage'] = true;
             element['tierBased'] = false;
             element['info'] = fetchMarketResponse[i];
-            response[this.safeString (fetchMarketResponse[i], 'symbol')] = element;
+            response[this.safeString (fetchMarketResponse[i], 'symbol') as string] = element;
         }
         return response;
     }

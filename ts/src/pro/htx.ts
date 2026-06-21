@@ -1407,7 +1407,7 @@ export default class htx extends htxRest {
         if (this.newUpdates) {
             return newPositions;
         }
-        return this.filterBySymbolsSinceLimit (this.positions[url as string][marginMode], symbols, since, limit, false);
+        return this.filterBySymbolsSinceLimit (this.positions[url as string][marginMode as string], symbols, since, limit, false);
     }
 
     handlePositions (client, message) {

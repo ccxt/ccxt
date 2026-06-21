@@ -123,7 +123,7 @@ export default class backpack extends backpackRest {
                 const timeframe = this.safeString (splitHashes, 3);
                 if (symbol in this.ohlcvs) {
                     if (timeframe in this.ohlcvs[symbol as string]) {
-                        delete this.ohlcvs[symbol as string][timeframe];
+                        delete this.ohlcvs[symbol as string][timeframe as string];
                     }
                 }
             } else if (messageHash.indexOf ('orderbook') >= 0) {

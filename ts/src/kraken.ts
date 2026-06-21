@@ -1143,7 +1143,7 @@ export default class kraken extends Exchange {
             'pair': market['id'],
         };
         const response = await this.publicGetTicker (this.extend (request, params));
-        const ticker = response['result'][market['id']];
+        const ticker = response['result'][market['id'] as string];
         return this.parseTicker (ticker, market);
     }
 

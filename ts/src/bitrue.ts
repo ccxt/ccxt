@@ -1625,7 +1625,7 @@ export default class bitrue extends Exchange {
         //     }
         //
         const data: Dict = {};
-        data[market['id']] = response;
+        data[market['id'] as string] = response;
         return this.parseTickers (data, symbols);
     }
 
@@ -1711,7 +1711,7 @@ export default class bitrue extends Exchange {
         for (let i = 0; i < data.length; i++) {
             const ticker = this.safeDict (data, i, {});
             const market = this.safeMarket (this.safeString (ticker, 'symbol'));
-            tickers[market['id']] = ticker;
+            tickers[market['id'] as string] = ticker;
         }
         return this.parseTickers (tickers, symbols);
     }

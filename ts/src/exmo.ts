@@ -1285,7 +1285,7 @@ export default class exmo extends Exchange {
         await this.loadMarkets ();
         const response = await this.publicGetTicker (params);
         const market = this.market (symbol);
-        return this.parseTicker (response[market['id']], market);
+        return this.parseTicker (response[market['id'] as string], market);
     }
 
     parseTrade (trade: Dict, market: Market = undefined): Trade {

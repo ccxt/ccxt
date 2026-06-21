@@ -9205,7 +9205,7 @@ export default class Exchange {
                 const timeframe = this.safeString (symbolAndTimeFrame, 1);
                 if ((this.ohlcvs !== undefined) && (symbol in this.ohlcvs)) {
                     if (timeframe in this.ohlcvs[symbol as string]) {
-                        delete this.ohlcvs[symbol as string][timeframe];
+                        delete this.ohlcvs[symbol as string][timeframe as string];
                     }
                 }
             }
