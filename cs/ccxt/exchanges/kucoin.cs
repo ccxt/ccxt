@@ -8752,7 +8752,7 @@ public partial class kucoin : Exchange
         object response = await this.utaPrivatePostAccountTransfer(this.extend(request, parameters));
         //
         //
-        object data = this.safeDict(response, "data");
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object transfer = this.parseTransfer(data, currency);
         object transferOptions = this.safeDict(this.options, "transfer", new Dictionary<string, object>() {});
         object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
@@ -8850,7 +8850,7 @@ public partial class kucoin : Exchange
             //
             response = await this.privatePostAccountsUniversalTransfer(this.extend(request, parameters));
         }
-        object data = this.safeDict(response, "data");
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object transfer = this.parseTransfer(data, currency);
         object transferOptions = this.safeDict(this.options, "transfer", new Dictionary<string, object>() {});
         object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);

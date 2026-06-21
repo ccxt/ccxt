@@ -1025,7 +1025,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             self.balance = {}
         topic = self.safe_value(message, 'channel')
         messageHash = topic + '::balance'
-        info = None
+        info: NullableDict = None
         rawBalances = []
         account: Str = None
         timestamp: Int = None

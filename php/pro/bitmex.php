@@ -1700,7 +1700,7 @@ class bitmex extends \ccxt\async\bitmex {
         return $message;
     }
 
-    public function handle_error_message(Client $client, $message): Bool {
+    public function handle_error_message(Client $client, $message): ?bool {
         //
         // generic $error format
         //

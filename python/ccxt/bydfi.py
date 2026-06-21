@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bydfi import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currency, Int, Leverage, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, Transaction, FundingRateHistory, TransferEntry
+from ccxt.base.types import Any, Balances, Bool, Currency, Int, Leverage, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, Transaction, FundingRateHistory, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -693,7 +693,7 @@ class bydfi(Exchange, ImplicitAPI):
         request: dict = {
             'contractType': contractType,
         }
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -764,7 +764,7 @@ class bydfi(Exchange, ImplicitAPI):
         marketId = self.safe_string(trade, 'symbol')
         market = self.safe_market(marketId, market)
         timestamp = self.safe_integer(trade, 'time')
-        fee = None
+        fee: dict | None = None
         rawType = self.safe_string(trade, 'type')
         feeCost = self.safe_string(trade, 'fee')
         if feeCost is not None:
@@ -829,7 +829,7 @@ class bydfi(Exchange, ImplicitAPI):
         }
         startTime = since
         numberOfCandles = limit if limit else maxLimit
-        until = None
+        until: Int = None
         until, params = self.handle_option_and_params(params, 'fetchOHLCV', 'until')
         now = self.milliseconds()
         duration = self.parse_timeframe(timeframe) * 1000
@@ -1076,7 +1076,7 @@ class bydfi(Exchange, ImplicitAPI):
             request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
-        until = None
+        until: Int = None
         until, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'until')
         if until is not None:
             request['endTime'] = until
@@ -1208,7 +1208,7 @@ class bydfi(Exchange, ImplicitAPI):
         isTakeProfitOrder = (takeProfitPrice is not None)
         trailingPercent = self.safe_string(params, 'trailingPercent')
         isTailingStopOrder = (trailingPercent is not None)
-        stopPrice = None
+        stopPrice: Str = None
         if isStopLossOrder or isTakeProfitOrder:
             stopPrice = stopLossPrice if isStopLossOrder else takeProfitPrice
             params = self.omit(params, ['stopLossPrice', 'takeProfitPrice'])
@@ -1294,7 +1294,7 @@ class bydfi(Exchange, ImplicitAPI):
         length = len(orders)
         if length > 5:
             raise BadRequest(self.id + ' createOrders() accepts a maximum of 5 orders')
-        ordersRequests = []
+        ordersRequests: List = []
         for i in range(0, len(orders)):
             rawOrder = orders[i]
             symbol = self.safe_string(rawOrder, 'symbol')
@@ -1356,7 +1356,7 @@ class bydfi(Exchange, ImplicitAPI):
         length = len(orders)
         if length > 5:
             raise BadRequest(self.id + ' editOrders() accepts a maximum of 5 orders')
-        ordersRequests = []
+        ordersRequests: List = []
         for i in range(0, len(orders)):
             rawOrder = orders[i]
             id = self.safe_string(rawOrder, 'id')
@@ -1476,7 +1476,7 @@ class bydfi(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'wallet': wallet,
         }
-        response = None
+        response: dict
         trigger = False
         trigger, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'trigger', trigger)
         if not trigger:
@@ -1548,7 +1548,7 @@ class bydfi(Exchange, ImplicitAPI):
         wallet = 'W001'
         wallet, params = self.handle_option_and_params(params, 'fetchOpenOrder', 'wallet', wallet)
         request['wallet'] = wallet
-        response = None
+        response: dict
         trigger = False
         trigger, params = self.handle_option_and_params(params, 'fetchOpenOrder', 'trigger', trigger)
         if not trigger:
@@ -1588,7 +1588,7 @@ class bydfi(Exchange, ImplicitAPI):
         request: dict = {
             'contractType': contractType,
         }
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -1645,7 +1645,7 @@ class bydfi(Exchange, ImplicitAPI):
         return self.parse_orders(data, market, since, limit)
 
     def handle_since_and_until(self, methodName: str, since: Int = None, params={}) -> dict:
-        until = None
+        until: Int = None
         until, params = self.handle_option_and_params_2(params, methodName, 'until', 'endTime')
         now = self.milliseconds()
         sevenDays = 7 * 24 * 60 * 60 * 1000  # the maximum range is 7 days
@@ -1745,7 +1745,7 @@ class bydfi(Exchange, ImplicitAPI):
         isTakeProfitOrder = (rawType == 'TAKE_PROFIT') or (rawType == 'TAKE_PROFIT_MARKET')
         rawTimeInForce = self.safe_string(order, 'timeInForce')
         timeInForce = self.parse_order_time_in_force(rawTimeInForce)
-        postOnly = None
+        postOnly: Bool = None
         if timeInForce == 'PO':
             postOnly = True
         rawStatus = self.safe_string(order, 'status')
@@ -2016,7 +2016,7 @@ class bydfi(Exchange, ImplicitAPI):
         buyOrSell = self.safe_string(position, 'side')
         rawPositionSide = self.safe_string_lower(position, 'positionSide')
         positionSide = self.parse_position_side(buyOrSell)
-        hedged = None
+        hedged: Bool = None
         isFetchPositionsHistory = False
         if rawPositionSide is not None:
             isFetchPositionsHistory = True
@@ -2357,12 +2357,12 @@ class bydfi(Exchange, ImplicitAPI):
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         self.load_markets()
-        type = None
+        type: Str = None
         type, params = self.handle_market_type_and_params('fetchBalance', None, params)
-        wallet = None
+        wallet: Str = None
         wallet, params = self.handle_option_and_params(params, 'fetchBalance', 'wallet')
         request: dict = {}
-        response = None
+        response: dict
         if wallet is None:
             options = self.safe_dict(self.options, 'accountsByType', {})
             parsedAccountType = self.safe_string_upper(options, type, type)
@@ -2507,7 +2507,7 @@ class bydfi(Exchange, ImplicitAPI):
         request: dict = {
             'asset': currency['id'],
         }
-        until = None
+        until: Int = None
         until, params = self.handle_option_and_params_2(params, 'fetchTransfers', 'until', 'endTime')
         if until is None:
             until = self.milliseconds()  # exchange requires endTime
@@ -2633,7 +2633,7 @@ class bydfi(Exchange, ImplicitAPI):
         request: dict = {
             'asset': currency['id'],
         }
-        until = None
+        until: Int = None
         until, params = self.handle_option_and_params_2(params, 'fetchTransfers', 'until', 'endTime')
         now = self.milliseconds()
         sevenDays = 7 * 24 * 60 * 60 * 1000  # the maximum range is 7 days
@@ -2657,7 +2657,7 @@ class bydfi(Exchange, ImplicitAPI):
         request['endTime'] = until
         if limit is not None:
             request['limit'] = limit
-        response = None
+        response: dict
         if type == 'deposit':
             #
             #     {
@@ -2713,7 +2713,7 @@ class bydfi(Exchange, ImplicitAPI):
         code = self.safe_currency_code(currencyId, currency)
         rawStatus = self.safe_string_lower(transaction, 'status')
         timestamp = self.safe_integer(transaction, 'createTime')
-        fee = None
+        fee: Fee = None
         feeCost = self.safe_number(transaction, 'fee')
         if feeCost is not None:
             fee = {

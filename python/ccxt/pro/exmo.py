@@ -235,8 +235,8 @@ class exmo(ccxt.async_support.exmo):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
-        messageHashes = []
-        args = []
+        messageHashes: List = []
+        args: List = []
         for i in range(0, len(symbols)):
             market = self.market(symbols[i])
             messageHashes.append('ticker:' + market['symbol'])
@@ -355,7 +355,7 @@ class exmo(ccxt.async_support.exmo):
         await self.authenticate(params)
         type, query = self.handle_market_type_and_params('watchMyTrades', None, params)
         url = self.urls['api']['ws'][type]
-        messageHash = None
+        messageHash: Str = None
         if symbol is None:
             messageHash = 'myTrades:' + type
         else:
@@ -436,7 +436,7 @@ class exmo(ccxt.async_support.exmo):
         type = self.safe_string(parts, 0)
         messageHash = 'myTrades:' + type
         event = self.safe_string(message, 'event')
-        rawTrades = []
+        rawTrades: List = []
         myTrades = None
         if self.myTrades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
@@ -569,7 +569,7 @@ class exmo(ccxt.async_support.exmo):
         await self.authenticate(params)
         type, query = self.handle_market_type_and_params('watchOrders', None, params)
         url = self.urls['api']['ws'][type]
-        messageHash = None
+        messageHash: Str = None
         if symbol is None:
             messageHash = 'orders:' + type
         else:
@@ -652,7 +652,7 @@ class exmo(ccxt.async_support.exmo):
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)
         cachedOrders = self.orders
-        rawOrders = []
+        rawOrders: List = []
         if event == 'snapshot':
             rawOrders = self.safe_value(message, 'data', [])
         elif event == 'update':
@@ -700,10 +700,10 @@ class exmo(ccxt.async_support.exmo):
         price = self.safe_string(order, 'price')
         clientOrderId = self.omit_zero(self.safe_string(order, 'client_id'))
         triggerPrice = self.omit_zero(self.safe_string(order, 'stop_price'))
-        type = None
+        type: Str = None
         if (orderType != 'buy') and (orderType != 'sell'):
             type = orderType
-        trades = None
+        trades: NullableList = None
         if 'last_trade_id' in order:
             trade = self.parse_ws_trade(order, market)
             trades = [trade]
@@ -739,7 +739,7 @@ class exmo(ccxt.async_support.exmo):
         marketId = self.safe_string(trade, 'pair')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
-        type = None
+        type: Str = None
         if (orderType != 'buy') and (orderType != 'sell'):
             type = orderType
         return self.safe_trade({

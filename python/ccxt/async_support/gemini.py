@@ -741,7 +741,7 @@ class gemini(Exchange, ImplicitAPI):
         tickSize: Num = None
         amountPrecision: Num = None
         minSize: Num = None
-        status = None
+        status: Bool = None
         swap = False
         contractSize: Num = None
         linear: Bool = None
@@ -1853,7 +1853,7 @@ class gemini(Exchange, ImplicitAPI):
         results = self.parse_deposit_addresses(response, [code], False, {'network': networkCode, 'currency': code})
         return self.group_by(results, 'network')
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'private':

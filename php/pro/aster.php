@@ -554,7 +554,7 @@ class aster extends \ccxt\async\aster {
         $client->resolve ($ticker, $messageHash);
     }
 
-    public function parse_ws_bid_ask($message, $market = null) {
+    public function parse_ws_bid_ask($message, ?array $market = null) {
         $timestamp = $this->safe_integer($message, 'T');
         return $this->safe_ticker(array(
             'symbol' => $market['symbol'],
@@ -727,7 +727,7 @@ class aster extends \ccxt\async\aster {
         $client->resolve ($stored, 'trade::' . $symbol);
     }
 
-    public function parse_ws_trade($trade, $market = null): array {
+    public function parse_ws_trade($trade, ?array $market = null): array {
         //
         // public watchTrades (spot)
         //
@@ -1241,7 +1241,7 @@ class aster extends \ccxt\async\aster {
         $client->resolve ($resolveData, $messageHash);
     }
 
-    public function parse_ws_ohlcv($ohlcv, $market = null): array {
+    public function parse_ws_ohlcv($ohlcv, ?array $market = null): array {
         return array(
             $this->safe_integer($ohlcv, 't'),
             $this->safe_number($ohlcv, 'o'),
@@ -1601,7 +1601,7 @@ class aster extends \ccxt\async\aster {
         }
     }
 
-    public function parse_ws_position($position, $market = null) {
+    public function parse_ws_position($position, ?array $market = null) {
         //
         //     {
         //         "s" => "BTCUSDT", // Symbol
@@ -1906,7 +1906,7 @@ class aster extends \ccxt\async\aster {
         }
     }
 
-    public function parse_ws_order($order, $market = null) {
+    public function parse_ws_order($order, ?array $market = null) {
         $executionType = $this->safe_string($order, 'x');
         $marketId = $this->safe_string($order, 's');
         $market = $this->safe_market($marketId, $market);

@@ -2586,7 +2586,7 @@ class binance extends binance$1["default"] {
         const listenKeyRefreshRate = this.safeInteger(this.options, 'listenKeyRefreshRate', 1200000);
         const delay = this.sum(listenKeyRefreshRate, 10000);
         if (time - lastAuthenticatedTime > delay) {
-            let response = undefined;
+            let response;
             if (isPortfolioMargin) {
                 response = await this.papiPostListenKey(params);
                 params = this.extend(params, { 'portfolioMargin': true });
@@ -3438,7 +3438,7 @@ class binance extends binance$1["default"] {
         const messageHash = this.safeString(message, 'id');
         const result = this.safeDict(message, 'result', {});
         const newSpotOrder = this.safeDict(result, 'newOrderResponse');
-        let order = undefined;
+        let order;
         if (newSpotOrder !== undefined) {
             order = this.parseOrder(newSpotOrder);
         }

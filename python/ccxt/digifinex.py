@@ -1747,7 +1747,7 @@ class digifinex(Exchange, ImplicitAPI):
         marketIdRequest = 'instrument_id' if swap else 'symbol'
         request[marketIdRequest] = market['id']
         postOnly = self.is_post_only(isMarketOrder, False, params)
-        postOnlyParsed = None
+        postOnlyParsed: Int = None
         if swap:
             reduceOnly = self.safe_bool(params, 'reduceOnly', False)
             timeInForce = self.safe_string(params, 'timeInForce')
@@ -3814,7 +3814,7 @@ class digifinex(Exchange, ImplicitAPI):
             })
         return tiers
 
-    def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None):
+    def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None) -> list:
         """
  @ignore
         marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'
@@ -4115,7 +4115,7 @@ class digifinex(Exchange, ImplicitAPI):
         }
         return self.privateSwapPostAccountPositionMode(self.extend(request, params))
 
-    def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = [], method='GET', params={}, headers: dict = None, body: Str = None):
         signed = api[0] == 'private'
         endpoint = api[1]
         pathPart = '/v3' if (endpoint == 'spot') else '/swap/v2'

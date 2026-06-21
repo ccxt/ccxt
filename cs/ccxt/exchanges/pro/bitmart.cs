@@ -300,6 +300,10 @@ public partial class bitmart : ccxt.bitmart
         //    }
         //
         object channel = this.safeString2(message, "table", "group");
+        if (isTrue(isEqual(channel, null)))
+        {
+            return;
+        }
         object data = this.safeValue(message, "data");
         if (isTrue(isEqual(data, null)))
         {
@@ -385,7 +389,7 @@ public partial class bitmart : ccxt.bitmart
         marketType = ((IList<object>)symbolsmarketTypeparametersVariable)[1];
         parameters = ((IList<object>)symbolsmarketTypeparametersVariable)[2];
         object channelName = "trade";
-        object trades = await this.subscribeMultiple("trade", channelName, marketType, symbols, parameters);
+        object trades = await this.subscribeMultiple("trade", channelName, ((string)marketType), symbols, parameters);
         if (isTrue(this.newUpdates))
         {
             object first = this.safeDict(trades, 0);
@@ -441,7 +445,7 @@ public partial class bitmart : ccxt.bitmart
         parameters = this.extend(parameters, new Dictionary<string, object>() {
             { "unsubscribe", true },
         });
-        return await this.subscribeMultiple("trade", channelName, marketType, symbols, parameters);
+        return await this.subscribeMultiple("trade", channelName, ((string)marketType), symbols, parameters);
     }
 
     public virtual object getParamsForMultipleSub(object methodName, object symbols, object limit = null, object parameters = null)
@@ -1591,7 +1595,7 @@ public partial class bitmart : ccxt.bitmart
         // use a reverse lookup in a static map instead
         object timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
         object timeframe = this.findTimeframe(interval, timeframes);
-        object duration = this.parseTimeframe(timeframe);
+        object duration = this.parseTimeframe(((string)timeframe));
         object durationInMs = multiply(duration, 1000);
         if (isTrue(isSpot))
         {
@@ -1956,7 +1960,7 @@ public partial class bitmart : ccxt.bitmart
         {
             channel = "depth50";
         }
-        object orderbook = await this.subscribeMultiple("orderbook", channel, type, symbols, parameters);
+        object orderbook = await this.subscribeMultiple("orderbook", ((string)channel), type, symbols, parameters);
         return (orderbook as IOrderBook).limit();
     }
 
@@ -1990,7 +1994,7 @@ public partial class bitmart : ccxt.bitmart
         parameters = this.extend(parameters, new Dictionary<string, object>() {
             { "unsubscribe", true },
         });
-        return await this.subscribeMultiple("orderbook", channel, type, symbols, parameters);
+        return await this.subscribeMultiple("orderbook", ((string)channel), type, symbols, parameters);
     }
 
     /**
@@ -2215,7 +2219,7 @@ public partial class bitmart : ccxt.bitmart
         object unsubHash = add("unsubscribe::", subHash);
         object subHashIsPrefix = this.safeBool(subscription, "subHashIsPrefix", false);
         // clean up both ways of storing subscription and unsubscription
-        this.cleanUnsubscription(client as WebSocketClient, subHash, unsubHash, subHashIsPrefix);
+        this.cleanUnsubscription(client as WebSocketClient, ((string)subHash), unsubHash, subHashIsPrefix);
         this.cleanUnsubscription(client as WebSocketClient, messageTopic, unSubMessageTopic, subHashIsPrefix);
         this.cleanCache(subscription);
     }
@@ -2226,7 +2230,7 @@ public partial class bitmart : ccxt.bitmart
         object channel = this.safeString(parts, 0);
         object marketTypeAndTopic = ((string)channel).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
         object rawMarketType = this.safeStringLower(marketTypeAndTopic, 0);
-        object marketType = this.parseMarketType(rawMarketType);
+        object marketType = this.parseMarketType(((string)rawMarketType));
         object topic = this.safeString(marketTypeAndTopic, 1);
         object thirdPart = this.safeString(marketTypeAndTopic, 2);
         if (isTrue(!isEqual(thirdPart, null)))

@@ -1,5 +1,5 @@
 import bitgetRest from '../bitget.js';
-import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances, Bool } from '../base/types.js';
+import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 /**
  * @class bitget
@@ -47,7 +47,7 @@ export default class bitget extends bitgetRest {
      */
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     handleTicker(client: Client, message: any): void;
-    parseWsTicker(message: any, market?: any): Ticker;
+    parseWsTicker(message: any, market?: Market): Ticker;
     /**
      * @method
      * @name bitget#watchBidsAsks
@@ -62,7 +62,7 @@ export default class bitget extends bitgetRest {
      */
     watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
     handleBidAsk(client: Client, message: any): void;
-    parseWsBidAsk(message: any, market?: any): Ticker;
+    parseWsBidAsk(message: any, market?: Market): Ticker;
     /**
      * @method
      * @name bitget#watchOHLCV
@@ -94,7 +94,7 @@ export default class bitget extends bitgetRest {
      */
     unWatchOHLCV(symbol: string, timeframe?: string, params?: {}): Promise<any>;
     handleOHLCV(client: Client, message: any): void;
-    parseWsOHLCV(ohlcv: any, market?: any): OHLCV;
+    parseWsOHLCV(ohlcv: any, market?: Market): OHLCV;
     /**
      * @method
      * @name bitget#watchOrderBook
@@ -186,7 +186,7 @@ export default class bitget extends bitgetRest {
      */
     unWatchTrades(symbol: string, params?: {}): Promise<any>;
     handleTrades(client: Client, message: any): void;
-    parseWsTrade(trade: any, market?: any): Trade;
+    parseWsTrade(trade: any, market?: Market): Trade;
     /**
      * @method
      * @name bitget#watchPositions
@@ -203,7 +203,7 @@ export default class bitget extends bitgetRest {
      */
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
     handlePositions(client: Client, message: any): void;
-    parseWsPosition(position: any, market?: any): Position;
+    parseWsPosition(position: any, market?: Market): Position;
     /**
      * @method
      * @name bitget#watchOrders
@@ -228,7 +228,7 @@ export default class bitget extends bitgetRest {
      */
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     handleOrder(client: Client, message: any): void;
-    parseWsOrder(order: any, market?: any): Order;
+    parseWsOrder(order: any, market?: Market): Order;
     parseWsOrderStatus(status: any): string;
     /**
      * @method

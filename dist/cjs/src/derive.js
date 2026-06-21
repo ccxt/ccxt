@@ -1274,7 +1274,7 @@ class derive extends derive$1["default"] {
         }
         request['signature'] = signature;
         params = this.omit(params, ['reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'test', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trigger_price', 'stopLoss', 'takeProfit', 'trigger_price_type']);
-        let response = undefined;
+        let response;
         if (test) {
             response = await this.privatePostOrderDebug(this.extend(request, params));
         }
@@ -1554,7 +1554,7 @@ class derive extends derive$1["default"] {
         const clientOrderIdUnified = this.safeString(params, 'clientOrderId');
         const clientOrderIdExchangeSpecific = this.safeString(params, 'label', clientOrderIdUnified);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
-        let response = undefined;
+        let response;
         if (isByClientOrder) {
             request['label'] = clientOrderIdExchangeSpecific;
             params = this.omit(params, ['clientOrderId', 'label']);
@@ -1641,7 +1641,7 @@ class derive extends derive$1["default"] {
         const request = {
             'subaccount_id': subaccountId,
         };
-        let response = undefined;
+        let response;
         if (market !== undefined) {
             request['instrument_name'] = market['id'];
             response = await this.privatePostCancelByInstrument(this.extend(request, params));

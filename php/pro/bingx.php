@@ -529,7 +529,6 @@ class bingx extends \ccxt\async\bingx {
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
         $messageHash = 'trade::' . $symbol;
-        $trades = null;
         if ((gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
             $trades = $this->parse_trades($data, $market);
         } else {
@@ -726,7 +725,6 @@ class bingx extends \ccxt\async\bingx {
             $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
         }
         $orderbook = $this->orderbooks[$symbol];
-        $snapshot = null;
         $timestamp = $this->safe_integer_2($message, 'timestamp', 'ts');
         $timestamp = $this->safe_integer_2($data, 'timestamp', 'ts', $timestamp);
         if ($market['inverse']) {

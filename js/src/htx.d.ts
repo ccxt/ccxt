@@ -1,5 +1,5 @@
 import Exchange from './abstract/htx.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, BorrowInterest, OpenInterests, Position, ADL, OpenInterest } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, NullableDict, List, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, BorrowInterest, OpenInterests, Position, ADL, OpenInterest } from './base/types.js';
 /**
  * @class htx
  * @augments Exchange
@@ -19,11 +19,11 @@ export default class htx extends Exchange {
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
     fetchStatus(params?: {}): Promise<{
-        status: any;
+        status: string;
         updated: any;
         eta: any;
-        url: any;
-        info: any;
+        url: string;
+        info: Dict;
     }>;
     /**
      * @method
@@ -101,7 +101,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    fetchMarketsByTypeAndSubType(type: Str, subType: Str, params?: {}): Promise<any[]>;
+    fetchMarketsByTypeAndSubType(type: Str, subType: Str, params?: {}): Promise<List>;
     tryGetSymbolFromFutureMarkets(symbolOrMarketId: string): any;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     /**
@@ -317,7 +317,7 @@ export default class htx extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
-    parseMarginBalanceHelper(balance: any, code: any, result: any): any;
+    parseMarginBalanceHelper(balance: any, code: any, result: any): Dict;
     fetchSpotOrdersByStates(states: any, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchSpotOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedSpotOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
@@ -536,7 +536,7 @@ export default class htx extends Exchange {
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelOrders(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
-    parseCancelOrders(orders: any): any[];
+    parseCancelOrders(orders: any): List;
     /**
      * @method
      * @name htx#cancelAllOrders
@@ -588,7 +588,7 @@ export default class htx extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
-    fetchWithdrawAddresses(code: string, note?: any, networkCode?: any, params?: {}): Promise<any[]>;
+    fetchWithdrawAddresses(code: string, note?: any, networkCode?: any, params?: {}): Promise<List>;
     /**
      * @method
      * @name htx#fetchDeposits
@@ -714,11 +714,11 @@ export default class htx extends Exchange {
     fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<BorrowInterest[]>;
     parseBorrowInterest(info: Dict, market?: Market): BorrowInterest;
     nonce(): number;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: string;
+        headers: Dict;
     };
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
     /**
@@ -748,7 +748,7 @@ export default class htx extends Exchange {
      * @param {string} [params.position_side] linear swap supports 'long', 'short' and 'both', 'both' is the default
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<any>;
+    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<Dict>;
     parseIncome(income: any, market?: Market): {
         info: any;
         symbol: string;
@@ -938,7 +938,7 @@ export default class htx extends Exchange {
      */
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: Currency): any;
-    parseSettlements(settlements: any, market: any): any[];
+    parseSettlements(settlements: any, market: any): List;
     parseSettlement(settlement: any, market: any): {
         info: any;
         symbol: string;

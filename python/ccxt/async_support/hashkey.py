@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.hashkey import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Any, Balances, Bool, Currencies, Currency, DepositAddress, Int, LastPrice, LastPrices, LedgerEntry, Leverage, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Any, Balances, Bool, Currencies, Currency, DepositAddress, Int, LastPrice, LastPrices, LedgerEntry, Leverage, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, SubType, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1053,7 +1053,7 @@ class hashkey(Exchange, ImplicitAPI):
         status = self.safe_string(market, 'status')
         active = status == 'TRADING'
         isLinear: Bool = None
-        subType = None
+        subType: SubType = None
         isInverse = self.safe_bool(market, 'inverse')
         if isInverse is not None:
             if isInverse:
@@ -1350,7 +1350,7 @@ class hashkey(Exchange, ImplicitAPI):
             request['endTime'] = until
         accountId: Str = None
         accountId, params = self.handle_option_and_params(params, methodName, 'accountId')
-        response = None
+        response: NullableList = None
         if marketType == 'spot':
             if market is not None:
                 request['symbol'] = market['id']
@@ -1481,7 +1481,7 @@ class hashkey(Exchange, ImplicitAPI):
         isBuyer = self.safe_bool(trade, 'isBuyer')
         if isBuyer is not None:
             side = 'buy' if isBuyer else 'sell'
-        takerOrMaker = None
+        takerOrMaker: Str = None
         isMaker = self.safe_bool_n(trade, ['isMaker', 'isMarker'])
         if isMaker is not None:
             takerOrMaker = 'maker' if isMaker else 'taker'
@@ -1493,7 +1493,7 @@ class hashkey(Exchange, ImplicitAPI):
         feeCost = self.safe_string(trade, 'commission')
         feeCurrncyId = self.safe_string(trade, 'commissionAsset')
         feeInfo = self.safe_dict(trade, 'fee')
-        fee = None
+        fee: NullableDict = None
         if feeInfo is not None:
             feeCost = self.safe_string(feeInfo, 'fee')
             feeCurrncyId = self.safe_string(feeInfo, 'feeCoinId')
@@ -2097,7 +2097,7 @@ class hashkey(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(transaction, 'time')
         amount = self.safe_number(transaction, 'quantity')
         feeCost = self.safe_number(transaction, 'fee')
-        fee = None
+        fee: NullableDict = None
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
@@ -2292,11 +2292,11 @@ class hashkey(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         request['endTime'] = until
-        flowType = None
+        flowType: Str = None
         flowType, params = self.handle_option_and_params(params, methodName, 'flowType')
         if flowType is not None:
             request['flowType'] = self.encode_flow_type(flowType)
-        accountType = None
+        accountType: Str = None
         accountType, params = self.handle_option_and_params(params, methodName, 'accountType')
         if accountType is not None:
             request['accountType'] = self.encode_account_type(accountType)
@@ -2627,7 +2627,7 @@ class hashkey(Exchange, ImplicitAPI):
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
             request['priceType'] = 'INPUT'
-        reduceOnly = False
+        reduceOnly: Bool = False
         reduceOnly, params = self.handle_param_bool(params, 'reduceOnly', reduceOnly)
         suffix = '_OPEN'
         if reduceOnly:
@@ -2709,7 +2709,7 @@ class hashkey(Exchange, ImplicitAPI):
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        ordersRequests = []
+        ordersRequests: List = []
         for i in range(0, len(orders)):
             rawOrder = orders[i]
             symbol = self.safe_string(rawOrder, 'symbol')
@@ -2729,7 +2729,7 @@ class hashkey(Exchange, ImplicitAPI):
         request: dict = {
             'orders': ordersRequests,
         }
-        response = None
+        response: NullableDict = None
         if market['spot']:
             response = await self.privatePostApiV1SpotBatchOrders(self.extend(request, params))
             #
@@ -2799,7 +2799,7 @@ class hashkey(Exchange, ImplicitAPI):
         else:
             raise NotSupported(self.id + ' ' + 'createOrderRequest() is not supported for ' + market['type'] + ' type of markets')
         result = self.safe_list(response, 'result', [])
-        responseOrders = []
+        responseOrders: List = []
         for i in range(0, len(result)):
             responseEntry = self.safe_dict(result, i, {})
             responseOrder = self.safe_dict(responseEntry, 'order', {})
@@ -2834,7 +2834,7 @@ class hashkey(Exchange, ImplicitAPI):
             market = self.market(symbol)
         marketType = 'spot'
         marketType, params = self.handle_market_type_and_params(methodName, market, params, marketType)
-        response = None
+        response: NullableDict = None
         if marketType == 'spot':
             response = await self.privateDeleteApiV1SpotOrder(self.extend(request, params))
             #
@@ -2914,7 +2914,7 @@ class hashkey(Exchange, ImplicitAPI):
         side = self.safe_string(params, 'side')
         if side is not None:
             request['side'] = side
-        response = None
+        response: NullableDict = None
         if market['spot']:
             response = await self.privateDeleteApiV1SpotOpenOrders(self.extend(request, params))
             #
@@ -2954,7 +2954,7 @@ class hashkey(Exchange, ImplicitAPI):
             market = self.market(symbol)
         marketType = 'spot'
         marketType, params = self.handle_market_type_and_params(methodName, market, params, marketType)
-        response = None
+        response: NullableDict = None
         if marketType == 'spot':
             response = await self.privateDeleteApiV1SpotCancelOrderByIds(request)
             #
@@ -3001,7 +3001,7 @@ class hashkey(Exchange, ImplicitAPI):
             market = self.market(symbol)
         marketType = 'spot'
         marketType, params = self.handle_market_type_and_params(methodName, market, params, marketType)
-        response = None
+        response: NullableDict = None
         if marketType == 'spot':
             if clientOrderId is not None:
                 request['origClientOrderId'] = clientOrderId
@@ -3128,7 +3128,7 @@ class hashkey(Exchange, ImplicitAPI):
         methodName, params = self.handle_param_string(params, 'methodName', methodName)
         market: Market = None
         request: dict = {}
-        response = None
+        response: NullableDict = None
         accountId: Str = None
         accountId, params = self.handle_option_and_params(params, methodName, 'accountId')
         if accountId is not None:
@@ -3205,7 +3205,7 @@ class hashkey(Exchange, ImplicitAPI):
             request['type'] = 'LIMIT'
         if limit is not None:
             request['limit'] = limit
-        response = None
+        response: NullableDict = None
         accountId: Str = None
         accountId, params = self.handle_option_and_params(params, methodName, 'accountId')
         if accountId is not None:
@@ -3299,7 +3299,7 @@ class hashkey(Exchange, ImplicitAPI):
             market = self.market(symbol)
         marketType = 'spot'
         marketType, params = self.handle_market_type_and_params(methodName, market, params, marketType)
-        response = None
+        response: NullableDict = None
         if marketType == 'spot':
             if market is not None:
                 request['symbol'] = market['id']
@@ -3721,7 +3721,7 @@ class hashkey(Exchange, ImplicitAPI):
         #         ...
         #     ]
         #
-        rates = []
+        rates: List = []
         for i in range(0, len(response)):
             entry = response[i]
             timestamp = self.safe_integer(entry, 'settleTime')
@@ -4003,7 +4003,7 @@ class hashkey(Exchange, ImplicitAPI):
         riskLimits = self.safe_list(info, 'riskLimits', [])
         marketId = self.safe_string(info, 'symbol')
         market = self.safe_market(marketId, market)
-        tiers = []
+        tiers: List = []
         for i in range(0, len(riskLimits)):
             tier = riskLimits[i]
             initialMarginRate = self.safe_string(tier, 'initialMargin')
@@ -4033,7 +4033,7 @@ class hashkey(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         methodName = 'fetchTradingFee'
-        response = None
+        response: NullableDict = None
         if market['spot']:
             response = await self.fetch_trading_fees(params)
             return self.safe_dict(response, symbol)
@@ -4125,7 +4125,7 @@ class hashkey(Exchange, ImplicitAPI):
             'tierBased': True,
         }
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
         url = self.urls['api'][api] + '/' + path
         query: Str = None
         if api == 'private':

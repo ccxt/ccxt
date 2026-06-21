@@ -1093,7 +1093,7 @@ public class BitteamCore extends BitteamApi
             //         }
             //     }
             //
-            Object result = this.safeDict(response, "result");
+            Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(result, market);
         });
 

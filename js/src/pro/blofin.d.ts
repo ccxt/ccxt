@@ -3,7 +3,7 @@ import type { Int, Market, Trade, OrderBook, Strings, Ticker, Tickers, OHLCV, Ba
 import Client from '../base/ws/Client.js';
 export default class blofin extends blofinRest {
     describe(): any;
-    ping(client: any): string;
+    ping(client: Client): string;
     handlePong(client: Client, message: any): void;
     /**
      * @method
@@ -88,7 +88,7 @@ export default class blofin extends blofinRest {
      */
     watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
     handleBidAsk(client: Client, message: any): void;
-    parseWsBidAsk(ticker: any, market?: any): Ticker;
+    parseWsBidAsk(ticker: any, market?: Market): Ticker;
     /**
      * @method
      * @name blofin#watchOHLCV
@@ -180,7 +180,7 @@ export default class blofin extends blofinRest {
      */
     watchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
     handleFundingRate(client: Client, message: any): void;
-    watchMultipleWrapper(isPublic: boolean, channelName: string, callerMethodName: string, symbolsArray?: any[], params?: {}): Promise<any>;
+    watchMultipleWrapper(isPublic: boolean, channelName: string, callerMethodName: string, symbolsArray?: any, params?: {}): Promise<any>;
     getSubscriptionRequest(args: any): {
         op: string;
         args: any;

@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Int, Market, Num, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import AuthenticationError
@@ -105,9 +105,9 @@ class phemex(ccxt.async_support.phemex):
         last = self.parse_number(lastString)
         quoteVolume = self.parse_number(self.from_ev(self.safe_string(ticker, 'turnover'), market))
         baseVolume = self.parse_number(self.from_ev(self.safe_string(ticker, 'volume'), market))
-        change = None
-        percentage = None
-        average = None
+        change: Num = None
+        percentage: Num = None
+        average: Num = None
         openString = self.omit_zero(self.from_ep(self.safe_string(ticker, 'open'), market))
         open = self.parse_number(openString)
         if (openString is not None) and (lastString is not None):
@@ -163,9 +163,9 @@ class phemex(ccxt.async_support.phemex):
         last = self.parse_number(lastString)
         quoteVolume = self.parse_number(self.from_ev(self.safe_string(ticker, 6), market))
         baseVolume = self.parse_number(self.from_ev(self.safe_string(ticker, 5), market))
-        change = None
-        percentage = None
-        average = None
+        change: Num = None
+        percentage: Num = None
+        average: Num = None
         openString = self.omit_zero(self.from_ep(self.safe_string(ticker, 1), market))
         open = self.parse_number(openString)
         if (openString is not None) and (lastString is not None):
@@ -271,7 +271,7 @@ class phemex(ccxt.async_support.phemex):
         #        "type": "snapshot",
         #    }
         #
-        tickers = []
+        tickers: List = []
         if 'market24h' in message:
             ticker = self.safe_value(message, 'market24h')
             tickers.append(self.parse_swap_ticker(ticker))
@@ -305,7 +305,7 @@ class phemex(ccxt.async_support.phemex):
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.load_markets()
-        type = None
+        type: Str = None
         type, params = self.handle_market_type_and_params('watchBalance', None, params)
         usePerpetualApi = self.safe_string(params, 'settle') == 'USDT'
         messageHash = ':balance'
@@ -535,7 +535,7 @@ class phemex(ccxt.async_support.phemex):
         url = self.urls['api']['ws']
         requestId = self.request_id()
         subscriptionHash = name + '.subscribe'
-        messageHashes = []
+        messageHashes: List = []
         for i in range(0, len(symbols)):
             messageHashes.append('ticker:' + symbols[i])
         subscribe: dict = {
@@ -754,8 +754,8 @@ class phemex(ccxt.async_support.phemex):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
-        market = None
-        type = None
+        market: Market = None
+        type: Str = None
         messageHash = 'trades:'
         if symbol is not None:
             market = self.market(symbol)
@@ -876,7 +876,7 @@ class phemex(ccxt.async_support.phemex):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             cachedTrades = ArrayCacheBySymbolById(limit)
         marketIds: dict = {}
-        type = None
+        type: Str = None
         for i in range(0, len(message)):
             rawTrade = message[i]
             marketId = self.safe_string(rawTrade, 'symbol')
@@ -907,8 +907,8 @@ class phemex(ccxt.async_support.phemex):
         """
         await self.load_markets()
         messageHash = 'orders:'
-        market = None
-        type = None
+        market: Market = None
+        type: Str = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
@@ -1084,8 +1084,8 @@ class phemex(ccxt.async_support.phemex):
         #        ...
         #    ]
         #
-        trades = []
-        parsedOrders = []
+        trades: List = []
+        parsedOrders: List = []
         if ('closed' in message) or ('fills' in message) or ('open' in message):
             closed = self.safe_value(message, 'closed', [])
             open = self.safe_value(message, 'open', [])
@@ -1115,7 +1115,7 @@ class phemex(ccxt.async_support.phemex):
         marketIds: dict = {}
         if self.orders is None:
             self.orders = ArrayCacheBySymbolById(limit)
-        type = None
+        type: Str = None
         stored = self.orders
         for i in range(0, len(parsedOrders)):
             parsed = parsedOrders[i]

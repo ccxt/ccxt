@@ -8566,7 +8566,7 @@ func (this *HtxCore) Sign(path any, optionalArgs ...any) any {
 					bodyRequest = query
 				}
 				body = this.Json(bodyRequest)
-				if IsTrue(!IsTrue(isArrayParams) && IsTrue((IsEqual(GetArrayLength(body), 2)))) {
+				if IsTrue(!IsTrue(isArrayParams) && IsTrue((IsEqual(GetLength(body), 2)))) {
 					body = "{}"
 				}
 				headers = map[string]any{

@@ -222,7 +222,7 @@ class poloniex(ccxt.async_support.poloniex):
             'type': type.upper(),
         }
         if (uppercaseType == 'MARKET') and (uppercaseSide == 'BUY'):
-            quoteAmount = None
+            quoteAmount: Str = None
             createMarketBuyOrderRequiresPrice = True
             createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
             cost = self.safe_number(params, 'cost')
@@ -883,7 +883,7 @@ class poloniex(ccxt.async_support.poloniex):
         timestamp = self.safe_string(order, 'ts')
         filledAmount = self.safe_string(order, 'filledAmount')
         status = self.safe_string(order, 'state')
-        trades = None
+        trades: NullableList = None
         if not Precise.string_eq(filledAmount, '0'):
             trades = []
             trade = self.parse_ws_order_trade(order)

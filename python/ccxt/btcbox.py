@@ -252,7 +252,7 @@ class btcbox(Exchange, ImplicitAPI):
         #
         result2Data = self.safe_dict(response2, 'data', {})
         marketIds = list(response1.keys())
-        markets = []
+        markets: List[Market] = []
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             symbolParts = marketId.split('_')
@@ -765,7 +765,7 @@ class btcbox(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
         url = self.urls['api']['rest'] + '/' + self.version + '/' + path
         if api == 'public':
             if params:

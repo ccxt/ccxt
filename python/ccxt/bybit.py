@@ -1515,7 +1515,7 @@ class bybit(Exchange, ImplicitAPI):
         optionParts = symbol.split('-')
         symbolBase = symbol.split('/')
         base: Str = None
-        expiry = None
+        expiry: Str = None
         if symbol.find('/') > -1:
             base = self.safe_string(symbolBase, 0)
             expiry = self.safe_string(optionParts, 1)
@@ -1602,7 +1602,7 @@ class bybit(Exchange, ImplicitAPI):
             return self.create_expired_option_market(marketId)
         return super(bybit, self).safe_market(marketId, market, delimiter, marketType)
 
-    def get_bybit_type(self, method, market, params={}):
+    def get_bybit_type(self, method, market, params={}) -> list:
         type: Str = None
         type, params = self.handle_market_type_and_params(method, market, params)
         subType: Str = None
@@ -1778,7 +1778,7 @@ class bybit(Exchange, ImplicitAPI):
         """
         if self.options['adjustForTimeDifference']:
             self.load_time_difference()
-        promisesUnresolved = []
+        promisesUnresolved: List = []
         types: Strings = None
         defaultTypes = ['spot', 'linear', 'inverse', 'option']
         fetchMarketsOptions = self.safe_dict(self.options, 'fetchMarkets')
@@ -1803,7 +1803,7 @@ class bybit(Exchange, ImplicitAPI):
             else:
                 raise ExchangeError(self.id + ' fetchMarkets() self.options fetchMarkets "' + marketType + '" is not a supported market type')
         promises = promisesUnresolved
-        result = []
+        result: List = []
         for i in range(0, len(promises)):
             parsedMarket = promises[i]
             result = self.array_concat(result, parsedMarket)
@@ -1825,7 +1825,7 @@ class bybit(Exchange, ImplicitAPI):
             'category': 'spot',
         }
         usePrivateInstrumentsInfo = self.safe_bool(self.options, 'usePrivateInstrumentsInfo', False)
-        response: dict = None
+        response: dict
         if usePrivateInstrumentsInfo:
             response = self.privateGetV5MarketInstrumentsInfo(self.extend(request, params))
         else:
@@ -1864,7 +1864,7 @@ class bybit(Exchange, ImplicitAPI):
         #
         responseResult = self.safe_dict(response, 'result', {})
         markets = self.safe_list(responseResult, 'list', [])
-        result = []
+        result: List = []
         takerFee = self.parse_number('0.001')
         makerFee = self.parse_number('0.001')
         for i in range(0, len(markets)):
@@ -1940,7 +1940,7 @@ class bybit(Exchange, ImplicitAPI):
         params['limit'] = 1000  # minimize number of requests
         preLaunchMarkets = []
         usePrivateInstrumentsInfo = self.safe_bool(self.options, 'usePrivateInstrumentsInfo', False)
-        response: dict = None
+        response: NullableDict = None
         if usePrivateInstrumentsInfo:
             response = self.privateGetV5MarketInstrumentsInfo(params)
         else:
@@ -1957,7 +1957,7 @@ class bybit(Exchange, ImplicitAPI):
         if paginationCursor is not None:
             while(paginationCursor is not None):
                 params['cursor'] = paginationCursor
-                responseInner: dict = None
+                responseInner: dict
                 if usePrivateInstrumentsInfo:
                     responseInner = self.privateGetV5MarketInstrumentsInfo(params)
                 else:
@@ -2016,7 +2016,7 @@ class bybit(Exchange, ImplicitAPI):
         preLaunchData = self.safe_dict(preLaunchMarkets, 'result', {})
         preLaunchMarketsList = self.safe_list(preLaunchData, 'list', [])
         markets = self.array_concat(markets, preLaunchMarketsList)
-        result = []
+        result: List = []
         category = self.safe_string(data, 'category')
         for i in range(0, len(markets)):
             market = markets[i]
@@ -2123,7 +2123,7 @@ class bybit(Exchange, ImplicitAPI):
             'category': 'option',
         }
         usePrivateInstrumentsInfo = self.safe_bool(self.options, 'usePrivateInstrumentsInfo', False)
-        response: dict = None
+        response: dict
         if usePrivateInstrumentsInfo:
             response = self.privateGetV5MarketInstrumentsInfo(self.extend(request, params))
         else:
@@ -2136,7 +2136,7 @@ class bybit(Exchange, ImplicitAPI):
             if paginationCursor is not None:
                 while(paginationCursor is not None):
                     request['cursor'] = paginationCursor
-                    responseInner: dict = None
+                    responseInner: dict
                     if usePrivateInstrumentsInfo:
                         responseInner = self.privateGetV5MarketInstrumentsInfo(self.extend(request, params))
                     else:
@@ -2183,7 +2183,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1688873094448
         #     }
         #
-        result = []
+        result: List = []
         for i in range(0, len(markets)):
             market = markets[i]
             id = self.safe_string(market, 'symbol')
@@ -2395,7 +2395,7 @@ class bybit(Exchange, ImplicitAPI):
             # 'baseCoin': '', Base coin. For option only
             # 'expDate': '', Expiry date. e.g., 25DEC22. For option only
         }
-        category = None
+        category: Str = None
         category, params = self.get_bybit_type('fetchTicker', market, params)
         request['category'] = category
         response = self.publicGetV5MarketTickers(self.extend(request, params))
@@ -2489,7 +2489,7 @@ class bybit(Exchange, ImplicitAPI):
             # 'baseCoin': '',  # Base coin. For option only
             # 'expDate': '',  # Expiry date. e.g., 25DEC22. For option only
         }
-        category = None
+        category: Str = None
         category, params = self.get_bybit_type('fetchTickers', market, params)
         request['category'] = category
         if category == 'option':
@@ -2613,7 +2613,7 @@ class bybit(Exchange, ImplicitAPI):
             request['limit'] = limit  # max 1000, default 1000
         request, params = self.handle_until_option('end', request, params)
         request['interval'] = self.safe_string(self.timeframes, timeframe, timeframe)
-        response: dict = None
+        response: dict
         if market['spot']:
             request['category'] = 'spot'
             response = self.publicGetV5MarketKline(self.extend(request, params))
@@ -2845,7 +2845,7 @@ class bybit(Exchange, ImplicitAPI):
         fundingTimeFrameMins = self.safe_integer(market['info'], 'fundingInterval')
         symbol = market['symbol']
         request['symbol'] = market['id']
-        type = None
+        type: Str = None
         type, params = self.get_bybit_type('fetchFundingRateHistory', market, params)
         if type == 'spot' or type == 'option':
             raise NotSupported(self.id + ' fetchFundingRateHistory() only support linear and inverse market')
@@ -2883,7 +2883,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1672051897447
         #     }
         #
-        rates = []
+        rates: List = []
         result = self.safe_dict(response, 'result')
         resultList = self.safe_list(result, 'list')
         for i in range(0, len(resultList)):
@@ -3083,7 +3083,7 @@ class bybit(Exchange, ImplicitAPI):
         if orderType == 'unknown':
             orderType = None
         feeCostString = self.safe_string(trade, 'execFee')
-        fee = None
+        fee: NullableDict = None
         if feeCostString is not None:
             feeRateString = self.safe_string(trade, 'feeRate')
             feeCurrencyCode: Str = None
@@ -3148,7 +3148,7 @@ class bybit(Exchange, ImplicitAPI):
             # spot: [1,60], default: 60.
             # others: [1,1000], default: 500
             request['limit'] = limit
-        type = None
+        type: Str = None
         type, params = self.get_bybit_type('fetchTrades', market, params)
         request['category'] = type
         response = self.publicGetV5MarketRecentTrade(self.extend(request, params))
@@ -3447,7 +3447,7 @@ class bybit(Exchange, ImplicitAPI):
         unifiedType = self.safe_string_upper(accountTypes, type, type)
         marginMode: Str = None
         marginMode, params = self.handle_margin_mode_and_params('fetchBalance', params)
-        response: dict = None
+        response: dict
         if isSpot and (marginMode is not None):
             response = self.privateGetV5SpotCrossMarginTradeAccount(self.extend(request, params))
         elif isFunding:
@@ -3902,7 +3902,7 @@ class bybit(Exchange, ImplicitAPI):
             defaultMethod = 'privatePostV5OrderCreate'
         method: Str = None
         method, params = self.handle_option_and_params(params, 'createOrder', 'method', defaultMethod)
-        response: dict = None
+        response: dict
         if method == 'privatePostV5PositionTradingStop':
             response = self.privatePostV5PositionTradingStop(orderRequest)
         else:
@@ -4056,7 +4056,7 @@ class bybit(Exchange, ImplicitAPI):
                 request['orderLinkId'] = self.uuid16()
             if isLimit:
                 request['price'] = priceString
-        category = None
+        category: Str = None
         category, params = self.get_bybit_type('createOrderRequest', market, params)
         request['category'] = category
         cost = self.safe_string(params, 'cost')
@@ -4068,7 +4068,7 @@ class bybit(Exchange, ImplicitAPI):
             # UTA account can specify the cost of the order on both sides
             if (cost is not None) or (price is not None):
                 request['marketUnit'] = 'quoteCoin'
-                orderCost = None
+                orderCost: Str = None
                 if cost is not None:
                     orderCost = cost
                 else:
@@ -4176,8 +4176,8 @@ class bybit(Exchange, ImplicitAPI):
         self.load_markets()
         accounts = self.is_unified_enabled()
         isUta = accounts[1]
-        ordersRequests = []
-        orderSymbols = []
+        ordersRequests: List = []
+        orderSymbols: List = []
         for i in range(0, len(orders)):
             rawOrder = orders[i]
             marketId = self.safe_string(rawOrder, 'symbol')
@@ -4193,7 +4193,7 @@ class bybit(Exchange, ImplicitAPI):
         symbols = self.market_symbols(orderSymbols, None, False, True, True)
         market = self.market(symbols[0])
         unifiedMarginStatus = self.safe_integer(self.options, 'unifiedMarginStatus', 6)
-        category = None
+        category: Str = None
         category, params = self.get_bybit_type('createOrders', market, params)
         if (category == 'inverse') and (unifiedMarginStatus < 5):
             raise NotSupported(self.id + ' createOrders does not allow inverse orders for non UTA2.0 account')
@@ -4271,7 +4271,7 @@ class bybit(Exchange, ImplicitAPI):
             request['orderId'] = id
         else:
             request['orderLinkId'] = clientOrderId
-        category = None
+        category: Str = None
         category, params = self.get_bybit_type('editOrderRequest', market, params)
         request['category'] = category
         if amount is not None:
@@ -4374,8 +4374,8 @@ class bybit(Exchange, ImplicitAPI):
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
-        ordersRequests = []
-        orderSymbols = []
+        ordersRequests: List = []
+        orderSymbols: List = []
         for i in range(0, len(orders)):
             rawOrder = orders[i]
             symbol = self.safe_string(rawOrder, 'symbol')
@@ -4392,7 +4392,7 @@ class bybit(Exchange, ImplicitAPI):
         orderSymbols = self.market_symbols(orderSymbols, None, False, True, True)
         market = self.market(orderSymbols[0])
         unifiedMarginStatus = self.safe_integer(self.options, 'unifiedMarginStatus', 6)
-        category = None
+        category: Str = None
         category, params = self.get_bybit_type('editOrders', market, params)
         if (category == 'inverse') and (unifiedMarginStatus < 5):
             raise NotSupported(self.id + ' editOrders does not allow inverse orders for non UTA2.0 account')
@@ -4464,7 +4464,7 @@ class bybit(Exchange, ImplicitAPI):
             request['orderFilter'] = 'StopOrder' if isTrigger else 'Order'
         if id is not None:  # The user can also use argument params["orderLinkId"]
             request['orderId'] = id
-        category = None
+        category: Str = None
         category, params = self.get_bybit_type('cancelOrderRequest', market, params)
         request['category'] = category
         return self.extend(request, params)
@@ -4524,11 +4524,11 @@ class bybit(Exchange, ImplicitAPI):
         enableUnifiedAccount = types[1]
         if not enableUnifiedAccount:
             raise NotSupported(self.id + ' cancelOrders() supports UTA accounts only')
-        category = None
+        category: Str = None
         category, params = self.get_bybit_type('cancelOrders', market, params)
         if category == 'inverse':
             raise NotSupported(self.id + ' cancelOrders does not allow inverse orders')
-        ordersRequests = []
+        ordersRequests: List = []
         clientOrderIds = self.safe_list_2(params, 'clientOrderIds', 'clientOids', [])
         params = self.omit(params, ['clientOrderIds', 'clientOids'])
         for i in range(0, len(clientOrderIds)):
@@ -4633,13 +4633,13 @@ class bybit(Exchange, ImplicitAPI):
         enableUnifiedAccount = types[1]
         if not enableUnifiedAccount:
             raise NotSupported(self.id + ' cancelOrdersForSymbols() supports UTA accounts only')
-        ordersRequests = []
+        ordersRequests: List = []
         category: Str = None
         for i in range(0, len(orders)):
             order = orders[i]
             symbol = self.safe_string(order, 'symbol')
             market = self.market(symbol)
-            currentCategory = None
+            currentCategory: Str = None
             currentCategory, params = self.get_bybit_type('cancelOrders', market, params)
             if currentCategory == 'inverse':
                 raise NotSupported(self.id + ' cancelOrdersForSymbols does not allow inverse orders')
@@ -4724,7 +4724,7 @@ class bybit(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        type = None
+        type: Str = None
         type, params = self.get_bybit_type('cancelAllOrders', market, params)
         request['category'] = type
         if (type == 'option') and not isUnifiedAccount:
@@ -4825,7 +4825,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         if not acknowledge:
             raise ArgumentsRequired(self.id + ' fetchOrder() can only access an order if it is in last 500 orders(of any status) for your account. Set params["acknowledged"] = True to hide self warning. Alternatively, we suggest to use fetchOpenOrder or fetchClosedOrder')
         market = self.market(symbol)
-        marketType = None
+        marketType: Str = None
         marketType, params = self.get_bybit_type('fetchOrder', market, params)
         request: dict = {
             'symbol': market['id'],
@@ -4946,7 +4946,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        type = None
+        type: Str = None
         type, params = self.get_bybit_type('fetchOrders', market, params)
         if type == 'spot':
             raise NotSupported(self.id + ' fetchOrders() is not supported for spot markets')
@@ -5109,7 +5109,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        type = None
+        type: Str = None
         type, params = self.get_bybit_type('fetchCanceledAndClosedOrders', market, params)
         request['category'] = type
         isTrigger = self.safe_bool_n(params, ['trigger', 'stop'], False)
@@ -5273,7 +5273,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        type = None
+        type: Str = None
         type, params = self.get_bybit_type('fetchOpenOrders', market, params)
         if type == 'linear' or type == 'inverse':
             baseCoin = self.safe_string(params, 'baseCoin')
@@ -5405,7 +5405,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        type = None
+        type: Str = None
         type, params = self.get_bybit_type('fetchMyTrades', market, params)
         request['category'] = type
         if limit is not None:
@@ -5840,7 +5840,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             request['limit'] = limit
         subType: Str = None
         subType, params = self.handle_sub_type_and_params('fetchLedger', None, params)
-        response: dict = None
+        response: dict
         if enableUnified[1]:
             unifiedMarginStatus = self.safe_integer(self.options, 'unifiedMarginStatus', 5)  # 3/4 uta 1.0, 5/6 uta 2.0
             if subType == 'inverse' and (unifiedMarginStatus < 5):
@@ -6124,8 +6124,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         request: dict = {
             'symbol': market['id'],
         }
-        response: dict = None
-        type = None
+        response: NullableDict = None
+        type: Str = None
         type, params = self.get_bybit_type('fetchPosition', market, params)
         request['category'] = type
         response = self.privateGetV5PositionList(self.extend(request, params))
@@ -6215,7 +6215,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             market = self.market(symbol)
             symbol = market['symbol']
             request['symbol'] = market['id']
-        type = None
+        type: Str = None
         type, params = self.get_bybit_type('fetchPositions', market, params)
         if type == 'linear' or type == 'inverse':
             baseCoin = self.safe_string(params, 'baseCoin')
@@ -6269,7 +6269,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         #     }
         #
         positions = self.add_pagination_cursor_to_result(response)
-        results = []
+        results: List = []
         for i in range(0, len(positions)):
             rawPosition = positions[i]
             if ('data' in rawPosition) and ('is_valid' in rawPosition):
@@ -6433,7 +6433,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
                 side = 'long' if isHistory else 'short'
             else:
                 side = None
-        notional = None
+        notional: Str = None
         contractSize = self.safe_string(market, 'contractSize')
         markPrice = self.safe_string(position, 'markPrice')
         if market['inverse']:
@@ -6556,7 +6556,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         enableUnifiedMargin, enableUnifiedAccount = self.is_unified_enabled()
         isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
         market: Market = None
-        response: dict = None
+        response: dict
         if isUnifiedAccount:
             if marginMode == 'isolated':
                 marginMode = 'ISOLATED_MARGIN'
@@ -6587,17 +6587,17 @@ classic accounts only/ spot not supported*  fetches information on an order made
                 }
                 response = self.privatePostV5AccountSetMarginMode(self.extend(request, params))
             else:
-                type = None
+                type: Str = None
                 type, params = self.get_bybit_type('setPositionMode', market, params)
-                tradeMode = None
+                tradeMode: Int = None
                 if marginMode == 'cross':
                     tradeMode = 0
                 elif marginMode == 'isolated':
                     tradeMode = 1
                 else:
                     raise NotSupported(self.id + ' setMarginMode() with symbol marginMode must be either [isolated, cross]')
-                sellLeverage = None
-                buyLeverage = None
+                sellLeverage: Str = None
+                buyLeverage: Str = None
                 leverage = self.safe_string(params, 'leverage')
                 if leverage is None:
                     sellLeverage = self.safe_string_2(params, 'sell_leverage', 'sellLeverage')
@@ -6676,7 +6676,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         market: Market = None
         if symbol is not None:
             market = self.market(symbol)
-        mode = None
+        mode: Int = None
         if hedged:
             mode = 3
         else:
@@ -6691,7 +6691,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         if symbol is not None:
             request['category'] = 'linear' if market['linear'] else 'inverse'
         else:
-            type = None
+            type: Str = None
             type, params = self.get_bybit_type('setPositionMode', market, params)
             request['category'] = type
         params = self.omit(params, 'type')
@@ -7395,7 +7395,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         request: dict = {
             'symbol': market['id'],
         }
-        category = None
+        category: Str = None
         category, params = self.get_bybit_type('fetchTradingFee', market, params)
         request['category'] = category
         response = self.privateGetV5AccountFeeRate(self.extend(request, params))
@@ -7580,7 +7580,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        type = None
+        type: Str = None
         type, params = self.get_bybit_type('fetchSettlementHistory', market, params)
         if type == 'spot':
             raise NotSupported(self.id + ' fetchSettlementHistory() is not supported for spot market')
@@ -7633,7 +7633,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        type = None
+        type: Str = None
         type, params = self.get_bybit_type('fetchMySettlementHistory', market, params)
         if type == 'spot':
             raise NotSupported(self.id + ' fetchMySettlementHistory() is not supported for spot market')
@@ -7731,7 +7731,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         #         }
         #     ]
         #
-        result = []
+        result: List = []
         for i in range(0, len(settlements)):
             result.append(self.parse_settlement(settlements[i], market))
         return result
@@ -7779,7 +7779,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         #         "time": "1690574400000"
         #     }
         #
-        result = []
+        result: List = []
         for i in range(0, len(volatility)):
             entry = volatility[i]
             timestamp = self.safe_integer(entry, 'time')
@@ -8007,7 +8007,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        type = None
+        type: Str = None
         type, params = self.get_bybit_type('fetchMyLiquidations', market, params)
         request['category'] = type
         if limit is not None:
@@ -8202,7 +8202,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         #      }
         #  ]
         #
-        tiers = []
+        tiers: List = []
         for i in range(0, len(info)):
             tier = info[i]
             marketId = self.safe_string(info, 'symbol')
@@ -8247,7 +8247,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        type = None
+        type: Str = None
         type, params = self.get_bybit_type('fetchFundingHistory', market, params)
         request['category'] = type
         if symbol is not None:
@@ -8929,7 +8929,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         """
         self.load_markets()
         market = self.market(symbol)
-        type = None
+        type: Str = None
         type, params = self.get_bybit_type('fetchLongShortRatioHistory', market, params)
         if type == 'spot' or type == 'option':
             raise NotSupported(self.id + ' fetchLongShortRatioHistory() only support linear and inverse markets')
@@ -9005,7 +9005,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         request: dict = {}
         if market is not None:
             request['symbol'] = market['id']
-        type = None
+        type: Str = None
         type, params = self.get_bybit_type('fetchPositionsADLRank', market, params)
         request['category'] = type
         response = self.privateGetV5PositionList(self.extend(request, params))
@@ -9166,7 +9166,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         }
         return self.safe_string(marginModes, marginMode, marginMode)
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
         url = self.implode_hostname(self.urls['api'][api]) + '/' + path
         if api == 'public':
             if params:
