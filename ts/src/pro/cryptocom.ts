@@ -777,7 +777,7 @@ export default class cryptocom extends cryptocomRest {
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+            this.ohlcvs[symbol][timeframe as string] = stored;
         }
         const data = this.safeValue (message, 'data');
         for (let i = 0; i < data.length; i++) {

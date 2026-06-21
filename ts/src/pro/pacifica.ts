@@ -744,7 +744,7 @@ export default class pacifica extends pacificaRest {
             const rawTrade = data[i];
             const parsed = this.parseWsTrade (rawTrade);
             const symbol = parsed['symbol'];
-            symbols[symbol] = true;
+            symbols[symbol as string] = true;
             trades.append (parsed);
         }
         const keys = Object.keys (symbols);
@@ -1035,9 +1035,9 @@ export default class pacifica extends pacificaRest {
         if (!(timeframe in this.ohlcvs[symbol])) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             const stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+            this.ohlcvs[symbol][timeframe as string] = stored;
         }
-        const ohlcv = this.ohlcvs[symbol][timeframe];
+        const ohlcv = this.ohlcvs[symbol][timeframe as string];
         const parsed = this.parseOHLCV (data);
         ohlcv.append (parsed);
         const messageHash = 'candles:' + timeframe + ':' + symbol;
@@ -1162,7 +1162,7 @@ export default class pacifica extends pacificaRest {
             const order = this.parseOrder (rawOrder);
             stored.append (order);
             const symbol = this.safeString (order, 'symbol');
-            marketSymbols[symbol] = true;
+            marketSymbols[symbol as string] = true;
         }
         const keys = Object.keys (marketSymbols);
         for (let i = 0; i < keys.length; i++) {
@@ -1239,7 +1239,7 @@ export default class pacifica extends pacificaRest {
         this.cleanUnsubscription (client, subMessageHash, messageHash);
         if (symbol in this.ohlcvs) {
             if (timeframe in this.ohlcvs[symbol]) {
-                delete this.ohlcvs[symbol][timeframe];
+                delete this.ohlcvs[symbol][timeframe as string];
             }
         }
     }

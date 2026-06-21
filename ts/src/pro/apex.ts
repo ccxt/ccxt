@@ -458,9 +458,9 @@ export default class apex extends apexRest {
         const timestamp = this.safeIntegerProduct (message, 'ts', 0.001);
         parsed['timestamp'] = timestamp;
         parsed['datetime'] = this.iso8601 (timestamp);
-        this.tickers[symbol] = parsed;
+        this.tickers[symbol as string] = parsed;
         const messageHash = 'ticker:' + symbol;
-        client.resolve (this.tickers[symbol], messageHash);
+        client.resolve (this.tickers[symbol as string], messageHash);
     }
 
     /**
@@ -554,9 +554,9 @@ export default class apex extends apexRest {
         }
         if (!(timeframe in this.ohlcvs[symbol])) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][timeframe as string] = new ArrayCacheByTimestamp (limit);
         }
-        const stored = this.ohlcvs[symbol][timeframe];
+        const stored = this.ohlcvs[symbol][timeframe as string];
         for (let i = 0; i < data.length; i++) {
             const parsed = this.parseWsOHLCV (data[i]);
             stored.append (parsed);
@@ -713,7 +713,7 @@ export default class apex extends apexRest {
             let parsed: Trade = undefined;
             parsed = this.parseWsTrade (rawTrade);
             const symbol = parsed['symbol'];
-            symbols[symbol] = true;
+            symbols[symbol as string] = true;
             trades.append (parsed);
         }
         const keys = Object.keys (symbols);

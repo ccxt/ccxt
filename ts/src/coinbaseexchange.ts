@@ -968,7 +968,7 @@ export default class coinbaseexchange extends Exchange {
         };
         // publicGetProductsIdTicker or publicGetProductsIdStats
         const method = this.safeString (this.options, 'fetchTickerMethod', 'publicGetProductsIdTicker');
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method as string] (this.extend (request, params));
         //
         // publicGetProductsIdTicker
         //

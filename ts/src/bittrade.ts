@@ -1230,7 +1230,7 @@ export default class bittrade extends Exchange {
             request['symbol'] = market['id'];
         }
         const method = this.safeString (this.options, 'fetchOrdersByStatesMethod', 'private_get_order_orders');
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method as string] (this.extend (request, params));
         //
         //     { "status":   "ok",
         //         "data": [ {                  id:  13997833016,
@@ -1296,7 +1296,7 @@ export default class bittrade extends Exchange {
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         const method = this.safeString (this.options, 'fetchOpenOrdersMethod', 'fetch_open_orders_v1');
-        return await this[method] (symbol, since, limit, params) as Order[];
+        return await this[method as string] (symbol, since, limit, params) as Order[];
     }
 
     async fetchOpenOrdersV1 (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {

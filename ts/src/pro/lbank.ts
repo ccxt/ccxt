@@ -208,7 +208,7 @@ export default class lbank extends lbankRest {
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
-                this.ohlcvs[symbol][timeframe] = stored;
+                this.ohlcvs[symbol][timeframe as string] = stored;
             }
             stored.append (parsed);
             const messageHash = 'fetchOHLCV:' + symbol + ':' + timeframeId;
@@ -231,7 +231,7 @@ export default class lbank extends lbankRest {
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
-                this.ohlcvs[symbol][timeframe] = stored;
+                this.ohlcvs[symbol][timeframe as string] = stored;
             }
             stored.append (parsed);
             const messageHash = 'ohlcv:' + symbol + ':' + timeframeId;

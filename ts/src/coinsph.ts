@@ -1830,7 +1830,7 @@ export default class coinsph extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const fee = this.parseTradingFee (response[i]);
             const symbol = fee['symbol'];
-            result[symbol] = fee;
+            result[symbol as string] = fee;
         }
         return result;
     }

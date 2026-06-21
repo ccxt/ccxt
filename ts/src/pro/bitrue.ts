@@ -648,9 +648,9 @@ export default class bitrue extends bitrueRest {
         }
         if (!(timeframe in this.ohlcvs[symbol])) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][timeframe as string] = new ArrayCacheByTimestamp (limit);
         }
-        const stored = this.ohlcvs[symbol][timeframe];
+        const stored = this.ohlcvs[symbol][timeframe as string];
         stored.append (parsed);
         const messageHash = 'ohlcv:' + symbol + ':' + timeframe;
         client.resolve (stored, messageHash);

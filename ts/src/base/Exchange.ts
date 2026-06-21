@@ -1465,9 +1465,9 @@ export default class Exchange {
         const future = client.future (messageHash);
         // read and write subscription, this is done before connecting the client
         // to avoid race conditions when other parts of the code read or write to the client.subscriptions
-        const clientSubscription = client.subscriptions[subscribeHash];
+        const clientSubscription = client.subscriptions[subscribeHash as string];
         if (!clientSubscription) {
-            client.subscriptions[subscribeHash] = subscription || true;
+            client.subscriptions[subscribeHash as string] = subscription || true;
         }
         // we intentionally do not use await here to avoid unhandled exceptions
         // the policy is to make sure that 100% of promises are resolved or rejected
@@ -1499,7 +1499,7 @@ export default class Exchange {
                     }
                 }
             }).catch ((e) => {
-                delete client.subscriptions[subscribeHash];
+                delete client.subscriptions[subscribeHash as string];
                 future.reject (e);
             });
         }
@@ -3620,7 +3620,7 @@ export default class Exchange {
     }
 
     featuresMapper (initialFeatures: any, marketType: Str, subType: Str = undefined) {
-        let featuresObj = (subType !== undefined) ? initialFeatures[marketType][subType] : initialFeatures[marketType];
+        let featuresObj = (subType !== undefined) ? initialFeatures[marketType as string][subType] : initialFeatures[marketType as string];
         // if exchange does not have that market-type (eg. future>inverse)
         if (featuresObj === undefined) {
             return undefined;
@@ -4545,7 +4545,7 @@ export default class Exchange {
         cost = Precise.stringMul (cost, rate);
         return {
             'type': takerOrMaker,
-            'currency': market[key],
+            'currency': market[key as string],
             'rate': this.parseNumber (rate),
             'cost': this.parseNumber (cost),
         };
@@ -7315,7 +7315,7 @@ export default class Exchange {
             const defaultType = this.safeString2 (this.options, 'defaultType', 'defaultSubType', 'spot');
             for (let i = 0; i < markets.length; i++) {
                 const market = markets[i];
-                if (market[defaultType]) {
+                if (market[defaultType as string]) {
                     return market;
                 }
             }
@@ -7813,7 +7813,7 @@ export default class Exchange {
             const item = info[i];
             const borrowRate = this.parseIsolatedBorrowRate (item);
             const symbol = this.safeString (borrowRate, 'symbol');
-            result[symbol] = borrowRate;
+            result[symbol as string] = borrowRate;
         }
         return result as any;
     }
@@ -8244,7 +8244,7 @@ export default class Exchange {
             const currency = this.safeCurrency (currencyId);
             const code = this.safeString (currency, 'code');
             if ((codes === undefined) || (this.inArray (code, codes))) {
-                depositWithdrawFees[code] = this.parseDepositWithdrawFee (dictionary, currency);
+                depositWithdrawFees[code as string] = this.parseDepositWithdrawFee (dictionary, currency);
             }
         }
         return depositWithdrawFees;
@@ -8574,7 +8574,7 @@ export default class Exchange {
                     if (cursorIncrement !== undefined) {
                         cursorValue = this.parseToInt (cursorValue) + cursorIncrement;
                     }
-                    params[cursorSent] = cursorValue;
+                    params[cursorSent as string] = cursorValue;
                 }
                 let response = undefined;
                 if (method === 'fetchAccounts') {
@@ -8642,7 +8642,7 @@ export default class Exchange {
         let result = [];
         while (i < maxCalls) {
             try {
-                params[pageKey] = i + 1;
+                params[pageKey as string] = i + 1;
                 const response = await this[method] (symbol, since, maxEntriesPerRequest, params);
                 errors = 0;
                 const responseLength = response.length;
@@ -9204,8 +9204,8 @@ export default class Exchange {
                 const symbol = this.safeString (symbolAndTimeFrame, 0);
                 const timeframe = this.safeString (symbolAndTimeFrame, 1);
                 if ((this.ohlcvs !== undefined) && (symbol in this.ohlcvs)) {
-                    if (timeframe in this.ohlcvs[symbol]) {
-                        delete this.ohlcvs[symbol][timeframe];
+                    if (timeframe in this.ohlcvs[symbol as string]) {
+                        delete this.ohlcvs[symbol as string][timeframe];
                     }
                 }
             }

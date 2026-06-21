@@ -5796,7 +5796,7 @@ export default class mexc extends Exchange {
             const currency = this.safeCurrency (currencyId);
             const code = this.safeString (currency, 'code');
             if ((codes === undefined) || (this.inArray (code, codes))) {
-                withdrawFees[code] = this.parseTransactionFee (entry, currency);
+                withdrawFees[code as string] = this.parseTransactionFee (entry, currency);
             }
         }
         return {
@@ -5840,7 +5840,7 @@ export default class mexc extends Exchange {
             const networkId = this.safeString (networkEntry, 'network');
             const networkCode = this.safeString (this.options['networks'], networkId, networkId);
             const fee = this.safeNumber (networkEntry, 'withdrawFee');
-            result[networkCode] = fee;
+            result[networkCode as string] = fee;
         }
         return result;
     }

@@ -1092,9 +1092,9 @@ export default class onetrading extends onetradingRest {
         }
         const subscriptionMarketId = this.safeValue (subscription, marketId);
         if (subscriptionMarketId === undefined) {
-            subscription[marketId] = {};
+            subscription[marketId as string] = {};
         }
-        subscription[marketId][timeframe] = true;
+        subscription[marketId as string][timeframe] = true;
         const properties: List = [];
         const marketIds = Object.keys (subscription);
         for (let i = 0; i < marketIds.length; i++) {
@@ -1181,7 +1181,7 @@ export default class onetrading extends onetradingRest {
             stored = new ArrayCacheByTimestamp (limit);
         }
         stored.append (parsed);
-        this.ohlcvs[symbol][timeframe] = stored;
+        this.ohlcvs[symbol][timeframe as string] = stored;
         client.resolve (stored, channel);
     }
 

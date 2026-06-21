@@ -971,7 +971,7 @@ export default class deribit extends Exchange {
                 if (parsedMarketValue) {
                     continue;
                 }
-                parsedMarkets[symbol] = true;
+                parsedMarkets[symbol as string] = true;
                 const minTradeAmount = this.safeNumber (market, 'min_trade_amount');
                 const tickSize = this.safeNumber (market, 'tick_size');
                 result.push ({

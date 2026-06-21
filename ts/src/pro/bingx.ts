@@ -701,7 +701,7 @@ export default class bingx extends bingxRest {
         if (orderbook === undefined) {
             // const limit = [ 5, 10, 20, 50, 100 ]
             const subscriptionHash = dataType;
-            const subscription = client.subscriptions[subscriptionHash];
+            const subscription = client.subscriptions[subscriptionHash as string];
             // see handleOHLCV — subscription.limit may be missing for non-orderbook callers;
             // default to a reasonable depth instead of throwing NPE in the Java port.
             const limit = this.safeInteger (subscription, 'limit', 100);
@@ -848,14 +848,14 @@ export default class bingx extends bingxRest {
         const unifiedTimeframe = this.findTimeframe (rawTimeframe, timeframes);
         if (this.safeValue (this.ohlcvs[symbol], rawTimeframe) === undefined) {
             const subscriptionHash = dataType;
-            const subscription = client.subscriptions[subscriptionHash];
+            const subscription = client.subscriptions[subscriptionHash as string];
             // subscription.limit is only set when watchOHLCV registers the subscription;
             // when handleMessage routes a non-OHLCV-originated subscription here (or the
             // subscription dict was reset on reconnect), fall back to the OHLCVLimit option.
             const limit = this.safeInteger (subscription, 'limit', this.safeInteger (this.options, 'OHLCVLimit', 1000));
-            this.ohlcvs[symbol][unifiedTimeframe] = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][unifiedTimeframe as string] = new ArrayCacheByTimestamp (limit);
         }
-        const stored = this.ohlcvs[symbol][unifiedTimeframe];
+        const stored = this.ohlcvs[symbol][unifiedTimeframe as string];
         for (let i = 0; i < candles.length; i++) {
             const candle = candles[i];
             const parsed = this.parseWsOHLCV (candle, market);

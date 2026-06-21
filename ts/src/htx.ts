@@ -2116,7 +2116,7 @@ export default class htx extends Exchange {
             const market = futureMarkets[i];
             const info = this.safeValue (market, 'info', {});
             const contractType = this.safeString (info, 'contract_type');
-            const contractSuffix = futuresCharsMaps[contractType];
+            const contractSuffix = futuresCharsMaps[contractType as string];
             // see comment on formats a bit above
             const constructedId = market['linear'] ? market['base'] + '-' + market['quote'] + '-' + contractSuffix : market['base'] + '_' + contractSuffix;
             if (constructedId === symbolOrMarketId) {
@@ -3465,8 +3465,8 @@ export default class htx extends Exchange {
             const chainEntry = chains[j];
             const uniqueChainId = this.safeString (chainEntry, 'chain'); // i.e. usdterc20, trc20usdt ...
             const title = this.safeString2 (chainEntry, 'baseChain', 'displayName'); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
-            this.options['networkChainIdsByNames'][code][title] = uniqueChainId;
-            this.options['networkNamesByChainIds'][uniqueChainId] = title;
+            this.options['networkChainIdsByNames'][code][title as string] = uniqueChainId;
+            this.options['networkNamesByChainIds'][uniqueChainId as string] = title;
             const networkCode = this.networkIdToCode (uniqueChainId, code);
             networks[networkCode] = {
                 'info': chainEntry,
@@ -6581,7 +6581,7 @@ export default class htx extends Exchange {
         const [ networkCode, paramsOmited ] = this.handleNetworkCodeAndParams (params);
         const indexedAddresses = await this.fetchDepositAddressesByNetwork (code, paramsOmited);
         const selectedNetworkCode = this.selectNetworkCodeFromUnifiedNetworks (currency['code'], networkCode, indexedAddresses);
-        return indexedAddresses[selectedNetworkCode] as DepositAddress;
+        return indexedAddresses[selectedNetworkCode as string] as DepositAddress;
     }
 
     async fetchWithdrawAddresses (code: string, note = undefined, networkCode = undefined, params = {}) {
@@ -7710,7 +7710,7 @@ export default class htx extends Exchange {
                 }
             }
             const finalHostname = hostname; // java req
-            url = this.implodeParams (this.urls['api'][type], {
+            url = this.implodeParams (this.urls['api'][type as string], {
                 'hostname': finalHostname,
             }) + url;
         }

@@ -122,8 +122,8 @@ export default class backpack extends backpackRest {
                 const symbol = this.safeString (splitHashes, 2);
                 const timeframe = this.safeString (splitHashes, 3);
                 if (symbol in this.ohlcvs) {
-                    if (timeframe in this.ohlcvs[symbol]) {
-                        delete this.ohlcvs[symbol][timeframe];
+                    if (timeframe in this.ohlcvs[symbol as string]) {
+                        delete this.ohlcvs[symbol as string][timeframe];
                     }
                 }
             } else if (messageHash.indexOf ('orderbook') >= 0) {
@@ -556,9 +556,9 @@ export default class backpack extends backpackRest {
         if (!(timeframe in this.ohlcvs[symbol])) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             const stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+            this.ohlcvs[symbol][timeframe as string] = stored;
         }
-        const ohlcv = this.ohlcvs[symbol][timeframe];
+        const ohlcv = this.ohlcvs[symbol][timeframe as string];
         const parsed = this.parseWsOHLCV (data);
         ohlcv.append (parsed);
         const messageHash = 'candles:' + symbol + ':' + timeframe;

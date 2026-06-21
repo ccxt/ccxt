@@ -149,7 +149,7 @@ export default class paradex extends paradexRest {
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
             stored = new ArrayCache (this.safeInteger (this.options, 'tradesLimit', 1000));
-            this.trades[symbol] = stored;
+            this.trades[symbol as string] = stored;
         }
         stored.append (parsedTrade);
         client.resolve (stored, messageHash);

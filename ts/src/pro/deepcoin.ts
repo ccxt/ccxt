@@ -582,9 +582,9 @@ export default class deepcoin extends deepcoinRest {
         }
         if (!(timeframe in this.ohlcvs[symbol])) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][timeframe as string] = new ArrayCacheByTimestamp (limit);
         }
-        const stored = this.ohlcvs[symbol][timeframe];
+        const stored = this.ohlcvs[symbol][timeframe as string];
         if (data !== undefined) {
             const ohlcv = this.parseWsOHLCV (data, market);
             stored.append (ohlcv);

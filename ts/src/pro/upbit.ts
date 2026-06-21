@@ -303,7 +303,7 @@ export default class upbit extends upbitRest {
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             stored = new ArrayCache (limit);
-            this.trades[symbol] = stored;
+            this.trades[symbol as string] = stored;
         }
         stored.append (trade);
         const messageHash = 'trade:' + symbol;

@@ -681,7 +681,7 @@ export default class mexc extends mexcRest {
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+            this.ohlcvs[symbol][timeframe as string] = stored;
         }
         stored.append (parsed);
         client.resolve (stored, messageHash);
@@ -1934,7 +1934,7 @@ export default class mexc extends mexcRest {
                     symbol += ':' + this.safeString (splitHashes, 3);
                 }
                 if (symbol in this.ohlcvs) {
-                    delete this.ohlcvs[symbol];
+                    delete this.ohlcvs[symbol as string];
                 }
             } else if (messageHash.indexOf ('orderbook') >= 0) {
                 const symbol = messageHash.replace ('unsubscribe:orderbook:', '');
@@ -2111,7 +2111,7 @@ export default class mexc extends mexcRest {
             'push.funding.rate': this.handleFundingRate,
         };
         if (channel in methods) {
-            const method = methods[channel];
+            const method = methods[channel as string];
             method.call (this, client, message);
         }
     }

@@ -394,7 +394,7 @@ export default class okx extends okxRest {
         if (this.newUpdates) {
             const symbol = this.safeString (fundingRate, 'symbol');
             const result: Dict = {};
-            result[symbol] = fundingRate;
+            result[symbol as string] = fundingRate;
             return result;
         }
         return this.filterByArray (this.fundingRates, 'symbol', symbols);
@@ -1131,7 +1131,7 @@ export default class okx extends okxRest {
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
-                this.ohlcvs[symbol][timeframe] = stored;
+                this.ohlcvs[symbol][timeframe as string] = stored;
             }
             stored.append (parsed);
             const messageHash = channel + ':' + market['id'];
@@ -2091,7 +2091,7 @@ export default class okx extends okxRest {
             const trade = this.orderToTrade (rawTrade);
             myTrades.append (trade);
             const symbol = trade['symbol'];
-            symbols[symbol] = true;
+            symbols[symbol as string] = true;
         }
         const messageHash = channel + '::myTrades';
         client.resolve (this.myTrades, messageHash);
@@ -2567,7 +2567,7 @@ export default class okx extends okxRest {
         const messageHash = 'unsubscribe:' + subMessageHash;
         this.cleanUnsubscription (client, subMessageHash, messageHash);
         if (timeframe in this.ohlcvs[symbol]) {
-            delete this.ohlcvs[symbol][timeframe];
+            delete this.ohlcvs[symbol][timeframe as string];
         }
     }
 

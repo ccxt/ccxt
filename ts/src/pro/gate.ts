@@ -469,7 +469,7 @@ export default class gate extends gateRest {
     handleOrderBookSubscription (client: Client, message, subscription) {
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');
-        this.orderbooks[symbol] = this.orderBook ({}, limit);
+        this.orderbooks[symbol as string] = this.orderBook ({}, limit);
     }
 
     handleNewSpotOrderBook (client: Client, message) {
@@ -942,7 +942,7 @@ export default class gate extends gateRest {
             if (cachedTrades === undefined) {
                 const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
                 cachedTrades = new ArrayCache (limit);
-                this.trades[symbol] = cachedTrades;
+                this.trades[symbol as string] = cachedTrades;
             }
             cachedTrades.append (trade);
             const hash = 'trades:' + symbol;
@@ -1024,7 +1024,7 @@ export default class gate extends gateRest {
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
-                this.ohlcvs[symbol][timeframe] = stored;
+                this.ohlcvs[symbol][timeframe as string] = stored;
             }
             stored.append (parsed);
             marketIds[symbol] = timeframe;
@@ -1128,7 +1128,7 @@ export default class gate extends gateRest {
             const trade = parsed[i];
             cachedTrades.append (trade);
             const symbol = trade['symbol'];
-            marketIds[symbol] = true;
+            marketIds[symbol as string] = true;
         }
         const keys = Object.keys (marketIds);
         for (let i = 0; i < keys.length; i++) {
@@ -1318,7 +1318,7 @@ export default class gate extends gateRest {
         if (this.newUpdates) {
             return positions;
         }
-        return this.filterBySymbolsSinceLimit (this.positions[type], symbols, since, limit, true);
+        return this.filterBySymbolsSinceLimit (this.positions[type as string], symbols, since, limit, true);
     }
 
     setPositionsCache (client: Client, type, symbols: Strings = undefined) {
@@ -1862,7 +1862,7 @@ export default class gate extends gateRest {
             method.call (this, client, message, subscription);
         }
         if (id in client.subscriptions) {
-            delete client.subscriptions[id];
+            delete client.subscriptions[id as string];
         }
     }
 

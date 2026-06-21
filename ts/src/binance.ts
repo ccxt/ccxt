@@ -2833,7 +2833,7 @@ export default class binance extends Exchange {
                 // end diff
                 for (let i = 0; i < markets.length; i++) {
                     const market = markets[i];
-                    if (market[defaultType]) {
+                    if (market[defaultType as string]) {
                         return market;
                     }
                 }
@@ -3099,7 +3099,7 @@ export default class binance extends Exchange {
             const withdrawFee = this.safeNumber (networkItem, 'withdrawFee');
             const depositEnable = this.safeBool (networkItem, 'depositEnable');
             const withdrawEnable = this.safeBool (networkItem, 'withdrawEnable');
-            fees[network] = withdrawFee;
+            fees[network as string] = withdrawFee;
             const isDefault = this.safeBool (networkItem, 'isDefault');
             if (isDefault || (fee === undefined)) {
                 fee = withdrawFee;
@@ -9777,7 +9777,7 @@ export default class binance extends Exchange {
             for (let i = 0; i < response.length; i++) {
                 const fee = this.parseTradingFee (response[i]);
                 const symbol = fee['symbol'];
-                result[symbol] = fee;
+                result[symbol as string] = fee;
             }
             return result;
         } else if (isLinear) {

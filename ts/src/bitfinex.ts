@@ -851,7 +851,7 @@ export default class bitfinex extends Exchange {
             // for GOlang transpiler, do with "safe" method
             const networksList = this.safeList (indexedNetworks, networkName as IndexType, []);
             networksList.push (networkId);
-            indexedNetworks[networkName] = networksList;
+            indexedNetworks[networkName as string] = networksList;
         }
         const ids = this.safeList (response, 0, []);
         return this.parseCurrenciesCustom (ids, indexed, indexedNetworks);

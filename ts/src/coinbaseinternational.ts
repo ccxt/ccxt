@@ -796,7 +796,7 @@ export default class coinbaseinternational extends Exchange {
             [ networkId, params ] = await this.handleNetworkIdAndParams (code, 'createDepositAddress', params);
             request['network_arn_id'] = networkId;
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method as string] (this.extend (request, params));
         //
         // v1PrivatePostTransfersAddress
         //    {
@@ -2286,7 +2286,7 @@ export default class coinbaseinternational extends Exchange {
             'network_arn_id': networkId,
             'nonce': this.nonce (),
         };
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method as string] (this.extend (request, params));
         //
         //    {
         //        "idem":"8e471d77-4208-45a8-9e5b-f3bd8a2c1fc3"

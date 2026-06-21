@@ -136,10 +136,10 @@ export default class hashkey extends hashkeyRest {
         const timeframe = this.findTimeframe (klineType);
         if (!(timeframe in this.ohlcvs[symbol])) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][timeframe as string] = new ArrayCacheByTimestamp (limit);
         }
         const data = this.safeList (message, 'data', []);
-        const stored = this.ohlcvs[symbol][timeframe];
+        const stored = this.ohlcvs[symbol][timeframe as string];
         for (let i = 0; i < data.length; i++) {
             const candle = this.safeDict (data, i, {});
             const parsed = this.parseWsOHLCV (candle, market);

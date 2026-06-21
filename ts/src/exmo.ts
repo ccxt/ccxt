@@ -573,7 +573,7 @@ export default class exmo extends Exchange {
                 const typeInner = this.safeString (provider, 'type');
                 const commissionDesc = this.safeString (provider, 'commission_desc');
                 const fee = this.parseFixedFloatValue (commissionDesc);
-                result[code][typeInner] = fee;
+                result[code][typeInner as string] = fee;
             }
             result[code]['info'] = providers;
         }
@@ -666,7 +666,7 @@ export default class exmo extends Exchange {
                     },
                 };
             }
-            result['networks'][networkCode][type] = {
+            result['networks'][networkCode][type as string] = {
                 'fee': this.parseFixedFloatValue (this.safeString (splitCommissionDesc, 0)),
                 'percentage': percentage,
             };

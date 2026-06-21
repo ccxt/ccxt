@@ -361,7 +361,7 @@ export default class bitvavo extends bitvavoRest {
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+            this.ohlcvs[symbol][timeframe as string] = stored;
         }
         for (let i = 0; i < candles.length; i++) {
             const candle = candles[i];
@@ -548,9 +548,9 @@ export default class bitvavo extends bitvavoRest {
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');
         if (symbol in this.orderbooks) {
-            delete this.orderbooks[symbol];
+            delete this.orderbooks[symbol as string];
         }
-        this.orderbooks[symbol] = this.orderBook ({}, limit);
+        this.orderbooks[symbol as string] = this.orderBook ({}, limit);
     }
 
     handleOrderBookSubscriptions (client: Client, message, marketIds) {

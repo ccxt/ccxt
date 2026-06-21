@@ -1410,7 +1410,7 @@ export default class coinex extends coinexRest {
             if (future !== undefined) {
                 future.resolve (true);
             }
-            delete client.subscriptions[id];
+            delete client.subscriptions[id as number];
         }
     }
 

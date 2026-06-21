@@ -180,8 +180,8 @@ export default class ndax extends ndaxRest {
                 tradesArray = new ArrayCache (limit);
             }
             tradesArray.append (trade);
-            this.trades[symbol] = tradesArray;
-            updates[symbol] = true;
+            this.trades[symbol as string] = tradesArray;
+            updates[symbol as string] = true;
         }
         const symbols = Object.keys (updates);
         for (let i = 0; i < symbols.length; i++) {
@@ -266,7 +266,7 @@ export default class ndax extends ndaxRest {
             const marketId = this.safeString (ohlcv, 8);
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
-            updates[marketId] = {};
+            updates[marketId as string] = {};
             this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
             const keys = Object.keys (this.timeframes);
             for (let j = 0; j < keys.length; j++) {
@@ -294,7 +294,7 @@ export default class ndax extends ndaxRest {
                         parsed[4],
                         this.sum (parsed[5], previous[5]),
                     ];
-                    updates[marketId][timeframe] = true;
+                    updates[marketId as string][timeframe] = true;
                 } else {
                     if (length && (parsed[0] < stored[length - 1][0])) {
                         continue;
@@ -304,7 +304,7 @@ export default class ndax extends ndaxRest {
                         if (length >= limit) {
                             stored.shift ();
                         }
-                        updates[marketId][timeframe] = true;
+                        updates[marketId as string][timeframe] = true;
                     }
                 }
                 this.ohlcvs[symbol][timeframe] = stored;
@@ -479,7 +479,7 @@ export default class ndax extends ndaxRest {
         const snapshot = this.parseOrderBook (payload, symbol);
         const limit = this.safeInteger (subscription, 'limit');
         const orderbook = this.orderBook (snapshot, limit);
-        this.orderbooks[symbol] = orderbook;
+        this.orderbooks[symbol as string] = orderbook;
         const messageHash = this.safeString (subscription, 'messageHash');
         client.resolve (orderbook, messageHash);
     }

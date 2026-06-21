@@ -220,7 +220,7 @@ export default class binance extends binanceRest {
             const normalizedIndex = streamIndex % streamLimit;
             this.options['streamIndex'] = streamIndex;
             stream = this.numberToString (normalizedIndex);
-            this.options['streamBySubscriptionsHash'][subscriptionHash] = stream;
+            this.options['streamBySubscriptionsHash'][subscriptionHash as string] = stream;
             const subscriptionsByStreams = this.safeValue (this.options, 'numSubscriptionsByStream');
             if (subscriptionsByStreams === undefined) {
                 this.options['numSubscriptionsByStream'] = this.createSafeDictionary ();
@@ -231,7 +231,7 @@ export default class binance extends binanceRest {
             if (newNumSubscriptions > subscriptionLimitByStream) {
                 throw new BadRequest (this.id + ' reached the limit of subscriptions by stream. Increase the number of streams, or increase the stream limit or subscription limit by stream if the exchange allows.');
             }
-            this.options['numSubscriptionsByStream'][stream] = subscriptionsByStream + numSubscriptions;
+            this.options['numSubscriptionsByStream'][stream as string] = subscriptionsByStream + numSubscriptions;
         }
         return stream;
     }
@@ -919,7 +919,7 @@ export default class binance extends binanceRest {
                 // if the orderbook is dropped before the snapshot is received
                 return;
             }
-            const orderbook = this.orderbooks[symbol];
+            const orderbook = this.orderbooks[symbol as string];
             orderbook.reset (snapshot);
             // unroll the accumulated deltas
             const messages = orderbook.cache;
@@ -949,7 +949,7 @@ export default class binance extends binanceRest {
                     }
                 }
             }
-            this.orderbooks[symbol] = orderbook;
+            this.orderbooks[symbol as string] = orderbook;
             client.resolve (orderbook, messageHash);
         } catch (e) {
             delete client.subscriptions[messageHash];
@@ -1719,7 +1719,7 @@ export default class binance extends binanceRest {
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][unifiedTimeframe] = stored;
+            this.ohlcvs[symbol][unifiedTimeframe as string] = stored;
         }
         stored.append (parsed);
         const resolveData = [ symbol, unifiedTimeframe, stored ];
@@ -2685,7 +2685,7 @@ export default class binance extends binanceRest {
             if (isPortfolioMargin) {
                 urlType = 'papi';
             }
-            const cachedListenKey = this.options[type]['listenKey'];
+            const cachedListenKey = this.options[type as string]['listenKey'];
             const url = this.getPrivateWsUrl (urlType, cachedListenKey);
             const client = this.client (url);
             const messageHashes = Object.keys (client.futures);
@@ -2693,13 +2693,13 @@ export default class binance extends binanceRest {
                 const messageHash = messageHashes[i];
                 client.reject (error, messageHash);
             }
-            this.options[type] = this.extend (options, {
+            this.options[type as string] = this.extend (options, {
                 'listenKey': undefined,
                 'lastAuthenticatedTime': 0,
             });
             return;
         }
-        this.options[type] = this.extend (options, {
+        this.options[type as string] = this.extend (options, {
             'listenKey': listenKey,
             'lastAuthenticatedTime': time,
         });
@@ -3005,7 +3005,7 @@ export default class binance extends binanceRest {
             if (isPortfolioMargin) {
                 urlType = 'papi';
             }
-            url = this.getPrivateWsUrl (urlType, this.options[type]['listenKey']);
+            url = this.getPrivateWsUrl (urlType, this.options[type as string]['listenKey']);
         }
         const client = this.client (url);
         this.setBalanceCache (client, type, isPortfolioMargin);

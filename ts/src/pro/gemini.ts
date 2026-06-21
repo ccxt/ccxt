@@ -170,7 +170,7 @@ export default class gemini extends geminiRest {
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
             stored = new ArrayCache (tradesLimit);
-            this.trades[symbol] = stored;
+            this.trades[symbol as string] = stored;
         }
         stored.append (trade);
         const messageHash = 'trades:' + symbol;
@@ -343,7 +343,7 @@ export default class gemini extends geminiRest {
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+            this.ohlcvs[symbol][timeframe as string] = stored;
         }
         const changesLength = changes.length;
         // reverse order of array to store candles in ascending order

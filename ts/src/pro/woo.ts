@@ -227,14 +227,14 @@ export default class woo extends wooRest {
                     }
                 } catch (e) {
                     delete this.orderbooks[symbol];
-                    delete client.subscriptions[topic];
+                    delete client.subscriptions[topic as string];
                     client.reject (e, topic);
                 }
             }
         } else {
             if (!(symbol in this.orderbooks)) {
                 const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
-                const subscription = client.subscriptions[topic];
+                const subscription = client.subscriptions[topic as string];
                 const limit = this.safeInteger (subscription, 'limit', defaultLimit);
                 this.orderbooks[symbol] = this.orderBook ({}, limit);
             }
@@ -251,9 +251,9 @@ export default class woo extends wooRest {
         const limit = this.safeInteger (subscription, 'limit', defaultLimit);
         const symbol = this.safeString (subscription, 'symbol'); // watchOrderBook
         if (symbol in this.orderbooks) {
-            delete this.orderbooks[symbol];
+            delete this.orderbooks[symbol as string];
         }
-        this.orderbooks[symbol] = this.orderBook ({}, limit);
+        this.orderbooks[symbol as string] = this.orderBook ({}, limit);
         this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
     }
 
@@ -269,7 +269,7 @@ export default class woo extends wooRest {
                 // if the orderbook is dropped before the snapshot is received
                 return;
             }
-            const orderbook = this.orderbooks[symbol];
+            const orderbook = this.orderbooks[symbol as string];
             orderbook.reset (snapshot);
             const messages = orderbook.cache;
             for (let i = 0; i < messages.length; i++) {
@@ -281,10 +281,10 @@ export default class woo extends wooRest {
                     this.handleOrderBookMessage (client, messageItem, orderbook);
                 }
             }
-            this.orderbooks[symbol] = orderbook;
+            this.orderbooks[symbol as string] = orderbook;
             client.resolve (orderbook, messageHash);
         } catch (e) {
-            delete client.subscriptions[messageHash];
+            delete client.subscriptions[messageHash as string];
             client.reject (e, messageHash);
         }
     }
@@ -691,7 +691,7 @@ export default class woo extends wooRest {
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+            this.ohlcvs[symbol][timeframe as string] = stored;
         }
         stored.append (parsed);
         client.resolve (stored, topic);

@@ -5834,7 +5834,7 @@ export default class bybit extends Exchange {
         const [ networkCode, paramsOmited ] = this.handleNetworkCodeAndParams (params);
         const indexedAddresses = await this.fetchDepositAddressesByNetwork (code, paramsOmited);
         const selectedNetworkCode = this.selectNetworkCodeFromUnifiedNetworks (currency['code'], networkCode, indexedAddresses);
-        return indexedAddresses[selectedNetworkCode];
+        return indexedAddresses[selectedNetworkCode as string];
     }
 
     /**
@@ -7869,7 +7869,7 @@ export default class bybit extends Exchange {
         for (let i = 0; i < fees.length; i++) {
             const fee = this.parseTradingFee (fees[i]);
             const symbol = fee['symbol'];
-            result[symbol] = fee;
+            result[symbol as string] = fee;
         }
         return result;
     }

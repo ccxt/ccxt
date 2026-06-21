@@ -113,12 +113,12 @@ export default class aftermath extends aftermathRest {
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             const stored = new ArrayCache (limit);
-            this.trades[symbol] = stored;
+            this.trades[symbol as string] = stored;
         }
         const messageHash = market['id'] + '@trade';
-        const trades = this.trades[symbol];
+        const trades = this.trades[symbol as string];
         trades.append (trade);
-        this.trades[symbol] = trades;
+        this.trades[symbol as string] = trades;
         client.resolve (trades, messageHash);
     }
 
@@ -167,11 +167,11 @@ export default class aftermath extends aftermathRest {
             const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
             const subscription = client.subscriptions[topic];
             const limit = this.safeInteger (subscription, 'limit', defaultLimit);
-            this.orderbooks[symbol] = this.orderBook ({}, limit);
+            this.orderbooks[symbol as string] = this.orderBook ({}, limit);
             subscription['limit'] = limit;
             this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
         } else {
-            const orderbook = this.orderbooks[symbol];
+            const orderbook = this.orderbooks[symbol as string];
             const prevNonce = this.safeInteger (orderbook, 'nonce');
             const nonce = this.safeInteger (message, 'nonce');
             if (nonce === (prevNonce + 1)) {
@@ -194,9 +194,9 @@ export default class aftermath extends aftermathRest {
                 // if the orderbook is dropped before the snapshot is received
                 return;
             }
-            const orderbook = this.orderbooks[symbol];
+            const orderbook = this.orderbooks[symbol as string];
             orderbook.reset (snapshot);
-            this.orderbooks[symbol] = orderbook;
+            this.orderbooks[symbol as string] = orderbook;
             client.resolve (orderbook, messageHash);
         } catch (e) {
             delete client.subscriptions[messageHash];

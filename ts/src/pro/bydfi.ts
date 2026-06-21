@@ -423,9 +423,9 @@ export default class bydfi extends bydfiRest {
         if (!(timeframe in this.ohlcvs[symbol])) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             const stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+            this.ohlcvs[symbol][timeframe as string] = stored;
         }
-        const ohlcv = this.ohlcvs[symbol][timeframe];
+        const ohlcv = this.ohlcvs[symbol][timeframe as string];
         const parsed = this.parseWsOHLCV (message);
         ohlcv.append (parsed);
         const messageHash = 'ohlcv::' + symbol + '::' + timeframe;

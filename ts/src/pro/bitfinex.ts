@@ -251,7 +251,7 @@ export default class bitfinex extends bitfinexRest {
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+            this.ohlcvs[symbol][timeframe as string] = stored;
         }
         const ohlcvsLength = ohlcvs.length;
         for (let i = 0; i < ohlcvsLength; i++) {
@@ -893,8 +893,8 @@ export default class bitfinex extends bitfinexRest {
             const oldBalance = this.safeValue (this.balance, balanceType, {});
             oldBalance[code] = balance;
             oldBalance['info'] = message;
-            this.balance[balanceType] = this.safeBalance (oldBalance);
-            updatedTypes[balanceType] = true;
+            this.balance[balanceType as string] = this.safeBalance (oldBalance);
+            updatedTypes[balanceType as string] = true;
         }
         const updatesKeys = Object.keys (updatedTypes);
         for (let i = 0; i < updatesKeys.length; i++) {
@@ -983,7 +983,7 @@ export default class bitfinex extends bitfinexRest {
         //  }
         //
         const channelId = this.safeString (message, 'chanId');
-        client.subscriptions[channelId] = message;
+        client.subscriptions[channelId as string] = message;
         // store the opposite direction too for unWatch
         const mappings: Dict = {
             'book': 'orderbook',
