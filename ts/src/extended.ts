@@ -1442,7 +1442,7 @@ export default class extended extends Exchange {
         //
         const timestamp = this.safeInteger (interest, 't');
         return this.safeOpenInterest ({
-            'symbol': market['symbol'],
+            'symbol': this.safeString (market, 'symbol'),
             'openInterestAmount': this.safeNumber (interest, 'I'),
             'openInterestValue': this.safeNumber (interest, 'i'),
             'baseVolume': this.safeNumber (interest, 'I'),

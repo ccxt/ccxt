@@ -5788,7 +5788,7 @@ export default class kucoin extends Exchange {
                 if (symbol === undefined) {
                     throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol parameter for hf and margin orders');
                 }
-                request['symbol'] = market['id'];
+                request['symbol'] = this.safeString (market, 'id');
             }
         }
         params = this.omit (params, [ 'stop', 'clientOid', 'clientOrderId', 'trigger' ]);
@@ -5800,7 +5800,7 @@ export default class kucoin extends Exchange {
                     response = await this.privateGetHfMarginStopOrderClientOid (this.extend (request, params));
                 } else {
                     if (symbol !== undefined) {
-                        request['symbol'] = market['id'];
+                        request['symbol'] = this.safeString (market, 'id');
                     }
                     response = await this.privateGetStopOrderQueryOrderByClientOid (this.extend (request, params));
                 }
@@ -9629,7 +9629,7 @@ export default class kucoin extends Exchange {
                 throw new ArgumentsRequired (this.id + ' setLeverage requires a symbol parameter for isolated margin');
             }
             if (symbol !== undefined) {
-                request['symbol'] = market['id'];
+                request['symbol'] = this.safeString (market, 'id');
             }
             request['isIsolated'] = (marginMode === 'isolated');
             response = await this.privatePostPositionUpdateUserLeverage (this.extend (request, params));
@@ -10553,7 +10553,7 @@ export default class kucoin extends Exchange {
                 throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument when cancelling by clientOrderIds');
             }
             ordersRequests.push ({
-                'symbol': market['id'],
+                'symbol': this.safeString (market, 'id'),
                 'clientOid': this.safeString (clientOrderIds, i),
             });
         }
@@ -10562,7 +10562,7 @@ export default class kucoin extends Exchange {
             if (uta) {
                 ordersRequests.push ({
                     'orderId': orderId,
-                    'symbol': market['id'],
+                    'symbol': this.safeString (market, 'id'),
                 });
             } else {
                 ordersRequests.push (ids[i]);
@@ -10791,7 +10791,7 @@ export default class kucoin extends Exchange {
         marginType = (marginType === 'ISOLATED') ? 'isolated' : 'cross';
         return {
             'info': marginMode,
-            'symbol': market['symbol'],
+            'symbol': this.safeString (market, 'symbol'),
             'marginMode': marginType,
         } as MarginMode;
     }

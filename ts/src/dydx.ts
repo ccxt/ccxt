@@ -637,7 +637,7 @@ export default class dydx extends Exchange {
         // }
         //
         const timestamp = this.parse8601 (this.safeString (trade, 'createdAt'));
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol');
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'size');
         const side = this.safeStringLower (trade, 'side');

@@ -1763,7 +1763,7 @@ export default class kraken extends Exchange {
         let response: Dict = undefined;
         let request: Dict = {
             'orders': ordersRequests,
-            'pair': market['id'],
+            'pair': this.safeString (market, 'id'),
         };
         request = this.extend (request, params);
         response = await this.privatePostAddOrderBatch (request);

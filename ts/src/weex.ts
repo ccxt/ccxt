@@ -1118,7 +1118,7 @@ export default class weex extends Exchange {
         }
         const request: Dict = {};
         if (symbolsLength === 1) {
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString (market, 'id');
         }
         let response = undefined;
         if (marketType === 'spot') {
@@ -1673,7 +1673,7 @@ export default class weex extends Exchange {
         const request: Dict = {};
         if (symbolsLength === 1) {
             const market = this.getMarketFromSymbols (symbols);
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString (market, 'id');
         }
         const response = await this.contractGetCapiV3MarketPremiumIndex (this.extend (request, params));
         //
@@ -2422,7 +2422,7 @@ export default class weex extends Exchange {
         }
         let request: Dict = {};
         if (symbol !== undefined) {
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString (market, 'id');
         }
         let response: NullableDict = undefined;
         if (isSpot) {
@@ -2687,7 +2687,7 @@ export default class weex extends Exchange {
         }
         let request: Dict = {};
         if (symbol !== undefined) {
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString (market, 'id');
         }
         if (since !== undefined) {
             request['startTime'] = since;
@@ -2977,7 +2977,7 @@ export default class weex extends Exchange {
         }
         let request: Dict = {};
         if (symbol !== undefined) {
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString (market, 'id');
         }
         if (since !== undefined) {
             request['startTime'] = since;
@@ -3758,12 +3758,12 @@ export default class weex extends Exchange {
         const timestamp = this.safeInteger (data, 'requestTime');
         return {
             'info': data,
-            'symbol': market['symbol'],
+            'symbol': this.safeString (market, 'symbol'),
             'type': undefined,
             'marginMode': 'isolated',
             'amount': undefined,
             'total': undefined,
-            'code': market['settle'],
+            'code': this.safeString (market, 'settle'),
             'status': status,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),

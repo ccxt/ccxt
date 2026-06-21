@@ -1603,7 +1603,7 @@ export default class aster extends Exchange {
         //
         const timestamp = this.safeInteger (entry, 'time');
         return {
-            'symbol': market['symbol'],
+            'symbol': this.safeString (market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'price': this.safeNumberOmitZero (entry, 'price'),
@@ -3067,7 +3067,7 @@ export default class aster extends Exchange {
         market = this.safeMarket (marketId, market, undefined, 'swap');
         return {
             'info': marginMode,
-            'symbol': market['symbol'],
+            'symbol': this.safeString (market, 'symbol'),
             'marginMode': this.safeStringLower (marginMode, 'marginType'),
         } as MarginMode;
     }

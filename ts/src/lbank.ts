@@ -1066,7 +1066,7 @@ export default class lbank extends Exchange {
         let fee: Dict = undefined;
         const feeCost = this.safeString (trade, 'tradeFee');
         if (feeCost !== undefined) {
-            const feeCurr = (side === 'buy') ? market['base'] : market['quote'];
+            const feeCurr = (side === 'buy') ? this.safeString (market, 'base') : this.safeString (market, 'quote');
             fee = {
                 'cost': feeCost,
                 'currency': feeCurr,

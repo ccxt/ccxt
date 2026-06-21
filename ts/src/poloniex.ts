@@ -1531,7 +1531,7 @@ export default class poloniex extends Exchange {
             request['limit'] = limit;
         }
         if (isContract && symbol !== undefined) {
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString (market, 'id');
         }
         [ request, params ] = this.handleUntilOption (endKey, request, params);
         if (isContract) {

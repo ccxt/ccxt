@@ -459,7 +459,7 @@ export default class coinmetro extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const market = this.parseMarket (response[i]);
             // there are several broken (unavailable info) markets
-            if (market['base'] === undefined || market['quote'] === undefined) {
+            if (this.safeString (market, 'base') === undefined || this.safeString (market, 'quote') === undefined) {
                 continue;
             }
             result.push (market);

@@ -2809,7 +2809,7 @@ export default class paradex extends Exchange {
         const marginMode = this.safeStringLower (rawMarginMode, 'margin_type');
         return {
             'info': rawMarginMode,
-            'symbol': market['symbol'],
+            'symbol': this.safeString (market, 'symbol'),
             'marginMode': marginMode,
         } as MarginMode;
     }
