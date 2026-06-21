@@ -773,7 +773,7 @@ export default class cryptocom extends cryptocomRest {
         const interval = this.safeString (message, 'interval');
         const timeframe = this.findTimeframe (interval);
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        let stored = this.safeValue (this.ohlcvs[symbol], (timeframe as string));
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
@@ -1338,7 +1338,7 @@ export default class cryptocom extends cryptocomRest {
             // channel might be user.order.BTC_USDT
             this.handleOrders (client, result);
         }
-        const method = this.safeValue (methods, channel);
+        const method = this.safeValue (methods, (channel as string));
         if (method !== undefined) {
             method.call (this, client, result);
         }
@@ -1394,7 +1394,7 @@ export default class cryptocom extends cryptocomRest {
             'subscribe': this.handleSubscribe,
             'unsubscribe': this.handleUnsubscribe,
         };
-        const callMethod = this.safeValue (methods, method);
+        const callMethod = this.safeValue (methods, (method as string));
         if (callMethod !== undefined) {
             callMethod.call (this, client, message);
         }

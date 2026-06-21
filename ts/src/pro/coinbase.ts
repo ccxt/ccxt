@@ -612,7 +612,7 @@ export default class coinbase extends coinbaseRest {
     async unWatchOrders (symbol: Str = undefined, params = {}): Promise<any> {
         await this.loadMarkets ();
         const name = 'user';
-        return await this.unSubscribe ('orders', name, true, this.symbol (symbol));
+        return await this.unSubscribe ('orders', name, true, this.symbol ((symbol as string)));
     }
 
     /**
@@ -813,7 +813,7 @@ export default class coinbase extends coinbaseRest {
             'stopPrice': stopPrice,
             'triggerPrice': stopPrice,
             'amount': this.safeString (order, 'cumulative_quantity'),
-            'cost': this.omitZero (this.safeString (order, 'filled_value')),
+            'cost': this.omitZero ((this.safeString (order, 'filled_value') as string)),
             'average': this.safeString (order, 'avg_price'),
             'filled': this.safeString (order, 'cumulative_quantity'),
             'remaining': this.safeString (order, 'leaves_quantity'),
@@ -830,7 +830,7 @@ export default class coinbase extends coinbaseRest {
         for (let i = 0; i < updates.length; i++) {
             const trade = updates[i];
             const sideId = this.safeString (trade, 'side');
-            const side = this.safeString (this.options['sides'], sideId);
+            const side = this.safeString (this.options['sides'], (sideId as string));
             const price = this.safeNumber (trade, 'price_level');
             const amount = this.safeNumber (trade, 'new_quantity');
             const orderbookSide = orderbook[side];
@@ -977,9 +977,9 @@ export default class coinbase extends coinbaseRest {
         const type = this.safeString (message, 'type');
         if (type === 'error') {
             const errorMessage = this.safeString (message, 'message');
-            throw new ExchangeError (errorMessage);
+            throw new ExchangeError ((errorMessage as string));
         }
-        const method = this.safeValue (methods, channel);
+        const method = this.safeValue (methods, (channel as string));
         if (method) {
             method.call (this, client, message);
         }

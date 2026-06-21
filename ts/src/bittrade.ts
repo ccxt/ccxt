@@ -1381,7 +1381,7 @@ export default class bittrade extends Exchange {
             'canceled': 'canceled',
             'submitted': 'open',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -1768,7 +1768,7 @@ export default class bittrade extends Exchange {
         const networkId = this.safeString (depositAddress, 'chain');
         const networks = this.safeValue (currency, 'networks', {});
         const networksById = this.indexBy (networks, 'id');
-        const networkValue = this.safeValue (networksById, networkId, networkId);
+        const networkValue = this.safeValue (networksById, (networkId as string), networkId);
         const network = this.safeString (networkValue, 'network');
         this.checkAddress (address);
         return {
@@ -1950,7 +1950,7 @@ export default class bittrade extends Exchange {
             'wallet-transfer': 'pending',
             'pre-transfer': 'pending',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     /**
@@ -1979,7 +1979,7 @@ export default class bittrade extends Exchange {
         }
         const networks = this.safeValue (this.options, 'networks', {});
         let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeStringLower (networks, network, network); // handle ETH>ERC20 alias
+        network = this.safeStringLower (networks, (network as string), network); // handle ETH>ERC20 alias
         if (network !== undefined) {
             // possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
             if (network === 'erc20') {

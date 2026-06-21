@@ -1121,7 +1121,7 @@ export default class hitbtc extends Exchange {
         const type = this.safeStringLower (params, 'type', 'spot');
         params = this.omit (params, [ 'type' ]);
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
-        const account = this.safeString (accountsByType, type, type);
+        const account = this.safeString (accountsByType, (type as string), type);
         let response: Dict;
         if (account === 'wallet') {
             response = await this.privateGetWalletBalance (params);
@@ -1520,7 +1520,7 @@ export default class hitbtc extends Exchange {
             'ROLLED_BACK': 'failed',
             'SUCCESS': 'ok',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseTransactionType (type) {
@@ -2480,7 +2480,7 @@ export default class hitbtc extends Exchange {
             'canceled': 'canceled',
             'expired': 'failed',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -2860,8 +2860,8 @@ export default class hitbtc extends Exchange {
         const fundingRates: Dict = {};
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = this.safeString (marketIds, i);
-            const rawFundingRate = this.safeValue (response, marketId);
-            const marketInner = this.market (marketId);
+            const rawFundingRate = this.safeValue (response, (marketId as string));
+            const marketInner = this.market ((marketId as string));
             const symbol = marketInner['symbol'];
             const fundingRate = this.parseFundingRate (rawFundingRate, marketInner);
             fundingRates[symbol] = fundingRate;

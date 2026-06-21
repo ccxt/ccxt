@@ -938,7 +938,7 @@ export default class gate extends gateRest {
         for (let i = 0; i < parsedTrades.length; i++) {
             const trade = parsedTrades[i];
             const symbol = trade['symbol'];
-            let cachedTrades = this.safeValue (this.trades, symbol);
+            let cachedTrades = this.safeValue (this.trades, (symbol as string));
             if (cachedTrades === undefined) {
                 const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
                 cachedTrades = new ArrayCache (limit);
@@ -1020,7 +1020,7 @@ export default class gate extends gateRest {
             const symbol = this.safeSymbol (marketId, undefined, '_', marketType);
             const parsed = this.parseOHLCV (ohlcv);
             this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-            let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+            let stored = this.safeValue (this.ohlcvs[symbol], (timeframe as string));
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
@@ -1035,7 +1035,7 @@ export default class gate extends gateRest {
             const timeframe = marketIds[symbol];
             const interval = this.findTimeframe (timeframe);
             const hash = 'candles' + ':' + interval + ':' + symbol;
-            const stored = this.safeValue (this.ohlcvs[symbol], interval);
+            const stored = this.safeValue (this.ohlcvs[symbol], (interval as string));
             client.resolve (stored, hash);
         }
     }
@@ -1695,7 +1695,7 @@ export default class gate extends gateRest {
             const liquidation = this.parseWsLiquidation (rawLiquidation);
             cache.append (liquidation);
             const symbol = this.safeString (liquidation, 'symbol');
-            const symbolLiquidations = this.safeValue (cache, symbol, []);
+            const symbolLiquidations = this.safeValue (cache, (symbol as string), []);
             client.resolve (symbolLiquidations, 'myLiquidations::' + symbol);
         }
         client.resolve (newLiquidations, 'myLiquidations');
@@ -1807,7 +1807,7 @@ export default class gate extends gateRest {
         const code = this.safeString2 (error, 'code', 'label');
         const id = this.safeStringN (message, [ 'id', 'requestId', 'request_id' ]);
         if (error !== undefined) {
-            const messageHash = this.safeString (client.subscriptions, id);
+            const messageHash = this.safeString (client.subscriptions, (id as string));
             try {
                 this.throwExactlyMatchedException (this.exceptions['ws']['exact'], code, this.json (message));
                 this.throwExactlyMatchedException (this.exceptions['exact'], code, this.json (errs));
@@ -1856,8 +1856,8 @@ export default class gate extends gateRest {
         };
         const id = this.safeString (message, 'id');
         if (channel in methods) {
-            const subscriptionHash = this.safeString (client.subscriptions, id);
-            const subscription = this.safeValue (client.subscriptions, subscriptionHash);
+            const subscriptionHash = this.safeString (client.subscriptions, (id as string));
+            const subscription = this.safeValue (client.subscriptions, (subscriptionHash as string));
             const method = methods[channel];
             method.call (this, client, message, subscription);
         }
@@ -2215,7 +2215,7 @@ export default class gate extends gateRest {
             'event': event,
             'payload': payload,
         };
-        return await this.watch (url, messageHash, request, messageHash, requestId);
+        return await this.watch (url, (messageHash as string), request, messageHash, requestId);
     }
 
     async subscribePrivate (url, messageHash, payload, channel, params, requiresUid = false) {

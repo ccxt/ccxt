@@ -512,7 +512,7 @@ export default class deribit extends Exchange {
             }
         } else {
             base = this.safeString (optionParts, 0);
-            expiry = this.convertMarketIdExpireDate (this.safeString (optionParts, 1));
+            expiry = this.convertMarketIdExpireDate ((this.safeString (optionParts, 1) as string));
         }
         if (symbol.indexOf ('USDC') > -1) {
             quote = 'USDC';
@@ -527,9 +527,9 @@ export default class deribit extends Exchange {
         }
         const strike = this.safeString (optionParts, 2);
         const optionType = this.safeString (optionParts, 3);
-        const datetime = this.convertExpireDate (expiry);
+        const datetime = this.convertExpireDate ((expiry as string));
         const timestamp = this.parse8601 (datetime);
-        const id = base + '-' + this.convertExpireDateToMarketIdDate (expiry) + '-' + strike + '-' + optionType;
+        const id = base + '-' + this.convertExpireDateToMarketIdDate ((expiry as string)) + '-' + strike + '-' + optionType;
         const symbolExpired = splitBase + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType;
         return {
             'id': id,
@@ -967,7 +967,7 @@ export default class deribit extends Exchange {
                     inverse = (quote !== settle);
                     linear = (settle === quote);
                 }
-                const parsedMarketValue = this.safeValue (parsedMarkets, symbol);
+                const parsedMarketValue = this.safeValue (parsedMarkets, (symbol as string));
                 if (parsedMarketValue) {
                     continue;
                 }
@@ -1847,7 +1847,7 @@ export default class deribit extends Exchange {
             'rejected': 'rejected',
             'untriggered': 'open',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseTimeInForce (timeInForce: Str) {
@@ -1856,7 +1856,7 @@ export default class deribit extends Exchange {
             'fill_or_kill': 'FOK',
             'immediate_or_cancel': 'IOC',
         };
-        return this.safeString (timeInForces, timeInForce, timeInForce);
+        return this.safeString (timeInForces, (timeInForce as string), timeInForce);
     }
 
     parseOrderType (orderType) {
@@ -2606,7 +2606,7 @@ export default class deribit extends Exchange {
             'completed': 'ok',
             'unconfirmed': 'pending',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -3066,7 +3066,7 @@ export default class deribit extends Exchange {
             'cancelled': 'cancelled',
             'waiting_for_admin': 'pending',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     /**
@@ -3214,7 +3214,7 @@ export default class deribit extends Exchange {
      */
     async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const market = this.market ((symbol as string));
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         const maxEntriesPerRequest = 744; // seems exchange returns max 744 items per request

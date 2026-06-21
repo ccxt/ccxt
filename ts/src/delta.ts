@@ -364,7 +364,7 @@ export default class delta extends Exchange {
         }
         const settle = quote;
         const strike = this.safeString (optionParts, 2);
-        const datetime = this.convertExpireDate (expiry);
+        const datetime = this.convertExpireDate ((expiry as string));
         const timestamp = this.parse8601 (datetime);
         const optionTypeUnified = (optionType === 'C') ? 'call' : 'put';
         return {
@@ -1678,7 +1678,7 @@ export default class delta extends Exchange {
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'asset_id');
-            const currency = this.safeDict (currenciesByNumericId, currencyId);
+            const currency = this.safeDict (currenciesByNumericId, (currencyId as string));
             const code = (currency === undefined) ? currencyId : currency['code'];
             const account = this.account ();
             account['total'] = this.safeString (balance, 'balance');
@@ -1867,7 +1867,7 @@ export default class delta extends Exchange {
             'closed': 'closed',
             'cancelled': 'canceled',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -1941,7 +1941,7 @@ export default class delta extends Exchange {
         }
         const marketId = this.safeString (order, 'product_id');
         const marketsByNumericId = this.safeDict (this.options, 'marketsByNumericId', {});
-        market = this.safeValue (marketsByNumericId, marketId, market);
+        market = this.safeValue (marketsByNumericId, (marketId as string), market);
         const symbol = (market === undefined) ? marketId : market['symbol'];
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
         const side = this.safeString (order, 'side');
@@ -2096,7 +2096,7 @@ export default class delta extends Exchange {
             // "size": this.amountToPrecision (symbol, amount),
         };
         if (amount !== undefined) {
-            request['size'] = parseInt (this.amountToPrecision (symbol, amount));
+            request['size'] = parseInt ((this.amountToPrecision (symbol, amount) as string));
         }
         if (price !== undefined) {
             request['limit_price'] = this.priceToPrecision (symbol, price);
@@ -2545,7 +2545,7 @@ export default class delta extends Exchange {
         type = this.parseLedgerEntryType (type);
         const currencyId = this.safeString (item, 'asset_id');
         const currenciesByNumericId = this.safeDict (this.options, 'currenciesByNumericId');
-        currency = this.safeValue (currenciesByNumericId, currencyId, currency);
+        currency = this.safeValue (currenciesByNumericId, (currencyId as string), currency);
         const code = (currency === undefined) ? undefined : currency['code'];
         const amount = this.safeString (item, 'amount');
         const timestamp = this.parse8601 (this.safeString (item, 'created_at'));

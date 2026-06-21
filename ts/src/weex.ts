@@ -1929,7 +1929,7 @@ export default class weex extends Exchange {
         const statuses: Dict = {
             'Successful': 'ok',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     /**
@@ -2166,7 +2166,7 @@ export default class weex extends Exchange {
             'mark': 'MARK_PRICE',
             'last': 'CONTRACT_PRICE',
         };
-        return this.safeString (types, triggerPriceType, triggerPriceType);
+        return this.safeString (types, (triggerPriceType as string), triggerPriceType);
     }
 
     /**
@@ -2838,7 +2838,7 @@ export default class weex extends Exchange {
         }
         const timestamp = this.safeIntegerN (order, [ 'transactTime', 'time', 'createTime' ]);
         const rawStatus = this.safeStringLower (order, 'status');
-        const triggerPrice = this.omitZero (this.safeString2 (order, 'triggerPrice', 'stopPrice'));
+        const triggerPrice = this.omitZero ((this.safeString2 (order, 'triggerPrice', 'stopPrice') as string));
         const rawType = this.safeStringUpper2 (order, 'type', 'orderType');
         let takeProfitPrice: Str = undefined;
         let stopLossPrice: Str = undefined;
@@ -2887,7 +2887,7 @@ export default class weex extends Exchange {
             'rejected': 'rejected',
             'untriggered': 'open',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseOrderType (type: Str) {
@@ -2900,7 +2900,7 @@ export default class weex extends Exchange {
             'TAKE_PROFIT_MARKET': 'market',
             'STOP_MARKET': 'market',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     handleOrderOrPositionError (errorCode: Str, errorMessage: Str, order: Dict) {
@@ -3198,7 +3198,7 @@ export default class weex extends Exchange {
             'position_close_long': 'trade',
             'position_close_short': 'trade',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     /**
@@ -3528,7 +3528,7 @@ export default class weex extends Exchange {
             'CROSSED': 'cross',
             'ISOLATED': 'isolated',
         };
-        return this.safeString (marginTypes, marginType, marginType);
+        return this.safeString (marginTypes, (marginType as string), marginType);
     }
 
     /**
@@ -3559,7 +3559,7 @@ export default class weex extends Exchange {
             'cross': 'CROSSED',
             'isolated': 'ISOLATED',
         };
-        const result = this.safeString (marginTypes, marginMode);
+        const result = this.safeString (marginTypes, (marginMode as string));
         if (result === undefined) {
             throw new ArgumentsRequired (this.id + ' marginMode must be either cross or isolated');
         }
@@ -3680,7 +3680,7 @@ export default class weex extends Exchange {
      */
     async fetchPositionMode (symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const market = this.market ((symbol as string));
         const request: Dict = {
             'symbol': market['id'],
         };

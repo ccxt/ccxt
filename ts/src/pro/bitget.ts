@@ -654,7 +654,7 @@ export default class bitget extends bitgetRest {
         }
         const timeframes = this.safeValue (this.options, 'timeframes');
         const timeframe = this.findTimeframe (interval, timeframes);
-        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        let stored = this.safeValue (this.ohlcvs[symbol], (timeframe as string));
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
@@ -1953,11 +1953,11 @@ export default class bitget extends bitgetRest {
             // for spot trigger order, limit price is this
             price = this.safeNumber (order, 'executePrice');
         }
-        const avgPrice = this.omitZero (this.safeStringLowerN (order, [ 'priceAvg', 'fillPrice', 'avgPrice' ]));
+        const avgPrice = this.omitZero ((this.safeStringLowerN (order, [ 'priceAvg', 'fillPrice', 'avgPrice' ]) as string));
         const side = this.safeString (order, 'side');
         const type = this.safeString (order, 'orderType');
-        const accBaseVolume = this.omitZero (this.safeString2 (order, 'accBaseVolume', 'cumExecQty'));
-        const newSizeValue = this.omitZero (this.safeString2 (order, 'newSize', 'cumExecValue'));
+        const accBaseVolume = this.omitZero ((this.safeString2 (order, 'accBaseVolume', 'cumExecQty') as string));
+        const newSizeValue = this.omitZero ((this.safeString2 (order, 'newSize', 'cumExecValue') as string));
         const isMarketOrder = (type === 'market');
         const isBuy = (side === 'buy');
         let totalAmount: Str = undefined;
@@ -2468,7 +2468,7 @@ export default class bitget extends bitgetRest {
     async authenticate (params = {}) {
         this.checkRequiredCredentials ();
         const url = this.safeString (params, 'url');
-        const client = this.client (url);
+        const client = this.client ((url as string));
         const messageHash = 'authenticated';
         const future = client.reusableFuture (messageHash);
         const authenticated = this.safeValue (client.subscriptions, messageHash);
@@ -2489,7 +2489,7 @@ export default class bitget extends bitgetRest {
                 ],
             };
             const message = this.extend (request, params);
-            this.watch (url, messageHash, message, messageHash);
+            this.watch ((url as string), messageHash, message, messageHash);
         }
         return await future;
     }

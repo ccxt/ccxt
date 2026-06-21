@@ -91,7 +91,7 @@ export default class bitvavo extends bitvavoRest {
         const args: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market (symbols[i]);
-            args.push (market['id']);
+            args.push ((market['id'] as string));
         }
         const url = this.urls['api']['ws'];
         const request: Dict = {
@@ -357,7 +357,7 @@ export default class bitvavo extends bitvavoRest {
         const messageHash = name + '@' + marketId + '_' + interval;
         const candles = this.safeValue (message, 'candle');
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        let stored = this.safeValue (this.ohlcvs[symbol], (timeframe as string));
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
@@ -1502,10 +1502,10 @@ export default class bitvavo extends bitvavoRest {
             'getMarkets': this.handleMarkets,
         };
         const event = this.safeString (message, 'event');
-        let method = this.safeValue (methods, event);
+        let method = this.safeValue (methods, (event as string));
         if (method === undefined) {
             const action = this.safeString (message, 'action');
-            method = this.safeValue (methods, action);
+            method = this.safeValue (methods, (action as string));
             if (method !== undefined) {
                 method.call (this, client, message);
             }

@@ -1193,7 +1193,7 @@ export default class apex extends Exchange {
         const status = this.safeString (order, 'status');
         const side = this.safeStringLower (order, 'side');
         // const average = this.omitZero (this.safeString (order, 'avg_fill_price'));
-        const remaining = this.omitZero (this.safeString (order, 'remainingSize'));
+        const remaining = this.omitZero ((this.safeString (order, 'remainingSize') as string));
         const lastUpdateTimestamp = this.safeInteger (order, 'updatedTime');
         return this.safeOrder ({
             'id': orderId,
@@ -1234,7 +1234,7 @@ export default class apex extends Exchange {
             'IMMEDIATE_OR_CANCEL': 'IMMEDIATE_OR_CANCEL',
             'POST_ONLY': 'POST_ONLY',
         };
-        return this.safeString (timeInForces, timeInForce);
+        return this.safeString (timeInForces, (timeInForce as string));
     }
 
     parseOrderStatus (status: Str) {
@@ -1261,7 +1261,7 @@ export default class apex extends Exchange {
             'TAKE_PROFIT_LIMIT': 'limit',
             'TAKE_PROFIT_MARKET': 'market',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
@@ -1351,7 +1351,7 @@ export default class apex extends Exchange {
         const fees = this.safeDict (this.fees, 'swap', {});
         const taker = this.safeString (fees, 'taker', '0.0005');
         const maker = this.safeString (fees, 'maker', '0.0002');
-        const limitFee = this.decimalToPrecision (Precise.stringAdd (Precise.stringMul (Precise.stringMul (orderPrice, orderSize), taker), this.numberToString (market['precision']['price'])), TRUNCATE, market['precision']['price'], this.precisionMode, this.paddingMode);
+        const limitFee = this.decimalToPrecision ((Precise.stringAdd (Precise.stringMul (Precise.stringMul (orderPrice, orderSize), taker), this.numberToString (market['precision']['price'])) as string), TRUNCATE, market['precision']['price'], this.precisionMode, this.paddingMode);
         const timeNow = this.milliseconds ();
         let triggerPrice = this.safeString (params, 'triggerPrice');
         const stopLossPrice = this.safeString (params, 'stopLossPrice');
@@ -1482,7 +1482,7 @@ export default class apex extends Exchange {
         const timestampSeconds = this.parseToInt (this.milliseconds () / 1000);
         let clientOrderId = this.safeStringN (params, [ 'clientId', 'clientOrderId', 'client_order_id' ]);
         if (clientOrderId === undefined) {
-            clientOrderId = this.generateRandomClientIdOmni (this.safeString (this.options, 'accountId'));
+            clientOrderId = this.generateRandomClientIdOmni ((this.safeString (this.options, 'accountId') as string));
         }
         const finalClientOrderId = clientOrderId; // java req
         params = this.omit (params, [ 'clientId', 'clientOrderId', 'client_order_id' ]);
@@ -1927,7 +1927,7 @@ export default class apex extends Exchange {
         const timestamp = this.safeInteger (position, 'updatedTime');
         let leverage = 20;
         const customInitialMarginRate = this.safeStringN (position, [ 'customInitialMarginRate', 'customImr' ], '0');
-        if (this.precisionFromString (customInitialMarginRate) !== 0) {
+        if (this.precisionFromString ((customInitialMarginRate as string)) !== 0) {
             leverage = this.parseToInt (Precise.stringDiv ('1', customInitialMarginRate, 4));
         }
         return this.safePosition ({

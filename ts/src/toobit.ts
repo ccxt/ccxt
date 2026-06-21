@@ -1214,7 +1214,7 @@ export default class toobit extends Exchange {
         const request: Dict = {};
         if (symbols !== undefined) {
             const symbol = this.safeString (symbols, 0);
-            market = this.market (symbol);
+            market = this.market ((symbol as string));
             const length = symbols.length;
             if (length === 1) {
                 request['symbol'] = market['id'];
@@ -1459,7 +1459,7 @@ export default class toobit extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params) as FundingRateHistory[];
         }
-        const market = this.market (symbol);
+        const market = this.market ((symbol as string));
         const request: Dict = {
             'symbol': market['id'],
         };
@@ -1781,7 +1781,7 @@ export default class toobit extends Exchange {
         market = this.safeMarket (marketId, market);
         const rawType = this.safeString (order, 'type');
         const rawSideLower = this.safeStringLower (order, 'side');
-        let triggerPrice = this.omitZero (this.safeString (order, 'stopPrice'));
+        let triggerPrice = this.omitZero ((this.safeString (order, 'stopPrice') as string));
         if (triggerPrice === '0.0') {
             triggerPrice = undefined;
         }
@@ -1799,9 +1799,9 @@ export default class toobit extends Exchange {
             'timeInForce': this.safeString (order, 'timeInForce'),
             'postOnly': (rawType === 'LIMIT_MAKER'),
             'side': rawSideLower,
-            'price': this.omitZero (this.safeString (order, 'price')),
+            'price': this.omitZero ((this.safeString (order, 'price') as string)),
             'triggerPrice': triggerPrice,
-            'cost': this.omitZero (this.safeString (order, 'cumulativeQuoteQty')),
+            'cost': this.omitZero ((this.safeString (order, 'cumulativeQuoteQty') as string)),
             'average': this.safeString (order, 'avgPrice'),
             'amount': this.safeString (order, 'origQty'),
             'filled': this.safeString (order, 'executedQty'),
@@ -1825,7 +1825,7 @@ export default class toobit extends Exchange {
             'CANCELED': 'canceled',
             'REJECTED': 'canceled',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseOrderType (status) {
@@ -2703,7 +2703,7 @@ export default class toobit extends Exchange {
             '11': 'failed',
             '3': 'ok',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     /**

@@ -631,7 +631,7 @@ export default class btcbox extends Exchange {
             'closed': 'closed', // never encountered, seems to be bug in the doc
             'no': 'closed', // not clarified in the docs...
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -732,7 +732,7 @@ export default class btcbox extends Exchange {
     async fetchOrdersByType (type, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         // a special case for btcbox – default symbol is BTC/JPY
-        const market = this.market (symbol);
+        const market = this.market ((symbol as string));
         const request: Dict = {
             'type': type, // 'open' or 'all'
             'coin': market['baseId'],

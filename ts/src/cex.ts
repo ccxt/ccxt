@@ -1162,7 +1162,7 @@ export default class cex extends Exchange {
             'PENDING_CANCEL': 'canceling',
             'CANCELLED': 'canceled',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -1587,7 +1587,7 @@ export default class cex extends Exchange {
             'pending': 'pending',
             'approved': 'ok',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     /**
@@ -1735,7 +1735,7 @@ export default class cex extends Exchange {
         const request: Dict = {
             'accountId': accountId,
             'currency': currency['id'], // documentation is wrong about this param
-            'blockchain': this.networkCodeToId (networkCode, currency['code']),
+            'blockchain': this.networkCodeToId ((networkCode as string), currency['code']),
         };
         const response = await this.privatePostGetDepositAddress (this.extend (request, params));
         //

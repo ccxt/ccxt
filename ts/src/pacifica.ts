@@ -405,7 +405,7 @@ export default class pacifica extends Exchange {
         try {
             const builder = this.safeString (this.options, 'builderCode', 'CCXT'); // case sensitive
             const maxFeeRate = this.safeString (this.options, 'feeRate', '0.01');
-            await this.approveBuilderCode (builder, maxFeeRate);
+            await this.approveBuilderCode ((builder as string), maxFeeRate);
             this.options['approvedBuilderFee'] = true;
         } catch (e) {
             this.options['builderFee'] = false; // disable builder fee if an error occurs
@@ -1022,10 +1022,10 @@ export default class pacifica extends Exchange {
         let until = this.safeInteger (request, 'end_time');
         if (until === undefined) {
             if (limit !== undefined) {
-                until = since + (limit * (this.parseTimeframe (tf) * 1000)) - 1;
+                until = since + (limit * (this.parseTimeframe ((tf as string)) * 1000)) - 1;
             }
             if (until === undefined) {
-                until = since + (defaultMaxLimit * (this.parseTimeframe (tf) * 1000)) - 1;
+                until = since + (defaultMaxLimit * (this.parseTimeframe ((tf as string)) * 1000)) - 1;
             }
             if (until > nowMillis) {
                 until = nowMillis;
@@ -1096,7 +1096,7 @@ export default class pacifica extends Exchange {
      */
     async fetchTrades (symbol: Str, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const market = this.market ((symbol as string));
         const request = {
             'symbol': market['id'],
         };
@@ -1501,7 +1501,7 @@ export default class pacifica extends Exchange {
             if (type !== 'limit') {
                 throw new NotSupported (this.id + ' createOrders() supports only type = "limit"! Your value type=' + type);
             }
-            const requestList = this.createOrderRequest (symbol, type, side, amountNumber, priceNumber, orderParams);
+            const requestList = this.createOrderRequest ((symbol as string), type, side, amountNumber, priceNumber, orderParams);
             const action = {
                 'type': 'Create',
                 'data': requestList[0],
@@ -1740,7 +1740,7 @@ export default class pacifica extends Exchange {
     }
 
     cancelOrderRequest (id: Str, symbol: Str = undefined, params = {}) {
-        const market = this.market (symbol);
+        const market = this.market ((symbol as string));
         const isStopOrder = this.safeBool2 (params, 'trigger', 'stop', false);
         let operationType: Str = undefined;
         if (isStopOrder) {
@@ -2244,7 +2244,7 @@ export default class pacifica extends Exchange {
             'cancelled': 'canceled',
             'rejected': 'failed',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     mapTimeInForce (tifRaw: Str) {
@@ -2261,7 +2261,7 @@ export default class pacifica extends Exchange {
         if (tifRaw !== undefined) {
             tif = tifRaw.toUpperCase ();
         }
-        return this.safeString (tifMap, tif, undefined);
+        return this.safeString (tifMap, (tif as string), undefined);
     }
 
     mapSide (sideRaw: string) {
@@ -2395,7 +2395,7 @@ export default class pacifica extends Exchange {
             'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': this.safeInteger2 (order, 'updated_at', 'ut'),
             'symbol': symbol,
-            'type': this.parseOrderType (this.safeStringLower2 (order, 'order_type', 'ot')),
+            'type': this.parseOrderType ((this.safeStringLower2 (order, 'order_type', 'ot') as string)),
             'timeInForce': undefined,
             'postOnly': undefined,
             'reduceOnly': this.safeBool2 (order, 'reduce_only', 'r'),
@@ -3278,7 +3278,7 @@ export default class pacifica extends Exchange {
                 builderCode = this.handleOption ('postActionRequest', 'builderCode');
             }
             if (builderCode !== undefined) {
-                const isOperationSupportBuilder = this.safeBool (this.options['builderSupportOperations'], operationType, false);
+                const isOperationSupportBuilder = this.safeBool (this.options['builderSupportOperations'], (operationType as string), false);
                 if (isOperationSupportBuilder) {
                     sigPayload['builder_code'] = builderCode;
                 }

@@ -1515,7 +1515,7 @@ export default class bitmex extends Exchange {
             'Completed': 'ok',
             'Pending': 'pending',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -1912,7 +1912,7 @@ export default class bitmex extends Exchange {
             'Untriggered': 'open',
             'Triggered': 'open',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseTimeInForce (timeInForce: Str) {
@@ -1922,7 +1922,7 @@ export default class bitmex extends Exchange {
             'ImmediateOrCancel': 'IOC',
             'FillOrKill': 'FOK',
         };
-        return this.safeString (timeInForces, timeInForce, timeInForce);
+        return this.safeString (timeInForces, (timeInForce as string), timeInForce);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -2706,7 +2706,7 @@ export default class bitmex extends Exchange {
             'currency': currency['id'],
             'amount': qty,
             'address': address,
-            'network': this.networkCodeToId (networkCode, currency['code']),
+            'network': this.networkCodeToId ((networkCode as string), currency['code']),
             // 'otpToken': '123456', // requires if two-factor auth (OTP) is enabled
             // 'fee': 0.001, // bitcoin network fee
         };
@@ -2810,7 +2810,7 @@ export default class bitmex extends Exchange {
         const request: Dict = {};
         let market: Market = undefined;
         if (symbol in this.currencies) {
-            const code = this.currency (symbol);
+            const code = this.currency ((symbol as string));
             request['symbol'] = code['id'];
         } else if (symbol !== undefined) {
             const splitSymbol = symbol.split (':');

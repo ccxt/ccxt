@@ -847,7 +847,7 @@ export default class bitmart extends bitmartRest {
             const lastTrade = this.safeDict (orderInfo, 'last_trade');
             const cachedOrders = this.orders;
             const orders = this.safeValue (cachedOrders.hashmap, symbol, {});
-            const cachedOrder = this.safeValue (orders, orderId);
+            const cachedOrder = this.safeValue (orders, (orderId as string));
             let trades = undefined;
             if (cachedOrder !== undefined) {
                 trades = this.safeValue (order, 'trades');
@@ -1145,7 +1145,7 @@ export default class bitmart extends bitmartRest {
         const trade = this.parseWsTrade (entry);
         const symbol = trade['symbol'];
         const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
-        if (this.safeValue (this.trades, symbol) === undefined) {
+        if (this.safeValue (this.trades, (symbol as string)) === undefined) {
             this.trades[symbol] = new ArrayCache (tradesLimit);
         }
         const stored = this.trades[symbol];
@@ -1437,7 +1437,7 @@ export default class bitmart extends bitmartRest {
                 const parsed = this.parseOHLCV (rawOHLCV, market);
                 parsed[0] = this.parseToInt (parsed[0] / durationInMs) * durationInMs;
                 this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-                let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+                let stored = this.safeValue (this.ohlcvs[symbol], (timeframe as string));
                 if (stored === undefined) {
                     const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                     stored = new ArrayCacheByTimestamp (limit);
@@ -1453,7 +1453,7 @@ export default class bitmart extends bitmartRest {
             const symbol = market['symbol'];
             const items = this.safeList (data, 'items', []);
             this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-            let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+            let stored = this.safeValue (this.ohlcvs[symbol], (timeframe as string));
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
@@ -1743,7 +1743,7 @@ export default class bitmart extends bitmartRest {
         if (type === 'swap' && channel === 'depth/increase100') {
             channel = 'depth50';
         }
-        const orderbook = await this.subscribeMultiple ('orderbook', channel as string, type, symbols, params);
+        const orderbook = await this.subscribeMultiple ('orderbook', channel as string, (type as string), symbols, params);
         return orderbook.limit ();
     }
 
@@ -1767,7 +1767,7 @@ export default class bitmart extends bitmartRest {
             channel = 'depth50';
         }
         params = this.extend (params, { 'unsubscribe': true });
-        return await this.subscribeMultiple ('orderbook', channel as string, type, symbols, params);
+        return await this.subscribeMultiple ('orderbook', channel as string, (type as string), symbols, params);
     }
 
     /**
@@ -1977,7 +1977,7 @@ export default class bitmart extends bitmartRest {
         const subHashIsPrefix = this.safeBool (subscription, 'subHashIsPrefix', false);
         // clean up both ways of storing subscription and unsubscription
         this.cleanUnsubscription (client, subHash as string, unsubHash, subHashIsPrefix);
-        this.cleanUnsubscription (client, messageTopic, unSubMessageTopic, subHashIsPrefix);
+        this.cleanUnsubscription (client, (messageTopic as string), unSubMessageTopic, subHashIsPrefix);
         this.cleanCache (subscription);
     }
 

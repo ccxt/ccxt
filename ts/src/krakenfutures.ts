@@ -1252,7 +1252,7 @@ export default class krakenfutures extends Exchange {
                 extendedParams['order_tag'] = this.sum (i, 1).toString (); // sequential counter
             }
             extendedParams['order'] = 'send';
-            const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, extendedParams);
+            const orderRequest = this.createOrderRequest ((marketId as string), type, side, amount, price, extendedParams);
             ordersRequests.push (orderRequest);
         }
         const request: Dict = {
@@ -1746,7 +1746,7 @@ export default class krakenfutures extends Exchange {
             'PARTIALLY_FILLED': 'open',
             'UNTOUCHED': 'open',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -2565,7 +2565,7 @@ export default class krakenfutures extends Exchange {
         //     }
         //
         const marketId = this.safeString (ticker, 'symbol');
-        const symbol = this.symbol (marketId);
+        const symbol = this.symbol ((marketId as string));
         const timestamp = this.parse8601 (this.safeString (ticker, 'lastTime'));
         const markPriceString = this.safeString (ticker, 'markPrice');
         const fundingRateString = this.safeString (ticker, 'fundingRate');

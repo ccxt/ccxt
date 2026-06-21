@@ -1217,9 +1217,9 @@ export default class Exchange {
                 // check https://github.com/ccxt/ccxt/issues/24135
                 const numberNormalized = this.numberToString (value);
                 if (numberNormalized.indexOf ('e-') > -1) {
-                    return this.number (numberToString (parseFloat (numberNormalized)));
+                    return this.number (numberToString (parseFloat ((numberNormalized as string))));
                 }
-                const result = this.number (numberNormalized);
+                const result = this.number ((numberNormalized as string));
                 return Number.isNaN (result) ? d : result;
             } catch (e) {
                 return d;
@@ -1713,13 +1713,13 @@ export default class Exchange {
     }
 
     async getZKContractSignatureObj (seed, params = {}) {
-        const formattedSlotId = BigInt ('0x' + this.remove0xPrefix (this.hash (this.encode (this.safeString (params, 'slotId')), sha256, 'hex'))).toString ();
-        const formattedNonce = BigInt ('0x' + this.remove0xPrefix (this.hash (this.encode (this.safeString (params, 'nonce')), sha256, 'hex'))).toString ();
+        const formattedSlotId = BigInt ('0x' + this.remove0xPrefix (this.hash (this.encode ((this.safeString (params, 'slotId') as string)), sha256, 'hex'))).toString ();
+        const formattedNonce = BigInt ('0x' + this.remove0xPrefix (this.hash (this.encode ((this.safeString (params, 'nonce') as string)), sha256, 'hex'))).toString ();
         const formattedUint64 = '18446744073709551615';
         const formattedUint32 = '4294967295';
-        const accountId = parseInt (Precise.stringMod (this.safeString (params, 'accountId'), formattedUint32), 10);
-        const slotId = parseInt (Precise.stringDiv (Precise.stringMod (formattedSlotId, formattedUint64), formattedUint32), 10);
-        const nonce = parseInt (Precise.stringMod (formattedNonce, formattedUint32), 10);
+        const accountId = parseInt ((Precise.stringMod (this.safeString (params, 'accountId'), formattedUint32) as string), 10);
+        const slotId = parseInt ((Precise.stringDiv (Precise.stringMod (formattedSlotId, formattedUint64), formattedUint32) as string), 10);
+        const nonce = parseInt ((Precise.stringMod (formattedNonce, formattedUint32) as string), 10);
         await init ();
         const _signer = zklink.newRpcSignerWithProvider ({});
         await _signer.initZklinkSigner (seed);
@@ -1732,8 +1732,8 @@ export default class Exchange {
             Precise.stringMul (this.safeString (params, 'size'), '1e18'),
             Precise.stringMul (this.safeString (params, 'price'), '1e18'),
             this.safeString (params, 'direction') === 'BUY',
-            parseInt (Precise.stringMul (this.safeString (params, 'makerFeeRate'), '10000')),
-            parseInt (Precise.stringMul (this.safeString (params, 'takerFeeRate'), '10000')),
+            parseInt ((Precise.stringMul (this.safeString (params, 'makerFeeRate'), '10000') as string)),
+            parseInt ((Precise.stringMul (this.safeString (params, 'takerFeeRate'), '10000') as string)),
             false
         );
         const contractor = zklink.newContract (tx_builder);
@@ -1752,7 +1752,7 @@ export default class Exchange {
         let nonce = this.safeString (params, 'nonce', '0');
         if (this.safeBool (params, 'isContract') === true) {
             const formattedUint32 = '4294967295';
-            const formattedNonce = BigInt ('0x' + this.remove0xPrefix (this.hash (this.encode (nonce), sha256, 'hex'))).toString ();
+            const formattedNonce = BigInt ('0x' + this.remove0xPrefix (this.hash (this.encode ((nonce as string)), sha256, 'hex'))).toString ();
             nonce = Precise.stringMod (formattedNonce, formattedUint32);
         }
         const tx_builder = new zklink.TransferBuilder (
@@ -3494,7 +3494,7 @@ export default class Exchange {
         // Solve Common parseInt misuse ex: parseInt ((since / 1000).toString ())
         // using a number as parameter which is not valid in ts
         const stringifiedNumber = this.numberToString (number);
-        const convertedNumber = parseFloat (stringifiedNumber) as any;
+        const convertedNumber = parseFloat ((stringifiedNumber as string)) as any;
         return parseInt (convertedNumber);
     }
 
@@ -3505,9 +3505,9 @@ export default class Exchange {
         // in Python: 1 == 1.0 is true
         // in PHP:    1 == 1.0 is true, but 1 === 1.0 is false.
         if (stringVersion.indexOf ('.') >= 0) {
-            return parseFloat (stringVersion);
+            return parseFloat ((stringVersion as string));
         }
-        return parseInt (stringVersion);
+        return parseInt ((stringVersion as string));
     }
 
     isRoundNumber (value: number) {
@@ -3523,7 +3523,7 @@ export default class Exchange {
 
     safeNumberOmitZero (obj: object, key: IndexType, defaultValue: Num = undefined): Num {
         const value = this.safeString (obj, key);
-        const final = this.parseNumber (this.omitZero (value));
+        const final = this.parseNumber (this.omitZero ((value as string)));
         return (final === undefined) ? defaultValue : final;
     }
 
@@ -4198,12 +4198,12 @@ export default class Exchange {
     safeOrder (order: Dict, market: Market = undefined): Order {
         // parses numbers as strings
         // * it is important pass the trades as unparsed rawTrades
-        let amount = this.omitZero (this.safeString (order, 'amount'));
+        let amount = this.omitZero ((this.safeString (order, 'amount') as string));
         let remaining = this.safeString (order, 'remaining');
         let filled = this.safeString (order, 'filled');
         let cost = this.safeString (order, 'cost');
-        let average = this.omitZero (this.safeString (order, 'average'));
-        let price = this.omitZero (this.safeString (order, 'price'));
+        let average = this.omitZero ((this.safeString (order, 'average') as string));
+        let price = this.omitZero ((this.safeString (order, 'price') as string));
         let lastTradeTimeTimestamp = this.safeInteger (order, 'lastTradeTimestamp');
         let symbol = this.safeString (order, 'symbol');
         let side = this.safeString (order, 'side');
@@ -4813,16 +4813,16 @@ export default class Exchange {
     }
 
     safeTicker (ticker: Dict, market: Market = undefined): Ticker {
-        let open = this.omitZero (this.safeString (ticker, 'open'));
-        let close = this.omitZero (this.safeString2 (ticker, 'close', 'last'));
-        let change = this.omitZero (this.safeString (ticker, 'change'));
-        let percentage = this.omitZero (this.safeString (ticker, 'percentage'));
-        let average = this.omitZero (this.safeString (ticker, 'average'));
+        let open = this.omitZero ((this.safeString (ticker, 'open') as string));
+        let close = this.omitZero ((this.safeString2 (ticker, 'close', 'last') as string));
+        let change = this.omitZero ((this.safeString (ticker, 'change') as string));
+        let percentage = this.omitZero ((this.safeString (ticker, 'percentage') as string));
+        let average = this.omitZero ((this.safeString (ticker, 'average') as string));
         let vwap = this.safeString (ticker, 'vwap');
         const baseVolume = this.safeString (ticker, 'baseVolume');
         const quoteVolume = this.safeString (ticker, 'quoteVolume');
         if (vwap === undefined) {
-            vwap = Precise.stringDiv (this.omitZero (quoteVolume), baseVolume);
+            vwap = Precise.stringDiv (this.omitZero ((quoteVolume as string)), baseVolume);
         }
         // calculate open
         if (change !== undefined) {
@@ -4883,15 +4883,15 @@ export default class Exchange {
         }
         // timestamp and symbol operations don't belong in safeTicker
         // they should be done in the derived classes
-        const closeParsed = this.parseNumber (this.omitZero (close));
+        const closeParsed = this.parseNumber (this.omitZero ((close as string)));
         return this.extend (ticker, {
-            'bid': this.parseNumber (this.omitZero (this.safeString (ticker, 'bid'))),
+            'bid': this.parseNumber (this.omitZero ((this.safeString (ticker, 'bid') as string))),
             'bidVolume': this.safeNumber (ticker, 'bidVolume'),
-            'ask': this.parseNumber (this.omitZero (this.safeString (ticker, 'ask'))),
+            'ask': this.parseNumber (this.omitZero ((this.safeString (ticker, 'ask') as string))),
             'askVolume': this.safeNumber (ticker, 'askVolume'),
-            'high': this.parseNumber (this.omitZero (this.safeString (ticker, 'high'))),
-            'low': this.parseNumber (this.omitZero (this.safeString (ticker, 'low'))),
-            'open': this.parseNumber (this.omitZero (open)),
+            'high': this.parseNumber (this.omitZero ((this.safeString (ticker, 'high') as string))),
+            'low': this.parseNumber (this.omitZero ((this.safeString (ticker, 'low') as string))),
+            'open': this.parseNumber (this.omitZero ((open as string))),
             'close': closeParsed,
             'last': closeParsed,
             'change': this.parseNumber (change),
@@ -6507,7 +6507,7 @@ export default class Exchange {
     }
 
     async fetchUnifiedOrder (order, params = {}): Promise<Order> {
-        return await this.fetchOrder (this.safeString (order, 'id'), this.safeString (order, 'symbol'), params);
+        return await this.fetchOrder ((this.safeString (order, 'id') as string), this.safeString (order, 'symbol'), params);
     }
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
@@ -7088,7 +7088,7 @@ export default class Exchange {
     }
 
     async cancelUnifiedOrder (order: Order, params = {}): Promise<{}> {
-        return this.cancelOrder (this.safeString (order, 'id'), this.safeString (order, 'symbol'), params);
+        return this.cancelOrder ((this.safeString (order, 'id') as string), this.safeString (order, 'symbol'), params);
     }
 
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -7262,7 +7262,7 @@ export default class Exchange {
             } else {
                 const keys = Object.keys (addressStructures);
                 const key = this.safeString (keys, 0);
-                return this.safeDict (addressStructures, key) as DepositAddress;
+                return this.safeDict (addressStructures, (key as string)) as DepositAddress;
             }
         } else {
             throw new NotSupported (this.id + ' fetchDepositAddress() is not supported yet');
@@ -7544,7 +7544,7 @@ export default class Exchange {
             return this.parsePrecision (precision);
         } else {
             const positivePrecisionString = Precise.stringAbs (precision);
-            const positivePrecision = parseInt (positivePrecisionString);
+            const positivePrecision = parseInt ((positivePrecisionString as string));
             let parsedPrecision = '1';
             for (let i = 0; i < positivePrecision - 1; i++) {
                 parsedPrecision = parsedPrecision + '0';
@@ -8327,7 +8327,7 @@ export default class Exchange {
             return undefined;
         }
         const firstMarket = this.safeString (symbols, 0);
-        const market = this.market (firstMarket);
+        const market = this.market ((firstMarket as string));
         return market;
     }
 
@@ -8521,7 +8521,7 @@ export default class Exchange {
         [ maxEntriesPerRequest, params ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, params);
         const current = this.milliseconds ();
         const tasks = [];
-        const time = this.parseTimeframe (timeframe) * 1000;
+        const time = this.parseTimeframe ((timeframe as string)) * 1000;
         const step = time * maxEntriesPerRequest;
         let currentSince = current - (maxCalls * step) - 1;
         if (since !== undefined) {
@@ -8582,7 +8582,7 @@ export default class Exchange {
                 } else if (method === 'getLeverageTiersPaginated' || method === 'fetchPositions') {
                     response = await this[method] (symbol, params);
                 } else if (method === 'fetchOpenInterestHistory') {
-                    response = await this[method] (symbol, timeframe, since, maxEntriesPerRequest, params);
+                    response = await this[method] ((symbol as string), timeframe, since, maxEntriesPerRequest, params);
                 } else {
                     response = await this[method] (symbol, since, maxEntriesPerRequest, params);
                 }
@@ -8821,9 +8821,9 @@ export default class Exchange {
         const optionStructures = {};
         for (let i = 0; i < response.length; i++) {
             const info = response[i];
-            const currencyId = this.safeString (info, currencyKey);
+            const currencyId = this.safeString (info, (currencyKey as string));
             const currency = this.safeCurrency (currencyId);
-            const marketId = this.safeString (info, symbolKey);
+            const marketId = this.safeString (info, (symbolKey as string));
             const market = this.safeMarket (marketId, undefined, undefined, 'option');
             optionStructures[market['symbol']] = this.parseOption (info, currency, market);
         }
@@ -8837,7 +8837,7 @@ export default class Exchange {
         }
         for (let i = 0; i < response.length; i++) {
             const info = response[i];
-            const marketId = this.safeString (info, symbolKey);
+            const marketId = this.safeString (info, (symbolKey as string));
             const market = this.safeMarket (marketId, undefined, undefined, marketType);
             if ((symbols === undefined) || this.inArray (market['symbol'], symbols)) {
                 marginModeStructures[market['symbol']] = this.parseMarginMode (info, market);
@@ -8857,7 +8857,7 @@ export default class Exchange {
         }
         for (let i = 0; i < response.length; i++) {
             const info = response[i];
-            const marketId = this.safeString (info, symbolKey);
+            const marketId = this.safeString (info, (symbolKey as string));
             const market = this.safeMarket (marketId, undefined, undefined, marketType);
             if ((symbols === undefined) || this.inArray (market['symbol'], symbols)) {
                 leverageStructures[market['symbol']] = this.parseLeverage (info, market);
@@ -8877,8 +8877,8 @@ export default class Exchange {
         let toCurrency = undefined;
         for (let i = 0; i < conversions.length; i++) {
             const entry = conversions[i];
-            const fromId = this.safeString (entry, fromCurrencyKey);
-            const toId = this.safeString (entry, toCurrencyKey);
+            const fromId = this.safeString (entry, (fromCurrencyKey as string));
+            const toId = this.safeString (entry, (toCurrencyKey as string));
             if (fromId !== undefined) {
                 fromCurrency = this.safeCurrency (fromId);
             }
@@ -9024,7 +9024,7 @@ export default class Exchange {
         const marginModifications = [];
         for (let i = 0; i < response.length; i++) {
             const info = response[i];
-            const marketId = this.safeString (info, symbolKey);
+            const marketId = this.safeString (info, (symbolKey as string));
             const market = this.safeMarket (marketId, undefined, undefined, marketType);
             if ((symbols === undefined) || this.inArray (market['symbol'], symbols)) {
                 marginModifications.push (this.parseMarginModification (info, market));

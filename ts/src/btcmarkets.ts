@@ -370,7 +370,7 @@ export default class btcmarkets extends Exchange {
             'Cancelled': 'cancelled',
             'Failed': 'failed',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseTransactionType (type) {
@@ -519,7 +519,7 @@ export default class btcmarkets extends Exchange {
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const symbol = base + '/' + quote;
-        const fees = this.safeValue (this.safeDict (this.options, 'fees', {}), quote, this.fees);
+        const fees = this.safeValue (this.safeDict (this.options, 'fees', {}), (quote as string), this.fees);
         const pricePrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'priceDecimals')));
         const minAmount = this.safeNumber (market, 'minOrderAmount');
         const maxAmount = this.safeNumber (market, 'maxOrderAmount');
@@ -1119,7 +1119,7 @@ export default class btcmarkets extends Exchange {
             'type': takerOrMaker,
             'currency': currency,
             'rate': rate,
-            'cost': parseFloat (this.feeToPrecision (symbol, rateCost)),
+            'cost': parseFloat ((this.feeToPrecision (symbol, rateCost) as string)),
         };
     }
 
@@ -1133,7 +1133,7 @@ export default class btcmarkets extends Exchange {
             'Partially Cancelled': 'canceled',
             'Failed': 'rejected',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {

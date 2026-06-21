@@ -500,10 +500,10 @@ export default class apex extends apexRest {
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = symbolsAndTimeframes[i];
             let symbolString = this.safeString (data, 0);
-            const market = this.market (symbolString);
+            const market = this.market ((symbolString as string));
             symbolString = market['id2'];
             const unfiedTimeframe = this.safeString (data, 1, '1');
-            const timeframeId = this.safeString (this.timeframes, unfiedTimeframe, unfiedTimeframe);
+            const timeframeId = this.safeString (this.timeframes, (unfiedTimeframe as string), unfiedTimeframe);
             rawHashes.push ('candle.' + timeframeId + '.' + symbolString);
             messageHashes.push ('ohlcv::' + market['symbol'] + '::' + unfiedTimeframe);
         }
@@ -1014,7 +1014,7 @@ export default class apex extends apexRest {
             'auth': this.handleAuthenticate,
             'ping': this.handlePing,
         };
-        const exacMethod = this.safeValue (methods, topic);
+        const exacMethod = this.safeValue (methods, (topic as string));
         if (exacMethod !== undefined) {
             exacMethod.call (this, client, message);
             return;

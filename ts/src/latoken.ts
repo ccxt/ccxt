@@ -415,8 +415,8 @@ export default class latoken extends Exchange {
             // the exchange shows them inverted
             const baseId = this.safeString (market, 'baseCurrency');
             const quoteId = this.safeString (market, 'quoteCurrency');
-            const baseCurrency = this.safeDict (currenciesById, baseId);
-            const quoteCurrency = this.safeDict (currenciesById, quoteId);
+            const baseCurrency = this.safeDict (currenciesById, (baseId as string));
+            const quoteCurrency = this.safeDict (currenciesById, (quoteId as string));
             const baseCurrencyInfo = this.safeDict (baseCurrency, 'info');
             const quoteCurrencyInfo = this.safeDict (quoteCurrency, 'info');
             if (baseCurrencyInfo !== undefined && quoteCurrencyInfo !== undefined) {
@@ -596,9 +596,9 @@ export default class latoken extends Exchange {
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         const types = this.safeValue (this.options, 'types', {});
-        const accountType = this.safeString (types, type, type);
+        const accountType = this.safeString (types, (type as string), type);
         const balancesByType = this.groupBy (response, 'type');
-        const balances = this.safeValue (balancesByType, accountType, []);
+        const balances = this.safeValue (balancesByType, (accountType as string), []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'currency');
@@ -1042,7 +1042,7 @@ export default class latoken extends Exchange {
             'ORDER_STATUS_CLOSED': 'closed',
             'ORDER_STATUS_CANCELLED': 'canceled',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseOrderType (status) {
@@ -1059,7 +1059,7 @@ export default class latoken extends Exchange {
             'ORDER_CONDITION_IMMEDIATE_OR_CANCEL': 'IOC',
             'ORDER_CONDITION_FILL_OR_KILL': 'FOK',
         };
-        return this.safeString (timeInForces, timeInForce, timeInForce);
+        return this.safeString (timeInForces, (timeInForce as string), timeInForce);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -1618,7 +1618,7 @@ export default class latoken extends Exchange {
             'TRANSACTION_STATUS_FAILED': 'failed',
             'TRANSACTION_STATUS_REJECTED': 'rejected',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseTransactionType (type) {
@@ -1642,7 +1642,7 @@ export default class latoken extends Exchange {
      */
     async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
         await this.loadMarkets ();
-        const currency = this.currency (code);
+        const currency = this.currency ((code as string));
         const response = await this.privateGetAuthTransfer (params);
         //
         //     {
@@ -1781,7 +1781,7 @@ export default class latoken extends Exchange {
             'TRANSFER_STATUS_UNVERIFIED': 'pending',
             'TRANSFER_STATUS_CANCELLED': 'canceled',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {

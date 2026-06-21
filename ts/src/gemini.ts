@@ -1053,8 +1053,8 @@ export default class gemini extends Exchange {
         const last = this.safeString2 (ticker, 'last', 'close', price);
         const percentage = this.safeString (ticker, 'percentChange24h');
         const open = this.safeString (ticker, 'open');
-        const baseVolume = this.safeString (volume, baseId);
-        const quoteVolume = this.safeString (volume, quoteId);
+        const baseVolume = this.safeString (volume, (baseId as string));
+        const quoteVolume = this.safeString (volume, (quoteId as string));
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1872,7 +1872,7 @@ export default class gemini extends Exchange {
             'Advanced': 'ok',
             'Complete': 'ok',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseDepositAddress (depositAddress, currency: Currency = undefined) {
@@ -1909,7 +1909,7 @@ export default class gemini extends Exchange {
         const groupedByNetwork = await this.fetchDepositAddressesByNetwork (code, params);
         let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
-        const networkGroup = this.indexBy (this.safeValue (groupedByNetwork, networkCode), 'currency');
+        const networkGroup = this.indexBy (this.safeValue (groupedByNetwork, (networkCode as string)), 'currency');
         return this.safeValue (networkGroup, code) as DepositAddress;
     }
 

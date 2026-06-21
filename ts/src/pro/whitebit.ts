@@ -617,7 +617,7 @@ export default class whitebit extends whitebitRest {
         const marketId = this.safeString (order, 'market');
         market = this.safeMarket (marketId, market);
         const id = this.safeString (order, 'id');
-        const clientOrderId = this.omitZero (this.safeString (order, 'client_order_id'));
+        const clientOrderId = this.omitZero ((this.safeString (order, 'client_order_id') as string));
         const price = this.safeString (order, 'price');
         const filled = this.safeString (order, 'deal_stock');
         const cost = this.safeString (order, 'deal_money');
@@ -801,7 +801,7 @@ export default class whitebit extends whitebitRest {
             let hasSymbolSubscription = true;
             const market = this.market (symbol);
             const marketId = market['id'];
-            const isSubscribed = this.safeBool (subscription, marketId, false);
+            const isSubscribed = this.safeBool (subscription, (marketId as string), false);
             if (!isSubscribed) {
                 subscription[marketId] = true;
                 hasSymbolSubscription = false;

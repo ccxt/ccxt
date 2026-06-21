@@ -1047,7 +1047,7 @@ export default class bitso extends Exchange {
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = 25, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const market = this.market ((symbol as string));
         // the don't support fetching trades starting from a date yet
         // use the `marker` extra param for that
         // this is not a typo, the variable name is 'marker' (don't confuse with 'market')
@@ -1211,7 +1211,7 @@ export default class bitso extends Exchange {
             'queued': 'open',
             'completed': 'closed',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -1274,7 +1274,7 @@ export default class bitso extends Exchange {
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = 25, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const market = this.market ((symbol as string));
         // the don't support fetching trades starting from a date yet
         // use the `marker` extra param for that
         // this is not a typo, the variable name is 'marker' (don't confuse with 'market')
@@ -1341,7 +1341,7 @@ export default class bitso extends Exchange {
      */
     async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const market = this.market ((symbol as string));
         const request: Dict = {
             'oid': id,
         };
@@ -1693,7 +1693,7 @@ export default class bitso extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             if ((codes === undefined) || (code in codes)) {
                 const withdrawFee = this.parseNumber (withdrawalResponse[currencyId]);
-                const resultValue = this.safeValue (result, code);
+                const resultValue = this.safeValue (result, (code as string));
                 if (resultValue === undefined) {
                     result[code] = this.depositWithdrawFee ({});
                 }
@@ -1841,7 +1841,7 @@ export default class bitso extends Exchange {
             'complete': 'ok',
             'failed': 'failed',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     nonce () {

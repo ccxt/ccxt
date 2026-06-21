@@ -386,7 +386,7 @@ export default class upbit extends Exchange {
         // it requires private access and API keys properly set up
         await this.loadMarkets ();
         const market = this.market (symbol);
-        return await this.fetchMarketById (market['id'], params);
+        return await this.fetchMarketById ((market['id'] as string), params);
     }
 
     async fetchMarketById (id: string, params = {}) {
@@ -540,8 +540,8 @@ export default class upbit extends Exchange {
             'contract': false,
             'linear': undefined,
             'inverse': undefined,
-            'taker': this.safeNumber (this.options['tradingFeesByQuoteCurrency'], quote, this.fees['trading']['taker']),
-            'maker': this.safeNumber (this.options['tradingFeesByQuoteCurrency'], quote, this.fees['trading']['maker']),
+            'taker': this.safeNumber (this.options['tradingFeesByQuoteCurrency'], (quote as string), this.fees['trading']['taker']),
+            'maker': this.safeNumber (this.options['tradingFeesByQuoteCurrency'], (quote as string), this.fees['trading']['maker']),
             'contractSize': undefined,
             'expiry': undefined,
             'expiryDatetime': undefined,
@@ -1664,7 +1664,7 @@ export default class upbit extends Exchange {
             'done': 'ok', // 완료
             'canceled': 'canceled', // 취소됨
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -1741,7 +1741,7 @@ export default class upbit extends Exchange {
             'done': 'closed',
             'cancel': 'canceled',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {

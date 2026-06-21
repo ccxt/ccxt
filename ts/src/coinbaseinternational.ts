@@ -765,7 +765,7 @@ export default class coinbaseinternational extends Exchange {
             'NEW': 'pending',
             'STARTED': 'pending',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     /**
@@ -1199,7 +1199,7 @@ export default class coinbaseinternational extends Exchange {
             'STARTED': 'pending',
             'FAILED': 'canceled',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -1888,7 +1888,7 @@ export default class coinbaseinternational extends Exchange {
             'EXPIRED': 'expired',
             'PENDING_REPLACE': 'open',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseOrderType (type: Str) {
@@ -1901,7 +1901,7 @@ export default class coinbaseinternational extends Exchange {
             'STOP': 'limit',
             'STOP_LIMIT': 'limit',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     /**

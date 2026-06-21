@@ -145,7 +145,7 @@ export default class ascendex extends ascendexRest {
         const market = this.market (symbol);
         const parsed = this.parseOHLCV (message, market);
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        let stored = this.safeValue (this.ohlcvs[symbol], (timeframe as string));
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
@@ -511,8 +511,8 @@ export default class ascendex extends ascendexRest {
         } else {
             const accountType = this.safeStringLower2 (message, 'ac', 'at');
             const categoriesAccounts = this.safeValue (this.options, 'categoriesAccount');
-            type = this.safeString (categoriesAccounts, accountType, 'spot');
-            result = this.safeValue (this.balance, type, {});
+            type = this.safeString (categoriesAccounts, (accountType as string), 'spot');
+            result = this.safeValue (this.balance, (type as string), {});
             const data = this.safeValue (message, 'data');
             let balances: NullableList = undefined;
             if (data === undefined) {
@@ -712,7 +712,7 @@ export default class ascendex extends ascendexRest {
                 'currency': feeCurrencyCode,
             };
         }
-        const stopPrice = this.parseNumber (this.omitZero (this.safeString (order, 'sp')));
+        const stopPrice = this.parseNumber (this.omitZero ((this.safeString (order, 'sp') as string)));
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -941,7 +941,7 @@ export default class ascendex extends ascendexRest {
             'balance': this.handleBalance,
             'futures-account-update': this.handleBalance,
         };
-        const method = this.safeValue (methods, subject);
+        const method = this.safeValue (methods, (subject as string));
         if (method !== undefined) {
             method.call (this, client, message);
         }

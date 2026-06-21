@@ -467,7 +467,7 @@ export default class poloniex extends poloniexRest {
         const watchOrderBookOptions = this.safeValue (this.options, 'watchOrderBook');
         let name = this.safeString (watchOrderBookOptions, 'name', 'book_lv2');
         [ name, params ] = this.handleOptionAndParams (params, 'method', 'name', name);
-        const orderbook = await this.subscribe (name, name, false, [ symbol ], params);
+        const orderbook = await this.subscribe ((name as string), name, false, [ symbol ], params);
         return orderbook.limit ();
     }
 
@@ -597,7 +597,7 @@ export default class poloniex extends poloniexRest {
         const messageHash = channel + '::' + symbol;
         const parsed = this.parseWsOHLCV (data, market);
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        let stored = this.safeValue (this.ohlcvs[symbol], (timeframe as string));
         if (symbol !== undefined) {
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
@@ -637,7 +637,7 @@ export default class poloniex extends poloniexRest {
                 const symbol = trade['symbol'];
                 const type = 'trades';
                 const messageHash = type + '::' + symbol;
-                let tradesArray = this.safeValue (this.trades, symbol);
+                let tradesArray = this.safeValue (this.trades, (symbol as string));
                 if (tradesArray === undefined) {
                     const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
                     tradesArray = new ArrayCache (tradesLimit);
@@ -707,8 +707,8 @@ export default class poloniex extends poloniexRest {
             'type': this.safeStringLower (trade, 'type'),
             'side': this.safeStringLower2 (trade, 'takerSide', 'side'),
             'takerOrMaker': takerMaker,
-            'price': this.omitZero (this.safeString2 (trade, 'tradePrice', 'price')),
-            'amount': this.omitZero (this.safeString2 (trade, 'filledQuantity', 'quantity')),
+            'price': this.omitZero ((this.safeString2 (trade, 'tradePrice', 'price') as string)),
+            'amount': this.omitZero ((this.safeString2 (trade, 'filledQuantity', 'quantity') as string)),
             'cost': this.safeString2 (trade, 'amount', 'filledAmount'),
             'fee': {
                 'rate': undefined,
@@ -840,7 +840,7 @@ export default class poloniex extends poloniexRest {
                     orders.append (parsed);
                 } else {
                     const previousOrders = this.safeValue (orders.hashmap, symbol, {});
-                    const previousOrder = this.safeValue2 (previousOrders, orderId, clientOrderId);
+                    const previousOrder = this.safeValue2 (previousOrders, (orderId as string), clientOrderId);
                     const trade = this.parseWsTrade (order);
                     this.handleMyTrades (client, trade);
                     if (previousOrder['trades'] === undefined) {
@@ -1236,7 +1236,7 @@ export default class poloniex extends poloniexRest {
             'cancelAllOrders': this.handleOrderRequest,
             'auth': this.handleAuthenticate,
         };
-        const method = this.safeValue (methods, type);
+        const method = this.safeValue (methods, (type as string));
         if (type === 'auth') {
             this.handleAuthenticate (client, message);
         } else if (type === undefined) {

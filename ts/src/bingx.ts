@@ -3394,7 +3394,7 @@ export default class bingx extends Exchange {
             const amount = this.safeNumber (rawOrder, 'amount');
             const price = this.safeNumber (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
-            const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
+            const orderRequest = this.createOrderRequest ((marketId as string), type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
         const symbols = this.marketSymbols (marketIds, undefined, false, true, true);
@@ -3494,7 +3494,7 @@ export default class bingx extends Exchange {
             'take_profit_market': 'market',
             'stop': 'limit',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -3811,29 +3811,29 @@ export default class bingx extends Exchange {
         let stopLoss = this.safeValue (order, 'stopLoss');
         let stopLossPrice: Str = undefined;
         if ((stopLoss !== undefined) && (stopLoss !== '')) {
-            stopLossPrice = this.omitZero (this.safeString (stopLoss, 'stopLoss'));
+            stopLossPrice = this.omitZero ((this.safeString (stopLoss, 'stopLoss') as string));
         }
         if ((stopLoss !== undefined) && (typeof stopLoss !== 'number') && (stopLoss !== '')) {
             //  stopLoss: '{"stopPrice":50,"workingType":"MARK_PRICE","type":"STOP_MARKET","quantity":1}',
             if (typeof stopLoss === 'string') {
                 stopLoss = this.parseJson (stopLoss);
             }
-            stopLossPrice = this.omitZero (this.safeString (stopLoss, 'stopPrice'));
+            stopLossPrice = this.omitZero ((this.safeString (stopLoss, 'stopPrice') as string));
         }
         let takeProfit = this.safeValue (order, 'takeProfit');
         let takeProfitPrice: Str = undefined;
         if (takeProfit !== undefined && (takeProfit !== '')) {
-            takeProfitPrice = this.omitZero (this.safeString (takeProfit, 'takeProfit'));
+            takeProfitPrice = this.omitZero ((this.safeString (takeProfit, 'takeProfit') as string));
         }
         if ((takeProfit !== undefined) && (typeof takeProfit !== 'number') && (takeProfit !== '')) {
             //  takeProfit: '{"stopPrice":150,"workingType":"MARK_PRICE","type":"TAKE_PROFIT_MARKET","quantity":1}',
             if (typeof takeProfit === 'string') {
                 takeProfit = this.parseJson (takeProfit);
             }
-            takeProfitPrice = this.omitZero (this.safeString (takeProfit, 'stopPrice'));
+            takeProfitPrice = this.omitZero ((this.safeString (takeProfit, 'stopPrice') as string));
         }
         const rawType = this.safeStringLower2 (order, 'type', 'o') as string;
-        const stopPrice = this.omitZero (this.safeString2 (order, 'StopPrice', 'stopPrice'));
+        const stopPrice = this.omitZero ((this.safeString2 (order, 'StopPrice', 'stopPrice') as string));
         let triggerPrice = stopPrice;
         if (stopPrice !== undefined) {
             if ((rawType.indexOf ('stop') > -1) && (stopLossPrice === undefined)) {
@@ -3888,7 +3888,7 @@ export default class bingx extends Exchange {
             'CANCELLED': 'canceled',
             'FAILED': 'canceled',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     /**
@@ -5147,8 +5147,8 @@ export default class bingx extends Exchange {
         const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         const fromAccount = this.safeString (params, 'fromAccount');
         const toAccount = this.safeString (params, 'toAccount');
-        const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
-        const toId = this.safeString (accountsByType, toAccount, toAccount);
+        const fromId = this.safeString (accountsByType, (fromAccount as string), fromAccount);
+        const toId = this.safeString (accountsByType, (toAccount as string), toAccount);
         if (fromId === undefined || toId === undefined) {
             throw new ExchangeError (this.id + ' fromAccount & toAccount parameters are required');
         }
@@ -5202,8 +5202,8 @@ export default class bingx extends Exchange {
         const accountsById = this.safeDict (this.options, 'accountsById', {});
         const fromId = this.safeString (transfer, 'fromAccount');
         const toId = this.safeString (transfer, 'toAccount');
-        const fromAccount = this.safeString (accountsById, fromId, fromId);
-        const toAccount = this.safeString (accountsById, toId, toId);
+        const fromAccount = this.safeString (accountsById, (fromId as string), fromId);
+        const toAccount = this.safeString (accountsById, (toId as string), toId);
         return {
             'info': transfer,
             'id': tranId,
@@ -5292,7 +5292,7 @@ export default class bingx extends Exchange {
             } else {
                 const keys = Object.keys (addressStructures);
                 const key = this.safeString (keys, 0);
-                return this.safeDict (addressStructures, key) as DepositAddress;
+                return this.safeDict (addressStructures, (key as string)) as DepositAddress;
             }
         }
     }
@@ -5482,7 +5482,7 @@ export default class bingx extends Exchange {
         const network = this.safeString (transaction, 'network');
         const currencyId = this.safeString (transaction, 'coin');
         let code = this.safeCurrencyCode (currencyId, currency);
-        if ((code !== undefined) && (code !== network) && code.indexOf (network) >= 0) {
+        if ((code !== undefined) && (code !== network) && code.indexOf ((network as string)) >= 0) {
             if (network !== undefined) {
                 code = code.replace (network, '');
             }
@@ -5497,7 +5497,7 @@ export default class bingx extends Exchange {
             'currency': code,
             'network': this.networkIdToCode (network, code),
             'amount': this.safeNumber (transaction, 'amount'),
-            'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
+            'status': this.parseTransactionStatus ((this.safeString (transaction, 'status') as string)),
             'timestamp': timestamp,
             'datetime': datetime,
             'address': address,
@@ -6877,7 +6877,7 @@ export default class bingx extends Exchange {
                 parsedParams = this.parseParams (params);
                 encodeRequest = this.rawencode (parsedParams, true);
             }
-            const signature = this.hmac (this.encode (encodeRequest), this.encode (this.secret), sha256);
+            const signature = this.hmac (this.encode ((encodeRequest as string)), this.encode (this.secret), sha256);
             headers = {
                 'X-BX-APIKEY': this.apiKey,
                 'X-SOURCE-KEY': this.safeString (this.options, 'broker', 'CCXT'),

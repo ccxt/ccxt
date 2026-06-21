@@ -1028,7 +1028,7 @@ export default class kraken extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        let orderbook = this.safeValue (result, market['id']);
+        let orderbook = this.safeValue (result, (market['id'] as string));
         // sometimes kraken returns wsname instead of market id
         // https://github.com/ccxt/ccxt/issues/8662
         const marketInfo = this.safeValue (market, 'info', {});
@@ -1220,7 +1220,7 @@ export default class kraken extends Exchange {
         //         }
         //     }
         const result = this.safeValue (response, 'result', {});
-        const ohlcvs: List = this.safeList (result, market['id'], []) as List;
+        const ohlcvs: List = this.safeList (result, (market['id'] as string), []) as List;
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
@@ -1743,7 +1743,7 @@ export default class kraken extends Exchange {
                     throw new BadRequest (this.id + ' createOrders() requires all orders to have the same symbol');
                 }
             }
-            market = this.market (marketId);
+            market = this.market ((marketId as string));
             orderSymbols.push (marketId);
             const type = this.safeString (rawOrder, 'type');
             const side = this.safeString (rawOrder, 'side');
@@ -1756,7 +1756,7 @@ export default class kraken extends Exchange {
                 'ordertype': type,
                 'volume': parsedAmount,
             };
-            const orderRequest = this.orderRequest ('createOrders', marketId, type, req, amount, price, orderParams);
+            const orderRequest = this.orderRequest ('createOrders', (marketId as string), type, req, amount, price, orderParams);
             ordersRequests.push (orderRequest[0]);
         }
         orderSymbols = this.marketSymbols (orderSymbols, undefined, false, true, true);
@@ -1850,7 +1850,7 @@ export default class kraken extends Exchange {
             'canceled': 'canceled',
             'expired': 'expired',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseOrderType (status) {
@@ -2075,10 +2075,10 @@ export default class kraken extends Exchange {
         if (rawType !== undefined) {
             if (rawType.startsWith ('take-profit')) {
                 takeProfitPrice = this.safeString (description, 'price');
-                price = this.omitZero (this.safeString (description, 'price2'));
+                price = this.omitZero ((this.safeString (description, 'price2') as string));
             } else if (rawType.startsWith ('stop-loss')) {
                 stopLossPrice = this.safeString (description, 'price');
-                price = this.omitZero (this.safeString (description, 'price2'));
+                price = this.omitZero ((this.safeString (description, 'price2') as string));
             } else if (rawType === 'take profit') {
                 takeProfitPrice = triggerPrice;
             } else if (rawType === 'stop loss') {
@@ -2885,7 +2885,7 @@ export default class kraken extends Exchange {
             'Failure': 'failed',
             'Partial': 'ok',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseNetwork (network) {
@@ -3256,7 +3256,7 @@ export default class kraken extends Exchange {
         const currency = this.currency (code);
         let network = this.safeStringUpper (params, 'network');
         const networks = this.safeValue (this.options, 'networks', {});
-        network = this.safeString (networks, network, network); // support ETH > ERC20 aliases
+        network = this.safeString (networks, (network as string), network); // support ETH > ERC20 aliases
         params = this.omit (params, 'network');
         if ((code === 'USDT') && (network === 'TRC20')) {
             code = code + '-' + network;

@@ -806,7 +806,7 @@ export default class novadax extends Exchange {
             this.safeNumber (ohlcv, 'highPrice'),
             this.safeNumber (ohlcv, 'lowPrice'),
             this.safeNumber (ohlcv, 'closePrice'),
-            this.safeNumber (ohlcv, volumeField),
+            this.safeNumber (ohlcv, (volumeField as string)),
         ];
     }
 
@@ -1184,7 +1184,7 @@ export default class novadax extends Exchange {
             'CANCELED': 'canceled',
             'REJECTED': 'rejected',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -1334,7 +1334,7 @@ export default class novadax extends Exchange {
         const statuses: Dict = {
             'SUCCESS': 'pending',
         };
-        return this.safeString (statuses, status, 'failed');
+        return this.safeString (statuses, (status as string), 'failed');
     }
 
     /**
@@ -1515,7 +1515,7 @@ export default class novadax extends Exchange {
             'SUCCESS': 'ok',
             'FAIL': 'failed',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {

@@ -329,9 +329,9 @@ export default class bitstamp extends bitstampRest {
             this.orders = new ArrayCacheBySymbolById (limit);
         }
         const stored = this.orders;
-        const subscription = this.safeValue (client.subscriptions, channel);
+        const subscription = this.safeValue (client.subscriptions, (channel as string));
         const symbol = this.safeString (subscription, 'symbol');
-        const market = this.market (symbol);
+        const market = this.market ((symbol as string));
         order['event'] = this.safeString (message, 'event');
         const parsed = this.parseWsOrder (order, market);
         stored.append (parsed);

@@ -81,7 +81,7 @@ export default class hyperliquid extends hyperliquidRest {
         const wrapped = this.wrapAsPostAction (ordersRequest);
         const request = this.safeDict (wrapped, 'request', {});
         const requestId = this.safeString (wrapped, 'requestId');
-        const response = await this.watch (url, requestId, request, requestId);
+        const response = await this.watch (url, (requestId as string), request, requestId);
         const responseOjb = this.safeDict (response, 'response', {});
         const data = this.safeDict (responseOjb, 'data', {});
         const statuses = this.safeList (data, 'statuses', []);
@@ -150,7 +150,7 @@ export default class hyperliquid extends hyperliquidRest {
         const wrapped = this.wrapAsPostAction (postRequest);
         const request = this.safeDict (wrapped, 'request', {});
         const requestId = this.safeString (wrapped, 'requestId');
-        const response = await this.watch (url, requestId, request, requestId);
+        const response = await this.watch (url, (requestId as string), request, requestId);
         // response is the same as in this.editOrder
         const responseObject = this.safeDict (response, 'response', {});
         const dataObject = this.safeDict (responseObject, 'data', {});
@@ -180,7 +180,7 @@ export default class hyperliquid extends hyperliquidRest {
         const wrapped = this.wrapAsPostAction (request);
         const wsRequest = this.safeDict (wrapped, 'request', {});
         const requestId = this.safeString (wrapped, 'requestId');
-        const response = await this.watch (url, requestId, wsRequest, requestId);
+        const response = await this.watch (url, (requestId as string), wsRequest, requestId);
         const responseObj = this.safeDict (response, 'response', {});
         const data = this.safeDict (responseObj, 'data', {});
         const statuses = this.safeList (data, 'statuses', []);
@@ -298,7 +298,7 @@ export default class hyperliquid extends hyperliquidRest {
         const entry = this.safeDict (message, 'data', {});
         const coin = this.safeString (entry, 'coin');
         const marketId = this.coinToMarketId (coin);
-        const market = this.market (marketId);
+        const market = this.market ((marketId as string));
         const symbol = market['symbol'];
         const rawData = this.safeList (entry, 'levels', []);
         const data: Dict = {
@@ -749,7 +749,7 @@ export default class hyperliquid extends hyperliquidRest {
         const first = this.safeDict (entry, 0, {});
         const coin = this.safeString (first, 'coin');
         const marketId = this.coinToMarketId (coin);
-        const market = this.market (marketId);
+        const market = this.market ((marketId as string));
         const symbol = market['symbol'];
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -1103,7 +1103,7 @@ export default class hyperliquid extends hyperliquidRest {
         for (let i = 0; i < rawBalances.length; i++) {
             this.parseWsBalance (rawBalances[i], account);
         }
-        if (this.safeValue (this.balance, account) === undefined) {
+        if (this.safeValue (this.balance, (account as string)) === undefined) {
             this.balance[account] = {};
         }
         this.balance[account]['info'] = info;
@@ -1650,7 +1650,7 @@ export default class hyperliquid extends hyperliquidRest {
             'clearinghouseState': this.handleBalance,
             'spotState': this.handleBalance,
         };
-        const exacMethod = this.safeValue (methods, topic);
+        const exacMethod = this.safeValue (methods, (topic as string));
         if (exacMethod !== undefined) {
             exacMethod.call (this, client, message);
             return;

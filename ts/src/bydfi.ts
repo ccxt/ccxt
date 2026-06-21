@@ -809,7 +809,7 @@ export default class bydfi extends Exchange {
             '2': 'market',
             '3': 'liquidation',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     /**
@@ -1320,7 +1320,7 @@ export default class bydfi extends Exchange {
             'contract': 'CONTRACT_PRICE',
             'last': 'CONTRACT_PRICE',
         };
-        return this.safeString (types, workingType, workingType);
+        return this.safeString (types, (workingType as string), workingType);
     }
 
     /**
@@ -1348,7 +1348,7 @@ export default class bydfi extends Exchange {
             const amount = this.safeNumber (rawOrder, 'amount');
             const price = this.safeNumber (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
-            const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, orderParams);
+            const orderRequest = this.createOrderRequest ((symbol as string), type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
         let wallet = 'W001';
@@ -1414,7 +1414,7 @@ export default class bydfi extends Exchange {
             const amount = this.safeNumber (rawOrder, 'amount');
             const price = this.safeNumber (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
-            const orderRequest = this.createEditOrderRequest (id, symbol, 'limit', side, amount, price, orderParams);
+            const orderRequest = this.createEditOrderRequest ((id as string), symbol, 'limit', side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
         let wallet = 'W001';
@@ -1854,7 +1854,7 @@ export default class bydfi extends Exchange {
             'cost': undefined,
             'trades': undefined,
             'fee': fee,
-            'average': this.omitZero (this.safeString (order, 'avgPrice')),
+            'average': this.omitZero ((this.safeString (order, 'avgPrice') as string)),
         }, market);
     }
 
@@ -1868,7 +1868,7 @@ export default class bydfi extends Exchange {
             'TAKE_PROFIT_MARKET': 'market',
             'TRAILING_STOP_MARKET': 'market',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseOrderTimeInForce (timeInForce: Str): Str {
@@ -1879,7 +1879,7 @@ export default class bydfi extends Exchange {
             'POST_ONLY': 'PO',
             'TRAILING_STOP': 'IOC',
         };
-        return this.safeString (timeInForces, timeInForce, timeInForce);
+        return this.safeString (timeInForces, (timeInForce as string), timeInForce);
     }
 
     parseOrderStatus (status: Str): Str {
@@ -1893,7 +1893,7 @@ export default class bydfi extends Exchange {
             '2': 'closed',
             '4': 'canceled',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     /**
@@ -2155,7 +2155,7 @@ export default class bydfi extends Exchange {
             'BUY': 'long',
             'SELL': 'short',
         };
-        return this.safeString (sides, side, side);
+        return this.safeString (sides, (side as string), side);
     }
 
     /**
@@ -2681,8 +2681,8 @@ export default class bydfi extends Exchange {
         const accountsById = this.safeDict (this.options, 'accountsById', {});
         const fromId = this.safeStringUpper (transfer, 'sourceWallet');
         const toId = this.safeStringUpper (transfer, 'targetWallet');
-        const fromAccount = this.safeString (accountsById, fromId, fromId);
-        const toAccount = this.safeString (accountsById, toId, toId);
+        const fromAccount = this.safeString (accountsById, (fromId as string), fromId);
+        const toAccount = this.safeString (accountsById, (toId as string), toId);
         const timestamp = this.safeInteger (transfer, 'timestamp');
         const currencyId = this.safeString (transfer, 'asset');
         return {
@@ -2704,7 +2704,7 @@ export default class bydfi extends Exchange {
             'WAIT': 'pending',
             'FAILED': 'failed',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     /**
@@ -2879,7 +2879,7 @@ export default class bydfi extends Exchange {
             'wait': 'pending',
             'failed': 'failed',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {

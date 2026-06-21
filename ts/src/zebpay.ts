@@ -1021,7 +1021,7 @@ export default class zebpay extends Exchange {
             const marginAsset = this.safeString (params, 'marginAsset', 'INR');
             const formType = this.safeStringUpper (params, 'formType', 'ORDER_FORM');
             request['formType'] = formType;
-            request['amount'] = this.parseToNumeric (this.amountToPrecision (market['id'], amount));
+            request['amount'] = this.parseToNumeric (this.amountToPrecision ((market['id'] as string), amount));
             request['marginAsset'] = marginAsset;
             const hasTP = takeProfitPrice !== undefined;
             const hasSL = stopLossPrice !== undefined;
@@ -1094,7 +1094,7 @@ export default class zebpay extends Exchange {
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const market = this.market ((symbol as string));
         let response: NullableDict = undefined;
         const request: Dict = {};
         if (market['spot']) {
@@ -1165,7 +1165,7 @@ export default class zebpay extends Exchange {
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const market = this.market ((symbol as string));
         const request: Dict = {
             'symbol': market['id'],
         };
@@ -1233,7 +1233,7 @@ export default class zebpay extends Exchange {
      */
     async fetchOrder (id: Str, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const market = this.market ((symbol as string));
         const request: Dict = {};
         let response: NullableDict = undefined;
         if (market['spot']) {

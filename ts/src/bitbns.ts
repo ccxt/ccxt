@@ -245,7 +245,7 @@ export default class bitbns extends Exchange {
         //
         const statusRaw = this.safeString (response, 'status');
         return {
-            'status': this.safeString ({ '1': 'ok' }, statusRaw, statusRaw),
+            'status': this.safeString ({ '1': 'ok' }, (statusRaw as string), statusRaw),
             'updated': undefined,
             'eta': undefined,
             'url': undefined,
@@ -1129,7 +1129,7 @@ export default class bitbns extends Exchange {
                 '6': 'ok', // Completed
             },
         };
-        const statuses = this.safeDict (statusesByType, type, {});
+        const statuses = this.safeDict (statusesByType, (type as string), {});
         return this.safeString (statuses, status, status);
     }
 

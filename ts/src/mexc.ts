@@ -1947,7 +1947,7 @@ export default class mexc extends Exchange {
             const length = symbols.length;
             isSingularMarket = length === 1;
             const firstSymbol = this.safeString (symbols, 0);
-            market = this.market (firstSymbol);
+            market = this.market ((firstSymbol as string));
         }
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         let tickers = undefined;
@@ -2510,7 +2510,7 @@ export default class mexc extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
             // 'price': parseFloat (this.priceToPrecision (symbol, price)),
-            'vol': parseFloat (this.amountToPrecision (symbol, amount)),
+            'vol': parseFloat ((this.amountToPrecision (symbol, amount) as string)),
             // 'leverage': int, // required for isolated margin
             // 'side': side, // 1 open long, 2 close short, 3 open short, 4 close long
             //
@@ -2608,7 +2608,7 @@ export default class mexc extends Exchange {
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const marketId = this.safeString (rawOrder, 'symbol');
-            const market = this.market (marketId);
+            const market = this.market ((marketId as string));
             if (!market['spot']) {
                 throw new NotSupported (this.id + ' createOrders() is only supported for spot markets');
             }
@@ -3687,7 +3687,7 @@ export default class mexc extends Exchange {
             '4': 'canceled',
             // '5': 'invalid', //  TODO: wt?
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseOrderTimeInForce (status) {
@@ -3707,7 +3707,7 @@ export default class mexc extends Exchange {
             'FILL_OR_KILL': 'FOK',
             'MARKET': 'IOC',
         };
-        return this.safeString (statuses, orderType, orderType);
+        return this.safeString (statuses, (orderType as string), orderType);
     }
 
     async fetchAccountHelper (type, params) {
@@ -4886,7 +4886,7 @@ export default class mexc extends Exchange {
             } else {
                 const keys = Object.keys (addressStructures);
                 const key = this.safeString (keys, 0);
-                result = this.safeDict (addressStructures, key);
+                result = this.safeDict (addressStructures, (key as string));
             }
         }
         if (result === undefined) {
@@ -5153,7 +5153,7 @@ export default class mexc extends Exchange {
                 '10': 'pending', // MANUAL
             },
         };
-        const statuses = this.safeValue (statusesByType, type, {});
+        const statuses = this.safeValue (statusesByType, (type as string), {});
         return this.safeString (statuses, status, status);
     }
 
@@ -5627,7 +5627,7 @@ export default class mexc extends Exchange {
             'FAILED': 'failed',
             'WAIT': 'pending',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     /**
@@ -5671,8 +5671,8 @@ export default class mexc extends Exchange {
         }
         const networks = this.safeDict (this.options, 'networks', {});
         let network = this.safeString2 (params, 'network', 'netWork'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString (networks, network, network); // handle ETH > ERC-20 alias
-        network = this.networkCodeToId (network, currency['code']);
+        network = this.safeString (networks, (network as string), network); // handle ETH > ERC-20 alias
+        network = this.networkCodeToId ((network as string), currency['code']);
         this.checkAddress (address);
         const request: Dict = {
             'coin': currency['id'],
@@ -5838,7 +5838,7 @@ export default class mexc extends Exchange {
         for (let j = 0; j < networkList.length; j++) {
             const networkEntry = networkList[j];
             const networkId = this.safeString (networkEntry, 'network');
-            const networkCode = this.safeString (this.options['networks'], networkId, networkId);
+            const networkCode = this.safeString (this.options['networks'], (networkId as string), networkId);
             const fee = this.safeNumber (networkEntry, 'withdrawFee');
             result[networkCode] = fee;
         }
@@ -6117,7 +6117,7 @@ export default class mexc extends Exchange {
      */
     async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const market = this.market ((symbol as string));
         if (market['spot']) {
             throw new BadSymbol (this.id + ' setMarginMode() supports contract markets only');
         }

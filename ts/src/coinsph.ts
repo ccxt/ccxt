@@ -1760,7 +1760,7 @@ export default class coinsph extends Exchange {
             'PARTIALLY_CANCELED': 'canceled',
             'REJECTED': 'rejected',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseOrderTimeInForce (status) {
@@ -1875,7 +1875,7 @@ export default class coinsph extends Exchange {
             throw new InvalidAddress (this.id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account");
         }
         const networkCode = this.safeString (params, 'network');
-        const networkId = this.networkCodeToId (networkCode, code);
+        const networkId = this.networkCodeToId ((networkCode as string), code);
         if (networkId === undefined) {
             throw new BadRequest (this.id + ' withdraw() require network parameter');
         }
@@ -2116,7 +2116,7 @@ export default class coinsph extends Exchange {
             '2': 'failed',
             '3': 'pending',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     /**
@@ -2131,7 +2131,7 @@ export default class coinsph extends Exchange {
      */
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         const networkCode = this.safeString (params, 'network');
-        const networkId = this.networkCodeToId (networkCode, code);
+        const networkId = this.networkCodeToId ((networkCode as string), code);
         if (networkId === undefined) {
             throw new BadRequest (this.id + ' fetchDepositAddress() require network parameter');
         }

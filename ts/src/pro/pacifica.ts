@@ -113,14 +113,14 @@ export default class pacifica extends pacificaRest {
         const isTestnet = this.isSandboxModeEnabled;
         const urlKey = (isTestnet) ? 'test' : 'api';
         const url = this.urls[urlKey]['ws']['public'];
-        const wsRequest = this.wrapAsPostAction (operationType, request);
+        const wsRequest = this.wrapAsPostAction ((operationType as string), request);
         const requestId = this.safeString (wsRequest, 'id');
         if (operationType === 'create_stop_order') {
             throw new NotSupported (this.id + ' createOrderWs() do not support stop order type of order. Check provided arguments correctly!');
         } else if (operationType === 'set_position_tpsl') {
             throw new NotSupported (this.id + ' createOrderWs() do not support set position tpsl type of order. Check provided arguments correctly!');
         }
-        const response = await this.watch (url, requestId, wsRequest, requestId);
+        const response = await this.watch (url, (requestId as string), wsRequest, requestId);
         //
         // market order
         // {
@@ -194,7 +194,7 @@ export default class pacifica extends pacificaRest {
         const url = this.urls[urlKey]['ws']['public'];
         const wsRequest = this.wrapAsPostAction (batchOperationType, request);
         const requestId = this.safeString (wsRequest, 'id');
-        const response = await this.watch (url, requestId, wsRequest, requestId);
+        const response = await this.watch (url, (requestId as string), wsRequest, requestId);
         // {
         //   "code": 200,
         //   "data": {
@@ -251,7 +251,7 @@ export default class pacifica extends pacificaRest {
         const url = this.urls[urlKey]['ws']['public'];
         const wsRequest = this.wrapAsPostAction (batchOperationType, request);
         const requestId = this.safeString (wsRequest, 'id');
-        const response = await this.watch (url, requestId, wsRequest, requestId);
+        const response = await this.watch (url, (requestId as string), wsRequest, requestId);
         //
         // {
         //   "code": 200,
@@ -325,7 +325,7 @@ export default class pacifica extends pacificaRest {
         const url = this.urls[urlKey]['ws']['public'];
         const wsRequest = this.wrapAsPostAction (operationType, request);
         const requestId = this.safeString (wsRequest, 'id');
-        const response = await this.watch (url, requestId, wsRequest, requestId);
+        const response = await this.watch (url, (requestId as string), wsRequest, requestId);
         //
         //  {
         //   "code": 200,
@@ -379,7 +379,7 @@ export default class pacifica extends pacificaRest {
         const url = this.urls[urlKey]['ws']['public'];
         const wsRequest = this.wrapAsPostAction (operationType, request);
         const requestId = this.safeString (wsRequest, 'id');
-        const response = await this.watch (url, requestId, wsRequest, requestId);
+        const response = await this.watch (url, (requestId as string), wsRequest, requestId);
         //  {
         //   "code": 200,
         //   "data": {
@@ -1186,7 +1186,7 @@ export default class pacifica extends pacificaRest {
             id = this.safeString (data, 'id');
         }
         try {
-            this.handleErrors (0, error, '', postType, this.options['ws']['options']['headers'], this.json (data), message, {}, {});
+            this.handleErrors (0, (error as string), '', postType, this.options['ws']['options']['headers'], this.json (data), message, {}, {});
         } catch (e) {
             client.reject (e, id);
             return true;
@@ -1335,7 +1335,7 @@ export default class pacifica extends pacificaRest {
             'subscribe': this.handleSubscriptionResponse,
             'unsubscribe': this.handleSubscriptionResponse,
         };
-        const exacMethod = this.safeValue (methods, topic);
+        const exacMethod = this.safeValue (methods, (topic as string));
         if (exacMethod !== undefined) {
             exacMethod.call (this, client, message);
             return;

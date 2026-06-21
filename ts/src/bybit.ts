@@ -1521,7 +1521,7 @@ export default class bybit extends Exchange {
             settle = quoteAndSettle;
         } else {
             base = this.safeString (optionParts, 0);
-            expiry = this.convertMarketIdExpireDate (this.safeString (optionParts, 1));
+            expiry = this.convertMarketIdExpireDate ((this.safeString (optionParts, 1) as string));
             if (symbol.endsWith ('-USDT')) {
                 quote = 'USDT';
                 settle = 'USDT';
@@ -1532,7 +1532,7 @@ export default class bybit extends Exchange {
         }
         const strike = this.safeString (optionParts, 2);
         const optionType = this.safeString (optionParts, 3);
-        const datetime = this.convertExpireDate (expiry);
+        const datetime = this.convertExpireDate ((expiry as string));
         const timestamp = this.parse8601 (datetime);
         let amountPrecision: Num = undefined;
         let pricePrecision: Num = undefined;
@@ -1547,7 +1547,7 @@ export default class bybit extends Exchange {
             amountPrecision = this.parseNumber ('1');
             pricePrecision = this.parseNumber ('0.01');
         }
-        const convertedExpireDate = this.convertExpireDateToMarketIdDate (expiry);
+        const convertedExpireDate = this.convertExpireDateToMarketIdDate ((expiry as string));
         return {
             'id': base + '-' + convertedExpireDate + '-' + strike + '-' + optionType,
             'symbol': base + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
@@ -2090,7 +2090,7 @@ export default class bybit extends Exchange {
             let expiry = undefined;
             // some swaps have deliveryTime meaning delisting time
             if (!swap) {
-                expiry = this.omitZero (this.safeString (market, 'deliveryTime'));
+                expiry = this.omitZero ((this.safeString (market, 'deliveryTime') as string));
                 if (expiry !== undefined) {
                     expiry = parseInt (expiry);
                 }
@@ -3714,7 +3714,7 @@ export default class bybit extends Exchange {
             'Triggered': 'open',
             'Active': 'open',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseTimeInForce (timeInForce: Str) {
@@ -3724,7 +3724,7 @@ export default class bybit extends Exchange {
             'FillOrKill': 'FOK',
             'PostOnly': 'PO',
         };
-        return this.safeString (timeInForces, timeInForce, timeInForce);
+        return this.safeString (timeInForces, (timeInForce as string), timeInForce);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -3886,13 +3886,13 @@ export default class bybit extends Exchange {
         if ((clientOrderId !== undefined) && (clientOrderId.length < 1)) {
             clientOrderId = undefined;
         }
-        const avgPrice = this.omitZero (this.safeString (order, 'avgPrice'));
+        const avgPrice = this.omitZero ((this.safeString (order, 'avgPrice') as string));
         const rawTimeInForce = this.safeString (order, 'timeInForce');
         const timeInForce = this.parseTimeInForce (rawTimeInForce);
-        const triggerPrice = this.omitZero (this.safeString (order, 'triggerPrice'));
+        const triggerPrice = this.omitZero ((this.safeString (order, 'triggerPrice') as string));
         const reduceOnly = this.safeBool (order, 'reduceOnly');
-        let takeProfitPrice = this.omitZero (this.safeString (order, 'takeProfit'));
-        let stopLossPrice = this.omitZero (this.safeString (order, 'stopLoss'));
+        let takeProfitPrice = this.omitZero ((this.safeString (order, 'takeProfit') as string));
+        let stopLossPrice = this.omitZero ((this.safeString (order, 'stopLoss') as string));
         const triggerDirection = this.safeString (order, 'triggerDirection');
         const isAscending = (triggerDirection === '1');
         const isStopOrderType2 = (triggerPrice !== undefined) && reduceOnly;
@@ -4136,7 +4136,7 @@ export default class bybit extends Exchange {
             amount = undefined;
         }
         const amountString = (amount !== undefined) ? this.getAmount (symbol, amount) : undefined;
-        const priceString = (price !== undefined) ? this.getPrice (symbol, this.numberToString (price)) : undefined;
+        const priceString = (price !== undefined) ? this.getPrice (symbol, (this.numberToString (price) as string)) : undefined;
         if (endpointIsTradingStop) {
             if (hasStopLoss || hasTakeProfit || isTriggerOrder || market['spot']) {
                 throw new InvalidOrder (this.id + ' the API endpoint used only supports contract trailingAmount, stopLossPrice and takeProfitPrice orders');
@@ -4243,7 +4243,7 @@ export default class bybit extends Exchange {
                     const quoteAmount = Precise.stringMul (amountString, priceString);
                     orderCost = quoteAmount;
                 }
-                request['qty'] = this.getCost (symbol, orderCost);
+                request['qty'] = this.getCost (symbol, (orderCost as string));
             } else {
                 request['marketUnit'] = 'baseCoin';
                 request['qty'] = amountString;
@@ -4259,13 +4259,13 @@ export default class bybit extends Exchange {
                 } else {
                     const quoteAmount = Precise.stringMul (this.numberToString (amount), priceString);
                     const costRequest = (cost !== undefined) ? cost : quoteAmount;
-                    request['qty'] = this.getCost (symbol, costRequest);
+                    request['qty'] = this.getCost (symbol, (costRequest as string));
                 }
             } else {
                 if (cost !== undefined) {
-                    request['qty'] = this.getCost (symbol, this.numberToString (cost));
+                    request['qty'] = this.getCost (symbol, (this.numberToString (cost) as string));
                 } else if (price !== undefined) {
-                    request['qty'] = this.getCost (symbol, Precise.stringMul (amountString, priceString));
+                    request['qty'] = this.getCost (symbol, (Precise.stringMul (amountString, priceString) as string));
                 } else {
                     request['qty'] = amountString;
                 }
@@ -4380,7 +4380,7 @@ export default class bybit extends Exchange {
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
-            const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams, isUta);
+            const orderRequest = this.createOrderRequest ((marketId as string), type, side, amount, price, orderParams, isUta);
             delete orderRequest['category'];
             ordersRequests.push (orderRequest);
         }
@@ -4477,7 +4477,7 @@ export default class bybit extends Exchange {
             request['qty'] = this.getAmount (symbol, amount);
         }
         if (price !== undefined) {
-            request['price'] = this.getPrice (symbol, this.numberToString (price));
+            request['price'] = this.getPrice (symbol, (this.numberToString (price) as string));
         }
         let triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const stopLossTriggerPrice = this.safeString (params, 'stopLossPrice');
@@ -4500,14 +4500,14 @@ export default class bybit extends Exchange {
         if (hasStopLoss || hasTakeProfit) {
             if (hasStopLoss) {
                 const slTriggerPrice = this.safeString2 (stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
-                const stopLossRequest = (slTriggerPrice === '0') ? slTriggerPrice : this.getPrice (symbol, slTriggerPrice);
+                const stopLossRequest = (slTriggerPrice === '0') ? slTriggerPrice : this.getPrice (symbol, (slTriggerPrice as string));
                 request['stopLoss'] = stopLossRequest;
                 const slTriggerBy = this.safeString (params, 'slTriggerBy', 'LastPrice');
                 request['slTriggerBy'] = slTriggerBy;
             }
             if (hasTakeProfit) {
                 const tpTriggerPrice = this.safeString2 (takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
-                const takeProfitRequest = (tpTriggerPrice === '0') ? tpTriggerPrice : this.getPrice (symbol, tpTriggerPrice);
+                const takeProfitRequest = (tpTriggerPrice === '0') ? tpTriggerPrice : this.getPrice (symbol, (tpTriggerPrice as string));
                 request['takeProfit'] = takeProfitRequest;
                 const tpTriggerBy = this.safeString (params, 'tpTriggerBy', 'LastPrice');
                 request['tpTriggerBy'] = tpTriggerBy;
@@ -4595,7 +4595,7 @@ export default class bybit extends Exchange {
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
-            const orderRequest = this.editOrderRequest (id, symbol, type, side, amount, price, orderParams);
+            const orderRequest = this.editOrderRequest ((id as string), symbol, type, side, amount, price, orderParams);
             delete orderRequest['category'];
             ordersRequests.push (orderRequest);
         }
@@ -4663,7 +4663,7 @@ export default class bybit extends Exchange {
     }
 
     cancelOrderRequest (id: string, symbol: Str = undefined, params = {}) {
-        const market = this.market (symbol);
+        const market = this.market ((symbol as string));
         const request: Dict = {
             'symbol': market['id'],
             // 'orderLinkId': 'string',
@@ -4865,7 +4865,7 @@ export default class bybit extends Exchange {
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
             const symbol = this.safeString (order, 'symbol');
-            const market = this.market (symbol);
+            const market = this.market ((symbol as string));
             let currentCategory: Str = undefined;
             [ currentCategory, params ] = this.getBybitType ('cancelOrders', market, params);
             if (currentCategory === 'inverse') {
@@ -5070,7 +5070,7 @@ export default class bybit extends Exchange {
         if (!acknowledge) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() can only access an order if it is in last 500 orders (of any status) for your account. Set params["acknowledged"] = true to hide this warning. Alternatively, we suggest to use fetchOpenOrder or fetchClosedOrder');
         }
-        const market = this.market (symbol);
+        const market = this.market ((symbol as string));
         let marketType: Str = undefined;
         [ marketType, params ] = this.getBybitType ('fetchOrder', market, params);
         const request: Dict = {
@@ -5812,7 +5812,7 @@ export default class bybit extends Exchange {
         const result = this.safeDict (response, 'result', {});
         const chains = this.safeList (result, 'chains', []);
         const coin = this.safeString (result, 'coin');
-        const currencyFromResponse = this.currency (coin);
+        const currencyFromResponse = this.currency ((coin as string));
         const parsed = this.parseDepositAddresses (chains, [ currencyFromResponse['code'] ], false, {
             'currency': currencyFromResponse['code'],
         });
@@ -6008,7 +6008,7 @@ export default class bybit extends Exchange {
             'Fail': 'failed',
             'BlockchainConfirmed': 'ok',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -6782,7 +6782,7 @@ export default class bybit extends Exchange {
         } else {
             notional = this.safeString2 (position, 'positionValue', 'cumExitValue');
         }
-        const unrealisedPnl = this.omitZero (this.safeString (position, 'unrealisedPnl'));
+        const unrealisedPnl = this.omitZero ((this.safeString (position, 'unrealisedPnl') as string));
         let initialMarginString = this.safeString2 (position, 'positionIM', 'cumEntryValue');
         let maintenanceMarginString = this.safeString (position, 'positionMM');
         const timestamp = this.safeIntegerN (position, [ 'createdTime', 'createdAt' ]);
@@ -6791,8 +6791,8 @@ export default class bybit extends Exchange {
             lastUpdateTimestamp = this.safeIntegerN (position, [ 'updatedTime', 'updatedAt', 'updatedTime' ]);
         }
         let collateralString = this.safeString (position, 'positionBalance');
-        const entryPrice = this.omitZero (this.safeStringN (position, [ 'entryPrice', 'avgPrice', 'avgEntryPrice' ]));
-        const liquidationPrice = this.omitZero (this.safeString (position, 'liqPrice'));
+        const entryPrice = this.omitZero ((this.safeStringN (position, [ 'entryPrice', 'avgPrice', 'avgEntryPrice' ]) as string));
+        const liquidationPrice = this.omitZero ((this.safeString (position, 'liqPrice') as string));
         const leverage = this.safeString (position, 'leverage');
         if (liquidationPrice !== undefined) {
             if (market['settle'] === 'USDC') {
@@ -7153,7 +7153,7 @@ export default class bybit extends Exchange {
         }
         const timeframe = this.safeString (params, 'interval', '1h');
         const intervals = this.safeDict (this.options, 'intervals');
-        const interval = this.safeString (intervals, timeframe); // 5min,15min,30min,1h,4h,1d
+        const interval = this.safeString (intervals, (timeframe as string)); // 5min,15min,30min,1h,4h,1d
         if (interval === undefined) {
             throw new BadRequest (this.id + ' fetchOpenInterest() cannot use the ' + timeframe + ' timeframe');
         }
@@ -7662,7 +7662,7 @@ export default class bybit extends Exchange {
             'OK': 'ok',
             'SUCCESS': 'ok',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
@@ -7690,8 +7690,8 @@ export default class bybit extends Exchange {
         const fromAccountId = this.safeString (transfer, 'fromAccountType');
         const toAccountId = this.safeString (transfer, 'toAccountType');
         const accountIds = this.safeDict (this.options, 'accountsById', {});
-        const fromAccount = this.safeString (accountIds, fromAccountId, fromAccountId);
-        const toAccount = this.safeString (accountIds, toAccountId, toAccountId);
+        const fromAccount = this.safeString (accountIds, (fromAccountId as string), fromAccountId);
+        const toAccount = this.safeString (accountIds, (toAccountId as string), toAccountId);
         return {
             'info': transfer,
             'id': this.safeString (transfer, 'transferId'),
@@ -9180,9 +9180,9 @@ export default class bybit extends Exchange {
         //
         const data = this.safeDict (response, 'result', {});
         const fromCurrencyId = this.safeString (data, 'fromCoin', fromCode);
-        const fromCurrency = this.currency (fromCurrencyId);
+        const fromCurrency = this.currency ((fromCurrencyId as string));
         const toCurrencyId = this.safeString (data, 'toCoin', toCode);
-        const toCurrency = this.currency (toCurrencyId);
+        const toCurrency = this.currency ((toCurrencyId as string));
         return this.parseConversion (data, fromCurrency, toCurrency);
     }
 
@@ -9409,7 +9409,7 @@ export default class bybit extends Exchange {
      */
     async fetchLongShortRatioHistory (symbol: Str = undefined, timeframe: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LongShortRatio[]> {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const market = this.market ((symbol as string));
         let type: Str = undefined;
         [ type, params ] = this.getBybitType ('fetchLongShortRatioHistory', market, params);
         if (type === 'spot' || type === 'option') {
@@ -9656,7 +9656,7 @@ export default class bybit extends Exchange {
             'REGULAR_MARGIN': 'cross',
             'PORTFOLIO_MARGIN': 'portfolio',
         };
-        return this.safeString (marginModes, marginMode, marginMode);
+        return this.safeString (marginModes, (marginMode as string), marginMode);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {

@@ -773,7 +773,7 @@ export default class bithumb extends Exchange {
         const feeCostString = this.safeString (trade, 'fee');
         if (feeCostString !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fee_currency');
-            const feeCurrencyCode = this.commonCurrencyCode (feeCurrencyId);
+            const feeCurrencyCode = this.commonCurrencyCode ((feeCurrencyId as string));
             fee = {
                 'cost': feeCostString,
                 'currency': feeCurrencyCode,
@@ -940,7 +940,7 @@ export default class bithumb extends Exchange {
             'Completed': 'closed',
             'Cancel': 'canceled',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {

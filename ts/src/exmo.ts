@@ -473,7 +473,7 @@ export default class exmo extends Exchange {
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             const market = this.market (symbol);
-            const fee = this.safeValue (response, market['id'], {});
+            const fee = this.safeValue (response, (market['id'] as string), {});
             const makerString = this.safeString (fee, 'commission_maker_percent');
             const takerString = this.safeString (fee, 'commission_taker_percent');
             const maker = this.parseNumber (Precise.stringDiv (makerString, '100'));
@@ -567,7 +567,7 @@ export default class exmo extends Exchange {
             };
             const currency = this.currency (code);
             const currencyId = this.safeString (currency, 'id');
-            const providers = this.safeValue (cryptoList, currencyId, []);
+            const providers = this.safeValue (cryptoList, (currencyId as string), []);
             for (let j = 0; j < providers.length; j++) {
                 const provider = providers[j];
                 const typeInner = this.safeString (provider, 'type');
@@ -727,7 +727,7 @@ export default class exmo extends Exchange {
         for (let i = 0; i < currencyList.length; i++) {
             const currency = currencyList[i];
             const currencyId = this.safeString (currency, 'name');
-            const providers = this.safeList (cryptoList, currencyId);
+            const providers = this.safeList (cryptoList, (currencyId as string));
             newArray.push ({ 'currency': currency, 'providers': providers });
         }
         return this.parseCurrencies (newArray);
@@ -1145,7 +1145,7 @@ export default class exmo extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.publicGetOrderBook (this.extend (request, params));
-        const result = this.safeDict (response, market['id']);
+        const result = this.safeDict (response, (market['id'] as string));
         return this.parseOrderBook (result, market['symbol'], undefined, 'bid', 'ask');
     }
 
@@ -1419,7 +1419,7 @@ export default class exmo extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, market['id'], []);
+        const data = this.safeList (response, (market['id'] as string), []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -2320,7 +2320,7 @@ export default class exmo extends Exchange {
         }
         const networks = this.safeValue (this.options, 'networks', {});
         let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
+        network = this.safeString (networks, (network as string), network); // handle ERC20>ETH alias
         if (network !== undefined) {
             request['transport'] = network;
             params = this.omit (params, 'network');
@@ -2337,7 +2337,7 @@ export default class exmo extends Exchange {
             'processing': 'pending',
             'verifying': 'pending',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -2435,7 +2435,7 @@ export default class exmo extends Exchange {
             let feeCost = this.safeString (transaction, 'commission');
             if (feeCost === undefined) {
                 const transactionFees = this.safeValue (this.options, 'transactionFees', {});
-                const codeFees = this.safeValue (transactionFees, code, {});
+                const codeFees = this.safeValue (transactionFees, (code as string), {});
                 feeCost = this.safeString (codeFees, key);
             }
             // users don't pay for cashbacks, no fees for that

@@ -609,7 +609,7 @@ export default class paymium extends Exchange {
             'executed': 'ok',
             // what are the other statuses?
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     sign (path, api: any = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

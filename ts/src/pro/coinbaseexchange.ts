@@ -407,7 +407,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
             // therefore we resolve 'matches' here instead of 'match'
             const type = 'matches';
             const messageHash = type + ':' + marketId;
-            let tradesArray = this.safeValue (this.trades, symbol);
+            let tradesArray = this.safeValue (this.trades, (symbol as string));
             if (tradesArray === undefined) {
                 const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
                 tradesArray = new ArrayCache (tradesLimit);
@@ -504,11 +504,11 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
             parsed['side'] = this.safeString ({
                 'buy': 'sell',
                 'sell': 'buy',
-            }, currentSide, currentSide);
+            }, (currentSide as string), currentSide);
         }
         const idKey = isMaker ? 'maker_order_id' : 'taker_order_id';
         parsed['order'] = this.safeString (trade, idKey);
-        market = this.market (parsed['symbol']);
+        market = this.market ((parsed['symbol'] as string));
         const feeCurrency = market['quote'];
         let feeCost: Str = undefined;
         if ((parsed['cost'] !== undefined) && (feeRate !== undefined)) {
@@ -626,9 +626,9 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
             const takerOrderId = this.safeString (message, 'taker_order_id');
             const orders = this.orders;
             const previousOrders = this.safeValue (orders.hashmap, symbol, {});
-            let previousOrder = this.safeValue (previousOrders, orderId);
+            let previousOrder = this.safeValue (previousOrders, (orderId as string));
             if (previousOrder === undefined) {
-                previousOrder = this.safeValue2 (previousOrders, makerOrderId, takerOrderId);
+                previousOrder = this.safeValue2 (previousOrders, (makerOrderId as string), takerOrderId);
             }
             if (previousOrder === undefined) {
                 const parsed = this.parseWsOrder (message);
@@ -903,7 +903,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
             for (let i = 0; i < changes.length; i++) {
                 const change = changes[i];
                 const key = this.safeString (change, 0);
-                const side = this.safeString (sides, key);
+                const side = this.safeString (sides, (key as string));
                 const price = this.safeNumber (change, 1);
                 const amount = this.safeNumber (change, 2);
                 const bookside = orderbook[side];
@@ -975,7 +975,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         };
         const length = client.url.length - 0;
         const authenticated = client.url[length - 1] === '?';
-        const method = this.safeValue (methods, type);
+        const method = this.safeValue (methods, (type as string));
         if (method === undefined) {
             if (type === 'match') {
                 if (authenticated) {

@@ -299,7 +299,7 @@ export default class upbit extends upbitRest {
         //   "stream_type": "REALTIME" }
         const trade = this.parseTrade (message);
         const symbol = trade['symbol'];
-        let stored = this.safeValue (this.trades, symbol);
+        let stored = this.safeValue (this.trades, (symbol as string));
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             stored = new ArrayCache (limit);
@@ -458,7 +458,7 @@ export default class upbit extends upbitRest {
             'watch': 'open', // not sure what this status means
             'trade': 'open',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseWsOrder (order, market: Market = undefined) {
@@ -600,8 +600,8 @@ export default class upbit extends upbitRest {
             this.orders = new ArrayCacheBySymbolById (limit);
         }
         const cachedOrders = this.orders;
-        const orders = this.safeValue (cachedOrders.hashmap, symbol, {});
-        const order = this.safeValue (orders, orderId);
+        const orders = this.safeValue (cachedOrders.hashmap, (symbol as string), {});
+        const order = this.safeValue (orders, (orderId as string));
         if (order !== undefined) {
             const fee = this.safeValue (order, 'fee');
             if (fee !== undefined) {
@@ -684,7 +684,7 @@ export default class upbit extends upbitRest {
             'candle.1s': this.handleOHLCV,
         };
         const methodName = this.safeString (message, 'type');
-        const method = this.safeValue (methods, methodName);
+        const method = this.safeValue (methods, (methodName as string));
         if (method !== undefined) {
             method.call (this, client, message);
         }

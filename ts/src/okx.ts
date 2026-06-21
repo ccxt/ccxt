@@ -1471,7 +1471,7 @@ export default class okx extends Exchange {
         const expiry = this.safeString (optionParts, 2);
         const strike = this.safeString (optionParts, 3);
         const optionType = this.safeString (optionParts, 4);
-        const datetime = this.convertExpireDate (expiry);
+        const datetime = this.convertExpireDate ((expiry as string));
         const timestamp = this.parse8601 (datetime);
         return {
             'id': base + '-' + quote + '-' + expiry + '-' + strike + '-' + optionType,
@@ -1534,7 +1534,7 @@ export default class okx extends Exchange {
         }
         if (isOption && !(marketId in this.markets_by_id)) {
             // handle expired option contracts
-            return this.createExpiredOptionMarket (marketId);
+            return this.createExpiredOptionMarket ((marketId as string));
         }
         return super.safeMarket (marketId, market, delimiter, marketType);
     }
@@ -1834,7 +1834,7 @@ export default class okx extends Exchange {
                 }
             }
         }
-        const fees = this.safeDict2 (this.fees, type, 'trading', {});
+        const fees = this.safeDict2 (this.fees, (type as string), 'trading', {});
         let maxLeverage = this.safeString (market, 'lever', '1');
         maxLeverage = Precise.stringMax (maxLeverage, '1');
         const maxSpotCost = this.safeNumber (market, 'maxMktSz');
@@ -3485,7 +3485,7 @@ export default class okx extends Exchange {
             const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
             const extendedParams = this.extend (orderParams, params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
-            const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, extendedParams);
+            const orderRequest = this.createOrderRequest ((marketId as string), type, side, amount, price, extendedParams);
             ordersRequests.push (orderRequest);
         }
         const response = await this.privatePostTradeBatchOrders (ordersRequests);
@@ -3873,7 +3873,7 @@ export default class okx extends Exchange {
             const id = this.safeString (order, 'id');
             const clientOrderId = this.safeString2 (order, 'clOrdId', 'clientOrderId');
             const symbol = this.safeString (order, 'symbol');
-            const market = this.market (symbol);
+            const market = this.market ((symbol as string));
             let idKey = 'ordId';
             if (isStopOrTrailing) {
                 idKey = 'algoId';
@@ -3968,7 +3968,7 @@ export default class okx extends Exchange {
             'filled': 'closed',
             'effective': 'closed',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -5288,7 +5288,7 @@ export default class okx extends Exchange {
         const chain = this.safeString (depositAddress, 'chain');
         const networks = this.safeValue (currency, 'networks', {});
         const networksById = this.indexBy (networks, 'id');
-        let networkData = this.safeValue (networksById, chain);
+        let networkData = this.safeValue (networksById, (chain as string));
         // inconsistent naming responses from exchange
         // with respect to network naming provided in currency info vs address chain-names and ids
         //
@@ -5419,7 +5419,7 @@ export default class okx extends Exchange {
         // if the network is not specified, return the first address
         const keys = Object.keys (response);
         const first = this.safeString (keys, 0);
-        return this.safeDict (response, first) as DepositAddress;
+        return this.safeDict (response, (first as string)) as DepositAddress;
     }
 
     /**
@@ -5758,7 +5758,7 @@ export default class okx extends Exchange {
             '15': 'pending',
             '16': 'pending',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -5808,7 +5808,7 @@ export default class okx extends Exchange {
         const addressTo = this.safeString (transaction, 'to');
         const address = addressTo;
         let tagTo = this.safeString2 (transaction, 'tag', 'memo');
-        tagTo = this.safeString2 (transaction, 'pmtId', tagTo);
+        tagTo = this.safeString2 (transaction, 'pmtId', (tagTo as string));
         if (withdrawalId !== undefined) {
             type = 'withdrawal';
             id = withdrawalId;
@@ -6428,8 +6428,8 @@ export default class okx extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'currency': code,
             'amount': amount,
-            'fromAccount': this.safeString (accountsById, fromAccountId),
-            'toAccount': this.safeString (accountsById, toAccountId),
+            'fromAccount': this.safeString (accountsById, (fromAccountId as string)),
+            'toAccount': this.safeString (accountsById, (toAccountId as string)),
             'status': this.parseTransferStatus (this.safeString (transfer, 'state')),
         };
     }
@@ -6438,7 +6438,7 @@ export default class okx extends Exchange {
         const statuses: Dict = {
             'success': 'ok',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     async fetchTransfer (id: string, code: Str = undefined, params = {}): Promise<TransferEntry> {
@@ -8076,7 +8076,7 @@ export default class okx extends Exchange {
             const currencyId = this.safeString (feeInfo, 'ccy');
             const code = this.safeCurrencyCode (currencyId);
             if ((codes === undefined) || (this.inArray (code, codes))) {
-                const depositWithdrawFee = this.safeValue (depositWithdrawFees, code);
+                const depositWithdrawFee = this.safeValue (depositWithdrawFees, (code as string));
                 if (depositWithdrawFee === undefined) {
                     depositWithdrawFees[code] = this.depositWithdrawFee ({});
                 }
@@ -8697,9 +8697,9 @@ export default class okx extends Exchange {
         const data = this.safeList (response, 'data', []) as List;
         const result = this.safeDict (data, 0, {}) as Dict;
         const fromCurrencyId = this.safeString (result, 'baseCcy', fromCode);
-        const fromCurrency = this.currency (fromCurrencyId);
+        const fromCurrency = this.currency ((fromCurrencyId as string));
         const toCurrencyId = this.safeString (result, 'quoteCcy', toCode);
-        const toCurrency = this.currency (toCurrencyId);
+        const toCurrency = this.currency ((toCurrencyId as string));
         return this.parseConversion (result, fromCurrency, toCurrency);
     }
 
@@ -8751,9 +8751,9 @@ export default class okx extends Exchange {
         const data = this.safeList (response, 'data', []) as List;
         const result = this.safeDict (data, 0, {}) as Dict;
         const fromCurrencyId = this.safeString (result, 'baseCcy', fromCode);
-        const fromCurrency = this.currency (fromCurrencyId);
+        const fromCurrency = this.currency ((fromCurrencyId as string));
         const toCurrencyId = this.safeString (result, 'quoteCcy', toCode);
-        const toCurrency = this.currency (toCurrencyId);
+        const toCurrency = this.currency ((toCurrencyId as string));
         return this.parseConversion (result, fromCurrency, toCurrency);
     }
 
@@ -9231,7 +9231,7 @@ export default class okx extends Exchange {
      */
     async fetchLongShortRatioHistory (symbol: Str = undefined, timeframe: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LongShortRatio[]> {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const market = this.market ((symbol as string));
         const request: Dict = {
             'instId': market['id'],
         };

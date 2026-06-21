@@ -22,7 +22,7 @@ async function testFetchLastPrices (exchange: Exchange, skippedProperties: objec
     let atLeastOnePassed = false;
     for (let i = 0; i < values.length; i++) {
         // todo: symbol check here
-        testLastPrice (exchange, skippedProperties, method, values[i], checkedSymbol);
+        testLastPrice (exchange, skippedProperties, method, values[i], (checkedSymbol as string));
         atLeastOnePassed = atLeastOnePassed || (exchange.safeNumber (values[i], 'price') > 0);
     }
     assert (atLeastOnePassed, exchange.id + ' ' + method + ' ' + checkedSymbol + ' at least one symbol should pass the test');

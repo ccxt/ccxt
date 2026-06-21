@@ -1813,7 +1813,7 @@ export default class extended extends Exchange {
         const account = await this.fetchExtendedAccount ();
         const amountString = this.currencyToPrecision (code, amount);
         const accountId = this.safeString (account, 'accountId');
-        const settlement = this.createWithdrawalSettlementData (address, amountString, currency, account, params);
+        const settlement = this.createWithdrawalSettlementData (address, (amountString as string), currency, account, params);
         const request: Dict = {
             'accountId': accountId,
             'amount': amountString,
@@ -1931,7 +1931,7 @@ export default class extended extends Exchange {
             throw new ArgumentsRequired (this.id + ' transfer() requires a toAccount argument and params["toVault"] and params["toL2Key"]');
         }
         const amountString = this.currencyToPrecision (code, amount);
-        const settlement = this.createTransferSettlementData (amountString, currency, account, toVault, toL2Key, params);
+        const settlement = this.createTransferSettlementData ((amountString as string), currency, account, toVault, toL2Key, params);
         const request: Dict = {
             'fromAccount': fromAccount,
             'toAccount': toAccount,
@@ -2030,7 +2030,7 @@ export default class extended extends Exchange {
             'COMPLETED': 'ok',
             'REJECTED': 'failed',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseTransactionType (type: Str): Str {
@@ -2040,7 +2040,7 @@ export default class extended extends Exchange {
             'TRANSFER': 'transfer',
             'CLAIM': 'claim',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -2473,7 +2473,7 @@ export default class extended extends Exchange {
     getExtendedStarkAmount (amount: string, resolution, roundUp = false): string {
         const resolutionString = this.numberToString (resolution);
         const precise = Precise.stringMul (amount, resolutionString);
-        let result = this.decimalToPrecision (precise, TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING);
+        let result = this.decimalToPrecision ((precise as string), TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING);
         if (roundUp && Precise.stringGt (precise, result)) {
             result = Precise.stringAdd (result, '1');
         }
@@ -2505,13 +2505,13 @@ export default class extended extends Exchange {
         const baseRoundUp = isBuy;
         const quoteRoundUp = isBuy;
         let baseAmount = this.getExtendedStarkAmount (amountString, syntheticResolution, baseRoundUp);
-        let collateralAmount = this.getExtendedStarkAmount (quoteAmount, collateralResolution, quoteRoundUp);
+        let collateralAmount = this.getExtendedStarkAmount ((quoteAmount as string), collateralResolution, quoteRoundUp);
         if (isBuy) {
             collateralAmount = Precise.stringNeg (collateralAmount);
         } else {
             baseAmount = Precise.stringNeg (baseAmount);
         }
-        const feeAmount = this.getExtendedStarkAmount (Precise.stringMul (totalFee, quoteAmount), collateralResolution, true);
+        const feeAmount = this.getExtendedStarkAmount ((Precise.stringMul (totalFee, quoteAmount) as string), collateralResolution, true);
         const settlement = {
             'starkKey': starkKey,
             'collateralPosition': collateralPosition,
@@ -2689,7 +2689,7 @@ export default class extended extends Exchange {
         if (cancelId !== undefined) {
             request['cancelId'] = cancelId;
         }
-        const settlement = this.createOrderSettlementData (isBuy, amountString, priceString, settlementParams);
+        const settlement = this.createOrderSettlementData (isBuy, (amountString as string), priceString, settlementParams);
         request['settlement'] = {
             'signature': { 'r': settlement['r'], 's': settlement['s'] },
             'starkKey': starkKey,
@@ -2711,7 +2711,7 @@ export default class extended extends Exchange {
                 const stopLossTriggerPriceType = this.safeString (stopLoss, 'triggerPriceType');
                 const stopLossExecutionPrice = this.safeString (stopLoss, 'price');
                 const stopLossType = this.safeString (stopLoss, 'type');
-                const stopLossSettlement = this.createOrderSettlementData (!isBuy, amountString, stopLossExecutionPrice, settlementParams);
+                const stopLossSettlement = this.createOrderSettlementData (!isBuy, (amountString as string), stopLossExecutionPrice, settlementParams);
                 const requestStopLoss = {
                     'triggerPrice': this.priceToPrecision (symbol, stopLossTrigger),
                     'price': this.priceToPrecision (symbol, stopLossExecutionPrice),
@@ -2734,7 +2734,7 @@ export default class extended extends Exchange {
                 const takeProfitTriggerPriceType = this.safeString (takeProfit, 'triggerPriceType');
                 const takeProfitExecutionPrice = this.safeString (takeProfit, 'price');
                 const takeProfitType = this.safeString (takeProfit, 'type');
-                const takeProfitSettlement = this.createOrderSettlementData (!isBuy, amountString, takeProfitExecutionPrice, settlementParams);
+                const takeProfitSettlement = this.createOrderSettlementData (!isBuy, (amountString as string), takeProfitExecutionPrice, settlementParams);
                 const requestTakeProfit = {
                     'triggerPrice': this.priceToPrecision (symbol, takeProfitTrigger),
                     'price': this.priceToPrecision (symbol, takeProfitExecutionPrice),
@@ -3284,7 +3284,7 @@ export default class extended extends Exchange {
             'REJECTED': 'rejected',
             'EXPIRED': 'expired',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseOrder (order, market: Market = undefined): Order {
@@ -3433,7 +3433,7 @@ export default class extended extends Exchange {
             domainTypeHash,
             this.getExtendedStringToFelt ('Perpetuals'),
             this.getExtendedStringToFelt ('v0'),
-            this.getExtendedStringToFelt (chainId),
+            this.getExtendedStringToFelt ((chainId as string)),
             this.convertToBigInt ('1'),
         ]));
     }
@@ -3444,25 +3444,25 @@ export default class extended extends Exchange {
         ));
         const domainHash = this.getExtendedDomainHash ();
         // Order fields
-        const positionId = this.convertToBigInt (this.safeString (settlement, 'collateralPosition'));
+        const positionId = this.convertToBigInt ((this.safeString (settlement, 'collateralPosition') as string));
         const baseAssetId = this.safeString (settlement, 'baseAssetId');
-        const baseAmount = this.convertToBigInt (this.safeString (settlement, 'baseAmount'));
+        const baseAmount = this.convertToBigInt ((this.safeString (settlement, 'baseAmount') as string));
         const quoteAssetId = this.safeString (settlement, 'quoteAssetId');
-        const quoteAmount = this.convertToBigInt (this.safeString (settlement, 'quoteAmount'));
+        const quoteAmount = this.convertToBigInt ((this.safeString (settlement, 'quoteAmount') as string));
         const feeAssetId = this.safeString (settlement, 'feeAssetId');
-        const feeAmount = this.convertToBigInt (this.safeString (settlement, 'feeAmount'));
-        const expiration = this.convertToBigInt (this.safeString2 (settlement, 'expiration', 'expirationTimestamp'));
-        const salt = this.convertToBigInt (this.safeString2 (settlement, 'salt', 'nonce'));
-        const starkKey = this.convertToBigInt (this.safeString (settlement, 'starkKey'));
+        const feeAmount = this.convertToBigInt ((this.safeString (settlement, 'feeAmount') as string));
+        const expiration = this.convertToBigInt ((this.safeString2 (settlement, 'expiration', 'expirationTimestamp') as string));
+        const salt = this.convertToBigInt ((this.safeString2 (settlement, 'salt', 'nonce') as string));
+        const starkKey = this.convertToBigInt ((this.safeString (settlement, 'starkKey') as string));
         // Order struct hash
         const orderHash = this.convertToBigInt (this.extendedStarknetComputePoseidonHashOnElements ([
             orderTypeHash,
             positionId,
-            this.convertToBigInt (baseAssetId),
+            this.convertToBigInt ((baseAssetId as string)),
             this.getExtendedEncodeI64 (baseAmount),
-            this.convertToBigInt (quoteAssetId),
+            this.convertToBigInt ((quoteAssetId as string)),
             this.getExtendedEncodeI64 (quoteAmount),
-            this.convertToBigInt (feeAssetId),
+            this.convertToBigInt ((feeAssetId as string)),
             feeAmount,
             expiration,
             salt,
@@ -3484,12 +3484,12 @@ export default class extended extends Exchange {
         const expiration = this.safeDict (settlement, 'expiration', {});
         const withdrawalHash = this.convertToBigInt (this.extendedStarknetComputePoseidonHashOnElements ([
             withdrawalTypeHash,
-            this.convertToBigInt (this.safeString (settlement, 'recipient')),
-            this.convertToBigInt (this.safeString (settlement, 'positionId')),
-            this.convertToBigInt (this.safeString (settlement, 'collateralId')),
-            this.convertToBigInt (this.safeString (settlement, 'amount')),
-            this.convertToBigInt (this.safeString (expiration, 'seconds')),
-            this.convertToBigInt (this.safeString (settlement, 'salt')),
+            this.convertToBigInt ((this.safeString (settlement, 'recipient') as string)),
+            this.convertToBigInt ((this.safeString (settlement, 'positionId') as string)),
+            this.convertToBigInt ((this.safeString (settlement, 'collateralId') as string)),
+            this.convertToBigInt ((this.safeString (settlement, 'amount') as string)),
+            this.convertToBigInt ((this.safeString (expiration, 'seconds') as string)),
+            this.convertToBigInt ((this.safeString (settlement, 'salt') as string)),
         ]));
         return this.extendedStarknetComputePoseidonHashOnElements ([
             this.getExtendedStringToFelt ('StarkNet Message'),
@@ -3504,15 +3504,15 @@ export default class extended extends Exchange {
             '"Transfer"("sender_position_id":"PositionId","receiver_position_id":"PositionId","asset_id":"AssetId","amount":"u64","expiration":"Timestamp","salt":"felt")"PositionId"("value":"u32")"AssetId"("value":"felt")"Timestamp"("seconds":"u64")'
         ));
         const domainHash = this.getExtendedDomainHash ();
-        const senderPublicKey = this.convertToBigInt (this.safeString (settlement, 'senderPublicKey'));
+        const senderPublicKey = this.convertToBigInt ((this.safeString (settlement, 'senderPublicKey') as string));
         const transferHash = this.convertToBigInt (this.extendedStarknetComputePoseidonHashOnElements ([
             transferTypeHash,
-            this.convertToBigInt (this.safeString (settlement, 'senderPositionId')),
-            this.convertToBigInt (this.safeString (settlement, 'receiverPositionId')),
-            this.convertToBigInt (this.safeString (settlement, 'assetId')),
-            this.convertToBigInt (this.safeString (settlement, 'amount')),
-            this.convertToBigInt (this.safeString (settlement, 'expirationTimestamp')),
-            this.convertToBigInt (this.safeString (settlement, 'nonce')),
+            this.convertToBigInt ((this.safeString (settlement, 'senderPositionId') as string)),
+            this.convertToBigInt ((this.safeString (settlement, 'receiverPositionId') as string)),
+            this.convertToBigInt ((this.safeString (settlement, 'assetId') as string)),
+            this.convertToBigInt ((this.safeString (settlement, 'amount') as string)),
+            this.convertToBigInt ((this.safeString (settlement, 'expirationTimestamp') as string)),
+            this.convertToBigInt ((this.safeString (settlement, 'nonce') as string)),
         ]));
         return this.extendedStarknetComputePoseidonHashOnElements ([
             this.getExtendedStringToFelt ('StarkNet Message'),

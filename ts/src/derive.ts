@@ -1040,7 +1040,7 @@ export default class derive extends Exchange {
      */
     async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const market = this.market ((symbol as string));
         const request: Dict = {
             'instrument_name': market['id'],
         };
@@ -1159,7 +1159,7 @@ export default class derive extends Exchange {
         const binaryMessageLength = this.binaryLength (binaryMessage);
         const x19 = this.base16ToBinary ('19');
         const newline = this.base16ToBinary ('0a');
-        const prefix = this.binaryConcat (x19, this.encode ('Ethereum Signed Message:'), newline, this.encode (this.numberToString (binaryMessageLength)));
+        const prefix = this.binaryConcat (x19, this.encode ('Ethereum Signed Message:'), newline, this.encode ((this.numberToString (binaryMessageLength) as string)));
         return '0x' + this.hash (this.binaryConcat (prefix, binaryMessage), keccak, 'hex');
     }
 
@@ -1233,9 +1233,9 @@ export default class derive extends Exchange {
         ], [
             market['info']['base_asset_address'],
             this.parseToNumeric (market['info']['base_asset_sub_id']),
-            this.convertToBigInt (this.parseUnits (priceString)),
-            this.convertToBigInt (this.parseUnits (this.amountToPrecision (symbol, amountString))),
-            this.convertToBigInt (this.parseUnits (maxFeeString)),
+            this.convertToBigInt (this.parseUnits ((priceString as string))),
+            this.convertToBigInt (this.parseUnits ((this.amountToPrecision (symbol, amountString) as string))),
+            this.convertToBigInt (this.parseUnits ((maxFeeString as string))),
             subaccountId,
             orderSide === 'buy',
         ]), keccak, 'binary');
@@ -1417,9 +1417,9 @@ export default class derive extends Exchange {
         ], [
             market['info']['base_asset_address'],
             this.parseToNumeric (market['info']['base_asset_sub_id']),
-            this.convertToBigInt (this.parseUnits (priceString)),
-            this.convertToBigInt (this.parseUnits (this.amountToPrecision (symbol, amountString))),
-            this.convertToBigInt (this.parseUnits (maxFeeString)),
+            this.convertToBigInt (this.parseUnits ((priceString as string))),
+            this.convertToBigInt (this.parseUnits ((this.amountToPrecision (symbol, amountString) as string))),
+            this.convertToBigInt (this.parseUnits ((maxFeeString as string))),
             subaccountId,
             orderSide === 'buy',
         ]), keccak, 'binary');
@@ -1845,7 +1845,7 @@ export default class derive extends Exchange {
             'gtc': 'GTC',
             'post_only': 'PO',
         };
-        return this.safeString (timeInForces, timeInForce);
+        return this.safeString (timeInForces, (timeInForce as string));
     }
 
     parseOrderStatus (status: Str) {
@@ -2470,7 +2470,7 @@ export default class derive extends Exchange {
             for (let j = 0; j < collaterals.length; j++) {
                 const balance = collaterals[j];
                 const code = this.safeCurrencyCode (this.safeString (balance, 'currency'));
-                let account = this.safeDict (result, code);
+                let account = this.safeDict (result, (code as string));
                 if (account === undefined) {
                     account = this.account ();
                     account['total'] = this.safeString (balance, 'amount');
@@ -2625,7 +2625,7 @@ export default class derive extends Exchange {
             'settled': 'ok',
             'reverted': 'failed',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     handleDeriveSubaccountId (methodName: string, params: Dict) {

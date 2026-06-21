@@ -811,7 +811,7 @@ export default class zaif extends Exchange {
 
     customNonce () {
         const num = this.numberToString (this.milliseconds () / 1000);
-        const nonce = parseFloat (num);
+        const nonce = parseFloat ((num as string));
         return nonce.toFixed (8);
     }
 

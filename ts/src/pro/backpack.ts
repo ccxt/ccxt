@@ -480,9 +480,9 @@ export default class backpack extends backpackRest {
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const symbolAndTimeframe = symbolsAndTimeframes[i];
             const marketId = this.safeString (symbolAndTimeframe, 0);
-            const market = this.market (marketId);
+            const market = this.market ((marketId as string));
             const tf = this.safeString (symbolAndTimeframe, 1);
-            const interval = this.safeString (this.timeframes, tf, tf);
+            const interval = this.safeString (this.timeframes, (tf as string), tf);
             topics.push ('kline.' + interval + '.' + market['id']);
             messageHashes.push ('candles:' + market['symbol'] + ':' + interval);
         }
@@ -514,9 +514,9 @@ export default class backpack extends backpackRest {
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const symbolAndTimeframe = symbolsAndTimeframes[i];
             const marketId = this.safeString (symbolAndTimeframe, 0);
-            const market = this.market (marketId);
+            const market = this.market ((marketId as string));
             const tf = this.safeString (symbolAndTimeframe, 1);
-            const interval = this.safeString (this.timeframes, tf, tf);
+            const interval = this.safeString (this.timeframes, (tf as string), tf);
             topics.push ('kline.' + interval + '.' + market['id']);
             messageHashes.push ('unsubscribe:candles:' + market['symbol'] + ':' + interval);
         }
@@ -545,7 +545,7 @@ export default class backpack extends backpackRest {
         //
         const data = this.safeDict (message, 'data', {});
         const marketId = this.safeString (data, 's');
-        const market = this.market (marketId);
+        const market = this.market ((marketId as string));
         const symbol = market['symbol'];
         const stream = this.safeString (message, 'stream');
         const parts = stream.split ('.');
@@ -703,7 +703,7 @@ export default class backpack extends backpackRest {
         //
         const data = this.safeDict (message, 'data', {});
         const marketId = this.safeString (data, 's');
-        const market = this.market (marketId);
+        const market = this.market ((marketId as string));
         const symbol = market['symbol'];
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -1135,7 +1135,7 @@ export default class backpack extends backpackRest {
             'Bid': 'buy',
             'Ask': 'sell',
         };
-        return this.safeString (sides, side, side);
+        return this.safeString (sides, (side as string), side);
     }
 
     /**

@@ -895,7 +895,7 @@ export default class bullish extends Exchange {
             'DATED_FUTURE': 'future',
             'OPTION': 'option',
         };
-        return this.safeString (types, type, defaultType);
+        return this.safeString (types, (type as string), defaultType);
     }
 
     /**
@@ -2010,7 +2010,7 @@ export default class bullish extends Exchange {
             'CANCELLED': 'canceled',
             'REJECTED': 'rejected',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseOrderType (type: Str) {
@@ -2020,7 +2020,7 @@ export default class bullish extends Exchange {
             'POST_ONLY': 'limit',
             'STOP_LIMIT': 'limit',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     /**
@@ -2226,7 +2226,7 @@ export default class bullish extends Exchange {
             'PENDING': 'pending',
             'CANCELLED': 'canceled',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     async loadAccount (params = {}) {
@@ -2596,7 +2596,7 @@ export default class bullish extends Exchange {
             'BUY': 'long',
             'SELL': 'short',
         };
-        return this.safeString (sides, side, side);
+        return this.safeString (sides, (side as string), side);
     }
 
     /**

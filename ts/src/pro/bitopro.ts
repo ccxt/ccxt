@@ -459,7 +459,7 @@ export default class bitopro extends bitoproRest {
         };
         for (let i = 0; i < currencies.length; i++) {
             const currency = this.safeString (currencies, i);
-            const balance = this.safeValue (data, currency);
+            const balance = this.safeValue (data, (currency as string));
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -480,7 +480,7 @@ export default class bitopro extends bitoproRest {
             'USER_TRADE': this.handleMyTrade,
         };
         const event = this.safeString (message, 'event');
-        const method = this.safeValue (methods, event);
+        const method = this.safeValue (methods, (event as string));
         if (method !== undefined) {
             method.call (this, client, message);
         }

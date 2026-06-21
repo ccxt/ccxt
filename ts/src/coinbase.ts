@@ -978,7 +978,7 @@ export default class coinbase extends Exchange {
             'completed': 'ok',
             'canceled': 'canceled',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -2392,7 +2392,7 @@ export default class coinbase extends Exchange {
                     const code = this.safeCurrencyCode (currencyId);
                     const total = this.safeString (value, 'amount');
                     const free = total;
-                    let account = this.safeDict (result, code);
+                    let account = this.safeDict (result, (code as string));
                     if (account === undefined) {
                         account = this.account ();
                         account['free'] = free;
@@ -2412,7 +2412,7 @@ export default class coinbase extends Exchange {
                     const used = this.safeString (hold, 'value');
                     const free = this.safeString (available, 'value');
                     const total = Precise.stringAdd (used, free);
-                    let account = this.safeDict (result, code);
+                    let account = this.safeDict (result, (code as string));
                     if (account === undefined) {
                         account = this.account ();
                         account['free'] = free;
@@ -3220,7 +3220,7 @@ export default class coinbase extends Exchange {
             if (errorResponse !== undefined) {
                 this.throwExactlyMatchedException (this.exceptions['exact'], errorTitle, errorMessage);
                 this.throwBroadlyMatchedException (this.exceptions['broad'], errorTitle, errorMessage);
-                throw new ExchangeError (errorMessage);
+                throw new ExchangeError ((errorMessage as string));
             }
         }
         const data = this.safeDict (response, 'success_response', {});
@@ -3372,7 +3372,7 @@ export default class coinbase extends Exchange {
             'FAILED': 'canceled',
             'UNKNOWN_ORDER_STATUS': undefined,
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseOrderType (type: Str) {
@@ -3385,7 +3385,7 @@ export default class coinbase extends Exchange {
             'STOP': 'limit',
             'STOP_LIMIT': 'limit',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseTimeInForce (timeInForce: Str) {
@@ -3396,7 +3396,7 @@ export default class coinbase extends Exchange {
             'FILL_OR_KILL': 'FOK',
             'UNKNOWN_TIME_IN_FORCE': undefined,
         };
-        return this.safeString (timeInForces, timeInForce, timeInForce);
+        return this.safeString (timeInForces, (timeInForce as string), timeInForce);
     }
 
     /**

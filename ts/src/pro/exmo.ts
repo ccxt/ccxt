@@ -743,8 +743,8 @@ export default class exmo extends exmoRest {
             amount = this.safeString (order, amountField);
         }
         const price = this.safeString (order, 'price');
-        const clientOrderId = this.omitZero (this.safeString (order, 'client_id'));
-        const triggerPrice = this.omitZero (this.safeString (order, 'stop_price'));
+        const clientOrderId = this.omitZero ((this.safeString (order, 'client_id') as string));
+        const triggerPrice = this.omitZero ((this.safeString (order, 'stop_price') as string));
         let type: Str = undefined;
         if ((orderType !== 'buy') && (orderType !== 'sell')) {
             type = orderType;
@@ -826,7 +826,7 @@ export default class exmo extends exmoRest {
             'info': this.handleInfo,
             'subscribed': this.handleSubscribed,
         };
-        const eventHandler = this.safeValue (events, event);
+        const eventHandler = this.safeValue (events, (event as string));
         if (eventHandler !== undefined) {
             eventHandler.call (this, client, message);
             return;
@@ -849,7 +849,7 @@ export default class exmo extends exmoRest {
                     'spot/user_trades': this.handleMyTrades,
                     'margin/user_trades': this.handleMyTrades,
                 };
-                const handler = this.safeValue (handlers, channel);
+                const handler = this.safeValue (handlers, (channel as string));
                 if (handler !== undefined) {
                     handler.call (this, client, message);
                     return;

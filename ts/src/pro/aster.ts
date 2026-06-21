@@ -1086,10 +1086,10 @@ export default class aster extends asterRest {
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = symbolsAndTimeframes[i];
             let symbolString = this.safeString (data, 0);
-            const market = this.market (symbolString);
+            const market = this.market ((symbolString as string));
             symbolString = market['symbol'];
             const unfiedTimeframe = this.safeString (data, 1);
-            const timeframeId = this.safeString (this.timeframes, unfiedTimeframe, unfiedTimeframe);
+            const timeframeId = this.safeString (this.timeframes, (unfiedTimeframe as string), unfiedTimeframe);
             subscriptionArgs.push (this.safeStringLower (market, 'id') + '@kline_' + timeframeId);
             messageHashes.push ('ohlcv:' + market['symbol'] + ':' + unfiedTimeframe);
         }
@@ -1134,10 +1134,10 @@ export default class aster extends asterRest {
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = symbolsAndTimeframes[i];
             let symbolString = this.safeString (data, 0);
-            const market = this.market (symbolString);
+            const market = this.market ((symbolString as string));
             symbolString = market['symbol'];
             const unfiedTimeframe = this.safeString (data, 1);
-            const timeframeId = this.safeString (this.timeframes, unfiedTimeframe, unfiedTimeframe);
+            const timeframeId = this.safeString (this.timeframes, (unfiedTimeframe as string), unfiedTimeframe);
             subscriptionArgs.push (this.safeStringLower (market, 'id') + '@kline_' + timeframeId);
             messageHashes.push ('unsubscribe:ohlcv:' + market['symbol'] + ':' + unfiedTimeframe);
         }
@@ -1183,7 +1183,7 @@ export default class aster extends asterRest {
         if (ohlcvsByTimeframe === undefined) {
             this.ohlcvs[symbol] = {};
         }
-        if (this.safeValue (ohlcvsByTimeframe, timeframe) === undefined) {
+        if (this.safeValue (ohlcvsByTimeframe, (timeframe as string)) === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
         }
@@ -1229,7 +1229,7 @@ export default class aster extends asterRest {
     async keepAliveListenKey (params = {}) {
         const type = this.safeString (params, 'type', 'spot');
         const listenKeyOptions = this.safeDict (this.options, 'listenKey', {});
-        const listenKey = this.safeString (listenKeyOptions, type);
+        const listenKey = this.safeString (listenKeyOptions, (type as string));
         if (listenKey === undefined) {
             return;
         }
@@ -1394,7 +1394,7 @@ export default class aster extends asterRest {
             const account = this.account ();
             account['free'] = this.safeString (entry, 'f');
             account['used'] = this.safeString (entry, 'l');
-            account['total'] = this.safeString (entry, wallet);
+            account['total'] = this.safeString (entry, (wallet as string));
             this.balance[accountType][code] = account;
         }
         const timestamp = this.safeInteger (message, 'E');
@@ -1709,7 +1709,7 @@ export default class aster extends asterRest {
                                 const orderFee = fees[i];
                                 if (orderFee['currency'] === tradeFee['currency']) {
                                     const feeCost = this.sum (tradeFee['cost'], orderFee['cost']);
-                                    order['fees'][i]['cost'] = parseFloat (this.currencyToPrecision (tradeFee['currency'], feeCost));
+                                    order['fees'][i]['cost'] = parseFloat ((this.currencyToPrecision (tradeFee['currency'], feeCost) as string));
                                     insertNewFeeCurrency = false;
                                     break;
                                 }
@@ -1720,7 +1720,7 @@ export default class aster extends asterRest {
                         } else if (fee !== undefined) {
                             if (fee['currency'] === tradeFee['currency']) {
                                 const feeCost = this.sum (fee['cost'], tradeFee['cost']);
-                                order['fee']['cost'] = parseFloat (this.currencyToPrecision (tradeFee['currency'], feeCost));
+                                order['fee']['cost'] = parseFloat ((this.currencyToPrecision (tradeFee['currency'], feeCost) as string));
                             } else if (fee['currency'] === undefined) {
                                 order['fee'] = tradeFee;
                             } else {
@@ -1935,7 +1935,7 @@ export default class aster extends asterRest {
             'executionReport': this.handleOrderUpdate,
             'ORDER_TRADE_UPDATE': this.handleOrderUpdate,
         };
-        const method = this.safeValue (methods, event);
+        const method = this.safeValue (methods, (event as string));
         if (method !== undefined) {
             method.call (this, client, messageInner);
         }

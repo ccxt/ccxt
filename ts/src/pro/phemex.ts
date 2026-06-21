@@ -376,7 +376,7 @@ export default class phemex extends phemexRest {
             const balance = message[i];
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
-            const currency = this.safeValue (this.currencies, code, {});
+            const currency = this.safeValue (this.currencies, (code as string), {});
             const scale = this.safeInteger (currency, 'valueScale', 8);
             const account = this.account ();
             let used = this.safeString (balance, 'totalUsedBalanceRv');
