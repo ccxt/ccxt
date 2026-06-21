@@ -2711,7 +2711,7 @@ export default class extended extends Exchange {
                 const stopLossTriggerPriceType = this.safeString (stopLoss, 'triggerPriceType');
                 const stopLossExecutionPrice = this.safeString (stopLoss, 'price');
                 const stopLossType = this.safeString (stopLoss, 'type');
-                const stopLossSettlement = this.createOrderSettlementData (!isBuy, (amountString as string), stopLossExecutionPrice, settlementParams);
+                const stopLossSettlement = this.createOrderSettlementData (!isBuy, (amountString as string), (stopLossExecutionPrice as string), settlementParams);
                 const requestStopLoss = {
                     'triggerPrice': this.priceToPrecision (symbol, stopLossTrigger),
                     'price': this.priceToPrecision (symbol, stopLossExecutionPrice),
@@ -2734,7 +2734,7 @@ export default class extended extends Exchange {
                 const takeProfitTriggerPriceType = this.safeString (takeProfit, 'triggerPriceType');
                 const takeProfitExecutionPrice = this.safeString (takeProfit, 'price');
                 const takeProfitType = this.safeString (takeProfit, 'type');
-                const takeProfitSettlement = this.createOrderSettlementData (!isBuy, (amountString as string), takeProfitExecutionPrice, settlementParams);
+                const takeProfitSettlement = this.createOrderSettlementData (!isBuy, (amountString as string), (takeProfitExecutionPrice as string), settlementParams);
                 const requestTakeProfit = {
                     'triggerPrice': this.priceToPrecision (symbol, takeProfitTrigger),
                     'price': this.priceToPrecision (symbol, takeProfitExecutionPrice),

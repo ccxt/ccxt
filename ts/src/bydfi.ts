@@ -1348,7 +1348,7 @@ export default class bydfi extends Exchange {
             const amount = this.safeNumber (rawOrder, 'amount');
             const price = this.safeNumber (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
-            const orderRequest = this.createOrderRequest ((symbol as string), type, side, amount, price, orderParams);
+            const orderRequest = this.createOrderRequest ((symbol as string), (type as string), side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
         let wallet = 'W001';
@@ -1414,7 +1414,7 @@ export default class bydfi extends Exchange {
             const amount = this.safeNumber (rawOrder, 'amount');
             const price = this.safeNumber (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
-            const orderRequest = this.createEditOrderRequest ((id as string), symbol, 'limit', side, amount, price, orderParams);
+            const orderRequest = this.createEditOrderRequest ((id as string), (symbol as string), 'limit', side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
         let wallet = 'W001';

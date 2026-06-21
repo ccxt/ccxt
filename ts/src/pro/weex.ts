@@ -1869,7 +1869,7 @@ export default class weex extends weexRest {
             for (let i = 0; i < messageHashes.length; i++) {
                 const unSubHash = this.safeString (messageHashes, i);
                 const subHash = this.safeString (subHashes, i);
-                this.cleanUnsubscription (client, (subHash as string), unSubHash, subHashIsPrefix);
+                this.cleanUnsubscription (client, (subHash as string), (unSubHash as string), subHashIsPrefix);
             }
             this.cleanCache (subscription);
         }

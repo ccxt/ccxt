@@ -4647,7 +4647,7 @@ export default class kucoin extends Exchange {
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeValue (rawOrder, 'params', {});
-            const orderRequest = this.createContractOrderRequest ((market['id'] as string), type, side, amount, price, orderParams);
+            const orderRequest = this.createContractOrderRequest ((market['id'] as string), (type as string), side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
         const response = await this.futuresPrivatePostOrdersMulti (ordersRequests);

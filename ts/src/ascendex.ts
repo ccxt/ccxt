@@ -1916,7 +1916,7 @@ export default class ascendex extends Exchange {
                     }
                 }
             }
-            const orderRequest = this.createOrderRequest ((marketId as string), type, side, amount, price, orderParams);
+            const orderRequest = this.createOrderRequest ((marketId as string), (type as string), side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
         const market = this.market ((symbol as string));

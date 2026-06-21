@@ -5604,7 +5604,7 @@ export default class binance extends Exchange {
             if (isPortfolioMargin) {
                 throw new NotSupported (this.id + ' editOrders() does not support portfolio margin orders');
             }
-            const orderRequest = this.editContractOrderRequest ((id as string), marketId, type, side, amount, price, orderParams);
+            const orderRequest = this.editContractOrderRequest ((id as string), (marketId as string), type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
         orderSymbols = this.marketSymbols (orderSymbols, undefined, false, true, true);
@@ -6327,7 +6327,7 @@ export default class binance extends Exchange {
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
-            const orderRequest = this.createOrderRequest ((marketId as string), type, side, amount, price, orderParams);
+            const orderRequest = this.createOrderRequest ((marketId as string), (type as string), side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
         orderSymbols = this.marketSymbols (orderSymbols, undefined, false, true, true);

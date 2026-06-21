@@ -3394,7 +3394,7 @@ export default class bingx extends Exchange {
             const amount = this.safeNumber (rawOrder, 'amount');
             const price = this.safeNumber (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
-            const orderRequest = this.createOrderRequest ((marketId as string), type, side, amount, price, orderParams);
+            const orderRequest = this.createOrderRequest ((marketId as string), (type as string), side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
         const symbols = this.marketSymbols (marketIds, undefined, false, true, true);

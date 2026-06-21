@@ -4380,7 +4380,7 @@ export default class bybit extends Exchange {
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
-            const orderRequest = this.createOrderRequest ((marketId as string), type, side, amount, price, orderParams, isUta);
+            const orderRequest = this.createOrderRequest ((marketId as string), (type as string), side, amount, price, orderParams, isUta);
             delete orderRequest['category'];
             ordersRequests.push (orderRequest);
         }
@@ -4595,7 +4595,7 @@ export default class bybit extends Exchange {
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
-            const orderRequest = this.editOrderRequest ((id as string), symbol, type, side, amount, price, orderParams);
+            const orderRequest = this.editOrderRequest ((id as string), (symbol as string), type, side, amount, price, orderParams);
             delete orderRequest['category'];
             ordersRequests.push (orderRequest);
         }

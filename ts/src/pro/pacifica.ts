@@ -1186,7 +1186,7 @@ export default class pacifica extends pacificaRest {
             id = this.safeString (data, 'id');
         }
         try {
-            this.handleErrors (0, (error as string), '', postType, this.options['ws']['options']['headers'], this.json (data), message, {}, {});
+            this.handleErrors (0, (error as string), '', (postType as string), this.options['ws']['options']['headers'], this.json (data), message, {}, {});
         } catch (e) {
             client.reject (e, id);
             return true;

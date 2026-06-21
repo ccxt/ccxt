@@ -1756,7 +1756,7 @@ export default class kraken extends Exchange {
                 'ordertype': type,
                 'volume': parsedAmount,
             };
-            const orderRequest = this.orderRequest ('createOrders', (marketId as string), type, req, amount, price, orderParams);
+            const orderRequest = this.orderRequest ('createOrders', (marketId as string), (type as string), req, amount, price, orderParams);
             ordersRequests.push (orderRequest[0]);
         }
         orderSymbols = this.marketSymbols (orderSymbols, undefined, false, true, true);

@@ -1654,7 +1654,7 @@ export default class modetrade extends Exchange {
             if (isConditional) {
                 throw new NotSupported (this.id + ' createOrders() only support non-stop order');
             }
-            const orderRequest = this.createOrderRequest ((marketId as string), type, side, amount, price, orderParams);
+            const orderRequest = this.createOrderRequest ((marketId as string), (type as string), side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
         const request: Dict = {

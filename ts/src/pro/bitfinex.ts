@@ -1302,7 +1302,7 @@ export default class bitfinex extends bitfinexRest {
             if (channelId === '0') {
                 method = this.safeValue (privateMethods, (name as string));
             } else {
-                method = this.safeValue2 (publicMethods, (name as string), channel);
+                method = this.safeValue2 (publicMethods, (name as string), (channel as string));
             }
             if (method !== undefined) {
                 method.call (this, client, message, subscription);

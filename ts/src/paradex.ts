@@ -1828,7 +1828,7 @@ export default class paradex extends Exchange {
             const price = this.safeNumber (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
             const extendedParams = this.extend (params, orderParams);
-            let orderRequest = this.createOrderRequest ((symbol as string), type, side, amount, price, extendedParams);
+            let orderRequest = this.createOrderRequest ((symbol as string), (type as string), side, amount, price, extendedParams);
             orderRequest = await this.signOrderRequest (orderRequest);
             ordersRequests.push (orderRequest);
         }

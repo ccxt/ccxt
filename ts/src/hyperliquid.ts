@@ -1863,7 +1863,7 @@ export default class hyperliquid extends Exchange {
         try {
             const builder = this.safeString (this.options, 'builder', '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6');
             const maxFeeRate = this.safeString (this.options, 'feeRate', '0.01%');
-            await this.approveBuilderFee ((builder as string), maxFeeRate);
+            await this.approveBuilderFee ((builder as string), (maxFeeRate as string));
             this.options['approvedBuilderFee'] = true;
         } catch (e) {
             this.options['builderFee'] = false; // disable builder fee if an error occurs
@@ -2310,7 +2310,7 @@ export default class hyperliquid extends Exchange {
             const hasStopLoss = (stopLoss !== undefined);
             const hasTakeProfit = (takeProfit !== undefined);
             orderParams = this.omit (orderParams, [ 'stopLoss', 'takeProfit' ]);
-            const mainOrderObj: Dict = this.createOrderRequest (symbol, (type as string), side, amount, price, orderParams);
+            const mainOrderObj: Dict = this.createOrderRequest (symbol, (type as string), side, (amount as string), price, orderParams);
             if (hasStopLoss || hasTakeProfit) {
                 // grouping opposed orders for sl/tp
                 const stopLossOrderTriggerPrice = this.safeStringN (stopLoss, [ 'triggerPrice', 'stopPrice' ]);
@@ -2337,14 +2337,14 @@ export default class hyperliquid extends Exchange {
                     triggerOrderSide = 'buy';
                 }
                 if (hasTakeProfit) {
-                    const orderObj: Dict = this.createOrderRequest (symbol, (takeProfitOrderType as string), triggerOrderSide, amount, takeProfitOrderLimitPrice, this.extend (orderParams, {
+                    const orderObj: Dict = this.createOrderRequest (symbol, (takeProfitOrderType as string), triggerOrderSide, (amount as string), takeProfitOrderLimitPrice, this.extend (orderParams, {
                         'takeProfitPrice': takeProfitOrderTriggerPrice,
                         'reduceOnly': true,
                     }));
                     orderReq.push (orderObj);
                 }
                 if (hasStopLoss) {
-                    const orderObj: Dict = this.createOrderRequest (symbol, (stopLossOrderType as string), triggerOrderSide, amount, stopLossOrderLimitPrice, this.extend (orderParams, {
+                    const orderObj: Dict = this.createOrderRequest (symbol, (stopLossOrderType as string), triggerOrderSide, (amount as string), stopLossOrderLimitPrice, this.extend (orderParams, {
                         'stopLossPrice': stopLossOrderTriggerPrice,
                         'reduceOnly': true,
                     }));

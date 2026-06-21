@@ -1728,7 +1728,7 @@ export default class backpack extends Exchange {
             const price = this.safeNumber (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
             const extendedParams = this.extend (orderParams, params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
-            const orderRequest = this.createOrderRequest ((marketId as string), type, side, amount, price, extendedParams);
+            const orderRequest = this.createOrderRequest ((marketId as string), (type as string), side, amount, price, extendedParams);
             ordersRequests.push (orderRequest);
         }
         const response = await this.privatePostApiV1Orders (ordersRequests);

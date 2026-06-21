@@ -467,7 +467,7 @@ export default class poloniex extends poloniexRest {
         const watchOrderBookOptions = this.safeValue (this.options, 'watchOrderBook');
         let name = this.safeString (watchOrderBookOptions, 'name', 'book_lv2');
         [ name, params ] = this.handleOptionAndParams (params, 'method', 'name', name);
-        const orderbook = await this.subscribe ((name as string), name, false, [ symbol ], params);
+        const orderbook = await this.subscribe ((name as string), (name as string), false, [ symbol ], params);
         return orderbook.limit ();
     }
 
@@ -840,7 +840,7 @@ export default class poloniex extends poloniexRest {
                     orders.append (parsed);
                 } else {
                     const previousOrders = this.safeValue (orders.hashmap, symbol, {});
-                    const previousOrder = this.safeValue2 (previousOrders, (orderId as string), clientOrderId);
+                    const previousOrder = this.safeValue2 (previousOrders, (orderId as string), (clientOrderId as string));
                     const trade = this.parseWsTrade (order);
                     this.handleMyTrades (client, trade);
                     if (previousOrder['trades'] === undefined) {

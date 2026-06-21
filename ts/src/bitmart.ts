@@ -2893,7 +2893,7 @@ export default class bitmart extends Exchange {
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
-            let orderRequest = this.createSpotOrderRequest ((marketId as string), type, side, amount, price, orderParams);
+            let orderRequest = this.createSpotOrderRequest ((marketId as string), (type as string), side, amount, price, orderParams);
             orderRequest = this.omit (orderRequest, [ 'symbol' ]); // not needed because it goes in the outter object
             ordersRequests.push (orderRequest);
         }

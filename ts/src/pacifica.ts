@@ -405,7 +405,7 @@ export default class pacifica extends Exchange {
         try {
             const builder = this.safeString (this.options, 'builderCode', 'CCXT'); // case sensitive
             const maxFeeRate = this.safeString (this.options, 'feeRate', '0.01');
-            await this.approveBuilderCode ((builder as string), maxFeeRate);
+            await this.approveBuilderCode ((builder as string), (maxFeeRate as string));
             this.options['approvedBuilderFee'] = true;
         } catch (e) {
             this.options['builderFee'] = false; // disable builder fee if an error occurs

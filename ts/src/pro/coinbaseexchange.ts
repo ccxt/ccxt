@@ -628,7 +628,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
             const previousOrders = this.safeValue (orders.hashmap, symbol, {});
             let previousOrder = this.safeValue (previousOrders, (orderId as string));
             if (previousOrder === undefined) {
-                previousOrder = this.safeValue2 (previousOrders, (makerOrderId as string), takerOrderId);
+                previousOrder = this.safeValue2 (previousOrders, (makerOrderId as string), (takerOrderId as string));
             }
             if (previousOrder === undefined) {
                 const parsed = this.parseWsOrder (message);

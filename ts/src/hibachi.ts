@@ -934,7 +934,7 @@ export default class hibachi extends Exchange {
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
-            const orderRequest = this.createOrderRequest (nonce + i, (symbol as string), type, side, amount, price, orderParams);
+            const orderRequest = this.createOrderRequest (nonce + i, (symbol as string), (type as string), side, amount, price, orderParams);
             orderRequest['action'] = 'place';
             requestOrders.push (orderRequest);
         }
@@ -1027,7 +1027,7 @@ export default class hibachi extends Exchange {
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
-            const orderRequest = this.editOrderRequest (nonce + i, (id as string), symbol, type, side, amount, price, orderParams);
+            const orderRequest = this.editOrderRequest (nonce + i, (id as string), (symbol as string), type, side, amount, price, orderParams);
             orderRequest['action'] = 'modify';
             requestOrders.push (orderRequest);
         }

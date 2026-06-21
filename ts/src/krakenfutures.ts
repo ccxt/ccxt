@@ -1252,7 +1252,7 @@ export default class krakenfutures extends Exchange {
                 extendedParams['order_tag'] = this.sum (i, 1).toString (); // sequential counter
             }
             extendedParams['order'] = 'send';
-            const orderRequest = this.createOrderRequest ((marketId as string), type, side, amount, price, extendedParams);
+            const orderRequest = this.createOrderRequest ((marketId as string), (type as string), side, amount, price, extendedParams);
             ordersRequests.push (orderRequest);
         }
         const request: Dict = {
