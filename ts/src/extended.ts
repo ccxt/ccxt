@@ -3002,7 +3002,7 @@ export default class extended extends Exchange {
             clientOrderIds = [ clientOrderId ];
         }
         const hasClientOrderIds = clientOrderIds !== undefined;
-        if (hasClientOrderIds) {
+        if (clientOrderIds !== undefined) {
             const clientOrderIdsLength = clientOrderIds.length;
             if (clientOrderIdsLength > 0) {
                 request['externalOrderIds'] = clientOrderIds;
