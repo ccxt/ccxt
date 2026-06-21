@@ -839,9 +839,7 @@ export default class hyperliquid extends Exchange {
             asks.push ([ this.safeNumber (entry, 'px'), this.safeNumber (entry, 'sz') ]);
         }
         const orderbook = this.parseOrderBook ({ 'bids': bids, 'asks': asks }, this.safeString (outcomeObj, 'outcome', outcome), timestamp);
-        orderbook['outcome'] = this.safeString (outcomeObj, 'outcome');
-        orderbook['outcomeId'] = this.safeString (outcomeObj, 'outcomeId');
-        return orderbook as PredictionOrderBook;
+        return this.safePredictionOrderBook (orderbook, outcomeObj);
     }
 
     /**

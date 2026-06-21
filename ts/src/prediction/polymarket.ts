@@ -773,8 +773,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome symbol
      */
-    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<PredictionTickers> {
-        const outcomes = symbols;
+    async fetchTickers (outcomes: Strings = undefined, params = {}): Promise<PredictionTickers> {
         let outcomesLength = 0;
         if (outcomes !== undefined) {
             outcomesLength = outcomes.length;
@@ -972,10 +971,7 @@ export default class polymarket extends Exchange {
         //
         const timestamp = this.safeInteger (response, 'timestamp');
         const orderbook = this.parseOrderBook (response, this.safeOutcomeSymbol (outcome, outcomeObj), timestamp, 'bids', 'asks', 'price', 'size');
-        orderbook['outcome'] = this.safeString (outcomeObj, 'outcome');
-        orderbook['outcomeId'] = this.safeString (outcomeObj, 'outcomeId');
-        orderbook['market'] = this.safeString (outcomeObj, 'market');
-        return orderbook as PredictionOrderBook;
+        return this.safePredictionOrderBook (orderbook, outcomeObj);
     }
 
     /**
@@ -1236,7 +1232,11 @@ export default class polymarket extends Exchange {
                 filteredTrades.push (trade);
             }
         }
-        return this.parseTrades (filteredTrades, outcomeObj, since, limit) as PredictionTrade[];
+        // the trades are already narrowed to this outcome by asset id above; pass no market so the
+        // base parseTrades doesn't apply its symbol filter (prediction trades carry `outcome`, not
+        // `symbol`, so a symbol-bearing outcome object would drop them all). parseTrade resolves the
+        // outcome from each trade's asset id.
+        return this.parseTrades (filteredTrades, undefined, since, limit) as PredictionTrade[];
     }
 
     /**
@@ -1407,8 +1407,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<PredictionPosition[]> {
-        const outcomes = symbols;
+    async fetchPositions (outcomes: Strings = undefined, params = {}): Promise<PredictionPosition[]> {
         let outcomesLength = 0;
         if (outcomes !== undefined) {
             outcomesLength = outcomes.length;

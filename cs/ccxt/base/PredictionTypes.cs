@@ -270,6 +270,89 @@ public struct PredictionPosition
     }
 }
 
+public struct PredictionOrderBook
+{
+    public List<List<double>>? bids;
+    public List<List<double>>? asks;
+    public string? symbol;
+    public Int64? timestamp;
+    public string? datetime;
+    public Int64? nonce;
+    // prediction-specific
+    public string? outcome;
+    public string? outcomeId;
+    public string? market;
+
+    public PredictionOrderBook(object orderbook2)
+    {
+        var orderbook = (IDictionary<string, object>)orderbook2;
+        bids = orderbook.ContainsKey("bids") ? ((IEnumerable<object>)orderbook["bids"]).Select(x => ((IEnumerable<object>)x).Select(y => Convert.ToDouble(y)).ToList()).ToList() : null;
+        asks = orderbook.ContainsKey("asks") ? ((IEnumerable<object>)orderbook["asks"]).Select(x => ((IEnumerable<object>)x).Select(y => Convert.ToDouble(y)).ToList()).ToList() : null;
+        symbol = Exchange.SafeString(orderbook, "symbol");
+        timestamp = Exchange.SafeInteger(orderbook, "timestamp");
+        datetime = Exchange.SafeString(orderbook, "datetime");
+        nonce = Exchange.SafeInteger(orderbook, "nonce");
+        outcome = Exchange.SafeString(orderbook, "outcome");
+        outcomeId = Exchange.SafeString(orderbook, "outcomeId");
+        market = Exchange.SafeString(orderbook, "market");
+    }
+}
+
+public struct PredictionTradingFee
+{
+    public string? symbol;
+    public double? maker;
+    public double? taker;
+    public bool? percentage;
+    public bool? tierBased;
+    // prediction-specific
+    public string? outcome;
+    public string? outcomeId;
+    public string? market;
+    public Dictionary<string, object> info;
+
+    public PredictionTradingFee(object fee2)
+    {
+        var fee = (Dictionary<string, object>)fee2;
+        symbol = Exchange.SafeString(fee, "symbol");
+        maker = Exchange.SafeFloat(fee, "maker");
+        taker = Exchange.SafeFloat(fee, "taker");
+        percentage = fee.ContainsKey("percentage") && fee["percentage"] != null ? (bool)fee["percentage"] : null;
+        tierBased = fee.ContainsKey("tierBased") && fee["tierBased"] != null ? (bool)fee["tierBased"] : null;
+        outcome = Exchange.SafeString(fee, "outcome");
+        outcomeId = Exchange.SafeString(fee, "outcomeId");
+        market = Exchange.SafeString(fee, "market");
+        info = Helper.GetInfo(fee);
+    }
+}
+
+public struct PredictionOpenInterest
+{
+    public string? symbol;
+    public double? openInterestAmount;
+    public double? openInterestValue;
+    public Int64? timestamp;
+    public string? datetime;
+    // prediction-specific
+    public string? outcome;
+    public string? outcomeId;
+    public string? market;
+    public Dictionary<string, object> info;
+
+    public PredictionOpenInterest(object openInterest)
+    {
+        symbol = Exchange.SafeString(openInterest, "symbol");
+        openInterestAmount = Exchange.SafeFloat(openInterest, "openInterestAmount");
+        openInterestValue = Exchange.SafeFloat(openInterest, "openInterestValue");
+        timestamp = Exchange.SafeInteger(openInterest, "timestamp");
+        datetime = Exchange.SafeString(openInterest, "datetime");
+        outcome = Exchange.SafeString(openInterest, "outcome");
+        outcomeId = Exchange.SafeString(openInterest, "outcomeId");
+        market = Exchange.SafeString(openInterest, "market");
+        info = Helper.GetInfo(openInterest);
+    }
+}
+
 public struct PredictionTickers
 {
     public Dictionary<string, object> info;

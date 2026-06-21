@@ -21,8 +21,10 @@ sys.path.append(root)
 import ccxt.async_support as ccxt  # noqa: E402
 import ccxt as ccxt_sync  # noqa: E402
 import ccxt.pro as ccxtpro  # noqa: E402
-import ccxt.prediction as ccxt_prediction_sync  # noqa: E402
-import ccxt.prediction.async_support as ccxt_prediction  # noqa: E402
+# prediction-market exchanges are async-only and live at ccxt.prediction.<id>
+# (there is no sync variant); see build/transpile.ts python2Folder=undefined for prediction
+ccxt_prediction_sync = None
+import ccxt.prediction as ccxt_prediction  # noqa: E402
 
 # ------------------------------------------------------------------------------
 # from typing import Optional

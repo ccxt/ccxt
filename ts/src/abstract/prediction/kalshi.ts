@@ -65,6 +65,7 @@ interface Exchange {
     kalshiPrivateGetHistoricalFills (params?: {}): Promise<implicitReturnType>;
     kalshiPrivateGetHistoricalOrders (params?: {}): Promise<implicitReturnType>;
     kalshiPrivatePostPortfolioOrders (params?: {}): Promise<implicitReturnType>;
+    kalshiPrivatePostPortfolioEventsOrders (params?: {}): Promise<implicitReturnType>;
     kalshiPrivatePostPortfolioOrdersBatched (params?: {}): Promise<implicitReturnType>;
     kalshiPrivatePostPortfolioOrdersOrderIdAmend (params?: {}): Promise<implicitReturnType>;
     kalshiPrivatePostPortfolioOrdersOrderIdDecrease (params?: {}): Promise<implicitReturnType>;

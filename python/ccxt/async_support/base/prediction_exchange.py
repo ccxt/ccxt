@@ -9,7 +9,7 @@
 import asyncio
 from typing import Any, List
 from ccxt.async_support.base.exchange import Exchange
-from ccxt.base.types import Str, Strings, Int, Num, OrderType, OrderSide
+from ccxt.base.types import Str, Strings, Int, Num, OrderType, OrderSide, fetchEventsParams
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import NotSupported
@@ -123,7 +123,7 @@ class PredictionExchange(Exchange):
                 result.append(event)
         return result
 
-    async def fetch_events(self, params={}):
+    async def fetch_events(self, params: fetchEventsParams = {}):
         raise NotSupported(self.id + ' fetchEvents() is not supported yet')
 
     async def fetch_event(self, id: str, params={}):
@@ -303,32 +303,47 @@ class PredictionExchange(Exchange):
         return await super(PredictionExchange, self).watch_trades(outcome, since, limit, params)
 
     def safe_prediction_order(self, order: dict, market=None):
-        parsed = super(PredictionExchange, self).safe_order(order, market)
+        # the prediction identity is the `outcome` handle carried on the raw dict(read by
+        # toPredictionStructure), not a ccxt `symbol`, so don't pass an outcome object market
+        parsed = super(PredictionExchange, self).safe_order(order)
         return self.to_prediction_structure(parsed, order)
 
     def safe_prediction_trade(self, trade: dict, market=None):
-        parsed = super(PredictionExchange, self).safe_trade(trade, market)
+        parsed = super(PredictionExchange, self).safe_trade(trade)
         return self.to_prediction_structure(parsed, trade)
 
     def safe_prediction_ticker(self, ticker: dict, market=None):
-        parsed = super(PredictionExchange, self).safe_ticker(ticker, market)
+        parsed = super(PredictionExchange, self).safe_ticker(ticker)
         return self.to_prediction_structure(parsed, ticker)
 
     def safe_prediction_position(self, position: dict):
         parsed = super(PredictionExchange, self).safe_position(position)
         return self.to_prediction_structure(parsed, position)
 
+    def safe_prediction_order_book(self, orderbook: dict, outcomeObj: dict = None):
+        # normalize a parsed order book to the prediction shape: replace the unified
+        # `symbol` with the `outcome` handle and attach the outcome identity fields
+        #(outcomeId / market) so books match the PredictionOrderBook structure.
+        fallback = self.safe_string_2(orderbook, 'outcome', 'symbol')
+        orderbook['outcome'] = fallback if (outcomeObj is None) else self.safe_string(outcomeObj, 'outcome', fallback)
+        orderbook['outcomeId'] = self.safe_string(orderbook, 'outcomeId') if (outcomeObj is None) else self.safe_string(outcomeObj, 'outcomeId')
+        orderbook['market'] = self.safe_string(orderbook, 'market') if (outcomeObj is None) else self.safe_string(outcomeObj, 'market')
+        # omit(not delete) — `del dict['symbol']` raises KeyError in python/php when absent
+        return self.omit(orderbook, 'symbol')
+
     def to_prediction_structure(self, parsed: dict, raw: dict):
-        # rename the unified `symbol` to the prediction `outcome` handle and attach the
-        # prediction identity fields(raw exchange id, label, parent market/event) that the
+        # the prediction identity is the `outcome` handle(never the base `symbol`); attach it
+        # and the other prediction fields(raw exchange id, label, parent market/event) that the
         # base safe* helpers drop. the exchange parser passes them on the raw input dict.
-        outcomeSymbol = self.safe_string_2(raw, 'outcome', 'symbol')
-        parsed['outcome'] = outcomeSymbol
+        parsed['outcome'] = self.safe_string(raw, 'outcome')
         parsed['outcomeId'] = self.safe_string(raw, 'outcomeId')
         parsed['label'] = self.safe_string(raw, 'label')
         parsed['market'] = self.safe_string(raw, 'market')
         parsed['event'] = self.safe_string(raw, 'event')
-        del parsed['symbol']
+        # guard the delete: a bare `delete` is a no-op on a missing key in JS, but transpiles to
+        # `del`/`unset` which raises in Python when the inherited `symbol` was never set
+        if 'symbol' in parsed:
+            del parsed['symbol']
         return parsed
 
     def filter_by_outcome_since_limit(self, array, outcome: Str = None, since: Int = None, limit: Int = None, tail=False):

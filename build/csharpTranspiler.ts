@@ -384,6 +384,7 @@ class NewTranspiler {
             'OrderType': 'string',
             'OrderSide': 'string', // tmp
             'PredictionEvent': 'Dictionary<string, object>', // no concrete C# struct; surface as a dict
+            'fetchEventsParams': 'Dictionary<string, object>', // params bag; surface as a dict
         }
 
         if (wrappedType === undefined || wrappedType === 'Undefined') {

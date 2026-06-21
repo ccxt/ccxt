@@ -81,6 +81,12 @@ const goTypeOptions: dict = {};
 // names of the options structs that live in the base ccxt package; used by the
 // prediction pass to decide between aliasing (type X = ccxt.X) and emitting a local struct
 const baseGoTypeOptionNames = new Set<string>();
+// option struct/func names the prediction package declares LOCALLY because its method
+// renamed a base param (e.g. fetchTickers `outcomes` vs base `symbols`). Keyed by method
+// capName → [Options, OptionsStruct, WithXxx...]. These must NOT be ccxt.-qualified in the
+// wrapper file of an exchange that DEFINES the method (so it binds to the local struct), but
+// MUST stay ccxt.-qualified where the method is a base delegation (missing-method wrapper).
+const predictionLocalOptionStructs = new Map<string, string[]>();
 
 const WRAPPER_METHODS: {} = {};
 
@@ -895,6 +901,7 @@ class NewTranspiler {
             'OrderType': 'string',
             'OrderSide': 'string', // tmp
             'PredictionEvent': 'map[string]any', // no concrete Go struct; surface as a map
+            'fetchEventsParams': 'map[string]interface{}', // params bag; surface as a map
         };
 
         if (wrappedType === undefined || wrappedType === 'Undefined') {
@@ -1225,12 +1232,28 @@ class NewTranspiler {
             param.initializer === 'undefined' ||
             param.initializer === '{}'
         ));
+        // prediction is tracked via the instance flag; the isWs param is a plain boolean here
+        const isPrediction = this.isPrediction || (isWs === 'prediction');
         if (
             (optionalParams.length === 0) ||
-            (capName in goTypeOptions) ||
             (params.length === 1 && params[0].name === 'params')
         ) {
             return;
+        }
+        // reuse an already-generated struct, EXCEPT when a prediction method's optional params
+        // differ from the existing (base) struct — e.g. fetchTickers takes `outcomes` not
+        // `symbols`, so it needs a prediction-LOCAL struct with the renamed field instead of
+        // the ccxt.-qualified base one (which would have no `Outcomes` field).
+        let predictionLocalOverride = false;
+        if (capName in goTypeOptions) {
+            if (isPrediction) {
+                const existingFields = (goTypeOptions[capName].match (/^\s+(\w+) \*/gm) || []).map (s => s.trim ().split (' ')[0]);
+                const predFields = optionalParams.map (param => capitalize (param.name));
+                predictionLocalOverride = predFields.some (f => existingFields.indexOf (f) === -1);
+            }
+            if (!predictionLocalOverride) {
+                return;
+            }
         }
         const i1 = this.inden(1);
         const one = this.inden(0);
@@ -1240,10 +1263,16 @@ class NewTranspiler {
         const options = `${capName}Options`;
         const optionsStruct = `${capName}OptionsStruct`;
 
-        const isPrediction = (isWs === 'prediction');
         // the prediction package aliases the structs that already exist in the base
-        // package and declares local ones for prediction-only methods
-        const useAlias = (isWs === true) || (isPrediction && baseGoTypeOptionNames.has(capName));
+        // package and declares local ones for prediction-only / param-renamed methods
+        const useAlias = (isWs === true) || (isPrediction && baseGoTypeOptionNames.has(capName) && !predictionLocalOverride);
+        if (predictionLocalOverride) {
+            const localNames = [ options, optionsStruct ];
+            optionalParams
+                .filter ((param) => param.optional || param.initializer !== undefined)
+                .forEach ((param) => localNames.push (`With${capName}${capitalize (param.name)}`));
+            predictionLocalOptionStructs.set (capName, localNames);
+        }
         const qualify = (type: string | undefined) => (isPrediction ? this.qualifyBaseGoType(type) : type);
 
         if (useAlias) {
@@ -1579,7 +1608,21 @@ class NewTranspiler {
             missingMethodsWrappers,
         ].join('\n');
         if (ws || this.isPrediction) {
-            file = this.addPackagePrefix(file, this.extractTypeAndFuncNames(EXCHANGES_FOLDER), 'ccxt');
+            const baseNames = this.extractTypeAndFuncNames(EXCHANGES_FOLDER);
+            if (this.isPrediction) {
+                // only for methods THIS exchange actually defines: keep its renamed-param option
+                // overrides unqualified so the wrapper binds to the local struct (with `Outcomes`).
+                // For methods it delegates to base (missing-method wrappers), leave them ccxt.-qualified.
+                for (const wrapper of wrappers) {
+                    const localNames = predictionLocalOptionStructs.get(capitalize(wrapper.name));
+                    if (localNames !== undefined) {
+                        for (const name of localNames) {
+                            baseNames.delete(name);
+                        }
+                    }
+                }
+            }
+            file = this.addPackagePrefix(file, baseNames, 'ccxt');
         }
         log.magenta ('→', (path as any).yellow);
 
@@ -2083,6 +2126,9 @@ ${caseStatements.join('\n')}
         }
 
         if (prediction) {
+            // the prediction package needs its OWN DynamicallyCreateInstance (over
+            // prediction ids); the base one in package ccxt only knows regular ids
+            this.createDynamicInstanceFile (false, true);
             log.bright.green ('Transpiled prediction exchanges successfully.');
             return;
         }
@@ -2143,7 +2189,10 @@ ${caseStatements.join('\n')}
                 ''
             ];
             for (const key in goTypeOptions) {
-                if (ccxtNames.has(key + 'Options') || ccxtNames.has(key + 'OptionsStruct')) {
+                // emit param-renamed prediction overrides locally even though a same-named
+                // struct exists in base (e.g. FetchTickersOptionsStruct with Outcomes)
+                const isLocalOverride = predictionLocalOptionStructs.has(key);
+                if (!isLocalOverride && (ccxtNames.has(key + 'Options') || ccxtNames.has(key + 'OptionsStruct'))) {
                     continue;
                 }
                 file.push(goTypeOptions[key]);

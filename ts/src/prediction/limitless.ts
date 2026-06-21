@@ -1047,7 +1047,8 @@ export default class limitless extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome symbol
      */
-    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<PredictionTickers> {
+    async fetchTickers (outcomes: Strings = undefined, params = {}): Promise<PredictionTickers> {
+        const symbols = outcomes;
         const result: PredictionTickers = {};
         if (symbols === undefined) {
             // parse tickers for every loaded outcome from the cached listing data, without the per-market order books
@@ -1241,14 +1242,15 @@ export default class limitless extends Exchange {
             }
             asks.push ([ this.parseNumber (priceStr), this.parseNumber (sizeStr) ]);
         }
-        return {
+        const orderbook = {
             'outcome': this.safeOutcomeSymbol (outcome, outcomeObj),
             'bids': this.sortBy (bids, 0, true),
             'asks': this.sortBy (asks, 0),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'nonce': undefined,
-        } as unknown as PredictionOrderBook;
+        };
+        return this.safePredictionOrderBook (orderbook, outcomeObj);
     }
 
     /**
@@ -2656,7 +2658,8 @@ export default class limitless extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<PredictionPosition[]> {
+    async fetchPositions (outcomes: Strings = undefined, params = {}): Promise<PredictionPosition[]> {
+        const symbols = outcomes;
         let symbolsLength = 0;
         if (symbols !== undefined) {
             symbolsLength = symbols.length;

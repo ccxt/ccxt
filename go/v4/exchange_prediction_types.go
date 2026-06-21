@@ -147,6 +147,57 @@ func NewPredictionPositionArray(data any) []PredictionPosition {
 	return result
 }
 
+type PredictionOrderBook struct {
+	OrderBook
+	Outcome   *string
+	OutcomeId *string
+	Market    *string
+}
+
+func NewPredictionOrderBook(data any) PredictionOrderBook {
+	m := data.(map[string]any)
+	return PredictionOrderBook{
+		OrderBook: NewOrderBook(data),
+		Outcome:   SafeStringTyped(m, "outcome"),
+		OutcomeId: SafeStringTyped(m, "outcomeId"),
+		Market:    SafeStringTyped(m, "market"),
+	}
+}
+
+type PredictionTradingFee struct {
+	TradingFeeInterface
+	Outcome   *string
+	OutcomeId *string
+	Market    *string
+}
+
+func NewPredictionTradingFee(data any) PredictionTradingFee {
+	m := data.(map[string]any)
+	return PredictionTradingFee{
+		TradingFeeInterface: NewTradingFeeInterface(data),
+		Outcome:             SafeStringTyped(m, "outcome"),
+		OutcomeId:           SafeStringTyped(m, "outcomeId"),
+		Market:              SafeStringTyped(m, "market"),
+	}
+}
+
+type PredictionOpenInterest struct {
+	OpenInterest
+	Outcome   *string
+	OutcomeId *string
+	Market    *string
+}
+
+func NewPredictionOpenInterest(data any) PredictionOpenInterest {
+	m := data.(map[string]any)
+	return PredictionOpenInterest{
+		OpenInterest: NewOpenInterest(data),
+		Outcome:      SafeStringTyped(m, "outcome"),
+		OutcomeId:    SafeStringTyped(m, "outcomeId"),
+		Market:       SafeStringTyped(m, "market"),
+	}
+}
+
 type PredictionTickers struct {
 	Info    map[string]any
 	Tickers map[string]PredictionTicker

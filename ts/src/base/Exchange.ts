@@ -3032,7 +3032,9 @@ export default class Exchange {
             result = [ ];
             for (let i = 0; i < parsedArray.length; i++) {
                 const entry = parsedArray[i];
-                const entryFiledEqualValue = entry[field] === value;
+                // safeValue (not entry[field]) so a missing field is a non-match, not a
+                // KeyError in python/php — prediction structures key on outcome, not symbol
+                const entryFiledEqualValue = this.safeValue (entry, field) === value;
                 const firstCondition = valueIsDefined ? entryFiledEqualValue : true;
                 const entryKeyValue = this.safeValue (entry, key);
                 const entryKeyGESince = (entryKeyValue) && (since !== undefined) && (entryKeyValue >= since);

@@ -136,11 +136,9 @@ public class Main {
 
         for (Map.Entry<String, Boolean> entry : credentials.entrySet()) {
             String key = entry.getKey();
-            Boolean required = entry.getValue();
-
-            if (!Boolean.TRUE.equals(required)) {
-                continue;
-            }
+            // attempt every declared credential, not only required ones: some exchanges (e.g.
+            // polymarket) mark all credentials optional and validate at call time, but still need
+            // them set from keys.json / env to function
 
             String instanceIdKey = instance.id;
             String credentialValue = null;
@@ -275,12 +273,6 @@ public class Main {
     public static void main(String[] args) throws IOException, InterruptedException {
         System.out.println("[java][" + Version.VERSION +"] CCXT CLI");
         // System.out.println("User Directory: " + userDirectory);
-
-        args = new String[] {
-                "binance",
-                "watchTrades",
-                "BTC/USDT"
-        };
 
         if (args.length < 2) {
             System.out.println("Usage: java -cp <classpath> cli.Main [--verbose] [--sandbox] <exchange-id> [arg1 arg2 ...]");

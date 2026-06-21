@@ -38,7 +38,7 @@ const KNOWN_TYPES = new Set([
     'FundingHistory', 'DepositWithdrawFee',
     'OrderRequest', 'CancellationRequest', 'WithdrawalResponse',
     // native dedicated prediction-market types (io.github.ccxt.types.Prediction*)
-    'PredictionTicker', 'PredictionTickers', 'PredictionOrder', 'PredictionTrade', 'PredictionPosition', 'PredictionOrderBook',
+    'PredictionTicker', 'PredictionTickers', 'PredictionOrder', 'PredictionTrade', 'PredictionPosition', 'PredictionOrderBook', 'PredictionTradingFee', 'PredictionOpenInterest',
 ]);
 
 // --- Type helpers ---
@@ -585,6 +585,9 @@ const PREDICTION_TYPE_MAP: Record<string, string> = {
     'Order': 'PredictionOrder',
     'Trade': 'PredictionTrade',
     'Position': 'PredictionPosition',
+    'OrderBook': 'PredictionOrderBook',
+    'TradingFeeInterface': 'PredictionTradingFee',
+    'OpenInterest': 'PredictionOpenInterest',
 };
 function toPredictionMethods(rest: MethodInfo[]): MethodInfo[] {
     return rest.map((m) => {

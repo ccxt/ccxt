@@ -716,7 +716,8 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome symbol
      */
-    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<PredictionTickers> {
+    async fetchTickers (outcomes: Strings = undefined, params = {}): Promise<PredictionTickers> {
+        const symbols = outcomes;
         const targets: any[] = [];
         if (symbols !== undefined) {
             for (let i = 0; i < symbols.length; i++) {
@@ -850,7 +851,7 @@ export default class kalshi extends Exchange {
                 asks.push ([ price, this.safeNumber (rawNo[ai], 1) ]);
             }
         }
-        return this.sortedOrders (this.safeString (outcomeObj, 'outcome', outcome), timestamp, bids, asks);
+        return this.safePredictionOrderBook (this.sortedOrders (this.safeString (outcomeObj, 'outcome', outcome), timestamp, bids, asks), outcomeObj);
     }
 
     /**
@@ -1157,8 +1158,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<PredictionPosition[]> {
-        const outcomes = symbols;
+    async fetchPositions (outcomes: Strings = undefined, params = {}): Promise<PredictionPosition[]> {
         let outcomesLength = 0;
         if (outcomes !== undefined) {
             outcomesLength = outcomes.length;
