@@ -5,7 +5,7 @@ export type Strings = string[] | undefined;
 export type Num = number | undefined;
 export type Bool = boolean | undefined;
 // must be an integer in other langs
-export type IndexType = number | string | undefined;
+export type IndexType = number | string;
 export type OrderSide = 'buy' | 'sell' | string | undefined;
 export type OrderType = 'limit' | 'market' | string;
 export type MarketType = 'spot' | 'margin' | 'swap' | 'future' | 'option' | 'delivery' | 'index';
