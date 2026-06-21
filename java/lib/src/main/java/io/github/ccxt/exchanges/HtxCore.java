@@ -8534,7 +8534,7 @@ public class HtxCore extends HtxApi
                         bodyRequest = query;
                     }
                     body = this.json(bodyRequest);
-                    if (Helpers.isTrue(!Helpers.isTrue(isArrayParams) && Helpers.isTrue((Helpers.isEqual(Helpers.getArrayLength(body), 2)))))
+                    if (Helpers.isTrue(!Helpers.isTrue(isArrayParams) && Helpers.isTrue((Helpers.isEqual(((String)body).length(), 2)))))
                     {
                         body = "{}";
                     }

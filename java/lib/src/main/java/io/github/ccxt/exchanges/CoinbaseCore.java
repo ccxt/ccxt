@@ -5774,7 +5774,7 @@ public class CoinbaseCore extends CoinbaseApi
             //
             Object data = this.safeDict(response, "fee_tier", new java.util.HashMap<String, Object>() {{}});
             Object taker_fee = this.safeNumber(data, "taker_fee_rate");
-            Object marker_fee = this.safeNumber(data, "maker_fee_rate");
+            Object maker_fee = this.safeNumber(data, "maker_fee_rate");
             Object result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(this.symbols)); i++)
             {
@@ -5785,7 +5785,7 @@ public class CoinbaseCore extends CoinbaseApi
                     Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
         put( "info", response );
         put( "symbol", symbol );
-        put( "maker", marker_fee );
+        put( "maker", maker_fee );
         put( "taker", taker_fee );
         put( "percentage", true );
     }});
