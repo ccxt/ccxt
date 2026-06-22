@@ -11772,7 +11772,7 @@ class binance extends Exchange {
             $request = array();
             if ($symbol !== null) {
                 $symbol = $this->safe_string($market, 'symbol');
-                $request['underlying'] = $this->safe_string($market, 'baseId') . $this->safe_string($market, 'quoteId');
+                $request['underlying'] = $this->safe_string($market, 'baseId', '') . $this->safe_string($market, 'quoteId', '');
             }
             if ($since !== null) {
                 $request['startTime'] = $since;

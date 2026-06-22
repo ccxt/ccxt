@@ -2621,7 +2621,7 @@ class krakenfutures extends Exchange {
             throw new BadRequest($this->id . ' fetchFundingRateHistory() supports swap contracts only');
         }
         $request = array(
-            'symbol' => strtoupper($market['id']),
+            'symbol' => $this->safe_string_upper($market, 'id'),
         );
         $response = $this->publicGetHistoricalfundingrates ($this->extend($request, $params));
         //

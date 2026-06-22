@@ -1473,7 +1473,7 @@ class bitmart extends \ccxt\async\bitmart {
                 $symbol = $market['symbol'];
                 $rawOHLCV = $this->safe_list($data[$i], 'candle');
                 $parsed = $this->parse_ohlcv($rawOHLCV, $market);
-                $parsed[0] = $this->parse_to_int($parsed[0] / $durationInMs) * $durationInMs;
+                $parsed[0] = $this->parse_to_int($this->parse_to_int($parsed[0]) / $durationInMs) * $durationInMs;
                 $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
                 $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
                 if ($stored === null) {

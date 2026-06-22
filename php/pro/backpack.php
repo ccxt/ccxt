@@ -938,7 +938,7 @@ class backpack extends \ccxt\async\backpack {
     }
 
     public function handle_delta($orderbook, $delta) {
-        $timestamp = $this->parse_to_int($this->safe_integer($delta, 'T') / 1000);
+        $timestamp = $this->parse_to_int($this->safe_integer($delta, 'T', 0) / 1000);
         $orderbook['timestamp'] = $timestamp;
         $orderbook['datetime'] = $this->iso8601($timestamp);
         $orderbook['nonce'] = $this->safe_integer($delta, 'u');

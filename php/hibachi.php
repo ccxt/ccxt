@@ -308,7 +308,7 @@ class hibachi extends Exchange {
             'optionType' => null,
             'precision' => array(
                 'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'underlyingDecimals'))),
-                'price' => $this->parse_number($this->safe_list($market, 'orderbookGranularities')[0]) / 10000.0,
+                'price' => $this->parse_number($this->safe_value($this->safe_list($market, 'orderbookGranularities', array()), 0)) / 10000.0,
             ),
             'limits' => array(
                 'leverage' => array(

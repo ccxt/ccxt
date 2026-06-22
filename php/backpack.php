@@ -713,6 +713,7 @@ class backpack extends Exchange {
         $maxQuantity = $this->safe_number($quantityFilter, 'maxQuantity');
         $minQuantity = $this->safe_number($quantityFilter, 'minQuantity');
         $amountPrecision = $this->safe_number($quantityFilter, 'stepSize');
+        $type = null;
         $typeOfMarket = $this->parse_market_type($this->safe_string($market, 'marketType'));
         $linear = null;
         $inverse = null;
