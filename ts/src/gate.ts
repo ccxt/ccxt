@@ -1319,7 +1319,7 @@ export default class gate extends Exchange {
         if (this.checkRequiredCredentials (false)) {
             await this.loadUnifiedStatus ();
         }
-        const rawPromises: Promise<Dict[]>[] = [];
+        const rawPromises: List = [];
         const fetchMarketsOptions = this.safeDict (this.options, 'fetchMarkets');
         const types = this.safeList (fetchMarketsOptions, 'types', [ 'spot', 'swap', 'future', 'option' ]);
         for (let i = 0; i < types.length; i++) {
@@ -2511,7 +2511,7 @@ export default class gate extends Exchange {
             }
             const withdrawFixOnChains = this.safeValue (entry, 'withdraw_fix_on_chains');
             if (withdrawFixOnChains === undefined) {
-                withdrawFees = this.safeNumber (entry, 'withdraw_fix') as {};
+                withdrawFees = this.safeNumber (entry, 'withdraw_fix');
             } else {
                 const networkIds = Object.keys (withdrawFixOnChains);
                 for (let j = 0; j < networkIds.length; j++) {

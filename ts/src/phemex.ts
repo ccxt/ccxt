@@ -1215,7 +1215,7 @@ export default class phemex extends Exchange {
         const sides = [ bidsKey, asksKey ];
         for (let i = 0; i < sides.length; i++) {
             const side = sides[i];
-            const orders: number[][] = [];
+            const orders: List = [];
             const bidasks = this.safeValue (orderbook, side);
             for (let k = 0; k < bidasks.length; k++) {
                 orders.push (this.customParseBidAsk (bidasks[k], priceKey, amountKey, market));

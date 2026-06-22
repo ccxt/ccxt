@@ -2572,7 +2572,7 @@ export default class htx extends Exchange {
             // 'symbol': market['id'], // spot, future
             // 'contract_code': market['id'], // swap
         };
-        let response: NullableDict = undefined;
+        let response: Dict = {};
         if (market['linear']) {
             request['contract_code'] = market['id'];
             response = await this.contractPublicGetLinearSwapExMarketDepth (this.extend (request, params));
@@ -2626,8 +2626,8 @@ export default class htx extends Exchange {
         //         }
         //     }
         //
-        if ('tick' in (response as Dict)) {
-            if (!(response as Dict)['tick']) {
+        if ('tick' in response) {
+            if (!response['tick']) {
                 throw new BadSymbol (this.id + ' fetchOrderBook() returned empty response: ' + this.json (response));
             }
             const tick = this.safeValue (response, 'tick');
@@ -7858,7 +7858,7 @@ export default class htx extends Exchange {
      * @param {string} [params.position_side] linear swap supports 'long', 'short' and 'both', 'both' is the default
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<{}> {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }

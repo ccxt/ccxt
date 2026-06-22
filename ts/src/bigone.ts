@@ -6,7 +6,7 @@ import Exchange from './abstract/bigone.js';
 import { ExchangeError, AuthenticationError, InsufficientFunds, PermissionDenied, BadRequest, BadSymbol, RateLimitExceeded, InvalidOrder, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { jwt } from './base/functions/rsa.js';
-import type { TransferEntry, Balances, Currency, Int, Market, NullableList, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, Dict, int, DepositAddress, Bool, NullableDict } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, List, Market, NullableList, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, Dict, int, DepositAddress, Bool, NullableDict } from './base/types.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
@@ -1099,7 +1099,7 @@ export default class bigone extends Exchange {
 
     parseContractBidsAsks (bidsAsks) {
         const bidsAsksKeys = Object.keys (bidsAsks);
-        const result: number[][] = [];
+        const result: List = [];
         for (let i = 0; i < bidsAsksKeys.length; i++) {
             const price = bidsAsksKeys[i];
             const amount = bidsAsks[price];
