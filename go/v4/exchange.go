@@ -428,6 +428,14 @@ func (this *Exchange) LoadMarketsHelper(params ...any) <-chan any {
 		// Lock only for writing
 		this.MarketsMutex.Lock()
 		result := this.SetMarkets(markets, currencies)
+		// prediction exchanges build an outcome lookup from the loaded markets via the
+		// PredictionExchange.SetMarkets override. Go has no virtual dispatch, so the base
+		// SetMarkets above bypasses it — invoke setOutcomesFromMarkets on the concrete
+		// instance when it implements it (non-prediction exchanges do not, so they are
+		// unaffected). Mirrors the TS override that runs inside setMarkets.
+		if pred, ok := this.Itf.(interface{ SetOutcomesFromMarkets() }); ok {
+			pred.SetOutcomesFromMarkets()
+		}
 		this.MarketsMutex.Unlock()
 
 		ch <- result
