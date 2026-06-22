@@ -1384,8 +1384,12 @@ export default class binance extends Exchange {
                     'OPTION': 'option',
                 },
                 'networks': {
+                    'BTC': 'BTC',
+                    'BTCLIGHTNING': 'LIGHTNING',
+                    'BTCSEGWIT': 'SEGWITBTC',
                     'ERC20': 'ETH',
                     'ETH': 'ETH',
+                    'ETC': 'ETC',
                     'TRC20': 'TRX',
                     'TRX': 'TRX',
                     'BEP2': 'BNB',
@@ -1407,7 +1411,7 @@ export default class binance extends Exchange {
                     'NEAR': 'NEAR',
                     'APT': 'APT',
                     'SCROLL': 'SCROLL',
-                    'KAVA': 'KAVA',
+                    'KAVA': 'KAVA', // kavaevm ?
                     'XLM': 'XLM',
                     // BLAST - not supported
                     // LINEA - not supported
@@ -1427,6 +1431,7 @@ export default class binance extends Exchange {
                     'CELO': 'CELO',
                     'HBAR': 'HBAR',
                     // FTM - renamed
+                    'SONIC': 'SONIC',
                     // WEMIX - not supported
                     'ZKSYNCERA': 'ZKSYNCERA',
                     'KLAY': 'KLAY',
@@ -1436,16 +1441,31 @@ export default class binance extends Exchange {
                     'STX': 'STX', // STACKS
                     'XTZ': 'XTZ',
                     // 'NEO': 'NEO', // tbd NEO3
-                    'METIS': 'METIS',
                     // TLOS - not supported
                     'EGLD': 'EGLD',
                     'ASTR': 'ASTR',
-                    'CFX': 'CFX',
-                    // 'GLMR': 'GLMR', GLIMMER vs MOONBEAM
+                    'CFX': 'CFX', // tbd cfxevm
                     // CANTO - not supported
                     'SCRT': 'SCRT',
                     // AUR - not supported
                     'ONT': 'ONT', // ontology
+                    'WLD': 'WLD',
+                    // SEI & SEIEVM
+                    'CHZ2': 'CHZ2',
+                    'ETHW': 'ETHW',
+                    'IOTA': 'IOTA',
+                    'ICP': 'ICP',
+                    'ZEC': 'ZEC',
+                    'XEC': 'XEC',
+                    'TAO': 'TAO',
+                    'VET': 'VET',
+                    'MOVE': 'MOVE',
+                    'MOVR': 'MOVR',
+                    'TIA': 'TIA', // celestia
+                    'DASH': 'DASH',
+                    'DYDX': 'DYDX',
+                    'FIL': 'FIL', // FILEVM tbd
+                    // TBD: LUNC, LUNA
                 },
                 'networksById': {
                     'TRX': 'TRC20',
@@ -1453,6 +1473,7 @@ export default class binance extends Exchange {
                     'ETH': 'ERC20',
                     'SOL': 'SOL', // temporary fix for SPL definition
                     'OPTIMISM': 'OP',
+                    'FET': 'FET',
                 },
                 'impliedNetworks': {
                     'ETH': { 'ERC20': 'ETH' },
