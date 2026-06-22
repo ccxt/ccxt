@@ -315,7 +315,7 @@ class exmo extends Exchange {
                 'position_id' => $market['id'],
                 'quantity' => $amount,
             );
-            $response = null;
+            $response = array();
             if ($type === 'add') {
                 $response = Async\await($this->privatePostMarginUserPositionMarginAdd ($this->extend($request, $params)));
             } elseif ($type === 'reduce') {
@@ -807,7 +807,7 @@ class exmo extends Exchange {
                     $networkEntry['limits']['withdraw']['min'] = $minValue;
                     $networkEntry['limits']['withdraw']['max'] = $maxValue;
                 }
-                $info = $this->safe_list($networkEntry, 'info');
+                $info = $this->safe_list($networkEntry, 'info', array());
                 $info[] = $provider;
                 $networkEntry['info'] = $info;
                 $networks[$networkCode] = $networkEntry;
@@ -1118,7 +1118,6 @@ class exmo extends Exchange {
             if ($marginMode === 'cross') {
                 throw new BadRequest($this->id . ' does not support cross margin');
             }
-            $response = null;
             if ($marginMode === 'isolated') {
                 $response = Async\await($this->privatePostMarginUserWalletList ($params));
                 //
@@ -1193,15 +1192,17 @@ class exmo extends Exchange {
             $ids = null;
             if ($symbols === null) {
                 $allIds = $this->ids;
-                $ids = implode(',', $allIds);
-                // max URL length is 2083 $symbols, including http schema, hostname, tld, etc...
-                if (strlen($ids) > 2048) {
-                    $numIds = count($this->ids);
-                    throw new ExchangeError($this->id . ' fetchOrderBooks() has ' . (string) $numIds . ' $symbols exceeding max URL length, you are required to specify a list of $symbols in the first argument to fetchOrderBooks');
+                if ($allIds !== null) {
+                    $ids = implode(',', $allIds);
+                    // max URL length is 2083 $symbols, including http schema, hostname, tld, etc...
+                    if (strlen($ids) > 2048) {
+                        $numIds = count($allIds);
+                        throw new ExchangeError($this->id . ' fetchOrderBooks() has ' . (string) $numIds . ' $symbols exceeding max URL length, you are required to specify a list of $symbols in the first argument to fetchOrderBooks');
+                    }
                 }
             } else {
-                $ids = $this->market_ids($symbols);
-                $ids = implode(',', $ids);
+                $requestedIds = $this->market_ids($symbols);
+                $ids = implode(',', $requestedIds);
             }
             $request = array(
                 'pair' => $ids,
@@ -1502,7 +1503,6 @@ class exmo extends Exchange {
             }
             $offset = $this->safe_integer($params, 'offset', 0);
             $request['offset'] = $offset;
-            $response = null;
             if ($isSpot) {
                 $response = Async\await($this->privatePostUserTrades ($this->extend($request, $params)));
                 //
@@ -1684,7 +1684,6 @@ class exmo extends Exchange {
             if ($price !== null) {
                 $request['price'] = $this->price_to_precision($market['symbol'], $price);
             }
-            $response = null;
             if ($isSpot) {
                 if ($triggerPrice !== null) {
                     if ($type === 'limit') {
@@ -1761,7 +1760,6 @@ class exmo extends Exchange {
             if ($marginMode === 'cross') {
                 throw new BadRequest($this->id . ' only supports isolated margin');
             }
-            $response = null;
             if (($marginMode === 'isolated')) {
                 $request['order_id'] = $id;
                 $response = Async\await($this->privatePostMarginUserOrderCancel ($this->extend($request, $params)));
@@ -1862,7 +1860,6 @@ class exmo extends Exchange {
             $request = array(
                 'order_id' => (string) $id,
             );
-            $response = null;
             if ($marginMode === 'isolated') {
                 $response = Async\await($this->privatePostMarginUserOrderTrades ($this->extend($request, $params)));
                 //
@@ -1938,7 +1935,6 @@ class exmo extends Exchange {
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOpenOrders', $params);
             $isMargin = (($marginMode === 'cross') || ($marginMode === 'isolated'));
-            $response = null;
             $orders = array();
             if ($isMargin) {
                 $response = Async\await($this->privatePostMarginUserOrderList ($params));
@@ -2218,7 +2214,6 @@ class exmo extends Exchange {
             if ($symbol !== null) {
                 $market = $this->market($symbol);
             }
-            $response = null;
             if ($isSpot) {
                 $response = Async\await($this->privatePostUserCancelledOrders ($this->extend($request, $params)));
                 //
@@ -2819,7 +2814,7 @@ class exmo extends Exchange {
         }) ();
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api'][$api] . '/';
         if ($api !== 'web') {
             $url .= $this->version . '/';

@@ -296,7 +296,7 @@ export default class ndax extends ndaxRest {
                     ];
                     updates[marketId][timeframe] = true;
                 } else {
-                    if (length && (parsed[0] < stored[length - 1][0])) {
+                    if (length && (this.parseToInt (parsed[0]) < this.parseToInt (stored[length - 1][0]))) {
                         continue;
                     } else {
                         stored.push (parsed);
@@ -408,8 +408,8 @@ export default class ndax extends ndaxRest {
         if (orderbook === undefined) {
             return;
         }
-        let timestamp = undefined;
-        let nonce = undefined;
+        let timestamp: Int = undefined;
+        let nonce: Int = undefined;
         for (let i = 0; i < payload.length; i++) {
             const bidask = payload[i];
             if (timestamp === undefined) {

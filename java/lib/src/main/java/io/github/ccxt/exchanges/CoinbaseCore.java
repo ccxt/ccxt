@@ -607,7 +607,7 @@ public class CoinbaseCore extends CoinbaseApi
             Object accounts = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object length = Helpers.getArrayLength(accounts);
             Object lastIndex = Helpers.subtract(length, 1);
-            Object last = this.safeDict(accounts, lastIndex);
+            Object last = this.safeDict(accounts, lastIndex, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(cursor, null))) && Helpers.isTrue((!Helpers.isEqual(cursor, "")))))
             {
                 Helpers.addElementToObject(last, "next_starting_after", cursor);
@@ -673,7 +673,7 @@ public class CoinbaseCore extends CoinbaseApi
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThan(accountsLength, 0))) && Helpers.isTrue((!Helpers.isEqual(cursor, null)))) && Helpers.isTrue((!Helpers.isEqual(cursor, "")))))
             {
                 Object lastIndex = Helpers.subtract(accountsLength, 1);
-                Object last = this.safeDict(accounts, lastIndex);
+                Object last = this.safeDict(accounts, lastIndex, new java.util.HashMap<String, Object>() {{}});
                 Helpers.addElementToObject(last, "cursor", cursor);
                 Helpers.addElementToObject(accounts, lastIndex, last);
             }
@@ -4135,7 +4135,7 @@ public class CoinbaseCore extends CoinbaseApi
             //     }
             //
             Object orders = this.safeList(response, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object first = this.safeDict(orders, 0);
+            Object first = this.safeDict(orders, 0, new java.util.HashMap<String, Object>() {{}});
             Object cursor = this.safeString(response, "cursor");
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(cursor, null))) && Helpers.isTrue((!Helpers.isEqual(cursor, "")))))
             {
@@ -4228,7 +4228,7 @@ public class CoinbaseCore extends CoinbaseApi
             //     }
             //
             Object orders = this.safeList(response, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object first = this.safeDict(orders, 0);
+            Object first = this.safeDict(orders, 0, new java.util.HashMap<String, Object>() {{}});
             Object cursor = this.safeString(response, "cursor");
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(cursor, null))) && Helpers.isTrue((!Helpers.isEqual(cursor, "")))))
             {
@@ -4609,7 +4609,7 @@ public class CoinbaseCore extends CoinbaseApi
             //     }
             //
             Object trades = this.safeList(response, "fills", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object first = this.safeDict(trades, 0);
+            Object first = this.safeDict(trades, 0, new java.util.HashMap<String, Object>() {{}});
             Object cursor = this.safeString(response, "cursor");
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(cursor, null))) && Helpers.isTrue((!Helpers.isEqual(cursor, "")))))
             {
@@ -5774,7 +5774,7 @@ public class CoinbaseCore extends CoinbaseApi
             //
             Object data = this.safeDict(response, "fee_tier", new java.util.HashMap<String, Object>() {{}});
             Object taker_fee = this.safeNumber(data, "taker_fee_rate");
-            Object marker_fee = this.safeNumber(data, "maker_fee_rate");
+            Object maker_fee = this.safeNumber(data, "maker_fee_rate");
             Object result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(this.symbols)); i++)
             {
@@ -5785,8 +5785,8 @@ public class CoinbaseCore extends CoinbaseApi
                     Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
         put( "info", response );
         put( "symbol", symbol );
-        put( "maker", taker_fee );
-        put( "taker", marker_fee );
+        put( "maker", maker_fee );
+        put( "taker", taker_fee );
         put( "percentage", true );
     }});
                 }

@@ -415,7 +415,7 @@ export default class extended extends extendedRest {
         const stored = this.positions;
         const data = this.safeDict (message, 'data', {});
         const rawPositions = this.safeList (data, 'positions', []);
-        const newPositions = [];
+        const newPositions: Position[] = [];
         const first = this.safeDict (rawPositions, 0);
         if (first === undefined) {
             return;

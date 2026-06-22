@@ -119,20 +119,20 @@ class cryptocom(ccxt.async_support.cryptocom):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
-        topics = []
-        messageHashes = []
+        topics: List[str] = []
+        messageHashes: List[str] = []
         if not limit:
             limit = 50
         topicParams = self.safe_value(params, 'params')
         if topicParams is None:
             params['params'] = {}
-        bookSubscriptionType = None
-        bookSubscriptionType2 = None
+        bookSubscriptionType: Str = None
+        bookSubscriptionType2: Str = None
         bookSubscriptionType, params = self.handle_option_and_params(params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE')
         bookSubscriptionType2, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'bookSubscriptionType', bookSubscriptionType)
         params['params']['bookSubscriptionType'] = bookSubscriptionType2
-        bookUpdateFrequency = None
-        bookUpdateFrequency2 = None
+        bookUpdateFrequency: Str = None
+        bookUpdateFrequency2: Str = None
         bookUpdateFrequency, params = self.handle_option_and_params(params, 'watchOrderBook', 'bookUpdateFrequency')
         bookUpdateFrequency2, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency)
         if bookUpdateFrequency2 is not None:
@@ -162,20 +162,20 @@ class cryptocom(ccxt.async_support.cryptocom):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
-        topics = []
-        subMessageHashes = []
-        messageHashes = []
+        topics: List[str] = []
+        subMessageHashes: List[str] = []
+        messageHashes: List[str] = []
         limit = self.safe_integer(params, 'limit', 50)
         topicParams = self.safe_value(params, 'params')
         if topicParams is None:
             params['params'] = {}
-        bookSubscriptionType = None
-        bookSubscriptionType2 = None
+        bookSubscriptionType: Str = None
+        bookSubscriptionType2: Str = None
         bookSubscriptionType, params = self.handle_option_and_params(params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE')
         bookSubscriptionType2, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'bookSubscriptionType', bookSubscriptionType)
         params['params']['bookSubscriptionType'] = bookSubscriptionType2
-        bookUpdateFrequency = None
-        bookUpdateFrequency2 = None
+        bookUpdateFrequency: Str = None
+        bookUpdateFrequency2: Str = None
         bookUpdateFrequency, params = self.handle_option_and_params(params, 'watchOrderBook', 'bookUpdateFrequency')
         bookUpdateFrequency2, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency)
         if bookUpdateFrequency2 is not None:
@@ -330,7 +330,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
-        topics = []
+        topics: List[str] = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
@@ -355,8 +355,8 @@ class cryptocom(ccxt.async_support.cryptocom):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
-        topics = []
-        messageHashes = []
+        topics: List[str] = []
+        messageHashes: List[str] = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
@@ -422,7 +422,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
@@ -476,7 +476,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
-        messageHashes = []
+        messageHashes: List[str] = []
         marketIds = self.market_ids(symbols)
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
@@ -509,8 +509,8 @@ class cryptocom(ccxt.async_support.cryptocom):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
-        messageHashes = []
-        subMessageHashes = []
+        messageHashes: List[str] = []
+        subMessageHashes: List[str] = []
         marketIds = self.market_ids(symbols)
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
@@ -614,8 +614,8 @@ class cryptocom(ccxt.async_support.cryptocom):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
-        messageHashes = []
-        topics = []
+        messageHashes: List[str] = []
+        topics: List[str] = []
         marketIds = self.market_ids(symbols)
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
@@ -750,7 +750,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
@@ -906,7 +906,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         if self.positions is None:
             self.positions = ArrayCacheBySymbolBySide()
         cache = self.positions
-        newPositions = []
+        newPositions: List[Position] = []
         for i in range(0, len(rawPositions)):
             rawPosition = rawPositions[i]
             position = self.parse_position(rawPosition)
@@ -1097,7 +1097,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         :returns dict} Returns exchange raw message {@link https://docs.ccxt.com/?id=order-structure:
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         request: dict = {
             'method': 'private/cancel-all-orders',
             'params': self.extend({}, params),

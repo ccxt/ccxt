@@ -946,7 +946,7 @@ export default class aster extends Exchange {
     async fetchTime(params = {}) {
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchTime', undefined, params);
-        let response = undefined;
+        let response;
         if (marketType === 'swap') {
             response = await this.fapiPublicGetV3Time(params);
         }
@@ -1023,7 +1023,7 @@ export default class aster extends Exchange {
         const isMark = (price === 'mark');
         const isIndex = (price === 'index');
         params = this.omit(params, 'price');
-        let response = undefined;
+        let response;
         if (isMark) {
             request['symbol'] = market['id'];
             response = await this.fapiPublicGetV3MarkPriceKlines(this.extend(request, params));
@@ -1181,7 +1181,7 @@ export default class aster extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min(limit, 1000);
         }
-        let response = undefined;
+        let response;
         const sinceDefined = since !== undefined;
         const untilDefined = ('until' in params);
         if (sinceDefined) {
@@ -1268,7 +1268,7 @@ export default class aster extends Exchange {
             request['limit'] = Math.min(limit, 1000);
         }
         [request, params] = this.handleUntilOption('endTime', request, params);
-        let response = undefined;
+        let response;
         if (marketType === 'swap') {
             response = await this.fapiPrivateGetV3UserTrades(this.extend(request, params));
         }
@@ -1317,7 +1317,7 @@ export default class aster extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        let response = undefined;
+        let response;
         if (limit !== undefined) {
             request['limit'] = this.findNearestCeiling([5, 10, 20, 50, 100, 500, 1000], limit);
         }
@@ -1453,7 +1453,7 @@ export default class aster extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        let response = undefined;
+        let response;
         if (market['swap']) {
             response = await this.fapiPublicGetV3Ticker24hr(this.extend(request, params));
         }
@@ -1603,7 +1603,7 @@ export default class aster extends Exchange {
         //
         const timestamp = this.safeInteger(entry, 'time');
         return {
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'price': this.safeNumberOmitZero(entry, 'price'),
@@ -2022,7 +2022,7 @@ export default class aster extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        let response = undefined;
+        let response;
         if (market['swap']) {
             response = await this.fapiPrivateGetV3CommissionRate(this.extend(request, params));
         }
@@ -2182,7 +2182,7 @@ export default class aster extends Exchange {
         else {
             request['orderId'] = id;
         }
-        let response = undefined;
+        let response;
         if (market['swap']) {
             response = await this.fapiPrivateGetV3Order(this.extend(request, params));
         }
@@ -2248,7 +2248,7 @@ export default class aster extends Exchange {
         else {
             request['orderId'] = id;
         }
-        let response = undefined;
+        let response;
         if (market['spot']) {
             response = await this.sapiPrivateGetV3OpenOrder(this.extend(request, params));
         }
@@ -2315,7 +2315,7 @@ export default class aster extends Exchange {
             request['startTime'] = since;
         }
         [request, params] = this.handleUntilOption('endTime', request, params);
-        let response = undefined;
+        let response;
         if (market['swap']) {
             response = await this.fapiPrivateGetV3AllOrders(this.extend(request, params));
         }
@@ -2455,7 +2455,7 @@ export default class aster extends Exchange {
         await this.loadMarketsAndSignIn();
         const market = this.market(symbol);
         const request = this.createOrderRequest(symbol, type, side, amount, price, params);
-        let response = undefined;
+        let response;
         if (market['swap']) {
             response = await this.fapiPrivatePostV3Order(request);
         }
@@ -2761,7 +2761,7 @@ export default class aster extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        let response = undefined;
+        let response;
         if (market['swap']) {
             response = await this.fapiPrivateDeleteV3AllOpenOrders(this.extend(request, params));
         }
@@ -2810,7 +2810,7 @@ export default class aster extends Exchange {
             request['orderId'] = id;
         }
         params = this.omit(params, ['origClientOrderId', 'clientOrderId']);
-        let response = undefined;
+        let response;
         if (market['swap']) {
             response = await this.fapiPrivateDeleteV3Order(this.extend(request, params));
         }
@@ -2850,7 +2850,7 @@ export default class aster extends Exchange {
         else {
             request['orderIdList'] = ids;
         }
-        let response = undefined;
+        let response;
         if (market['swap']) {
             response = await this.fapiPrivateDeleteV3BatchOrders(this.extend(request, params));
             //
@@ -3067,7 +3067,7 @@ export default class aster extends Exchange {
         market = this.safeMarket(marketId, market, undefined, 'swap');
         return {
             'info': marginMode,
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'marginMode': this.safeStringLower(marginMode, 'marginType'),
         };
     }
@@ -3629,7 +3629,7 @@ export default class aster extends Exchange {
         }
     }
     parseAccountPositions(account, filterClosed = false) {
-        const positions = this.safeList(account, 'positions');
+        const positions = this.safeList(account, 'positions', []);
         const assets = this.safeList(account, 'assets', []);
         const balances = {};
         for (let i = 0; i < assets.length; i++) {
@@ -4062,12 +4062,11 @@ export default class aster extends Exchange {
         if (type === undefined) {
             throw new ArgumentsRequired(this.id + ' transfer() requires fromAccount and toAccount parameters to be either SPOT or FUTURE');
         }
-        let response = undefined;
         const defaultClientTranId = this.numberToString(this.milliseconds());
         const clientTranId = this.safeString(params, 'clientTranId', defaultClientTranId);
         request['kindType'] = type;
         request['clientTranId'] = clientTranId;
-        response = await this.sapiPrivatePostV3AssetWalletTransfer(this.extend(request, params));
+        const response = await this.sapiPrivatePostV3AssetWalletTransfer(this.extend(request, params));
         return this.parseTransfer(response, currency);
     }
     parseTransfer(transfer, currency = undefined) {
@@ -4143,7 +4142,7 @@ export default class aster extends Exchange {
                 'signer': signerAddress,
             }, params);
             let paramString = undefined;
-            let paramsToEncode = undefined;
+            let paramsToEncode;
             const isApproveBuilder = (path.indexOf('/approveBuilder') >= 0);
             if (isApproveBuilder) {
                 // domain['name'] = 'Aster';

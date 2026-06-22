@@ -1516,7 +1516,8 @@ export default class xt extends Exchange {
         //         "v": "702461.58895"
         //     }
         //
-        const volumeIndex = (market['inverse']) ? 'v' : 'a';
+        const isInverse = this.safeBool(market, 'inverse');
+        const volumeIndex = (isInverse) ? 'v' : 'a';
         return [
             this.safeInteger(ohlcv, 't'),
             this.safeNumber(ohlcv, 'o'),
@@ -4144,7 +4145,7 @@ export default class xt extends Exchange {
         };
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('setLeverage', market, params);
-        let response = undefined;
+        let response;
         if (subType === 'inverse') {
             response = await this.privateInversePostFutureUserV1PositionAdjustLeverage(this.extend(request, params));
         }

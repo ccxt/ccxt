@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Any, Balances, Bool, Currencies, Int, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees
+from ccxt.base.types import Any, Balances, Bool, Currencies, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -91,7 +91,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         await self.load_markets()
         symbols = self.market_symbols(symbols)
         messageHashes = [methodName]
-        args = []
+        args: List[str] = []
         for i in range(0, len(symbols)):
             market = self.market(symbols[i])
             args.append(market['id'])
@@ -161,7 +161,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         self.handle_bid_ask(client, message)
         event = self.safe_string(message, 'event')
         tickers = self.safe_value(message, 'data', [])
-        result = []
+        result: List = []
         for i in range(0, len(tickers)):
             data = tickers[i]
             marketId = self.safe_string(data, 'market')
@@ -193,7 +193,7 @@ class bitvavo(ccxt.async_support.bitvavo):
     def handle_bid_ask(self, client: Client, message):
         event = 'bidask'
         tickers = self.safe_value(message, 'data', [])
-        result = []
+        result: List = []
         for i in range(0, len(tickers)):
             data = tickers[i]
             ticker = self.parse_ws_bid_ask(data)
@@ -671,13 +671,13 @@ class bitvavo(ccxt.async_support.bitvavo):
         await self.load_markets()
         await self.authenticate()
         request: dict = {}
-        operatorId = None
+        operatorId: Str = None
         operatorId, params = self.handle_option_and_params(params, 'cancelAllOrdersWs', 'operatorId')
         if operatorId is not None:
             request['operatorId'] = self.parse_to_int(operatorId)
         else:
             raise ArgumentsRequired(self.id + ' canceAllOrdersWs() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890')
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['market'] = market['id']
@@ -773,7 +773,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         request: dict = {
             # 'market': market['id'],  # rate limit 25 without a market, 1 with market specified
         }
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['market'] = market['id']

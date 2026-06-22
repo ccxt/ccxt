@@ -565,8 +565,8 @@ class coinone(Exchange, ImplicitAPI):
         request: dict = {
             'quote_currency': 'KRW',
         }
-        market = None
-        response = None
+        market: Market = None
+        response: NullableDict = None
         if symbols is not None:
             first = self.safe_string(symbols, 0)
             market = self.market(first)
@@ -750,14 +750,14 @@ class coinone(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(trade, 'timestamp')
         market = self.safe_market(None, market)
         isSellerMaker = self.safe_bool(trade, 'is_seller_maker')
-        side = None
+        side: Str = None
         if isSellerMaker is not None:
             side = 'sell' if isSellerMaker else 'buy'
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'qty')
         orderId = self.safe_string(trade, 'orderId')
         feeCostString = self.safe_string(trade, 'fee')
-        fee = None
+        fee: NullableDict = None
         if feeCostString is not None:
             feeCostString = Precise.string_abs(feeCostString)
             feeRateString = self.safe_string(trade, 'feeRate')
@@ -958,13 +958,13 @@ class coinone(Exchange, ImplicitAPI):
         id = self.safe_string(order, 'orderId')
         baseId = self.safe_string(order, 'baseCurrency')
         quoteId = self.safe_string(order, 'targetCurrency')
-        base = None
-        quote = None
+        base: Str = None
+        quote: Str = None
         if baseId is not None:
             base = self.safe_currency_code(baseId)
         if quoteId is not None:
             quote = self.safe_currency_code(quoteId)
-        symbol = None
+        symbol: Str = None
         if (base is not None) and (quote is not None):
             symbol = base + '/' + quote
             market = self.safe_market(symbol, market, '/')
@@ -984,7 +984,7 @@ class coinone(Exchange, ImplicitAPI):
                 if isLessThan:
                     status = 'canceled'
         status = self.parse_order_status(status)
-        fee = None
+        fee: NullableDict = None
         feeCostString = self.safe_string(order, 'fee')
         if feeCostString is not None:
             feeCurrencyCode = quote if (side == 'sell') else base
@@ -1182,7 +1182,7 @@ class coinone(Exchange, ImplicitAPI):
             result[code] = depositAddress
         return result
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         request = self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         url = self.urls['api']['rest'] + '/'

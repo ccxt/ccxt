@@ -361,7 +361,7 @@ class gate(ccxt.async_support.gate):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
@@ -406,7 +406,7 @@ class gate(ccxt.async_support.gate):
             limit = 50 if (market['spot']) else 100  # max 100 atm
             if messageType == 'options':
                 limit = 50  # max 50 for options
-        payload = []
+        payload: List = []
         channel = ''
         if market['spot']:
             channel = 'spot.obu'
@@ -731,7 +731,7 @@ class gate(ccxt.async_support.gate):
         market = self.market(symbols[0])
         messageType = self.get_type_by_market(market)
         marketIds = self.market_ids(symbols)
-        channelName = None
+        channelName: Str = None
         channelName, params = self.handle_option_and_params(params, callerMethodName, 'method')
         url = self.get_url_by_market(market)
         channel = messageType + '.' + channelName
@@ -988,10 +988,10 @@ class gate(ccxt.async_support.gate):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
-        subType = None
+        subType: Str = None
         type = None
         marketId = '!' + 'all'
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             marketId = market['id']
@@ -1076,7 +1076,7 @@ class gate(ccxt.async_support.gate):
         """
         await self.load_markets()
         type = None
-        subType = None
+        subType: Str = None
         type, params = self.handle_market_type_and_params('watchBalance', None, params)
         subType, params = self.handle_sub_type_and_params('watchBalance', None, params)
         isInverse = (subType == 'inverse')
@@ -1200,13 +1200,13 @@ class gate(ccxt.async_support.gate):
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         symbols = self.market_symbols(symbols)
         payload = ['!' + 'all']
         if not self.is_empty(symbols):
             market = self.get_market_from_symbols(symbols)
         type = None
-        query = None
+        query: dict = None
         type, query = self.handle_market_type_and_params('watchPositions', market, params)
         if type == 'spot':
             type = 'swap'
@@ -1219,7 +1219,7 @@ class gate(ccxt.async_support.gate):
         if not self.is_empty(symbols):
             messageHash += '::' + ','.join(symbols)
         channel = typeId + '.positions'
-        subType = None
+        subType: Str = None
         subType, query = self.handle_sub_type_and_params('watchPositions', market, query)
         isInverse = (subType == 'inverse')
         url = self.get_url_by_market_type(type, isInverse)
@@ -1298,7 +1298,7 @@ class gate(ccxt.async_support.gate):
         type = self.get_market_type_by_url(client.url)
         data = self.safe_value(message, 'result', [])
         cache = self.positions[type]
-        newPositions = []
+        newPositions: List[Position] = []
         for i in range(0, len(data)):
             rawPosition = data[i]
             position = self.parse_position(rawPosition)
@@ -1353,12 +1353,12 @@ class gate(ccxt.async_support.gate):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
         type = None
-        query = None
+        query: dict = None
         type, query = self.handle_market_type_and_params('watchOrders', market, params)
         typeId = self.get_supported_mapping(type, {
             'spot': 'spot',
@@ -1373,7 +1373,7 @@ class gate(ccxt.async_support.gate):
         if symbol is not None:
             messageHash += ':' + market['id']
             payload = [market['id']]
-        subType = None
+        subType: Str = None
         subType, query = self.handle_sub_type_and_params('watchOrders', market, query)
         isInverse = (subType == 'inverse')
         url = self.get_url_by_market_type(type, isInverse)
@@ -1490,14 +1490,14 @@ class gate(ccxt.async_support.gate):
         symbols = self.market_symbols(symbols, None, True, True)
         market = self.get_market_from_symbols(symbols)
         type = None
-        query = None
+        query: dict = None
         type, query = self.handle_market_type_and_params('watchMyLiquidationsForSymbols', market, params)
         typeId = self.get_supported_mapping(type, {
             'future': 'futures',
             'swap': 'futures',
             'option': 'options',
         })
-        subType = None
+        subType: Str = None
         subType, query = self.handle_sub_type_and_params('watchMyLiquidationsForSymbols', market, query)
         isInverse = (subType == 'inverse')
         url = self.get_url_by_market_type(type, isInverse)
@@ -1579,7 +1579,7 @@ class gate(ccxt.async_support.gate):
             client.resolve(symbolLiquidations, 'myLiquidations::' + symbol)
         client.resolve(newLiquidations, 'myLiquidations')
 
-    def parse_ws_liquidation(self, liquidation, market=None):
+    def parse_ws_liquidation(self, liquidation, market: Market = None):
         #
         # future / delivery
         #    {

@@ -1923,7 +1923,6 @@ class paradex extends Exchange {
             Async\await($this->load_markets());
             $request = array();
             $clientOrderId = $this->safe_string_n($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
-            $response = null;
             if ($clientOrderId !== null) {
                 $request['client_id'] = $clientOrderId;
                 $response = Async\await($this->privateDeleteOrdersByClientIdClientId ($this->extend($request, $params)));
@@ -2066,7 +2065,6 @@ class paradex extends Exchange {
             $request = array();
             $clientOrderId = $this->safe_string_n($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
             $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
-            $response = null;
             if ($clientOrderId !== null) {
                 $request['client_id'] = $clientOrderId;
                 $response = Async\await($this->privateGetOrdersByClientIdClientId ($this->extend($request, $params)));
@@ -2877,7 +2875,7 @@ class paradex extends Exchange {
         $marginMode = $this->safe_string_lower($rawMarginMode, 'margin_type');
         return array(
             'info' => $rawMarginMode,
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'marginMode' => $marginMode,
         );
     }
@@ -3328,7 +3326,7 @@ class paradex extends Exchange {
         }) ();
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $version = $this->version;
         if (mb_strpos($path, 'v2/') === 0) {
             $version = 'v2';

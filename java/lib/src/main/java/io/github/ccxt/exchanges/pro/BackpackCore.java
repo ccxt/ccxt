@@ -1134,7 +1134,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
 
     public void handleDelta(Object orderbook, Object delta)
     {
-        Object timestamp = this.parseToInt(Helpers.divide(this.safeInteger(delta, "T"), 1000));
+        Object timestamp = this.parseToInt(Helpers.divide(this.safeInteger(delta, "T", 0), 1000));
         Helpers.addElementToObject(orderbook, "timestamp", timestamp);
         Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
         Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(delta, "u"));

@@ -2,7 +2,7 @@
 import lbankRest from '../lbank.js';
 import { ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Balances, Int, Str, Trade, OrderBook, Order, OHLCV, Ticker, Dict } from '../base/types.js';
+import type { Balances, Dict, Int, OHLCV, Order, OrderBook, Str, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -535,7 +535,7 @@ export default class lbank extends lbankRest {
         await this.loadMarkets ();
         const key = await this.authenticate (params);
         const url = this.urls['api']['ws'];
-        let messageHash = undefined;
+        let messageHash: Str = undefined;
         let pair = 'all';
         if (symbol === undefined) {
             messageHash = 'orders:all';
@@ -639,7 +639,7 @@ export default class lbank extends lbankRest {
         const typeParts = rawType.split ('_');
         const side = this.safeString (typeParts, 0);
         const exchangeType = this.safeString (typeParts, 1);
-        let type = undefined;
+        let type: Str = undefined;
         if (rawType !== 'buy' && rawType !== 'sell') {
             type = (exchangeType === 'market') ? 'market' : 'limit';
         }
@@ -648,7 +648,7 @@ export default class lbank extends lbankRest {
         const timestamp = this.safeInteger (orderUpdate, 'updateTime');
         const status = this.safeString (orderUpdate, 'orderStatus');
         const orderAmount = this.safeString (orderUpdate, 'orderAmt');
-        let cost = undefined;
+        let cost: Str = undefined;
         if ((type === 'market') && (side === 'buy')) {
             cost = orderAmount;
         }

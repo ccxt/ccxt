@@ -1093,7 +1093,7 @@ public class BitteamCore extends BitteamApi
             //         }
             //     }
             //
-            Object result = this.safeDict(response, "result");
+            Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(result, market);
         });
 
@@ -1210,7 +1210,7 @@ public class BitteamCore extends BitteamApi
             Object market = this.market(symbol);
             final Object finalType = type;
             Object request = new java.util.HashMap<String, Object>() {{
-                put( "pairId", String.valueOf(Helpers.GetValue(market, "numericId")) );
+                put( "pairId", BitteamCore.this.safeString(market, "numericId") );
                 put( "type", finalType );
                 put( "side", side );
                 put( "amount", BitteamCore.this.amountToPrecision(symbol, amount) );
@@ -1313,7 +1313,7 @@ public class BitteamCore extends BitteamApi
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
-                Helpers.addElementToObject(request, "pairId", String.valueOf(Helpers.GetValue(market, "numericId")));
+                Helpers.addElementToObject(request, "pairId", this.safeString(market, "numericId"));
             } else
             {
                 Helpers.addElementToObject(request, "pairId", "0"); // '0' for all markets

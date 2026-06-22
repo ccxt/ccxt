@@ -3,7 +3,7 @@
 
 import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/xt.js';
-import { Currencies, Currency, Dict, FundingHistory, FundingRateHistory, Int, LeverageTier, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Str, Tickers, Transaction, TransferEntry, LedgerEntry, FundingRate, DepositAddress, LeverageTiers, Position, int } from './base/types.js';
+import type { Bool, Currencies, Currency, DepositAddress, Dict, FundingHistory, FundingRate, FundingRateHistory, Int, LedgerEntry, LeverageTier, LeverageTiers, List, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Position, Str, Strings, SubType, Tickers, Transaction, TransferEntry, int, NullableDict } from './base/types.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NetworkError, NotSupported, OnMaintenance, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
@@ -1128,7 +1128,7 @@ export default class xt extends Exchange {
     }
 
     parseMarkets (markets) {
-        const result = [];
+        const result: List = [];
         for (let i = 0; i < markets.length; i++) {
             result.push (this.parseMarket (markets[i]));
         }
@@ -1260,13 +1260,13 @@ export default class xt extends Exchange {
         const state = this.safeString (market, 'state');
         let symbol = base + '/' + quote;
         const filters = this.safeValue (market, 'filters', []);
-        let minAmount = undefined;
-        let maxAmount = undefined;
-        let minCost = undefined;
-        let maxCost = undefined;
-        let minPrice = undefined;
-        let maxPrice = undefined;
-        let amountPrecision = undefined;
+        let minAmount: Num = undefined;
+        let maxAmount: Num = undefined;
+        let minCost: Num = undefined;
+        let maxCost: Num = undefined;
+        let minPrice: Num = undefined;
+        let maxPrice: Num = undefined;
+        let amountPrecision: Num = undefined;
         for (let i = 0; i < filters.length; i++) {
             const entry = filters[i];
             const filter = this.safeString (entry, 'filter');
@@ -1287,11 +1287,11 @@ export default class xt extends Exchange {
             amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'quantityPrecision')));
         }
         const underlyingType = this.safeString (market, 'underlyingType');
-        let linear = undefined;
-        let inverse = undefined;
-        let settleId = undefined;
-        let settle = undefined;
-        let expiry = undefined;
+        let linear: Bool = undefined;
+        let inverse: Bool = undefined;
+        let settleId: Str = undefined;
+        let settle: Str = undefined;
+        let expiry: Int = undefined;
         let future = false;
         let swap = false;
         let contract = false;
@@ -1517,7 +1517,8 @@ export default class xt extends Exchange {
         //         "v": "702461.58895"
         //     }
         //
-        const volumeIndex = (market['inverse']) ? 'v' : 'a';
+        const isInverse = this.safeBool (market, 'inverse');
+        const volumeIndex = (isInverse) ? 'v' : 'a';
         return [
             this.safeInteger (ohlcv, 't'),
             this.safeNumber (ohlcv, 'o'),
@@ -1708,16 +1709,16 @@ export default class xt extends Exchange {
      * @param {object} params extra parameters specific to the xt api endpoint
      * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
-    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbols !== undefined) {
             symbols = this.marketSymbols (symbols);
             market = this.market (symbols[0]);
         }
         const request = {};
-        let type = undefined;
-        let subType = undefined;
+        let type: Str = undefined;
+        let subType: SubType = undefined;
         let response = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params);
@@ -1795,15 +1796,15 @@ export default class xt extends Exchange {
      * @param {object} params extra parameters specific to the xt api endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
-    async fetchBidsAsks (symbols: string[] = undefined, params = {}) {
+    async fetchBidsAsks (symbols: Strings = undefined, params = {}) {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const request = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbols !== undefined) {
             market = this.market (symbols[0]);
         }
-        let subType = undefined;
+        let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchBidsAsks', market, params);
         if (subType !== undefined) {
             throw new NotSupported (this.id + ' fetchBidsAsks() is not available for swap and future markets, only spot markets are supported');
@@ -1830,7 +1831,7 @@ export default class xt extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market: Market = undefined) {
         //
         // spot: fetchTicker, fetchTickers
         //
@@ -1877,7 +1878,7 @@ export default class xt extends Exchange {
         //     }
         //
         const marketId = this.safeString (ticker, 's');
-        let marketType = (market !== undefined) ? market['type'] : undefined;
+        let marketType: Str = (market !== undefined) ? market['type'] : undefined;
         const hasSpotKeys = ('cv' in ticker) || ('aq' in ticker);
         if (marketType === undefined) {
             marketType = hasSpotKeys ? 'spot' : 'contract';
@@ -1999,10 +2000,10 @@ export default class xt extends Exchange {
      * @param {object} params extra parameters specific to the xt api endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
      */
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -2010,8 +2011,8 @@ export default class xt extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        let type = undefined;
-        let subType = undefined;
+        let type: Str = undefined;
+        let subType: SubType = undefined;
         let response = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         [ subType, params ] = this.handleSubTypeAndParams ('fetchMyTrades', market, params);
@@ -2025,7 +2026,7 @@ export default class xt extends Exchange {
                 response = await this.privateLinearGetFutureTradeV1OrderTradeList (this.extend (request, params));
             }
         } else {
-            let marginMode = undefined;
+            let marginMode: Str = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
             const marginOrSpotRequest = (marginMode !== undefined) ? 'LEVER' : 'SPOT';
             request['bizType'] = marginOrSpotRequest;
@@ -2097,7 +2098,7 @@ export default class xt extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market: Market = undefined) {
         //
         // spot: fetchTrades
         //
@@ -2206,14 +2207,14 @@ export default class xt extends Exchange {
         //    }
         //
         const marketId = this.safeString2 (trade, 's', 'symbol');
-        let marketType = (market !== undefined) ? market['type'] : undefined;
+        let marketType: Str = (market !== undefined) ? market['type'] : undefined;
         const hasSpotKeys = ('b' in trade) || ('bizType' in trade) || ('oi' in trade);
         if (marketType === undefined) {
             marketType = hasSpotKeys ? 'spot' : 'contract';
         }
         market = this.safeMarket (marketId, market, '_', marketType);
-        let side = undefined;
-        let takerOrMaker = undefined;
+        let side: Str = undefined;
+        let takerOrMaker: Str = undefined;
         const isBuyerMaker = this.safeBool (trade, 'b');
         if (isBuyerMaker !== undefined) {
             side = isBuyerMaker ? 'sell' : 'buy';
@@ -2240,7 +2241,7 @@ export default class xt extends Exchange {
         }
         const timestamp = this.safeIntegerN (trade, [ 't', 'time', 'timestamp' ]);
         const quantity = this.safeString2 (trade, 'q', 'quantity');
-        let amount = undefined;
+        let amount: Str = undefined;
         if (marketType === 'spot') {
             amount = quantity;
         } else {
@@ -2281,8 +2282,8 @@ export default class xt extends Exchange {
      */
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let type = undefined;
-        let subType = undefined;
+        let type: Str = undefined;
+        let subType: SubType = undefined;
         let response = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', undefined, params);
@@ -2457,8 +2458,8 @@ export default class xt extends Exchange {
             'side': side.toUpperCase (),
             'type': type.toUpperCase (),
         };
-        let timeInForce = undefined;
-        let marginMode = undefined;
+        let timeInForce: Str = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
         const marginOrSpotRequest = (marginMode !== undefined) ? 'LEVER' : 'SPOT';
         request['bizType'] = marginOrSpotRequest;
@@ -2601,15 +2602,15 @@ export default class xt extends Exchange {
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
         const request = {};
-        let type = undefined;
-        let subType = undefined;
+        let type: Str = undefined;
+        let subType: SubType = undefined;
         let response = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
         [ subType, params ] = this.handleSubTypeAndParams ('fetchOrder', market, params);
@@ -2778,10 +2779,10 @@ export default class xt extends Exchange {
      * @param {bool} [params.trigger] if the order is a trigger order or not
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
-    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -2792,8 +2793,8 @@ export default class xt extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let type = undefined;
-        let subType = undefined;
+        let type: Str = undefined;
+        let subType: SubType = undefined;
         let response = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
         [ subType, params ] = this.handleSubTypeAndParams ('fetchOrders', market, params);
@@ -2810,7 +2811,7 @@ export default class xt extends Exchange {
         } else if ((subType === 'linear') || (type === 'swap') || (type === 'future')) {
             response = await this.privateLinearGetFutureTradeV1OrderListHistory (this.extend (request, params));
         } else {
-            let marginMode = undefined;
+            let marginMode: Str = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrders', params);
             const marginOrSpotRequest = (marginMode !== undefined) ? 'LEVER' : 'SPOT';
             request['bizType'] = marginOrSpotRequest;
@@ -2931,10 +2932,10 @@ export default class xt extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchOrdersByStatus (status, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersByStatus (status, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -2945,8 +2946,8 @@ export default class xt extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        let type = undefined;
-        let subType = undefined;
+        let type: Str = undefined;
+        let subType: SubType = undefined;
         let response = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
         [ subType, params ] = this.handleSubTypeAndParams ('fetchOrdersByStatus', market, params);
@@ -3002,7 +3003,7 @@ export default class xt extends Exchange {
                 response = await this.privateLinearGetFutureTradeV1OrderList (this.extend (request, params));
             }
         } else {
-            let marginMode = undefined;
+            let marginMode: Str = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrdersByStatus', params);
             const marginOrSpotRequest = (marginMode !== undefined) ? 'LEVER' : 'SPOT';
             request['bizType'] = marginOrSpotRequest;
@@ -3223,7 +3224,7 @@ export default class xt extends Exchange {
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         return await this.fetchOrdersByStatus ('open', symbol, since, limit, params);
     }
 
@@ -3243,7 +3244,7 @@ export default class xt extends Exchange {
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         return await this.fetchOrdersByStatus ('closed', symbol, since, limit, params);
     }
 
@@ -3263,7 +3264,7 @@ export default class xt extends Exchange {
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
-    async fetchCanceledOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         return await this.fetchOrdersByStatus ('canceled', symbol, since, limit, params);
     }
 
@@ -3282,15 +3283,15 @@ export default class xt extends Exchange {
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
         const request = {};
-        let type = undefined;
-        let subType = undefined;
+        let type: Str = undefined;
+        let subType: SubType = undefined;
         let response = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
         [ subType, params ] = this.handleSubTypeAndParams ('cancelOrder', market, params);
@@ -3364,16 +3365,16 @@ export default class xt extends Exchange {
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
-    async cancelAllOrders (symbol: string = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        let type = undefined;
-        let subType = undefined;
+        let type: Str = undefined;
+        let subType: SubType = undefined;
         let response = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         [ subType, params ] = this.handleSubTypeAndParams ('cancelAllOrders', market, params);
@@ -3398,7 +3399,7 @@ export default class xt extends Exchange {
         } else if ((subType === 'linear') || (type === 'swap') || (type === 'future')) {
             response = await this.privateLinearPostFutureTradeV1OrderCancelAll (this.extend (request, params));
         } else {
-            let marginMode = undefined;
+            let marginMode: Str = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
             const marginOrSpotRequest = (marginMode !== undefined) ? 'LEVER' : 'SPOT';
             request['bizType'] = marginOrSpotRequest;
@@ -3438,16 +3439,16 @@ export default class xt extends Exchange {
      * @param {object} params extra parameters specific to the xt api endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
-    async cancelOrders (ids: string[], symbol: string = undefined, params = {}): Promise<Order[]> {
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         const request = {
             'orderIds': ids,
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let subType = undefined;
+        let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('cancelOrders', market, params);
         if (subType !== undefined) {
             throw new NotSupported (this.id + ' cancelOrders() does not support swap and future orders, only spot orders are accepted');
@@ -3468,7 +3469,7 @@ export default class xt extends Exchange {
         ];
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market: Market = undefined) {
         //
         // spot: createOrder
         //
@@ -3669,7 +3670,7 @@ export default class xt extends Exchange {
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         await this.loadMarkets ();
         const request = {};
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -3679,8 +3680,8 @@ export default class xt extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let type = undefined;
-        let subType = undefined;
+        let type: Str = undefined;
+        let subType: SubType = undefined;
         let response = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchLedger', undefined, params);
         [ subType, params ] = this.handleSubTypeAndParams ('fetchLedger', undefined, params);
@@ -3719,7 +3720,7 @@ export default class xt extends Exchange {
         return this.parseLedger (ledger, currency, since, limit);
     }
 
-    parseLedgerEntry (item, currency = undefined): LedgerEntry {
+    parseLedgerEntry (item, currency: Currency = undefined): LedgerEntry {
         //
         //     {
         //         "id": "207260567109387524",
@@ -3785,7 +3786,7 @@ export default class xt extends Exchange {
      */
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         await this.loadMarkets ();
-        let networkCode = undefined;
+        let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         const currency = this.currency (code);
         const networkId = this.networkCodeToId (networkCode, code);
@@ -3810,7 +3811,7 @@ export default class xt extends Exchange {
         return this.parseDepositAddress (result, currency);
     }
 
-    parseDepositAddress (depositAddress, currency = undefined): DepositAddress {
+    parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "address": "0x7f7173cf29d3846d20ca5a3aec1120b93dbd157a",
@@ -3842,7 +3843,7 @@ export default class xt extends Exchange {
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['currency'] = currency['id'];
@@ -3899,7 +3900,7 @@ export default class xt extends Exchange {
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['currency'] = currency['id'];
@@ -3959,7 +3960,7 @@ export default class xt extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
-        let networkCode = undefined;
+        let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         const networkIdsByCodes = this.safeValue (this.options, 'networks', {});
         const networkId = this.safeString2 (networkIdsByCodes, networkCode, code, code);
@@ -4087,7 +4088,7 @@ export default class xt extends Exchange {
      * @param {string} params.positionSide 'LONG' or 'SHORT'
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: int, symbol: string = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -4106,9 +4107,9 @@ export default class xt extends Exchange {
             'positionSide': positionSide,
             'leverage': leverage,
         };
-        let subType = undefined;
+        let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('setLeverage', market, params);
-        let response = undefined;
+        let response: Dict;
         if (subType === 'inverse') {
             response = await this.privateInversePostFutureUserV1PositionAdjustLeverage (this.extend (request, params));
         } else {
@@ -4166,7 +4167,7 @@ export default class xt extends Exchange {
             'type': addOrReduce,
             'positionSide': positionSide,
         };
-        let subType = undefined;
+        let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('modifyMarginHelper', market, params);
         let response = undefined;
         if (subType === 'inverse') {
@@ -4185,7 +4186,7 @@ export default class xt extends Exchange {
         return this.parseMarginModification (response, market);
     }
 
-    parseMarginModification (data, market = undefined): MarginModification {
+    parseMarginModification (data, market: Market = undefined): MarginModification {
         return {
             'info': data,
             'type': undefined,
@@ -4209,9 +4210,9 @@ export default class xt extends Exchange {
      * @param {object} params extra parameters specific to the xt api endpoint
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
      */
-    async fetchLeverageTiers (symbols: string[] = undefined, params = {}): Promise<LeverageTiers> {
+    async fetchLeverageTiers (symbols: Strings = undefined, params = {}): Promise<LeverageTiers> {
         await this.loadMarkets ();
-        let subType = undefined;
+        let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchLeverageTiers', undefined, params);
         let response = undefined;
         if (subType === 'inverse') {
@@ -4248,7 +4249,7 @@ export default class xt extends Exchange {
         return this.parseLeverageTiers (data, symbols, 'symbol');
     }
 
-    parseLeverageTiers (response, symbols = undefined, marketIdKey = undefined): LeverageTiers {
+    parseLeverageTiers (response, symbols: Strings = undefined, marketIdKey = undefined): LeverageTiers {
         //
         //     {
         //         "symbol": "rad_usdt",
@@ -4298,7 +4299,7 @@ export default class xt extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        let subType = undefined;
+        let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchMarketLeverageTiers', market, params);
         let response = undefined;
         if (subType === 'inverse') {
@@ -4332,7 +4333,7 @@ export default class xt extends Exchange {
         return this.parseMarketLeverageTiers (data, market);
     }
 
-    parseMarketLeverageTiers (info, market = undefined): LeverageTier[] {
+    parseMarketLeverageTiers (info, market: Market = undefined): LeverageTier[] {
         //
         //     {
         //         "symbol": "rad_usdt",
@@ -4350,7 +4351,7 @@ export default class xt extends Exchange {
         //         ]
         //     }
         //
-        const tiers = [];
+        const tiers: List = [];
         const brackets = this.safeValue (info, 'leverageBrackets', []);
         for (let i = 0; i < brackets.length; i++) {
             const tier = brackets[i];
@@ -4383,7 +4384,7 @@ export default class xt extends Exchange {
      * @param {bool} params.paginate true/false whether to use the pagination helper to aumatically paginate through the results
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
      */
-    async fetchFundingRateHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
@@ -4405,7 +4406,7 @@ export default class xt extends Exchange {
         } else {
             request['limit'] = 200; // max
         }
-        let subType = undefined;
+        let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchFundingRateHistory', market, params);
         let response = undefined;
         if (subType === 'inverse') {
@@ -4435,7 +4436,7 @@ export default class xt extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const items = this.safeValue (result, 'items', []);
-        const rates = [];
+        const rates: List = [];
         for (let i = 0; i < items.length; i++) {
             const entry = items[i];
             const marketId = this.safeString (entry, 'symbol');
@@ -4484,7 +4485,7 @@ export default class xt extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        let subType = undefined;
+        let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchFundingRate', market, params);
         let response = undefined;
         if (subType === 'inverse') {
@@ -4509,7 +4510,7 @@ export default class xt extends Exchange {
         return this.parseFundingRate (result, market);
     }
 
-    parseFundingRate (contract, market = undefined): FundingRate {
+    parseFundingRate (contract, market: Market = undefined): FundingRate {
         //
         //     {
         //         "symbol": "btc_usdt",
@@ -4573,7 +4574,7 @@ export default class xt extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let subType = undefined;
+        let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchFundingHistory', market, params);
         let response = undefined;
         if (subType === 'inverse') {
@@ -4604,7 +4605,7 @@ export default class xt extends Exchange {
         //
         const data = this.safeValue (response, 'result', {});
         const items = this.safeValue (data, 'items', []);
-        const result = [];
+        const result: List = [];
         for (let i = 0; i < items.length; i++) {
             const entry = items[i];
             result.push (this.parseFundingHistory (entry, market));
@@ -4613,7 +4614,7 @@ export default class xt extends Exchange {
         return this.filterBySinceLimit (sorted, since, limit) as FundingHistory[];
     }
 
-    parseFundingHistory (contract, market = undefined) {
+    parseFundingHistory (contract, market: Market = undefined) {
         //
         //     {
         //         "id": "210804044057280512",
@@ -4655,7 +4656,7 @@ export default class xt extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        let subType = undefined;
+        let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchPosition', market, params);
         let response = undefined;
         if (subType === 'inverse') {
@@ -4710,9 +4711,9 @@ export default class xt extends Exchange {
      * @param {object} params extra parameters specific to the xt api endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    async fetchPositions (symbols: string[] = undefined, params = {}): Promise<Position[]> {
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
-        let subType = undefined;
+        let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchPositions', undefined, params);
         let response = undefined;
         if (subType === 'inverse') {
@@ -4746,7 +4747,7 @@ export default class xt extends Exchange {
         //     }
         //
         const positions = this.safeValue (response, 'result', []);
-        const result = [];
+        const result: List = [];
         for (let i = 0; i < positions.length; i++) {
             const entry = positions[i];
             const marketId = this.safeString (entry, 'symbol');
@@ -4756,7 +4757,7 @@ export default class xt extends Exchange {
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
-    parsePosition (position, market = undefined) {
+    parsePosition (position, market: Market = undefined) {
         //
         //     {
         //         "symbol": "btc_usdt",
@@ -4851,7 +4852,7 @@ export default class xt extends Exchange {
         return this.parseTransfer (response, currency);
     }
 
-    parseTransfer (transfer, currency = undefined) {
+    parseTransfer (transfer, currency: Currency = undefined) {
         return {
             'info': transfer,
             'id': this.safeString (transfer, 'result'),
@@ -4963,7 +4964,7 @@ export default class xt extends Exchange {
             } else {
                 request['origQty'] = this.amountToPrecision (symbol, amount);
             }
-            let subType = undefined;
+            let subType: SubType = undefined;
             [ subType, params ] = this.handleSubTypeAndParams ('editOrder', market, params);
             if (subType === 'inverse') {
                 if (isStopLoss || isTakeProfit) {
@@ -5082,11 +5083,11 @@ export default class xt extends Exchange {
         return undefined;
     }
 
-    sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = [], method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const signed = api[0] === 'private';
         const endpoint = api[1];
         const request = '/' + this.implodeParams (path, params);
-        let payload = undefined;
+        let payload: Str = undefined;
         if ((endpoint === 'spot') || (endpoint === 'user')) {
             if (signed) {
                 payload = '/' + this.version + request;
@@ -5121,7 +5122,7 @@ export default class xt extends Exchange {
                 isUndefinedBody = false;
             }
             body = isUndefinedBody ? undefined : this.json (body);
-            let payloadString = undefined;
+            let payloadString: Str = undefined;
             if ((endpoint === 'spot') || (endpoint === 'user')) {
                 payloadString = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + this.apiKey + '&xt-validate-recvwindow=' + recvWindow + '&xt-validate-t' + 'imestamp=' + timestamp;
                 if (isUndefinedBody) {

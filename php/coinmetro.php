@@ -319,7 +319,7 @@ class coinmetro extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          *
@@ -455,7 +455,7 @@ class coinmetro extends Exchange {
         for ($i = 0; $i < count($response); $i++) {
             $market = $this->parse_market($response[$i]);
             // there are several broken (unavailable info) markets
-            if ($market['base'] === null || $market['quote'] === null) {
+            if ($this->safe_string($market, 'base') === null || $this->safe_string($market, 'quote') === null) {
                 continue;
             }
             $result[] = $market;
@@ -901,7 +901,7 @@ class coinmetro extends Exchange {
             $priceString = $this->safe_string($prices, $i);
             $price = $this->safe_number($prices, $i);
             $volume = $this->safe_number($bidasks, $priceString);
-            $result[] = array( $price, $volume );
+            ($result)[] = array( $price, $volume );
         }
         return $result;
     }
@@ -1420,7 +1420,7 @@ class coinmetro extends Exchange {
         //         "takerQty" => 0.002
         //     }
         //
-        return $this->parse_order($response, $market);
+        return $this->parse_order($response);
     }
 
     public function handle_create_order_side($sellingCurrency, $buyingCurrency, $sellingQty, $buyingQty, $request = array ()) {
@@ -1981,7 +1981,7 @@ class coinmetro extends Exchange {
         );
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = array (), mixed $body = null) {
         $request = $this->omit($params, $this->extract_params($path));
         $endpoint = '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . $endpoint;

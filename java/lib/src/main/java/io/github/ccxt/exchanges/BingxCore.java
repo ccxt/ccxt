@@ -1058,7 +1058,7 @@ public class BingxCore extends BingxApi
 
     public Object parseMarket(Object market)
     {
-        Object id = this.safeString(market, "symbol");
+        Object id = ((String)this.safeString(market, "symbol"));
         Object symbolParts = Helpers.split(id, "-");
         Object baseId = Helpers.GetValue(symbolParts, 0);
         Object quoteId = Helpers.GetValue(symbolParts, 1);
@@ -3032,7 +3032,7 @@ public class BingxCore extends BingxApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(position, "symbol", "");
+        Object marketId = ((String)this.safeString(position, "symbol", ""));
         marketId = Helpers.replace((String)marketId, (String)"/", (String)"-"); // standard return different format
         Object isolated = this.safeBool(position, "isolated");
         Object marginMode = null;
@@ -3168,7 +3168,7 @@ public class BingxCore extends BingxApi
         Object request = new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(market, "id") );
             put( "type", finalType );
-            put( "side", ((String)finalSide).toUpperCase() );
+            put( "side", ((String)((String)finalSide)).toUpperCase() );
         }};
         Object isMarketOrder = Helpers.isEqual(type, "MARKET");
         Object isSpot = Helpers.isEqual(marketType, "spot");
@@ -4062,7 +4062,7 @@ public class BingxCore extends BingxApi
             }
             takeProfitPrice = this.omitZero(this.safeString(takeProfit, "stopPrice"));
         }
-        Object rawType = this.safeStringLower2(order, "type", "o");
+        Object rawType = ((String)this.safeStringLower2(order, "type", "o"));
         Object stopPrice = this.omitZero(this.safeString2(order, "StopPrice", "stopPrice"));
         Object triggerPrice = stopPrice;
         if (Helpers.isTrue(!Helpers.isEqual(stopPrice, null)))
@@ -4449,18 +4449,17 @@ public class BingxCore extends BingxApi
      * @param {string} [params.type] spot or swap market
      * @returns {object} the api result
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelAllOrdersAfter(Object timeout2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> cancelAllOrdersAfter(Object timeout, Object... optionalArgs)
     {
-        final Object timeout3 = timeout2;
+
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-            Object timeout = timeout3;
+
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             Object isActive = (Helpers.isGreaterThan(timeout, 0));
-            final Object finalTimeout = timeout;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "type", ((Helpers.isTrue((isActive)))) ? "ACTIVATE" : "CLOSE" );
-                put( "timeOut", ((Helpers.isTrue((isActive)))) ? (BingxCore.this.parseToInt(Helpers.divide(finalTimeout, 1000))) : 0 );
+                put( "timeOut", ((Helpers.isTrue((isActive)))) ? (BingxCore.this.parseToInt(Helpers.divide(timeout, 1000))) : 0 );
             }};
             Object response = null;
             Object type = null;
@@ -5230,7 +5229,7 @@ public class BingxCore extends BingxApi
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "CONFIRMED", "ok" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     /**
@@ -5747,7 +5746,7 @@ public class BingxCore extends BingxApi
         final Object finalType = type;
         return new java.util.HashMap<String, Object>() {{
             put( "info", data );
-            put( "symbol", BingxCore.this.safeString(market, "symbol") );
+            put( "symbol", ((String)BingxCore.this.safeString(market, "symbol")) );
             put( "type", ((Helpers.isTrue((Helpers.isEqual(finalType, "1"))))) ? "add" : "reduce" );
             put( "marginMode", "isolated" );
             put( "amount", BingxCore.this.safeNumber(data, "amount") );
@@ -6827,7 +6826,7 @@ public class BingxCore extends BingxApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(info)); i++)
         {
             Object tier = this.safeDict(info, i);
-            Object tierString = this.safeString(tier, "tier");
+            Object tierString = ((String)this.safeString(tier, "tier"));
             Object tierParts = Helpers.split(tierString, " ");
             Object marketId = this.safeString(tier, "symbol");
             market = this.safeMarket(marketId, market, null, "swap");

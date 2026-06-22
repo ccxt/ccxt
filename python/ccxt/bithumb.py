@@ -353,7 +353,7 @@ class bithumb(Exchange, ImplicitAPI):
             quote = quotes[i]
             quoteId = quote
             response = results[i]
-            data = self.safe_dict(response, 'data')
+            data = self.safe_dict(response, 'data', {})
             extension = self.safe_dict(quoteCurrencies, quote, {})
             currencyIds = list(data.keys())
             for j in range(0, len(currencyIds)):
@@ -728,7 +728,7 @@ class bithumb(Exchange, ImplicitAPI):
         #     }
         #
         # a workaround for their bug in date format, hours are not 0-padded
-        timestamp = None
+        timestamp: Int = None
         transactionDatetime = self.safe_string(trade, 'transaction_date')
         if transactionDatetime is not None:
             parts = transactionDatetime.split(' ')
@@ -751,7 +751,7 @@ class bithumb(Exchange, ImplicitAPI):
         priceString = self.safe_string(trade, 'price')
         amountString = self.fix_comma_number(self.safe_string_2(trade, 'units_traded', 'units'))
         costString = self.safe_string(trade, 'total')
-        fee = None
+        fee: dict = None
         feeCostString = self.safe_string(trade, 'fee')
         if feeCostString is not None:
             feeCurrencyId = self.safe_string(trade, 'fee_currency')
@@ -971,7 +971,7 @@ class bithumb(Exchange, ImplicitAPI):
                 remaining = '0'
             elif status != 'canceled':
                 remaining = amount
-        symbol = None
+        symbol: Str = None
         baseId = self.safe_string(order, 'order_currency')
         quoteId = self.safe_string(order, 'payment_currency')
         base = self.safe_currency_code(baseId)
@@ -1171,7 +1171,7 @@ class bithumb(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         endpoint = '/' + self.implode_params(path, params)
         url = self.implode_hostname(self.urls['api'][api]) + endpoint
         query = self.omit(params, self.extract_params(path))

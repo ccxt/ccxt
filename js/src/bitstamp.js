@@ -1139,14 +1139,14 @@ export default class bitstamp extends Exchange {
             market = this.getMarketFromTrade(trade);
         }
         const feeCostString = this.safeString(trade, 'fee');
-        const feeCurrency = market['quote'];
-        const priceId = (rawMarketId !== undefined) ? rawMarketId : market['id'];
+        const feeCurrency = this.safeString(market, 'quote');
+        const priceId = (rawMarketId !== undefined) ? rawMarketId : this.safeString(market, 'id');
         priceString = this.safeString(trade, priceId, priceString);
-        amountString = this.safeString(trade, market['baseId'], amountString);
-        costString = this.safeString(trade, market['quoteId'], costString);
+        amountString = this.safeString(trade, this.safeString(market, 'baseId'), amountString);
+        costString = this.safeString(trade, this.safeString(market, 'quoteId'), costString);
         // this endpoint is not aligned with "markets" endpoint
-        const baseIdLower = market['baseId'].toLowerCase();
-        const quoteIdLower = market['quoteId'].toLowerCase();
+        const baseIdLower = this.safeStringLower(market, 'baseId');
+        const quoteIdLower = this.safeStringLower(market, 'quoteId');
         const dashedIdLower = baseIdLower + '_' + quoteIdLower;
         if (priceString === undefined) {
             priceString = this.safeString(trade, dashedIdLower);
@@ -1157,7 +1157,7 @@ export default class bitstamp extends Exchange {
         if (costString === undefined) {
             costString = this.safeString(trade, quoteIdLower);
         }
-        symbol = market['symbol'];
+        symbol = this.safeString(market, 'symbol');
         const datetimeString = this.safeString2(trade, 'date', 'datetime');
         let timestamp = undefined;
         if (datetimeString !== undefined) {
@@ -2279,7 +2279,7 @@ export default class bitstamp extends Exchange {
                 'referenceId': parsedTrade['order'],
                 'referenceAccount': undefined,
                 'type': type,
-                'currency': market['base'],
+                'currency': this.safeString(market, 'base'),
                 'amount': parsedTrade['amount'],
                 'before': undefined,
                 'after': undefined,

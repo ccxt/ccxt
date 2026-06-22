@@ -2641,7 +2641,7 @@ public partial class ascendex : Exchange
         };
         if (isTrue(!isEqual(symbol, null)))
         {
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
         }
         object response = null;
         if (isTrue(isTrue((isEqual(type, "spot"))) || isTrue((isEqual(type, "margin")))))
@@ -3239,12 +3239,12 @@ public partial class ascendex : Exchange
         object status = ((bool) isTrue((isEqual(errorCode, "0")))) ? "ok" : "failed";
         return new Dictionary<string, object>() {
             { "info", data },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeString(market, "symbol") },
             { "type", null },
             { "marginMode", "isolated" },
             { "amount", null },
             { "total", null },
-            { "code", getValue(market, "quote") },
+            { "code", this.safeString(market, "quote") },
             { "status", status },
             { "timestamp", null },
             { "datetime", null },
@@ -3857,8 +3857,7 @@ public partial class ascendex : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
-        object response = null;
-        response = await this.v2PublicGetFuturesPricingData(this.extend(request, parameters));
+        object response = await this.v2PublicGetFuturesPricingData(this.extend(request, parameters));
         //
         //    {
         //        code: '0',

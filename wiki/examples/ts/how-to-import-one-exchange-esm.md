@@ -1,4 +1,6 @@
 ```javascript
+// @NO_AUTO_TRANSPILE
+
 import { binance } from '../../js/ccxt.js';
 
 async function example () {

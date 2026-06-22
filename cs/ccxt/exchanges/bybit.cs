@@ -1059,6 +1059,7 @@ public partial class bybit : Exchange
                 } },
                 { "networks", new Dictionary<string, object>() {
                     { "BTC", "BTC" },
+                    { "BRC20", "BTC" },
                     { "ETH", "ETH" },
                     { "ERC20", "ETH" },
                     { "TRX", "TRX" },
@@ -1070,73 +1071,65 @@ public partial class bybit : Exchange
                     { "ADA", "ADA" },
                     { "ALGO", "ALGO" },
                     { "APT", "APTOS" },
-                    { "AR", "AR" },
                     { "ARBONE", "ARBI" },
+                    { "ARBNOVA", "ARBINOVA" },
                     { "AVAXC", "CAVAX" },
                     { "AVAXX", "XAVAX" },
+                    { "COSMOS", "ATOM" },
                     { "ATOM", "ATOM" },
                     { "BCH", "BCH" },
                     { "BEP2", "BNB" },
-                    { "CHZ", "CHZ" },
-                    { "DCR", "DCR" },
-                    { "DGB", "DGB" },
                     { "DOGE", "DOGE" },
                     { "DOT", "DOT" },
                     { "EGLD", "EGLD" },
                     { "EOS", "EOS" },
                     { "ETC", "ETC" },
-                    { "ETHF", "ETHF" },
                     { "ETHW", "ETHW" },
                     { "FIL", "FIL" },
                     { "STEP", "FITFI" },
-                    { "FLOW", "FLOW" },
-                    { "FTM", "FTM" },
+                    { "SONIC", "SONIC" },
                     { "GLMR", "GLMR" },
                     { "HBAR", "HBAR" },
-                    { "HNT", "HNT" },
                     { "ICP", "ICP" },
-                    { "ICX", "ICX" },
-                    { "KDA", "KDA" },
                     { "KLAY", "KLAY" },
-                    { "KMA", "KMA" },
-                    { "KSM", "KSM" },
                     { "LTC", "LTC" },
+                    { "POLYGON", "MATIC" },
                     { "MATIC", "MATIC" },
-                    { "MINA", "MINA" },
-                    { "MOVR", "MOVR" },
                     { "NEAR", "NEAR" },
-                    { "NEM", "NEM" },
                     { "OASYS", "OAS" },
                     { "OASIS", "ROSE" },
-                    { "OMNI", "OMNI" },
                     { "ONE", "ONE" },
                     { "OP", "OP" },
-                    { "OPTIMISM", "OP" },
-                    { "POKT", "POKT" },
-                    { "QTUM", "QTUM" },
-                    { "RVN", "RVN" },
-                    { "SC", "SC" },
                     { "SCRT", "SCRT" },
                     { "STX", "STX" },
-                    { "THETA", "THETA" },
                     { "TON", "TON" },
-                    { "WAVES", "WAVES" },
                     { "WAX", "WAXP" },
-                    { "XDC", "XDC" },
                     { "XEC", "XEC" },
                     { "XLM", "XLM" },
                     { "XRP", "XRP" },
                     { "XTZ", "XTZ" },
-                    { "XYM", "XYM" },
-                    { "ZEN", "ZEN" },
                     { "ZIL", "ZIL" },
-                    { "ZKSYNC", "ZKSYNC" },
+                    { "ZKSYNCLITE", "ZKSYNC" },
+                    { "ZKSYNCERA", "ZKV2" },
+                    { "0G", "ZEROGRAVITY" },
+                    { "MANTLE", "MANTLE" },
+                    { "CHZ", "CHILIZ" },
+                    { "BASE", "BASE" },
+                    { "CELO", "CELO" },
+                    { "SCROLL", "SCROLL" },
+                    { "SUI", "SUI" },
+                    { "DYDX", "DYDX" },
+                    { "HUMANITY", "HUMANITY" },
+                    { "HYPER", "HYPEREVM" },
+                    { "MONAD", "MONAD" },
+                    { "MOVE", "MOVE" },
                 } },
                 { "networksById", new Dictionary<string, object>() {
                     { "ETH", "ERC20" },
                     { "TRX", "TRC20" },
                     { "BSC", "BEP20" },
                     { "OP", "OP" },
+                    { "MATIC", "MATIC" },
                 } },
                 { "defaultNetwork", "ERC20" },
                 { "defaultNetworks", new Dictionary<string, object>() {
@@ -2663,7 +2656,8 @@ public partial class bybit : Exchange
         //         "2.4343353100000003"
         //     ]
         //
-        object volumeIndex = ((bool) isTrue((getValue(market, "inverse")))) ? 6 : 5;
+        object isInverse = this.safeBool(market, "inverse");
+        object volumeIndex = ((bool) isTrue((isInverse))) ? 6 : 5;
         return new List<object> {this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, volumeIndex)};
     }
 
@@ -3045,7 +3039,7 @@ public partial class bybit : Exchange
         //
         object rates = new List<object>() {};
         object result = this.safeDict(response, "result");
-        object resultList = this.safeList(result, "list");
+        object resultList = this.safeList(result, "list", new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(resultList)); postFixIncrement(ref i))
         {
             object entry = getValue(resultList, i);
@@ -3588,7 +3582,7 @@ public partial class bybit : Exchange
                 object accountType = this.safeString(entry, "accountType");
                 if (isTrue(isTrue(isTrue(isEqual(accountType, "UNIFIED")) || isTrue(isEqual(accountType, "CONTRACT"))) || isTrue(isEqual(accountType, "SPOT"))))
                 {
-                    object coins = this.safeList(entry, "coin");
+                    object coins = this.safeList(entry, "coin", new List<object>() {});
                     for (object j = 0; isLessThan(j, getArrayLength(coins)); postFixIncrement(ref j))
                     {
                         object account = this.account();
@@ -7551,11 +7545,11 @@ public partial class bybit : Exchange
             ((IDictionary<string,object>)request)["coin"] = "USDT";
         } else
         {
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
         }
         if (isTrue(!isEqual(symbol, null)))
         {
-            ((IDictionary<string,object>)request)["category"] = ((bool) isTrue(getValue(market, "linear"))) ? "linear" : "inverse";
+            ((IDictionary<string,object>)request)["category"] = ((bool) isTrue(this.safeBool(market, "linear"))) ? "linear" : "inverse";
         } else
         {
             object type = null;
@@ -7762,10 +7756,10 @@ public partial class bybit : Exchange
         object timestamp = this.safeInteger(interest, "timestamp");
         object openInterest = this.safeNumber2(interest, "open_interest", "openInterest");
         // the openInterest is in the base asset for linear and quote asset for inverse
-        object amount = ((bool) isTrue(getValue(market, "linear"))) ? openInterest : null;
-        object value = ((bool) isTrue(getValue(market, "inverse"))) ? openInterest : null;
+        object amount = ((bool) isTrue(this.safeBool(market, "linear"))) ? openInterest : null;
+        object value = ((bool) isTrue(this.safeBool(market, "inverse"))) ? openInterest : null;
         return this.safeOpenInterest(new Dictionary<string, object>() {
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeString(market, "symbol") },
             { "openInterestAmount", amount },
             { "openInterestValue", value },
             { "timestamp", timestamp },
@@ -8616,7 +8610,7 @@ public partial class bybit : Exchange
         object data = this.safeList(result, "list", new List<object>() {});
         object settlements = this.parseSettlements(data, market);
         object sorted = this.sortBy(settlements, "timestamp");
-        return this.filterBySymbolSinceLimit(sorted, getValue(market, "symbol"), since, limit);
+        return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit);
     }
 
     /**
@@ -8685,7 +8679,7 @@ public partial class bybit : Exchange
         object data = this.safeList(result, "list", new List<object>() {});
         object settlements = this.parseSettlements(data, market);
         object sorted = this.sortBy(settlements, "timestamp");
-        return this.filterBySymbolSinceLimit(sorted, getValue(market, "symbol"), since, limit);
+        return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit);
     }
 
     public virtual object parseSettlement(object settlement, object market)
@@ -9197,7 +9191,7 @@ public partial class bybit : Exchange
         object first = this.safeDict(result, 0);
         object total = getArrayLength(result);
         object lastIndex = subtract(total, 1);
-        object last = this.safeDict(result, lastIndex);
+        object last = this.safeDict(result, lastIndex, new Dictionary<string, object>() {});
         object cursorValue = this.safeString(first, "nextPageCursor");
         ((IDictionary<string,object>)last)["info"] = new Dictionary<string, object>() {
             { "nextPageCursor", cursorValue },
@@ -9356,7 +9350,7 @@ public partial class bybit : Exchange
         ((IDictionary<string,object>)request)["category"] = type;
         if (isTrue(!isEqual(symbol, null)))
         {
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
         }
         if (isTrue(!isEqual(since, null)))
         {
@@ -9654,7 +9648,7 @@ public partial class bybit : Exchange
         };
         if (isTrue(isTrue((!isEqual(symbols, null))) && isTrue((isEqual(symbolsLength, 1)))))
         {
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
         }
         if (isTrue(!isEqual(since, null)))
         {
@@ -10498,6 +10492,7 @@ public partial class bybit : Exchange
             object brokerId = this.safeString(this.options, "brokerId");
             if (isTrue(!isEqual(brokerId, null)))
             {
+                headers = ((bool) isTrue((isEqual(headers, null)))) ? new Dictionary<string, object>() {} : headers;
                 ((IDictionary<string,object>)headers)["Referer"] = brokerId;
             }
         }

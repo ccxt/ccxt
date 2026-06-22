@@ -474,7 +474,7 @@ class lighter extends \ccxt\async\lighter {
         }) ();
     }
 
-    public function parse_ws_trade($trade, $market = null) {
+    public function parse_ws_trade($trade, ?array $market = null) {
         //
         //     {
         //         "trade_id" => 526801155,
@@ -635,7 +635,7 @@ class lighter extends \ccxt\async\lighter {
         }) ();
     }
 
-    public function parse_ws_order_trade($trade, $market = null) {
+    public function parse_ws_order_trade($trade, ?array $market = null) {
         //
         //     {
         //         "trade_id" => 526801155,
@@ -843,7 +843,7 @@ class lighter extends \ccxt\async\lighter {
         }) ();
     }
 
-    public function parse_ws_liquidation($liquidation, $market = null) {
+    public function parse_ws_liquidation($liquidation, ?array $market = null) {
         //
         //     {
         //         "trade_id" => 526801155,

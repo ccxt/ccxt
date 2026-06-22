@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
 import hashlib
-from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -186,7 +186,7 @@ class coinex(ccxt.async_support.coinex):
                 client.resolve(tickers, messageHash)
         client.resolve(newTickers, 'tickers')
 
-    def parse_ws_ticker(self, ticker, market=None):
+    def parse_ws_ticker(self, ticker, market: Market = None):
         #
         #  spot
         #
@@ -262,7 +262,7 @@ class coinex(ccxt.async_support.coinex):
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.load_markets()
-        type = None
+        type: Str = None
         type, params = self.handle_market_type_and_params('watchBalance', None, params, 'spot')
         await self.authenticate(type)
         url = self.urls['api']['ws'][type]
@@ -335,7 +335,7 @@ class coinex(ccxt.async_support.coinex):
         isSpot = (updated is not None)
         isSwap = (unrealizedPnl is not None)
         info = None
-        account = None
+        account: Str = None
         rawBalances = []
         if isSpot:
             account = 'spot'
@@ -350,7 +350,7 @@ class coinex(ccxt.async_support.coinex):
         for i in range(0, len(rawBalances)):
             entry = rawBalances[i]
             self.parse_ws_balance(entry, account)
-        messageHash = None
+        messageHash: Str = None
         if account is not None:
             if self.safe_value(self.balance, account) is None:
                 self.balance[account] = {}
@@ -359,7 +359,7 @@ class coinex(ccxt.async_support.coinex):
             messageHash = 'balances:' + account
             client.resolve(self.balance[account], messageHash)
 
-    def parse_ws_balance(self, balance, accountType=None):
+    def parse_ws_balance(self, balance, accountType: Str = None):
         #
         # spot
         #
@@ -409,11 +409,11 @@ class coinex(ccxt.async_support.coinex):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
-        type = None
+        type: Str = None
         type, params = self.handle_market_type_and_params('watchMyTrades', market, params, 'spot')
         await self.authenticate(type)
         url = self.urls['api']['ws'][type]
@@ -537,7 +537,7 @@ class coinex(ccxt.async_support.coinex):
         self.trades[symbol] = stored
         client.resolve(self.trades[symbol], messageHash)
 
-    def parse_ws_trade(self, trade, market=None):
+    def parse_ws_trade(self, trade, market: Market = None):
         #
         # spot watchTrades
         #
@@ -633,7 +633,7 @@ class coinex(ccxt.async_support.coinex):
         """
         await self.load_markets()
         marketIds = self.market_ids(symbols)
-        market = None
+        market: Market = None
         messageHashes = []
         symbolsDefined = (symbols is not None)
         if symbolsDefined:
@@ -644,7 +644,7 @@ class coinex(ccxt.async_support.coinex):
         else:
             marketIds = []
             messageHashes.append('tickers')
-        type = None
+        type: Str = None
         type, params = self.handle_market_type_and_params('watchTickers', market, params)
         url = self.urls['api']['ws'][type]
         subscriptionHashes = ['all@ticker']
@@ -690,8 +690,8 @@ class coinex(ccxt.async_support.coinex):
         await self.load_markets()
         subscribedSymbols = []
         messageHashes = []
-        market = None
-        callerMethodName = None
+        market: Market = None
+        callerMethodName: Str = None
         callerMethodName, params = self.handle_param_string(params, 'callerMethodName', 'watchTradesForSymbols')
         symbolsDefined = (symbols is not None)
         if symbolsDefined:
@@ -702,7 +702,7 @@ class coinex(ccxt.async_support.coinex):
                 messageHashes.append('trades:' + market['symbol'])
         else:
             messageHashes.append('trades')
-        type = None
+        type: Str = None
         type, params = self.handle_market_type_and_params(callerMethodName, market, params)
         url = self.urls['api']['ws'][type]
         # subscriptionHashes = ['trades']
@@ -731,9 +731,9 @@ class coinex(ccxt.async_support.coinex):
         await self.load_markets()
         watchOrderBookSubscriptions: dict = {}
         messageHashes = []
-        market = None
-        type = None
-        callerMethodName = None
+        market: Market = None
+        type: Str = None
+        callerMethodName: Str = None
         callerMethodName, params = self.handle_param_string(params, 'callerMethodName', 'watchOrderBookForSymbols')
         options = self.safe_dict(self.options, 'watchOrderBook', {})
         limits = self.safe_list(options, 'limits', [])
@@ -869,12 +869,12 @@ class coinex(ccxt.async_support.coinex):
         trigger = self.safe_bool_2(params, 'trigger', 'stop')
         params = self.omit(params, ['trigger', 'stop'])
         messageHash = 'orders'
-        market = None
-        marketList = None
+        market: Market = None
+        marketList: NullableList = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
-        type = None
+        type: Str = None
         type, params = self.handle_market_type_and_params('watchOrders', market, params, 'spot')
         await self.authenticate(type)
         if symbol is not None:
@@ -886,7 +886,7 @@ class coinex(ccxt.async_support.coinex):
                 messageHash += ':spot'
             else:
                 messageHash += ':swap'
-        method = None
+        method: Str = None
         if trigger:
             method = 'stop.subscribe'
         else:
@@ -1036,7 +1036,7 @@ class coinex(ccxt.async_support.coinex):
         messageHash += ':' + symbol
         client.resolve(self.orders, messageHash)
 
-    def parse_ws_order(self, order, market=None):
+    def parse_ws_order(self, order, market: Market = None):
         #
         # spot
         #
@@ -1131,7 +1131,7 @@ class coinex(ccxt.async_support.coinex):
         isSpot = ('margin_market' in order)
         defaultType = 'spot' if isSpot else 'swap'
         market = self.safe_market(marketId, market, None, defaultType)
-        fee = None
+        fee: dict = None
         feeCost = self.omit_zero(self.safe_string_2(order, 'fee', 'quote_ccy_fee'))
         if feeCost is not None:
             feeCurrencyId = self.safe_string(order, 'fee_ccy', market['quote'])
@@ -1186,7 +1186,7 @@ class coinex(ccxt.async_support.coinex):
         await self.load_markets()
         marketIds = self.market_ids(symbols)
         messageHashes = []
-        market = None
+        market: Market = None
         symbolsDefined = (symbols is not None)
         if symbolsDefined:
             for i in range(0, len(symbols)):
@@ -1195,7 +1195,7 @@ class coinex(ccxt.async_support.coinex):
                 messageHashes.append('bidsasks:' + market['symbol'])
         else:
             messageHashes.append('bidsasks')
-        type = None
+        type: Str = None
         type, params = self.handle_market_type_and_params('watchBidsAsks', market, params)
         url = self.urls['api']['ws'][type]
         subscriptionHashes = ['all@bidsasks']
@@ -1231,7 +1231,7 @@ class coinex(ccxt.async_support.coinex):
         messageHash = 'bidsasks:' + symbol
         client.resolve(parsedTicker, messageHash)
 
-    def parse_ws_bid_ask(self, ticker, market=None):
+    def parse_ws_bid_ask(self, ticker, market: Market = None):
         #
         #     {
         #         "market": "BTCUSDT",

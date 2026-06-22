@@ -90,13 +90,13 @@ function initializeAllExchanges () {
         'bcex',
         'bitsane',
         'chbtc',
-        'coinbasepro',
+        'coinbaseexchange',
         'jubi',
         'hitbtc',
         'bitstamp1',
-        'bitfinex2',
+        'bitfinex',
         'upbit',
-        'huobipro',
+        'htx',
     ]
     const result = []
     ccxt.exchanges.filter (exchangeId => (!ignore.includes (exchangeId))).forEach (exchangeId => {

@@ -185,7 +185,7 @@ class woofipro extends \ccxt\async\woofipro {
         }) ();
     }
 
-    public function parse_ws_ticker($ticker, $market = null) {
+    public function parse_ws_ticker($ticker, ?array $market = null) {
         //
         //     {
         //         "symbol" => "PERP_BTC_USDC",
@@ -364,7 +364,7 @@ class woofipro extends \ccxt\async\woofipro {
         $client->resolve ($result, $topic);
     }
 
-    public function parse_ws_bid_ask($ticker, $market = null) {
+    public function parse_ws_bid_ask($ticker, ?array $market = null) {
         $marketId = $this->safe_string($ticker, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $this->safe_string($market, 'symbol');
@@ -523,7 +523,7 @@ class woofipro extends \ccxt\async\woofipro {
         $client->resolve ($trades, $topic);
     }
 
-    public function parse_ws_trade($trade, $market = null) {
+    public function parse_ws_trade($trade, ?array $market = null) {
         //
         //     {
         //         "symbol":"PERP_ADA_USDC",
@@ -757,7 +757,7 @@ class woofipro extends \ccxt\async\woofipro {
         }) ();
     }
 
-    public function parse_ws_order($order, $market = null) {
+    public function parse_ws_order($order, ?array $market = null) {
         //
         //     {
         //         "symbol" => "PERP_BTC_USDT",
@@ -1139,7 +1139,7 @@ class woofipro extends \ccxt\async\woofipro {
         $client->resolve ($newPositions, 'positions');
     }
 
-    public function parse_ws_position($position, $market = null) {
+    public function parse_ws_position($position, ?array $market = null) {
         //
         //     {
         //         "symbol":"PERP_ETH_USDC",
@@ -1285,7 +1285,7 @@ class woofipro extends \ccxt\async\woofipro {
         $client->resolve ($this->balance, 'balance');
     }
 
-    public function handle_error_message(Client $client, $message): Bool {
+    public function handle_error_message(Client $client, $message): ?bool {
         //
         // array("id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed.")
         //

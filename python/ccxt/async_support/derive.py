@@ -630,7 +630,7 @@ class derive(Exchange, ImplicitAPI):
 
     def parse_market(self, market: dict) -> Market:
         type = self.safe_string(market, 'instrument_type')
-        marketType: MarketType
+        marketType: MarketType | None = None
         spot = False
         margin = True
         swap = False
@@ -912,7 +912,7 @@ class derive(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         request: dict = {}
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['instrument_name'] = market['id']
@@ -1050,7 +1050,7 @@ class derive(Exchange, ImplicitAPI):
         #
         result = self.safe_dict(response, 'result', {})
         data = self.safe_list(result, 'funding_rate_history', [])
-        rates = []
+        rates: List = []
         for i in range(0, len(data)):
             entry = data[i]
             timestamp = self.safe_integer(entry, 'timestamp')
@@ -1177,7 +1177,7 @@ class derive(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if price is None:
             raise ArgumentsRequired(self.id + ' createOrder() requires a price argument')
-        subaccountId = None
+        subaccountId: Str = None
         subaccountId, params = self.handle_derive_subaccount_id('createOrder', params)
         test = self.safe_bool(params, 'test', False)
         reduceOnly = self.safe_bool_2(params, 'reduceOnly', 'reduce_only')
@@ -1192,7 +1192,7 @@ class derive(Exchange, ImplicitAPI):
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         TRADE_MODULE_ADDRESS = '0x87F2863866D85E3192a35A73b388BD625D83f2be' if (sandboxMode) else '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b'
         priceString = self.number_to_string(price)
-        maxFee = None
+        maxFee: Num = None
         maxFee, params = self.handle_option_and_params(params, 'createOrder', 'max_fee')
         if maxFee is None:
             raise ArgumentsRequired(self.id + ' createOrder() requires a max_fee argument in params')
@@ -1209,7 +1209,7 @@ class derive(Exchange, ImplicitAPI):
             subaccountId,
             orderSide == 'buy',
         ]), 'keccak', 'binary')
-        deriveWalletAddress = None
+        deriveWalletAddress: Str = None
         deriveWalletAddress, params = self.handle_derive_wallet_address('createOrder', params)
         signature = self.sign_order([
             ACTION_TYPEHASH,
@@ -1260,7 +1260,7 @@ class derive(Exchange, ImplicitAPI):
             request['label'] = clientOrderId
         request['signature'] = signature
         params = self.omit(params, ['reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'test', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trigger_price', 'stopLoss', 'takeProfit', 'trigger_price_type'])
-        response = None
+        response: dict
         if test:
             response = await self.privatePostOrderDebug(self.extend(request, params))
         else:
@@ -1358,7 +1358,7 @@ class derive(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        subaccountId = None
+        subaccountId: Str = None
         subaccountId, params = self.handle_derive_subaccount_id('editOrder', params)
         reduceOnly = self.safe_bool_2(params, 'reduceOnly', 'reduce_only')
         timeInForce = self.safe_string_lower_2(params, 'timeInForce', 'time_in_force')
@@ -1385,7 +1385,7 @@ class derive(Exchange, ImplicitAPI):
             subaccountId,
             orderSide == 'buy',
         ]), 'keccak', 'binary')
-        deriveWalletAddress = None
+        deriveWalletAddress: Str = None
         deriveWalletAddress, params = self.handle_derive_wallet_address('editOrder', params)
         signature = self.sign_order([
             ACTION_TYPEHASH,
@@ -1521,7 +1521,7 @@ class derive(Exchange, ImplicitAPI):
         await self.load_markets()
         market: Market = self.market(symbol)
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
-        subaccountId = None
+        subaccountId: Str = None
         subaccountId, params = self.handle_derive_subaccount_id('cancelOrder', params)
         params = self.omit(params, ['trigger', 'stop'])
         request: dict = {
@@ -1531,7 +1531,7 @@ class derive(Exchange, ImplicitAPI):
         clientOrderIdUnified = self.safe_string(params, 'clientOrderId')
         clientOrderIdExchangeSpecific = self.safe_string(params, 'label', clientOrderIdUnified)
         isByClientOrder = clientOrderIdExchangeSpecific is not None
-        response = None
+        response: dict
         if isByClientOrder:
             request['label'] = clientOrderIdExchangeSpecific
             params = self.omit(params, ['clientOrderId', 'label'])
@@ -1607,12 +1607,12 @@ class derive(Exchange, ImplicitAPI):
         market: Market = None
         if symbol is not None:
             market = self.market(symbol)
-        subaccountId = None
+        subaccountId: Str = None
         subaccountId, params = self.handle_derive_subaccount_id('cancelAllOrders', params)
         request: dict = {
             'subaccount_id': subaccountId,
         }
-        response = None
+        response: dict
         if market is not None:
             request['instrument_name'] = market['id']
             response = await self.privatePostCancelByInstrument(self.extend(request, params))
@@ -1655,7 +1655,7 @@ class derive(Exchange, ImplicitAPI):
             return await self.fetch_paginated_call_incremental('fetchOrders', symbol, since, limit, params, 'page', 500)
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
         params = self.omit(params, ['trigger', 'stop'])
-        subaccountId = None
+        subaccountId: Str = None
         subaccountId, params = self.handle_derive_subaccount_id('fetchOrders', params)
         request: dict = {
             'subaccount_id': subaccountId,
@@ -1858,7 +1858,7 @@ class derive(Exchange, ImplicitAPI):
         marketId = self.safe_string(order, 'instrument_name')
         if marketId is not None:
             market = self.safe_market(marketId, market)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol')
         price = self.safe_string(order, 'limit_price')
         average = self.safe_string(order, 'average_price')
         amount = self.safe_string(order, 'desired_amount')
@@ -1873,9 +1873,9 @@ class derive(Exchange, ImplicitAPI):
             else:
                 side = 'sell'
         triggerType = self.safe_string(order, 'trigger_type')
-        stopLossPrice = None
-        takeProfitPrice = None
-        triggerPrice = None
+        stopLossPrice: Str = None
+        takeProfitPrice: Str = None
+        triggerPrice: Str = None
         if triggerType is not None:
             triggerPrice = self.safe_string(order, 'trigger_price')
             if triggerType == 'stoploss':
@@ -1931,7 +1931,7 @@ class derive(Exchange, ImplicitAPI):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
-        subaccountId = None
+        subaccountId: Str = None
         subaccountId, params = self.handle_derive_subaccount_id('fetchOrderTrades', params)
         request: dict = {
             'order_id': id,
@@ -2005,7 +2005,7 @@ class derive(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
         if paginate:
             return await self.fetch_paginated_call_incremental('fetchMyTrades', symbol, since, limit, params, 'page', 500)
-        subaccountId = None
+        subaccountId: Str = None
         subaccountId, params = self.handle_derive_subaccount_id('fetchMyTrades', params)
         request: dict = {
             'subaccount_id': subaccountId,
@@ -2077,7 +2077,7 @@ class derive(Exchange, ImplicitAPI):
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
         await self.load_markets()
-        subaccountId = None
+        subaccountId: Str = None
         subaccountId, params = self.handle_derive_subaccount_id('fetchPositions', params)
         request: dict = {
             'subaccount_id': subaccountId,
@@ -2219,7 +2219,7 @@ class derive(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'paginate')
         if paginate:
             return await self.fetch_paginated_call_incremental('fetchFundingHistory', symbol, since, limit, params, 'page', 500)
-        subaccountId = None
+        subaccountId: Str = None
         subaccountId, params = self.handle_derive_subaccount_id('fetchFundingHistory', params)
         request: dict = {
             'subaccount_id': subaccountId,
@@ -2309,7 +2309,7 @@ class derive(Exchange, ImplicitAPI):
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.load_markets()
-        deriveWalletAddress = None
+        deriveWalletAddress: Str = None
         deriveWalletAddress, params = self.handle_derive_wallet_address('fetchBalance', params)
         request = {
             'wallet': deriveWalletAddress,
@@ -2400,7 +2400,7 @@ class derive(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         await self.load_markets()
-        subaccountId = None
+        subaccountId: Str = None
         subaccountId, params = self.handle_derive_subaccount_id('fetchDeposits', params)
         request: dict = {
             'subaccount_id': subaccountId,
@@ -2445,7 +2445,7 @@ class derive(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         await self.load_markets()
-        subaccountId = None
+        subaccountId: Str = None
         subaccountId, params = self.handle_derive_subaccount_id('fetchWithdrawals', params)
         request: dict = {
             'subaccount_id': subaccountId,
@@ -2557,7 +2557,7 @@ class derive(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api] + '/' + path
         if method == 'POST':
             headers = {

@@ -625,7 +625,7 @@ export default class coinbase extends Exchange {
         const accounts = this.safeList(response, 'data', []);
         const length = accounts.length;
         const lastIndex = length - 1;
-        const last = this.safeDict(accounts, lastIndex);
+        const last = this.safeDict(accounts, lastIndex, {});
         if ((cursor !== undefined) && (cursor !== '')) {
             last['next_starting_after'] = cursor;
             accounts[lastIndex] = last;
@@ -678,7 +678,7 @@ export default class coinbase extends Exchange {
         const cursor = this.safeString(response, 'cursor');
         if ((accountsLength > 0) && (cursor !== undefined) && (cursor !== '')) {
             const lastIndex = accountsLength - 1;
-            const last = this.safeDict(accounts, lastIndex);
+            const last = this.safeDict(accounts, lastIndex, {});
             last['cursor'] = cursor;
             accounts[lastIndex] = last;
         }
@@ -3638,7 +3638,7 @@ export default class coinbase extends Exchange {
         //     }
         //
         const orders = this.safeList(response, 'orders', []);
-        const first = this.safeDict(orders, 0);
+        const first = this.safeDict(orders, 0, {});
         const cursor = this.safeString(response, 'cursor');
         if ((cursor !== undefined) && (cursor !== '')) {
             first['cursor'] = cursor;
@@ -3714,7 +3714,7 @@ export default class coinbase extends Exchange {
         //     }
         //
         const orders = this.safeList(response, 'orders', []);
-        const first = this.safeDict(orders, 0);
+        const first = this.safeDict(orders, 0, {});
         const cursor = this.safeString(response, 'cursor');
         if ((cursor !== undefined) && (cursor !== '')) {
             first['cursor'] = cursor;
@@ -4003,7 +4003,7 @@ export default class coinbase extends Exchange {
         //     }
         //
         const trades = this.safeList(response, 'fills', []);
-        const first = this.safeDict(trades, 0);
+        const first = this.safeDict(trades, 0, {});
         const cursor = this.safeString(response, 'cursor');
         if ((cursor !== undefined) && (cursor !== '')) {
             first['cursor'] = cursor;
@@ -4973,7 +4973,7 @@ export default class coinbase extends Exchange {
         //
         const data = this.safeDict(response, 'fee_tier', {});
         const taker_fee = this.safeNumber(data, 'taker_fee_rate');
-        const marker_fee = this.safeNumber(data, 'maker_fee_rate');
+        const maker_fee = this.safeNumber(data, 'maker_fee_rate');
         const result = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
@@ -4982,8 +4982,8 @@ export default class coinbase extends Exchange {
                 result[symbol] = {
                     'info': response,
                     'symbol': symbol,
-                    'maker': taker_fee,
-                    'taker': marker_fee,
+                    'maker': maker_fee,
+                    'taker': taker_fee,
                     'percentage': true,
                 };
             }

@@ -490,7 +490,7 @@ class whitebit extends \ccxt\async\whitebit {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function parse_ws_trade($trade, $market = null) {
+    public function parse_ws_trade($trade, ?array $market = null) {
         //
         //   array(
         //         1894994106, // $id
@@ -607,7 +607,7 @@ class whitebit extends \ccxt\async\whitebit {
         $client->resolve ($this->orders, $messageHash);
     }
 
-    public function parse_ws_order($order, $market = null) {
+    public function parse_ws_order($order, ?array $market = null) {
         //
         //   {
         //         "id" => 96433622651,
@@ -917,7 +917,7 @@ class whitebit extends \ccxt\async\whitebit {
         return $message;
     }
 
-    public function handle_error_message(Client $client, $message): Bool {
+    public function handle_error_message(Client $client, $message): ?bool {
         //
         //     {
         //         "error" => array( $code => 1, $message => "invalid argument" ),

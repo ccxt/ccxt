@@ -1884,7 +1884,7 @@ public class KrakenCore extends KrakenApi
             //         }
             //     }
             //
-            Object result = this.safeDict(response, "result");
+            Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Helpers.addElementToObject(result, "usingCost", isUsingCost);
             // it's impossible to know if the order was created using cost or base currency
             // because kraken only returns something like this: { order: 'buy 10.00000000 LTCUSD @ market' }
@@ -1949,7 +1949,7 @@ public class KrakenCore extends KrakenApi
             final Object finalMarket = market;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "orders", ordersRequests );
-                put( "pair", Helpers.GetValue(finalMarket, "id") );
+                put( "pair", KrakenCore.this.safeString(finalMarket, "id") );
             }};
             request = this.extend(request, parameters);
             response = (this.privatePostAddOrderBatch(request)).join();
@@ -2493,6 +2493,7 @@ final Object finalId = id;
         if (Helpers.isTrue(!Helpers.isEqual(close, null)))
         {
             close = this.extend(new java.util.HashMap<String, Object>() {{}}, close);
+            close = ((Helpers.isTrue((Helpers.isEqual(close, null))))) ? new java.util.HashMap<String, Object>() {{}} : close;
             Object closePrice = this.safeValue(close, "price");
             if (Helpers.isTrue(!Helpers.isEqual(closePrice, null)))
             {

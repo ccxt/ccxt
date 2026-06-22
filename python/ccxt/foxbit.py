@@ -871,7 +871,7 @@ class foxbit(Exchange, ImplicitAPI):
 
     def fetch_orders_by_status(self, status: Str, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         self.load_markets()
-        market = None
+        market: Market = None
         request: dict = {
             'state': status,
         }
@@ -1131,7 +1131,7 @@ class foxbit(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
-        market = None
+        market: Market = None
         request: dict = {}
         if symbol is not None:
             market = self.market(symbol)
@@ -1258,7 +1258,7 @@ class foxbit(Exchange, ImplicitAPI):
         """
         self.load_markets()
         request: dict = {}
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
         if limit is not None:
@@ -1301,7 +1301,7 @@ class foxbit(Exchange, ImplicitAPI):
         """
         self.load_markets()
         request: dict = {}
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
         if limit is not None:
@@ -1481,7 +1481,7 @@ class foxbit(Exchange, ImplicitAPI):
         }
         if tag is not None:
             request['destination_tag'] = tag
-        networkCode = None
+        networkCode: Str = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:
             request['network_code'] = self.network_code_to_id(networkCode, code)
@@ -1591,7 +1591,7 @@ class foxbit(Exchange, ImplicitAPI):
     def parse_trading_fee(self, entry: dict, market: Market = None) -> TradingFeeInterface:
         return {
             'info': entry,
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'maker': self.safe_number(entry, 'maker'),
             'taker': self.safe_number(entry, 'taker'),
             'percentage': True,
@@ -1657,7 +1657,7 @@ class foxbit(Exchange, ImplicitAPI):
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'order': None,
             'type': None,
             'side': side,
@@ -1690,7 +1690,7 @@ class foxbit(Exchange, ImplicitAPI):
         filled = self.safe_string(order, 'quantity_executed')
         remaining = self.safe_string(order, 'quantity')
         # TODO: validate logic of amount here, should self be calculated?
-        amount = None
+        amount: Str = None
         if remaining is not None and filled is not None:
             amount = Precise.string_add(remaining, filled)
         cost = self.safe_string(order, 'funds_received')
@@ -1871,7 +1871,7 @@ class foxbit(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = [], method='GET', params={}, headers: dict = None, body: Str = None):
         version = api[0]
         urlPath = api[1]
         fullPath = '/rest/' + version + '/' + self.implode_params(path, params)

@@ -323,7 +323,7 @@ class foxbit extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array ()): array {
         $response = $this->v3PublicGetCurrencies ($params);
         // {
         //   "data" => array(
@@ -1668,7 +1668,7 @@ class foxbit extends Exchange {
     public function parse_trading_fee(array $entry, ?array $market = null): array {
         return array(
             'info' => $entry,
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'maker' => $this->safe_number($entry, 'maker'),
             'taker' => $this->safe_number($entry, 'taker'),
             'percentage' => true,
@@ -1737,7 +1737,7 @@ class foxbit extends Exchange {
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'order' => null,
             'type' => null,
             'side' => $side,
@@ -1967,7 +1967,7 @@ class foxbit extends Exchange {
         );
     }
 
-    public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = [], $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $version = $api[0];
         $urlPath = $api[1];
         $fullPath = '/rest/' . $version . '/' . $this->implode_params($path, $params);

@@ -618,7 +618,7 @@ class woo(Exchange, ImplicitAPI):
         marketId = self.safe_string(market, 'symbol')
         parts = marketId.split('_')
         first = self.safe_string(parts, 0)
-        marketType: MarketType
+        marketType: MarketType | None = None
         spot = False
         swap = False
         if first == 'SPOT':
@@ -772,7 +772,7 @@ class woo(Exchange, ImplicitAPI):
         #
         isFromFetchOrder = ('id' in trade)
         timestampString = self.safe_string_2(trade, 'executed_timestamp', 'executedTimestamp')
-        timestamp = None
+        timestamp: Int = None
         if timestampString is not None:
             if timestampString.find('.') > -1:
                 timestamp = self.safe_timestamp_2(trade, 'executed_timestamp', 'executedTimestamp')
@@ -813,7 +813,7 @@ class woo(Exchange, ImplicitAPI):
 
     def parse_token_and_fee_temp(self, item, feeTokenKeys, feeAmountKeys):
         feeCost = self.safe_string_n(item, feeAmountKeys)
-        fee = None
+        fee: NullableDict = None
         if feeCost is not None:
             feeCurrencyId = self.safe_string_n(item, feeTokenKeys)
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
@@ -1244,7 +1244,7 @@ class woo(Exchange, ImplicitAPI):
             params = self.omit(params, ['cost', 'order_amount', 'orderAmount'])
             isPriceProvided = price is not None
             if market['spot'] and (isPriceProvided or (cost is not None)):
-                quoteAmount = None
+                quoteAmount: Str = None
                 if cost is not None:
                     quoteAmount = self.cost_to_precision(symbol, cost)
                 else:
@@ -1306,7 +1306,7 @@ class woo(Exchange, ImplicitAPI):
                 childOrders.append(takeProfitOrder)
             request['childOrders'] = [outterOrder]
         params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingPercent', 'trailingAmount', 'trailingTriggerPrice'])
-        response = None
+        response: NullableDict = None
         if isConditional:
             response = self.v3PrivatePostTradeAlgoOrder(self.extend(request, params))
             #
@@ -1410,7 +1410,7 @@ class woo(Exchange, ImplicitAPI):
                 request['callbackRate'] = convertedTrailingPercent
         params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent'])
         isConditional = isTrailing or (triggerPrice is not None) or (self.safe_value(params, 'childOrders') is not None)
-        response = None
+        response: NullableDict = None
         if isByClientOrder:
             request['client_order_id'] = clientOrderIdExchangeSpecific
             if isConditional:
@@ -1464,7 +1464,7 @@ class woo(Exchange, ImplicitAPI):
         clientOrderIdExchangeSpecific = self.safe_string(params, 'client_order_id', clientOrderIdUnified)
         params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
         isByClientOrder = clientOrderIdExchangeSpecific is not None
-        response = None
+        response: NullableDict = None
         if isTrigger:
             if isByClientOrder:
                 request['clientAlgoOrderId'] = clientOrderIdExchangeSpecific
@@ -1472,7 +1472,7 @@ class woo(Exchange, ImplicitAPI):
                 request['algoOrderId'] = id
             response = self.v3PrivateDeleteTradeAlgoOrder(self.extend(request, params))
         else:
-            request['symbol'] = market['id']
+            request['symbol'] = self.safe_string(market, 'id')
             if isByClientOrder:
                 request['clientOrderId'] = clientOrderIdExchangeSpecific
             else:
@@ -1514,7 +1514,7 @@ class woo(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        response = None
+        response: NullableDict = None
         if trigger:
             response = self.v3PrivateDeleteTradeAlgoOrders(params)
         else:
@@ -1571,14 +1571,14 @@ class woo(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
         trigger = self.safe_bool_2(params, 'stop', 'trigger')
         params = self.omit(params, ['stop', 'trigger'])
         request: dict = {}
         clientOrderId = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
-        response = None
+        response: NullableDict = None
         if trigger:
             if clientOrderId is not None:
                 request['clientAlgoOrderId'] = id
@@ -1698,7 +1698,7 @@ class woo(Exchange, ImplicitAPI):
             request['endTime'] = until
         if limit is not None:
             request['size'] = min(limit, 500)
-        response = None
+        response: NullableDict = None
         if trigger:
             response = self.v3PrivateGetTradeAlgoOrders(self.extend(request, params))
             #
@@ -1926,7 +1926,7 @@ class woo(Exchange, ImplicitAPI):
         #         "positionSide": "BOTH"
         #     }
         #
-        timestamp = None
+        timestamp: Int = None
         timestrampString = self.safe_string(order, 'createdTime')
         if timestrampString is not None:
             if timestrampString.find('.') >= 0:
@@ -1953,7 +1953,7 @@ class woo(Exchange, ImplicitAPI):
         feeCurrency = self.safe_string(order, 'feeAsset')
         triggerPrice = self.safe_number(order, 'triggerPrice')
         lastUpdateTimestampString = self.safe_string(order, 'updatedTime')
-        lastUpdateTimestamp = None
+        lastUpdateTimestamp: Int = None
         if lastUpdateTimestampString is not None:
             if lastUpdateTimestampString.find('.') >= 0:
                 lastUpdateTimestamp = self.safe_timestamp(order, 'updatedTime')  # algo orders
@@ -2390,7 +2390,7 @@ class woo(Exchange, ImplicitAPI):
         # self method is TODO because of networks unification
         self.load_markets()
         currency = self.currency(code)
-        networkCode = None
+        networkCode: Str = None
         networkCode, params = self.handle_network_code_and_params(params)
         request: dict = {
             'token': currency['id'],
@@ -2411,7 +2411,7 @@ class woo(Exchange, ImplicitAPI):
         return self.parse_deposit_address(data, currency)
 
     def get_dedicated_network_id(self, currency, params: dict) -> Any:
-        networkCode = None
+        networkCode: Str = None
         networkCode, params = self.handle_network_code_and_params(params)
         networkCode = self.network_id_to_code(networkCode, currency['code'])
         networkEntry = self.safe_dict(currency['networks'], networkCode)
@@ -2439,7 +2439,7 @@ class woo(Exchange, ImplicitAPI):
         if code is not None:
             currency = self.currency(code)
             request['token'] = currency['id']
-        networkCode = None
+        networkCode: Str = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:
             request['network'] = self.network_code_to_id(networkCode, currency['code'])
@@ -2755,7 +2755,7 @@ class woo(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/?id=transfer-structure>`
         """
         request: dict = {}
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
         if limit is not None:
@@ -2973,7 +2973,7 @@ class woo(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
-    def sign(self, path, section='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, section='public', method='GET', params={}, headers: dict = None, body: Str = None):
         version = section[0]
         access = section[1]
         pathWithParams = self.implode_params(path, params)
@@ -3172,7 +3172,7 @@ class woo(Exchange, ImplicitAPI):
         estFundingRateTimestamp = self.safe_integer(fundingRate, 'estFundingRateTimestamp')
         lastFundingRateTimestamp = self.safe_integer(fundingRate, 'lastFundingRateTimestamp')
         intervalString = self.safe_string(fundingRate, 'estFundingIntervalHours')
-        interval = None
+        interval: Str = None
         if intervalString is not None:
             interval = intervalString + 'h'
         return {
@@ -3366,7 +3366,7 @@ class woo(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: response from the exchange
         """
-        hedgeMode = None
+        hedgeMode: Str = None
         if hedged:
             hedgeMode = 'HEDGE_MODE'
         else:
@@ -3398,7 +3398,7 @@ class woo(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        response: dict = None
+        response: NullableDict = None
         if market['spot']:
             response = self.v3PrivateGetAccountInfo(params)
             #
@@ -3533,16 +3533,16 @@ class woo(Exchange, ImplicitAPI):
         market: Market = None
         if symbol is not None:
             market = self.market(symbol)
-        if (symbol is None) or market['spot']:
+        if (symbol is None) or self.safe_bool(market, 'spot'):
             return self.v3PrivatePostSpotMarginLeverage(self.extend(request, params))
-        elif market['swap']:
-            request['symbol'] = market['id']
+        elif self.safe_bool(market, 'swap'):
+            request['symbol'] = self.safe_string(market, 'id')
             marginMode: Str = None
             marginMode, params = self.handle_margin_mode_and_params('fetchLeverage', params, 'cross')
             request['marginMode'] = self.encode_margin_mode(marginMode)
             return self.v3PrivatePutFuturesLeverage(self.extend(request, params))
         else:
-            raise NotSupported(self.id + ' fetchLeverage() is not supported for ' + market['type'] + ' markets')
+            raise NotSupported(self.id + ' fetchLeverage() is not supported for ' + self.safe_string(market, 'type') + ' markets')
 
     def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
@@ -3742,7 +3742,7 @@ class woo(Exchange, ImplicitAPI):
         contractSize = self.safe_string(market, 'contractSize')
         markPrice = self.safe_string_2(position, 'markPrice', 'mark_price')
         timestampString = self.safe_string(position, 'timestamp')
-        timestamp = None
+        timestamp: Int = None
         if timestampString is not None:
             if timestampString.find('.') > -1:
                 timestamp = self.safe_timestamp(position, 'timestamp')
@@ -3890,8 +3890,8 @@ class woo(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         fromCurrencyId = self.safe_string(data, 'sellAsset')
         toCurrencyId = self.safe_string(data, 'buyAsset')
-        fromCurrency = None
-        toCurrency = None
+        fromCurrency: Currency = None
+        toCurrency: Currency = None
         if fromCurrencyId is not None:
             fromCurrency = self.currency(fromCurrencyId)
         if toCurrencyId is not None:

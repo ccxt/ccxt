@@ -60,7 +60,7 @@ function example() {
                 'apiKey' => 'YOUR_API_KEY',
                 'secret' => 'YOUR_API_SECRET',
             ),
-            'huobi' => array(
+            'htx' => array(
                 'apiKey' => 'YOUR_API_KEY',
                 'secret' => 'YOUR_API_SECRET',
             ),

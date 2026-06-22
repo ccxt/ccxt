@@ -295,7 +295,7 @@ public partial class ndax : ccxt.ndax
                     ((IDictionary<string,object>)getValue(updates, marketId))[(string)timeframe] = true;
                 } else
                 {
-                    if (isTrue(isTrue(length) && isTrue((isLessThan(getValue(parsed, 0), getValue(getValue(stored, subtract(length, 1)), 0))))))
+                    if (isTrue(isTrue(length) && isTrue((isLessThan(this.parseToInt(getValue(parsed, 0)), this.parseToInt(getValue(getValue(stored, subtract(length, 1)), 0)))))))
                     {
                         continue;
                     } else

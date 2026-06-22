@@ -6,7 +6,7 @@ import bitfinexRest from '../bitfinex.js';
 import { Precise } from '../base/Precise.js';
 import { ExchangeError, AuthenticationError, ChecksumError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Market, NullableDict, NullableList } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -226,7 +226,7 @@ export default class bitfinex extends bitfinexRest {
         //   ]
         //
         const data = this.safeValue (message, 1, []);
-        let ohlcvs = undefined;
+        let ohlcvs: NullableList = undefined;
         const first = this.safeValue (data, 0);
         if (Array.isArray (first)) {
             // snapshot
@@ -449,7 +449,7 @@ export default class bitfinex extends bitfinexRest {
         client.resolve (stored, messageHash);
     }
 
-    parseWsTrade (trade, market = undefined) {
+    parseWsTrade (trade, market: Market = undefined) {
         //
         //    [
         //        1128060969, // id
@@ -514,13 +514,13 @@ export default class bitfinex extends bitfinexRest {
         const price = this.safeString (trade, priceKey);
         const amountString = this.safeString (trade, amountKey);
         const amount = this.parseNumber (Precise.stringAbs (amountString));
-        let side = undefined;
+        let side: Str = undefined;
         if (amount !== undefined) {
             side = Precise.stringGt (amountString, '0') ? 'buy' : 'sell';
         }
         const symbol = this.safeSymbol (marketId, market);
         const feeValue = this.safeString (trade, 9);
-        let fee = undefined;
+        let fee: NullableDict = undefined;
         if (feeValue !== undefined) {
             const currencyId = this.safeString (trade, 10);
             const code = this.safeCurrencyCode (currencyId);
@@ -530,7 +530,7 @@ export default class bitfinex extends bitfinexRest {
             };
         }
         const maker = this.safeInteger (trade, 8);
-        let takerOrMaker = undefined;
+        let takerOrMaker: Str = undefined;
         if (maker !== undefined) {
             takerOrMaker = (maker === -1) ? 'taker' : 'maker';
         }
@@ -580,7 +580,7 @@ export default class bitfinex extends bitfinexRest {
         client.resolve (parsed, messageHash);
     }
 
-    parseWsTicker (ticker, market = undefined) {
+    parseWsTicker (ticker, market: Market = undefined) {
         //
         //     [
         //         236.62,        // 1 BID float Price of last highest bid
@@ -877,7 +877,7 @@ export default class bitfinex extends bitfinexRest {
         //   ]
         //
         const updateType = this.safeValue (message, 1);
-        let data = undefined;
+        let data: NullableList = undefined;
         if (updateType === 'ws') {
             data = this.safeValue (message, 2);
         } else {
@@ -958,7 +958,7 @@ export default class bitfinex extends bitfinexRest {
             const subHash = subMessageHashes[i];
             this.cleanUnsubscription (client, subHash, messageHash);
         }
-        this.cleanCache (subscription);
+        this.cleanCache (subscription as Dict);
         return true;
     }
 
@@ -1161,7 +1161,7 @@ export default class bitfinex extends bitfinexRest {
         return this.safeString (statuses, status, status);
     }
 
-    parseWsOrder (order, market = undefined) {
+    parseWsOrder (order, market: Market = undefined) {
         //
         //   [
         //       97084883506, // order id

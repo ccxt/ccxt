@@ -1049,7 +1049,7 @@ class bitteam extends Exchange {
             //         }
             //     }
             //
-            $result = $this->safe_dict($response, 'result');
+            $result = $this->safe_dict($response, 'result', array());
             return $this->parse_order($result, $market);
         }) ();
     }
@@ -1135,7 +1135,7 @@ class bitteam extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
-                'pairId' => (string) $market['numericId'],
+                'pairId' => $this->safe_string($market, 'numericId'),
                 'type' => $type,
                 'side' => $side,
                 'amount' => $this->amount_to_precision($symbol, $amount),
@@ -1222,7 +1222,7 @@ class bitteam extends Exchange {
             $request = array();
             if ($symbol !== null) {
                 $market = $this->market($symbol);
-                $request['pairId'] = (string) $market['numericId'];
+                $request['pairId'] = $this->safe_string($market, 'numericId');
             } else {
                 $request['pairId'] = '0'; // '0' for all markets
             }
@@ -2428,7 +2428,7 @@ class bitteam extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $request = $this->omit($params, $this->extract_params($path));
         $endpoint = '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . $endpoint;

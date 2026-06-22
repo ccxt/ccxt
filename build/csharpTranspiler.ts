@@ -4,6 +4,7 @@ import path from 'path'
 import errors from "../js/src/base/errors.js"
 import { basename, join, resolve } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile, checkCreateFolder } from './fsLocal.js'
+import { writeOverloadStrippedFile, removeOverloadStrippedFile } from './stripOverloads.js'
 import { platform } from 'process'
 import fs from 'fs'
 import log from 'ololog'
@@ -364,6 +365,22 @@ class NewTranspiler {
             return addTaskIfNeeded('object'); // default if type is unknown;
         }
 
+        // `List` is an alias for `Array<any>` (see ts/src/base/types.ts) — normalize it
+        // to `any[]` so it flows through the array branch below instead of leaking the
+        // bare `List` identifier, which is not a valid C# type without a generic arg.
+        if (wrappedType === 'List') {
+            wrappedType = 'any[]';
+        }
+
+        // Tuple return types like `[Dict, Str]` belong to internal multi-return helpers
+        // (e.g. createOrderRequest) that aren't part of the unified API. C# has no inline
+        // tuple syntax matching `[A, B]`, so treat them as an untyped array — exactly how
+        // they transpiled before being annotated (they were `any[]`). The generated
+        // wrapper only needs to compile; these helpers are never called through it.
+        if (wrappedType.startsWith('[') && wrappedType.endsWith(']')) {
+            wrappedType = 'any[]';
+        }
+
         if (wrappedType === 'string[][]') {
             return addTaskIfNeeded('List<List<string>>');
         }
@@ -495,6 +512,8 @@ class NewTranspiler {
             'loadMarketsHelper',
             'createNetworksByIdObject',
             'setMarketsFromExchange',
+            'setLastRequest',
+            'setLastRestRequestTimestamp',
             'setProperty',
             'setProxyAgents',
             'watch',
@@ -556,6 +575,9 @@ class NewTranspiler {
         if (unwrappedType.startsWith('List<')) {
             if (unwrappedType === 'List<Dictionary<string, object>>') {
                 returnStatement = `return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();`
+            } else if (unwrappedType === 'List<string>' || unwrappedType === 'List<String>') {
+                // string is a primitive with no `new string(object)` constructor — cast each element instead
+                returnStatement = `return ((IList<object>)res).Select(item => (item as string)).ToList();`
             } else {
                 returnStatement = `return ((IList<object>)res).Select(item => new ${this.unwrapListIfNeeded(unwrappedType)}(item)).ToList<${this.unwrapListIfNeeded(unwrappedType)}>();`
             }
@@ -739,7 +761,9 @@ class NewTranspiler {
         // to c#
         // const tsContent = fs.readFileSync (baseExchangeFile, 'utf8');
         // const delimited = tsContent.split (delimiter)
-        const baseFile: any = this.transpiler.transpileCSharpByPath(baseExchangeFile);
+        const strippedBaseFile = writeOverloadStrippedFile (baseExchangeFile);
+        const baseFile: any = this.transpiler.transpileCSharpByPath(strippedBaseFile);
+        removeOverloadStrippedFile (strippedBaseFile, baseExchangeFile);
         let baseClass = baseFile.content as any;// remove this later
 
         // create wrappers with specific types

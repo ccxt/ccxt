@@ -253,7 +253,7 @@ class btcbox(Exchange, ImplicitAPI):
         #
         result2Data = self.safe_dict(response2, 'data', {})
         marketIds = list(response1.keys())
-        markets = []
+        markets: List[Market] = []
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             symbolParts = marketId.split('_')
@@ -632,7 +632,7 @@ class btcbox(Exchange, ImplicitAPI):
         #
         id = self.safe_string(order, 'id')
         datetimeString = self.safe_string(order, 'datetime')
-        timestamp = None
+        timestamp: Int = None
         if datetimeString is not None:
             timestamp = self.parse8601(order['datetime'] + '+09:00')  # Tokyo time
         amount = self.safe_string(order, 'amount_original')
@@ -766,7 +766,7 @@ class btcbox(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
         url = self.urls['api']['rest'] + '/' + self.version + '/' + path
         if api == 'public':
             if params:

@@ -876,7 +876,7 @@ public partial class delta : Exchange
                 { "settleId", settleId },
                 { "type", type },
                 { "spot", spot },
-                { "margin", ((bool) isTrue(spot)) ? null : false },
+                { "margin", false },
                 { "swap", swap },
                 { "future", future },
                 { "option", option },
@@ -3286,7 +3286,7 @@ public partial class delta : Exchange
         object result = this.safeList(response, "result", new List<object>() {});
         object settlements = this.parseSettlements(result, market);
         object sorted = this.sortBy(settlements, "timestamp");
-        return this.filterBySymbolSinceLimit(sorted, getValue(market, "symbol"), since, limit);
+        return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit);
     }
 
     public virtual object parseSettlement(object settlement, object market)
@@ -3512,7 +3512,7 @@ public partial class delta : Exchange
             { "bidPrice", this.safeNumber(quotes, "best_bid") },
             { "askPrice", this.safeNumber(quotes, "best_ask") },
             { "markPrice", this.safeNumber(greeks, "mark_price") },
-            { "lastPrice", null },
+            { "lastPrice", this.safeNumber(greeks, "last_price") },
             { "underlyingPrice", this.safeNumber(greeks, "spot_price") },
             { "info", greeks },
         };
@@ -3774,7 +3774,7 @@ public partial class delta : Exchange
         object timestamp = this.safeIntegerProduct(chain, "timestamp", 0.001);
         return new Dictionary<string, object>() {
             { "info", chain },
-            { "currency", null },
+            { "currency", this.safeString(chain, "currency") },
             { "symbol", getValue(market, "symbol") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -3784,12 +3784,12 @@ public partial class delta : Exchange
             { "askPrice", this.safeNumber(quotes, "best_ask") },
             { "midPrice", this.safeNumber(quotes, "impact_mid_price") },
             { "markPrice", this.safeNumber(chain, "mark_price") },
-            { "lastPrice", null },
+            { "lastPrice", this.safeNumber(chain, "last_price") },
             { "underlyingPrice", this.safeNumber(chain, "spot_price") },
-            { "change", null },
-            { "percentage", null },
+            { "change", this.safeNumber(chain, "change") },
+            { "percentage", this.safeNumber(chain, "percentage") },
             { "baseVolume", this.safeNumber(chain, "volume") },
-            { "quoteVolume", null },
+            { "quoteVolume", this.safeNumber(chain, "quote_volume") },
         };
     }
 
@@ -4168,6 +4168,7 @@ public partial class delta : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        headers ??= new Dictionary<string, object>();
         object requestPath = add(add(add("/", this.version), "/"), this.implodeParams(path, parameters));
         object url = add(getValue(getValue(this.urls, "api"), api), requestPath);
         object query = this.omit(parameters, this.extractParams(path));

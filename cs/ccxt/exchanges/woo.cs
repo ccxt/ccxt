@@ -1587,7 +1587,7 @@ public partial class woo : Exchange
             response = await this.v3PrivateDeleteTradeAlgoOrder(this.extend(request, parameters));
         } else
         {
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
             if (isTrue(isByClientOrder))
             {
                 ((IDictionary<string,object>)request)["clientOrderId"] = clientOrderIdExchangeSpecific;
@@ -3769,12 +3769,12 @@ public partial class woo : Exchange
         {
             market = this.market(symbol);
         }
-        if (isTrue(isTrue((isEqual(symbol, null))) || isTrue(getValue(market, "spot"))))
+        if (isTrue(isTrue((isEqual(symbol, null))) || isTrue(this.safeBool(market, "spot"))))
         {
             return await this.v3PrivatePostSpotMarginLeverage(this.extend(request, parameters));
-        } else if (isTrue(getValue(market, "swap")))
+        } else if (isTrue(this.safeBool(market, "swap")))
         {
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
             object marginMode = null;
             var marginModeparametersVariable = this.handleMarginModeAndParams("fetchLeverage", parameters, "cross");
             marginMode = ((IList<object>)marginModeparametersVariable)[0];
@@ -3783,7 +3783,7 @@ public partial class woo : Exchange
             return await this.v3PrivatePutFuturesLeverage(this.extend(request, parameters));
         } else
         {
-            throw new NotSupported ((string)add(add(add(this.id, " fetchLeverage() is not supported for "), getValue(market, "type")), " markets")) ;
+            throw new NotSupported ((string)add(add(add(this.id, " fetchLeverage() is not supported for "), this.safeString(market, "type")), " markets")) ;
         }
     }
 

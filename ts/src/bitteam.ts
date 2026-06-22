@@ -5,7 +5,7 @@ import Exchange from './abstract/bitteam.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import { Balances, Currencies, Currency, Dict, int, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Currencies, Currency, Dict, NullableDict, int, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -466,7 +466,7 @@ export default class bitteam extends Exchange {
         const active = this.safeValue (market, 'active');
         const timeStart = this.safeString (market, 'timeStart');
         const created = this.parse8601 (timeStart);
-        let minCost = undefined;
+        let minCost: Num = undefined;
         const currenciesValuedInUsd = this.safeValue (this.options, 'currenciesValuedInUsd', {});
         const quoteInUsd = this.safeBool (currenciesValuedInUsd, quote, false);
         if (quoteInUsd) {
@@ -667,7 +667,7 @@ export default class bitteam extends Exchange {
         const minWithdraw = this.safeString (txLimits, 'minWithdraw');
         const maxWithdraw = this.safeString (txLimits, 'maxWithdraw');
         const minDeposit = this.safeString (txLimits, 'minDeposit');
-        let fee = undefined;
+        let fee: Num = undefined;
         const withdrawCommissionFixed = this.safeValue (txLimits, 'withdrawCommissionFixed', {}) as any;
         let feesByNetworkId: Dict = {};
         const blockChain = this.safeString (currency, 'blockChain');
@@ -792,7 +792,7 @@ export default class bitteam extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const data = this.safeList (result, 'data', []);
+        const data: List = this.safeList (result, 'data', []) as List;
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
@@ -884,7 +884,7 @@ export default class bitteam extends Exchange {
         const request: Dict = {
             'type': type,
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['pair'] = market['id'];
@@ -976,7 +976,7 @@ export default class bitteam extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const orders = this.safeList (result, 'orders', []);
+        const orders: List = this.safeList (result, 'orders', []) as List;
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -995,7 +995,7 @@ export default class bitteam extends Exchange {
         const request: Dict = {
             'id': id,
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -1037,7 +1037,7 @@ export default class bitteam extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeDict (response, 'result');
+        const result: Dict = this.safeDict (response, 'result', {}) as Dict;
         return this.parseOrder (result, market);
     }
 
@@ -1115,7 +1115,7 @@ export default class bitteam extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
-            'pairId': market['numericId'].toString (),
+            'pairId': this.safeString (market, 'numericId'),
             'type': type,
             'side': side,
             'amount': this.amountToPrecision (symbol, amount),
@@ -1151,7 +1151,7 @@ export default class bitteam extends Exchange {
         //         }
         //     }
         //
-        const order = this.safeDict (response, 'result', {});
+        const order: Dict = this.safeDict (response, 'result', {}) as Dict;
         return this.parseOrder (order, market);
     }
 
@@ -1179,7 +1179,7 @@ export default class bitteam extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeDict (response, 'result', {});
+        const result: Dict = this.safeDict (response, 'result', {}) as Dict;
         return this.parseOrder (result);
     }
 
@@ -1194,11 +1194,11 @@ export default class bitteam extends Exchange {
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['pairId'] = market['numericId'].toString ();
+            request['pairId'] = this.safeString (market, 'numericId');
         } else {
             request['pairId'] = '0'; // '0' for all markets
         }
@@ -1306,7 +1306,7 @@ export default class bitteam extends Exchange {
         const marketId = this.safeString (order, 'pair');
         market = this.safeMarket (marketId, market);
         const clientOrderId = this.safeString (order, 'orderCid');
-        let timestamp = undefined;
+        let timestamp: Int = undefined;
         const createdAt = this.safeString (order, 'createdAt');
         if (createdAt !== undefined) {
             timestamp = this.parse8601 (createdAt);
@@ -1322,7 +1322,7 @@ export default class bitteam extends Exchange {
         const price = this.safeString (order, 'price');
         const amount = this.safeString (order, 'quantity');
         const filled = this.safeString (order, 'executed');
-        let fee = undefined;
+        let fee: NullableDict = undefined;
         if (feeRaw !== undefined) {
             const feeCost = this.safeString (feeRaw, 'amount');
             const feeCurrencyId = this.safeString (feeRaw, 'symbol');
@@ -1433,7 +1433,7 @@ export default class bitteam extends Exchange {
         //         ...
         //     ]
         //
-        const tickers = [];
+        const tickers: List = [];
         if (!Array.isArray (response)) {
             response = [];
         }
@@ -1645,7 +1645,7 @@ export default class bitteam extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const pair = this.safeDict (result, 'pair', {});
+        const pair: Dict = this.safeDict (result, 'pair', {}) as Dict;
         return this.parseTicker (pair, market);
     }
 
@@ -1731,10 +1731,10 @@ export default class bitteam extends Exchange {
         //     }
         const marketId = this.safeStringLower (ticker, 'trading_pairs');
         market = this.safeMarket (marketId, market);
-        let bestBidPrice = undefined;
-        let bestAskPrice = undefined;
-        let bestBidVolume = undefined;
-        let bestAskVolume = undefined;
+        let bestBidPrice: Str = undefined;
+        let bestAskPrice: Str = undefined;
+        let bestBidVolume: Str = undefined;
+        let bestAskVolume: Str = undefined;
         const bids = this.safeValue (ticker, 'bids');
         const asks = this.safeValue (ticker, 'asks');
         if ((bids !== undefined) && (Array.isArray (bids)) && (asks !== undefined) && (Array.isArray (asks))) {
@@ -1833,7 +1833,7 @@ export default class bitteam extends Exchange {
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request: Dict = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['pairId'] = market['numericId'];
@@ -1976,7 +1976,7 @@ export default class bitteam extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const trades = this.safeList (result, 'trades', []);
+        const trades: List = this.safeList (result, 'trades', []) as List;
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -2049,8 +2049,8 @@ export default class bitteam extends Exchange {
         }
         // the exchange returns the side of the taker
         let side = this.safeString2 (trade, 'side', 'type');
-        let feeInfo = undefined;
-        let order = undefined;
+        let feeInfo: NullableDict = undefined;
+        let order: Str = undefined;
         if (takerOrMaker === 'maker') {
             if (side === 'sell') {
                 side = 'buy';
@@ -2181,7 +2181,7 @@ export default class bitteam extends Exchange {
      */
     async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         await this.loadMarkets ();
-        let currency = undefined;
+        let currency: Currency = undefined;
         const request: Dict = {};
         if (code !== undefined) {
             currency = this.currency (code);
@@ -2280,7 +2280,7 @@ export default class bitteam extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const transactions = this.safeList (result, 'transactions', []);
+        const transactions: List = this.safeList (result, 'transactions', []) as List;
         return this.parseTransactions (transactions, currency, since, limit);
     }
 
@@ -2391,7 +2391,7 @@ export default class bitteam extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const request = this.omit (params, this.extractParams (path));
         const endpoint = '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + endpoint;

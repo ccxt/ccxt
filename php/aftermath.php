@@ -162,7 +162,7 @@ class aftermath extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array ()): array {
         /**
          *
          * @see https://testnet.aftermath.finance/docs/#/CCXT/currencies
@@ -313,7 +313,7 @@ class aftermath extends Exchange {
         //     }
         //
         $precision = $this->safe_dict($market, 'precision');
-        $limits = $this->safe_dict($market, 'limits');
+        $limits = $this->safe_dict($market, 'limits', array());
         return $this->safe_market_structure(array(
             'id' => $this->safe_string($market, 'id'),
             'symbol' => $this->safe_string($market, 'symbol'),
@@ -1346,7 +1346,7 @@ class aftermath extends Exchange {
         return null;
     }
 
-    public function sign($path, $api = 'public', $method = 'POST', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'POST', $params = array (), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api']['rest'] . '/' . $path;
         if ($api === 'private') {
             $this->check_required_credentials();

@@ -1040,7 +1040,7 @@ class mexc extends mexc$1["default"] {
      */
     async fetchStatus(params = {}) {
         const [marketType, query] = this.handleMarketTypeAndParams('fetchStatus', undefined, params);
-        let response = undefined;
+        let response = {};
         let status = undefined;
         let updated = undefined;
         if (marketType === 'spot') {
@@ -1079,7 +1079,7 @@ class mexc extends mexc$1["default"] {
      */
     async fetchTime(params = {}) {
         const [marketType, query] = this.handleMarketTypeAndParams('fetchTime', undefined, params);
-        let response = undefined;
+        let response;
         if (marketType === 'spot') {
             response = await this.spotPublicGetTime(query);
             //
@@ -1569,7 +1569,7 @@ class mexc extends mexc$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let trades = undefined;
+        let trades = [];
         if (market['spot']) {
             const until = this.safeIntegerN(params, ['endTime', 'until']);
             if (since !== undefined) {
@@ -1831,7 +1831,7 @@ class mexc extends mexc$1["default"] {
             'symbol': market['id'],
             'interval': timeframeValue,
         };
-        let candles = undefined;
+        let candles = [];
         const until = this.safeIntegerN(params, ['until', 'endTime']);
         let start = since;
         if ((until !== undefined) && (since === undefined)) {
@@ -1884,7 +1884,7 @@ class mexc extends mexc$1["default"] {
             }
             const priceType = this.safeString(params, 'price', 'default');
             params = this.omit(params, 'price');
-            let response = undefined;
+            let response;
             if (priceType === 'default') {
                 response = await this.contractPublicGetKlineSymbol(this.extend(request, params));
             }
@@ -1951,7 +1951,7 @@ class mexc extends mexc$1["default"] {
         const [marketType, query] = this.handleMarketTypeAndParams('fetchTickers', market, params);
         let tickers = undefined;
         if (isSingularMarket) {
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
         }
         if (marketType === 'spot') {
             tickers = await this.spotPublicGetTicker24hr(this.extend(request, query));
@@ -2415,7 +2415,7 @@ class mexc extends mexc$1["default"] {
         const test = this.safeBool(params, 'test', false);
         params = this.omit(params, 'test');
         const request = this.createSpotOrderRequest(market, type, side, amount, price, marginMode, params);
-        let response = undefined;
+        let response;
         if (test) {
             response = await this.spotPrivatePostOrderTest(request);
         }
@@ -2576,7 +2576,7 @@ class mexc extends mexc$1["default"] {
         }
         const triggerPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
         params = this.omit(params, ['clientOrderId', 'externalOid', 'postOnly', 'stopPrice', 'triggerPrice', 'hedged']);
-        let response = undefined;
+        let response;
         if (triggerPrice) {
             request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
             request['triggerType'] = this.safeInteger(params, 'triggerType', 1);
@@ -2685,7 +2685,7 @@ class mexc extends mexc$1["default"] {
         const request = {
             'symbol': market['id'],
         };
-        let data = undefined;
+        let data = {};
         if (market['spot']) {
             const clientOrderId = this.safeString(params, 'clientOrderId');
             if (clientOrderId !== undefined) {
@@ -2829,7 +2829,7 @@ class mexc extends mexc$1["default"] {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            let response = undefined;
+            let response;
             if (marginMode !== undefined) {
                 if (marginMode !== 'isolated') {
                     throw new errors.BadRequest(this.id + ' fetchOrders() does not support marginMode ' + marginMode + ' for spot-margin trading');
@@ -3067,10 +3067,10 @@ class mexc extends mexc$1["default"] {
         [marketType, params] = this.handleMarketTypeAndParams('fetchOpenOrders', market, params);
         if (marketType === 'spot') {
             if (symbol !== undefined) {
-                request['symbol'] = market['id'];
+                request['symbol'] = this.safeString(market, 'id');
             }
             const [marginMode, query] = this.handleMarginModeAndParams('fetchOpenOrders', params);
-            let response = undefined;
+            let response;
             if (marginMode !== undefined) {
                 if (marginMode !== 'isolated') {
                     throw new errors.BadRequest(this.id + ' fetchOpenOrders() does not support marginMode ' + marginMode + ' for spot-margin trading');
@@ -3210,13 +3210,13 @@ class mexc extends mexc$1["default"] {
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('cancelOrder', market, params);
         const [marginMode, query] = this.handleMarginModeAndParams('cancelOrder', params);
-        let data = undefined;
+        let data;
         if (marketType === 'spot') {
             if (symbol === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
             }
             const requestInner = {
-                'symbol': market['id'],
+                'symbol': this.safeString(market, 'id'),
             };
             const clientOrderId = this.safeString(params, 'clientOrderId');
             if (clientOrderId !== undefined) {
@@ -3274,7 +3274,7 @@ class mexc extends mexc$1["default"] {
             // TODO: PlanorderCancel endpoint has bug atm. waiting for fix.
             let method = this.safeString(this.options, 'cancelOrder', 'contractPrivatePostOrderCancel'); // contractPrivatePostOrderCancel, contractPrivatePostPlanorderCancel
             method = this.safeString(query, 'method', method);
-            let response = undefined;
+            let response;
             if (method === 'contractPrivatePostOrderCancel') {
                 response = await this.contractPrivatePostOrderCancel([id]); // the request cannot be changed or extended. This is the only way to send.
             }
@@ -3365,8 +3365,8 @@ class mexc extends mexc$1["default"] {
             if (symbol === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' cancelAllOrders() requires a symbol argument on spot');
             }
-            request['symbol'] = market['id'];
-            let response = undefined;
+            request['symbol'] = this.safeString(market, 'id');
+            let response;
             if (marginMode !== undefined) {
                 if (marginMode !== 'isolated') {
                     throw new errors.BadRequest(this.id + ' cancelAllOrders() does not support marginMode ' + marginMode + ' for spot-margin trading');
@@ -3416,13 +3416,13 @@ class mexc extends mexc$1["default"] {
         }
         else {
             if (symbol !== undefined) {
-                request['symbol'] = market['id'];
+                request['symbol'] = this.safeString(market, 'id');
             }
             // method can be either: contractPrivatePostOrderCancelAll or contractPrivatePostPlanorderCancelAll
             // the Planorder endpoints work not only for stop-market orders but also for stop-limit orders that are supposed to have separate endpoint
             let method = this.safeString(this.options, 'cancelAllOrders', 'contractPrivatePostOrderCancelAll');
             method = this.safeString(query, 'method', method);
-            let response = undefined;
+            let response = {};
             if (method === 'contractPrivatePostOrderCancelAll') {
                 response = await this.contractPrivatePostOrderCancelAll(this.extend(request, query));
             }
@@ -3991,14 +3991,17 @@ class mexc extends mexc$1["default"] {
         const marginMode = this.safeString(params, 'marginMode');
         const isMargin = this.safeBool(params, 'margin', false);
         params = this.omit(params, ['margin', 'marginMode']);
-        let response = undefined;
+        let response;
         if ((marginMode !== undefined) || (isMargin) || (marketType === 'margin')) {
             let parsedSymbols = undefined;
             const symbol = this.safeString(params, 'symbol');
             if (symbol === undefined) {
                 const symbols = this.safeValue(params, 'symbols');
                 if (symbols !== undefined) {
-                    parsedSymbols = this.marketIds(symbols).join(',');
+                    const symbolIds = this.marketIds(symbols);
+                    if (symbolIds !== undefined) {
+                        parsedSymbols = symbolIds.join(',');
+                    }
                 }
             }
             else {
@@ -4130,7 +4133,7 @@ class mexc extends mexc$1["default"] {
         const request = {
             'symbol': market['id'],
         };
-        let trades = undefined;
+        let trades;
         if (marketType === 'spot') {
             if (since !== undefined) {
                 request['startTime'] = since;
@@ -4226,12 +4229,12 @@ class mexc extends mexc$1["default"] {
             market = this.market(symbol);
         }
         const [marketType, query] = this.handleMarketTypeAndParams('fetchOrderTrades', market, params);
-        let trades = undefined;
+        let trades;
         if (marketType === 'spot') {
             if (symbol === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' fetchOrderTrades() requires a symbol argument');
             }
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
             request['orderId'] = id;
             trades = await this.spotPrivateGetMyTrades(this.extend(request, query));
             //
@@ -4882,7 +4885,7 @@ class mexc extends mexc$1["default"] {
     async fetchDepositAddress(code, params = {}) {
         const network = this.safeString(params, 'network');
         const addressStructures = await this.fetchDepositAddressesByNetwork(code, params);
-        let result = undefined;
+        let result;
         if (network !== undefined) {
             result = this.safeDict(addressStructures, this.networkIdToCode(network, code));
         }
@@ -5996,7 +5999,7 @@ class mexc extends mexc$1["default"] {
         }
         return {
             'info': leverage,
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'marginMode': marginMode,
             'longLeverage': longLeverage,
             'shortLeverage': shortLeverage,
@@ -6181,6 +6184,7 @@ class mexc extends mexc$1["default"] {
                 };
             }
             if ((method === 'POST') || (method === 'PUT') || (method === 'DELETE')) {
+                headers = (headers === undefined) ? {} : headers;
                 headers['Content-Type'] = 'application/json';
             }
         }

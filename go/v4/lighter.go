@@ -142,7 +142,7 @@ func (this *LighterCore) Describe() any {
 		},
 		"hostname": "zklighter.elliot.ai",
 		"urls": map[string]any{
-			"logo": "https://github.com/user-attachments/assets/ff1aaf96-bffb-4545-a750-5eba716e75d0",
+			"logo": "https://github.com/user-attachments/assets/478f648a-05e4-4b09-a841-e7fced3846c0",
 			"api": map[string]any{
 				"root":    "https://mainnet.{hostname}",
 				"public":  "https://mainnet.{hostname}",
@@ -636,12 +636,12 @@ func (this *LighterCore) CreateAuth(optionalArgs ...any) any {
 	var cachedAuth any = this.SafeDict(accountAuths, apiKeyIndex)
 	var cachedDeadline any = this.SafeInteger(cachedAuth, "deadline")
 	if IsTrue(!IsEqual(cachedDeadline, nil)) {
-		var minimumDeadline any = Add(this.Seconds(), this.SafeInteger(this.Options, "authDeadlineMinimumRemaining"))
+		var minimumDeadline any = Add(this.Seconds(), this.SafeInteger(this.Options, "authDeadlineMinimumRemaining", 60))
 		if IsTrue(IsGreaterThanOrEqual(cachedDeadline, minimumDeadline)) {
 			return this.SafeString(cachedAuth, "token")
 		}
 	}
-	var deadline any = Add(this.Seconds(), this.SafeInteger(this.Options, "authDeadlineExpiry"))
+	var deadline any = Add(this.Seconds(), this.SafeInteger(this.Options, "authDeadlineExpiry", 28800))
 	var request any = map[string]any{
 		"deadline":      deadline,
 		"api_key_index": this.ParseToInt(apiKeyIndex),
@@ -943,7 +943,7 @@ func (this *LighterCore) CreateOrderRequest(symbol any, typeVar any, side any, a
 			}
 		}
 	}
-	var marketInfo any = this.SafeDict(market, "info")
+	var marketInfo any = this.SafeDict(market, "info", map[string]any{})
 	var amountStr any = nil
 	var priceStr any = this.PriceToPrecision(symbol, price)
 	var amountScale any = this.Pow("10", GetValue(marketInfo, "size_decimals"))
@@ -1216,7 +1216,7 @@ func (this *LighterCore) EditOrder(id any, symbol any, typeVar any, side any, op
 		signer := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
 		PanicOnError(signer)
 		var market any = this.Market(symbol)
-		var marketInfo any = this.SafeDict(market, "info")
+		var marketInfo any = this.SafeDict(market, "info", map[string]any{})
 		var amountScale any = this.Pow("10", GetValue(marketInfo, "size_decimals"))
 		var priceScale any = this.Pow("10", GetValue(marketInfo, "price_decimals"))
 		var triggerPrice any = this.SafeStringN(params, []any{"stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"})

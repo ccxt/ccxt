@@ -526,7 +526,7 @@ class bydfi(ccxt.async_support.bydfi):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        symbols = None
+        symbols: Strings = None
         if symbol is not None:
             symbols = [symbol]
         return await self.watch_orders_for_symbols(symbols, since, limit, params)
@@ -633,7 +633,7 @@ class bydfi(ccxt.async_support.bydfi):
         market = self.safe_market(marketId, market)
         rawStatus = self.safe_string(order, 'st')
         rawType = self.safe_string(order, 't')
-        fee = None
+        fee: dict = None
         feeCost = self.safe_string(order, 'fee')
         if feeCost is not None:
             fee = {

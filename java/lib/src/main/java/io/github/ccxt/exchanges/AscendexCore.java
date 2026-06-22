@@ -2787,7 +2787,7 @@ public class AscendexCore extends AscendexApi
             }};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
+                Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
             }
             Object response = null;
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "spot"))) || Helpers.isTrue((Helpers.isEqual(type, "margin")))))
@@ -3449,12 +3449,12 @@ public class AscendexCore extends AscendexApi
         Object status = ((Helpers.isTrue((Helpers.isEqual(errorCode, "0"))))) ? "ok" : "failed";
         return new java.util.HashMap<String, Object>() {{
             put( "info", data );
-            put( "symbol", Helpers.GetValue(market, "symbol") );
+            put( "symbol", AscendexCore.this.safeString(market, "symbol") );
             put( "type", null );
             put( "marginMode", "isolated" );
             put( "amount", null );
             put( "total", null );
-            put( "code", Helpers.GetValue(market, "quote") );
+            put( "code", AscendexCore.this.safeString(market, "quote") );
             put( "status", status );
             put( "timestamp", null );
             put( "datetime", null );
@@ -4141,8 +4141,7 @@ final Object finalI = i;
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             Object request = new java.util.HashMap<String, Object>() {{}};
-            Object response = null;
-            response = (this.v2PublicGetFuturesPricingData(this.extend(request, parameters))).join();
+            Object response = (this.v2PublicGetFuturesPricingData(this.extend(request, parameters))).join();
             //
             //    {
             //        code: '0',

@@ -3047,7 +3047,7 @@ class grvt extends Exchange {
         $price = null;
         $filled = null;
         $avgPrice = null;
-        $legs = $this->safe_list($order, 'legs');
+        $legs = $this->safe_list($order, 'legs', array());
         $metadata = $this->safe_dict($order, 'metadata', array());
         $stateObj = $this->safe_dict($order, 'state', array());
         $filledAmounts = $this->safe_list($stateObj, 'traded_size', array());
@@ -3075,7 +3075,7 @@ class grvt extends Exchange {
             'lastTradeTimeStamp' => null,
             'lastUpdateTimestamp' => $this->safe_integer_product($stateObj, 'update_time', 0.000001),
             'status' => $this->parse_order_status($this->safe_string($stateObj, 'status')),
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'type' => $orderType,
             'timeInForce' => $timeInForce,
             'postOnly' => $isPostOnly,
@@ -3313,7 +3313,7 @@ class grvt extends Exchange {
         return $requestId;
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, mixed $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
         $url = $this->urls['api'][$api] . $path;
         $queryString = '';

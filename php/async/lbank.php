@@ -1081,7 +1081,7 @@ class lbank extends Exchange {
         $fee = null;
         $feeCost = $this->safe_string($trade, 'tradeFee');
         if ($feeCost !== null) {
-            $feeCurr = ($side === 'buy') ? $market['base'] : $market['quote'];
+            $feeCurr = ($side === 'buy') ? $this->safe_string($market, 'base') : $this->safe_string($market, 'quote');
             $fee = array(
                 'cost' => $feeCost,
                 'currency' => $feeCurr,
@@ -3048,7 +3048,7 @@ class lbank extends Exchange {
         return $result;
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
         $url = $this->urls['api']['rest'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         // Every spot endpoint ends with ".do"

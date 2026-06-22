@@ -668,7 +668,7 @@ class novadax(Exchange, ImplicitAPI):
         symbol = self.safe_symbol(marketId, market, '_')
         takerOrMaker = self.safe_string_lower(trade, 'role')
         feeString = self.safe_string(trade, 'fee')
-        fee = None
+        fee: dict = None
         if feeString is not None:
             feeCurrencyId = self.safe_string(trade, 'feeCurrency')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
@@ -897,7 +897,7 @@ class novadax(Exchange, ImplicitAPI):
             if uppercaseSide == 'SELL':
                 request['amount'] = self.amount_to_precision(symbol, amount)
             elif uppercaseSide == 'BUY':
-                quoteAmount = None
+                quoteAmount: Str = None
                 createMarketBuyOrderRequiresPrice = True
                 createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
                 cost = self.safe_number_2(params, 'cost', 'value')
@@ -1033,7 +1033,7 @@ class novadax(Exchange, ImplicitAPI):
             # 'toTimestamp': self.milliseconds(),
             # 'limit': limit,  # default 100, max 100
         }
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -1120,7 +1120,7 @@ class novadax(Exchange, ImplicitAPI):
             'id': id,
         }
         response = self.privateGetOrdersFill(self.extend(request, params))
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
         data = self.safe_value(response, 'data', [])
@@ -1197,7 +1197,7 @@ class novadax(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(order, 'timestamp')
         average = self.safe_string(order, 'averagePrice')
         filled = self.safe_string(order, 'filledAmount')
-        fee = None
+        fee: dict = None
         feeCost = self.safe_number(order, 'filledFee')
         if feeCost is not None:
             fee = {
@@ -1427,7 +1427,7 @@ class novadax(Exchange, ImplicitAPI):
             # 'size': limit,  # default 100
             # 'start': id,  # offset id
         }
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
             request['currency'] = currency['id']
@@ -1565,7 +1565,7 @@ class novadax(Exchange, ImplicitAPI):
             #  'limit': limit,  # The number of fills to return, default 100, max 100, string
             #  'accountId': subaccountId,  # Sub account ID, if not informed, the fills will be return under master account, string
         }
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -1598,7 +1598,7 @@ class novadax(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         request = '/' + self.version + '/' + self.implode_params(path, params)
         url = self.urls['api'][api] + request
         query = self.omit(params, self.extract_params(path))
@@ -1612,7 +1612,7 @@ class novadax(Exchange, ImplicitAPI):
                 'X-Nova-Access-Key': self.apiKey,
                 'X-Nova-Timestamp': timestamp,
             }
-            queryString = None
+            queryString: Str = None
             if method == 'POST':
                 body = self.json(query)
                 queryString = self.hash(self.encode(body), 'md5')

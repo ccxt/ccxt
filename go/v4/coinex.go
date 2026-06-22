@@ -4157,7 +4157,7 @@ func (this *CoinexCore) ParseMarginModification(data any, optionalArgs ...any) a
 		"marginMode": "isolated",
 		"amount":     this.ParseNumber(Precise.StringAbs(change)),
 		"total":      this.SafeNumber(data, "margin_avbl"),
-		"code":       GetValue(market, "quote"),
+		"code":       this.SafeString(market, "quote"),
 		"status":     nil,
 		"timestamp":  timestamp,
 		"datetime":   this.Iso8601(timestamp),

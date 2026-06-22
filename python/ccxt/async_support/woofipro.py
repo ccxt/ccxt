@@ -700,7 +700,7 @@ class woofipro(Exchange, ImplicitAPI):
     def parse_currency(self, rawCurrency: dict) -> Currency:
         token = self.safe_dict(rawCurrency, '_token', {})
         currencyId = self.safe_string(token, 'token')
-        networks = self.safe_list(token, 'chain_details')
+        networks = self.safe_list(token, 'chain_details', [])
         code = self.safe_currency_code(currencyId)
         indexedChains = self.safe_dict(rawCurrency, '_indexedChains', {})
         resultingNetworks: dict = {}
@@ -755,7 +755,7 @@ class woofipro(Exchange, ImplicitAPI):
 
     def parse_token_and_fee_temp(self, item, feeTokenKey, feeAmountKey):
         feeCost = self.safe_string(item, feeAmountKey)
-        fee = None
+        fee: dict = None
         if feeCost is not None:
             feeCurrencyId = self.safe_string(item, feeTokenKey)
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
@@ -1567,7 +1567,7 @@ class woofipro(Exchange, ImplicitAPI):
         stopLoss = self.safe_value(params, 'stopLoss')
         takeProfit = self.safe_value(params, 'takeProfit')
         isConditional = triggerPrice is not None or stopLoss is not None or takeProfit is not None or (self.safe_value(params, 'childOrders') is not None)
-        response = None
+        response: dict = None
         if isConditional:
             response = await self.v1PrivatePostAlgoOrder(request)
             #
@@ -1599,7 +1599,7 @@ class woofipro(Exchange, ImplicitAPI):
             #     }
             # }
             #
-        data = self.safe_dict(response, 'data')
+        data = self.safe_dict(response, 'data', {})
         data['timestamp'] = self.safe_integer(response, 'timestamp')
         order = self.parse_order(data, market)
         order['type'] = type
@@ -1693,7 +1693,7 @@ class woofipro(Exchange, ImplicitAPI):
         if amount is not None:
             request[orderQtyKey] = self.amount_to_precision(symbol, amount)
         params = self.omit(params, ['stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent'])
-        response = None
+        response: dict = None
         if isConditional:
             response = await self.v1PrivatePutAlgoOrder(self.extend(request, params))
         else:
@@ -1756,12 +1756,12 @@ class woofipro(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
         request: dict = {
-            'symbol': market['id'],
+            'symbol': self.safe_string(market, 'id'),
         }
         clientOrderIdUnified = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
         clientOrderIdExchangeSpecific = self.safe_string(params, 'client_order_id', clientOrderIdUnified)
         isByClientOrder = clientOrderIdExchangeSpecific is not None
-        response = None
+        response: dict = None
         if trigger:
             if isByClientOrder:
                 request['client_order_id'] = clientOrderIdExchangeSpecific
@@ -1820,7 +1820,7 @@ class woofipro(Exchange, ImplicitAPI):
         clientOrderIds = self.safe_list_n(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids'])
         params = self.omit(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids'])
         request: dict = {}
-        response = None
+        response: dict = None
         if clientOrderIds:
             request['client_order_ids'] = ','.join(clientOrderIds)
             response = await self.v1PrivateDeleteClientBatchOrder(self.extend(request, params))
@@ -1859,7 +1859,7 @@ class woofipro(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        response = None
+        response: dict = None
         if trigger:
             response = await self.v1PrivateDeleteAlgoOrders(self.extend(request, params))
         else:
@@ -1902,14 +1902,14 @@ class woofipro(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
         request: dict = {}
         clientOrderId = self.safe_string_n(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
         params = self.omit(params, ['stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id'])
-        response = None
+        response: dict = None
         if trigger:
             if clientOrderId:
                 request['client_order_id'] = clientOrderId
@@ -1994,7 +1994,7 @@ class woofipro(Exchange, ImplicitAPI):
         if isTrigger:
             request['algo_type'] = 'STOP'
         request, params = self.handle_until_option('end_t', request, params)
-        response = None
+        response: dict = None
         if isTrigger:
             response = await self.v1PrivateGetAlgoOrders(self.extend(request, params))
         else:
@@ -2541,7 +2541,7 @@ class woofipro(Exchange, ImplicitAPI):
         leverageValue = self.safe_integer(leverage, 'max_leverage')
         return {
             'info': leverage,
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'marginMode': None,
             'longLeverage': leverageValue,
             'shortLeverage': leverageValue,
@@ -2780,7 +2780,7 @@ class woofipro(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, section='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, section='public', method='GET', params={}, headers: dict = None, body: Str = None):
         version = section[0]
         access = section[1]
         pathWithParams = self.implode_params(path, params)

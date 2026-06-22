@@ -678,6 +678,7 @@ class bit2c extends Exchange {
         // 0 = New
         // 1 = Open
         // 5 = Completed
+        $status = null;
         if ($isNewOrder) {
             $tempStatus = $this->safe_integer($orderUnified, 'status_type');
             if ($tempStatus === 0 || $tempStatus === 1) {
@@ -974,7 +975,7 @@ class bit2c extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api']['rest'] . '/' . $this->implode_params($path, $params);
         if ($api === 'public') {
             $url .= '.json';

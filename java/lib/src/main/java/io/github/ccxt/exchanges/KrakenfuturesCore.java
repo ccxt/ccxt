@@ -2952,7 +2952,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                 throw new BadRequest((String)Helpers.add(this.id, " fetchFundingRateHistory() supports swap contracts only")) ;
             }
             Object request = new java.util.HashMap<String, Object>() {{
-                put( "symbol", ((String)Helpers.GetValue(market, "id")).toUpperCase() );
+                put( "symbol", KrakenfuturesCore.this.safeStringUpper(market, "id") );
             }};
             Object response = (this.publicGetHistoricalfundingrates(this.extend(request, parameters))).join();
             //

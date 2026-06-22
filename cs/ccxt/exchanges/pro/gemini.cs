@@ -302,7 +302,7 @@ public partial class gemini : ccxt.gemini
             { "type", "subscribe" },
             { "subscriptions", new List<object>() {new Dictionary<string, object>() {
     { "name", add("candles_", timeframeId) },
-    { "symbols", new List<object> {((string)getValue(market, "id")).ToUpper()} },
+    { "symbols", new List<object> {this.safeStringUpper(market, "id")} },
 }} },
         };
         object messageHash = add(add(add("ohlcv:", getValue(market, "symbol")), ":"), timeframeId);

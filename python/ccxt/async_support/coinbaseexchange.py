@@ -244,6 +244,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
                         'funding/repay',
                         'orders',
                         'position/close',
+                        'profiles',
                         'profiles/margin-transfer',
                         'profiles/transfer',
                         'reports',
@@ -259,6 +260,10 @@ class coinbaseexchange(Exchange, ImplicitAPI):
                         'orders',
                         'orders/client:{client_oid}',
                         'orders/{id}',
+                    ],
+                    'put': [
+                        'profiles/{id}/deactivate',
+                        'profiles/{id}',
                     ],
                 },
             },
@@ -849,14 +854,14 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         #         "volume": "2.41000000"
         #     }
         #
-        timestamp = None
-        bid = None
-        ask = None
-        last = None
-        high = None
-        low = None
-        open = None
-        volume = None
+        timestamp: Int = None
+        bid: Str = None
+        ask: Str = None
+        last: Str = None
+        high: Str = None
+        low: Str = None
+        open: Str = None
+        volume: Str = None
         symbol = None if (market is None) else market['symbol']
         if isinstance(ticker, list):
             last = self.safe_string(ticker, 4)
@@ -1007,9 +1012,9 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         timestamp = self.parse8601(self.safe_string_2(trade, 'time', 'created_at'))
         marketId = self.safe_string(trade, 'product_id')
         market = self.safe_market(marketId, market, '-')
-        feeRate = None
-        takerOrMaker = None
-        cost = None
+        feeRate: Str = None
+        takerOrMaker: Str = None
+        cost: Str = None
         feeCurrencyId = self.safe_string_lower(market, 'quoteId')
         if feeCurrencyId is not None:
             costField = feeCurrencyId + '_value'
@@ -1289,7 +1294,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         amount = self.safe_string(order, 'size', filled)
         cost = self.safe_string(order, 'executed_value')
         feeCost = self.safe_number(order, 'fill_fees')
-        fee = None
+        fee: dict = None
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
@@ -1341,7 +1346,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         await self.load_markets()
         request: dict = {}
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_oid')
-        method = None
+        method: Str = None
         if clientOrderId is None:
             method = 'privateGetOrdersId'
             request['id'] = id
@@ -1363,7 +1368,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
         request: dict = {
@@ -1410,7 +1415,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         if paginate:
             return await self.fetch_paginated_call_dynamic('fetchOpenOrders', symbol, since, limit, params, 100)
         request: dict = {}
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['product_id'] = market['id']
@@ -1544,7 +1549,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             # 'product_id': market['id'],  # the request will be more performant if you include it
         }
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_oid')
-        method = None
+        method: Str = None
         if clientOrderId is None:
             method = 'privateDeleteOrdersId'
             request['id'] = id
@@ -1552,7 +1557,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             method = 'privateDeleteOrdersClientClientOid'
             request['client_oid'] = clientOrderId
             params = self.omit(params, ['clientOrderId', 'client_oid'])
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['product_id'] = market['symbol']  # the request will be more performant if you include it
@@ -1571,7 +1576,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         request: dict = {}
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['product_id'] = market['symbol']  # the request will be more performant if you include it
@@ -1655,7 +1660,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         #  }
         id = self.safe_string(item, 'id')
         amountString = self.safe_string(item, 'amount')
-        direction = None
+        direction: Str = None
         afterString = self.safe_string(item, 'balance')
         beforeString = Precise.string_sub(afterString, amountString)
         if Precise.string_lt(amountString, '0'):
@@ -1670,9 +1675,9 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         type = self.parse_ledger_entry_type(self.safe_string(item, 'type'))
         code = self.safe_currency_code(None, currency)
         details = self.safe_value(item, 'details', {})
-        account = None
-        referenceAccount = None
-        referenceId = None
+        account: Str = None
+        referenceAccount: Str = None
+        referenceId: Str = None
         if type == 'transfer':
             account = self.safe_string(details, 'from')
             referenceAccount = self.safe_string(details, 'to')
@@ -1759,7 +1764,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         await self.load_accounts()
-        currency = None
+        currency: Currency = None
         id = self.safe_string(params, 'id')  # account id
         if id is None:
             if code is not None:
@@ -1774,7 +1779,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             request['id'] = id
         if limit is not None:
             request['limit'] = limit
-        response = None
+        response: List = None
         if id is None:
             response = await self.privateGetTransfers(self.extend(request, params))
             #
@@ -1998,7 +2003,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         request = '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if method == 'GET':

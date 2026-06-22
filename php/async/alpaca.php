@@ -443,7 +443,7 @@ class alpaca extends Exchange {
             $jetlagStrStart = strlen($timestamp) - 6;
             $jetlagStrEnd = strlen($timestamp) - 3;
             $jetlag = mb_substr($timestamp, $jetlagStrStart, $jetlagStrEnd - $jetlagStrStart);
-            $iso = $this->parse8601($localTime) - $this->parse_to_numeric($jetlag) * 3600 * 1000;
+            $iso = $this->parse_to_int($this->parse8601($localTime)) - $this->parse_to_numeric($jetlag) * 3600 * 1000;
             return $iso;
         }) ();
     }
@@ -1943,7 +1943,7 @@ class alpaca extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $endpoint = '/' . $this->implode_params($path, $params);
         $url = $this->implode_hostname($this->urls['api'][$api[0]]);
         $headers = ($headers !== null) ? $headers : array();

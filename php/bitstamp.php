@@ -805,7 +805,7 @@ class bitstamp extends Exchange {
         return $this->safe_value($this->options['fetchMarkets'], 'response');
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          *
@@ -1143,14 +1143,14 @@ class bitstamp extends Exchange {
             $market = $this->get_market_from_trade($trade);
         }
         $feeCostString = $this->safe_string($trade, 'fee');
-        $feeCurrency = $market['quote'];
-        $priceId = ($rawMarketId !== null) ? $rawMarketId : $market['id'];
+        $feeCurrency = $this->safe_string($market, 'quote');
+        $priceId = ($rawMarketId !== null) ? $rawMarketId : $this->safe_string($market, 'id');
         $priceString = $this->safe_string($trade, $priceId, $priceString);
-        $amountString = $this->safe_string($trade, $market['baseId'], $amountString);
-        $costString = $this->safe_string($trade, $market['quoteId'], $costString);
+        $amountString = $this->safe_string($trade, $this->safe_string($market, 'baseId'), $amountString);
+        $costString = $this->safe_string($trade, $this->safe_string($market, 'quoteId'), $costString);
         // this endpoint is not aligned with "markets" endpoint
-        $baseIdLower = strtolower($market['baseId']);
-        $quoteIdLower = strtolower($market['quoteId']);
+        $baseIdLower = $this->safe_string_lower($market, 'baseId');
+        $quoteIdLower = $this->safe_string_lower($market, 'quoteId');
         $dashedIdLower = $baseIdLower . '_' . $quoteIdLower;
         if ($priceString === null) {
             $priceString = $this->safe_string($trade, $dashedIdLower);
@@ -1161,7 +1161,7 @@ class bitstamp extends Exchange {
         if ($costString === null) {
             $costString = $this->safe_string($trade, $quoteIdLower);
         }
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol');
         $datetimeString = $this->safe_string_2($trade, 'date', 'datetime');
         $timestamp = null;
         if ($datetimeString !== null) {
@@ -2292,7 +2292,7 @@ class bitstamp extends Exchange {
                 'referenceId' => $parsedTrade['order'],
                 'referenceAccount' => null,
                 'type' => $type,
-                'currency' => $market['base'],
+                'currency' => $this->safe_string($market, 'base'),
                 'amount' => $parsedTrade['amount'],
                 'before' => null,
                 'after' => null,
@@ -2613,7 +2613,7 @@ class bitstamp extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api'][$api] . '/';
         $url .= $this->version . '/';
         $url .= $this->implode_params($path, $params);

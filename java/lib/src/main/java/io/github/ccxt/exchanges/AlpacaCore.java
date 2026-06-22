@@ -347,7 +347,7 @@ public class AlpacaCore extends AlpacaApi
             Object jetlagStrStart = Helpers.subtract(((String)timestamp).length(), 6);
             Object jetlagStrEnd = Helpers.subtract(((String)timestamp).length(), 3);
             Object jetlag = Helpers.slice(timestamp, jetlagStrStart, jetlagStrEnd);
-            Object iso = Helpers.subtract(this.parse8601(localTime), Helpers.multiply(Helpers.multiply(this.parseToNumeric(jetlag), 3600), 1000));
+            Object iso = Helpers.subtract(this.parseToInt(this.parse8601(localTime)), Helpers.multiply(Helpers.multiply(this.parseToNumeric(jetlag), 3600), 1000));
             return iso;
         });
 

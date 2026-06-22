@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bigone import ImplicitAPI
 import asyncio
-from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Bool, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -877,7 +877,7 @@ class bigone(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        type = None
+        type: Str = None
         type, params = self.handle_market_type_and_params('fetchTicker', market, params)
         if type == 'spot':
             request: dict = {
@@ -917,16 +917,16 @@ class bigone(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         symbol = self.safe_string(symbols, 0)
         if symbol is not None:
             market = self.market(symbol)
-        type = None
+        type: Str = None
         type, params = self.handle_market_type_and_params('fetchTickers', market, params)
         isSpot = type == 'spot'
         request: dict = {}
         symbols = self.market_symbols(symbols)
-        data = None
+        data: NullableList = None
         if isSpot:
             if symbols is not None:
                 ids = self.market_ids(symbols)
@@ -1024,7 +1024,7 @@ class bigone(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        response = None
+        response: dict
         if market['contract']:
             request: dict = {
                 'symbol': market['id'],
@@ -1188,8 +1188,8 @@ class bigone(Exchange, ImplicitAPI):
             'cost': None,
             'info': trade,
         }
-        makerCurrencyCode: str
-        takerCurrencyCode: str
+        makerCurrencyCode: Str = None
+        takerCurrencyCode: Str = None
         if takerOrMaker is not None:
             if side == 'buy':
                 if takerOrMaker == 'maker':
@@ -1391,7 +1391,7 @@ class bigone(Exchange, ImplicitAPI):
         await self.load_markets()
         type = self.safe_string(params, 'type', '')
         params = self.omit(params, 'type')
-        response = None
+        response: dict
         if type == 'funding' or type == 'fund':
             response = await self.privateGetFundAccounts(params)
         else:
@@ -1450,14 +1450,14 @@ class bigone(Exchange, ImplicitAPI):
         if Precise.string_eq(triggerPrice, '0'):
             triggerPrice = None
         immediateOrCancel = self.safe_bool(order, 'immediate_or_cancel')
-        timeInForce = None
+        timeInForce: Str = None
         if immediateOrCancel:
             timeInForce = 'IOC'
         type = self.parse_type(self.safe_string(order, 'type'))
         price = self.safe_string(order, 'price')
-        amount = None
-        filled = None
-        cost = None
+        amount: Str = None
+        filled: Str = None
+        cost: Str = None
         if type == 'market' and side == 'buy':
             cost = self.safe_string(order, 'filled_amount')
         else:
@@ -1534,7 +1534,7 @@ class bigone(Exchange, ImplicitAPI):
         uppercaseType = type.upper()
         isLimit = uppercaseType == 'LIMIT'
         exchangeSpecificParam = self.safe_bool(params, 'post_only', False)
-        postOnly = None
+        postOnly: Bool = None
         postOnly, params = self.handle_post_only((uppercaseType == 'MARKET'), exchangeSpecificParam, params)
         triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 'stop_price'])
         request: dict = {
@@ -1853,7 +1853,7 @@ class bigone(Exchange, ImplicitAPI):
         exchangeTimeCorrection = self.safe_integer(self.options, 'exchangeMillisecondsCorrection', 0) * 1000000
         return self.sum(self.microseconds() * 1000, exchangeTimeCorrection)
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         query = self.omit(params, self.extract_params(path))
         baseUrl = self.implode_hostname(self.urls['api'][api])
         url = baseUrl + '/' + self.implode_params(path, params)
@@ -2050,7 +2050,7 @@ class bigone(Exchange, ImplicitAPI):
             # 'kind': 'string',  # optional - air_drop, big_holder_dividend, default, eosc_to_eos, internal, equally_airdrop, referral_mining, one_holder_dividend, single_customer, snapshotted_airdrop, trade_mining
             # 'asset_symbol': 'BTC',  # optional
         }
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
             request['asset_symbol'] = currency['id']
@@ -2100,7 +2100,7 @@ class bigone(Exchange, ImplicitAPI):
             # 'kind': 'string',  # optional - air_drop, big_holder_dividend, default, eosc_to_eos, internal, equally_airdrop, referral_mining, one_holder_dividend, single_customer, snapshotted_airdrop, trade_mining
             # 'asset_symbol': 'BTC',  # optional
         }
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
             request['asset_symbol'] = currency['id']
@@ -2225,7 +2225,7 @@ class bigone(Exchange, ImplicitAPI):
         }
         if tag is not None:
             request['memo'] = tag
-        networkCode = None
+        networkCode: Str = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:
             request['gateway_name'] = self.network_code_to_id(networkCode, currency['code'])

@@ -455,7 +455,7 @@ class bitbank(Exchange, ImplicitAPI):
         amountString = self.safe_string(trade, 'amount')
         id = self.safe_string_2(trade, 'transaction_id', 'trade_id')
         takerOrMaker = self.safe_string(trade, 'maker_taker')
-        fee = None
+        fee: NullableDict = None
         feeCostString = self.safe_string(trade, 'fee_amount_quote')
         if feeCostString is not None:
             fee = {
@@ -897,7 +897,7 @@ class bitbank(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         request: dict = {}
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['pair'] = market['id']
@@ -1027,7 +1027,7 @@ class bitbank(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
         query = self.omit(params, self.extract_params(path))
         url = self.implode_hostname(self.urls['api'][api]) + '/'
         if (api == 'public') or (api == 'markets'):

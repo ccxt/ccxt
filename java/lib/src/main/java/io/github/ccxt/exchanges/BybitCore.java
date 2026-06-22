@@ -1071,6 +1071,7 @@ public class BybitCore extends BybitApi
                 }} );
                 put( "networks", new java.util.HashMap<String, Object>() {{
                     put( "BTC", "BTC" );
+                    put( "BRC20", "BTC" );
                     put( "ETH", "ETH" );
                     put( "ERC20", "ETH" );
                     put( "TRX", "TRX" );
@@ -1082,73 +1083,65 @@ public class BybitCore extends BybitApi
                     put( "ADA", "ADA" );
                     put( "ALGO", "ALGO" );
                     put( "APT", "APTOS" );
-                    put( "AR", "AR" );
                     put( "ARBONE", "ARBI" );
+                    put( "ARBNOVA", "ARBINOVA" );
                     put( "AVAXC", "CAVAX" );
                     put( "AVAXX", "XAVAX" );
+                    put( "COSMOS", "ATOM" );
                     put( "ATOM", "ATOM" );
                     put( "BCH", "BCH" );
                     put( "BEP2", "BNB" );
-                    put( "CHZ", "CHZ" );
-                    put( "DCR", "DCR" );
-                    put( "DGB", "DGB" );
                     put( "DOGE", "DOGE" );
                     put( "DOT", "DOT" );
                     put( "EGLD", "EGLD" );
                     put( "EOS", "EOS" );
                     put( "ETC", "ETC" );
-                    put( "ETHF", "ETHF" );
                     put( "ETHW", "ETHW" );
                     put( "FIL", "FIL" );
                     put( "STEP", "FITFI" );
-                    put( "FLOW", "FLOW" );
-                    put( "FTM", "FTM" );
+                    put( "SONIC", "SONIC" );
                     put( "GLMR", "GLMR" );
                     put( "HBAR", "HBAR" );
-                    put( "HNT", "HNT" );
                     put( "ICP", "ICP" );
-                    put( "ICX", "ICX" );
-                    put( "KDA", "KDA" );
                     put( "KLAY", "KLAY" );
-                    put( "KMA", "KMA" );
-                    put( "KSM", "KSM" );
                     put( "LTC", "LTC" );
+                    put( "POLYGON", "MATIC" );
                     put( "MATIC", "MATIC" );
-                    put( "MINA", "MINA" );
-                    put( "MOVR", "MOVR" );
                     put( "NEAR", "NEAR" );
-                    put( "NEM", "NEM" );
                     put( "OASYS", "OAS" );
                     put( "OASIS", "ROSE" );
-                    put( "OMNI", "OMNI" );
                     put( "ONE", "ONE" );
                     put( "OP", "OP" );
-                    put( "OPTIMISM", "OP" );
-                    put( "POKT", "POKT" );
-                    put( "QTUM", "QTUM" );
-                    put( "RVN", "RVN" );
-                    put( "SC", "SC" );
                     put( "SCRT", "SCRT" );
                     put( "STX", "STX" );
-                    put( "THETA", "THETA" );
                     put( "TON", "TON" );
-                    put( "WAVES", "WAVES" );
                     put( "WAX", "WAXP" );
-                    put( "XDC", "XDC" );
                     put( "XEC", "XEC" );
                     put( "XLM", "XLM" );
                     put( "XRP", "XRP" );
                     put( "XTZ", "XTZ" );
-                    put( "XYM", "XYM" );
-                    put( "ZEN", "ZEN" );
                     put( "ZIL", "ZIL" );
-                    put( "ZKSYNC", "ZKSYNC" );
+                    put( "ZKSYNCLITE", "ZKSYNC" );
+                    put( "ZKSYNCERA", "ZKV2" );
+                    put( "0G", "ZEROGRAVITY" );
+                    put( "MANTLE", "MANTLE" );
+                    put( "CHZ", "CHILIZ" );
+                    put( "BASE", "BASE" );
+                    put( "CELO", "CELO" );
+                    put( "SCROLL", "SCROLL" );
+                    put( "SUI", "SUI" );
+                    put( "DYDX", "DYDX" );
+                    put( "HUMANITY", "HUMANITY" );
+                    put( "HYPER", "HYPEREVM" );
+                    put( "MONAD", "MONAD" );
+                    put( "MOVE", "MOVE" );
                 }} );
                 put( "networksById", new java.util.HashMap<String, Object>() {{
                     put( "ETH", "ERC20" );
                     put( "TRX", "TRC20" );
                     put( "BSC", "BEP20" );
                     put( "OP", "OP" );
+                    put( "MATIC", "MATIC" );
                 }} );
                 put( "defaultNetwork", "ERC20" );
                 put( "defaultNetworks", new java.util.HashMap<String, Object>() {{
@@ -2756,7 +2749,8 @@ public class BybitCore extends BybitApi
         //     ]
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object volumeIndex = ((Helpers.isTrue((Helpers.GetValue(market, "inverse"))))) ? 6 : 5;
+        Object isInverse = this.safeBool(market, "inverse");
+        Object volumeIndex = ((Helpers.isTrue((isInverse)))) ? 6 : 5;
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, volumeIndex)));
     }
 
@@ -3161,7 +3155,7 @@ public class BybitCore extends BybitApi
             //
             Object rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object result = this.safeDict(response, "result");
-            Object resultList = this.safeList(result, "list");
+            Object resultList = this.safeList(result, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(resultList)); i++)
             {
                 Object entry = Helpers.GetValue(resultList, i);
@@ -3726,7 +3720,7 @@ public class BybitCore extends BybitApi
                 Object accountType = this.safeString(entry, "accountType");
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(accountType, "UNIFIED")) || Helpers.isTrue(Helpers.isEqual(accountType, "CONTRACT"))) || Helpers.isTrue(Helpers.isEqual(accountType, "SPOT"))))
                 {
-                    Object coins = this.safeList(entry, "coin");
+                    Object coins = this.safeList(entry, "coin", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                     for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(coins)); j++)
                     {
                         Object account = this.account();
@@ -7968,11 +7962,11 @@ public class BybitCore extends BybitApi
                 Helpers.addElementToObject(request, "coin", "USDT");
             } else
             {
-                Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
+                Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
             }
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Helpers.addElementToObject(request, "category", ((Helpers.isTrue(Helpers.GetValue(market, "linear")))) ? "linear" : "inverse");
+                Helpers.addElementToObject(request, "category", ((Helpers.isTrue(this.safeBool(market, "linear")))) ? "linear" : "inverse");
             } else
             {
                 Object type = null;
@@ -8203,10 +8197,10 @@ public class BybitCore extends BybitApi
         Object timestamp = this.safeInteger(interest, "timestamp");
         Object openInterest = this.safeNumber2(interest, "open_interest", "openInterest");
         // the openInterest is in the base asset for linear and quote asset for inverse
-        Object amount = ((Helpers.isTrue(Helpers.GetValue(market, "linear")))) ? openInterest : null;
-        Object value = ((Helpers.isTrue(Helpers.GetValue(market, "inverse")))) ? openInterest : null;
+        Object amount = ((Helpers.isTrue(this.safeBool(market, "linear")))) ? openInterest : null;
+        Object value = ((Helpers.isTrue(this.safeBool(market, "inverse")))) ? openInterest : null;
         return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
-            put( "symbol", Helpers.GetValue(market, "symbol") );
+            put( "symbol", BybitCore.this.safeString(market, "symbol") );
             put( "openInterestAmount", amount );
             put( "openInterestValue", value );
             put( "timestamp", timestamp );
@@ -9140,7 +9134,7 @@ public class BybitCore extends BybitApi
             Object data = this.safeList(result, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object settlements = this.parseSettlements(data, market);
             Object sorted = this.sortBy(settlements, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, Helpers.GetValue(market, "symbol"), since, limit);
+            return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit);
         });
 
     }
@@ -9217,7 +9211,7 @@ public class BybitCore extends BybitApi
             Object data = this.safeList(result, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object settlements = this.parseSettlements(data, market);
             Object sorted = this.sortBy(settlements, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, Helpers.GetValue(market, "symbol"), since, limit);
+            return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit);
         });
 
     }
@@ -9762,7 +9756,7 @@ public class BybitCore extends BybitApi
             Object first = this.safeDict(result, 0);
             Object total = Helpers.getArrayLength(result);
             Object lastIndex = Helpers.subtract(total, 1);
-            Object last = this.safeDict(result, lastIndex);
+            Object last = this.safeDict(result, lastIndex, new java.util.HashMap<String, Object>() {{}});
             Object cursorValue = this.safeString(first, "nextPageCursor");
             Helpers.addElementToObject(last, "info", new java.util.HashMap<String, Object>() {{
         put( "nextPageCursor", cursorValue );
@@ -9940,7 +9934,7 @@ final Object finalMarket = market;
             Helpers.addElementToObject(request, "category", type);
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
+                Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
             }
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
@@ -10263,7 +10257,7 @@ final Object finalMarket = market;
             }};
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(symbols, null))) && Helpers.isTrue((Helpers.isEqual(symbolsLength, 1)))))
             {
-                Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
+                Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
             }
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
@@ -11176,6 +11170,7 @@ final Object finalMarket = market;
             Object brokerId = this.safeString(this.options, "brokerId");
             if (Helpers.isTrue(!Helpers.isEqual(brokerId, null)))
             {
+                headers = ((Helpers.isTrue((Helpers.isEqual(headers, null))))) ? new java.util.HashMap<String, Object>() {{}} : headers;
                 Helpers.addElementToObject(headers, "Referer", brokerId);
             }
         }

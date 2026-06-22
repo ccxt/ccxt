@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import coinexRest from '../coinex.js';
 import { AuthenticationError, BadRequest, RateLimitExceeded, NotSupported, RequestTimeout, ExchangeError, ExchangeNotAvailable, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Balances, Dict, int } from '../base/types.js';
+import type { Balances, Dict, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade, int, NullableList } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -182,7 +182,7 @@ export default class coinex extends coinexRest {
         client.resolve (newTickers, 'tickers');
     }
 
-    parseWSTicker (ticker, market = undefined) {
+    parseWSTicker (ticker, market: Market = undefined) {
         //
         //  spot
         //
@@ -259,7 +259,7 @@ export default class coinex extends coinexRest {
      */
     async watchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params, 'spot');
         await this.authenticate (type);
         const url = this.urls['api']['ws'][type];
@@ -336,7 +336,7 @@ export default class coinex extends coinexRest {
         const isSpot = (updated !== undefined);
         const isSwap = (unrealizedPnl !== undefined);
         let info = undefined;
-        let account = undefined;
+        let account: Str = undefined;
         let rawBalances = [];
         if (isSpot) {
             account = 'spot';
@@ -356,7 +356,7 @@ export default class coinex extends coinexRest {
             const entry = rawBalances[i];
             this.parseWsBalance (entry, account);
         }
-        let messageHash = undefined;
+        let messageHash: Str = undefined;
         if (account !== undefined) {
             if (this.safeValue (this.balance, account) === undefined) {
                 this.balance[account] = {};
@@ -368,7 +368,7 @@ export default class coinex extends coinexRest {
         }
     }
 
-    parseWsBalance (balance, accountType = undefined) {
+    parseWsBalance (balance, accountType: Str = undefined) {
         //
         // spot
         //
@@ -421,12 +421,12 @@ export default class coinex extends coinexRest {
      */
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
         }
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params, 'spot');
         await this.authenticate (type);
         const url = this.urls['api']['ws'][type];
@@ -559,7 +559,7 @@ export default class coinex extends coinexRest {
         client.resolve (this.trades[symbol], messageHash);
     }
 
-    parseWsTrade (trade, market = undefined) {
+    parseWsTrade (trade, market: Market = undefined) {
         //
         // spot watchTrades
         //
@@ -658,7 +658,7 @@ export default class coinex extends coinexRest {
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         let marketIds = this.marketIds (symbols);
-        let market = undefined;
+        let market: Market = undefined;
         const messageHashes = [];
         const symbolsDefined = (symbols !== undefined);
         if (symbolsDefined) {
@@ -671,7 +671,7 @@ export default class coinex extends coinexRest {
             marketIds = [];
             messageHashes.push ('tickers');
         }
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchTickers', market, params);
         const url = this.urls['api']['ws'][type];
         const subscriptionHashes = [ 'all@ticker' ];
@@ -720,8 +720,8 @@ export default class coinex extends coinexRest {
         await this.loadMarkets ();
         const subscribedSymbols = [];
         const messageHashes = [];
-        let market = undefined;
-        let callerMethodName = undefined;
+        let market: Market = undefined;
+        let callerMethodName: Str = undefined;
         [ callerMethodName, params ] = this.handleParamString (params, 'callerMethodName', 'watchTradesForSymbols');
         const symbolsDefined = (symbols !== undefined);
         if (symbolsDefined) {
@@ -734,7 +734,7 @@ export default class coinex extends coinexRest {
         } else {
             messageHashes.push ('trades');
         }
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams (callerMethodName, market, params);
         const url = this.urls['api']['ws'][type];
         // const subscriptionHashes = [ 'trades' ];
@@ -765,9 +765,9 @@ export default class coinex extends coinexRest {
         await this.loadMarkets ();
         const watchOrderBookSubscriptions: Dict = {};
         const messageHashes = [];
-        let market = undefined;
-        let type = undefined;
-        let callerMethodName = undefined;
+        let market: Market = undefined;
+        let type: Str = undefined;
+        let callerMethodName: Str = undefined;
         [ callerMethodName, params ] = this.handleParamString (params, 'callerMethodName', 'watchOrderBookForSymbols');
         const options = this.safeDict (this.options, 'watchOrderBook', {});
         const limits = this.safeList (options, 'limits', []);
@@ -917,13 +917,13 @@ export default class coinex extends coinexRest {
         const trigger = this.safeBool2 (params, 'trigger', 'stop');
         params = this.omit (params, [ 'trigger', 'stop' ]);
         let messageHash = 'orders';
-        let market = undefined;
-        let marketList = undefined;
+        let market: Market = undefined;
+        let marketList: NullableList = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
         }
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params, 'spot');
         await this.authenticate (type);
         if (symbol !== undefined) {
@@ -937,7 +937,7 @@ export default class coinex extends coinexRest {
                 messageHash += ':swap';
             }
         }
-        let method = undefined;
+        let method: Str = undefined;
         if (trigger) {
             method = 'stop.subscribe';
         } else {
@@ -1092,7 +1092,7 @@ export default class coinex extends coinexRest {
         client.resolve (this.orders, messageHash);
     }
 
-    parseWsOrder (order, market = undefined) {
+    parseWsOrder (order, market: Market = undefined) {
         //
         // spot
         //
@@ -1187,7 +1187,7 @@ export default class coinex extends coinexRest {
         const isSpot = ('margin_market' in order);
         const defaultType = isSpot ? 'spot' : 'swap';
         market = this.safeMarket (marketId, market, undefined, defaultType);
-        let fee = undefined;
+        let fee: Dict = undefined;
         const feeCost = this.omitZero (this.safeString2 (order, 'fee', 'quote_ccy_fee'));
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (order, 'fee_ccy', market['quote']);
@@ -1245,7 +1245,7 @@ export default class coinex extends coinexRest {
         await this.loadMarkets ();
         const marketIds = this.marketIds (symbols);
         const messageHashes = [];
-        let market = undefined;
+        let market: Market = undefined;
         const symbolsDefined = (symbols !== undefined);
         if (symbolsDefined) {
             for (let i = 0; i < symbols.length; i++) {
@@ -1256,7 +1256,7 @@ export default class coinex extends coinexRest {
         } else {
             messageHashes.push ('bidsasks');
         }
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchBidsAsks', market, params);
         const url = this.urls['api']['ws'][type];
         const subscriptionHashes = [ 'all@bidsasks' ];
@@ -1295,7 +1295,7 @@ export default class coinex extends coinexRest {
         client.resolve (parsedTicker, messageHash);
     }
 
-    parseWsBidAsk (ticker, market = undefined) {
+    parseWsBidAsk (ticker, market: Market = undefined) {
         //
         //     {
         //         "market": "BTCUSDT",

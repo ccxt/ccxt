@@ -912,7 +912,7 @@ func (this *DeltaCore) FetchMarkets(optionalArgs ...any) <-chan any {
 				"settleId":       settleId,
 				"type":           typeVar,
 				"spot":           spot,
-				"margin":         Ternary(IsTrue(spot), nil, false),
+				"margin":         false,
 				"swap":           swap,
 				"future":         future,
 				"option":         option,
@@ -3688,7 +3688,7 @@ func (this *DeltaCore) FetchSettlementHistory(optionalArgs ...any) <-chan any {
 		var settlements any = this.ParseSettlements(result, market)
 		var sorted any = this.SortBy(settlements, "timestamp")
 
-		ch <- this.FilterBySymbolSinceLimit(sorted, GetValue(market, "symbol"), since, limit)
+		ch <- this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit)
 		return nil
 
 	}()
@@ -3926,7 +3926,7 @@ func (this *DeltaCore) ParseGreeks(greeks any, optionalArgs ...any) any {
 		"bidPrice":              this.SafeNumber(quotes, "best_bid"),
 		"askPrice":              this.SafeNumber(quotes, "best_ask"),
 		"markPrice":             this.SafeNumber(greeks, "mark_price"),
-		"lastPrice":             nil,
+		"lastPrice":             this.SafeNumber(greeks, "last_price"),
 		"underlyingPrice":       this.SafeNumber(greeks, "spot_price"),
 		"info":                  greeks,
 	}
@@ -4227,7 +4227,7 @@ func (this *DeltaCore) ParseOption(chain any, optionalArgs ...any) any {
 	var timestamp any = this.SafeIntegerProduct(chain, "timestamp", 0.001)
 	return map[string]any{
 		"info":              chain,
-		"currency":          nil,
+		"currency":          this.SafeString(chain, "currency"),
 		"symbol":            GetValue(market, "symbol"),
 		"timestamp":         timestamp,
 		"datetime":          this.Iso8601(timestamp),
@@ -4237,12 +4237,12 @@ func (this *DeltaCore) ParseOption(chain any, optionalArgs ...any) any {
 		"askPrice":          this.SafeNumber(quotes, "best_ask"),
 		"midPrice":          this.SafeNumber(quotes, "impact_mid_price"),
 		"markPrice":         this.SafeNumber(chain, "mark_price"),
-		"lastPrice":         nil,
+		"lastPrice":         this.SafeNumber(chain, "last_price"),
 		"underlyingPrice":   this.SafeNumber(chain, "spot_price"),
-		"change":            nil,
-		"percentage":        nil,
+		"change":            this.SafeNumber(chain, "change"),
+		"percentage":        this.SafeNumber(chain, "percentage"),
 		"baseVolume":        this.SafeNumber(chain, "volume"),
-		"quoteVolume":       nil,
+		"quoteVolume":       this.SafeNumber(chain, "quote_volume"),
 	}
 }
 
@@ -4637,7 +4637,7 @@ func (this *DeltaCore) Sign(path any, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
+	headers := GetArg(optionalArgs, 3, map[string]any{})
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body

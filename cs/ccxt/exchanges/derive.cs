@@ -1886,7 +1886,7 @@ public partial class derive : Exchange
         {
             market = this.safeMarket(marketId, market);
         }
-        object symbol = getValue(market, "symbol");
+        object symbol = this.safeString(market, "symbol");
         object price = this.safeString(order, "limit_price");
         object average = this.safeString(order, "average_price");
         object amount = this.safeString(order, "desired_amount");

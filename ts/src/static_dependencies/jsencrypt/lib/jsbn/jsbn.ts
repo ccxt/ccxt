@@ -1521,19 +1521,19 @@ export class BigInteger {
 
     //#region FIELDS
 
-    public s:number;
-    public t:number;
+    public s!:number;
+    public t!:number;
 
 
-    public DB:number;
-    public DM:number;
-    public DV:number;
+    public DB!:number;
+    public DM!:number;
+    public DV!:number;
 
-    public FV:number;
-    public F1:number;
-    public F2:number;
+    public FV!:number;
+    public F1!:number;
+    public F2!:number;
 
-    public am:(i:number, x:number, w:BigInteger, j:number, c:number, n:number) => number;
+    public am!:(i:number, x:number, w:BigInteger, j:number, c:number, n:number) => number;
 
     [index:number]:number;
 

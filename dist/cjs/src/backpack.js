@@ -715,7 +715,7 @@ class backpack extends backpack$1["default"] {
         const maxQuantity = this.safeNumber(quantityFilter, 'maxQuantity');
         const minQuantity = this.safeNumber(quantityFilter, 'minQuantity');
         const amountPrecision = this.safeNumber(quantityFilter, 'stepSize');
-        let type;
+        let type = undefined;
         const typeOfMarket = this.parseMarketType(this.safeString(market, 'marketType'));
         let linear = undefined;
         let inverse = undefined;
@@ -1087,7 +1087,7 @@ class backpack extends backpack$1["default"] {
         const timestamp = this.safeInteger(interest, 'timestamp');
         const openInterest = this.safeNumber(interest, 'openInterest');
         return this.safeOpenInterest({
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'openInterestAmount': undefined,
             'openInterestValue': openInterest,
             'timestamp': timestamp,

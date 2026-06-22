@@ -296,7 +296,7 @@ class bitflyer(Exchange, ImplicitAPI):
         #
         markets = self.array_concat(jp_markets, us_markets)
         markets = self.array_concat(markets, eu_markets)
-        result = []
+        result: List = []
         for i in range(0, len(markets)):
             market = markets[i]
             id = self.safe_string(market, 'product_code')
@@ -306,10 +306,10 @@ class bitflyer(Exchange, ImplicitAPI):
             future = (marketType == 'Futures')
             spot = not swap and not future
             type = 'spot'
-            settle = None
-            baseId = None
-            quoteId = None
-            expiry = None
+            settle: Str = None
+            baseId: Str = None
+            quoteId: Str = None
+            expiry: Int = None
             if spot:
                 baseId = self.safe_string(currencies, 0)
                 quoteId = self.safe_string(currencies, 1)
@@ -542,7 +542,7 @@ class bitflyer(Exchange, ImplicitAPI):
         if side is not None:
             if len(side) < 1:
                 side = None
-        order = None
+        order: Str = None
         if side is not None:
             idInner = side + '_child_order_acceptance_id'
             if idInner in trade:
@@ -713,7 +713,7 @@ class bitflyer(Exchange, ImplicitAPI):
         side = self.safe_string_lower(order, 'side')
         marketId = self.safe_string(order, 'product_code')
         symbol = self.safe_symbol(marketId, market)
-        fee = None
+        fee: NullableDict = None
         feeCost = self.safe_number(order, 'total_commission')
         if feeCost is not None:
             fee = {
@@ -944,7 +944,7 @@ class bitflyer(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         self.load_markets()
-        currency = None
+        currency: Currency = None
         request: dict = {}
         if code is not None:
             currency = self.currency(code)
@@ -980,7 +980,7 @@ class bitflyer(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         self.load_markets()
-        currency = None
+        currency: Currency = None
         request: dict = {}
         if code is not None:
             currency = self.currency(code)
@@ -1063,9 +1063,9 @@ class bitflyer(Exchange, ImplicitAPI):
         amount = self.safe_number(transaction, 'amount')
         txId = self.safe_string(transaction, 'tx_hash')
         rawStatus = self.safe_string(transaction, 'status')
-        type = None
-        status = None
-        fee = None
+        type: Str = None
+        status: Str = None
+        fee: NullableDict = None
         if 'fee' in transaction:
             type = 'withdrawal'
             status = self.parse_withdrawal_status(rawStatus)
@@ -1152,7 +1152,7 @@ class bitflyer(Exchange, ImplicitAPI):
             'interval': None,
         }
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         request = '/' + self.version + '/'
         if api == 'private':
             request += 'me/'
