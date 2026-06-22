@@ -486,6 +486,9 @@ export default class backpack extends backpackRest {
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const symbolAndTimeframe = symbolsAndTimeframes[i];
             const marketId = this.safeString (symbolAndTimeframe, 0);
+            if (marketId === undefined) {
+                continue;
+            }
             const market = this.market (marketId);
             const tf = this.safeString (symbolAndTimeframe, 1, '');
             const interval = this.safeString (this.timeframes, tf, tf);
@@ -520,6 +523,9 @@ export default class backpack extends backpackRest {
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const symbolAndTimeframe = symbolsAndTimeframes[i];
             const marketId = this.safeString (symbolAndTimeframe, 0);
+            if (marketId === undefined) {
+                continue;
+            }
             const market = this.market (marketId);
             const tf = this.safeString (symbolAndTimeframe, 1, '');
             const interval = this.safeString (this.timeframes, tf, tf);
@@ -715,6 +721,9 @@ export default class backpack extends backpackRest {
         //
         const data = this.safeDict (message, 'data', {});
         const marketId = this.safeString (data, 's');
+        if (marketId === undefined) {
+            return;
+        }
         const market = this.market (marketId);
         const symbol = market['symbol'];
         if (!(symbol in this.trades)) {

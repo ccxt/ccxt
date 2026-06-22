@@ -3731,6 +3731,9 @@ export default class binance extends binanceRest {
      */
     async fetchOpenOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrdersWs() requires a symbol argument');
+        }
         const market = this.market (symbol);
         const type = this.getMarketType ('fetchOpenOrdersWs', market, params);
         if (type !== 'spot') {

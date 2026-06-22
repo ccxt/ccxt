@@ -5077,6 +5077,9 @@ export default class bybit extends Exchange {
         if (!acknowledge) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() can only access an order if it is in last 500 orders (of any status) for your account. Set params["acknowledged"] = true to hide this warning. Alternatively, we suggest to use fetchOpenOrder or fetchClosedOrder');
         }
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
+        }
         const market = this.market (symbol);
         let marketType: Str = undefined;
         [ marketType, params ] = this.getBybitType ('fetchOrder', market, params);
@@ -9427,6 +9430,9 @@ export default class bybit extends Exchange {
      */
     async fetchLongShortRatioHistory (symbol: Str = undefined, timeframe: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LongShortRatio[]> {
         await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchLongShortRatioHistory() requires a symbol argument');
+        }
         const market = this.market (symbol);
         let type: Str = undefined;
         [ type, params ] = this.getBybitType ('fetchLongShortRatioHistory', market, params);

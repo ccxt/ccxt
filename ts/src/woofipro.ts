@@ -2840,6 +2840,9 @@ export default class woofipro extends Exchange {
      */
     async fetchPosition (symbol: Str, params = {}) {
         await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchPosition() requires a symbol argument');
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
