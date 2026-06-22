@@ -366,14 +366,14 @@ export default class Exchange {
     };
 
     markets_by_id: Dictionary<any> = undefined;
-    symbols: string[] = [];
-    ids: string[] = [];
+    symbols: Strings = undefined;
+    ids: Strings = undefined;
     currencies: Currencies = {};
 
     baseCurrencies: Dictionary<CurrencyInterface> = undefined;
     quoteCurrencies: Dictionary<CurrencyInterface> = undefined;
     currencies_by_id: Dictionary<CurrencyInterface> = undefined;
-    codes: string[] = [];
+    codes: Strings = undefined;
 
     reloadingMarkets: Bool = undefined;
     marketsLoading: Promise<Dictionary<Market>> = undefined;
