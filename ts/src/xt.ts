@@ -1778,11 +1778,13 @@ export default class xt extends Exchange {
         //     }
         //
         const tickers = this.safeValue (response, 'result', []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < tickers.length; i++) {
             const ticker = this.parseTicker (tickers[i], market);
             const symbol = ticker['symbol'];
-            result[symbol] = ticker;
+            if (symbol !== undefined) {
+                result[symbol] = ticker;
+            }
         }
         return this.filterByArray (result, 'symbol', symbols);
     }
@@ -2450,7 +2452,7 @@ export default class xt extends Exchange {
         }
     }
 
-    async createSpotOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
+    async createSpotOrder (symbol: string, type, side, amount, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -2511,7 +2513,7 @@ export default class xt extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async createContractOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
+    async createContractOrder (symbol: string, type, side, amount, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -3198,7 +3200,7 @@ export default class xt extends Exchange {
         //         }
         //     }
         //
-        let orders = [];
+        let orders: List = [];
         const resultDict = this.safeDict (response, 'result');
         if (resultDict !== undefined) {
             orders = this.safeList (resultDict, 'items', []);
@@ -3375,7 +3377,7 @@ export default class xt extends Exchange {
         }
         let type: Str = undefined;
         let subType: SubType = undefined;
-        let response = undefined;
+        let response: Dict = {};
         [ type, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         [ subType, params ] = this.handleSubTypeAndParams ('cancelAllOrders', market, params);
         const trigger = this.safeValue2 (params, 'trigger', 'stop');

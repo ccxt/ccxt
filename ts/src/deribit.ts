@@ -521,7 +521,7 @@ export default class deribit extends Exchange {
             settle = base;
         }
         let splitBase = base;
-        if (base.indexOf ('_') > -1) {
+        if ((base !== undefined) && (base.indexOf ('_') > -1)) {
             const splitSymbol = base.split ('_');
             splitBase = this.safeString (splitSymbol, 0);
         }
@@ -923,7 +923,7 @@ export default class deribit extends Exchange {
             const instrumentsResult = this.safeValue (instrumentsResponses[i], 'result', []);
             for (let k = 0; k < instrumentsResult.length; k++) {
                 const market = instrumentsResult[k];
-                const kind = this.safeString (market, 'kind');
+                const kind = this.safeString (market, 'kind', '');
                 const isSpot = (kind === 'spot');
                 const id = this.safeString (market, 'instrument_name');
                 const baseId = this.safeString (market, 'base_currency');
@@ -966,6 +966,9 @@ export default class deribit extends Exchange {
                     }
                     inverse = (quote !== settle);
                     linear = (settle === quote);
+                }
+                if (symbol === undefined) {
+                    continue;
                 }
                 const parsedMarketValue = this.safeValue (parsedMarkets, symbol);
                 if (parsedMarketValue) {
@@ -1036,7 +1039,7 @@ export default class deribit extends Exchange {
         };
         let summaries: List = [];
         if ('summaries' in balance) {
-            summaries = this.safeList (balance, 'summaries');
+            summaries = this.safeList (balance, 'summaries', []);
         } else {
             summaries = [ balance ];
         }
@@ -1419,7 +1422,9 @@ export default class deribit extends Exchange {
         for (let i = 0; i < result.length; i++) {
             const ticker = this.parseTicker (result[i]);
             const symbol = ticker['symbol'];
-            tickers[symbol] = ticker;
+            if (symbol !== undefined) {
+                tickers[symbol] = ticker;
+            }
         }
         return this.filterByArrayTickers (tickers, 'symbol', symbols);
     }
@@ -1749,25 +1754,27 @@ export default class deribit extends Exchange {
             }
         }
         const parsedFees: Dict = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
-            const market = this.market (symbol);
-            let fee: Dict = {
-                'info': market,
-                'symbol': symbol,
-                'percentage': true,
-                'tierBased': true,
-                'maker': market['maker'],
-                'taker': market['taker'],
-            };
-            if (market['swap']) {
-                fee = this.extend (fee, perpetualFee);
-            } else if (market['future']) {
-                fee = this.extend (fee, futureFee);
-            } else if (market['option']) {
-                fee = this.extend (fee, optionFee);
+        if (this.symbols !== undefined) {
+            for (let i = 0; i < this.symbols.length; i++) {
+                const symbol = this.symbols[i];
+                const market = this.market (symbol);
+                let fee: Dict = {
+                    'info': market,
+                    'symbol': symbol,
+                    'percentage': true,
+                    'tierBased': true,
+                    'maker': market['maker'],
+                    'taker': market['taker'],
+                };
+                if (market['swap']) {
+                    fee = this.extend (fee, perpetualFee);
+                } else if (market['future']) {
+                    fee = this.extend (fee, futureFee);
+                } else if (market['option']) {
+                    fee = this.extend (fee, optionFee);
+                }
+                parsedFees[symbol] = fee;
             }
-            parsedFees[symbol] = fee;
         }
         return parsedFees;
     }
@@ -3244,8 +3251,10 @@ export default class deribit extends Exchange {
         }
         if ('isDeribitPaginationCall' in params) {
             params = this.omit (params, 'isDeribitPaginationCall');
-            const maxUntil = this.sum (since, limit * duration);
-            request['end_timestamp'] = Math.min (request['end_timestamp'], maxUntil);
+            if (limit !== undefined) {
+                const maxUntil = this.sum (since, limit * duration);
+                request['end_timestamp'] = Math.min (request['end_timestamp'], maxUntil);
+            }
         }
         const response = await this.publicGetGetFundingRateHistory (this.extend (request, params));
         //

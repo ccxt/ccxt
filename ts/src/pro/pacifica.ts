@@ -3,7 +3,7 @@
 import pacificaRest from '../pacifica.js';
 import { ArgumentsRequired, NotSupported } from '../base/errors.js';
 import Client from '../base/ws/Client.js';
-import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers, type Num, OrderType, OrderSide, Bool } from '../base/types.js';
+import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers, type Num, OrderType, OrderSide, Bool, List } from '../base/types.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
@@ -68,7 +68,7 @@ export default class pacifica extends pacificaRest {
         });
     }
 
-    setupApiKeyHeaders (key: string = undefined) {  // Implemented in watchTickers; use it to set up or change a rate-limited API key.
+    setupApiKeyHeaders (key: Str = undefined) {  // Implemented in watchTickers; use it to set up or change a rate-limited API key.
         const headers = {};
         if (key !== undefined) {
             headers['PF-API-KEY'] = key;
@@ -277,7 +277,7 @@ export default class pacifica extends pacificaRest {
         //
         const data = this.safeDict (response, 'data', {});
         const results = this.safeList (data, 'results', []);
-        const ordersToReturn = [];
+        const ordersToReturn: List = [];
         for (let i = 0; i < results.length; i++) {
             const order = results[i];
             const error = this.safeString (order, 'error', undefined);
@@ -684,7 +684,7 @@ export default class pacifica extends pacificaRest {
         //     ],
         // }
         //
-        const parsedTickers = [];
+        const parsedTickers: List = [];
         const data = this.safeList (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const info = data[i];
@@ -744,7 +744,9 @@ export default class pacifica extends pacificaRest {
             const rawTrade = data[i];
             const parsed = this.parseWsTrade (rawTrade);
             const symbol = parsed['symbol'];
-            symbols[symbol] = true;
+            if (symbol !== undefined) {
+                symbols[symbol] = true;
+            }
             trades.append (parsed);
         }
         const keys = Object.keys (symbols);
@@ -850,7 +852,7 @@ export default class pacifica extends pacificaRest {
         }
         const trades = this.trades[symbol];
         for (let i = 0; i < entry.length; i++) {
-            const data = this.safeDict (entry, i);
+            const data = this.safeDict (entry, i, {});
             const trade = this.parseWsTrade (data);
             trades.append (trade);
         }
@@ -1028,7 +1030,7 @@ export default class pacifica extends pacificaRest {
         const marketId = this.safeString (data, 's');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        const timeframe = this.safeString (data, 'i');
+        const timeframe = this.safeString (data, 'i', '');
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
@@ -1162,7 +1164,9 @@ export default class pacifica extends pacificaRest {
             const order = this.parseOrder (rawOrder);
             stored.append (order);
             const symbol = this.safeString (order, 'symbol');
-            marketSymbols[symbol] = true;
+            if (symbol !== undefined) {
+                marketSymbols[symbol] = true;
+            }
         }
         const keys = Object.keys (marketSymbols);
         for (let i = 0; i < keys.length; i++) {
@@ -1238,7 +1242,7 @@ export default class pacifica extends pacificaRest {
         const messageHash = 'unsubscribe:' + subMessageHash;
         this.cleanUnsubscription (client, subMessageHash, messageHash);
         if (symbol in this.ohlcvs) {
-            if (timeframe in this.ohlcvs[symbol]) {
+            if ((timeframe !== undefined) && (timeframe in this.ohlcvs[symbol])) {
                 delete this.ohlcvs[symbol][timeframe];
             }
         }
@@ -1375,7 +1379,7 @@ export default class pacifica extends pacificaRest {
         return this.uuid (); // uuid v4
     }
 
-    wrapAsPostAction (operationType: string, request: Dict): Dict {
+    wrapAsPostAction (operationType: Str, request: Dict): Dict {
         if (operationType === undefined) {
             throw new ArgumentsRequired (this.id + 'postAction() requires a "operationType" argument!');
         }
