@@ -1451,7 +1451,6 @@ export default class binance extends Exchange {
                     'ONT': 'ONT', // ontology
                     'WLD': 'WLD',
                     // SEI & SEIEVM
-                    'CHZ1': 'CHZ',
                     'CHZ2': 'CHZ2',
                     'ETHW': 'ETHW',
                     'IOTA': 'IOTA',
@@ -3121,7 +3120,7 @@ export default class binance extends Exchange {
             const withdrawFee = this.safeNumber (networkItem, 'withdrawFee');
             const depositEnable = this.safeBool (networkItem, 'depositEnable');
             const withdrawEnable = this.safeBool (networkItem, 'withdrawEnable');
-            fees[network] = withdrawFee;
+            fees[networkCode] = withdrawFee;
             const isDefault = this.safeBool (networkItem, 'isDefault');
             if (isDefault || (fee === undefined)) {
                 fee = withdrawFee;
