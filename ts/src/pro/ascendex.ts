@@ -142,6 +142,9 @@ export default class ascendex extends ascendexRest {
         const interval = this.safeString (data, 'i');
         const messageHash = channel + ':' + interval + ':' + marketId;
         const timeframe = this.findTimeframe (interval);
+        if (timeframe === undefined) {
+            return;
+        }
         const market = this.market (symbol);
         const parsed = this.parseOHLCV (message, market);
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
@@ -397,7 +400,7 @@ export default class ascendex extends ascendexRest {
         //
         const data = this.safeValue (message, 'data', {});
         const seqNum = this.safeInteger (data, 'seqnum');
-        if (seqNum > orderbook['nonce']) {
+        if ((seqNum !== undefined) && (seqNum > orderbook['nonce'])) {
             const asks = this.safeValue (data, 'asks', []);
             const bids = this.safeValue (data, 'bids', []);
             this.handleDeltas (orderbook['asks'], asks);
@@ -487,7 +490,7 @@ export default class ascendex extends ascendexRest {
         //     (...)
         //
         const channel = this.safeString (message, 'm');
-        let result = undefined;
+        let result: Dict = {};
         let type: Str = undefined;
         if ((channel === 'order') || (channel === 'futures-order')) {
             const data = this.safeValue (message, 'data');
@@ -511,7 +514,7 @@ export default class ascendex extends ascendexRest {
         } else {
             const accountType = this.safeStringLower2 (message, 'ac', 'at');
             const categoriesAccounts = this.safeValue (this.options, 'categoriesAccount');
-            type = this.safeString (categoriesAccounts, accountType, 'spot');
+            type = (accountType === undefined) ? 'spot' : this.safeString (categoriesAccounts, accountType, 'spot');
             result = this.safeValue (this.balance, type, {});
             const data = this.safeValue (message, 'data');
             let balances: NullableList = undefined;
@@ -519,6 +522,9 @@ export default class ascendex extends ascendexRest {
                 balances = this.safeValue (message, 'col');
             } else {
                 balances = [ data ];
+            }
+            if (balances === undefined) {
+                balances = [];
             }
             for (let i = 0; i < balances.length; i++) {
                 const balance = balances[i];
@@ -712,7 +718,7 @@ export default class ascendex extends ascendexRest {
                 'currency': feeCurrencyCode,
             };
         }
-        const stopPrice = this.parseNumber (this.omitZero (this.safeString (order, 'sp')));
+        const stopPrice = this.parseNumber (this.omitZero (this.safeString (order, 'sp', '')));
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -941,7 +947,7 @@ export default class ascendex extends ascendexRest {
             'balance': this.handleBalance,
             'futures-account-update': this.handleBalance,
         };
-        const method = this.safeValue (methods, subject);
+        const method = (subject === undefined) ? undefined : this.safeValue (methods, subject);
         if (method !== undefined) {
             method.call (this, client, message);
         }
@@ -970,7 +976,7 @@ export default class ascendex extends ascendexRest {
     }
 
     handleOrderBookSubscription (client: Client, message) {
-        const channel = this.safeString (message, 'ch');
+        const channel = this.safeString (message, 'ch', '');
         const parts = channel.split (':');
         const marketId = parts[1];
         const market = this.safeMarket (marketId);
