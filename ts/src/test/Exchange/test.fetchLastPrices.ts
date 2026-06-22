@@ -9,7 +9,7 @@ async function testFetchLastPrices (exchange: Exchange, skippedProperties: objec
     const method = 'fetchLastprices';
     // log ('fetching all tickers at once...')
     let response: LastPrices = {};
-    let checkedSymbol: Str
+    let checkedSymbol: Str = undefined;
     try {
         response = await exchange.fetchLastPrices ();
     } catch (e) {

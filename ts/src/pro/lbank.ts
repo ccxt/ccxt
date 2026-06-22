@@ -581,8 +581,6 @@ export default class lbank extends lbankRest {
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             myOrders = new ArrayCacheBySymbolById (limit);
-        } else {
-            // myOrders already set to this.orders above
         }
         const order = this.parseWsOrder (message);
         myOrders.append (order);

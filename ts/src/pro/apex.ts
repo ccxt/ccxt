@@ -710,8 +710,7 @@ export default class apex extends apexRest {
         const symbols: Dict = {};
         for (let i = 0; i < lists.length; i++) {
             const rawTrade = lists[i];
-            let parsed: Trade = this.parseWsTrade (rawTrade);
-            // parsed set above
+            const parsed: Trade = this.parseWsTrade (rawTrade);
             const symbol = parsed['symbol'];
             symbols[symbol as string] = true;
             trades.append (parsed);
@@ -763,8 +762,7 @@ export default class apex extends apexRest {
         const orders = this.orders;
         const symbols: Dict = {};
         for (let i = 0; i < lists.length; i++) {
-            let parsed: Order = this.parseOrder (lists[i]);
-            // parsed set above
+            const parsed: Order = this.parseOrder (lists[i]);
             const symbol = parsed['symbol'];
             symbols[symbol as string] = true;
             orders.append (parsed);
