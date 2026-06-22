@@ -95,7 +95,7 @@ export default class woo extends wooRest {
         return await this.watch (url, messageHash, request, messageHash, subscribe);
     }
 
-    async unwatchPublic (subHash: string, symbol: string, topic: string, params = {}): Promise<any> {
+    async unwatchPublic (subHash: string, symbol: Str, topic: string, params = {}): Promise<any> {
         const urlUid = (this.uid) ? '/' + this.uid : '';
         const url = this.urls['api']['ws']['public'] + urlUid;
         const requestId = this.requestId (url);
@@ -208,7 +208,7 @@ export default class woo extends wooRest {
         const marketId = this.safeString (data, 'symbol');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        const topic = this.safeString (message, 'topic');
+        const topic = this.safeString (message, 'topic') as string;
         const method = this.safeString (topic.split ('@'), 1);
         if (method === 'orderbookupdate') {
             if (!(symbol in this.orderbooks)) {
@@ -220,27 +220,27 @@ export default class woo extends wooRest {
                 orderbook.cache.push (message);
             } else {
                 try {
-                    const ts = this.safeInteger (message, 'ts');
+                    const ts = this.safeInteger (message, 'ts') as number;
                     if (ts > timestamp) {
                         this.handleOrderBookMessage (client, message, orderbook);
                         client.resolve (orderbook, topic);
                     }
                 } catch (e) {
                     delete this.orderbooks[symbol];
-                    delete client.subscriptions[topic];
+                    delete client.subscriptions[topic as string];
                     client.reject (e, topic);
                 }
             }
         } else {
             if (!(symbol in this.orderbooks)) {
                 const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
-                const subscription = client.subscriptions[topic];
+                const subscription = client.subscriptions[topic as string];
                 const limit = this.safeInteger (subscription, 'limit', defaultLimit);
                 this.orderbooks[symbol] = this.orderBook ({}, limit);
             }
             const orderbook = this.orderbooks[symbol];
             const timestamp = this.safeInteger (message, 'ts');
-            const snapshot = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks');
+            const snapshot = this.parseOrderBook (data as Dict, symbol, timestamp, 'bids', 'asks');
             orderbook.reset (snapshot);
             client.resolve (orderbook, topic);
         }
@@ -250,10 +250,10 @@ export default class woo extends wooRest {
         const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
         const limit = this.safeInteger (subscription, 'limit', defaultLimit);
         const symbol = this.safeString (subscription, 'symbol'); // watchOrderBook
-        if (symbol in this.orderbooks) {
-            delete this.orderbooks[symbol];
+        if ((symbol as string) in this.orderbooks) {
+            delete this.orderbooks[symbol as string];
         }
-        this.orderbooks[symbol] = this.orderBook ({}, limit);
+        this.orderbooks[symbol as string] = this.orderBook ({}, limit);
         this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
     }
 
@@ -265,26 +265,26 @@ export default class woo extends wooRest {
             const limit = this.safeInteger (subscription, 'limit', defaultLimit);
             const params = this.safeValue (subscription, 'params');
             const snapshot = await this.fetchRestOrderBookSafe (symbol, limit, params);
-            if (this.safeValue (this.orderbooks, symbol) === undefined) {
+            if (this.safeValue (this.orderbooks, symbol as string) === undefined) {
                 // if the orderbook is dropped before the snapshot is received
                 return;
             }
-            const orderbook = this.orderbooks[symbol];
+            const orderbook = this.orderbooks[symbol as string];
             orderbook.reset (snapshot);
             const messages = orderbook.cache;
             for (let i = 0; i < messages.length; i++) {
                 const messageItem = messages[i];
-                const ts = this.safeInteger (messageItem, 'ts');
-                if (ts < orderbook['timestamp']) {
+                const ts = this.safeInteger (messageItem, 'ts') as number;
+                if (ts < (orderbook['timestamp'] as number)) {
                     continue;
                 } else {
                     this.handleOrderBookMessage (client, messageItem, orderbook);
                 }
             }
-            this.orderbooks[symbol] = orderbook;
+            this.orderbooks[symbol as string] = orderbook;
             client.resolve (orderbook, messageHash);
         } catch (e) {
-            delete client.subscriptions[messageHash];
+            delete client.subscriptions[messageHash as string];
             client.reject (e, messageHash);
         }
     }
@@ -570,12 +570,12 @@ export default class woo extends wooRest {
         const timestamp = this.safeInteger (message, 'ts');
         const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
-            const ticker = this.safeDict (data, i);
+            const ticker = this.safeDict (data, i, {});
             ticker['ts'] = timestamp;
             const parsedTicker = this.parseWsBidAsk (ticker);
             const symbol = parsedTicker['symbol'];
-            this.bidsasks[symbol] = parsedTicker;
-            result[symbol] = parsedTicker;
+            this.bidsasks[symbol as string] = parsedTicker;
+            result[symbol as string] = parsedTicker;
         }
         client.resolve (result, topic);
     }
@@ -687,11 +687,11 @@ export default class woo extends wooRest {
             this.safeFloat (data, 'volume'),
         ];
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        let stored = this.safeValue (this.ohlcvs[symbol], timeframe as string);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+            this.ohlcvs[symbol][timeframe as string] = stored;
         }
         stored.append (parsed);
         client.resolve (stored, topic);
@@ -1053,7 +1053,7 @@ export default class woo extends wooRest {
         //
         const orderId = this.safeString2 (order, 'orderId', 'algoOrderId');
         const marketId = this.safeString (order, 'symbol');
-        market = this.market (marketId);
+        market = this.market (marketId as string);
         const symbol = market['symbol'];
         const timestamp = this.safeInteger (order, 'timestamp');
         const fee = {
@@ -1138,7 +1138,7 @@ export default class woo extends wooRest {
             // algoexecutionreportv2
             for (let i = 0; i < data.length; i++) {
                 const order = data[i];
-                const tradeId = this.omitZero (this.safeString (data, 'tradeId'));
+                const tradeId = this.omitZero (this.safeString (data, 'tradeId') as string);
                 if (tradeId !== undefined) {
                     this.handleMyTrade (client, order);
                 }
@@ -1146,7 +1146,7 @@ export default class woo extends wooRest {
             }
         } else {
             // executionreport
-            const tradeId = this.omitZero (this.safeString (data, 'tradeId'));
+            const tradeId = this.omitZero (this.safeString (data, 'tradeId') as string);
             if (tradeId !== undefined) {
                 this.handleMyTrade (client, data);
             }
@@ -1165,7 +1165,7 @@ export default class woo extends wooRest {
             }
             const cachedOrders = this.orders;
             const orders = this.safeValue (cachedOrders.hashmap, symbol, {});
-            const order = this.safeValue (orders, orderId);
+            const order = this.safeValue (orders, orderId as string);
             if (order !== undefined) {
                 const fee = this.safeValue (order, 'fee');
                 if (fee !== undefined) {
@@ -1244,8 +1244,8 @@ export default class woo extends wooRest {
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         const messageHashes: string[] = [];
-        symbols = this.marketSymbols (symbols);
-        if (!this.isEmpty (symbols)) {
+        symbols = this.marketSymbols (symbols) as string[];
+        if (!this.isEmpty (symbols as string[])) {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 messageHashes.push ('positions::' + symbol);
@@ -1292,7 +1292,7 @@ export default class woo extends wooRest {
         const cache = this.positions;
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
-            const contracts = this.safeNumber (position, 'contracts', 0);
+            const contracts = this.safeNumber (position, 'contracts', 0) as number;
             if (contracts > 0) {
                 cache.append (position);
             }
@@ -1461,7 +1461,7 @@ export default class woo extends wooRest {
         const data = this.safeDict (message, 'data', {});
         const fundingRate = this.parseFundingRate (data);
         const symbol = fundingRate['symbol'];
-        this.fundingRates[symbol] = fundingRate;
+        this.fundingRates[symbol as string] = fundingRate;
         const messageHash = this.safeString (message, 'topic');
         client.resolve (fundingRate, messageHash);
     }
@@ -1545,7 +1545,7 @@ export default class woo extends wooRest {
             'estfundingrate': this.handleFundingRate,
         };
         const event = this.safeString (message, 'event');
-        let method = this.safeValue (methods, event);
+        let method = this.safeValue (methods, event as string);
         if (method !== undefined) {
             method.call (this, client, message);
             return;
@@ -1561,15 +1561,15 @@ export default class woo extends wooRest {
             const splitLength = splitTopic.length;
             if (splitLength === 2) {
                 const name = this.safeString (splitTopic, 1);
-                method = this.safeValue (methods, name);
+                method = this.safeValue (methods, name as string);
                 if (method !== undefined) {
                     method.call (this, client, message);
                     return;
                 }
-                const splitName = name.split ('_');
+                const splitName = (name as string).split ('_');
                 const splitNameLength = splitTopic.length;
                 if (splitNameLength === 2) {
-                    method = this.safeValue (methods, this.safeString (splitName, 0));
+                    method = this.safeValue (methods, this.safeString (splitName, 0) as string);
                     if (method !== undefined) {
                         method.call (this, client, message);
                     }
@@ -1609,7 +1609,7 @@ export default class woo extends wooRest {
         //
         const id = this.safeString (message, 'id');
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-        const subscription = this.safeValue (subscriptionsById, id, {});
+        const subscription = this.safeValue (subscriptionsById, id as string, {});
         const method = this.safeValue (subscription, 'method');
         if (method !== undefined) {
             method.call (this, client, message, subscription);
