@@ -541,7 +541,7 @@ export default class grvt extends Exchange {
             'address': walletAddress,
             'signature': this.defaultSignature (),
         };
-        request = this.createSignedRequest (request, 'EIP712_WALLETLOGIN_TYPE');
+        request = this.createSignedRequest (request, 'EIP712_WALLETLOGIN_TYPE', undefined);
         const response = await this.privateEdgePostAuthWalletLogin (this.extend (request, params));
         //
         //    {
@@ -596,7 +596,7 @@ export default class grvt extends Exchange {
                     'max_spot_fee_rate': this.safeString (this.options, 'builderRate'),
                     'signature': this.defaultSignature (),
                 };
-                request = this.createSignedRequest (request, 'EIP712_BUILDER_APPROVAL_TYPE');
+                request = this.createSignedRequest (request, 'EIP712_BUILDER_APPROVAL_TYPE', undefined);
                 const authResponse = await this.privateTradingPostFullV1AuthorizeBuilder (this.extend (request, params));
                 //
                 // {
@@ -2093,7 +2093,7 @@ export default class grvt extends Exchange {
             orderRequest['builder_fee'] = this.safeString (this.options, 'builderRate');
         }
         params = this.omit (params, [ 'builderFee' ]);
-        const signedOrderRequest = this.createSignedRequest (orderRequest, eipType);
+        const signedOrderRequest = this.createSignedRequest (orderRequest, eipType, undefined);
         const request = {
             'order': signedOrderRequest,
         };
@@ -3161,7 +3161,14 @@ export default class grvt extends Exchange {
         return this.convertToBigIntCustom ('10000'); // multiply needed https://t.me/c/3396937126/88
     }
 
-    createSignedRequest (request: any, structureType: string, currencyObj: Currency = undefined, signerAddress: Str = undefined): Dict {
+    /**
+     * @ignore
+     * @method
+     * @name grvt#createSignedRequest
+     * @description builds a signed request payload for the given structure type
+     * @returns {object} a signed request
+     */
+    createSignedRequest (request: any, structureType: string, currencyObj: Currency, signerAddress: Str = undefined): Dict {
         let messageData: NullableDict = undefined;
         if (structureType === 'EIP712_TRANSFER_TYPE') {
             const amountMultiplier = this.convertToBigIntCustom ('1000000');
