@@ -1409,7 +1409,6 @@ export default class binance extends Exchange {
                     'MATIC': 'MATIC',
                     'BASE': 'BASE',
                     'SUI': 'SUI',
-                    'SEI': 'SEI',
                     'OP': 'OPTIMISM',
                     'OPTIMISM': 'OPTIMISM',
                     'NEAR': 'NEAR',
@@ -1422,6 +1421,7 @@ export default class binance extends Exchange {
                     // CRO - not supported
                     // TAIKO - not supported
                     'RSK': 'RSK', // RBTC
+                    'SEI': 'SEI',
                     // MNT - not supported
                     'TON': 'TON',
                     'ADA': 'ADA',
