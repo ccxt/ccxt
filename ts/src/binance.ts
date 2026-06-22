@@ -1384,18 +1384,16 @@ export default class binance extends Exchange {
                     'OPTION': 'option',
                 },
                 'networks': {
-                    'BTC': 'BTC',
-                    'BTCLIGHTNING': 'LIGHTNING',
-                    'BTCSEGWIT': 'SEGWITBTC',
                     'ERC20': 'ETH',
                     'ETH': 'ETH',
-                    'ETC': 'ETC',
                     'TRC20': 'TRX',
                     'TRX': 'TRX',
                     'BEP2': 'BNB',
                     'BSC': 'BSC',
                     'BEP20': 'BSC',
+                    'XRP': 'XRP',
                     'EOS': 'EOS',
+                    'DOGE': 'DOGE',
                     'SPL': 'SOL', // temporarily keep support for SPL (old name)
                     'SOL': 'SOL', // we shouldn't rename SOL
                     // 'FIAT': 'FIAT_MONEY', // not unified atm
@@ -1406,19 +1404,19 @@ export default class binance extends Exchange {
                     'MATIC': 'MATIC',
                     'BASE': 'BASE',
                     'SUI': 'SUI',
+                    'SEI': 'SEI',
                     'OP': 'OPTIMISM',
                     'OPTIMISM': 'OPTIMISM',
                     'NEAR': 'NEAR',
                     'APT': 'APT',
                     'SCROLL': 'SCROLL',
-                    'KAVA': 'KAVA', // kavaevm ?
+                    'KAVA': 'KAVA',
                     'XLM': 'XLM',
                     // BLAST - not supported
                     // LINEA - not supported
                     // CRO - not supported
                     // TAIKO - not supported
                     'RSK': 'RSK', // RBTC
-                    'SEI': 'SEI',
                     // MNT - not supported
                     'TON': 'TON',
                     'ADA': 'ADA',
@@ -1431,7 +1429,6 @@ export default class binance extends Exchange {
                     'CELO': 'CELO',
                     'HBAR': 'HBAR',
                     // FTM - renamed
-                    'SONIC': 'SONIC',
                     // WEMIX - not supported
                     'ZKSYNCERA': 'ZKSYNCERA',
                     'KLAY': 'KLAY',
@@ -1441,31 +1438,60 @@ export default class binance extends Exchange {
                     'STX': 'STX', // STACKS
                     'XTZ': 'XTZ',
                     // 'NEO': 'NEO', // tbd NEO3
+                    'METIS': 'METIS',
                     // TLOS - not supported
                     'EGLD': 'EGLD',
                     'ASTR': 'ASTR',
-                    'CFX': 'CFX', // tbd cfxevm
+                    'CFX': 'CFX',
+                    // 'GLMR': 'GLMR', GLIMMER vs MOONBEAM
                     // CANTO - not supported
                     'SCRT': 'SCRT',
                     // AUR - not supported
                     'ONT': 'ONT', // ontology
-                    'WLD': 'WLD',
-                    // SEI & SEIEVM
-                    'CHZ2': 'CHZ2',
-                    'ETHW': 'ETHW',
-                    'IOTA': 'IOTA',
-                    'ICP': 'ICP',
                     'ZEC': 'ZEC',
-                    'XEC': 'XEC',
+                    'XMR': 'XMR',
+                    'BCH': 'BCH',
+                    'LTC': 'LTC',
                     'TAO': 'TAO',
-                    'VET': 'VET',
-                    'MOVE': 'MOVE',
-                    'MOVR': 'MOVR',
-                    'TIA': 'TIA', // celestia
+                    'WLD': 'WLD',
+                    'ICP': 'ICP',
+                    'ETC': 'ETC',
+                    'FLR': 'FLR',
+                    'COSMOS': 'ATOM',
+                    'ATOM': 'ATOM',
+                    'FIL': 'FIL',
+                    'INJ': 'INJ',
                     'DASH': 'DASH',
+                    'VET': 'VET',
+                    'FET': 'FET',
+                    'TIA': 'TIA',
+                    'KAIA': 'KAIA',
+                    'DCR': 'DCR',
+                    'IOTA': 'IOTA',
+                    'THETA': 'THETA',
+                    'RUNE': 'RUNE',
+                    'AR': 'AR',
                     'DYDX': 'DYDX',
-                    'FIL': 'FIL', // FILEVM tbd
-                    // TBD: LUNC, LUNA
+                    'XEC': 'XEC',
+                    'QTUM': 'QTUM',
+                    'ENJ': 'ENJ',
+                    'RVN': 'RVN',
+                    'ZIL': 'ZIL',
+                    'BERA': 'BERA',
+                    '0G': '0G',
+                    'MINA': 'MINA',
+                    'AXL': 'AXL',
+                    'ROSE': 'ROSE',
+                    'CKB': 'CKB',
+                    'DGB': 'DGB',
+                    'MOVE': 'MOVE',
+                    'ASTR': 'ASTR',
+                    'ONT': 'ONT',
+                    'XVG': 'XVG',
+                    'SC': 'SC',
+                    'LINEA': 'LINEA',
+                    'WAVES': 'WAVES',
+                    'MANTA': 'MANTA',
                 },
                 'networksById': {
                     'TRX': 'TRC20',
