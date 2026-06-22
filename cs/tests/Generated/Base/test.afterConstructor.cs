@@ -328,6 +328,5 @@ public partial class BaseTest
             helperTestInitThrottler();
             helperTestInitSandbox();
             helperTestInitMarket();
-            helperTestProperties();
         }
 }

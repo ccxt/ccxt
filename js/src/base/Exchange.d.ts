@@ -420,6 +420,8 @@ export default class Exchange {
     lighterSignApproveIntegrator(signer: any, request: any): any[];
     lighterGenerateApiKey(signer: any): any[];
     lighterSignChangePubkey(signer: any, request: any): any[];
+    setLastRestRequestTimestamp(): void;
+    setLastRequest(request: any): void;
     describe(): any;
     safeBoolN(dictionaryOrList: any, keys: IndexType[], defaultValue?: boolean): boolean | undefined;
     safeBool2(dictionaryOrList: any, key1: IndexType, key2: IndexType, defaultValue?: boolean): boolean | undefined;

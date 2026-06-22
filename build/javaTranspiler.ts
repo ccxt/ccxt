@@ -617,6 +617,8 @@ class NewTranspiler {
             'loadMarketsHelper',
             'createNetworksByIdObject',
             'setMarketsFromExchange',
+            'setLastRequest',
+            'setLastRestRequestTimestamp',
             'setProperty',
             'setProxyAgents',
             'watch',
