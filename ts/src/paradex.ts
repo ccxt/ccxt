@@ -2767,7 +2767,7 @@ export default class paradex extends Exchange {
             'COMPLETED': 'ok',
             'FAILED': 'failed',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     /**

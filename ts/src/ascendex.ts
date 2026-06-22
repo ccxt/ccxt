@@ -1446,7 +1446,7 @@ export default class ascendex extends Exchange {
             'Canceled': 'canceled',
             'Rejected': 'rejected',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -2768,7 +2768,7 @@ export default class ascendex extends Exchange {
             'confirmed': 'ok',
             'rejected': 'rejected',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {

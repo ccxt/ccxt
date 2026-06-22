@@ -2061,7 +2061,7 @@ export default class aster extends Exchange {
             'REJECTED': 'canceled',
             'EXPIRED': 'canceled',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseOrderType (type: Str) {
@@ -2074,7 +2074,7 @@ export default class aster extends Exchange {
             'TAKE_PROFIT_MARKET': 'market',
             'TRAILING_STOP_MARKET': 'market',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -3405,7 +3405,7 @@ export default class aster extends Exchange {
         const symbol = this.safeString (market, 'symbol');
         const isolatedMarginString = this.safeString (position, 'isolatedMargin');
         const leverageBrackets = this.safeDict (this.options, 'leverageBrackets', {});
-        const leverageBracket = this.safeList (leverageBrackets, symbol, []);
+        const leverageBracket = this.safeList (leverageBrackets, (symbol as string), []);
         const notionalString = this.safeString2 (position, 'notional', 'notionalValue');
         const notionalStringAbs = Precise.stringAbs (notionalString);
         let maintenanceMarginPercentageString: Str = undefined;
@@ -3705,7 +3705,7 @@ export default class aster extends Exchange {
         }
         const contracts = this.parseNumber (contractsStringAbs);
         const leverageBrackets = this.safeDict (this.options, 'leverageBrackets', {});
-        const leverageBracket = this.safeList (leverageBrackets, symbol, []);
+        const leverageBracket = this.safeList (leverageBrackets, (symbol as string), []);
         let maintenanceMarginPercentageString: Str = undefined;
         for (let i = 0; i < leverageBracket.length; i++) {
             const bracket = leverageBracket[i];
@@ -3980,7 +3980,7 @@ export default class aster extends Exchange {
         // TODO: check how ARBI signature would work
         const networks = this.safeDict (this.options, 'networks', {});
         let network = this.safeStringUpper (params, 'network');
-        network = this.safeString (networks, network, network);
+        network = this.safeString (networks, (network as string), network);
         if ((chainId === undefined) && (network !== undefined)) {
             const chainIds = this.safeDict (this.options, 'networksToChainId', {});
             chainId = this.safeInteger (chainIds, network);
@@ -4096,7 +4096,7 @@ export default class aster extends Exchange {
         const statuses: Dict = {
             'SUCCESS': 'ok',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     hashMessage (binaryMessage) {

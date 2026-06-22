@@ -1772,7 +1772,7 @@ export default class bingx extends bingxRest {
         //
         const id = this.safeString (message, 'id');
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-        const subscription = this.safeDict (subscriptionsById, id, {});
+        const subscription = this.safeDict (subscriptionsById, (id as string), {});
         const isUnSubMessage = this.safeBool (subscription, 'unsubscribe', false);
         if (isUnSubMessage) {
             this.handleUnSubscription (client, subscription);

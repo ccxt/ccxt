@@ -2625,7 +2625,7 @@ export default class derive extends Exchange {
             'settled': 'ok',
             'reverted': 'failed',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     handleDeriveSubaccountId (methodName: string, params: Dict) {
