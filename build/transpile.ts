@@ -2015,6 +2015,17 @@ class Transpiler {
 
         python2Body = this.regexAll (python2Body, [
             [ /function (\w+)\(\) \{/g, 'def $1():' ],
+            // rsa/jwt are async in TS (crypto.subtle), so `await rsa (...)` no longer
+            // sits behind the `assert (` lookbehind and gets turned into `self.rsa`.
+            // python's rsa/jwt are synchronous, so revert to the bare module bindings.
+            [ /self\.(rsa|jwt) ?\(/g, '$1(' ],
+        ])
+
+        phpBody = this.regexAll (phpBody, [
+            // php has no `async` keyword and rsa/jwt are synchronous here, so drop the
+            // async/await artifacts and call the bare module-level rsa/jwt wrappers.
+            [ /async function /g, 'function ' ],
+            [ /await \$this->(rsa|jwt) ?\(/g, '$1(' ],
         ])
 
         const pythonHeader = [
