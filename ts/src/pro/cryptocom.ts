@@ -3,7 +3,7 @@
 
 import { sha256 } from '@noble/hashes/sha2.js';
 import cryptocomRest from '../cryptocom.js';
-import { AuthenticationError, ChecksumError, ExchangeError, NetworkError } from '../base/errors.js';
+import { ArgumentsRequired, AuthenticationError, ChecksumError, ExchangeError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, OHLCV, Position, Balances, Num, Dict, Tickers, Market, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -1134,6 +1134,9 @@ export default class cryptocom extends cryptocomRest {
      */
     async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
+        if (amount === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrderWs() requires an amount argument');
+        }
         params = this.editOrderRequest (id, symbol, amount, price, params);
         const request: Dict = {
             'method': 'private/amend-order',

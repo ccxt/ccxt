@@ -793,7 +793,7 @@ export default class hibachi extends Exchange {
         return result;
     }
 
-    orderMessage (market, nonce: number, feeRate: number, type: OrderType, side: OrderSide, amount: number, price: Num = undefined) {
+    orderMessage (market, nonce: number, feeRate: number, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined) {
         let sideInternal = 0;
         if (side === 'sell') {
             sideInternal = 0;
@@ -1173,7 +1173,7 @@ export default class hibachi extends Exchange {
         ];
     }
 
-    encodeWithdrawMessage (amount: number, maxFees: number, address: string) {
+    encodeWithdrawMessage (amount: Num, maxFees: number, address: string) {
         // Converting them to internal representation:
         // - Quantity: Internal = External * (10^6)
         // - maxFees: Internal = External * (10^6)

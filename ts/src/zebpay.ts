@@ -1060,7 +1060,7 @@ export default class zebpay extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    orderRequest (symbol, type, amount, request, price = undefined, params = {}) {
+    orderRequest (symbol, type, amount, request, price: Num = undefined, params = {}) {
         const upperCaseType = type.toUpperCase ();
         const triggerPrice = this.safeString (params, 'stopLossPrice', undefined);
         const quoteOrderQty = this.safeString2 (params, 'quoteOrderQty', 'cost', undefined);

@@ -5279,7 +5279,7 @@ export default class binance extends Exchange {
      * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async editSpotOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    async editSpotOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['spot']) {
@@ -5330,7 +5330,7 @@ export default class binance extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    editSpotOrderRequest (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    editSpotOrderRequest (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params = {}) {
         if (side === undefined) {
             throw new ArgumentsRequired (this.id + ' editSpotOrderRequest() requires a side argument');
         }
@@ -5460,7 +5460,7 @@ export default class binance extends Exchange {
         return this.extend (request, params);
     }
 
-    editContractOrderRequest (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    editContractOrderRequest (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params = {}) {
         if (side === undefined) {
             throw new ArgumentsRequired (this.id + ' editContractOrderRequest() requires a side argument');
         }
@@ -5503,7 +5503,7 @@ export default class binance extends Exchange {
      * @param {boolean} [params.portfolioMargin] set to true if you would like to edit an order in a portfolio margin account
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async editContractOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    async editContractOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let isPortfolioMargin: Bool = undefined;
