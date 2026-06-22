@@ -4665,7 +4665,7 @@ export default class kucoin extends Exchange {
                 throw new ArgumentsRequired (this.id + ' createOrders() requires a symbol for each order');
             }
             const market = this.market (symbol);
-            const type = this.safeString (rawOrder, 'type');
+            const type = this.safeString (rawOrder, 'type', '');
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
