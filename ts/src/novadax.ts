@@ -564,7 +564,9 @@ export default class novadax extends Exchange {
         for (let i = 0; i < data.length; i++) {
             const ticker = this.parseTicker (data[i]);
             const symbol = ticker['symbol'];
-            result[symbol] = ticker;
+            if (symbol !== undefined) {
+                result[symbol] = ticker;
+            }
         }
         return this.filterByArrayTickers (result, 'symbol', symbols);
     }
@@ -666,7 +668,7 @@ export default class novadax extends Exchange {
         const symbol = this.safeSymbol (marketId, market, '_');
         const takerOrMaker = this.safeStringLower (trade, 'role');
         const feeString = this.safeString (trade, 'fee');
-        let fee: Dict = undefined;
+        let fee: Dict = {};
         if (feeString !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'feeCurrency');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
@@ -875,6 +877,9 @@ export default class novadax extends Exchange {
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
+        }
         let uppercaseType = type.toUpperCase ();
         const uppercaseSide = side.toUpperCase ();
         const request: Dict = {
@@ -1184,7 +1189,7 @@ export default class novadax extends Exchange {
             'CANCELED': 'canceled',
             'REJECTED': 'rejected',
         };
-        return this.safeString (statuses, status, status);
+        return (status === undefined) ? undefined : this.safeString (statuses, status, status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -1225,7 +1230,7 @@ export default class novadax extends Exchange {
         const timestamp = this.safeInteger (order, 'timestamp');
         const average = this.safeString (order, 'averagePrice');
         const filled = this.safeString (order, 'filledAmount');
-        let fee: Dict = undefined;
+        let fee: Dict = {};
         const feeCost = this.safeNumber (order, 'filledFee');
         if (feeCost !== undefined) {
             fee = {
@@ -1334,7 +1339,7 @@ export default class novadax extends Exchange {
         const statuses: Dict = {
             'SUCCESS': 'pending',
         };
-        return this.safeString (statuses, status, 'failed');
+        return (status === undefined) ? 'failed' : this.safeString (statuses, status, 'failed');
     }
 
     /**
@@ -1397,7 +1402,7 @@ export default class novadax extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const result = [];
+        const result: Dict[] = [];
         for (let i = 0; i < data.length; i++) {
             const account = data[i];
             const accountId = this.safeString (account, 'subId');
@@ -1409,7 +1414,7 @@ export default class novadax extends Exchange {
                 'info': account,
             });
         }
-        return result;
+        return result as Account[];
     }
 
     /**
@@ -1507,6 +1512,9 @@ export default class novadax extends Exchange {
         // x/M confirming the comfirming state of tx, the M is total confirmings needed
         // SUCCESS the record is success full
         // FAIL the record failed
+        if (status === undefined) {
+            return undefined;
+        }
         const parts = status.split (' ');
         status = this.safeString (parts, 1, status);
         const statuses: Dict = {
@@ -1515,7 +1523,7 @@ export default class novadax extends Exchange {
             'SUCCESS': 'ok',
             'FAIL': 'failed',
         };
-        return this.safeString (statuses, status, status);
+        return (status === undefined) ? undefined : this.safeString (statuses, status, status);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
