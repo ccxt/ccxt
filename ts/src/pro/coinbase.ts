@@ -91,7 +91,7 @@ export default class coinbase extends coinbaseRest {
             // 'signature': this.hmac (this.encode (auth), this.encode (this.secret), sha256),
         };
         if (isPrivate) {
-            subscribe = this.extend (subscribe, this.createWSAuth (name, productIds));
+            subscribe = this.extend (subscribe, await this.createWSAuth (name, productIds));
         }
         return await this.watch (url, messageHash, subscribe, messageHash);
     }
@@ -144,7 +144,7 @@ export default class coinbase extends coinbaseRest {
             'symbols': [ symbol ],
         };
         if (isPrivate) {
-            message = this.extend (message, this.createWSAuth (name, productIds));
+            message = this.extend (message, await this.createWSAuth (name, productIds));
         }
         this.options['unSubscription'] = subscription;
         const res = await this.watch (url, unWatchMessageHash, message, unWatchMessageHash, subscription);
@@ -183,7 +183,7 @@ export default class coinbase extends coinbaseRest {
             'channel': name,
         };
         if (isPrivate) {
-            subscribe = this.extend (subscribe, this.createWSAuth (name, productIds));
+            subscribe = this.extend (subscribe, await this.createWSAuth (name, productIds));
         }
         return await this.watchMultiple (url, messageHashes, subscribe, messageHashes);
     }
@@ -225,7 +225,7 @@ export default class coinbase extends coinbaseRest {
             'channel': name,
         };
         if (isPrivate) {
-            message = this.extend (message, this.createWSAuth (name, productIds));
+            message = this.extend (message, await this.createWSAuth (name, productIds));
         }
         const subscription = {
             'messageHashes': unWatchMessageHashes,
@@ -241,7 +241,7 @@ export default class coinbase extends coinbaseRest {
         return res;
     }
 
-    createWSAuth (name: string, productIds: string[]) {
+    async createWSAuth (name: string, productIds: string[]) {
         const subscribe: Dict = {};
         const timestamp = this.numberToString (this.seconds ());
         this.checkRequiredCredentials ();
@@ -260,7 +260,7 @@ export default class coinbase extends coinbaseRest {
             const seconds = this.seconds ();
             if (currentToken === undefined || tokenTimestamp + 120 < seconds) {
                 // we should generate new token
-                const token = this.createAuthToken (seconds);
+                const token = await this.createAuthToken (seconds);
                 this.options['wsToken'] = token;
                 this.options['wsTokenTimestamp'] = seconds;
             }

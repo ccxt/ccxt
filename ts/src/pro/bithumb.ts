@@ -463,7 +463,7 @@ export default class bithumb extends bithumbRest {
                 'nonce': this.uuid (),
                 'timestamp': this.milliseconds (),
             };
-            const jwtToken = jwt (payload, this.encode (this.secret), sha256);
+            const jwtToken = await jwt (payload, this.encode (this.secret), sha256);
             wsOptions['token'] = jwtToken;
             wsOptions['options'] = {
                 'headers': {

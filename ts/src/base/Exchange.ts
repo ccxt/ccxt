@@ -50,7 +50,6 @@ import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
 import { totp } from './functions/totp.js';
 import ethers from '../static_dependencies/ethers/index.js';
 import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
-import { SecureRandom } from '../static_dependencies/jsencrypt/lib/jsbn/rng.js';
 import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';
 import * as Starknet from '../static_dependencies/starknet/index.js';
 import { exportMnemonicAndPrivateKey, deriveHDKeyFromMnemonic } from '../static_dependencies/dydx-v4-client/onboarding.js';
@@ -1932,11 +1931,9 @@ export default class Exchange {
     }
 
     randomBytes (length: number) {
-        const rng = new SecureRandom ();
-        const x:number[] = [];
-        x.length = length;
-        rng.nextBytes (x);
-        return Buffer.from (x).toString ('hex');
+        const x = new Uint8Array (length);
+        crypto.getRandomValues (x);
+        return this.binaryToBase16 (x);
     }
 
     randNumber (size: number) {
@@ -3113,7 +3110,7 @@ export default class Exchange {
         this.options['enableDemoTrading'] = enable;
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         return {};
     }
 
@@ -5829,7 +5826,7 @@ export default class Exchange {
         for (let i = 0; i < retries + 1; i++) {
             try {
                 this.lastRestRequestTimestamp = this.milliseconds ();
-                const request = this.sign (path, api, method, params, headers, body);
+                const request = await this.sign (path, api, method, params, headers, body);
                 this.last_request_headers = request['headers'];
                 this.last_request_body = request['body'];
                 this.last_request_url = request['url'];
