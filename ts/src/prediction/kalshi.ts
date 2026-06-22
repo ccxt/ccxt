@@ -155,7 +155,6 @@ export default class kalshi extends Exchange {
                         },
                         'delete': {
                             'portfolio/orders/{order_id}': 1,
-                            'portfolio/orders': 1,
                             'portfolio/orders/batched': 1,
                             'portfolio/order_groups/{order_group_id}': 1,
                         },
@@ -1452,13 +1451,43 @@ export default class kalshi extends Exchange {
         } else {
             this.checkEvents ();
         }
-        const request: Dict = {};
+        // kalshi has no "cancel all" endpoint — fetch the resting orders and
+        // batch-cancel them by id (DELETE /portfolio/orders/batched, max 20 ids/call)
+        const request: Dict = { 'status': 'resting' };
         if (outcome !== undefined) {
             const outcomeObj = this.outcome (outcome);
             request['ticker'] = this.safeString (outcomeObj['info'], 'ticker');
         }
-        const response = await this.kalshiPrivateDeletePortfolioOrders (this.extend (request, params));
-        return this.parseOrders (this.safeList (response, 'orders', []) as any[]) as PredictionOrder[];
+        const restingResponse = await this.kalshiPrivateGetPortfolioOrders (request);
+        const restingOrders = this.safeList (restingResponse, 'orders', []);
+        const restingOrdersLength = restingOrders.length;
+        const ids = [];
+        for (let i = 0; i < restingOrdersLength; i++) {
+            const orderId = this.safeString (restingOrders[i], 'order_id');
+            if (orderId !== undefined) {
+                ids.push (orderId);
+            }
+        }
+        const idsLength = ids.length;
+        if (idsLength === 0) {
+            return [];
+        }
+        const canceledOrders = [];
+        const batchLimit = 20; // kalshi caps the batched-cancel endpoint at 20 ids per call
+        let remaining = ids;
+        let remainingLength = remaining.length;
+        while (remainingLength > 0) {
+            const batchIds = this.arraySlice (remaining, 0, batchLimit);
+            remaining = this.arraySlice (remaining, batchLimit);
+            const response = await this.kalshiPrivateDeletePortfolioOrdersBatched (this.extend ({ 'ids': batchIds }, params));
+            const batchResult = this.safeList (response, 'orders', []);
+            const batchResultLength = batchResult.length;
+            for (let j = 0; j < batchResultLength; j++) {
+                canceledOrders.push (batchResult[j]);
+            }
+            remainingLength = remaining.length;
+        }
+        return this.parseOrders (canceledOrders) as PredictionOrder[];
     }
 
     /**
