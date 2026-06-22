@@ -1,6 +1,6 @@
 import assert from 'assert';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
-import ccxt, { Exchange } from '../../../../ccxt.js';
+import ccxt, { Exchange, Position } from '../../../../ccxt.js';
 
 async function createOrderAfterDelay (exchange: Exchange) {
     await exchange.sleep (3000);
@@ -12,7 +12,7 @@ async function testUnWatchPositions (exchange: Exchange, skippedProperties: obje
     exchange.setSandboxMode (true);
 
     // First, we need to subscribe to positions to test the unsubscribe functionality
-    let positionsSubscription = undefined;
+    let positionsSubscription: Position[] = [];
     try {
         // First call uses snapshot
         positionsSubscription = await exchange.watchPositions ();
@@ -55,7 +55,7 @@ async function testUnWatchPositions (exchange: Exchange, skippedProperties: obje
     assert (responseAll !== undefined, exchange.id + ' ' + method + ' must return a response when unwatching all positions, returned ' + exchange.json (responseAll));
 
     // Test that we can resubscribe after unwatching (to ensure cleanup was proper)
-    let resubscribeResponse = undefined;
+    let resubscribeResponse: Position[] = [];
     try {
         resubscribeResponse = await exchange.watchPositions ();
         exchange.spawn (createOrderAfterDelay, exchange);

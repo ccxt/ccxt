@@ -1778,7 +1778,7 @@ export default class okx extends okxRest {
             'instType': 'ANY',
         };
         const channel = 'positions';
-        let newPositions = undefined;
+        let newPositions: Position[] = [];
         if (symbols === undefined) {
             const arg: Dict = {
                 'channel': 'positions',

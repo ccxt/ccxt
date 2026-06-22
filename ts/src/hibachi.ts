@@ -957,7 +957,7 @@ export default class hibachi extends Exchange {
         //
         // { "orders": [ { nonce: '1754349993908', orderId: '589642085255349248' } ] }
         //
-        const ret = [];
+        const ret: Order[] = [];
         const responseOrders = this.safeList (response, 'orders', []);
         for (let i = 0; i < responseOrders.length; i++) {
             const responseOrder = responseOrders[i];
@@ -1058,7 +1058,7 @@ export default class hibachi extends Exchange {
         //
         // { "orders": [ { "orderId": "589636801329628160" } ] }
         //
-        const ret = [];
+        const ret: Order[] = [];
         const responseOrders = this.safeList (response, 'orders', []);
         for (let i = 0; i < responseOrders.length; i++) {
             const responseOrder = responseOrders[i];
@@ -1133,7 +1133,7 @@ export default class hibachi extends Exchange {
         //
         // { "orders": [ { "orderId": "589636801329628160" } ] }
         //
-        const ret = [];
+        const ret: Order[] = [];
         const responseOrders = this.safeList (response, 'orders', []);
         for (let i = 0; i < responseOrders.length; i++) {
             const responseOrder = responseOrders[i];

@@ -1551,7 +1551,7 @@ export default class pacifica extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const results = this.safeList (data, 'results', []);
-        const ordersToReturn = [];
+        const ordersToReturn: Order[] = [];
         for (let i = 0; i < results.length; i++) {
             const order = results[i];
             const error = this.safeString (order, 'error', undefined);
@@ -1610,7 +1610,7 @@ export default class pacifica extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const results = this.safeList (data, 'results', []);
-        const ordersToReturn = [];
+        const ordersToReturn: Order[] = [];
         for (let i = 0; i < results.length; i++) {
             const order = results[i];
             const error = this.safeString (order, 'error', undefined);
