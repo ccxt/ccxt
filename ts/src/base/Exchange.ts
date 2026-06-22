@@ -190,30 +190,30 @@ export default class Exchange {
 
     // PROXY & USER-AGENTS (see "examples/proxy-usage" file for explanation)
     proxy: any;  // maintained for backwards compatibility, no-one should use it from now on
-    proxyUrl: string;
-    proxy_url: string;
+    proxyUrl: Str = undefined;
+    proxy_url: Str = undefined;
     proxyUrlCallback: any;
     proxy_url_callback: any;
-    httpProxy: string;
-    http_proxy: string;
+    httpProxy: Str = undefined;
+    http_proxy: Str = undefined;
     httpProxyCallback: any;
     http_proxy_callback: any;
-    httpsProxy: string;
-    https_proxy: string;
+    httpsProxy: Str = undefined;
+    https_proxy: Str = undefined;
     httpsProxyCallback: any;
     https_proxy_callback: any;
-    socksProxy: string;
-    socks_proxy: string;
+    socksProxy: Str = undefined;
+    socks_proxy: Str = undefined;
     socksProxyCallback: any;
     socks_proxy_callback: any;
     userAgent: { 'User-Agent': string } | false = undefined;
     user_agent: { 'User-Agent': string } | false = undefined;
-    wsProxy: string;
-    ws_proxy: string;
-    wssProxy: string;
-    wss_proxy: string;
-    wsSocksProxy: string;
-    ws_socks_proxy: string;
+    wsProxy: Str = undefined;
+    ws_proxy: Str = undefined;
+    wssProxy: Str = undefined;
+    wss_proxy: Str = undefined;
+    wsSocksProxy: Str = undefined;
+    ws_socks_proxy: Str = undefined;
     //
     userAgents: Dictionary<string> = {
         'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
@@ -261,7 +261,7 @@ export default class Exchange {
     walletAddress: string;  // a wallet address "0x"-prefixed hexstring
     token: string;  // reserved for HTTP auth in some cases
     twofa: string;
-    accountId: string;
+    accountId!: string;
 
     balance: any = {};
     liquidations: any = undefined;
@@ -277,7 +277,7 @@ export default class Exchange {
     myLiquidations: any = undefined;
     myTrades: ArrayCache;
     positions: any;
-    urls: {
+    urls!: {
         logo?: string;
         api: string | NestedDictionary;
         test: string | NestedDictionary;
@@ -311,7 +311,7 @@ export default class Exchange {
     id: string = 'Exchange';
 
     markets: Dictionary<any> = undefined;
-    has: Dictionary<boolean | 'emulated' | undefined>;
+    has!: Dictionary<boolean | 'emulated' | undefined>;
     features: Dictionary<Dictionary<any>> = undefined;
     status: {
         status: Str,
@@ -321,7 +321,7 @@ export default class Exchange {
         info: any,
     } = undefined;
 
-    requiredCredentials: {
+    requiredCredentials!: {
         apiKey: Bool,
         secret: Bool,
         uid: Bool,
@@ -349,7 +349,7 @@ export default class Exchange {
         price?: MinMax,
     } = undefined;
 
-    fees: {
+    fees!: {
         trading: {
             tierBased: Bool,
             percentage: Bool,
@@ -365,14 +365,14 @@ export default class Exchange {
     };
 
     markets_by_id: Dictionary<any> = undefined;
-    symbols: string[] = [];
-    ids: string[] = [];
+    symbols: Strings = undefined;
+    ids: Strings = undefined;
     currencies: Currencies = {};
 
     baseCurrencies: Dictionary<CurrencyInterface> = undefined;
     quoteCurrencies: Dictionary<CurrencyInterface> = undefined;
     currencies_by_id: Dictionary<CurrencyInterface> = undefined;
-    codes: string[] = [];
+    codes: Strings = undefined;
 
     reloadingMarkets: Bool = undefined;
     marketsLoading: Promise<Dictionary<Market>> = undefined;
@@ -722,7 +722,7 @@ export default class Exchange {
         this[underscore] = partial;
     }
 
-    defineRestApi (api, methodName, paths = []) {
+    defineRestApi (api, methodName, paths: string[] = []) {
         const keys = Object.keys (api);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
@@ -752,7 +752,7 @@ export default class Exchange {
                     }
                 }
             } else {
-                this.defineRestApi (value, methodName, paths.concat ([ key ]));
+                this.defineRestApi (value, methodName, paths.concat ([ key as string ]));
             }
         }
     }
@@ -2795,7 +2795,7 @@ export default class Exchange {
         return result;
     }
 
-    findTimeframe (timeframe, timeframes = undefined) {
+    findTimeframe (timeframe, timeframes: NullableDict = undefined) {
         if (timeframes === undefined) {
             timeframes = this.timeframes;
         }
@@ -3629,7 +3629,7 @@ export default class Exchange {
     }
 
     featuresMapper (initialFeatures: any, marketType: Str, subType: Str = undefined) {
-        let featuresObj = (subType !== undefined) ? initialFeatures[marketType][subType] : initialFeatures[marketType];
+        let featuresObj = (subType !== undefined) ? initialFeatures[marketType as string][subType] : initialFeatures[marketType as string];
         // if exchange does not have that market-type (eg. future>inverse)
         if (featuresObj === undefined) {
             return undefined;
@@ -3843,7 +3843,7 @@ export default class Exchange {
     safeCurrencyStructure (currency: object): CurrencyInterface {
         // derive data from networks: deposit, withdraw, active, fee, limits, precision
         const networks = this.safeDict (currency, 'networks', {});
-        const keys = Object.keys (networks);
+        const keys = Object.keys (networks as Dict);
         const length = keys.length;
         if (length !== 0) {
             for (let i = 0; i < length; i++) {
@@ -4534,7 +4534,7 @@ export default class Exchange {
             useQuote = feeSide === 'quote';
         }
         let cost = this.numberToString (amount);
-        let key = undefined;
+        let key: Str = undefined;
         if (useQuote) {
             const priceString = this.numberToString (price);
             cost = Precise.stringMul (cost, priceString);
@@ -4554,7 +4554,7 @@ export default class Exchange {
         cost = Precise.stringMul (cost, rate);
         return {
             'type': takerOrMaker,
-            'currency': market[key],
+            'currency': market[key as string],
             'rate': this.parseNumber (rate),
             'cost': this.parseNumber (cost),
         };
@@ -4815,7 +4815,7 @@ export default class Exchange {
         let result = [];
         const feeValues = Object.values (reduced);
         for (let i = 0; i < feeValues.length; i++) {
-            const reducedFeeValues = Object.values (feeValues[i]);
+            const reducedFeeValues = Object.values (feeValues[i] as Dict);
             result = this.arrayConcat (result, reducedFeeValues);
         }
         return result;
@@ -5266,7 +5266,7 @@ export default class Exchange {
             return undefined;
         }
         const replacements = this.safeDict (this.options, 'defaultNetworkCodeReplacements', {});
-        const keys = Object.keys (replacements);
+        const keys = Object.keys (replacements as Dict);
         for (let i = 0; i < keys.length; i++) {
             const baseCoin = keys[i];
             const entry = replacements[baseCoin];
@@ -6045,7 +6045,7 @@ export default class Exchange {
         if ((currencyId === undefined) && (currency !== undefined)) {
             return currency;
         }
-        if ((this.currencies_by_id !== undefined) && (currencyId in this.currencies_by_id) && (this.currencies_by_id[currencyId] !== undefined)) {
+        if ((currencyId !== undefined) && (this.currencies_by_id !== undefined) && (currencyId in this.currencies_by_id) && (this.currencies_by_id[currencyId] !== undefined)) {
             return this.currencies_by_id[currencyId];
         }
         let code = currencyId;
@@ -7330,7 +7330,7 @@ export default class Exchange {
             const defaultType = this.safeString2 (this.options, 'defaultType', 'defaultSubType', 'spot');
             for (let i = 0; i < markets.length; i++) {
                 const market = markets[i];
-                if (market[defaultType]) {
+                if (market[defaultType as string]) {
                     return market;
                 }
             }
@@ -7682,7 +7682,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' createSubAccount() is not supported yet');
     }
 
-    safeCurrencyCode (currencyId: Str, currency: Currency = undefined): Str {
+    safeCurrencyCode (currencyId: Str, currency: Currency = undefined): string {
         currency = this.safeCurrency (currencyId, currency);
         return currency['code'];
     }
@@ -7828,7 +7828,7 @@ export default class Exchange {
             const item = info[i];
             const borrowRate = this.parseIsolatedBorrowRate (item);
             const symbol = this.safeString (borrowRate, 'symbol');
-            result[symbol] = borrowRate;
+            result[symbol as string] = borrowRate;
         }
         return result as any;
     }
@@ -8259,7 +8259,7 @@ export default class Exchange {
             const currency = this.safeCurrency (currencyId);
             const code = this.safeString (currency, 'code');
             if ((codes === undefined) || (this.inArray (code, codes))) {
-                depositWithdrawFees[code] = this.parseDepositWithdrawFee (dictionary, currency);
+                depositWithdrawFees[code as string] = this.parseDepositWithdrawFee (dictionary, currency);
             }
         }
         return depositWithdrawFees;
@@ -8589,7 +8589,7 @@ export default class Exchange {
                     if (cursorIncrement !== undefined) {
                         cursorValue = this.parseToInt (cursorValue) + cursorIncrement;
                     }
-                    params[cursorSent] = cursorValue;
+                    params[cursorSent as string] = cursorValue;
                 }
                 let response = undefined;
                 if (method === 'fetchAccounts') {
@@ -8657,7 +8657,7 @@ export default class Exchange {
         let result = [];
         while (i < maxCalls) {
             try {
-                params[pageKey] = i + 1;
+                params[pageKey as string] = i + 1;
                 const response = await this[method] (symbol, since, maxEntriesPerRequest, params);
                 errors = 0;
                 const responseLength = response.length;
@@ -9219,8 +9219,8 @@ export default class Exchange {
                 const symbol = this.safeString (symbolAndTimeFrame, 0);
                 const timeframe = this.safeString (symbolAndTimeFrame, 1);
                 if ((this.ohlcvs !== undefined) && (symbol in this.ohlcvs)) {
-                    if (timeframe in this.ohlcvs[symbol]) {
-                        delete this.ohlcvs[symbol][timeframe];
+                    if (timeframe in this.ohlcvs[symbol as string]) {
+                        delete this.ohlcvs[symbol as string][timeframe as string];
                     }
                 }
             }
