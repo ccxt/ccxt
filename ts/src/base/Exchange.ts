@@ -2215,6 +2215,13 @@ export default class Exchange {
         return [ res.txType, res.txInfo, res.messageToSign ];
     }
 
+    setLastRestRequestTimestamp () {
+        // hand-written per language (not transpiled): in most languages this is a
+        // plain assignment, but the Go implementation guards the write with a mutex
+        // because concurrent requests would otherwise data-race on this field
+        this.lastRestRequestTimestamp = this.milliseconds ();
+    }
+
     // ------------------------------------------------------------------------
 
     // ########################################################################
@@ -5828,7 +5835,7 @@ export default class Exchange {
         [ retryDelay, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailureDelay', 0);
         for (let i = 0; i < retries + 1; i++) {
             try {
-                this.lastRestRequestTimestamp = this.milliseconds ();
+                this.setLastRestRequestTimestamp ();
                 const request = this.sign (path, api, method, params, headers, body);
                 this.last_request_headers = request['headers'];
                 this.last_request_body = request['body'];

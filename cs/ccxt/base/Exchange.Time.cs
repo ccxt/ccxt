@@ -26,6 +26,11 @@ public partial class Exchange
 
     }
 
+    public virtual void setLastRestRequestTimestamp()
+    {
+        this.lastRestRequestTimestamp = this.milliseconds();
+    }
+
     public long microseconds()
     {
 #if NET7_0_OR_GREATER

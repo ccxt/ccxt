@@ -94,6 +94,7 @@ type Exchange struct {
 
 	// timestamps
 	LastRestRequestTimestamp int64
+	lastRestRequestMu        sync.Mutex
 	LastRequestHeaders       any
 	Last_request_headers     any
 	Last_response_headers    any
