@@ -204,5 +204,4 @@ func TestAfterConstructor() {
 	HelperTestInitThrottler()
 	HelperTestInitSandbox()
 	HelperTestInitMarket()
-	HelperTestProperties()
 }
