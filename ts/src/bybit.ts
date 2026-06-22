@@ -1172,8 +1172,7 @@ export default class bybit extends Exchange {
                     'OASYS': 'OAS',
                     'OASIS': 'ROSE',
                     'ONE': 'ONE', // harmony one
-                    'OP': 'OP',
-                    'OPTIMISM': 'OP',
+                    'OP': 'OP', // 'OPTIMISM'
                     'SCRT': 'SCRT',
                     'STX': 'STX',
                     'TON': 'TON',
@@ -1184,7 +1183,7 @@ export default class bybit extends Exchange {
                     'XTZ': 'XTZ',
                     'ZIL': 'ZIL',
                     'ZKSYNCLITE': 'ZKSYNC',
-                    'ZKSYNC': 'ZKV2',
+                    'ZKSYNCERA': 'ZKV2',
                     '0G': 'ZEROGRAVITY',
                     'MANTLE': 'MANTLE',
                     'CHZ': 'CHILIZ',
