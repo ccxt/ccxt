@@ -1162,6 +1162,7 @@ export default class bybit extends Exchange {
                     'SONIC': 'SONIC',  // previously fantom & FTM
                     'GLMR': 'GLMR',
                     'HBAR': 'HBAR',
+                    'ICP': 'ICP',
                     'KLAY': 'KLAY',
                     'LTC': 'LTC',
                     // 'TERRA': 'LUNANEW',
