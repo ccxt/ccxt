@@ -1110,7 +1110,7 @@ class Transpiler {
 
     // ------------------------------------------------------------------------
 
-    transpileJavaScriptToPHP ({ js, variables }: any, async = false) {
+    transpileJavaScriptToPHP ({ js, variables, methodName }: any, async = false) {
 
         // match all local variables (let, const or var)
         let localVariablesRegex = /(?:^|[^a-zA-Z0-9_])(?:let|const|var)\s+(?:\[([^\]]+)\]|([a-zA-Z0-9_]+))/g // local variables
@@ -1160,7 +1160,11 @@ class Transpiler {
         const phpRegexes = this.getPHPRegexes ()
         let phpBody = this.regexAll (js, phpRegexes.concat (phpVariablesRegexes).concat (variablePropertiesRegexes))
         // indent async php
-        if (async && js.indexOf (' await ') > -1) {
+        // `sign` is async (for crypto.subtle) but its body usually has no `await`
+        // (pure hmac/url building). Without the wrapper it returns a plain array,
+        // and the base fetch2's `Async\await($this->sign(...))` then throws on a
+        // non-promise. Force-wrap `sign` so it always returns a promise.
+        if (async && (js.indexOf (' await ') > -1 || methodName === 'sign')) {
             const closure = variables && variables.length ? 'use (' + variables.map ((x: any) => '$' + x).join (', ') + ')': '';
             phpBody = '        return Async\\async(function () ' + closure + ' {\n    ' +  phpBody.replace (/\n/g, '\n    ') + '\n        }) ();'
         }
@@ -1745,7 +1749,7 @@ class Transpiler {
             let js = lines.slice (1, -1).join ("\n")
 
             // transpile everything
-            let { python3Body, python2Body, phpBody, phpAsyncBody } = this.transpileJavaScriptToPythonAndPHP ({ js, className, variables, removeEmptyLines: true })
+            let { python3Body, python2Body, phpBody, phpAsyncBody } = this.transpileJavaScriptToPythonAndPHP ({ js, className, variables, methodName: method, removeEmptyLines: true })
 
             if (this.buildPython) {
                 // compile the final Python code for the method signature
