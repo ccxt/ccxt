@@ -145,7 +145,7 @@ export default class hyperliquid extends hyperliquidRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const url = this.urls['api']['ws']['public'];
-        const [ order, globalParams ] = this.parseCreateEditOrderArgs (id, symbol, type, side, amount, price, params);
+        const [ order, globalParams ] = this.parseCreateEditOrderArgs (id, symbol, type, side, (amount as number), price, params);
         const postRequest = this.editOrdersRequest ([ order as any ], globalParams);
         const wrapped = this.wrapAsPostAction (postRequest);
         const request = this.safeDict (wrapped, 'request', {});
@@ -184,7 +184,7 @@ export default class hyperliquid extends hyperliquidRest {
         const responseObj = this.safeDict (response, 'response', {});
         const data = this.safeDict (responseObj, 'data', {});
         const statuses = this.safeList (data, 'statuses', []);
-        const orders = [];
+        const orders: Order[] = [];
         for (let i = 0; i < statuses.length; i++) {
             const status = statuses[i];
             orders.push (this.safeOrder ({
@@ -574,7 +574,7 @@ export default class hyperliquid extends hyperliquidRest {
         // spot
         const rawData = this.safeDict (message, 'data', {});
         const spotAssets = this.safeList (rawData, 'spotAssetCtxs', []);
-        const parsedTickers = [];
+        const parsedTickers: Ticker[] = [];
         for (let i = 0; i < spotAssets.length; i++) {
             const assetObject = spotAssets[i];
             const coin = this.safeString (assetObject, 'coin');
@@ -762,7 +762,7 @@ export default class hyperliquid extends hyperliquidRest {
         }
         const trades = this.trades[symbol];
         for (let i = 0; i < entry.length; i++) {
-            const data = this.safeDict (entry, i);
+            const data = this.safeDict (entry, i, {});
             const trade = this.parseWsTrade (data);
             trades.append (trade);
         }
@@ -923,7 +923,7 @@ export default class hyperliquid extends hyperliquidRest {
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
-        if (!(timeframe in this.ohlcvs[symbol])) {
+        if (!((timeframe as string) in this.ohlcvs[symbol])) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             const stored = new ArrayCacheByTimestamp (limit);
             this.ohlcvs[symbol][(timeframe as string)] = stored;
@@ -970,7 +970,9 @@ export default class hyperliquid extends hyperliquidRest {
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         let isUnifiedEnabled: Bool = undefined;
-        [ isUnifiedEnabled, params ] = await this.isUnifiedEnabled ('watchBalance', userAddress, false, params);
+        const unifiedResult = await this.isUnifiedEnabled ('watchBalance', userAddress, false, params);
+        isUnifiedEnabled = this.safeBool (unifiedResult, 0);
+        params = this.safeDict (unifiedResult, 1, params);
         const dex = this.safeString (params, 'dex');
         const isSpot = ((type === 'spot') || isUnifiedEnabled) && (dex === undefined);
         const topic = (isSpot) ? 'spotState' : 'clearinghouseState';
@@ -1015,7 +1017,9 @@ export default class hyperliquid extends hyperliquidRest {
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('unWatchBalance', undefined, params);
         let isUnifiedEnabled: Bool = undefined;
-        [ isUnifiedEnabled, params ] = await this.isUnifiedEnabled ('unWatchBalance', userAddress, false, params);
+        const unifiedResult = await this.isUnifiedEnabled ('unWatchBalance', userAddress, false, params);
+        isUnifiedEnabled = this.safeBool (unifiedResult, 0);
+        params = this.safeDict (unifiedResult, 1, params);
         const dex = this.safeString (params, 'dex');
         const isSpot = ((type === 'spot') || isUnifiedEnabled) && (dex === undefined);
         const topic = (isSpot) ? 'spotState' : 'clearinghouseState';
@@ -1090,13 +1094,13 @@ export default class hyperliquid extends hyperliquidRest {
         const topic = this.safeValue (message, 'channel');
         const messageHash = topic + '::balance';
         let info: NullableDict = undefined;
-        let rawBalances = [];
+        let rawBalances: any[] = [];
         let account: Str = undefined;
         let timestamp: Int = undefined;
         const data = this.safeValue (message, 'data', []);
         if (topic === 'spotState') {
             const spotState = this.safeDict (data, 'spotState');
-            rawBalances = this.safeList (spotState, 'balances');
+            rawBalances = this.safeList (spotState, 'balances', []);
             account = 'spot';
             info = rawBalances;
         }
@@ -1117,11 +1121,11 @@ export default class hyperliquid extends hyperliquidRest {
         this.balance[(account as string)]['info'] = info;
         this.balance[(account as string)]['timestamp'] = timestamp;
         this.balance[(account as string)]['datetime'] = this.iso8601 (timestamp);
-        this.balance[account] = this.safeBalance (this.balance[(account as string)]);
+        this.balance[(account as string)] = this.safeBalance (this.balance[(account as string)]);
         client.resolve (this.balance[(account as string)], messageHash);
     }
 
-    parseWsBalance (balance, accountType = undefined) {
+    parseWsBalance (balance, accountType: Str = undefined) {
         //
         // spot
         //     {
@@ -1236,7 +1240,7 @@ export default class hyperliquid extends hyperliquidRest {
         const cache = this.positions;
         const data = this.safeDict (message, 'data', {});
         const clearinghouseState = this.safeDict (data, 'clearinghouseState', {});
-        const newPositions = [];
+        const newPositions: Position[] = [];
         const rawPositions = this.safeList (clearinghouseState, 'assetPositions', []);
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
@@ -1534,7 +1538,7 @@ export default class hyperliquid extends hyperliquidRest {
         const messageHash = 'unsubscribe:' + subMessageHash;
         this.cleanUnsubscription (client, subMessageHash, messageHash);
         if (symbol in this.ohlcvs) {
-            if (timeframe in this.ohlcvs[symbol]) {
+            if ((timeframe as string) in this.ohlcvs[symbol]) {
                 delete this.ohlcvs[symbol][(timeframe as string)];
             }
         }
