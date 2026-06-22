@@ -1734,6 +1734,9 @@ export default class digifinex extends Exchange {
             const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrders() requires orders with a symbol');
+        }
         const market = this.market (symbol);
         const request: Dict = {};
         let response = undefined;

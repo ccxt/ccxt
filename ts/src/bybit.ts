@@ -4829,6 +4829,9 @@ export default class bybit extends Exchange {
      */
     async cancelAllOrdersAfter (timeout: Int, params = {}) {
         await this.loadMarkets ();
+        if (timeout === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelAllOrdersAfter() requires a timeout argument');
+        }
         const request: Dict = {
             'timeWindow': this.parseToInt (timeout / 1000),
         };
@@ -4872,6 +4875,9 @@ export default class bybit extends Exchange {
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
             const symbol = this.safeString (order, 'symbol');
+            if (symbol === undefined) {
+                continue;
+            }
             const market = this.market (symbol);
             let currentCategory: Str = undefined;
             [ currentCategory, params ] = this.getBybitType ('cancelOrders', market, params);
