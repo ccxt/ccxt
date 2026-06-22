@@ -2022,10 +2022,13 @@ class Transpiler {
         ])
 
         phpBody = this.regexAll (phpBody, [
-            // php has no `async` keyword and rsa/jwt are synchronous here, so drop the
-            // async/await artifacts and call the bare module-level rsa/jwt wrappers.
-            [ /async function /g, 'function ' ],
+            // rsa/jwt are synchronous in php, so drop the await/$this-> artifacts and
+            // call the bare module-level rsa/jwt wrappers instead.
             [ /await \$this->(rsa|jwt) ?\(/g, '$1(' ],
+            // php has no `async` keyword, but the awaiting base init runs
+            // `Async\await(test_cryptography())`, so the function must return a promise.
+            // wrap the body in a React async closure (matches the other base tests).
+            [ /async function (test_cryptography) \(\) \{([\s\S]*)\}\s*$/, 'function $1 () {\n    return \\React\\Async\\async(function () {$2}) ();\n}\n' ],
         ])
 
         const pythonHeader = [
