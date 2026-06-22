@@ -1240,9 +1240,9 @@ export default class bitmart extends Exchange {
             const fullId = this.safeString (currency, 'currency');
             let currencyId = fullId;
             let networkId = this.safeString (currency, 'network');
-            const isNtf = (fullId.indexOf ('NFT') >= 0);
+            const isNtf = ((fullId as string).indexOf ('NFT') >= 0);
             if (!isNtf) {
-                const parts = fullId.split ('-');
+                const parts = (fullId as string).split ('-');
                 currencyId = this.safeString (parts, 0);
                 const second = this.safeString (parts, 1);
                 if (second !== undefined) {
@@ -1679,7 +1679,7 @@ export default class bitmart extends Exchange {
             throw new NotSupported (this.id + ' fetchTicker() does not support ' + market['type'] + ' markets, only spot and swap markets are accepted');
         }
         // fails in naming for contract tickers 'contract_symbol'
-        let tickers = [];
+        let tickers: List = [];
         let ticker: Dict = {};
         if (market['spot']) {
             ticker = this.safeDict (response, 'data', {});
@@ -1782,7 +1782,7 @@ export default class bitmart extends Exchange {
         } else {
             throw new NotSupported (this.id + ' fetchTickers() does not support ' + type + ' markets, only spot and swap markets are accepted');
         }
-        let tickers = [];
+        let tickers: List = [];
         if (type === 'spot') {
             tickers = this.safeList (response, 'data', []);
         } else {
@@ -2893,7 +2893,7 @@ export default class bitmart extends Exchange {
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
-            let orderRequest = this.createSpotOrderRequest (marketId as string, type, side, amount, price, orderParams);
+            let orderRequest = this.createSpotOrderRequest (marketId as string, type as string, side, amount, price, orderParams);
             orderRequest = this.omit (orderRequest, [ 'symbol' ]); // not needed because it goes in the outter object
             ordersRequests.push (orderRequest);
         }
@@ -3857,7 +3857,7 @@ export default class bitmart extends Exchange {
         return this.parseDepositAddress (data, currency);
     }
 
-    parseDepositAddress (depositAddress, currency = undefined): DepositAddress {
+    parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
         //
         // fetchDepositAddress
         //    {
@@ -3880,8 +3880,8 @@ export default class bitmart extends Exchange {
         //
         let currencyId = this.safeString (depositAddress, 'currency');
         let network = this.safeString2 (depositAddress, 'chain', 'network');
-        if (currencyId.indexOf ('NFT') < 0) {
-            const parts = currencyId.split ('-');
+        if ((currencyId as string).indexOf ('NFT') < 0) {
+            const parts = (currencyId as string).split ('-');
             currencyId = this.safeString (parts, 0);
             const secondPart = this.safeString (parts, 1);
             if (secondPart !== undefined) {
@@ -5590,7 +5590,7 @@ export default class bitmart extends Exchange {
         };
     }
 
-    parseFundingHistories (contracts, market = undefined, since: Int = undefined, limit: Int = undefined): FundingHistory[] {
+    parseFundingHistories (contracts, market: Market = undefined, since: Int = undefined, limit: Int = undefined): FundingHistory[] {
         const result: List = [];
         for (let i = 0; i < contracts.length; i++) {
             const contract = contracts[i];
@@ -5766,7 +5766,7 @@ export default class bitmart extends Exchange {
         //     {"errno":"OK","message":"INVALID_PARAMETER","code":49998,"trace":"eb5ebb54-23cd-4de2-9064-e090b6c3b2e3","data":null}
         //
         const message = this.safeString (response, 'message');
-        const messageLower = message.toLowerCase ();
+        const messageLower = (message as string).toLowerCase ();
         const isErrorMessage = (message !== undefined) && (messageLower !== 'ok') && (messageLower !== 'success');
         const errorCode = this.safeString (response, 'code');
         const isErrorCode = (errorCode !== undefined) && (errorCode !== '1000');
