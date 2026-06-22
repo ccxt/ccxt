@@ -521,7 +521,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         """
         options = self.safe_dict(self.options, 'fetchMarkets', {})
         types = self.safe_list(options, 'types', [])
-        rawPromises = []
+        rawPromises: List[Any] = []
         for i in range(0, len(types)):
             marketType = types[i]
             if marketType == 'swap':
@@ -593,7 +593,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                     continue
                 dexName = self.safe_string(dex, 'name')
                 fetchDexesList.append(dexName)
-        rawPromises = []
+        rawPromises: List[Any] = []
         for i in range(0, len(fetchDexesList)):
             request: dict = {
                 'type': 'metaAndAssetCtxs',
@@ -1536,7 +1536,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         significantDigits = max(5, len(integerPart))
         result = self.decimal_to_precision(price, ROUND, significantDigits, SIGNIFICANT_DIGITS, self.paddingMode)
         maxDecimals = 8 if market['spot'] else 6
-        subtractedValue = maxDecimals - self.precision_from_string(self.safe_string(market['precision'], 'amount'))
+        subtractedValue = maxDecimals - self.precision_from_string((self.safe_string(market['precision'], 'amount')))
         return self.decimal_to_precision(result, ROUND, subtractedValue, DECIMAL_PLACES, self.paddingMode)
 
     def hash_message(self, message):
@@ -1560,7 +1560,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'connectionId': hash,
         }
 
-    def action_hash(self, action, vaultAddress, nonce, expiresAfter=None):
+    def action_hash(self, action, vaultAddress, nonce, expiresAfter: Int = None):
         dataBinary = self.packb(action)
         dataHex = self.binary_to_base16(dataBinary)
         data = dataHex
@@ -1575,7 +1575,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             data += '00000' + self.int_to_base16(expiresAfter)
         return self.hash(self.base16_to_binary(data), 'keccak', 'binary')
 
-    def sign_l1_action(self, action, nonce, vaultAdress=None, expiresAfter=None) -> object:
+    def sign_l1_action(self, action, nonce, vaultAdress: Str = None, expiresAfter: Int = None) -> object:
         hash = self.action_hash(action, vaultAdress, nonce, expiresAfter)
         isTestnet = self.safe_bool(self.options, 'sandboxMode', False)
         phantomAgent = self.construct_phantom_agent(hash, isTestnet)
@@ -1778,7 +1778,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             self.options['builderFee'] = False  # disable builder fee if an error occurs
         return True
 
-    async def is_unified_enabled(self, method: str, address: Str = None, shouldRefresh=False, params={}):
+    async def is_unified_enabled(self, method: str, address: Str = None, shouldRefresh=False, params={}) -> list:
         """
 
         https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-abstraction-state
@@ -1795,7 +1795,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             userAddress = address
         else:
             userAddress, params = self.handle_public_address('isUnifiedEnabled', params)
-        enableUnifiedMargin = None
+        enableUnifiedMargin: Bool = None
         enableUnifiedMargin, params = self.handle_option_and_params(params, method, 'enableUnifiedMargin')
         if enableUnifiedMargin is None or shouldRefresh:
             request: dict = {
@@ -4455,7 +4455,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             return address.replace('0x', '')
         return address
 
-    def handle_public_address(self, methodName: str, params: dict):
+    def handle_public_address(self, methodName: str, params: dict) -> list:
         userAux = None
         userAux, params = self.handle_option_and_params_2(params, methodName, 'user', 'subAccountAddress')
         user = userAux

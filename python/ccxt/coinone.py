@@ -412,7 +412,7 @@ class coinone(Exchange, ImplicitAPI):
         #     }
         #
         tickers = self.safe_list(response, 'tickers', [])
-        result = []
+        result: List[Any] = []
         for i in range(0, len(tickers)):
             entry = self.safe_value(tickers, i)
             id = self.safe_string(entry, 'id')
