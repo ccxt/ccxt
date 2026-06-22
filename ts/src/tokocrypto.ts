@@ -1200,7 +1200,7 @@ export default class tokocrypto extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTrades (response, market, since, limit);
+        return this.parseTrades (response as unknown as object[], market, since, limit);
     }
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
@@ -1448,7 +1448,7 @@ export default class tokocrypto extends Exchange {
         //     ]
         //
         const data = this.safeList (response, 'data', response);
-        return this.parseOHLCVs (data, market, timeframe, since, limit);
+        return this.parseOHLCVs (data as object[], market, timeframe, since, limit);
     }
 
     /**
@@ -1497,7 +1497,7 @@ export default class tokocrypto extends Exchange {
         return this.parseBalanceCustom (response, type, marginMode);
     }
 
-    parseBalanceCustom (response, type = undefined, marginMode = undefined) {
+    parseBalanceCustom (response, type: Str = undefined, marginMode: Str = undefined) {
         const timestamp = this.safeInteger (response, 'updateTime');
         const result: Dict = {
             'info': response,
@@ -1536,7 +1536,7 @@ export default class tokocrypto extends Exchange {
             'REJECTED': 'rejected',
             'EXPIRED': 'expired',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -1679,7 +1679,7 @@ export default class tokocrypto extends Exchange {
             'reduceOnly': this.safeValue (order, 'reduceOnly'),
             'side': side,
             'price': price,
-            'triggerPrice': this.parseNumber (this.omitZero (this.safeString (order, 'stopPrice'))),
+            'triggerPrice': this.parseNumber (this.omitZero (this.safeString (order, 'stopPrice') as string)),
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -1810,7 +1810,7 @@ export default class tokocrypto extends Exchange {
                 } else {
                     quoteAmount = amount;
                 }
-                request['quoteOrderQty'] = this.decimalToPrecision (quoteAmount, TRUNCATE, precision, this.precisionMode);
+                request['quoteOrderQty'] = this.decimalToPrecision (quoteAmount as string, TRUNCATE, precision, this.precisionMode);
             } else {
                 quantityIsRequired = true;
             }
@@ -2161,7 +2161,7 @@ export default class tokocrypto extends Exchange {
         };
         const networks = this.safeValue (this.options, 'networks', {});
         let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
+        network = this.safeString (networks, network as string, network); // handle ERC20>ETH alias
         if (network !== undefined) {
             request['network'] = network;
             params = this.omit (params, 'network');
@@ -2186,7 +2186,7 @@ export default class tokocrypto extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const address = this.safeString (data, 'address');
-        let tag = this.safeString (data, 'addressTag', '');
+        let tag: Str = this.safeString (data, 'addressTag', '');
         if (tag.length === 0) {
             tag = undefined;
         }
@@ -2320,7 +2320,7 @@ export default class tokocrypto extends Exchange {
         return this.parseTransactions (withdrawals, currency, since, limit);
     }
 
-    parseTransactionStatusByType (status, type = undefined) {
+    parseTransactionStatusByType (status, type: Str = undefined) {
         const statusesByType: Dict = {
             'deposit': {
                 '0': 'pending',
@@ -2336,7 +2336,7 @@ export default class tokocrypto extends Exchange {
                 '10': 'ok', // Completed
             },
         };
-        const statuses = this.safeValue (statusesByType, type, {});
+        const statuses = this.safeValue (statusesByType, type as string, {});
         return this.safeString (statuses, status, status);
     }
 
@@ -2412,7 +2412,7 @@ export default class tokocrypto extends Exchange {
             }
         }
         const feeCost = this.safeNumber2 (transaction, 'transactionFee', 'totalFee');
-        const fee = {
+        const fee: Dict = {
             'currency': undefined,
             'cost': undefined,
             'rate': undefined,
