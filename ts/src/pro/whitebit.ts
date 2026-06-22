@@ -786,7 +786,7 @@ export default class whitebit extends whitebitRest {
         if (client === undefined) {
             const subscription: Dict = {};
             const market = this.market (symbol);
-            const marketId = market['id'];
+            const marketId = this.safeString (market, 'id', '');
             subscription[marketId] = true;
             marketIds = [ marketId ];
             if (isNested) {
@@ -803,7 +803,7 @@ export default class whitebit extends whitebitRest {
             const subscription = this.safeValue (client.subscriptions, method, {});
             let hasSymbolSubscription = true;
             const market = this.market (symbol);
-            const marketId = market['id'];
+            const marketId = this.safeString (market, 'id', '');
             const isSubscribed = this.safeBool (subscription, marketId, false);
             if (!isSubscribed) {
                 subscription[marketId] = true;

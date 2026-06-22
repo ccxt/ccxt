@@ -1065,7 +1065,7 @@ export default class onetrading extends onetradingRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const marketId = market['id'];
+        const marketId = this.safeString (market, 'id', '');
         const url = this.urls['api']['ws'];
         const timeframes = this.safeValue (this.options, 'timeframes', {});
         const timeframeId = this.safeValue (timeframes, timeframe);
@@ -1165,6 +1165,9 @@ export default class onetrading extends onetradingRest {
         const timeframeId = this.safeValue (message, 'granularity');
         const timeframes = this.safeValue (this.options, 'timeframes', {});
         const timeframe = this.findTimeframe (timeframeId, timeframes);
+        if (timeframe === undefined) {
+            return;
+        }
         const channel = 'ohlcv.' + symbol + '.' + timeframe;
         const parsed = [
             this.parse8601 (dateTime),

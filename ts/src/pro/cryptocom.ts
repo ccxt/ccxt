@@ -593,7 +593,9 @@ export default class cryptocom extends cryptocomRest {
             const ticker = data[i];
             const parsed = this.parseWsTicker (ticker, market);
             const symbol = parsed['symbol'];
-            this.tickers[symbol] = parsed;
+            if (symbol !== undefined) {
+                this.tickers[symbol] = parsed;
+            }
             client.resolve (parsed, messageHash);
         }
     }
@@ -691,7 +693,9 @@ export default class cryptocom extends cryptocomRest {
         const ticker = this.safeDict (data, 0, {});
         const parsedTicker = this.parseWsBidAsk (ticker);
         const symbol = parsedTicker['symbol'];
-        this.bidsasks[symbol] = parsedTicker;
+        if (symbol !== undefined) {
+            this.bidsasks[symbol] = parsedTicker;
+        }
         const messageHash = 'bidask.' + symbol;
         client.resolve (parsedTicker, messageHash);
     }
@@ -778,6 +782,9 @@ export default class cryptocom extends cryptocomRest {
         const symbol = market['symbol'];
         const interval = this.safeString (message, 'interval');
         const timeframe = this.findTimeframe (interval);
+        if (timeframe === undefined) {
+            return;
+        }
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {

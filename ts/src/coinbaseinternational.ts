@@ -782,7 +782,7 @@ export default class coinbaseinternational extends Exchange {
      */
     async createDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         await this.loadMarkets ();
-        let method = undefined;
+        let method: Str = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'createDepositAddress', 'method', 'v1PrivatePostTransfersAddress');
         let portfolio: Str = undefined;
         [ portfolio, params ] = await this.handlePortfolioAndParams ('createDepositAddress', params);
@@ -795,6 +795,9 @@ export default class coinbaseinternational extends Exchange {
             let networkId: Str = undefined;
             [ networkId, params ] = await this.handleNetworkIdAndParams (code, 'createDepositAddress', params);
             request['network_arn_id'] = networkId;
+        }
+        if (method === undefined) {
+            throw new ExchangeError (this.id + ' createDepositAddress() could not determine the request method');
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -2272,7 +2275,7 @@ export default class coinbaseinternational extends Exchange {
         const currency = this.currency (code);
         let portfolio: Str = undefined;
         [ portfolio, params ] = await this.handlePortfolioAndParams ('withdraw', params);
-        let method = undefined;
+        let method: Str = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'withdraw', 'method', 'v1PrivatePostTransfersWithdraw');
         let networkId: Str = undefined;
         [ networkId, params ] = await this.handleNetworkIdAndParams (code, 'withdraw', params);
@@ -2286,6 +2289,9 @@ export default class coinbaseinternational extends Exchange {
             'network_arn_id': networkId,
             'nonce': this.nonce (),
         };
+        if (method === undefined) {
+            throw new ExchangeError (this.id + ' withdraw() could not determine the request method');
+        }
         const response = await this[method] (this.extend (request, params));
         //
         //    {

@@ -346,7 +346,9 @@ export default class mexc extends mexcRest {
                 ticker = this.parseTicker (entry);
             }
             const symbol = ticker['symbol'];
-            this.tickers[symbol] = ticker;
+            if (symbol !== undefined) {
+                this.tickers[symbol] = ticker;
+            }
             result.push (ticker);
             const messageHash = 'ticker:' + symbol;
             client.resolve (ticker, messageHash);
@@ -678,6 +680,9 @@ export default class mexc extends mexcRest {
             const market = this.safeMarket (marketId);
             symbol = market['symbol'];
             parsed = this.parseWsOHLCV (rawOhlcv, market);
+        }
+        if (timeframe === undefined) {
+            return;
         }
         const messageHash = 'candles:' + symbol + ':' + timeframe;
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
@@ -1669,7 +1674,9 @@ export default class mexc extends mexcRest {
         const data = this.safeDict (message, 'data', {});
         const fundingRate = this.parseFundingRate (data);
         const symbol = fundingRate['symbol'];
-        this.fundingRates[symbol] = fundingRate;
+        if (symbol !== undefined) {
+            this.fundingRates[symbol] = fundingRate;
+        }
         const messageHash = 'fundingRate:' + symbol;
         client.resolve (fundingRate, messageHash);
     }
@@ -1952,7 +1959,7 @@ export default class mexc extends mexcRest {
                 if (splitHashes.length > 4) {
                     symbol += ':' + this.safeString (splitHashes, 3);
                 }
-                if (symbol in this.ohlcvs) {
+                if ((symbol !== undefined) && (symbol in this.ohlcvs)) {
                     delete this.ohlcvs[symbol];
                 }
             } else if (messageHash.indexOf ('orderbook') >= 0) {
@@ -2129,7 +2136,7 @@ export default class mexc extends mexcRest {
             'pong': this.handlePong,
             'push.funding.rate': this.handleFundingRate,
         };
-        if (channel in methods) {
+        if ((channel !== undefined) && (channel in methods)) {
             const method = methods[channel];
             method.call (this, client, message);
         }

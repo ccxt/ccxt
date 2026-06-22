@@ -482,7 +482,10 @@ export default class exmo extends exmoRest {
         for (let j = 0; j < trades.length; j++) {
             const trade = trades[j];
             myTrades.append (trade);
-            symbols[trade['symbol']] = true;
+            const tradeSymbol = trade['symbol'];
+            if (tradeSymbol !== undefined) {
+                symbols[tradeSymbol] = true;
+            }
         }
         const symbolKeys = Object.keys (symbols);
         for (let i = 0; i < symbolKeys.length; i++) {
@@ -706,7 +709,10 @@ export default class exmo extends exmoRest {
         for (let j = 0; j < rawOrders.length; j++) {
             const order = this.parseWsOrder (rawOrders[j]);
             cachedOrders.append (order);
-            symbols[order['symbol']] = true;
+            const orderSymbol = order['symbol'];
+            if (orderSymbol !== undefined) {
+                symbols[orderSymbol] = true;
+            }
         }
         const symbolKeys = Object.keys (symbols);
         for (let i = 0; i < symbolKeys.length; i++) {
