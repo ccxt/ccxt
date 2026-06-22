@@ -4329,8 +4329,12 @@ export default class binance extends Exchange {
         //     }
         //
         const statusRaw = this.safeString (response, 'status');
+        let status = undefined;
+        if (statusRaw !== undefined) {
+            status = this.safeString ({ '0': 'ok', '1': 'maintenance' }, statusRaw, statusRaw);
+        }
         return {
-            'status': this.safeString ({ '0': 'ok', '1': 'maintenance' }, statusRaw, statusRaw),
+            'status': status,
             'updated': undefined,
             'eta': undefined,
             'url': undefined,
@@ -8955,8 +8959,12 @@ export default class binance extends Exchange {
             const parts = type.split ('_');
             fromAccount = this.safeValue (parts, 0);
             toAccount = this.safeValue (parts, 1);
-            fromAccount = this.safeString (accountsById, fromAccount, fromAccount);
-            toAccount = this.safeString (accountsById, toAccount, toAccount);
+            if (fromAccount !== undefined) {
+                fromAccount = this.safeString (accountsById, fromAccount, fromAccount);
+            }
+            if (toAccount !== undefined) {
+                toAccount = this.safeString (accountsById, toAccount, toAccount);
+            }
         }
         const walletType = this.safeInteger (transfer, 'walletType');
         if (walletType !== undefined) {
@@ -10266,7 +10274,7 @@ export default class binance extends Exchange {
         //
         const marketId = this.safeString (position, 'symbol');
         market = this.safeMarket (marketId, market, undefined, 'contract');
-        const symbol = this.safeString (market, 'symbol');
+        const symbol = market['symbol'];
         const leverageString = this.safeString (position, 'leverage');
         const leverage = (leverageString !== undefined) ? parseInt (leverageString) : undefined;
         const initialMarginString = this.safeString (position, 'initialMargin');
@@ -10514,7 +10522,7 @@ export default class binance extends Exchange {
         //
         const marketId = this.safeString (position, 'symbol');
         market = this.safeMarket (marketId, market, undefined, 'contract');
-        const symbol = this.safeString (market, 'symbol');
+        const symbol = market['symbol'];
         const isolatedMarginString = this.safeString (position, 'isolatedMargin');
         const leverageBrackets = this.safeDict (this.options, 'leverageBrackets', {});
         const leverageBracket = this.safeList (leverageBrackets, symbol, []);

@@ -1190,6 +1190,9 @@ export default class onetrading extends onetradingRest {
 
     findTimeframe (timeframe, timeframes = undefined) {
         timeframes = timeframes || this.timeframes;
+        if (timeframes === undefined) {
+            timeframes = {};
+        }
         const keys = Object.keys (timeframes);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
