@@ -763,7 +763,7 @@ func (this *testMainClass) GetValidSymbol(exchange ccxt.ICoreExchange, optionalA
 		var valuesLength any = GetArrayLength(values)
 		if IsTrue(IsGreaterThan(valuesLength, 0)) {
 			var first any = GetValue(values, 0)
-			if IsTrue(!IsEqual(first, nil)) {
+			if IsTrue(first) {
 				symbol = GetValue(first, "symbol")
 			}
 		}

@@ -636,12 +636,12 @@ func (this *LighterCore) CreateAuth(optionalArgs ...any) any {
 	var cachedAuth any = this.SafeDict(accountAuths, apiKeyIndex)
 	var cachedDeadline any = this.SafeInteger(cachedAuth, "deadline")
 	if IsTrue(!IsEqual(cachedDeadline, nil)) {
-		var minimumDeadline any = Add(this.Seconds(), this.SafeInteger(this.Options, "authDeadlineMinimumRemaining"))
+		var minimumDeadline any = Add(this.Seconds(), this.SafeInteger(this.Options, "authDeadlineMinimumRemaining", 60))
 		if IsTrue(IsGreaterThanOrEqual(cachedDeadline, minimumDeadline)) {
 			return this.SafeString(cachedAuth, "token")
 		}
 	}
-	var deadline any = Add(this.Seconds(), this.SafeInteger(this.Options, "authDeadlineExpiry"))
+	var deadline any = Add(this.Seconds(), this.SafeInteger(this.Options, "authDeadlineExpiry", 28800))
 	var request any = map[string]any{
 		"deadline":      deadline,
 		"api_key_index": this.ParseToInt(apiKeyIndex),

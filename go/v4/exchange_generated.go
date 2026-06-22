@@ -9692,7 +9692,7 @@ func (this *Exchange) FetchPaginatedCallDynamic(method any, optionalArgs ...any)
 						errors = 0
 						result = this.ArrayConcat(result, response)
 						var last any = this.SafeValue(response, Subtract(responseLength, 1))
-						paginationTimestamp = Add(this.SafeInteger(last, "timestamp"), 1)
+						paginationTimestamp = Add(this.SafeInteger(last, "timestamp", 0), 1)
 						if IsTrue(IsTrue((!IsEqual(until, nil))) && IsTrue((IsGreaterThanOrEqual(paginationTimestamp, until)))) {
 							panic("break")
 						}

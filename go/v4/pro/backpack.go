@@ -1201,7 +1201,7 @@ func  (this *BackpackCore) HandleOrderBook(client any, message any)  {
     client.(ccxt.ClientInterface).Resolve(storedOrderBook, messageHash)
 }
 func  (this *BackpackCore) HandleDelta(orderbook any, delta any)  {
-    var timestamp any = this.ParseToInt(ccxt.Divide(this.SafeInteger(delta, "T"), 1000))
+    var timestamp any = this.ParseToInt(ccxt.Divide(this.SafeInteger(delta, "T", 0), 1000))
     ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
     ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
     ccxt.AddElementToObject(orderbook, "nonce", this.SafeInteger(delta, "u"))

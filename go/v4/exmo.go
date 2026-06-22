@@ -261,7 +261,7 @@ func (this *ExmoCore) ModifyMarginHelper(symbol any, amount any, typeVar any, op
 			"position_id": GetValue(market, "id"),
 			"quantity":    amount,
 		}
-		var response any = nil
+		var response any = map[string]any{}
 		if IsTrue(IsEqual(typeVar, "add")) {
 
 			response = (<-this.PrivatePostMarginUserPositionMarginAdd(this.Extend(request, params)))

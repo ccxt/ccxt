@@ -1779,7 +1779,7 @@ func  (this *BitmartCore) HandleOHLCV(client any, message any)  {
             var symbol any = ccxt.GetValue(market, "symbol")
             var rawOHLCV any = this.SafeList(ccxt.GetValue(data, i), "candle")
             var parsed any = this.ParseOHLCV(rawOHLCV, market)
-            ccxt.AddElementToObject(parsed, 0, ccxt.Multiply(this.ParseToInt(ccxt.Divide(ccxt.GetValue(parsed, 0), durationInMs)), durationInMs))
+            ccxt.AddElementToObject(parsed, 0, ccxt.Multiply(this.ParseToInt(ccxt.Divide(this.ParseToInt(ccxt.GetValue(parsed, 0)), durationInMs)), durationInMs))
             ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any {}))
             var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
             if ccxt.IsTrue(ccxt.IsEqual(stored, nil)) {

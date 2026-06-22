@@ -4488,7 +4488,7 @@ type FetchPaginatedCallDeterministicOptionsStruct struct {
 	Limit                *int64
 	Timeframe            *string
 	Params               *map[string]any
-	MaxEntriesPerRequest *any
+	MaxEntriesPerRequest *int64
 }
 
 type FetchPaginatedCallDeterministicOptions func(opts *FetchPaginatedCallDeterministicOptionsStruct)
@@ -4523,7 +4523,7 @@ func WithFetchPaginatedCallDeterministicParams(params map[string]any) FetchPagin
 	}
 }
 
-func WithFetchPaginatedCallDeterministicMaxEntriesPerRequest(maxEntriesPerRequest any) FetchPaginatedCallDeterministicOptions {
+func WithFetchPaginatedCallDeterministicMaxEntriesPerRequest(maxEntriesPerRequest int64) FetchPaginatedCallDeterministicOptions {
 	return func(opts *FetchPaginatedCallDeterministicOptionsStruct) {
 		opts.MaxEntriesPerRequest = &maxEntriesPerRequest
 	}
@@ -4534,10 +4534,10 @@ type FetchPaginatedCallCursorOptionsStruct struct {
 	Since                *int64
 	Limit                *int64
 	Params               *map[string]any
-	CursorReceived       *any
-	CursorSent           *any
-	CursorIncrement      *any
-	MaxEntriesPerRequest *any
+	CursorReceived       *string
+	CursorSent           *string
+	CursorIncrement      *int64
+	MaxEntriesPerRequest *int64
 }
 
 type FetchPaginatedCallCursorOptions func(opts *FetchPaginatedCallCursorOptionsStruct)
@@ -4566,25 +4566,25 @@ func WithFetchPaginatedCallCursorParams(params map[string]any) FetchPaginatedCal
 	}
 }
 
-func WithFetchPaginatedCallCursorCursorReceived(cursorReceived any) FetchPaginatedCallCursorOptions {
+func WithFetchPaginatedCallCursorCursorReceived(cursorReceived string) FetchPaginatedCallCursorOptions {
 	return func(opts *FetchPaginatedCallCursorOptionsStruct) {
 		opts.CursorReceived = &cursorReceived
 	}
 }
 
-func WithFetchPaginatedCallCursorCursorSent(cursorSent any) FetchPaginatedCallCursorOptions {
+func WithFetchPaginatedCallCursorCursorSent(cursorSent string) FetchPaginatedCallCursorOptions {
 	return func(opts *FetchPaginatedCallCursorOptionsStruct) {
 		opts.CursorSent = &cursorSent
 	}
 }
 
-func WithFetchPaginatedCallCursorCursorIncrement(cursorIncrement any) FetchPaginatedCallCursorOptions {
+func WithFetchPaginatedCallCursorCursorIncrement(cursorIncrement int64) FetchPaginatedCallCursorOptions {
 	return func(opts *FetchPaginatedCallCursorOptionsStruct) {
 		opts.CursorIncrement = &cursorIncrement
 	}
 }
 
-func WithFetchPaginatedCallCursorMaxEntriesPerRequest(maxEntriesPerRequest any) FetchPaginatedCallCursorOptions {
+func WithFetchPaginatedCallCursorMaxEntriesPerRequest(maxEntriesPerRequest int64) FetchPaginatedCallCursorOptions {
 	return func(opts *FetchPaginatedCallCursorOptionsStruct) {
 		opts.MaxEntriesPerRequest = &maxEntriesPerRequest
 	}
@@ -4595,8 +4595,8 @@ type FetchPaginatedCallIncrementalOptionsStruct struct {
 	Since                *int64
 	Limit                *int64
 	Params               *map[string]any
-	PageKey              *any
-	MaxEntriesPerRequest *any
+	PageKey              *string
+	MaxEntriesPerRequest *int64
 }
 
 type FetchPaginatedCallIncrementalOptions func(opts *FetchPaginatedCallIncrementalOptionsStruct)
@@ -4625,13 +4625,13 @@ func WithFetchPaginatedCallIncrementalParams(params map[string]any) FetchPaginat
 	}
 }
 
-func WithFetchPaginatedCallIncrementalPageKey(pageKey any) FetchPaginatedCallIncrementalOptions {
+func WithFetchPaginatedCallIncrementalPageKey(pageKey string) FetchPaginatedCallIncrementalOptions {
 	return func(opts *FetchPaginatedCallIncrementalOptionsStruct) {
 		opts.PageKey = &pageKey
 	}
 }
 
-func WithFetchPaginatedCallIncrementalMaxEntriesPerRequest(maxEntriesPerRequest any) FetchPaginatedCallIncrementalOptions {
+func WithFetchPaginatedCallIncrementalMaxEntriesPerRequest(maxEntriesPerRequest int64) FetchPaginatedCallIncrementalOptions {
 	return func(opts *FetchPaginatedCallIncrementalOptionsStruct) {
 		opts.MaxEntriesPerRequest = &maxEntriesPerRequest
 	}

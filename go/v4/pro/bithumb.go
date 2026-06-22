@@ -421,7 +421,7 @@ func  (this *BithumbCore) ParseWsTrade(trade any, optionalArgs ...any) any  {
     var marketId any = this.SafeString(trade, "symbol")
     var datetime any = this.SafeString(trade, "contDtm")
     // that date is not UTC iso8601, but exchange's local time, -9hr difference
-    var timestamp any = ccxt.Subtract(this.Parse8601(datetime), 32400000)
+    var timestamp any = ccxt.Subtract(this.ParseToInt(this.Parse8601(datetime)), 32400000)
     var sideId any = this.SafeString(trade, "buySellGb")
     return this.SafeTrade(map[string]any {
         "id": nil,

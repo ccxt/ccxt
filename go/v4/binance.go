@@ -12800,7 +12800,7 @@ func (this *BinanceCore) FetchSettlementHistory(optionalArgs ...any) <-chan any 
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(symbol, nil)) {
 			symbol = this.SafeString(market, "symbol")
-			AddElementToObject(request, "underlying", Add(this.SafeString(market, "baseId"), this.SafeString(market, "quoteId")))
+			AddElementToObject(request, "underlying", Add(this.SafeString(market, "baseId", ""), this.SafeString(market, "quoteId", "")))
 		}
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "startTime", since)
