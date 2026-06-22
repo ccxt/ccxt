@@ -3532,7 +3532,7 @@ export default class htx extends Exchange {
         const cross = (marginMode === 'cross');
         const margin = (type === 'margin') || (spot && (cross || isolated));
         let response: NullableDict = undefined;
-        if ((isMultiAssetMode || (linear && swap))) {
+        if (isMultiAssetMode || (linear && (swap || future))) {
             response = await this.contractPrivateGetV5AccountBalance (this.extend (request, params));
         } else if (spot || margin) {
             if (margin) {
