@@ -1417,7 +1417,7 @@ export default class bydfi extends Exchange {
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const id = this.safeString (rawOrder, 'id');
-             const symbol = this.safeString (rawOrder, 'symbol', '');
+            const symbol = this.safeString (rawOrder, 'symbol', '');
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeNumber (rawOrder, 'amount');
             const price = this.safeNumber (rawOrder, 'price');

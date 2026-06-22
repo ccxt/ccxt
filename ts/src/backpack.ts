@@ -1726,8 +1726,8 @@ export default class backpack extends Exchange {
         const ordersRequests: List = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
-             const marketId = this.safeString (rawOrder, 'symbol', '');
-             const type = this.safeString (rawOrder, 'type', '');
+            const marketId = this.safeString (rawOrder, 'symbol', '');
+            const type = this.safeString (rawOrder, 'type', '');
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeNumber (rawOrder, 'amount');
             const price = this.safeNumber (rawOrder, 'price');
