@@ -1397,7 +1397,7 @@ export default class woofipro extends Exchange {
         //
         const timestamp = this.safeIntegerN (order, [ 'timestamp', 'created_time', 'createdTime' ]);
         const orderId = this.safeStringN (order, [ 'order_id', 'orderId', 'algoOrderId' ]);
-        const clientOrderId = this.omitZero (this.safeString2 (order, 'client_order_id', 'clientOrderId')); // Somehow, this always returns 0 for limit order
+        const clientOrderId = this.omitZero (this.safeString2 (order, 'client_order_id', 'clientOrderId', '')); // Somehow, this always returns 0 for limit order
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
@@ -1412,7 +1412,7 @@ export default class woofipro extends Exchange {
         }
         const side = this.safeStringLower (order, 'side');
         const filled = this.omitZero (this.safeValue2 (order, 'executed', 'totalExecutedQuantity'));
-        const average = this.omitZero (this.safeString2 (order, 'average_executed_price', 'averageExecutedPrice'));
+        const average = this.omitZero (this.safeString2 (order, 'average_executed_price', 'averageExecutedPrice', ''));
         const remaining = Precise.stringSub (cost, filled);
         const fee = this.safeValue2 (order, 'total_fee', 'totalFee');
         const feeCurrency = this.safeString2 (order, 'fee_asset', 'feeAsset');
