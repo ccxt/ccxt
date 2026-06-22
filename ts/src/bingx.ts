@@ -1707,7 +1707,7 @@ export default class bingx extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, 'swap', true, true, true);
         const firstMarket = this.getMarketFromSymbols (symbols);
-        let subType = 'linear';
+        let subType: Str = 'linear';
         [ subType, params ] = this.handleSubTypeAndParams ('fetchFundingRates', firstMarket, params, subType);
         let response: Dict;
         if (subType === 'inverse') {
@@ -3013,7 +3013,7 @@ export default class bingx extends Exchange {
         return await this.createOrder (symbol, 'market', 'sell', cost, undefined, params);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params = {}) {
         /**
          * @method
          * @ignore
@@ -3383,12 +3383,12 @@ export default class bingx extends Exchange {
      */
     async createOrders (orders: OrderRequest[], params = {}) {
         await this.loadMarkets ();
-        const ordersRequests = [];
-        const marketIds = [];
+        const ordersRequests: List = [];
+        const marketIds: List = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
-            const marketId = this.safeString (rawOrder, 'symbol');
-            const type = this.safeString (rawOrder, 'type');
+            const marketId = this.safeString (rawOrder, 'symbol', '');
+            const type = this.safeString (rawOrder, 'type', '');
             marketIds.push (marketId);
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeNumber (rawOrder, 'amount');
@@ -4248,7 +4248,7 @@ export default class bingx extends Exchange {
         if (areClientOrderIds) {
             idsToParse = clientOrderIds;
         }
-        const parsedIds = [];
+        const parsedIds: List = [];
         for (let i = 0; i < idsToParse.length; i++) {
             const id = idsToParse[i];
             const stringId = id.toString ();
@@ -5482,7 +5482,7 @@ export default class bingx extends Exchange {
         const network = this.safeString (transaction, 'network');
         const currencyId = this.safeString (transaction, 'coin');
         let code = this.safeCurrencyCode (currencyId, currency);
-        if ((code !== undefined) && (code !== network) && code.indexOf (network) >= 0) {
+        if ((code !== undefined) && (network !== undefined) && (code !== network) && code.indexOf (network) >= 0) {
             if (network !== undefined) {
                 code = code.replace (network, '');
             }
@@ -6304,7 +6304,7 @@ export default class bingx extends Exchange {
                 //
             }
         }
-        const data = this.safeDict (response, 'data');
+        const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
     }
 
@@ -6364,7 +6364,7 @@ export default class bingx extends Exchange {
         }
         const data = this.safeDict (response, 'data', {});
         const success = this.safeList (data, 'success', []) as List;
-        const positions = [];
+        const positions: List = [];
         for (let i = 0; i < success.length; i++) {
             const position = this.parsePosition ({ 'positionId': success[i] });
             positions.push (position);
@@ -6566,7 +6566,7 @@ export default class bingx extends Exchange {
             //    }
             //
         }
-        const data = this.safeDict (response, 'data');
+        const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
     }
 
@@ -6618,7 +6618,7 @@ export default class bingx extends Exchange {
         return this.parseMarginMode (data, market);
     }
 
-    parseMarginMode (marginMode: Dict, market = undefined): MarginMode {
+    parseMarginMode (marginMode: Dict, market: Market = undefined): MarginMode {
         const marketId = this.safeString (marginMode, 'symbol');
         let marginType = this.safeStringLower (marginMode, 'marginType');
         marginType = (marginType === 'crossed') ? 'cross' : marginType;
@@ -6809,7 +6809,7 @@ export default class bingx extends Exchange {
         //         }
         //     ]
         //
-        const tiers = [];
+        const tiers: List = [];
         for (let i = 0; i < info.length; i++) {
             const tier = this.safeDict (info, i);
             const tierString = this.safeString (tier, 'tier') as string;
@@ -6869,7 +6869,7 @@ export default class bingx extends Exchange {
         } else if (access === 'private') {
             this.checkRequiredCredentials ();
             const isJsonContentType = (((type === 'subAccount') || (type === 'account/transfer')) && (method === 'POST'));
-            let parsedParams: Dict = undefined;
+            let parsedParams: Dict = {};
             let encodeRequest: Str = undefined;
             if (isJsonContentType) {
                 encodeRequest = this.customEncode (params);
