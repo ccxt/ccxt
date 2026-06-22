@@ -49,7 +49,7 @@ const hmac = (request: Input, secret: Input, hash: CHash, digest: Digest = 'hex'
 
 /*  .............................................   */
 
-function ecdsa (request: Hex, secret: Hex, curve: CurveFn, prehash: CHash = null, fixedLength = false) {
+function ecdsa (request: Hex, secret: Hex, curve: CurveFn, prehash: CHash | null = null, fixedLength = false) {
     if (prehash) {
         request = hash (request, prehash, 'hex')
     }
@@ -58,15 +58,16 @@ function ecdsa (request: Hex, secret: Hex, curve: CurveFn, prehash: CHash = null
         if (secret.startsWith ('-----BEGIN EC PRIVATE KEY-----')) {
             const der = Base64.unarmor (secret);
             let asn1 = ASN1.decode(der);
-            if (asn1.sub.length === 4) {
+            if (asn1.sub !== null && asn1.sub.length === 4) {
                 // ECPrivateKey ::= SEQUENCE {
                 //     version        INTEGER { ecPrivkeyVer1(1) } (ecPrivkeyVer1),
                 //     privateKey     OCTET STRING,
                 //     parameters [0] ECParameters {{ NamedCurve }} OPTIONAL,
                 //     publicKey  [1] BIT STRING OPTIONAL
                 // }
-                if (typeof asn1.sub[2].sub !== null && asn1.sub[2].sub.length > 0) {
-                    const oid = asn1.sub[2].sub[0].content (undefined);
+                const innerSub = asn1.sub[2].sub;
+                if (innerSub !== null && innerSub.length > 0) {
+                    const oid = innerSub[0].content (undefined);
                     if (supportedCurve[oid as string] === undefined) throw new Error('Unsupported curve');
                     curve = supportedCurve[oid as string];
                 }
@@ -109,7 +110,7 @@ function ecdsa (request: Hex, secret: Hex, curve: CurveFn, prehash: CHash = null
 }
 
 function eddsa (request: Hex, secret: Input, curve: CurveFnEDDSA) {
-    let privateKey = undefined;
+    let privateKey: Uint8Array | undefined = undefined;
     if (secret.length === 32) {
       // ed25519 secret is 32 bytes
       privateKey = utf8Bytes (secret)
@@ -118,7 +119,7 @@ function eddsa (request: Hex, secret: Input, curve: CurveFnEDDSA) {
       // we get the last 32 bytes
       privateKey = new Uint8Array (Base64.unarmor (secret).slice (16))
     }
-    const signature = curve.sign (hexBytes (request), privateKey)
+    const signature = curve.sign (hexBytes (request), privateKey as Uint8Array)
     return base64.encode (signature)
 }
 

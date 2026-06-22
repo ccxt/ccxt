@@ -184,10 +184,10 @@ export default class Exchange {
 
     isSandboxModeEnabled: boolean = false;
 
-    api: Dictionary<any> = undefined;
+    api!: Dictionary<any>;
     certified: boolean = false;
     pro: boolean = false;
-    countries: Str[] = undefined;
+    countries: Strings = undefined;
 
     // PROXY & USER-AGENTS (see "examples/proxy-usage" file for explanation)
     proxy: any;  // maintained for backwards compatibility, no-one should use it from now on
@@ -207,8 +207,8 @@ export default class Exchange {
     socks_proxy: Str = undefined;
     socksProxyCallback: any;
     socks_proxy_callback: any;
-    userAgent: { 'User-Agent': string } | false = undefined;
-    user_agent: { 'User-Agent': string } | false = undefined;
+    userAgent: { 'User-Agent': string } | false | undefined = undefined;
+    user_agent: { 'User-Agent': string } | false | undefined = undefined;
     wsProxy: Str = undefined;
     ws_proxy: Str = undefined;
     wssProxy: Str = undefined;
@@ -270,13 +270,13 @@ export default class Exchange {
     tickers: Dictionary<Ticker> = {};
     fundingRates: Dictionary<FundingRate> = {};
     bidsasks: Dictionary<Ticker> = {};
-    orders: ArrayCache = undefined;
-    triggerOrders: ArrayCache = undefined;
+    orders: ArrayCache | undefined = undefined;
+    triggerOrders!: ArrayCache;
     trades: Dictionary<ArrayCache>;
     transactions: Dictionary<Transaction> = {};
     ohlcvs: Dictionary<Dictionary<ArrayCacheByTimestamp>>;
     myLiquidations: any = undefined;
-    myTrades: ArrayCache;
+    myTrades: ArrayCache | undefined;
     positions: any;
     urls!: {
         logo?: string;
@@ -290,37 +290,37 @@ export default class Exchange {
     };
 
     requiresWeb3: boolean = false;
-    precision: {
+    precision!: {
         amount: Num,
         price: Num,
         cost?: Num,
         base?: Num,
         quote?: Num,
-    } = undefined;
+    };
 
     enableLastJsonResponse: boolean = false;
     enableLastHttpResponse: boolean = true;
     enableLastResponseHeaders: boolean = true;
-    last_http_response: string = undefined;
+    last_http_response!: string;
     last_json_response: any = undefined;
-    last_response_headers: Dictionary<string> = undefined;
-    last_request_headers: Dictionary<string> = undefined;
+    last_response_headers!: Dictionary<string>;
+    last_request_headers!: Dictionary<string>;
     last_request_body: any = undefined;
-    last_request_url: string = undefined;
-    last_request_path: string = undefined;
+    last_request_url!: string;
+    last_request_path!: string;
 
     id: string = 'Exchange';
 
-    markets: Dictionary<any> = undefined;
+    markets!: Dictionary<any>;
     has!: Dictionary<boolean | 'emulated' | undefined>;
-    features: Dictionary<Dictionary<any>> = undefined;
-    status: {
+    features!: Dictionary<Dictionary<any>>;
+    status!: {
         status: Str,
         updated: Num,
         eta: Num,
         url: Str,
         info: any,
-    } = undefined;
+    };
 
     requiredCredentials!: {
         apiKey: Bool,
@@ -335,20 +335,20 @@ export default class Exchange {
     };
 
     rateLimit: Num = 2000; // milliseconds
-    tokenBucket: Dictionary<number> = undefined;
+    tokenBucket!: Dictionary<number>;
     throttler: any = undefined;
     enableRateLimit: boolean = true;
     rollingWindowSize: number = 0.0;  // set to 0.0 to use leaky bucket rate limiter
     rateLimiterAlgorithm: string = 'leakyBucket';
 
-    httpExceptions: Dictionary<any> = undefined;
+    httpExceptions!: Dictionary<any>;
 
-    limits: {
+    limits!: {
         amount?: MinMax,
         cost?: MinMax,
         leverage?: MinMax,
         price?: MinMax,
-    } = undefined;
+    };
 
     fees!: {
         trading: {
@@ -365,23 +365,23 @@ export default class Exchange {
         },
     };
 
-    markets_by_id: Dictionary<any> = undefined;
+    markets_by_id!: Dictionary<any>;
     symbols: Strings = undefined;
     ids: Strings = undefined;
     currencies: Currencies = {};
 
-    baseCurrencies: Dictionary<CurrencyInterface> = undefined;
-    quoteCurrencies: Dictionary<CurrencyInterface> = undefined;
-    currencies_by_id: Dictionary<CurrencyInterface> = undefined;
+    baseCurrencies!: Dictionary<CurrencyInterface>;
+    quoteCurrencies!: Dictionary<CurrencyInterface>;
+    currencies_by_id!: Dictionary<CurrencyInterface>;
     codes: Strings = undefined;
 
     reloadingMarkets: Bool = undefined;
-    marketsLoading: Promise<Dictionary<Market>> = undefined;
+    marketsLoading!: Promise<Dictionary<Market>>;
 
-    accounts: Account[] = undefined;
-    accountsById: Dictionary<Account> = undefined;
+    accounts!: Account[];
+    accountsById!: Dictionary<Account>;
 
-    commonCurrencies: Dictionary<string> = undefined;
+    commonCurrencies!: Dictionary<string>;
 
     hostname: Str = undefined;
 
@@ -397,14 +397,14 @@ export default class Exchange {
 
     lastRestRequestTimestamp: int;
 
-    targetAccount: string = undefined;
+    targetAccount!: string;
 
     httpProxyAgentModule: any = undefined;
     httpsProxyAgentModule: any = undefined;
     socksProxyAgentModule: any = undefined;
     socksProxyAgentModuleChecked: boolean = false;
     proxyDictionaries: Dictionary<any> = {};
-    proxiesModulesLoading: Promise<any> = undefined;
+    proxiesModulesLoading!: Promise<any>;
     alias: boolean = false;
 
     // WS/PRO options
@@ -546,16 +546,6 @@ export default class Exchange {
         // default property values
         this.timeout = 10000; // milliseconds
         this.verbose = false;
-        this.twofa = undefined; // two-factor authentication (2FA)
-        // default credentials
-        this.apiKey = undefined;
-        this.secret = undefined;
-        this.uid = undefined;
-        this.login = undefined;
-        this.password = undefined;
-        this.privateKey = undefined; // a "0x"-prefixed hexstring private key for a wallet
-        this.walletAddress = undefined; // a wallet address "0x"-prefixed hexstring
-        this.token = undefined; // reserved for HTTP auth in some cases
         // placeholders for cached data
         this.balance = {};
         this.bidsasks = {};
@@ -576,13 +566,8 @@ export default class Exchange {
         this.enableLastJsonResponse = false;
         this.enableLastHttpResponse = true;
         this.enableLastResponseHeaders = true;
-        this.last_http_response = undefined;
         this.last_json_response = undefined;
-        this.last_response_headers = undefined;
-        this.last_request_headers = undefined;
         this.last_request_body = undefined;
-        this.last_request_url = undefined;
-        this.last_request_path = undefined;
         // camelCase and snake_notation support
         const unCamelCaseProperties = (obj = this) => {
             if (obj !== null) {

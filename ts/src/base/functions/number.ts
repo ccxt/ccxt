@@ -145,7 +145,7 @@ const _decimalToPrecision = (x: any, roundingMode: number, numPrecisionDigits: a
         if (roundingMode === TRUNCATE) {
             // First, truncate the string to avoid floating-point precision issues
             const xStr = numberToString(x);
-            const truncatedX = truncate_to_string(xStr, Math.max(0, newNumPrecisionDigits));
+            const truncatedX = truncate_to_string((xStr === undefined) ? '' : xStr, Math.max(0, newNumPrecisionDigits));
             const xNum = Number(truncatedX);
             const scale = Math.pow (10, newNumPrecisionDigits);
             const xScaled = Math.round (xNum * scale);
