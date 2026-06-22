@@ -405,7 +405,7 @@ export default class binance extends binanceRest {
         client.resolve ([ liquidation ], 'liquidations::' + symbol);
     }
 
-    parseWsLiquidation (liquidation, market = undefined) {
+    parseWsLiquidation (liquidation, market: Market = undefined) {
         //
         // future
         //    {
@@ -726,7 +726,7 @@ export default class binance extends binanceRest {
             const market = this.market (symbol);
             messageHashes.push ('orderbook::' + symbol);
             const subscriptionHash = market['lowercaseId'] + '@' + name;
-            const symbolHash = subscriptionHash + '@' + watchOrderBookRate.toString () + 'ms';
+            const symbolHash = subscriptionHash + '@' + watchOrderBookRate + 'ms';
             subParams.push (symbolHash);
         }
         const messageHashesLength = messageHashes.length;
@@ -896,7 +896,7 @@ export default class binance extends binanceRest {
         //    }
         //
         const messageHash = this.safeString (message, 'id');
-        const result = this.safeDict (message, 'result');
+        const result = this.safeDict (message, 'result', {});
         const timestamp = this.safeInteger (result, 'T');
         const orderbook = this.parseOrderBook (result, undefined, timestamp);
         orderbook['nonce'] = this.safeInteger2 (result, 'lastUpdateId', 'u');
@@ -905,6 +905,9 @@ export default class binance extends binanceRest {
 
     async fetchOrderBookSnapshot (client, message, subscription) {
         const symbol = this.safeString (subscription, 'symbol');
+        if (symbol === undefined) {
+            return;
+        }
         const messageHash = 'orderbook::' + symbol;
         try {
             const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
@@ -929,22 +932,26 @@ export default class binance extends binanceRest {
                 const U = this.safeInteger (messageItem, 'U');
                 const u = this.safeInteger (messageItem, 'u');
                 const pu = this.safeInteger (messageItem, 'pu');
+                const obNonce = this.safeInteger (orderbook, 'nonce');
+                if ((u === undefined) || (U === undefined) || (obNonce === undefined)) {
+                    continue;
+                }
                 if (type === 'future') {
                     // 4. Drop any event where u is < lastUpdateId in the snapshot
-                    if (u < orderbook['nonce']) {
+                    if (u < obNonce) {
                         continue;
                     }
                     // 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
-                    if ((U <= orderbook['nonce']) && (u >= orderbook['nonce']) || (pu === orderbook['nonce'])) {
+                    if ((U <= obNonce) && (u >= obNonce) || (pu === obNonce)) {
                         this.handleOrderBookMessage (client, messageItem, orderbook);
                     }
                 } else {
                     // 4. Drop any event where u is <= lastUpdateId in the snapshot
-                    if (u <= orderbook['nonce']) {
+                    if (u <= obNonce) {
                         continue;
                     }
                     // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
-                    if (((U - 1) <= orderbook['nonce']) && ((u - 1) >= orderbook['nonce'])) {
+                    if (((U - 1) <= obNonce) && ((u - 1) >= obNonce)) {
                         this.handleOrderBookMessage (client, messageItem, orderbook);
                     }
                 }
@@ -1026,6 +1033,9 @@ export default class binance extends binanceRest {
                 const U = this.safeInteger (message, 'U');
                 const u = this.safeInteger (message, 'u');
                 const pu = this.safeInteger (message, 'pu');
+                if ((u === undefined) || (U === undefined)) {
+                    return;
+                }
                 if (pu === undefined) {
                     // spot
                     // 4. Drop any event where u is <= lastUpdateId in the snapshot
@@ -1296,7 +1306,7 @@ export default class binance extends binanceRest {
         return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
-    parseWsTrade (trade, market = undefined): Trade {
+    parseWsTrade (trade, market: Market = undefined): Trade {
         //
         // public watchTrades
         //
@@ -1540,7 +1550,7 @@ export default class binance extends binanceRest {
             const timeframeString = symAndTf[1];
             const interval = this.safeString (this.timeframes, timeframeString, timeframeString);
             const market = this.market (symbolString);
-            let marketId = market['lowercaseId'];
+            let marketId = this.safeString (market, 'lowercaseId', '');
             if (klineType === 'indexPriceKline') {
                 // weird behavior for index price kline we can't use the perp suffix
                 marketId = marketId.replace ('_perp', '');
@@ -1607,7 +1617,7 @@ export default class binance extends binanceRest {
             const timeframeString = symAndTf[1];
             const interval = this.safeString (this.timeframes, timeframeString, timeframeString);
             const market = this.market (symbolString);
-            let marketId = market['lowercaseId'];
+            let marketId = this.safeString (market, 'lowercaseId', '');
             if (klineType === 'indexPriceKline') {
                 // weird behavior for index price kline we can't use the perp suffix
                 marketId = marketId.replace ('_perp', '');
@@ -1702,6 +1712,9 @@ export default class binance extends binanceRest {
         const interval = this.safeString (kline, 'i');
         // use a reverse lookup in a static map instead
         const unifiedTimeframe = this.findTimeframe (interval);
+        if (unifiedTimeframe === undefined) {
+            return;
+        }
         const parsed = [
             this.safeInteger (kline, 't'),
             this.safeFloat (kline, 'o'),
@@ -1854,7 +1867,7 @@ export default class binance extends binanceRest {
         //        ]
         //    }
         //
-        const result = this.safeList (message, 'result');
+        const result = this.safeList (message, 'result', []);
         const parsed = this.parseOHLCVs (result);
         // use a reverse lookup in a static map instead
         const messageHash = this.safeString (message, 'id');
@@ -2041,7 +2054,7 @@ export default class binance extends binanceRest {
         return this.filterByArray (this.bidsasks, 'symbol', symbols);
     }
 
-    async watchMultiTickerHelper (methodName, channelName: string, symbols: Strings = undefined, params = {}, isUnsubscribe: boolean = false) {
+    async watchMultiTickerHelper (methodName, channelName: Str = undefined, symbols: Strings = undefined, params = {}, isUnsubscribe: boolean = false) {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true, false, true);
         const isBidAsk = (channelName === 'bookTicker');
@@ -2049,8 +2062,7 @@ export default class binance extends binanceRest {
         const use1sFreq = this.safeBool (params, 'use1sFreq', true);
         let firstMarket: Market = undefined;
         let marketType: Str = undefined;
-        const symbolsDefined = (symbols !== undefined);
-        if (symbolsDefined) {
+        if (symbols !== undefined) {
             firstMarket = this.market (symbols[0]);
         }
         const defaultMarket = (isMarkPrice) ? 'swap' : undefined;
@@ -2085,7 +2097,7 @@ export default class binance extends binanceRest {
         } else {
             unifiedPrefix = 'ticker';
         }
-        if (symbolsDefined) {
+        if (symbols !== undefined) {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 const market = this.market (symbol);
@@ -2110,7 +2122,7 @@ export default class binance extends binanceRest {
             unsubscribeMessageHashes.push ('unsubscribe::' + channelName);
         }
         let streamHash = channelName;
-        if (symbolsDefined) {
+        if (symbols !== undefined) {
             streamHash = channelName + '::' + symbols.join (',');
         }
         const url = this.getWsUrl (rawMarketType, this.getFutureWsCategory (channelName)) + '/' + this.stream (rawMarketType, streamHash);
@@ -2141,7 +2153,7 @@ export default class binance extends binanceRest {
         }
         // for efficiency, we have two type of returned structure here - if symbols array was provided, then individual
         // ticker dict comes in, otherwise all-tickers dict comes in
-        if (!symbolsDefined) {
+        if (symbols === undefined) {
             return result;
         } else {
             const newDict: Dict = {};
@@ -2390,6 +2402,9 @@ export default class binance extends binanceRest {
             }
             const parsedTicker = this.parseWsTicker (ticker, marketType);
             const symbol = parsedTicker['symbol'];
+            if (symbol === undefined) {
+                continue;
+            }
             newTickers[symbol] = parsedTicker;
             if (isBidAsk) {
                 this.bidsasks[symbol] = parsedTicker;
@@ -2530,7 +2545,7 @@ export default class binance extends binanceRest {
             }
             const response = await this.sapiPostUserListenToken (request);
             const listenToken = this.safeString (response, 'token');
-            const expirationTime = this.safeInteger (response, 'expirationTime');
+            const expirationTime = this.safeInteger (response, 'expirationTime', 0);
             // Step 2: Subscribe to user data stream via WebSocket API
             const requestId = this.requestId (url);
             const messageHash = requestId.toString ();
@@ -3115,7 +3130,7 @@ export default class binance extends binanceRest {
             this.balance[accountType][code] = account;
         } else {
             message = this.safeDict (message, 'a', message);
-            const B = this.safeList (message, 'B');
+            const B = this.safeList (message, 'B', []);
             for (let i = 0; i < B.length; i++) {
                 const entry = B[i];
                 const currencyId = this.safeString (entry, 'a');
@@ -3354,7 +3369,7 @@ export default class binance extends binanceRest {
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         const isSwap = (marketType === 'future' || marketType === 'delivery');
-        let payload: Dict = undefined;
+        let payload: Dict = {};
         if (marketType === 'spot') {
             payload = this.editSpotOrderRequest (id, symbol, type, side, amount, price, params);
         } else if (isSwap) {
@@ -4123,7 +4138,7 @@ export default class binance extends binanceRest {
         let market: Market = undefined;
         let messageHash = '';
         symbols = this.marketSymbols (symbols);
-        if (!this.isEmpty (symbols)) {
+        if ((symbols !== undefined) && !this.isEmpty (symbols)) {
             market = this.getMarketFromSymbols (symbols);
             messageHash = '::' + symbols.join (',');
         }
@@ -4203,7 +4218,7 @@ export default class binance extends binanceRest {
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             const contracts = this.safeNumber (position, 'contracts', 0);
-            if (contracts > 0) {
+            if ((contracts !== undefined) && (contracts > 0)) {
                 cache.append (position);
             }
         }
@@ -4518,7 +4533,7 @@ export default class binance extends binanceRest {
         if (symbol !== undefined) {
             symbol = this.symbol (symbol);
             messageHash += ':' + symbol;
-            params = this.extend (params, { 'type': market['type'], 'symbol': symbol });
+            params = this.extend (params, { 'type': this.safeString (market, 'type'), 'symbol': symbol });
         }
         await this.authenticate (this.extend ({ 'type': type, 'subType': subType }, params));
         let urlType = type; // we don't change type because the listening key is different
@@ -4571,7 +4586,7 @@ export default class binance extends binanceRest {
                                 const orderFee = fees[i];
                                 if (orderFee['currency'] === tradeFee['currency']) {
                                     const feeCost = this.sum (tradeFee['cost'], orderFee['cost']);
-                                    order['fees'][i]['cost'] = parseFloat (this.currencyToPrecision (tradeFee['currency'], feeCost));
+                                    order['fees'][i]['cost'] = this.parseToNumeric (this.currencyToPrecision (tradeFee['currency'], feeCost));
                                     insertNewFeeCurrency = false;
                                     break;
                                 }
@@ -4582,7 +4597,7 @@ export default class binance extends binanceRest {
                         } else if (fee !== undefined) {
                             if (fee['currency'] === tradeFee['currency']) {
                                 const feeCost = this.sum (fee['cost'], tradeFee['cost']);
-                                order['fee']['cost'] = parseFloat (this.currencyToPrecision (tradeFee['currency'], feeCost));
+                                order['fee']['cost'] = this.parseToNumeric (this.currencyToPrecision (tradeFee['currency'], feeCost));
                             } else if (fee['currency'] === undefined) {
                                 order['fee'] = tradeFee;
                             } else {
@@ -4667,8 +4682,8 @@ export default class binance extends binanceRest {
         const id = this.safeString (message, 'id');
         let rejected = false;
         const error = this.safeDict (message, 'error', {});
-        const code = this.safeInteger (error, 'code');
-        const msg = this.safeString (error, 'msg');
+        const code = this.safeInteger (error, 'code', 0);
+        const msg = this.safeString (error, 'msg', '');
         try {
             this.handleErrors (code, msg, client.url, '', {}, this.json (error), error, {}, {});
         } catch (e) {
