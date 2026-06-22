@@ -656,7 +656,7 @@ export default class bitstamp extends Exchange {
         //             "isin": "EZHKD4DNKHY3"
         //         }
         //
-        const result = [];
+        const result: List = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
             const [ baseId, quoteId ] = [ this.safeString (market, 'base_currency'), this.safeString (market, 'counter_currency') ];
@@ -847,9 +847,9 @@ export default class bitstamp extends Exchange {
         const [ baseId, quoteId ] = [ this.safeString (market, 'base_currency'), this.safeString (market, 'counter_currency') ];
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const description = this.safeString (market, 'description');
+        const description = this.safeString (market, 'description', '');
         const [ baseDescription, quoteDescription ] = description.split (' / ');
-        const minimumOrder = this.safeString (market, 'minimum_order_value');
+        const minimumOrder = this.safeString (market, 'minimum_order_value', '');
         const parts = minimumOrder.split (' ');
         const cost = parts[0];
         if (!(base in existing)) {
@@ -896,7 +896,7 @@ export default class bitstamp extends Exchange {
         //         ]
         //     }
         //
-        const microtimestamp = this.safeInteger (response, 'microtimestamp');
+        const microtimestamp = this.safeInteger (response, 'microtimestamp', 0);
         const timestamp = this.parseToInt (microtimestamp / 1000);
         const orderbook = this.parseOrderBook (response, market['symbol'], timestamp);
         orderbook['nonce'] = microtimestamp;
@@ -2607,12 +2607,13 @@ export default class bitstamp extends Exchange {
         //    { status: 'ok' }
         //
         const status = this.safeString (transfer, 'status');
+        const currencyCode = (currency !== undefined) ? currency['code'] : undefined;
         return {
             'info': transfer,
             'id': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-            'currency': currency['code'],
+            'currency': currencyCode,
             'amount': undefined,
             'fromAccount': undefined,
             'toAccount': undefined,

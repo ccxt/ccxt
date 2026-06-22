@@ -589,7 +589,7 @@ export default class bitmex extends Exchange {
             return this.parseNumber (rawQuantity);
         }
         symbol = this.safeSymbol (symbol);
-        const marketExists = this.inArray (symbol, this.symbols);
+        const marketExists = this.inArray (symbol, (this.symbols !== undefined) ? this.symbols : []);
         if (!marketExists) {
             return this.parseNumber (rawQuantity);
         }
@@ -1978,7 +1978,7 @@ export default class bitmex extends Exchange {
         const qty = this.safeString (order, 'orderQty');
         let cost: Num = undefined;
         let amount: Num = undefined;
-        let isInverse = false;
+        let isInverse: Bool = false;
         if (marketId === undefined) {
             const defaultSubType = this.safeString (this.options, 'defaultSubType', 'linear');
             isInverse = (defaultSubType === 'inverse');
@@ -2396,7 +2396,7 @@ export default class bitmex extends Exchange {
     async cancelAllOrdersAfter (timeout: Int, params = {}) {
         await this.loadMarkets ();
         const request: Dict = {
-            'timeout': (timeout > 0) ? this.parseToInt (timeout / 1000) : 0,
+            'timeout': ((timeout !== undefined) && (timeout > 0)) ? this.parseToInt (timeout / 1000) : 0,
         };
         const response = await this.privatePostOrderCancelAllAfter (this.extend (request, params));
         //
@@ -3691,7 +3691,7 @@ export default class bitmex extends Exchange {
         if (api === 'private' || (api === 'public' && isAuthenticated)) {
             this.checkRequiredCredentials ();
             let auth = method + query;
-            let expires = this.safeInteger (this.options, 'api-expires');
+            let expires = this.safeInteger (this.options, 'api-expires', 5);
             headers = {
                 'Content-Type': 'application/json',
                 'api-key': this.apiKey,
