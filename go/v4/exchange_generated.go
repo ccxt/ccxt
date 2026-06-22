@@ -5224,7 +5224,7 @@ func (this *Exchange) SafeCurrency(currencyId any, optionalArgs ...any) any {
 	if IsTrue(IsTrue((IsEqual(currencyId, nil))) && IsTrue((!IsEqual(currency, nil)))) {
 		return currency
 	}
-	if IsTrue(IsTrue(IsTrue((!IsEqual(this.Currencies_by_id, nil))) && IsTrue((InOp(this.Currencies_by_id, currencyId)))) && IsTrue((!IsEqual(GetValue(this.Currencies_by_id, currencyId), nil)))) {
+	if IsTrue(IsTrue(IsTrue(IsTrue((!IsEqual(currencyId, nil))) && IsTrue((!IsEqual(this.Currencies_by_id, nil)))) && IsTrue((InOp(this.Currencies_by_id, currencyId)))) && IsTrue((!IsEqual(GetValue(this.Currencies_by_id, currencyId), nil)))) {
 		return GetValue(this.Currencies_by_id, currencyId)
 	}
 	var code any = currencyId
