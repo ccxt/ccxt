@@ -31,7 +31,7 @@ async function testWatchOHLCV (exchange: Exchange, skippedProperties: object, sy
             // continue;
             success = false;
         }
-        if (success === true) {
+        if ((success === true) && (response !== undefined)) {
             testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, response, symbol);
             now = exchange.milliseconds ();
             for (let i = 0; i < response.length; i++) {

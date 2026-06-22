@@ -8543,6 +8543,9 @@ export default class binance extends Exchange {
             //     }
             //   ]
         }
+        if (response === undefined) {
+            response = [];
+        }
         for (let i = 0; i < response.length; i++) {
             response[i]['type'] = 'deposit';
         }
@@ -8675,6 +8678,9 @@ export default class binance extends Exchange {
             //         "transferType": 0
             //       }
             //     ]
+        }
+        if (response === undefined) {
+            response = [];
         }
         for (let i = 0; i < response.length; i++) {
             response[i]['type'] = 'withdrawal';
@@ -9710,7 +9716,7 @@ export default class binance extends Exchange {
         const isSpotOrMargin = (type === 'spot') || (type === 'margin');
         const isLinear = this.isLinear (type, subType);
         const isInverse = this.isInverse (type, subType);
-        let response = undefined;
+        let response: NullableList = undefined;
         if (isSpotOrMargin) {
             response = await this.sapiGetAssetTradeFee (params);
         } else if (isLinear) {
@@ -9782,6 +9788,9 @@ export default class binance extends Exchange {
             //    ]
             //
             const result: Dict = {};
+            if (response === undefined) {
+                response = [];
+            }
             for (let i = 0; i < response.length; i++) {
                 const fee = this.parseTradingFee (response[i]);
                 const symbol = fee['symbol'];
@@ -9917,7 +9926,7 @@ export default class binance extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        let response = undefined;
+        let response: NullableList = undefined;
         if (market['linear']) {
             response = await this.fapiPublicGetPremiumIndex (this.extend (request, params));
         } else if (market['inverse']) {
@@ -9926,6 +9935,9 @@ export default class binance extends Exchange {
             throw new NotSupported (this.id + ' fetchFundingRate() supports linear and inverse contracts only');
         }
         if (market['inverse']) {
+            if (response === undefined) {
+                response = [];
+            }
             response = response[0];
         }
         //
@@ -10657,7 +10669,7 @@ export default class binance extends Exchange {
             [ subType, params ] = this.handleSubTypeAndParams ('loadLeverageBrackets', undefined, params, 'linear');
             let isPortfolioMargin: Bool = undefined;
             [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'loadLeverageBrackets', 'papi', 'portfolioMargin');
-            let response = undefined;
+            let response: NullableList = undefined;
             if (this.isLinear (type, subType)) {
                 if (isPortfolioMargin) {
                     response = await this.papiGetUmLeverageBracket (query);
@@ -10674,6 +10686,9 @@ export default class binance extends Exchange {
                 throw new NotSupported (this.id + ' loadLeverageBrackets() supports linear and inverse contracts only');
             }
             this.options['leverageBrackets'] = this.createSafeDictionary ();
+            if (response === undefined) {
+                response = [];
+            }
             for (let i = 0; i < response.length; i++) {
                 const entry = response[i];
                 const marketId = this.safeString (entry, 'symbol');
@@ -11176,7 +11191,7 @@ export default class binance extends Exchange {
         let isPortfolioMargin: Bool = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchPositionsRisk', 'papi', 'portfolioMargin');
         params = this.omit (params, 'type');
-        let response = undefined;
+        let response: NullableList = undefined;
         if (this.isLinear (type, subType)) {
             if (isPortfolioMargin) {
                 response = await this.papiGetUmPositionRisk (this.extend (request, params));
@@ -11307,6 +11322,9 @@ export default class binance extends Exchange {
         //     ]
         //
         const result: List = [];
+        if (response === undefined) {
+            response = [];
+        }
         for (let i = 0; i < response.length; i++) {
             const rawPosition = response[i];
             const entryPriceString = this.safeString (rawPosition, 'entryPrice');
@@ -13758,7 +13776,7 @@ export default class binance extends Exchange {
         const market = this.market (symbol);
         let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchMarginMode', market, params);
-        let response = undefined;
+        let response: NullableList = undefined;
         if (subType === 'linear') {
             const request: Dict = {
                 'symbol': market['id'],
@@ -13780,6 +13798,9 @@ export default class binance extends Exchange {
             return fetchMarginModesResponse[symbol];
         } else {
             throw new BadRequest (this.id + ' fetchMarginMode () supports linear and inverse subTypes only');
+        }
+        if (response === undefined) {
+            response = [];
         }
         return this.parseMarginMode (response[0], market);
     }
