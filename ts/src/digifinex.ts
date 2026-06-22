@@ -2057,6 +2057,9 @@ export default class digifinex extends Exchange {
             '3': 'canceled',
             '4': 'canceled', // partially filled and canceled
         };
+        if (status === undefined) {
+            return status;
+        }
         return this.safeString (statuses, status, status);
     }
 
@@ -2607,6 +2610,9 @@ export default class digifinex extends Exchange {
 
     parseLedgerEntryType (type) {
         const types: Dict = {};
+        if (type === undefined) {
+            return type;
+        }
         return this.safeString (types, type, type);
     }
 
@@ -2893,6 +2899,9 @@ export default class digifinex extends Exchange {
             '3': 'ok', // Completed
             '4': 'failed', // Rejected
         };
+        if (status === undefined) {
+            return status;
+        }
         return this.safeString (statuses, status, status);
     }
 
@@ -2965,6 +2974,9 @@ export default class digifinex extends Exchange {
         const statuses: Dict = {
             '0': 'ok',
         };
+        if (status === undefined) {
+            return status;
+        }
         return this.safeString (statuses, status, status);
     }
 
@@ -3393,6 +3405,9 @@ export default class digifinex extends Exchange {
             '57600000': '16h',
             '86400000': '24h',
         };
+        if (interval === undefined) {
+            return interval;
+        }
         return this.safeString (intervals, interval, interval);
     }
 

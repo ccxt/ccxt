@@ -595,6 +595,9 @@ export default class luno extends Exchange {
             // todo add other statuses
             'PENDING': 'open',
         };
+        if (status === undefined) {
+            return status;
+        }
         return this.safeString (statuses, status, status);
     }
 

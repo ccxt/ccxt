@@ -3715,6 +3715,9 @@ export default class bybit extends Exchange {
             'Triggered': 'open',
             'Active': 'open',
         };
+        if (status === undefined) {
+            return status;
+        }
         return this.safeString (statuses, status, status);
     }
 
@@ -3725,6 +3728,9 @@ export default class bybit extends Exchange {
             'FillOrKill': 'FOK',
             'PostOnly': 'PO',
         };
+        if (timeInForce === undefined) {
+            return timeInForce;
+        }
         return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
@@ -6009,6 +6015,9 @@ export default class bybit extends Exchange {
             'Fail': 'failed',
             'BlockchainConfirmed': 'ok',
         };
+        if (status === undefined) {
+            return status;
+        }
         return this.safeString (statuses, status, status);
     }
 
@@ -6373,6 +6382,9 @@ export default class bybit extends Exchange {
             'CURRENCY_BUY': 'trade',
             'CURRENCY_SELL': 'trade',
         };
+        if (type === undefined) {
+            return type;
+        }
         return this.safeString (types, type, type);
     }
 
@@ -7663,6 +7675,9 @@ export default class bybit extends Exchange {
             'OK': 'ok',
             'SUCCESS': 'ok',
         };
+        if (status === undefined) {
+            return status;
+        }
         return this.safeString (statuses, status, status);
     }
 
@@ -9659,6 +9674,9 @@ export default class bybit extends Exchange {
             'REGULAR_MARGIN': 'cross',
             'PORTFOLIO_MARGIN': 'portfolio',
         };
+        if (marginMode === undefined) {
+            return marginMode;
+        }
         return this.safeString (marginModes, marginMode, marginMode);
     }
 

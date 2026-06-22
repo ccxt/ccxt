@@ -1383,6 +1383,9 @@ export default class bittrade extends Exchange {
             'canceled': 'canceled',
             'submitted': 'open',
         };
+        if (status === undefined) {
+            return status;
+        }
         return this.safeString (statuses, status, status);
     }
 
@@ -1952,6 +1955,9 @@ export default class bittrade extends Exchange {
             'wallet-transfer': 'pending',
             'pre-transfer': 'pending',
         };
+        if (status === undefined) {
+            return status;
+        }
         return this.safeString (statuses, status, status);
     }
 

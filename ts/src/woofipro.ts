@@ -933,6 +933,9 @@ export default class woofipro extends Exchange {
             '57600000': '16h',
             '86400000': '24h',
         };
+        if (interval === undefined) {
+            return interval;
+        }
         return this.safeString (intervals, interval, interval);
     }
 
@@ -1484,6 +1487,9 @@ export default class woofipro extends Exchange {
                 'INCOMPLETE': 'open',
                 'COMPLETED': 'closed',
             };
+            if (status === undefined) {
+                return status;
+            }
             return this.safeString (statuses, status, status);
         }
         return status;
@@ -2425,6 +2431,9 @@ export default class woofipro extends Exchange {
             'BALANCE': 'transaction', // Funds moved in/out wallet
             'COLLATERAL': 'transfer', // Funds moved between portfolios
         };
+        if (type === undefined) {
+            return type;
+        }
         return this.safeString (types, type, type);
     }
 
@@ -2489,6 +2498,9 @@ export default class woofipro extends Exchange {
             'COMPLETED': 'ok',
             'CANCELED': 'canceled',
         };
+        if (status === undefined) {
+            return status;
+        }
         return this.safeString (statuses, status, status);
     }
 

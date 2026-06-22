@@ -929,6 +929,9 @@ export default class dydx extends Exchange {
             'CANCELED': 'canceled',
             'BEST_EFFORT_CANCELED': 'canceling',
         };
+        if (status === undefined) {
+            return status;
+        }
         return this.safeString (statuses, status, status);
     }
 
@@ -1782,6 +1785,9 @@ export default class dydx extends Exchange {
             'DEPOSIT': 'deposit',
             'WITHDRAWAL': 'withdrawal',
         };
+        if (type === undefined) {
+            return type;
+        }
         return this.safeString (ledgerType, type, type);
     }
 

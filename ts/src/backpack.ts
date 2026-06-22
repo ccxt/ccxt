@@ -801,6 +801,9 @@ export default class backpack extends Exchange {
             // 'PREDICTION': 'swap',
             // 'RFQ': 'swap',
         };
+        if (type === undefined) {
+            return type;
+        }
         return this.safeString (types, type, type);
     }
 
@@ -1622,6 +1625,9 @@ export default class backpack extends Exchange {
             'refunded': 'refunded',
             'information required': 'pending',
         };
+        if (status === undefined) {
+            return status;
+        }
         return this.safeString (statuses, status, status);
     }
 
@@ -1815,6 +1821,9 @@ export default class backpack extends Exchange {
             'buy': 'Bid',
             'sell': 'Ask',
         };
+        if (side === undefined) {
+            return side;
+        }
         return this.safeString (sides, side, side);
     }
 
@@ -2089,6 +2098,9 @@ export default class backpack extends Exchange {
             'TriggerPending': 'open',
             'TriggerFailed': 'rejected',
         };
+        if (status === undefined) {
+            return status;
+        }
         return this.safeString (statuses, status, status);
     }
 
@@ -2097,6 +2109,9 @@ export default class backpack extends Exchange {
             'Bid': 'buy',
             'Ask': 'sell',
         };
+        if (side === undefined) {
+            return side;
+        }
         return this.safeString (sides, side, side);
     }
 

@@ -809,6 +809,9 @@ export default class bydfi extends Exchange {
             '2': 'market',
             '3': 'liquidation',
         };
+        if (type === undefined) {
+            return type;
+        }
         return this.safeString (types, type, type);
     }
 
@@ -1322,6 +1325,9 @@ export default class bydfi extends Exchange {
             'contract': 'CONTRACT_PRICE',
             'last': 'CONTRACT_PRICE',
         };
+        if (workingType === undefined) {
+            return workingType;
+        }
         return this.safeString (types, workingType, workingType);
     }
 
@@ -1870,6 +1876,9 @@ export default class bydfi extends Exchange {
             'TAKE_PROFIT_MARKET': 'market',
             'TRAILING_STOP_MARKET': 'market',
         };
+        if (type === undefined) {
+            return type;
+        }
         return this.safeString (types, type, type);
     }
 
@@ -1881,6 +1890,9 @@ export default class bydfi extends Exchange {
             'POST_ONLY': 'PO',
             'TRAILING_STOP': 'IOC',
         };
+        if (timeInForce === undefined) {
+            return timeInForce;
+        }
         return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
@@ -1895,6 +1907,9 @@ export default class bydfi extends Exchange {
             '2': 'closed',
             '4': 'canceled',
         };
+        if (status === undefined) {
+            return status;
+        }
         return this.safeString (statuses, status, status);
     }
 
@@ -2157,6 +2172,9 @@ export default class bydfi extends Exchange {
             'BUY': 'long',
             'SELL': 'short',
         };
+        if (side === undefined) {
+            return side;
+        }
         return this.safeString (sides, side, side);
     }
 
@@ -2706,6 +2724,9 @@ export default class bydfi extends Exchange {
             'WAIT': 'pending',
             'FAILED': 'failed',
         };
+        if (status === undefined) {
+            return status;
+        }
         return this.safeString (statuses, status, status);
     }
 
@@ -2881,6 +2902,9 @@ export default class bydfi extends Exchange {
             'wait': 'pending',
             'failed': 'failed',
         };
+        if (status === undefined) {
+            return status;
+        }
         return this.safeString (statuses, status, status);
     }
 

@@ -798,6 +798,9 @@ export default class gemini extends geminiRest {
             'cancel_rejected': 'rejected',
             'rejected': 'rejected',
         };
+        if (status === undefined) {
+            return status;
+        }
         return this.safeString (statuses, status, status);
     }
 
@@ -807,6 +810,9 @@ export default class gemini extends geminiRest {
             'market buy': 'market',
             'market sell': 'market',
         };
+        if (type === undefined) {
+            return type;
+        }
         return this.safeString (types, type, type);
     }
 

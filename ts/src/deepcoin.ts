@@ -378,6 +378,9 @@ export default class deepcoin extends Exchange {
 
     convertToInstrumentType (type) {
         const exchangeTypes = this.safeDict (this.options, 'exchangeType', {});
+        if (type === undefined) {
+            return type;
+        }
         return this.safeString (exchangeTypes, type, type);
     }
 
@@ -1356,6 +1359,9 @@ export default class deepcoin extends Exchange {
             '4': 'transfer',
             '5': 'fee',
         };
+        if (type === undefined) {
+            return type;
+        }
         return this.safeString (ledgerType, type, type);
     }
 

@@ -3655,6 +3655,9 @@ export default class xt extends Exchange {
             'PLATFORM_REVOCATION': 'rejected',
             'HISTORY': 'expired',
         };
+        if (status === undefined) {
+            return status;
+        }
         return this.safeString (statuses, status, status);
     }
 
@@ -3773,6 +3776,9 @@ export default class xt extends Exchange {
             'FEE': 'fee',
             'ADL': 'auto-deleveraging',
         };
+        if (type === undefined) {
+            return type;
+        }
         return this.safeString (ledgerType, type, type);
     }
 
@@ -4076,6 +4082,9 @@ export default class xt extends Exchange {
             'FAIL': 'failed',
             'SUCCESS': 'ok',
         };
+        if (status === undefined) {
+            return status;
+        }
         return this.safeString (statuses, status, status);
     }
 

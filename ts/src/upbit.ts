@@ -1672,6 +1672,9 @@ export default class upbit extends Exchange {
             'done': 'ok', // 완료
             'canceled': 'canceled', // 취소됨
         };
+        if (status === undefined) {
+            return status;
+        }
         return this.safeString (statuses, status, status);
     }
 
@@ -1749,6 +1752,9 @@ export default class upbit extends Exchange {
             'done': 'closed',
             'cancel': 'canceled',
         };
+        if (status === undefined) {
+            return status;
+        }
         return this.safeString (statuses, status, status);
     }
 

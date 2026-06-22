@@ -3482,6 +3482,9 @@ export default class bingx extends Exchange {
             'ask': 'sell',
             'bid': 'buy',
         };
+        if (side === undefined) {
+            return side;
+        }
         return this.safeString (sides, side, side);
     }
 
@@ -3494,6 +3497,9 @@ export default class bingx extends Exchange {
             'take_profit_market': 'market',
             'stop': 'limit',
         };
+        if (type === undefined) {
+            return type;
+        }
         return this.safeString (types, type, type);
     }
 
@@ -3888,6 +3894,9 @@ export default class bingx extends Exchange {
             'CANCELLED': 'canceled',
             'FAILED': 'canceled',
         };
+        if (status === undefined) {
+            return status;
+        }
         return this.safeString (statuses, status, status);
     }
 
@@ -5534,6 +5543,9 @@ export default class bingx extends Exchange {
             '5': 'rejected',
             '6': 'ok',
         };
+        if (status === undefined) {
+            return status;
+        }
         return this.safeString (statuses, status, status);
     }
 

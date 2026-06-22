@@ -1854,6 +1854,9 @@ export default class deribit extends Exchange {
             'rejected': 'rejected',
             'untriggered': 'open',
         };
+        if (status === undefined) {
+            return status;
+        }
         return this.safeString (statuses, status, status);
     }
 
@@ -1863,6 +1866,9 @@ export default class deribit extends Exchange {
             'fill_or_kill': 'FOK',
             'immediate_or_cancel': 'IOC',
         };
+        if (timeInForce === undefined) {
+            return timeInForce;
+        }
         return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
@@ -1873,6 +1879,9 @@ export default class deribit extends Exchange {
             'stop_market': 'market',
             'take_market': 'market',
         };
+        if (orderType === undefined) {
+            return orderType;
+        }
         return this.safeString (orderTypes, orderType, orderType);
     }
 
@@ -2613,6 +2622,9 @@ export default class deribit extends Exchange {
             'completed': 'ok',
             'unconfirmed': 'pending',
         };
+        if (status === undefined) {
+            return status;
+        }
         return this.safeString (statuses, status, status);
     }
 
@@ -3073,6 +3085,9 @@ export default class deribit extends Exchange {
             'cancelled': 'cancelled',
             'waiting_for_admin': 'pending',
         };
+        if (status === undefined) {
+            return status;
+        }
         return this.safeString (statuses, status, status);
     }
 

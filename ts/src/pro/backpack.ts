@@ -1137,6 +1137,9 @@ export default class backpack extends backpackRest {
             'TriggerPending': 'open',
             'TriggerFailed': 'rejected',
         };
+        if (status === undefined) {
+            return status;
+        }
         return this.safeString (statuses, status, status);
     }
 
@@ -1145,6 +1148,9 @@ export default class backpack extends backpackRest {
             'Bid': 'buy',
             'Ask': 'sell',
         };
+        if (side === undefined) {
+            return side;
+        }
         return this.safeString (sides, side, side);
     }
 
