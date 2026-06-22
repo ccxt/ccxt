@@ -6,7 +6,7 @@ import Exchange from './abstract/weex.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NotSupported, OrderNotFound, PermissionDenied } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Bool, Currencies, Currency, Dict, FundingRate, FundingRateHistory, FundingRates, LedgerEntry, Int, int, Market, NullableDict, NullableList, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry, Position, TradingFeeInterface, MarginMode, MarginModes, Leverage, Leverages, MarginModification } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, Dict, FundingRate, FundingRateHistory, FundingRates, LedgerEntry, Int, int, List, Market, NullableDict, NullableList, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry, Position, TradingFeeInterface, MarginMode, MarginModes, Leverage, Leverages, MarginModification } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1413,7 +1413,7 @@ export default class weex extends Exchange {
         };
         const priceType = this.safeStringUpper (params, 'price');
         params = this.omit (params, [ 'historical', 'until', 'price' ]);
-        let response = undefined;
+        let response: List = [];
         if (limit !== undefined) {
             limit = Math.min (limit, 1000); // hardcap threshold
         }
@@ -1487,7 +1487,7 @@ export default class weex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
-        let response = undefined;
+        let response: List = [];
         if (market['spot']) {
             response = await this.publicGetApiV3MarketTrades (this.extend (request, params));
         } else {
@@ -2998,7 +2998,7 @@ export default class weex extends Exchange {
             request['limit'] = limit;
         }
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
-        let response = undefined;
+        let response: List = [];
         if (isSpot) {
             //
             //     [
