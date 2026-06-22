@@ -109,7 +109,7 @@ async function tcoCreateUnfillableOrder (exchange, market, logPrefix, skippedPro
 
         await tcoCancelOrder (exchange, symbol, createdOrder['id']);
     } catch (e) {
-        throw new Error (logPrefix + ' failed for Scenario 1: ' + e.toString ());
+        throw new Error (logPrefix + ' failed for Scenario 1: ' + (e as Error).toString ());
     }
     return true;
 }
@@ -146,7 +146,7 @@ async function tcoCreateFillableOrder (exchange, market, logPrefix, skippedPrope
         const exitorderFetched = await testSharedMethods.fetchOrder (exchange, symbol, exitorderFilled['id'], skippedProperties);
         tcoAssertFilledOrder (exchange, market, logPrefix, skippedProperties, exitorderFilled, exitorderFetched, exitSide, amountToClose);
     } catch (e) {
-        throw new Error ('failed for Scenario 2: ' + e.toString ());
+        throw new Error ('failed for Scenario 2: ' + (e as Error).toString ());
     }
     return true;
 }
@@ -284,7 +284,7 @@ async function tcoTryCancelOrder (exchange, symbol, order, skippedProperties) {
             await tcoCancelOrder (exchange, symbol, order['id']);
         } catch (e) {
             // order might have been closed/filled already, before 'cancelOrder' call reaches server, so it is tolerable, we don't throw exception
-            tcoDebug (exchange, symbol, ' a moment ago order was reported as pending, but could not be cancelled at this moment. Exception message: ' + e.toString ());
+            tcoDebug (exchange, symbol, ' a moment ago order was reported as pending, but could not be cancelled at this moment. Exception message: ' + (e as Error).toString ());
         }
     } else {
         tcoDebug (exchange, symbol, 'order is already closed/filled, no need to cancel it');

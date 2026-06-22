@@ -47,7 +47,7 @@ function testCurrency (exchange: Exchange, skippedProperties: object, method: st
     testSharedMethods.assertCurrencyCode (exchange, skippedProperties, method, entry, entry['code']);
     // check if empty networks should be skipped
     const networks = exchange.safeDict (entry, 'networks', {});
-    const networkKeys = Object.keys (networks);
+    const networkKeys = Object.keys (networks as object);
     const networkKeysLength = networkKeys.length;
     if (networkKeysLength === 0 && ('skipCurrenciesWithoutNetworks' in skippedProperties)) {
         return;
