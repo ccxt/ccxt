@@ -3066,7 +3066,7 @@ export default class extended extends Exchange {
     async cancelAllOrdersAfter (timeout: Int, params = {}) {
         await this.loadMarkets ();
         const request: Dict = {
-            'countdownTime': ((timeout !== undefined) && (timeout > 0)) ? this.parseToInt (timeout / 1000) : 0,
+            'countdownTime': ((timeout as number) > 0) ? this.parseToInt ((timeout as number) / 1000) : 0,
         };
         return await this.v1PrivatePostUserDeadmanswitch (this.extend (request, params));
     }
