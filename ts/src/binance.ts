@@ -1389,12 +1389,12 @@ export default class binance extends Exchange {
                     'BTCLIGHTNING': 'LIGHTNING',
                     'ERC20': 'ETH',
                     'ETH': 'ETH',
-                    'ETC': 'ETC',
                     'TRC20': 'TRX',
                     'TRX': 'TRX',
                     'BEP2': 'BNB',
                     'BSC': 'BSC',
                     'BEP20': 'BSC',
+                    'CHZ2': 'CHZ2', // Chiliz chain new
                     'XRP': 'XRP',
                     'EOS': 'EOS',
                     'DOGE': 'DOGE',
