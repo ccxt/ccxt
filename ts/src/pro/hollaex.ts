@@ -103,7 +103,7 @@ export default class hollaex extends hollaexRest {
         const timestamp = this.safeString (data, 'timestamp');
         const timestampMs = this.parse8601 (timestamp);
         const snapshot = this.parseOrderBook (data, symbol, timestampMs);
-        let orderbook = undefined;
+        let orderbook = this.orderBook ({});
         if (!(symbol in this.orderbooks)) {
             orderbook = this.orderBook (snapshot);
             this.orderbooks[symbol] = orderbook;
@@ -245,7 +245,7 @@ export default class hollaex extends hollaexRest {
             const symbol = trade['symbol'];
             const market = this.market (symbol);
             const marketId = market['id'];
-            marketIds[marketId] = true;
+            marketIds[marketId as string] = true;
         }
         // non-symbol specific
         client.resolve (this.myTrades, channel);
@@ -368,7 +368,7 @@ export default class hollaex extends hollaexRest {
             const symbol = order['symbol'];
             const market = this.market (symbol);
             const marketId = market['id'];
-            marketIds[marketId] = true;
+            marketIds[marketId as string] = true;
         }
         // non-symbol specific
         client.resolve (this.orders, channel);
@@ -448,7 +448,7 @@ export default class hollaex extends hollaexRest {
         if (expires === undefined) {
             const timeout = parseInt ((this.timeout / 1000).toString ());
             expires = this.sum (this.seconds (), timeout);
-            expires = expires.toString ();
+            expires = (expires as string).toString ();
             // we need to memoize these values to avoid generating a new url on each method execution
             // that would trigger a new connection on each received message
             this.options['ws-expires'] = expires;
