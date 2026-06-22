@@ -1285,7 +1285,7 @@ export default class Exchange {
 
     // ping (client: Client) {} // stub to override
 
-    ping (client: Client) {
+    ping (client: Client): Dict | Str {
         return undefined;
     }
 
