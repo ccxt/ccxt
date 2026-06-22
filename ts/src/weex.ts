@@ -3534,7 +3534,7 @@ export default class weex extends Exchange {
         return this.parseMarginModes (response, symbols, 'symbol', 'swap');
     }
 
-    parseMarginMode (marginMode: Dict, market = undefined): MarginMode {
+    parseMarginMode (marginMode: Dict, market: Market = undefined): MarginMode {
         const marketId = this.safeString (marginMode, 'symbol');
         const marginType = this.safeString (marginMode, 'marginType');
         return {

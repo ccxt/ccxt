@@ -1345,7 +1345,7 @@ export default class okx extends okxRest {
         }
     }
 
-    handleOrderBookMessage (client: Client, message, orderbook, messageHash, market = undefined) {
+    handleOrderBookMessage (client: Client, message, orderbook, messageHash, market: Market = undefined) {
         //
         //     {
         //         "asks": [

@@ -13834,7 +13834,7 @@ export default class binance extends Exchange {
         return this.parseMarginMode (response[0], market);
     }
 
-    parseMarginMode (marginMode: Dict, market = undefined): MarginMode {
+    parseMarginMode (marginMode: Dict, market: Market = undefined): MarginMode {
         const marketId = this.safeString (marginMode, 'symbol');
         market = this.safeMarket (marketId, market);
         const marginModeRaw = this.safeBool (marginMode, 'isolated');
