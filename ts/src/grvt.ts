@@ -3161,7 +3161,7 @@ export default class grvt extends Exchange {
         return this.convertToBigIntCustom ('10000'); // multiply needed https://t.me/c/3396937126/88
     }
 
-    createSignedRequest (request: any, structureType: string, currencyObj = undefined, signerAddress: Str = undefined): Dict {
+    createSignedRequest (request: any, structureType: string, currencyObj: Currency = undefined, signerAddress: Str = undefined): Dict {
         let messageData: NullableDict = undefined;
         if (structureType === 'EIP712_TRANSFER_TYPE') {
             const amountMultiplier = this.convertToBigIntCustom ('1000000');
@@ -3171,7 +3171,7 @@ export default class grvt extends Exchange {
                 'fromSubAccount': request['from_sub_account_id'],
                 'toAccount': request['to_account_id'],
                 'toSubAccount': request['to_sub_account_id'],
-                'tokenCurrency': currencyObj['numericId'],
+                'tokenCurrency': (currencyObj !== undefined) ? currencyObj['numericId'] : undefined,
                 'numTokens': this.parseToInt (amountInt),
                 'nonce': request['signature']['nonce'],
                 'expiration': request['signature']['expiration'],
@@ -3181,7 +3181,7 @@ export default class grvt extends Exchange {
             messageData = {
                 'fromAccount': request['from_account_id'],
                 'toEthAddress': request['to_eth_address'],
-                'tokenCurrency': currencyObj['numericId'],
+                'tokenCurrency': (currencyObj !== undefined) ? currencyObj['numericId'] : undefined,
                 'numTokens': this.parseToInt (request['num_tokens'] * amountMultiplier),
                 'nonce': request['signature']['nonce'],
                 'expiration': request['signature']['expiration'],

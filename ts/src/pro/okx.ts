@@ -748,6 +748,9 @@ export default class okx extends okxRest {
         } else if (type === 'future') {
             type = 'futures';
         }
+        if (type === undefined) {
+            type = '';
+        }
         const uppercaseType = type.toUpperCase ();
         const request = {
             'op': 'subscribe',
@@ -2536,7 +2539,7 @@ export default class okx extends okxRest {
             }
         } else {
             const arg = this.safeValue (message, 'arg', {});
-            const channel = this.safeString (arg, 'channel');
+            const channel = this.safeString (arg, 'channel', '');
             const methods: Dict = {
                 'bbo-tbt': this.handleOrderBook, // newly added channel that sends tick-by-tick Level 1 data, all API users can subscribe, public depth channel, verification not required
                 'books': this.handleOrderBook, // all API users can subscribe, public depth channel, verification not required
