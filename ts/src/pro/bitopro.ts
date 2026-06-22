@@ -458,7 +458,7 @@ export default class bitopro extends bitoproRest {
             'datetime': datetime,
         };
         for (let i = 0; i < currencies.length; i++) {
-            const currency = this.safeString (currencies, i);
+            const currency = this.safeString (currencies, i, '');
             const balance = this.safeValue (data, currency);
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);

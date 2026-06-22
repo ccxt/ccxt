@@ -1354,9 +1354,11 @@ export default class cryptocom extends cryptocomRest {
             // channel might be user.order.BTC_USDT
             this.handleOrders (client, result);
         }
-        const method = this.safeValue (methods, channel);
-        if (method !== undefined) {
-            method.call (this, client, result);
+        if (channel !== undefined) {
+            const method = this.safeValue (methods, channel);
+            if (method !== undefined) {
+                method.call (this, client, result);
+            }
         }
     }
 
@@ -1410,9 +1412,11 @@ export default class cryptocom extends cryptocomRest {
             'subscribe': this.handleSubscribe,
             'unsubscribe': this.handleUnsubscribe,
         };
-        const callMethod = this.safeValue (methods, method);
-        if (callMethod !== undefined) {
-            callMethod.call (this, client, message);
+        if (method !== undefined) {
+            const callMethod = this.safeValue (methods, method);
+            if (callMethod !== undefined) {
+                callMethod.call (this, client, message);
+            }
         }
     }
 

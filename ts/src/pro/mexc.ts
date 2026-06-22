@@ -2043,9 +2043,11 @@ export default class mexc extends mexcRest {
                 'public.increase.depth.v3.api': this.handleOrderBookSubscription,
                 'public.aggre.depth.v3.api.pb': this.handleOrderBookSubscription,
             };
-            const method = this.safeValue (methods, channel);
-            if (method !== undefined) {
-                method.call (this, client, message);
+            if (channel !== undefined) {
+                const method = this.safeValue (methods, channel);
+                if (method !== undefined) {
+                    method.call (this, client, message);
+                }
             }
         }
     }

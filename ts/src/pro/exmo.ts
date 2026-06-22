@@ -835,16 +835,18 @@ export default class exmo extends exmoRest {
             'info': this.handleInfo,
             'subscribed': this.handleSubscribed,
         };
-        const eventHandler = this.safeValue (events, event);
-        if (eventHandler !== undefined) {
-            eventHandler.call (this, client, message);
-            return;
+        if (event !== undefined) {
+            const eventHandler = this.safeValue (events, event);
+            if (eventHandler !== undefined) {
+                eventHandler.call (this, client, message);
+                return;
+            }
         }
         if ((event === 'update') || (event === 'snapshot')) {
             const topic = this.safeString (message, 'topic');
             if (topic !== undefined) {
                 const parts = topic.split (':');
-                const channel = this.safeString (parts, 0);
+                const channel = this.safeString (parts, 0, '');
                 const handlers: Dict = {
                     'spot/ticker': this.handleTicker,
                     'spot/wallet': this.handleBalance,

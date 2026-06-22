@@ -3034,6 +3034,9 @@ export default class grvt extends Exchange {
     }
 
     parseTimeInForce (type: Str): Str {
+        if (type === undefined) {
+            return undefined;
+        }
         const types: Dict = {
             'GOOD_TILL_TIME': 'GTC', // yeah, not GTD
             'IMMEDIATE_OR_CANCEL': 'IOC',

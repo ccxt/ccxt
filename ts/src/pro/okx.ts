@@ -1481,7 +1481,7 @@ export default class okx extends okxRest {
         //     }
         //
         const arg = this.safeDict (message, 'arg', {});
-        const channel = this.safeString (arg, 'channel');
+        const channel = this.safeString (arg, 'channel', '');
         const action = this.safeString (message, 'action');
         const data = this.safeList (message, 'data', []) as List;
         const marketId = this.safeString (arg, 'instId');

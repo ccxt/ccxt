@@ -3579,6 +3579,9 @@ export default class weex extends Exchange {
     }
 
     encodeMarginMode (marginMode: Str) {
+        if (marginMode === undefined) {
+            throw new ArgumentsRequired (this.id + ' marginMode must be either cross or isolated');
+        }
         const marginTypes: Dict = {
             'cross': 'CROSSED',
             'isolated': 'ISOLATED',

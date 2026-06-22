@@ -3291,7 +3291,7 @@ export default class pacifica extends Exchange {
 
     postActionRequest (operationType: Str, sigPayload: Dict, params: Dict): Dict {
         this.checkRequiredCredentials (); // check credentials every post action
-        if (operationType === 'undefined') {
+        if (operationType === undefined) {
             throw new ArgumentsRequired (this.id + ' action: ' + operationType + ' postActionRequest() requires "operationType"');
         }
         if (!this.isSandboxModeEnabled) { // At this stage, building codes are mostly only on the mainnet.
