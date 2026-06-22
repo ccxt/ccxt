@@ -304,8 +304,8 @@ export default class blofin extends blofinRest {
             const ticker = this.parseWsTicker (data[i]);
             const symbol = ticker['symbol'];
             const messageHash = channelName + ':' + symbol;
-            this.tickers[symbol] = ticker;
-            client.resolve (this.tickers[symbol], messageHash);
+            this.tickers[(symbol as string)] = ticker;
+            client.resolve (this.tickers[(symbol as string)], messageHash);
         }
     }
 
@@ -357,7 +357,7 @@ export default class blofin extends blofinRest {
             const ticker = this.parseWsBidAsk (data[i]);
             const symbol = ticker['symbol'];
             const messageHash = 'bidask:' + symbol;
-            this.bidsasks[symbol] = ticker;
+            this.bidsasks[(symbol as string)] = ticker;
             client.resolve (ticker, messageHash);
         }
     }
@@ -681,7 +681,7 @@ export default class blofin extends blofinRest {
         const first = this.safeDict (data, 0, {});
         const fundingRate = this.parseFundingRate (first);
         const symbol = fundingRate['symbol'];
-        this.fundingRates[symbol] = fundingRate;
+        this.fundingRates[(symbol as string)] = fundingRate;
         const messageHash = 'fundingRate:' + symbol;
         client.resolve (fundingRate, messageHash);
     }

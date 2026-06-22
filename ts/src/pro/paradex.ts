@@ -146,10 +146,10 @@ export default class paradex extends paradexRest {
         const parsedTrade = this.parseTrade (data);
         const symbol = parsedTrade['symbol'];
         const messageHash = this.safeString (params, 'channel');
-        let stored = this.safeValue (this.trades, symbol);
+        let stored = this.safeValue (this.trades, (symbol as string));
         if (stored === undefined) {
             stored = new ArrayCache (this.safeInteger (this.options, 'tradesLimit', 1000));
-            this.trades[symbol] = stored;
+            this.trades[(symbol as string)] = stored;
         }
         stored.append (parsedTrade);
         client.resolve (stored, messageHash);
@@ -291,7 +291,7 @@ export default class paradex extends paradexRest {
                 'channel': channel,
             },
         };
-        const messageHashes = [];
+        const messageHashes: any[] = [];
         if (symbols !== undefined && Array.isArray (symbols)) {
             for (let i = 0; i < symbols.length; i++) {
                 const messageHash = channel + '.' + symbols[i];
@@ -478,7 +478,7 @@ export default class paradex extends paradexRest {
                 'channel': channel,
             },
         };
-        const messageHashes = [];
+        const messageHashes: any[] = [];
         if (symbols !== undefined) {
             const symbolsLength = symbols.length;
             if (symbolsLength > 0) {
@@ -524,7 +524,7 @@ export default class paradex extends paradexRest {
         const data = this.safeDict (params, 'data', {});
         const fundingRate = this.parseFundingRateWs (data);
         const symbol = fundingRate['symbol'];
-        this.fundingRates[symbol] = fundingRate;
+        this.fundingRates[(symbol as string)] = fundingRate;
         const channel = this.safeString (params, 'channel');
         const messageHash = channel + '.' + symbol;
         client.resolve (fundingRate, messageHash);
@@ -649,7 +649,7 @@ export default class paradex extends paradexRest {
                 'orders': this.handleOrder,
                 'funding_data': this.handleFundingRate,
             };
-            const method = this.safeValue (methods, name);
+            const method = this.safeValue (methods, (name as string));
             if (method !== undefined) {
                 method.call (this, client, message);
             }

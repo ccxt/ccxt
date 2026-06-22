@@ -417,7 +417,7 @@ export default class krakenfutures extends Exchange {
         //    }
         //
         const instruments = this.safeValue (response, 'instruments', []);
-        const result = [];
+        const result: any[] = [];
         for (let i = 0; i < instruments.length; i++) {
             const market = instruments[i];
             const id = this.safeString (market, 'symbol');
@@ -523,7 +523,7 @@ export default class krakenfutures extends Exchange {
             });
         }
         const settlementCurrencies = this.options['settlementCurrencies']['flex'];
-        const currencies = [];
+        const currencies: any[] = [];
         for (let i = 0; i < settlementCurrencies.length; i++) {
             const code = settlementCurrencies[i];
             currencies.push ({
@@ -1043,7 +1043,7 @@ export default class krakenfutures extends Exchange {
                 takerOrMaker = 'taker';
             }
         }
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         if ((takerOrMaker !== undefined) && (cost !== undefined)) {
             const feeRate = this.safeString (market, takerOrMaker);
             fee = {
@@ -1237,7 +1237,7 @@ export default class krakenfutures extends Exchange {
      */
     async createOrders (orders: OrderRequest[], params = {}) {
         await this.loadMarkets ();
-        const ordersRequests = [];
+        const ordersRequests: any[] = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const marketId = this.safeString (rawOrder, 'symbol');
@@ -1252,7 +1252,7 @@ export default class krakenfutures extends Exchange {
                 extendedParams['order_tag'] = this.sum (i, 1).toString (); // sequential counter
             }
             extendedParams['order'] = 'send';
-            const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, extendedParams);
+            const orderRequest = this.createOrderRequest ((marketId as string), type, side, amount, price, extendedParams);
             ordersRequests.push (orderRequest);
         }
         const request: Dict = {
@@ -1349,7 +1349,7 @@ export default class krakenfutures extends Exchange {
      */
     async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        const orders = [];
+        const orders: any[] = [];
         const clientOrderIds = this.safeValue (params, 'clientOrderIds', []);
         const clientOrderIdsLength = clientOrderIds.length;
         if (clientOrderIdsLength > 0) {
@@ -1446,7 +1446,7 @@ export default class krakenfutures extends Exchange {
         //
         const cancelStatus = this.safeDict (response, 'cancelStatus');
         const orderEvents = this.safeList (cancelStatus, 'orderEvents', []);
-        const orders = [];
+        const orders: any[] = [];
         for (let i = 0; i < orderEvents.length; i++) {
             const orderEvent = this.safeDict (orderEvents, 0);
             const order = this.safeDict (orderEvent, 'order', {});
@@ -1576,7 +1576,7 @@ export default class krakenfutures extends Exchange {
             request['since'] = since;
         }
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
-        let response: Dict = undefined;
+        let response: Dict;
         if (isTrigger) {
             params = this.omit (params, [ 'trigger', 'stop' ]);
             response = await this.historyGetTriggers (this.extend (request, params));
@@ -1584,7 +1584,7 @@ export default class krakenfutures extends Exchange {
             response = await this.historyGetOrders (this.extend (request, params));
         }
         const allOrders = this.safeList (response, 'elements', []);
-        const closedOrders = [];
+        const closedOrders: any[] = [];
         for (let i = 0; i < allOrders.length; i++) {
             const order = allOrders[i];
             const event = this.safeDict (order, 'event', {});
@@ -1634,7 +1634,7 @@ export default class krakenfutures extends Exchange {
         if (since !== undefined) {
             request['from'] = since;
         }
-        let response: Dict = undefined;
+        let response: Dict;
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
         if (isTrigger) {
             params = this.omit (params, [ 'trigger', 'stop' ]);
@@ -1643,7 +1643,7 @@ export default class krakenfutures extends Exchange {
             response = await this.historyGetOrders (this.extend (request, params));
         }
         const allOrders = this.safeList (response, 'elements', []);
-        const canceledAndRejected = [];
+        const canceledAndRejected: any[] = [];
         for (let i = 0; i < allOrders.length; i++) {
             const order = allOrders[i];
             const event = this.safeDict (order, 'event', {});
@@ -2092,14 +2092,14 @@ export default class krakenfutures extends Exchange {
             // creteOrders error response
             return this.safeOrder ({ 'info': order, 'status': 'rejected' });
         }
-        let details: Dict = undefined;
+        let details: NullableDict = undefined;
         let isPrior = false;
         let fixed = false;
         let statusId: Str = undefined;
         let price: Str = undefined;
         let trades = [];
         if (orderEventsLength) {
-            const executions = [];
+            const executions: any[] = [];
             for (let i = 0; i < orderEvents.length; i++) {
                 const item = orderEvents[i];
                 if (this.safeString (item, 'type') === 'EXECUTION') {
@@ -2520,7 +2520,7 @@ export default class krakenfutures extends Exchange {
         const marketIds = this.marketIds (symbols);
         const response = await this.publicGetTickers (params);
         const tickers = this.safeList (response, 'tickers', []);
-        const fundingRates = [];
+        const fundingRates: any[] = [];
         for (let i = 0; i < tickers.length; i++) {
             const entry = tickers[i];
             const entry_symbol = this.safeValue (entry, 'symbol');
@@ -2565,7 +2565,7 @@ export default class krakenfutures extends Exchange {
         //     }
         //
         const marketId = this.safeString (ticker, 'symbol');
-        const symbol = this.symbol (marketId);
+        const symbol = this.symbol ((marketId as string));
         const timestamp = this.parse8601 (this.safeString (ticker, 'lastTime'));
         const markPriceString = this.safeString (ticker, 'markPrice');
         const fundingRateString = this.safeString (ticker, 'fundingRate');
@@ -2641,7 +2641,7 @@ export default class krakenfutures extends Exchange {
         //    }
         //
         const rates = this.safeValue (response, 'rates');
-        const result = [];
+        const result: any[] = [];
         for (let i = 0; i < rates.length; i++) {
             const item = rates[i];
             const datetime = this.safeString (item, 'timestamp');
@@ -2691,7 +2691,7 @@ export default class krakenfutures extends Exchange {
     }
 
     parsePositions (response, symbols: Strings = undefined, params = {}) {
-        const result = [];
+        const result: any[] = [];
         const positions = this.safeValue (response, 'openPositions');
         for (let i = 0; i < positions.length; i++) {
             const position = this.parsePosition (positions[i]);
@@ -2859,7 +2859,7 @@ export default class krakenfutures extends Exchange {
         const marginLevels = this.safeValue (info, 'marginLevels');
         const marketId = this.safeString (info, 'symbol');
         market = this.safeMarket (marketId, market);
-        const tiers = [];
+        const tiers: any[] = [];
         if (marginLevels === undefined) {
             return tiers;
         }
@@ -2971,7 +2971,7 @@ export default class krakenfutures extends Exchange {
         const request: Dict = {
             'amount': amount,
         };
-        let response: Dict = undefined;
+        let response: Dict;
         if (toAccount === 'spot') {
             if (this.parseAccount (fromAccount) !== 'cash') {
                 throw new BadRequest (this.id + ' transfer cannot transfer from ' + fromAccount + ' to ' + toAccount);

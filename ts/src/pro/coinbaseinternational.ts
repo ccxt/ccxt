@@ -3,7 +3,7 @@
 import { sha256 } from '@noble/hashes/sha2.js';
 import coinbaseinternationalRest from '../coinbaseinternational.js';
 import { AuthenticationError, ExchangeError, NotSupported, ArgumentsRequired } from '../base/errors.js';
-import { Ticker, Int, Trade, OrderBook, Market, Dict, Strings, FundingRate, FundingRates, Tickers, OHLCV, Bool } from '../base/types.js';
+import { Ticker, Int, Str, Trade, OrderBook, Market, Dict, Strings, FundingRate, FundingRates, Tickers, OHLCV, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 
@@ -89,7 +89,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             symbols = this.getActiveSymbols ();
         }
         const symbolsLength = symbols.length;
-        const messageHashes = [];
+        const messageHashes: any[] = [];
         if (symbolsLength > 1) {
             const parsedSymbols = this.marketSymbols (symbols);
             const marketIds = this.marketIds (parsedSymbols);
@@ -146,8 +146,8 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         } else {
             symbols = this.marketSymbols (symbols);
         }
-        const messageHashes = [];
-        const productIds = [];
+        const messageHashes: any[] = [];
+        const productIds: any[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const marketId = this.marketId (symbols[i]);
             const symbol = this.symbol (marketId);
@@ -205,7 +205,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const symbol = this.safeString (fundingRate, 'symbol');
         if (this.newUpdates) {
             const result: Dict = {};
-            result[symbol] = fundingRate;
+            result[(symbol as string)] = fundingRate;
             return result;
         }
         return this.filterByArray (this.fundingRates, 'symbol', symbols);
@@ -223,14 +223,14 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
-        let channel = undefined;
+        let channel: Str = undefined;
         [ channel, params ] = this.handleOptionAndParams (params, 'watchTicker', 'channel', 'LEVEL1');
-        return await this.subscribe (channel, [ symbol ], params);
+        return await this.subscribe ((channel as string), [ symbol ], params);
     }
 
     getActiveSymbols () {
         const symbols = this.symbols;
-        const output = [];
+        const output: any[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.markets[symbol];
@@ -253,9 +253,9 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        let channel = undefined;
+        let channel: Str = undefined;
         [ channel, params ] = this.handleOptionAndParams (params, 'watchTickers', 'channel', 'LEVEL1');
-        const ticker = await this.subscribe (channel, symbols, params);
+        const ticker = await this.subscribe ((channel as string), symbols, params);
         if (this.newUpdates) {
             const result: Dict = {};
             result[ticker['symbol']] = ticker;
@@ -497,11 +497,11 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const symbol = market['symbol'];
         const timeframe = this.findTimeframe (messageHash);
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        if (this.safeValue (this.ohlcvs[symbol], timeframe) === undefined) {
+        if (this.safeValue (this.ohlcvs[symbol], (timeframe as string)) === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][(timeframe as string)] = new ArrayCacheByTimestamp (limit);
         }
-        const stored = this.ohlcvs[symbol][timeframe];
+        const stored = this.ohlcvs[symbol][(timeframe as string)];
         const data = this.safeList (message, 'candles', []);
         for (let i = 0; i < data.length; i++) {
             const tick = data[i];
@@ -568,11 +568,11 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             const tradesArrayCache = new ArrayCache (limit);
-            this.trades[symbol] = tradesArrayCache;
+            this.trades[(symbol as string)] = tradesArrayCache;
         }
-        const tradesArray = this.trades[symbol];
+        const tradesArray = this.trades[(symbol as string)];
         tradesArray.append (trade);
-        this.trades[symbol] = tradesArray;
+        this.trades[(symbol as string)] = tradesArray;
         client.resolve (tradesArray, channel);
         client.resolve (tradesArray, channel + '::' + trade['symbol']);
         return message;
@@ -815,7 +815,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const type = this.safeString (message, 'type');
         if (type === 'error') {
             const errorMessage = this.safeString (message, 'message');
-            throw new ExchangeError (errorMessage);
+            throw new ExchangeError ((errorMessage as string));
         }
         if (channel.indexOf ('CANDLES') > -1) {
             this.handleOHLCV (client, message);

@@ -466,7 +466,7 @@ export default class lighter extends Exchange {
             return true;
         }
         signer = await this.loadAccount (this.options['chainId'], this.getLighterPrivateKey (strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex);
-        await this.handleBuilderFeeApproval (accountIndex, apiKeyIndex);
+        await this.handleBuilderFeeApproval (accountIndex, (apiKeyIndex as number));
         return (signer !== undefined);
     }
 
@@ -567,8 +567,8 @@ export default class lighter extends Exchange {
             accountIndex = this.safeString (res, 0);
         }
         const auths = this.safeDict (this.options, 'auths');
-        const accountAuths = this.safeDict (auths, accountIndex);
-        const cachedAuth = this.safeDict (accountAuths, apiKeyIndex);
+        const accountAuths = this.safeDict (auths, (accountIndex as string));
+        const cachedAuth = this.safeDict (accountAuths, (apiKeyIndex as string));
         const cachedDeadline = this.safeInteger (cachedAuth, 'deadline');
         if (cachedDeadline !== undefined) {
             const minimumDeadline = this.seconds () + this.safeInteger (this.options, 'authDeadlineMinimumRemaining', 60);
@@ -582,9 +582,9 @@ export default class lighter extends Exchange {
             'api_key_index': this.parseToInt (apiKeyIndex),
             'account_index': this.parseToInt (accountIndex),
         };
-        const token = this.lighterCreateAuthToken (this.options['auths'][accountIndex][apiKeyIndex]['signer'], request);
-        this.options['auths'][accountIndex][apiKeyIndex]['deadline'] = deadline;
-        this.options['auths'][accountIndex][apiKeyIndex]['token'] = token;
+        const token = this.lighterCreateAuthToken (this.options['auths'][(accountIndex as string)][apiKeyIndex]['signer'], request);
+        this.options['auths'][(accountIndex as string)][apiKeyIndex]['deadline'] = deadline;
+        this.options['auths'][(accountIndex as string)][apiKeyIndex]['token'] = token;
         return token;
     }
 
@@ -705,7 +705,7 @@ export default class lighter extends Exchange {
         await this.publicPostSendTx (request);
         this.options['auths'][strAccountIndex][strApiKeyIndex]['lighterPrivateKey'] = privateKey;
         this.options['auths'][strAccountIndex][strApiKeyIndex]['signer'] = signer; // reassign signer in go
-        await this.handleBuilderFeeApproval (accountIndex, apiKeyIndex);
+        await this.handleBuilderFeeApproval ((accountIndex as number), apiKeyIndex);
         return signer;
     }
 
@@ -927,7 +927,7 @@ export default class lighter extends Exchange {
         // for php
         const totalOrderRequests = orderRequests.length;
         let apiKeyIndex: Int = undefined;
-        let order: Dict = undefined;
+        let order: NullableDict = undefined;
         if (totalOrderRequests > 0) {
             order = orderRequests[0];
             apiKeyIndex = order['api_key_index'];
@@ -940,7 +940,7 @@ export default class lighter extends Exchange {
             order['nonce'] = await this.fetchNonce (accountIndex, apiKeyIndex);
         }
         let txType: Str = undefined;
-        let txInfo: Dict = undefined;
+        let txInfo: Dict;
         if (totalOrderRequests < 2) {
             [ txType, txInfo ] = this.lighterSignCreateOrder (signer, order);
         } else {

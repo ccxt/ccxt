@@ -204,11 +204,11 @@ export default class kucoin extends kucoinRest {
         };
         const message = this.extend (request, params);
         const url = this.safeString (this.urls['api']['ws'], urlType);
-        const client = this.client (url);
+        const client = this.client ((url as string));
         if (!(messageHash in client.subscriptions)) {
             client.subscriptions[requestId] = messageHash;
         }
-        return await this.watch (url, messageHash, message, messageHash, subscription);
+        return await this.watch ((url as string), messageHash, message, messageHash, subscription);
     }
 
     async subscribePrivateUta (messageHashes, subscribeHash, channel, symbol: Str = undefined, params = {}, subscription: NullableDict = undefined) {
@@ -440,8 +440,8 @@ export default class kucoin extends kucoinRest {
         } else {
             [ method, params ] = this.handleOptionAndParams2 (params, 'watchTickers', 'method', 'spotMethod', method);
         }
-        const messageHashes = [];
-        const topics = [];
+        const messageHashes: any[] = [];
+        const topics: any[] = [];
         if (symbols !== undefined) {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
@@ -490,22 +490,22 @@ export default class kucoin extends kucoinRest {
         };
         const message = this.extend (request, params);
         const url = this.safeString (this.urls['api']['ws'], urlType);
-        const client = this.client (url);
+        const client = this.client ((url as string));
         const messageHashWithSymbols = channel + ':' + symbols.join (',');
         if (!(messageHashWithSymbols in client.subscriptions)) {
             client.subscriptions[requestId] = messageHashWithSymbols;
         }
-        return await this.watchMultiple (url, messageHashes, message, messageHashes, subscription);
+        return await this.watchMultiple ((url as string), messageHashes, message, messageHashes, subscription);
     }
 
     async watchUtaTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false, true);
         const messageHash = 'uta:ticker';
-        const messageHashes = [];
+        const messageHashes: any[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = this.safeString (symbols, i);
-            const market = this.market (symbol);
+            const market = this.market ((symbol as string));
             const subMessageHash = messageHash + ':' + market['symbol'];
             messageHashes.push (subMessageHash);
         }
@@ -608,12 +608,12 @@ export default class kucoin extends kucoinRest {
             const rawTicker = this.safeDict (data, 'data', data);
             const ticker = this.parseSpotOrUtaTicker (rawTicker, market);
             const symbol = ticker['symbol'];
-            this.tickers[symbol] = ticker;
+            this.tickers[(symbol as string)] = ticker;
             const messageHash = 'ticker:' + symbol;
             client.resolve (ticker, messageHash);
             // watchTickers
             const allTickers: Dict = {};
-            allTickers[symbol] = ticker;
+            allTickers[(symbol as string)] = ticker;
             client.resolve (allTickers, 'tickers');
         } else {
             this.handleContractTicker (client, message);
@@ -743,7 +743,7 @@ export default class kucoin extends kucoinRest {
         if (length > 100) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() accepts a maximum of 100 symbols');
         }
-        const messageHashes = [];
+        const messageHashes: any[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
@@ -794,7 +794,7 @@ export default class kucoin extends kucoinRest {
         //
         const parsedTicker = this.parseWsBidAsk (message);
         const symbol = parsedTicker['symbol'];
-        this.bidsasks[symbol] = parsedTicker;
+        this.bidsasks[(symbol as string)] = parsedTicker;
         const messageHash = 'bidask@' + symbol;
         client.resolve (parsedTicker, messageHash);
     }
@@ -996,11 +996,11 @@ export default class kucoin extends kucoinRest {
         const symbol = market['symbol'];
         const messageHash = 'candles:' + symbol + ':' + timeframe;
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        let stored = this.safeValue (this.ohlcvs[symbol], (timeframe as string));
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+            this.ohlcvs[symbol][(timeframe as string)] = stored;
         }
         const isContractMarket = (topic.indexOf ('contractMarket') >= 0);
         const baseVolumeIndex = isContractMarket ? 6 : 5; // Note value 5 is incorrect and will be fixed in subsequent versions of kucoin
@@ -1044,11 +1044,11 @@ export default class kucoin extends kucoinRest {
         const timeframe = this.findTimeframe (interval);
         const messageHash = 'uta:candles:' + symbol + ':' + timeframe;
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        let stored = this.safeValue (this.ohlcvs[symbol], (timeframe as string));
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+            this.ohlcvs[symbol][(timeframe as string)] = stored;
         }
         const parsed = [
             this.safeIntegerProduct (data, 'O', 1000),
@@ -1119,8 +1119,8 @@ export default class kucoin extends kucoinRest {
         const isFuturesMethod = firstMarket['contract'];
         const marketIds = this.marketIds (symbols);
         const url = await this.negotiate (false, isFuturesMethod);
-        const messageHashes = [];
-        const subscriptionHashes = [];
+        const messageHashes: any[] = [];
+        const subscriptionHashes: any[] = [];
         let channelName = '/market/match:';
         if (isFuturesMethod) {
             channelName = '/contractMarket/execution:';
@@ -1158,8 +1158,8 @@ export default class kucoin extends kucoinRest {
         const firstMarket = this.getMarketFromSymbols (symbols);
         const isFuturesMethod = firstMarket['contract'];
         const url = await this.negotiate (false, isFuturesMethod);
-        const messageHashes = [];
-        const subscriptionHashes = [];
+        const messageHashes: any[] = [];
+        const subscriptionHashes: any[] = [];
         let channelName = '/market/match:';
         if (isFuturesMethod) {
             channelName = '/contractMarket/execution:';
@@ -1248,9 +1248,9 @@ export default class kucoin extends kucoinRest {
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             const stored = new ArrayCache (limit);
-            this.trades[symbol] = stored;
+            this.trades[(symbol as string)] = stored;
         }
-        const cache = this.trades[symbol];
+        const cache = this.trades[(symbol as string)];
         cache.append (trade);
         client.resolve (cache, messageHash);
     }
@@ -1280,9 +1280,9 @@ export default class kucoin extends kucoinRest {
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             const stored = new ArrayCache (limit);
-            this.trades[symbol] = stored;
+            this.trades[(symbol as string)] = stored;
         }
-        const cache = this.trades[symbol];
+        const cache = this.trades[(symbol as string)];
         cache.append (trade);
         client.resolve (cache, messageHash);
     }
@@ -1488,8 +1488,8 @@ export default class kucoin extends kucoinRest {
             }
         }
         const topic = method + ':' + marketIds.join (',');
-        const messageHashes = [];
-        const subscriptionHashes = [];
+        const messageHashes: any[] = [];
+        const subscriptionHashes: any[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             messageHashes.push ('orderbook:' + symbol);
@@ -1544,8 +1544,8 @@ export default class kucoin extends kucoinRest {
             }
         }
         const topic = method + ':' + marketIds.join (',');
-        const messageHashes = [];
-        const subscriptionHashes = [];
+        const messageHashes: any[] = [];
+        const subscriptionHashes: any[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             messageHashes.push ('unsubscribe:orderbook:' + symbol);
@@ -1637,7 +1637,7 @@ export default class kucoin extends kucoinRest {
                 let subscription: NullableDict = undefined;
                 for (let i = 0; i < subscriptions.length; i++) {
                     const key = subscriptions[i];
-                    if ((key.indexOf (topicSymbol) >= 0) && (key.indexOf (topicChannel) >= 0)) {
+                    if ((key.indexOf ((topicSymbol as string)) >= 0) && (key.indexOf ((topicChannel as string)) >= 0)) {
                         subscription = client.subscriptions[key];
                         break;
                     }
@@ -1784,7 +1784,7 @@ export default class kucoin extends kucoinRest {
         const symbols = this.safeList (subscription, 'symbols');
         if (symbols === undefined) {
             const symbol = this.safeString (subscription, 'symbol');
-            this.orderbooks[symbol] = this.orderBook ({}, limit);
+            this.orderbooks[(symbol as string)] = this.orderBook ({}, limit);
         } else {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
@@ -1815,9 +1815,9 @@ export default class kucoin extends kucoinRest {
         if (!(id in client.subscriptions)) {
             return;
         }
-        const subscriptionHash = this.safeString (client.subscriptions, id);
+        const subscriptionHash = this.safeString (client.subscriptions, (id as string));
         const subscription = this.safeValue (client.subscriptions, subscriptionHash);
-        delete client.subscriptions[id];
+        delete client.subscriptions[(id as string)];
         const method = this.safeValue (subscription, 'method');
         if (method !== undefined) {
             method.call (this, client, message, subscription);
@@ -2177,8 +2177,8 @@ export default class kucoin extends kucoinRest {
             this.triggerOrders = new ArrayCacheBySymbolById (limit);
         }
         const cachedOrders = isTriggerOrder ? this.triggerOrders : this.orders;
-        const orders = this.safeValue (cachedOrders.hashmap, symbol, {});
-        const order = this.safeValue (orders, orderId);
+        const orders = this.safeValue (cachedOrders.hashmap, (symbol as string), {});
+        const order = this.safeValue (orders, (orderId as string));
         if (order !== undefined) {
             // todo add others to calculate average etc
             if (order['status'] === 'closed') {
@@ -2517,7 +2517,7 @@ export default class kucoin extends kucoinRest {
         } else {
             url = await this.negotiate (true, isClassicFuturesMethod);
         }
-        const client = this.client (url);
+        const client = this.client ((url as string));
         this.setBalanceCache (client, uniformType);
         const options = this.safeDict (this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool (options, 'fetchBalanceSnapshot', false);
@@ -2545,7 +2545,7 @@ export default class kucoin extends kucoinRest {
             if (!(subscriptionHash in client.subscriptions)) {
                 client.subscriptions[requestId] = subscriptionHash;
             }
-            return await this.watch (url, messageHash, message, uniformType);
+            return await this.watch ((url as string), messageHash, message, uniformType);
         }
     }
 
@@ -2775,7 +2775,7 @@ export default class kucoin extends kucoinRest {
         [ uta, params ] = this.handleOptionAndParams (params, 'watchPositions', 'uta', uta);
         const tradeType = uta ? 'UNIFIED' : 'TRADE';
         const messageHash = 'positions';
-        const messageHashes = [];
+        const messageHashes: any[] = [];
         symbols = this.marketSymbols (symbols);
         if (symbols === undefined) {
             messageHashes.push (messageHash);
@@ -3181,7 +3181,7 @@ export default class kucoin extends kucoinRest {
             'positionAll.FUTURES': this.handleUtaPosition,
             'balance.UNIFIED': this.handleUtaBalance,
         };
-        const method = this.safeValue (methods, subject);
+        const method = this.safeValue (methods, (subject as string));
         if (method !== undefined) {
             method.call (this, client, message);
         }
@@ -3241,7 +3241,7 @@ export default class kucoin extends kucoinRest {
             'pong': this.handlePong,
             'error': this.handleErrorMessage,
         };
-        const method = this.safeValue (methods, type);
+        const method = this.safeValue (methods, (type as string));
         if (method !== undefined) {
             method.call (this, client, message);
         } else if ('T' in message) { // uta messages

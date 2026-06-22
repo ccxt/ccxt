@@ -136,10 +136,10 @@ export default class hashkey extends hashkeyRest {
         const timeframe = this.findTimeframe (klineType);
         if (!(timeframe in this.ohlcvs[symbol])) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][(timeframe as string)] = new ArrayCacheByTimestamp (limit);
         }
         const data = this.safeList (message, 'data', []);
-        const stored = this.ohlcvs[symbol][timeframe];
+        const stored = this.ohlcvs[symbol][(timeframe as string)];
         for (let i = 0; i < data.length; i++) {
             const candle = this.safeDict (data, i, {});
             const parsed = this.parseWsOHLCV (candle, market);
@@ -224,8 +224,8 @@ export default class hashkey extends hashkeyRest {
         const ticker = this.parseTicker (this.safeDict (data, 0));
         const symbol = ticker['symbol'];
         const messageHash = 'ticker:' + symbol;
-        this.tickers[symbol] = ticker;
-        client.resolve (this.tickers[symbol], messageHash);
+        this.tickers[(symbol as string)] = ticker;
+        client.resolve (this.tickers[(symbol as string)], messageHash);
     }
 
     /**
@@ -621,7 +621,7 @@ export default class hashkey extends hashkeyRest {
         const listenKey = await this.authenticate ();
         symbols = this.marketSymbols (symbols);
         const messageHash = 'positions';
-        const messageHashes = [];
+        const messageHashes: any[] = [];
         if (symbols === undefined) {
             messageHashes.push (messageHash);
         } else {

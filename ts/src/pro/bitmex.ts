@@ -1141,7 +1141,7 @@ export default class bitmex extends bitmexRest {
             for (let i = 0; i < dataLength; i++) {
                 const currentOrder = data[i];
                 const orderId = this.safeString (currentOrder, 'orderID');
-                const previousOrder = this.safeValue (stored.hashmap, orderId);
+                const previousOrder = this.safeValue (stored.hashmap, (orderId as string));
                 let rawOrder = currentOrder;
                 if (previousOrder !== undefined) {
                     rawOrder = this.extend (previousOrder['info'], currentOrder);
@@ -1149,7 +1149,7 @@ export default class bitmex extends bitmexRest {
                 const order = this.parseOrder (rawOrder);
                 stored.append (order);
                 const symbol = order['symbol'];
-                symbols[symbol] = true;
+                symbols[(symbol as string)] = true;
             }
             client.resolve (this.orders, messageHash);
             const keys = Object.keys (symbols);
@@ -1268,7 +1268,7 @@ export default class bitmex extends bitmexRest {
             const trade = trades[j];
             const symbol = trade['symbol'];
             stored.append (trade);
-            symbols[symbol] = trade;
+            symbols[(symbol as string)] = trade;
         }
         const numTrades = trades.length;
         if (numTrades > 0) {
@@ -1476,7 +1476,7 @@ export default class bitmex extends bitmexRest {
         const table = this.safeString (message, 'table');
         const interval = table.replace ('tradeBin', '');
         const timeframe = this.findTimeframe (interval);
-        const duration = this.parseTimeframe (timeframe);
+        const duration = this.parseTimeframe ((timeframe as string));
         const candles = this.safeValue (message, 'data', []);
         const results: Dict = {};
         for (let i = 0; i < candles.length; i++) {
@@ -1494,11 +1494,11 @@ export default class bitmex extends bitmexRest {
                 this.safeFloat (candle, 'volume'),
             ];
             this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-            let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+            let stored = this.safeValue (this.ohlcvs[symbol], (timeframe as string));
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
-                this.ohlcvs[symbol][timeframe] = stored;
+                this.ohlcvs[symbol][(timeframe as string)] = stored;
             }
             stored.append (result);
             results[messageHash] = stored;
@@ -1762,7 +1762,7 @@ export default class bitmex extends bitmexRest {
                 'liquidation': this.handleLiquidation,
                 'position': this.handlePositions,
             };
-            const method = this.safeValue (methods, table);
+            const method = this.safeValue (methods, (table as string));
             if (method === undefined) {
                 const request = this.safeValue (message, 'request', {});
                 const op = this.safeValue (request, 'op');

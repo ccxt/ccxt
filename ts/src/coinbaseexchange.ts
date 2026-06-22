@@ -635,7 +635,7 @@ export default class coinbaseexchange extends Exchange {
         //         }
         //     ]
         //
-        const result = [];
+        const result: any[] = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
             const id = this.safeString (market, 'id');
@@ -1329,7 +1329,7 @@ export default class coinbaseexchange extends Exchange {
         const amount = this.safeString (order, 'size', filled);
         const cost = this.safeString (order, 'executed_value');
         const feeCost = this.safeNumber (order, 'fill_fees');
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
@@ -1865,7 +1865,7 @@ export default class coinbaseexchange extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response: List = undefined;
+        let response: List;
         if (id === undefined) {
             response = await this.privateGetTransfers (this.extend (request, params));
             //
@@ -1898,7 +1898,7 @@ export default class coinbaseexchange extends Exchange {
             //
             for (let i = 0; i < response.length; i++) {
                 const account_id = this.safeString (response[i], 'account_id');
-                const account = this.safeValue (this.accountsById, account_id);
+                const account = this.safeValue (this.accountsById, (account_id as string));
                 const codeInner = this.safeString (account, 'code');
                 response[i]['currency'] = codeInner;
             }

@@ -767,7 +767,7 @@ export default class cryptocom extends Exchange {
         //
         const resultResponse = this.safeDict (response, 'result', {});
         const data = this.safeList (resultResponse, 'data', []);
-        const result = [];
+        const result: any[] = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
             const inst_type = this.safeString (market, 'inst_type');
@@ -1476,7 +1476,7 @@ export default class cryptocom extends Exchange {
      */
     async createOrders (orders: OrderRequest[], params = {}) {
         await this.loadMarkets ();
-        const ordersRequests = [];
+        const ordersRequests: any[] = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const marketId = this.safeString (rawOrder, 'symbol');
@@ -1485,7 +1485,7 @@ export default class cryptocom extends Exchange {
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
-            const orderRequest = this.createAdvancedOrderRequest (marketId, type, side, amount, price, orderParams);
+            const orderRequest = this.createAdvancedOrderRequest ((marketId as string), type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
         const contigency = this.safeString (params, 'contingency_type', 'LIST');
@@ -1675,7 +1675,7 @@ export default class cryptocom extends Exchange {
      */
     async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = this.editOrderRequest (id, symbol, amount, price, params);
+        const request = this.editOrderRequest (id, symbol, (amount as number), price, params);
         const response = await this.v1PrivatePostPrivateAmendOrder (request);
         const result = this.safeDict (response, 'result', {});
         return this.parseOrder (result as Dict);
@@ -1775,7 +1775,7 @@ export default class cryptocom extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const orderRequests = [];
+        const orderRequests: any[] = [];
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const order: Dict = {
@@ -1804,12 +1804,12 @@ export default class cryptocom extends Exchange {
      */
     async cancelOrdersForSymbols (orders: CancellationRequest[], params = {}) {
         await this.loadMarkets ();
-        const orderRequests = [];
+        const orderRequests: any[] = [];
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
             const id = this.safeString (order, 'id');
             const symbol = this.safeString (order, 'symbol');
-            const market = this.market (symbol);
+            const market = this.market ((symbol as string));
             const orderItem: Dict = {
                 'instrument_name': market['id'],
                 'order_id': id.toString (),
@@ -1999,7 +1999,7 @@ export default class cryptocom extends Exchange {
         }
         let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
-        const networkId = this.networkCodeToId (networkCode, code);
+        const networkId = this.networkCodeToId ((networkCode as string), code);
         if (networkId !== undefined) {
             request['network_id'] = networkId;
         }
@@ -2100,7 +2100,7 @@ export default class cryptocom extends Exchange {
         params = this.omit (params, [ 'network' ]);
         const depositAddresses = await this.fetchDepositAddressesByNetwork (code, params);
         if (network in depositAddresses) {
-            return depositAddresses[network];
+            return depositAddresses[(network as string)];
         }
         const keys = Object.keys (depositAddresses);
         return depositAddresses[keys[0]];
@@ -3006,7 +3006,7 @@ export default class cryptocom extends Exchange {
         //         }
         //     ]
         //
-        const result = [];
+        const result: any[] = [];
         for (let i = 0; i < settlements.length; i++) {
             result.push (this.parseSettlement (settlements[i], market));
         }
@@ -3152,7 +3152,7 @@ export default class cryptocom extends Exchange {
         const result = this.safeDict (response, 'result', {});
         const data = this.safeList (result, 'data', []);
         const marketId = this.safeString (result, 'instrument_name');
-        const rates = [];
+        const rates: any[] = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const timestamp = this.safeInteger (entry, 't');
@@ -3264,7 +3264,7 @@ export default class cryptocom extends Exchange {
         //
         const responseResult = this.safeDict (response, 'result', {});
         const positions = this.safeList (responseResult, 'data', []);
-        const result = [];
+        const result: any[] = [];
         for (let i = 0; i < positions.length; i++) {
             const entry = positions[i];
             const marketId = this.safeString (entry, 'instrument_name');
@@ -3524,7 +3524,7 @@ export default class cryptocom extends Exchange {
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const type = this.safeString (api, 0);
         const access = this.safeString (api, 1);
-        let url = this.urls['api'][type] + '/' + path;
+        let url = this.urls['api'][(type as string)] + '/' + path;
         const query = this.omit (params, this.extractParams (path));
         if (access === 'public') {
             if (Object.keys (query).length) {
