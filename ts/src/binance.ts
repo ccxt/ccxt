@@ -2970,7 +2970,13 @@ export default class binance extends Exchange {
         const result = {};
         for (let i = 0; i < responseCurrencies.length; i++) {
             const parsed = this.parseCurrency (responseCurrencies[i]);
+            if (parsed === undefined) {
+                continue;
+            }
             const code = parsed['code'];
+            if (code === undefined) {
+                continue;
+            }
             const marginEntry = this.safeDict (marginablesById, parsed['id']);
             parsed['margin'] = this.safeBool (marginEntry, 'isBorrowable');
             result[code] = parsed;
@@ -3474,7 +3480,7 @@ export default class binance extends Exchange {
         let future = false;
         let option = false;
         const underlying = this.safeString (market, 'underlying');
-        const id = this.safeString (market, 'symbol');
+        const id = this.safeString (market, 'symbol', '');
         const optionParts = id.split ('-');
         const optionBase = this.safeString (optionParts, 0);
         const lowercaseId = this.safeStringLower (market, 'symbol');
@@ -4766,7 +4772,7 @@ export default class binance extends Exchange {
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
             'limit': limit,
         };
-        const marketId = market['id'];
+        const marketId = this.safeString (market, 'id', '');
         if (price === 'index') {
             const parts = marketId.split ('_');
             const pair = this.safeString (parts, 0);
@@ -8485,7 +8491,7 @@ export default class binance extends Exchange {
         params = this.omit (params, 'fiatOnly');
         const until = this.safeInteger (params, 'until');
         params = this.omit (params, 'until');
-        if (fiatOnly || (code in legalMoney)) {
+        if (fiatOnly || ((code !== undefined) && (code in legalMoney))) {
             if (code !== undefined) {
                 currency = this.currency (code);
             }
@@ -8604,7 +8610,7 @@ export default class binance extends Exchange {
         }
         let response: NullableList = undefined;
         let currency: Currency = undefined;
-        if (fiatOnly || (code in legalMoney)) {
+        if (fiatOnly || ((code !== undefined) && (code in legalMoney))) {
             if (code !== undefined) {
                 currency = this.currency (code);
             }
@@ -10291,7 +10297,7 @@ export default class binance extends Exchange {
         let initialMarginPercentageString: Str = undefined;
         if (leverageString !== undefined) {
             initialMarginPercentageString = Precise.stringDiv ('1', leverageString, 8);
-            const rational = this.isRoundNumber (1000 % leverage);
+            const rational = (leverage !== undefined) ? this.isRoundNumber (1000 % leverage) : false;
             if (!rational) {
                 initialMarginPercentageString = Precise.stringDiv (Precise.stringAdd (initialMarginPercentageString, '1e-8'), '1', 8);
             }
@@ -11955,7 +11961,9 @@ export default class binance extends Exchange {
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchLedger', 'papi', 'portfolioMargin');
         let response = undefined;
         if (type === 'option') {
-            this.checkRequiredArgument ('fetchLedger', code, 'code');
+            if (currency === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchLedger() requires a code argument for option markets');
+            }
             request['currency'] = currency['id'];
             response = await this.eapiPrivateGetBill (this.extend (request, params));
         } else if (this.isLinear (type, subType)) {
@@ -13648,7 +13656,7 @@ export default class binance extends Exchange {
             const market = markets[i];
             const symbol = this.safeString (market, 'symbol');
             if ((symbols === undefined) || (this.inArray (symbol, symbols))) {
-                if (symbol !== undefined) {
+                if ((symbol !== undefined) && (market !== undefined)) {
                     tradingLimits[symbol] = market['limits']['amount'];
                 }
             }
