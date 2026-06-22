@@ -110,7 +110,7 @@ export default class bittrade extends bittradeRest {
         ticker['timestamp'] = timestamp;
         ticker['datetime'] = this.iso8601 (timestamp);
         const symbol = ticker['symbol'];
-        this.tickers[symbol] = ticker;
+        this.tickers[(symbol as string)] = ticker;
         client.resolve (ticker, ch);
         return message;
     }
@@ -262,7 +262,7 @@ export default class bittrade extends bittradeRest {
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+            this.ohlcvs[symbol][(timeframe as string)] = stored;
         }
         const tick = this.safeValue (message, 'tick');
         const parsed = this.parseOHLCV (tick, market);
@@ -334,7 +334,7 @@ export default class bittrade extends bittradeRest {
         const symbol = this.safeString (subscription, 'symbol');
         const messageHash = this.safeString (subscription, 'messageHash');
         const timestamp = this.safeInteger (message, 'ts');
-        const orderbook = this.orderbooks[symbol];
+        const orderbook = this.orderbooks[(symbol as string)];
         const data = this.safeValue (message, 'data');
         const snapshot = this.parseOrderBook (data, (symbol as string));
         snapshot['nonce'] = this.safeInteger (data, 'seqNum');
@@ -346,7 +346,7 @@ export default class bittrade extends bittradeRest {
         for (let i = 0; i < messages.length; i++) {
             this.handleOrderBookMessage (client, messages[i], orderbook);
         }
-        this.orderbooks[symbol] = orderbook;
+        this.orderbooks[(symbol as string)] = orderbook;
         client.resolve (orderbook, messageHash);
     }
 
@@ -377,7 +377,7 @@ export default class bittrade extends bittradeRest {
             const orderbook = await this.watch (url, requestId, request, requestId, snapshotSubscription);
             return orderbook.limit ();
         } catch (e) {
-            delete client.subscriptions[messageHash];
+            delete client.subscriptions[(messageHash as string)];
             client.reject (e, messageHash);
         }
         return undefined;
@@ -473,9 +473,9 @@ export default class bittrade extends bittradeRest {
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');
         if (symbol in this.orderbooks) {
-            delete this.orderbooks[symbol];
+            delete this.orderbooks[(symbol as string)];
         }
-        this.orderbooks[symbol] = this.orderBook ({}, limit);
+        this.orderbooks[(symbol as string)] = this.orderBook ({}, limit);
         // watch the snapshot in a separate async call
         this.spawn (this.watchOrderBookSnapshot, client, message, subscription);
     }
@@ -499,7 +499,7 @@ export default class bittrade extends bittradeRest {
             }
             // clean up
             if (id in client.subscriptions) {
-                delete client.subscriptions[id];
+                delete client.subscriptions[(id as string)];
             }
         }
         return message;
@@ -594,7 +594,7 @@ export default class bittrade extends bittradeRest {
                     client.reject (e, messageHash);
                     client.reject (e, id);
                     if (id in client.subscriptions) {
-                        delete client.subscriptions[id];
+                        delete client.subscriptions[(id as string)];
                     }
                 }
             }

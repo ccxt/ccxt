@@ -656,10 +656,11 @@ export default class coincheck extends Exchange {
         //
         const fees = this.safeValue (response, 'exchange_fees', {});
         const result: Dict = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols as string[];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             const market = this.market (symbol);
-            const fee = this.safeValue (fees, market['id'], {});
+            const fee = this.safeValue (fees, market['id'] as string, {});
             result[symbol] = {
                 'info': fee,
                 'symbol': symbol,
@@ -848,7 +849,7 @@ export default class coincheck extends Exchange {
             'confirmed': 'pending',
             'received': 'ok',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {

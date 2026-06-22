@@ -2532,7 +2532,7 @@ export default class aster extends Exchange {
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
-            const orderRequest = this.createOrderRequest ((marketId as string), type, side, amount, price, orderParams);
+            const orderRequest = this.createOrderRequest ((marketId as string), (type as string), side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
         orderSymbols = this.marketSymbols (orderSymbols, undefined, false, true, true);
@@ -3421,7 +3421,7 @@ export default class aster extends Exchange {
         const contracts = this.parseNumber (contractsAbs);
         const unrealizedPnlString = this.safeString (position, 'unRealizedProfit');
         const unrealizedPnl = this.parseNumber (unrealizedPnlString);
-        const liquidationPriceString = this.omitZero (this.safeString (position, 'liquidationPrice'));
+        const liquidationPriceString = this.omitZero ((this.safeString (position, 'liquidationPrice') as string));
         const liquidationPrice = this.parseNumber (liquidationPriceString);
         let collateralString: Str = undefined;
         let marginMode = this.safeString (position, 'marginType');
@@ -3459,7 +3459,7 @@ export default class aster extends Exchange {
                     }
                     const inner = Precise.stringMul (liquidationPriceString, onePlusMaintenanceMarginPercentageString);
                     const leftSide = Precise.stringAdd (inner, entryPriceSignString);
-                    const quotePrecision = this.precisionFromString (this.safeString2 (precision, 'quote', 'price'));
+                    const quotePrecision = this.precisionFromString ((this.safeString2 (precision, 'quote', 'price') as string));
                     if (quotePrecision !== undefined) {
                         collateralString = Precise.stringDiv (Precise.stringMul (leftSide, contractsAbs), '1', quotePrecision);
                     }
@@ -3475,7 +3475,7 @@ export default class aster extends Exchange {
                     }
                     const leftSide = Precise.stringMul (contractsAbs, contractSizeString);
                     const rightSide = Precise.stringSub (Precise.stringDiv ('1', entryPriceSignString), Precise.stringDiv (onePlusMaintenanceMarginPercentageString, liquidationPriceString));
-                    const basePrecision = this.precisionFromString (this.safeString (precision, 'base'));
+                    const basePrecision = this.precisionFromString ((this.safeString (precision, 'base') as string));
                     if (basePrecision !== undefined) {
                         collateralString = Precise.stringDiv (Precise.stringMul (leftSide, rightSide), '1', basePrecision);
                     }
@@ -3486,7 +3486,7 @@ export default class aster extends Exchange {
         }
         collateralString = (collateralString === undefined) ? '0' : collateralString;
         const collateral = this.parseNumber (collateralString);
-        const markPrice = this.parseNumber (this.omitZero (this.safeString (position, 'markPrice')));
+        const markPrice = this.parseNumber (this.omitZero ((this.safeString (position, 'markPrice') as string)));
         let timestamp = this.safeInteger (position, 'updateTime');
         if (timestamp === 0) {
             timestamp = undefined;
@@ -3789,7 +3789,7 @@ export default class aster extends Exchange {
                 const rightSide = Precise.stringSub (Precise.stringMul (Precise.stringDiv ('1', entryPriceSignString), size), walletBalance);
                 liquidationPriceStringRaw = Precise.stringDiv (leftSide, rightSide);
             }
-            const pricePrecision = this.precisionFromString (this.safeString (market['precision'], 'price'));
+            const pricePrecision = this.precisionFromString ((this.safeString (market['precision'], 'price') as string));
             const pricePrecisionPlusOne = pricePrecision + 1;
             const pricePrecisionPlusOneString = pricePrecisionPlusOne.toString ();
             // round half up
@@ -4104,7 +4104,7 @@ export default class aster extends Exchange {
         const binaryMessageLength = this.binaryLength (binaryMessage);
         const x19 = this.base16ToBinary ('19');
         const newline = this.base16ToBinary ('0a');
-        const prefix = this.binaryConcat (x19, this.encode ('Ethereum Signed Message:'), newline, this.encode (this.numberToString (binaryMessageLength)));
+        const prefix = this.binaryConcat (x19, this.encode ('Ethereum Signed Message:'), newline, this.encode ((this.numberToString (binaryMessageLength) as string)));
         return '0x' + this.hash (this.binaryConcat (prefix, binaryMessage), keccak, 'hex');
     }
 

@@ -582,9 +582,9 @@ export default class deepcoin extends deepcoinRest {
         }
         if (!(timeframe in this.ohlcvs[symbol])) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][(timeframe as string)] = new ArrayCacheByTimestamp (limit);
         }
-        const stored = this.ohlcvs[symbol][timeframe];
+        const stored = this.ohlcvs[symbol][(timeframe as string)];
         if (data !== undefined) {
             const ohlcv = this.parseWsOHLCV (data, market);
             stored.append (ohlcv);
@@ -1101,7 +1101,7 @@ export default class deepcoin extends deepcoinRest {
             'contractSize': undefined,
             'side': this.parsePositionSide (direction),
             'notional': undefined,
-            'leverage': this.omitZero (this.safeString (position, 'l')),
+            'leverage': this.omitZero ((this.safeString (position, 'l') as string)),
             'unrealizedPnl': undefined,
             'realizedPnl': undefined,
             'collateral': undefined,
@@ -1211,7 +1211,7 @@ export default class deepcoin extends deepcoinRest {
     handleUnSubscription (client: Client, subscription: Dict) {
         const subHash = this.safeString (subscription, 'subHash');
         const unsubHash = this.safeString (subscription, 'unsubHash');
-        this.cleanUnsubscription (client, (subHash as string), unsubHash);
+        this.cleanUnsubscription (client, (subHash as string), (unsubHash as string));
         this.cleanCache (subscription);
     }
 

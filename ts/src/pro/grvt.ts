@@ -468,9 +468,9 @@ export default class grvt extends grvtRest {
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
         if (!(timeframe in this.ohlcvs[symbol])) {
             const limit = this.handleOption ('watchOHLCV', 'limit', 1000);
-            this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][(timeframe as string)] = new ArrayCacheByTimestamp (limit);
         }
-        const stored = this.ohlcvs[symbol][timeframe];
+        const stored = this.ohlcvs[symbol][(timeframe as string)];
         const parsed = this.parseWsOHLCV (data, market);
         stored.append (parsed);
         const resolveData = [ symbol, timeframe, stored ];

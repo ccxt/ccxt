@@ -957,7 +957,7 @@ export default class whitebit extends Exchange {
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             const market = this.market (symbol);
-            const fee = this.safeValue (response, market['baseId'], {});
+            const fee = this.safeValue (response, (market['baseId'] as string), {});
             let makerFee = this.safeString (fee, 'maker_fee');
             let takerFee = this.safeString (fee, 'taker_fee');
             makerFee = Precise.stringDiv (makerFee, '100');
@@ -1570,7 +1570,7 @@ export default class whitebit extends Exchange {
             const market = this.safeMarket (marketId);
             const ticker = this.parseTicker (response[marketId], market);
             const symbol = ticker['symbol'];
-            result[symbol] = ticker;
+            result[(symbol as string)] = ticker;
         }
         return this.filterByArrayTickers (result, 'symbol', symbols);
     }

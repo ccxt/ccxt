@@ -1159,7 +1159,7 @@ export default class derive extends Exchange {
         const binaryMessageLength = this.binaryLength (binaryMessage);
         const x19 = this.base16ToBinary ('19');
         const newline = this.base16ToBinary ('0a');
-        const prefix = this.binaryConcat (x19, this.encode ('Ethereum Signed Message:'), newline, this.encode (this.numberToString (binaryMessageLength)));
+        const prefix = this.binaryConcat (x19, this.encode ('Ethereum Signed Message:'), newline, this.encode ((this.numberToString (binaryMessageLength) as string)));
         return '0x' + this.hash (this.binaryConcat (prefix, binaryMessage), keccak, 'hex');
     }
 
@@ -1233,9 +1233,9 @@ export default class derive extends Exchange {
         ], [
             market['info']['base_asset_address'],
             this.parseToNumeric (market['info']['base_asset_sub_id']),
-            this.convertToBigInt (this.parseUnits (priceString)),
-            this.convertToBigInt (this.parseUnits (this.amountToPrecision (symbol, amountString))),
-            this.convertToBigInt (this.parseUnits (maxFeeString)),
+            this.convertToBigInt ((this.parseUnits (priceString) as string)),
+            this.convertToBigInt ((this.parseUnits ((this.amountToPrecision (symbol, amountString) as string)) as string)),
+            this.convertToBigInt ((this.parseUnits (maxFeeString) as string)),
             subaccountId,
             orderSide === 'buy',
         ]), keccak, 'binary');
@@ -1417,9 +1417,9 @@ export default class derive extends Exchange {
         ], [
             market['info']['base_asset_address'],
             this.parseToNumeric (market['info']['base_asset_sub_id']),
-            this.convertToBigInt (this.parseUnits (priceString)),
-            this.convertToBigInt (this.parseUnits (this.amountToPrecision (symbol, amountString))),
-            this.convertToBigInt (this.parseUnits (maxFeeString)),
+            this.convertToBigInt ((this.parseUnits (priceString) as string)),
+            this.convertToBigInt ((this.parseUnits ((this.amountToPrecision (symbol, amountString) as string)) as string)),
+            this.convertToBigInt ((this.parseUnits (maxFeeString) as string)),
             subaccountId,
             orderSide === 'buy',
         ]), keccak, 'binary');

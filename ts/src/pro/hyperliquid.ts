@@ -656,7 +656,7 @@ export default class hyperliquid extends hyperliquidRest {
             const rawTrade = data[i];
             const parsed = this.parseWsTrade (rawTrade);
             const symbol = parsed['symbol'];
-            symbols[symbol] = true;
+            symbols[(symbol as string)] = true;
             trades.append (parsed);
         }
         const keys = Object.keys (symbols);
@@ -926,9 +926,9 @@ export default class hyperliquid extends hyperliquidRest {
         if (!(timeframe in this.ohlcvs[symbol])) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             const stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+            this.ohlcvs[symbol][(timeframe as string)] = stored;
         }
-        const ohlcv = this.ohlcvs[symbol][timeframe];
+        const ohlcv = this.ohlcvs[symbol][(timeframe as string)];
         const parsed = this.parseOHLCV (data);
         ohlcv.append (parsed);
         const messageHash = 'candles:' + timeframe + ':' + symbol;
@@ -1112,13 +1112,13 @@ export default class hyperliquid extends hyperliquidRest {
             this.parseWsBalance (rawBalances[i], account);
         }
         if (this.safeValue (this.balance, (account as string)) === undefined) {
-            this.balance[account] = {};
+            this.balance[(account as string)] = {};
         }
-        this.balance[account]['info'] = info;
-        this.balance[account]['timestamp'] = timestamp;
-        this.balance[account]['datetime'] = this.iso8601 (timestamp);
-        this.balance[account] = this.safeBalance (this.balance[account]);
-        client.resolve (this.balance[account], messageHash);
+        this.balance[(account as string)]['info'] = info;
+        this.balance[(account as string)]['timestamp'] = timestamp;
+        this.balance[(account as string)]['datetime'] = this.iso8601 (timestamp);
+        this.balance[account] = this.safeBalance (this.balance[(account as string)]);
+        client.resolve (this.balance[(account as string)], messageHash);
     }
 
     parseWsBalance (balance, accountType = undefined) {
@@ -1404,7 +1404,7 @@ export default class hyperliquid extends hyperliquidRest {
             const order = this.parseOrder (rawOrder);
             stored.append (order);
             const symbol = this.safeString (order, 'symbol');
-            marketSymbols[symbol] = true;
+            marketSymbols[(symbol as string)] = true;
         }
         const keys = Object.keys (marketSymbols);
         for (let i = 0; i < keys.length; i++) {
@@ -1535,7 +1535,7 @@ export default class hyperliquid extends hyperliquidRest {
         this.cleanUnsubscription (client, subMessageHash, messageHash);
         if (symbol in this.ohlcvs) {
             if (timeframe in this.ohlcvs[symbol]) {
-                delete this.ohlcvs[symbol][timeframe];
+                delete this.ohlcvs[symbol][(timeframe as string)];
             }
         }
     }

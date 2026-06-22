@@ -1596,7 +1596,7 @@ export default class ascendex extends Exchange {
                 'currency': feeCurrencyCode,
             };
         }
-        const triggerPrice = this.omitZero (this.safeString (order, 'stopPrice'));
+        const triggerPrice = this.omitZero ((this.safeString (order, 'stopPrice') as string));
         let reduceOnly: Bool = undefined;
         const execInst = this.safeStringLower (order, 'execInst');
         if (execInst === 'reduceonly') {
@@ -1916,7 +1916,7 @@ export default class ascendex extends Exchange {
                     }
                 }
             }
-            const orderRequest = this.createOrderRequest ((marketId as string), type, side, amount, price, orderParams);
+            const orderRequest = this.createOrderRequest ((marketId as string), (type as string), side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
         const market = this.market ((symbol as string));

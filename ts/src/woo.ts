@@ -2021,7 +2021,7 @@ export default class woo extends Exchange {
             timestamp = this.safeInteger (order, 'timestamp');
         }
         const orderId = this.safeString2 (order, 'orderId', 'algoOrderId');
-        const clientOrderId = this.omitZero (this.safeString2 (order, 'clientOrderId', 'clientAlgoOrderId')); // Somehow, this always returns 0 for limit order
+        const clientOrderId = this.omitZero ((this.safeString2 (order, 'clientOrderId', 'clientAlgoOrderId') as string)); // Somehow, this always returns 0 for limit order
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
@@ -2032,7 +2032,7 @@ export default class woo extends Exchange {
         const status = this.safeValue2 (order, 'status', 'algoStatus');
         const side = this.safeStringLower (order, 'side');
         const filled = this.omitZero (this.safeValue2 (order, 'executed', 'totalExecutedQuantity'));
-        const average = this.omitZero (this.safeString (order, 'averageExecutedPrice'));
+        const average = this.omitZero ((this.safeString (order, 'averageExecutedPrice') as string));
         // const remaining = Precise.stringSub (cost, filled);
         const fee = this.safeNumber (order, 'totalFee');
         const feeCurrency = this.safeString (order, 'feeAsset');
