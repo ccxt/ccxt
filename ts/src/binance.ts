@@ -12052,7 +12052,8 @@ export default class binance extends Exchange {
             const info = this.safeDict (networks[currentNetworkCode], 'info', {});
             const siteUrl = this.safeString (info, 'contractAddressUrl');
             // check if url matches the field's value
-            if (siteUrl !== undefined && depositUrl.startsWith (this.getBaseDomainFromUrl (siteUrl))) {
+            const baseDomain = this.getBaseDomainFromUrl (siteUrl);
+            if ((baseDomain !== undefined) && depositUrl.startsWith (baseDomain)) {
                 networkCode = currentNetworkCode;
             }
         }

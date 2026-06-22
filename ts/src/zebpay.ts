@@ -1021,7 +1021,7 @@ export default class zebpay extends Exchange {
             const marginAsset = this.safeString (params, 'marginAsset', 'INR');
             const formType = this.safeStringUpper (params, 'formType', 'ORDER_FORM');
             request['formType'] = formType;
-            request['amount'] = this.parseToNumeric (this.amountToPrecision (market['id'], amount));
+            request['amount'] = this.parseToNumeric (this.amountToPrecision (this.safeString (market, 'id', ''), amount));
             request['marginAsset'] = marginAsset;
             const hasTP = takeProfitPrice !== undefined;
             const hasSL = stopLossPrice !== undefined;

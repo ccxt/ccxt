@@ -659,7 +659,11 @@ export default class mexc extends mexcRest {
         let symbol: Str = undefined;
         let timeframe: Str = undefined;
         if ('publicSpotKline' in message) {
-            symbol = this.symbol (this.safeString (message, 'symbol'));
+            const messageSymbol = this.safeString (message, 'symbol');
+            if (messageSymbol === undefined) {
+                return;
+            }
+            symbol = this.symbol (messageSymbol);
             const data = this.safeDict (message, 'publicSpotKline', {});
             const timeframeId = this.safeString (data, 'interval');
             timeframe = this.findTimeframe (timeframeId, this.options['timeframes']);
