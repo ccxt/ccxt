@@ -1174,7 +1174,9 @@ class Exchange extends \ccxt\Exchange {
             $result = [ ];
             for ($i = 0; $i < count($parsedArray); $i++) {
                 $entry = $parsedArray[$i];
-                $entryFiledEqualValue = $entry[$field] === $value;
+                // safeValue (not $entry[$field]) so a missing $field is a non-match, not a
+                // KeyError in python/php — prediction structures $key on outcome, not symbol
+                $entryFiledEqualValue = $this->safe_value($entry, $field) === $value;
                 $firstCondition = $valueIsDefined ? $entryFiledEqualValue : true;
                 $entryKeyValue = $this->safe_value($entry, $key);
                 $entryKeyGESince = ($entryKeyValue) && ($since !== null) && ($entryKeyValue >= $since);
@@ -2649,7 +2651,7 @@ class Exchange extends \ccxt\Exchange {
             }
         }
         $results = $this->sort_by($results, 'timestamp');
-        $symbol = ($market !== null) ? $market['symbol'] : null;
+        $symbol = $this->safe_string($market, 'symbol');
         return $this->filter_by_symbol_since_limit($results, $symbol, $since, $limit);
     }
 
@@ -3318,18 +3320,22 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
-    public function filter_by_symbol($objects, ?string $symbol = null) {
-        if ($symbol === null) {
+    public function filter_by_key($objects, int|string $key, ?string $value = null) {
+        if ($value === null) {
             return $objects;
         }
         $result = array();
         for ($i = 0; $i < count($objects); $i++) {
-            $objectSymbol = $this->safe_string($objects[$i], 'symbol');
-            if ($objectSymbol === $symbol) {
+            $objectValue = $this->safe_string($objects[$i], $key);
+            if ($objectValue === $value) {
                 $result[] = $objects[$i];
             }
         }
         return $result;
+    }
+
+    public function filter_by_symbol($objects, ?string $symbol = null) {
+        return $this->filter_by_key($objects, 'symbol', $symbol);
     }
 
     public function parse_ohlcv($ohlcv, ?array $market = null): array {
@@ -3704,7 +3710,7 @@ class Exchange extends \ccxt\Exchange {
             $result[] = $trade;
         }
         $result = $this->sort_by_2($result, 'timestamp', 'id');
-        $symbol = ($market !== null) ? $market['symbol'] : null;
+        $symbol = $this->safe_string($market, 'symbol');
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
     }
 

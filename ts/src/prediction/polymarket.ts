@@ -626,7 +626,7 @@ export default class polymarket extends Exchange {
             if (outcomeLabelsLength === 0 || clobTokenIdsLength === 0) {
                 continue;
             }
-            // Market symbol (no outcome suffix)
+            // Market outcome (no outcome suffix)
             const marketSymbol = this.slugToMarketSymbol (eventSlug, marketSlug);
             // Build outcomes array
             const outcomes: any[] = [];
@@ -713,12 +713,11 @@ export default class polymarket extends Exchange {
      * @description fetches the current mid-price and best bid/ask for a single outcome token
      * @see https://docs.polymarket.com/api-reference/data/get-midpoint-price
      * @see https://docs.polymarket.com/api-reference/market-data/get-order-book
-     * @param {string} symbol unified outcome symbol like TRUMP_DANCE_TODAY_997:YES or an outcome token id
+     * @param {string} outcome unified outcome like TRUMP_DANCE_TODAY_997:YES or an outcome token id
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    async fetchTicker (symbol: string, params = {}): Promise<PredictionTicker> {
-        const outcome = symbol;
+    async fetchTicker (outcome: string, params = {}): Promise<PredictionTicker> {
         this.checkEvents (outcome);
         const outcomeObj = this.outcome (outcome);
         const tokenId = outcomeObj['outcomeId'];
@@ -769,9 +768,9 @@ export default class polymarket extends Exchange {
      * @description fetches tickers for multiple outcome tokens at once using the batched CLOB book and midpoint endpoints
      * @see https://docs.polymarket.com/api-reference/market-data/get-order-books-request-body
      * @see https://docs.polymarket.com/api-reference/market-data/get-midpoint-prices-request-body
-     * @param {string[]} [symbols] unified outcome symbols or outcome token ids, fetches all loaded outcomes when omitted
+     * @param {string[]} [outcomes] unified outcomes or outcome token ids, fetches all loaded outcomes when omitted
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome symbol
+     * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
      */
     async fetchTickers (outcomes: Strings = undefined, params = {}): Promise<PredictionTickers> {
         let outcomesLength = 0;
@@ -897,14 +896,14 @@ export default class polymarket extends Exchange {
         const bestAsk = (asksLength > 0) ? asks[asksLength - 1] : undefined;
         const lastTradePrice = this.safeNumber (bookData, 'last_trade_price');
         const last = (lastTradePrice !== undefined) ? lastTradePrice : mid;
-        const symbol = this.safeOutcomeSymbol (undefined, market);
+        const outcome = this.safeOutcomeSymbol (undefined, market);
         const timestamp = this.safeInteger (bookData, 'timestamp', this.milliseconds ());
         let quoteVolume = undefined;
         if (market !== undefined) {
             quoteVolume = this.safeNumber2 (market['info'], 'volume24hr', 'volume');
         }
         return this.safePredictionTicker ({
-            'outcome': symbol,
+            'outcome': outcome,
             'outcomeId': this.safeString (market, 'outcomeId'),
             'label': this.safeString (market, 'label'),
             'market': this.safeString (market, 'market'),
@@ -935,13 +934,12 @@ export default class polymarket extends Exchange {
      * @name polymarket#fetchOrderBook
      * @description fetches the CLOB order book for a single outcome token
      * @see https://docs.polymarket.com/api-reference/market-data/get-order-book
-     * @param {string} symbol unified outcome symbol or outcome token id
+     * @param {string} outcome unified outcome or outcome token id
      * @param {int} [limit] not used by polymarket fetchOrderBook
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
-        const outcome = symbol;
+    async fetchOrderBook (outcome: string, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
         this.checkEvents (outcome);
         const outcomeObj = this.outcome (outcome);
         const tokenId = outcomeObj['outcomeId'] as string;
@@ -979,15 +977,14 @@ export default class polymarket extends Exchange {
      * @name polymarket#fetchOHLCV
      * @description fetches price history ticks for a single outcome token and buckets them client-side into OHLCV candles, snapping tick timestamps to the candle boundary
      * @see https://docs.polymarket.com/api-reference/markets/get-prices-history
-     * @param {string} symbol unified outcome symbol or outcome token id
+     * @param {string} outcome unified outcome or outcome token id
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum number of candles to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        const outcome = symbol;
+    async fetchOHLCV (outcome: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         this.checkEvents (outcome);
         const outcomeObj = this.outcome (outcome);
         const tokenId = outcomeObj['outcomeId'] as string;
@@ -1121,12 +1118,11 @@ export default class polymarket extends Exchange {
      * @name polymarket#fetchOpenInterest
      * @description fetches the open interest of a prediction market outcome
      * @see https://docs.polymarket.com/api-reference/misc/get-open-interest
-     * @param {string} symbol unified outcome symbol or outcome token id
+     * @param {string} outcome unified outcome or outcome token id
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
      */
-    async fetchOpenInterest (symbol: string, params = {}): Promise<PredictionOpenInterest> {
-        const outcome = symbol;
+    async fetchOpenInterest (outcome: string, params = {}): Promise<PredictionOpenInterest> {
         this.checkEvents (outcome);
         const outcomeObj = this.outcome (outcome);
         const outcomeInfo = this.safeDict (outcomeObj, 'info', {});
@@ -1169,12 +1165,11 @@ export default class polymarket extends Exchange {
      * @name polymarket#fetchTradingFee
      * @description fetches the base fee rate for a prediction market outcome token
      * @see https://docs.polymarket.com/api-reference/market-data/get-fee-rate
-     * @param {string} symbol unified outcome symbol or outcome token id
+     * @param {string} outcome unified outcome or outcome token id
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
      */
-    async fetchTradingFee (symbol: string, params = {}): Promise<PredictionTradingFee> {
-        const outcome = symbol;
+    async fetchTradingFee (outcome: string, params = {}): Promise<PredictionTradingFee> {
         this.checkEvents (outcome);
         const outcomeObj = this.outcome (outcome);
         const tokenId = this.safeString (outcomeObj, 'outcomeId');
@@ -1201,14 +1196,13 @@ export default class polymarket extends Exchange {
      * @name polymarket#fetchTrades
      * @description fetches public trade history for a single outcome token from the data API
      * @see https://docs.polymarket.com/api-reference/core/get-trades-for-a-user-or-markets
-     * @param {string} symbol unified outcome symbol or outcome token id
+     * @param {string} outcome unified outcome or outcome token id
      * @param {int} [since] not used by polymarket fetchTrades
      * @param {int} [limit] the maximum number of trades to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
      */
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
-        const outcome = symbol;
+    async fetchTrades (outcome: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
         this.checkEvents (outcome);
         const outcomeObj = this.outcome (outcome);
         const tokenId = outcomeObj['outcomeId'] as string;
@@ -1233,8 +1227,8 @@ export default class polymarket extends Exchange {
             }
         }
         // the trades are already narrowed to this outcome by asset id above; pass no market so the
-        // base parseTrades doesn't apply its symbol filter (prediction trades carry `outcome`, not
-        // `symbol`, so a symbol-bearing outcome object would drop them all). parseTrade resolves the
+        // base parseTrades doesn't apply its outcome filter (prediction trades carry `outcome`, not
+        // `symbol`, so a outcome-bearing outcome object would drop them all). parseTrade resolves the
         // outcome from each trade's asset id.
         return this.parseTrades (filteredTrades, undefined, since, limit) as PredictionTrade[];
     }
@@ -1244,19 +1238,19 @@ export default class polymarket extends Exchange {
      * @name polymarket#fetchMyTrades
      * @description fetches the authenticated user's trade history from the CLOB, optionally filtered by outcome token
      * @see https://docs.polymarket.com/api-reference/trade/get-trades
-     * @param {string} [symbol] unified outcome symbol or outcome token id
+     * @param {string} [outcome] unified outcome or outcome token id
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
      */
-    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+    async fetchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
         await this.loadApiCredentials ();
         const request: Dict = {};
         let outcomeObj: any = undefined;
-        if (symbol !== undefined) {
-            this.checkEvents (symbol);
-            outcomeObj = this.outcome (symbol);
+        if (outcome !== undefined) {
+            this.checkEvents (outcome);
+            outcomeObj = this.outcome (outcome);
             request['asset_id'] = outcomeObj['outcomeId'];
         }
         const response = await this.clobPrivateGetDataTrades (this.extend (request, params));
@@ -1270,16 +1264,16 @@ export default class polymarket extends Exchange {
      * @description fetches all the trades made from a single order
      * @see https://docs.polymarket.com/api-reference/trade/get-trades
      * @param {string} id the order id
-     * @param {string} [symbol] unified outcome symbol or outcome token id to narrow the lookup
+     * @param {string} [outcome] unified outcome or outcome token id to narrow the lookup
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
      */
-    async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+    async fetchOrderTrades (id: string, outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
         // the /data/trades endpoint has no order filter, so fetch the user's trades and keep
         // the ones where this order was the taker or one of the matched makers
-        const trades = await this.fetchMyTrades (symbol, undefined, undefined, params);
+        const trades = await this.fetchMyTrades (outcome, undefined, undefined, params);
         const result = [];
         for (let i = 0; i < trades.length; i++) {
             const trade = trades[i];
@@ -1321,7 +1315,7 @@ export default class polymarket extends Exchange {
         const side = (rawSide === 'buy' || rawSide === 'sell') ? rawSide : undefined;
         const assetId = this.safeString2 (trade, 'asset', 'asset_id');
         const mkt = (market !== undefined) ? market : this.safeOutcome (assetId);
-        const symbol = this.safeOutcomeSymbol (undefined, mkt);
+        const outcome = this.safeOutcomeSymbol (undefined, mkt);
         const rawTakerOrMaker = this.safeStringLower (trade, 'trader_side');
         const takerOrMaker = (rawTakerOrMaker === 'taker' || rawTakerOrMaker === 'maker') ? rawTakerOrMaker : undefined;
         const feeRateBps = this.safeString (trade, 'fee_rate_bps');
@@ -1337,7 +1331,7 @@ export default class polymarket extends Exchange {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'outcome': symbol,
+            'outcome': outcome,
             'outcomeId': assetId,
             'label': this.safeString (mkt, 'label'),
             'market': this.safeString (mkt, 'market'),
@@ -1403,7 +1397,7 @@ export default class polymarket extends Exchange {
      * @name polymarket#fetchPositions
      * @description fetches open outcome token positions for the wallet from the data API
      * @see https://docs.polymarket.com/api-reference/core/get-current-positions-for-a-user
-     * @param {string[]} [symbols] unified outcome symbols to filter by
+     * @param {string[]} [outcomes] unified outcomes to filter by
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
@@ -1427,7 +1421,7 @@ export default class polymarket extends Exchange {
         };
         const response = await this.dataPublicGetPositions (this.extend (request, params));
         const positions = this.safeList (response, 'data', []) as any[];
-        // parse without the base symbol filter (it resolves standard markets, not outcome tokens),
+        // parse without the base outcome filter (it resolves standard markets, not outcome tokens),
         // then filter by the requested outcomes' token ids ourselves
         const parsed = this.parsePositions (positions, undefined) as PredictionPosition[];
         if (outcomesLength === 0) {
@@ -1455,12 +1449,12 @@ export default class polymarket extends Exchange {
      * @name polymarket#fetchPosition
      * @description fetches the open position for a single outcome token
      * @see https://docs.polymarket.com/api-reference/core/get-current-positions-for-a-user
-     * @param {string} symbol unified outcome symbol or outcome token id
+     * @param {string} outcome unified outcome or outcome token id
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
      */
-    async fetchPosition (symbol: string, params = {}): Promise<PredictionPosition> {
-        const positions = await this.fetchPositions ([ symbol ], params);
+    async fetchPosition (outcome: string, params = {}): Promise<PredictionPosition> {
+        const positions = await this.fetchPositions ([ outcome ], params);
         return this.safeDict (positions, 0) as PredictionPosition;
     }
 
@@ -1521,15 +1515,14 @@ export default class polymarket extends Exchange {
      * @name polymarket#fetchOpenOrders
      * @description fetches open resting orders for the authenticated user, optionally filtered by outcome token
      * @see https://docs.polymarket.com/api-reference/trade/get-user-orders
-     * @param {string} [symbol] unified outcome symbol or outcome token id
+     * @param {string} [outcome] unified outcome or outcome token id
      * @param {int} [since] not used by polymarket fetchOpenOrders
      * @param {int} [limit] the maximum number of orders to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+    async fetchOpenOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
         await this.loadApiCredentials ();
-        const outcome = symbol;
         if (outcome !== undefined) {
             this.checkEvents (outcome);
         } else {
@@ -1552,13 +1545,12 @@ export default class polymarket extends Exchange {
      * @description fetches a single order by id from the CLOB private data endpoint
      * @see https://docs.polymarket.com/api-reference/trade/get-single-order-by-id
      * @param {string} id the order id
-     * @param {string} [symbol] unified outcome symbol or outcome token id
+     * @param {string} [outcome] unified outcome or outcome token id
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    async fetchOrder (id: Str, symbol: Str = undefined, params = {}): Promise<PredictionOrder> {
+    async fetchOrder (id: Str, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
         await this.loadApiCredentials ();
-        const outcome = symbol;
         if (outcome !== undefined) {
             this.checkEvents (outcome);
         } else {
@@ -1658,7 +1650,7 @@ export default class polymarket extends Exchange {
      * @name polymarket#createOrder
      * @description places a limit or market order on the CLOB for the given outcome token
      * @see https://docs.polymarket.com/api-reference/trade/post-a-new-order
-     * @param {string} symbol unified outcome symbol or outcome token id
+     * @param {string} outcome unified outcome or outcome token id
      * @param {string} type 'market' or 'limit'; market orders default to FOK and, when no price is given, use the outcome's current price as the marketable reference
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how many outcome tokens to trade
@@ -1674,9 +1666,9 @@ export default class polymarket extends Exchange {
      * @param {string} [params.expiration] unix-seconds expiration for GTD orders; defaults to '0' (no expiry)
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    async createOrder (symbol: string, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Promise<PredictionOrder> {
+    async createOrder (outcome: string, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Promise<PredictionOrder> {
         await this.loadApiCredentials ();
-        const built = await this.buildClobOrderBody (symbol, type, side, amount, price, params);
+        const built = await this.buildClobOrderBody (outcome, type, side, amount, price, params);
         const response = await this.clobPrivatePostOrder (this.safeDict (built, 'body'));
         return this.parseOrder (response, this.safeDict (built, 'outcome') as any);
     }
@@ -1686,7 +1678,7 @@ export default class polymarket extends Exchange {
      * @name polymarket#createOrders
      * @description places multiple orders on the CLOB in a single batched request
      * @see https://docs.polymarket.com/api-reference/trade/post-orders
-     * @param {object[]} orders a list of order requests, each an object with symbol, type, side, amount, price and optional params (same params as createOrder)
+     * @param {object[]} orders a list of order requests, each an object with outcome, type, side, amount, price and optional params (same params as createOrder)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
@@ -1725,9 +1717,8 @@ export default class polymarket extends Exchange {
      * @description builds and signs a single CLOB order request body (shared by createOrder and createOrders)
      * @returns {object} an object with 'body' (the signed order request) and 'outcome' (the resolved outcome)
      */
-    async buildClobOrderBody (symbol: string, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Promise<Dict> {
-        const outcome = symbol;
-        // outcome () validates the symbol against the loaded outcomes (built from events or markets)
+    async buildClobOrderBody (outcome: string, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Promise<Dict> {
+        // outcome () validates the outcome against the loaded outcomes (built from events or markets)
         const outcomeObj = this.outcome (outcome);
         const tokenId = outcomeObj['outcomeId'] as string;
         const sideStr = (side as string).toUpperCase ();
@@ -1828,14 +1819,14 @@ export default class polymarket extends Exchange {
      * @name polymarket#createMarketBuyOrderWithCost
      * @description places a market buy order sized by USDC cost (how much to spend) rather than shares
      * @see https://docs.polymarket.com/api-reference/trade/post-a-new-order
-     * @param {string} symbol unified outcome symbol or outcome token id
+     * @param {string} outcome unified outcome or outcome token id
      * @param {float} cost the amount of USDC to spend
      * @param {object} [params] extra parameters specific to the exchange API endpoint (see createOrder)
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}): Promise<PredictionOrder> {
+    async createMarketBuyOrderWithCost (outcome: string, cost: number, params = {}): Promise<PredictionOrder> {
         const request = this.extend (params, { 'cost': cost });
-        return await this.createOrder (symbol, 'market', 'buy', cost, undefined, request);
+        return await this.createOrder (outcome, 'market', 'buy', cost, undefined, request);
     }
 
     polymarketOrderRawAmounts (side: string, size: number, price: number, tickSize: string, cost: Num = undefined): Dict {
@@ -1961,11 +1952,11 @@ export default class polymarket extends Exchange {
      * @description cancels a single open order by id on the CLOB
      * @see https://docs.polymarket.com/api-reference/trade/cancel-single-order
      * @param {string} id the order id
-     * @param {string} [symbol] unified outcome symbol or outcome token id
+     * @param {string} [outcome] unified outcome or outcome token id
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    async cancelOrder (id: Str, symbol: Str = undefined, params = {}): Promise<PredictionOrder> {
+    async cancelOrder (id: Str, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
         await this.loadApiCredentials ();
         // cancelling by id needs no market data, so events do not have to be loaded first
         const request: Dict = { 'orderID': id };
@@ -1984,11 +1975,11 @@ export default class polymarket extends Exchange {
      * @description cancels multiple open orders by id on the CLOB in a single request
      * @see https://docs.polymarket.com/api-reference/trade/cancel-orders
      * @param {string[]} ids the order ids to cancel
-     * @param {string} [symbol] not used by polymarket cancelOrders
+     * @param {string} [outcome] not used by polymarket cancelOrders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}): Promise<PredictionOrder[]> {
+    async cancelOrders (ids: string[], outcome: Str = undefined, params = {}): Promise<PredictionOrder[]> {
         await this.loadApiCredentials ();
         // the request body is the bare array of order ids (DELETE /orders), so params are not merged
         const response = await this.clobPrivateDeleteOrders (ids);
@@ -2006,13 +1997,12 @@ export default class polymarket extends Exchange {
      * @description cancels all open orders on the CLOB, optionally scoped to one outcome token
      * @see https://docs.polymarket.com/api-reference/trade/cancel-all-orders
      * @see https://docs.polymarket.com/api-reference/trade/cancel-market-orders
-     * @param {string} [symbol] unified outcome symbol or outcome token id; when given only that outcome's orders are cancelled
+     * @param {string} [outcome] unified outcome or outcome token id; when given only that outcome's orders are cancelled
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<PredictionOrder[]> {
+    async cancelAllOrders (outcome: Str = undefined, params = {}): Promise<PredictionOrder[]> {
         await this.loadApiCredentials ();
-        const outcome = symbol;
         let response = undefined;
         if (outcome !== undefined) {
             // scope to a single outcome token via DELETE /cancel-market-orders { asset_id }
@@ -2548,14 +2538,14 @@ export default class polymarket extends Exchange {
 
     handleOrderBookSnapshot (client: any, event: any) {
         const tokenId = this.safeString (event, 'asset_id');
-        const symbol = this.tokenIdToSymbol (tokenId);
-        if (symbol === undefined) {
+        const outcome = this.tokenIdToSymbol (tokenId);
+        if (outcome === undefined) {
             return;
         }
-        if (this.orderbooks[symbol] === undefined) {
-            this.orderbooks[symbol] = this.orderBook ([]);
+        if (this.orderbooks[outcome] === undefined) {
+            this.orderbooks[outcome] = this.orderBook ([]);
         }
-        const orderbook = this.orderbooks[symbol];
+        const orderbook = this.orderbooks[outcome];
         const timestamp = this.parsePolyTimestamp (this.safeString (event, 'timestamp'));
         const rawBids = this.safeList (event, 'bids', []) as any[];
         const rawAsks = this.safeList (event, 'asks', []) as any[];
@@ -2574,10 +2564,10 @@ export default class polymarket extends Exchange {
             'asks': asks,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'outcome': symbol,
+            'outcome': outcome,
         });
-        client.resolve (orderbook, 'orderbook::' + symbol);
-        client.resolve (orderbook, 'ticker::' + symbol);
+        client.resolve (orderbook, 'orderbook::' + outcome);
+        client.resolve (orderbook, 'ticker::' + outcome);
     }
 
     handleOrderBookDelta (client: any, event: any) {
@@ -2587,11 +2577,11 @@ export default class polymarket extends Exchange {
         for (let i = 0; i < changes.length; i++) {
             const change = changes[i];
             const tokenId = this.safeString (change, 'asset_id');
-            const symbol = this.tokenIdToSymbol (tokenId);
-            if (symbol === undefined || this.orderbooks[symbol] === undefined) {
+            const outcome = this.tokenIdToSymbol (tokenId);
+            if (outcome === undefined || this.orderbooks[outcome] === undefined) {
                 continue; // no snapshot yet — discard delta
             }
-            const orderbook = this.orderbooks[symbol];
+            const orderbook = this.orderbooks[outcome];
             const price = this.safeNumber (change, 'price') as number;
             const size = this.safeNumber (change, 'size') as number;
             const isBuy = this.safeStringUpper (change, 'side', '') === 'BUY';
@@ -2601,21 +2591,21 @@ export default class polymarket extends Exchange {
             sideRef.storeArray ([ price, size ]);
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601 (timestamp);
-            updated[symbol] = true;
+            updated[outcome] = true;
         }
         const updatedSymbols = Object.keys (updated);
         for (let k = 0; k < updatedSymbols.length; k++) {
-            const symbol = updatedSymbols[k];
-            const orderbook = this.orderbooks[symbol];
-            client.resolve (orderbook, 'orderbook::' + symbol);
-            client.resolve (orderbook, 'ticker::' + symbol);
+            const outcome = updatedSymbols[k];
+            const orderbook = this.orderbooks[outcome];
+            client.resolve (orderbook, 'orderbook::' + outcome);
+            client.resolve (orderbook, 'ticker::' + outcome);
         }
     }
 
     handleTrade (client: any, event: any) {
         const tokenId = this.safeString (event, 'asset_id');
-        const symbol = this.tokenIdToSymbol (tokenId);
-        if (symbol === undefined) {
+        const outcome = this.tokenIdToSymbol (tokenId);
+        if (outcome === undefined) {
             return;
         }
         const timestamp = this.parsePolyTimestamp (this.safeString (event, 'timestamp'));
@@ -2627,7 +2617,7 @@ export default class polymarket extends Exchange {
             'info': event,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'outcome': symbol,
+            'outcome': outcome,
             'outcomeId': this.safeString (market, 'outcomeId'),
             'label': this.safeString (market, 'label'),
             'market': this.safeString (market, 'market'),
@@ -2643,21 +2633,21 @@ export default class polymarket extends Exchange {
         if (!this.trades) {
             this.trades = {};
         }
-        let stored = this.trades[symbol];
+        let stored = this.trades[outcome];
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             stored = new ArrayCache (limit);
-            this.trades[symbol] = stored;
+            this.trades[outcome] = stored;
         }
         stored.append (trade);
-        client.resolve (stored, 'trades::' + symbol);
+        client.resolve (stored, 'trades::' + outcome);
     }
 
     /**
      * @method
      * @name polymarket#watchOrderBook
      * @description streams live order-book updates for a single Polymarket outcome token
-     * @param {string} symbol unified outcome symbol (e.g. "ELECTION/YES:USDC")
+     * @param {string} outcome unified outcome (e.g. "ELECTION/YES:USDC")
      * @param {int} [limit] optional depth limit applied after resolving
      * @param {object} [params] extra params (currently unused)
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/#/?id=order-book-structure}
@@ -2678,7 +2668,7 @@ export default class polymarket extends Exchange {
      * @method
      * @name polymarket#watchTrades
      * @description streams live fills for a single Polymarket outcome token
-     * @param {string} outcome unified outcome outcome
+     * @param {string} outcome unified outcome
      * @param {int} [since] optional unix timestamp (ms) lower bound
      * @param {int} [limit] optional max number of trades to return
      * @param {object} [params] extra params (unused)
@@ -2700,7 +2690,7 @@ export default class polymarket extends Exchange {
      * @method
      * @name polymarket#watchTicker
      * @description streams a synthetic ticker derived from order-book snapshots and deltas (mid = (bid + ask) / 2)
-     * @param {string} outcome unified outcome outcome
+     * @param {string} outcome unified outcome
      * @param {object} [params] extra params (unused)
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
@@ -2780,7 +2770,7 @@ export default class polymarket extends Exchange {
      * @name polymarket#watchOrders
      * @description watches the authenticated user's order updates over the CLOB user websocket channel
      * @see https://docs.polymarket.com/developers/CLOB/websocket/user-channel
-     * @param {string} [symbol] unified outcome outcome to filter the stream to one market
+     * @param {string} [outcome] unified outcome to filter the stream to one market
      * @param {int} [since] the earliest time in ms to return orders for
      * @param {int} [limit] the maximum number of orders to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2806,7 +2796,7 @@ export default class polymarket extends Exchange {
      * @name polymarket#watchMyTrades
      * @description watches the authenticated user's trade fills over the CLOB user websocket channel
      * @see https://docs.polymarket.com/developers/CLOB/websocket/user-channel
-     * @param {string} [symbol] unified outcome symbol to filter the stream to one market
+     * @param {string} [outcome] unified outcome to filter the stream to one market
      * @param {int} [since] the earliest time in ms to return trades for
      * @param {int} [limit] the maximum number of trades to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2849,9 +2839,9 @@ export default class polymarket extends Exchange {
         const parsed = this.parseOrder (event);
         stored.append (parsed);
         client.resolve (stored, 'orders');
-        const symbol = this.safeString (parsed, 'outcome');
-        if (symbol !== undefined) {
-            client.resolve (stored, 'orders::' + symbol);
+        const outcome = this.safeString (parsed, 'outcome');
+        if (outcome !== undefined) {
+            client.resolve (stored, 'orders::' + outcome);
         }
     }
 
@@ -2864,9 +2854,9 @@ export default class polymarket extends Exchange {
         const parsed = this.parseTrade (event);
         stored.append (parsed);
         client.resolve (stored, 'myTrades');
-        const symbol = this.safeString (parsed, 'outcome');
-        if (symbol !== undefined) {
-            client.resolve (stored, 'myTrades::' + symbol);
+        const outcome = this.safeString (parsed, 'outcome');
+        if (outcome !== undefined) {
+            client.resolve (stored, 'myTrades::' + outcome);
         }
     }
 

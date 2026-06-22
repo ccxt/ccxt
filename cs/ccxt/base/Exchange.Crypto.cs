@@ -299,9 +299,9 @@ public partial class Exchange
         return resultBytes;
     }
 
-    public string rsa(object request, object secret, Delegate alg = null) => Rsa(request, secret, alg);
+    public string rsa(object request, object secret, Delegate alg = null, object padding = null) => Rsa(request, secret, alg, padding);
 
-    public static string Rsa(object data, object publicKey, Delegate hash = null)
+    public static string Rsa(object data, object publicKey, Delegate hash = null, object padding = null)
     {
         var pk = ((string)publicKey);
         var pkParts = pk.Split(new[] { ((string)"\n") }, StringSplitOptions.None).ToList();
@@ -343,6 +343,18 @@ public partial class Exchange
         else
         {
             throw new ArgumentException("Invalid hash algorithm name");
+        }
+        var paddingMode = (padding as string) ?? "pkcs1";
+        if (paddingMode == "pss")
+        {
+            // RSACryptoServiceProvider can't do PSS; round-trip the key into an RSA that can
+            var rsaParams = rsa.ExportParameters(true);
+            using (var rsaPss = RSA.Create())
+            {
+                rsaPss.ImportParameters(rsaParams);
+                byte[] pssSig = rsaPss.SignData(Data, stringToHashAlgorithmName(algorithm), RSASignaturePadding.Pss);
+                return Convert.ToBase64String(pssSig);
+            }
         }
         byte[] signData = rsa.SignData(Data, sh);
 

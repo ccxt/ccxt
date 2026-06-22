@@ -1266,7 +1266,10 @@ class NewTranspiler {
         // the prediction package aliases the structs that already exist in the base
         // package and declares local ones for prediction-only / param-renamed methods
         const useAlias = (isWs === true) || (isPrediction && baseGoTypeOptionNames.has(capName) && !predictionLocalOverride);
-        if (predictionLocalOverride) {
+        if (isPrediction && !useAlias) {
+            // a locally-declared option struct (param-renamed base method, or a prediction-only
+            // method like fetchOrdersByIds): record its names so the defining exchange's wrapper
+            // binds to the local struct rather than a ccxt.-qualified base struct of the same name
             const localNames = [ options, optionsStruct ];
             optionalParams
                 .filter ((param) => param.optional || param.initializer !== undefined)

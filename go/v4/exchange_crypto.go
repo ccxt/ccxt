@@ -266,11 +266,15 @@ func JwtFull(data any, secret any, hash func() string, isRsa bool, options map[s
 	return token + "." + signature
 }
 
-func Rsa(data2 any, privateKey2 any, algorithm2 func() string) string {
+func Rsa(data2 any, privateKey2 any, algorithm2 func() string, optionalArgs ...any) string {
 	data := data2.(string)
 	publicKey := privateKey2.(string)
 	// hashAlgorithm := hashAlgorithm2.(string)
 	hashAlgorithm := algorithm2()
+	paddingMode := "pkcs1"
+	if len(optionalArgs) > 0 && optionalArgs[0] != nil {
+		paddingMode = optionalArgs[0].(string)
+	}
 	// Remove PEM headers
 	// pkParts := strings.Split(publicKey, "\n")
 	// pkParts = pkParts[1 : len(pkParts)-1]
@@ -328,8 +332,13 @@ func Rsa(data2 any, privateKey2 any, algorithm2 func() string) string {
 		return ""
 	}
 
-	// Sign the data
-	signData, err := rsaHash.SignPKCS1v15(rand.Reader, parsedKey, hash, hashedData)
+	// Sign the data (PSS with salt = hash length, or PKCS#1 v1.5 by default)
+	var signData []byte
+	if paddingMode == "pss" {
+		signData, err = rsaHash.SignPSS(rand.Reader, parsedKey, hash, hashedData, &rsaHash.PSSOptions{SaltLength: rsaHash.PSSSaltLengthEqualsHash, Hash: hash})
+	} else {
+		signData, err = rsaHash.SignPKCS1v15(rand.Reader, parsedKey, hash, hashedData)
+	}
 	if err != nil {
 		return ""
 	}

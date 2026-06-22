@@ -577,6 +577,10 @@ public class Exchange {
         return Crypto.Rsa(payload, publicKey, algo);
     }
 
+    public String rsa(Object payload, Object publicKey, Object algo, Object padding) {
+        return Crypto.Rsa(payload, publicKey, algo, padding);
+    }
+
     public Object eddsa(Object payload, Object secret, Object algo) {
         return Crypto.Eddsa(payload, secret, algo);
     }
@@ -6861,7 +6865,7 @@ public Object describe()
             }
         }
         results = this.sortBy(results, "timestamp");
-        Object symbol = ((Helpers.isTrue((!Helpers.isEqual(market, null))))) ? Helpers.GetValue(market, "symbol") : null;
+        Object symbol = this.safeString(market, "symbol");
         return this.filterBySymbolSinceLimit(results, symbol, since, limit);
     }
 
@@ -8317,7 +8321,7 @@ public Object describe()
             ((java.util.List<Object>)result).add(trade);
         }
         result = this.sortBy2(result, "timestamp", "id");
-        Object symbol = ((Helpers.isTrue((!Helpers.isEqual(market, null))))) ? Helpers.GetValue(market, "symbol") : null;
+        Object symbol = this.safeString(market, "symbol");
         return this.filterBySymbolSinceLimit(result, symbol, since, limit);
     }
 

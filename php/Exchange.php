@@ -1328,7 +1328,7 @@ class Exchange {
         return $base64url;
     }
 
-    public static function rsa($request, $secret, $alg = 'sha256') {
+    public static function rsa($request, $secret, $alg = 'sha256', $padding = 'pkcs1') {
         $algorithms = array(
             'sha256' => \OPENSSL_ALGO_SHA256,
             'sha384' => \OPENSSL_ALGO_SHA384,
@@ -1337,9 +1337,57 @@ class Exchange {
         if (!array_key_exists($alg, $algorithms)) {
             throw new ExchangeError($alg . ' is not a supported rsa signing algorithm.');
         }
+        if ($padding === 'pss') {
+            return static::rsaPss($request, $secret, $alg);
+        }
         $algName = $algorithms[$alg];
         $signature = null;
         \openssl_sign($request, $signature, $secret, $algName);
+        return \base64_encode($signature);
+    }
+
+    public static function mgf1($seed, $maskLen, $alg = 'sha256') {
+        $hLen = strlen(\hash($alg, '', true));
+        $output = '';
+        $counter = 0;
+        $iterations = intval(ceil($maskLen / $hLen));
+        while ($counter < $iterations) {
+            $C = pack('N', $counter);
+            $output .= \hash($alg, $seed . $C, true);
+            $counter++;
+        }
+        return substr($output, 0, $maskLen);
+    }
+
+    public static function rsaPss($request, $secret, $alg = 'sha256') {
+        // ext-openssl has no native RSASSA-PSS, so encode EMSA-PSS (PKCS#1 v2.1 9.1.1)
+        // manually and apply the raw RSA primitive via openssl_private_encrypt + NO_PADDING.
+        $key = \openssl_pkey_get_private($secret);
+        if ($key === false) {
+            throw new ExchangeError('rsaPss: invalid private key');
+        }
+        $details = \openssl_pkey_get_details($key);
+        $modBits = $details['bits'];
+        $hLen = strlen(\hash($alg, '', true));
+        $sLen = $hLen;
+        $emBits = $modBits - 1;
+        $emLen = intval(ceil($emBits / 8));
+        $mHash = \hash($alg, $request, true);
+        $salt = \random_bytes($sLen);
+        $mPrime = str_repeat("\x00", 8) . $mHash . $salt;
+        $H = \hash($alg, $mPrime, true);
+        $dbLen = $emLen - $hLen - 1;
+        $psLen = $emLen - $sLen - $hLen - 2;
+        $db = str_repeat("\x00", $psLen) . "\x01" . $salt;
+        $dbMask = static::mgf1($H, $dbLen, $alg);
+        $maskedDb = $db ^ $dbMask;
+        $bitsToZero = 8 * $emLen - $emBits;
+        $maskedDb[0] = chr(ord($maskedDb[0]) & (0xFF >> $bitsToZero));
+        $em = $maskedDb . $H . "\xbc";
+        $modLen = intval(($modBits + 7) >> 3);
+        $em = str_pad($em, $modLen, "\x00", STR_PAD_LEFT);
+        $signature = null;
+        \openssl_private_encrypt($em, $signature, $key, \OPENSSL_NO_PADDING);
         return \base64_encode($signature);
     }
 
@@ -3552,7 +3600,9 @@ class Exchange {
             $result = [ ];
             for ($i = 0; $i < count($parsedArray); $i++) {
                 $entry = $parsedArray[$i];
-                $entryFiledEqualValue = $entry[$field] === $value;
+                // safeValue (not $entry[$field]) so a missing $field is a non-match, not a
+                // KeyError in python/php — prediction structures $key on outcome, not symbol
+                $entryFiledEqualValue = $this->safe_value($entry, $field) === $value;
                 $firstCondition = $valueIsDefined ? $entryFiledEqualValue : true;
                 $entryKeyValue = $this->safe_value($entry, $key);
                 $entryKeyGESince = ($entryKeyValue) && ($since !== null) && ($entryKeyValue >= $since);
@@ -5015,7 +5065,7 @@ class Exchange {
             }
         }
         $results = $this->sort_by($results, 'timestamp');
-        $symbol = ($market !== null) ? $market['symbol'] : null;
+        $symbol = $this->safe_string($market, 'symbol');
         return $this->filter_by_symbol_since_limit($results, $symbol, $since, $limit);
     }
 
@@ -5680,18 +5730,22 @@ class Exchange {
         ));
     }
 
-    public function filter_by_symbol($objects, ?string $symbol = null) {
-        if ($symbol === null) {
+    public function filter_by_key($objects, int|string $key, ?string $value = null) {
+        if ($value === null) {
             return $objects;
         }
         $result = array();
         for ($i = 0; $i < count($objects); $i++) {
-            $objectSymbol = $this->safe_string($objects[$i], 'symbol');
-            if ($objectSymbol === $symbol) {
+            $objectValue = $this->safe_string($objects[$i], $key);
+            if ($objectValue === $value) {
                 $result[] = $objects[$i];
             }
         }
         return $result;
+    }
+
+    public function filter_by_symbol($objects, ?string $symbol = null) {
+        return $this->filter_by_key($objects, 'symbol', $symbol);
     }
 
     public function parse_ohlcv($ohlcv, ?array $market = null): array {
@@ -6064,7 +6118,7 @@ class Exchange {
             $result[] = $trade;
         }
         $result = $this->sort_by_2($result, 'timestamp', 'id');
-        $symbol = ($market !== null) ? $market['symbol'] : null;
+        $symbol = $this->safe_string($market, 'symbol');
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
     }
 

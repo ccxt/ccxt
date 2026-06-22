@@ -4507,7 +4507,7 @@ export default class Exchange {
             }
         }
         results = this.sortBy (results, 'timestamp');
-        const symbol = (market !== undefined) ? market['symbol'] : undefined;
+        const symbol = this.safeString (market, 'symbol');
         return this.filterBySymbolSinceLimit (results, symbol, since, limit) as Order[];
     }
 
@@ -5567,7 +5567,7 @@ export default class Exchange {
             result.push (trade);
         }
         result = this.sortBy2 (result, 'timestamp', 'id');
-        const symbol = (market !== undefined) ? market['symbol'] : undefined;
+        const symbol = this.safeString (market, 'symbol');
         return this.filterBySymbolSinceLimit (result, symbol, since, limit) as Trade[];
     }
 
