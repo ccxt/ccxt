@@ -4,7 +4,7 @@ import assert from 'assert';
 import { Exchange } from "../../../../ccxt.js";
 import Precise from '../../../base/Precise.js';
 import { OnMaintenance, OperationFailed } from '../../../base/errors.js';
-import { Bool, Num, Order, Str } from '../../../base/types.js';
+import { Bool, List, NullableList, Num, Order, Str } from '../../../base/types.js';
 
 function logTemplate (exchange: Exchange, method: string, entry: object) {
     // there are cases when exchange is undefined (eg. base tests)
@@ -46,7 +46,7 @@ function assertType (exchange: Exchange, skippedProperties: object, entry: objec
     return result;
 }
 
-function assertStructure (exchange: Exchange, skippedProperties: object, method: string, entry: object, format: any[] | object, emptyAllowedFor: any [] = undefined, deep = false) {
+function assertStructure (exchange: Exchange, skippedProperties: object, method: string, entry: object, format: any[] | object, emptyAllowedFor: NullableList = undefined, deep = false) {
     const logText = logTemplate (exchange, method, entry);
     assert (entry !== undefined, 'item is null/undefined' + logText);
     // get all expected & predefined keys for this specific item and ensure thos ekeys exist in parsed structure
@@ -162,7 +162,7 @@ function assertTimestampAndDatetime (exchange: Exchange, skippedProperties: obje
             // so, we have to compare with millisecond accururacy
             const dtParsed = exchange.parse8601 (dt);
             const tsMs = entry['timestamp'];
-            const diff = Math.abs (dtParsed - tsMs);
+            const diff = Math.abs ((dtParsed as number) - tsMs);
             if (diff >= 500) { // tolerate up to 500ms skew // TODO: dont know if this is a proper solution
                 const dtParsedString = exchange.iso8601 (dtParsed);
                 const dtEntryString = exchange.iso8601 (tsMs);
@@ -437,7 +437,7 @@ async function fetchBestBidAsk (exchange, method, symbol) {
 }
 
 async function fetchOrder (exchange, symbol, orderId, skippedProperties) {
-    let fetchedOrder: Order = undefined;
+    let fetchedOrder: Order = undefined as unknown as Order;
     const originalId = orderId;
     // set 'since' to 5 minute ago for optimal results
     const sinceTime = exchange.milliseconds () - 1000 * 60 * 5;
@@ -567,21 +567,21 @@ function removeProxyOptions (exchange: Exchange, skippedProperties: object) {
     return [ proxyUrl, httpProxy, httpsProxy, socksProxy ];
 }
 
-function setProxyOptions (exchange: Exchange, skippedProperties: object, proxyUrl: string, httpProxy: string, httpsProxy: string, socksProxy: string) {
+function setProxyOptions (exchange: Exchange, skippedProperties: object, proxyUrl: Str, httpProxy: Str, httpsProxy: Str, socksProxy: Str) {
     exchange.proxyUrl = proxyUrl;
     exchange.httpProxy = httpProxy;
     exchange.httpsProxy = httpsProxy;
     exchange.socksProxy = socksProxy;
 }
 
-function concat (a: any[] = undefined, b: any[] = undefined) {
+function concat (a: NullableList = undefined, b: NullableList = undefined) {
     // we use this method temporarily, because of ast-transpiler issue across langs
     if (a === undefined) {
         return b;
     } else if (b === undefined) {
         return a;
     } else {
-        const result = [];
+        const result: List = [];
         for (let i = 0; i < a.length; i++) {
             result.push (a[i]);
         }
