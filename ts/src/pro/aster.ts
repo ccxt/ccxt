@@ -556,8 +556,9 @@ export default class aster extends asterRest {
 
     parseWsBidAsk (message, market: Market = undefined) {
         const timestamp = this.safeInteger (message, 'T');
+        const bidAskSymbol = (market !== undefined) ? market['symbol'] : undefined;
         return this.safeTicker ({
-            'symbol': (market !== undefined) ? market['symbol'] : undefined,
+            'symbol': bidAskSymbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'ask': this.safeString (message, 'a'),

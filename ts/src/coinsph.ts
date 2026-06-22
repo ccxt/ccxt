@@ -1714,7 +1714,10 @@ export default class coinsph extends Exchange {
             'BUY': 'buy',
             'SELL': 'sell',
         };
-        return (status === undefined) ? undefined : this.safeString (statuses, status, status);
+        if (status === undefined) {
+            return undefined;
+        }
+        return this.safeString (statuses, status, status);
     }
 
     encodeOrderSide (status) {
@@ -1722,7 +1725,10 @@ export default class coinsph extends Exchange {
             'buy': 'BUY',
             'sell': 'SELL',
         };
-        return (status === undefined) ? undefined : this.safeString (statuses, status, status);
+        if (status === undefined) {
+            return undefined;
+        }
+        return this.safeString (statuses, status, status);
     }
 
     parseOrderType (status) {
@@ -1735,7 +1741,10 @@ export default class coinsph extends Exchange {
             'TAKE_PROFIT': 'market',
             'TAKE_PROFIT_LIMIT': 'limit',
         };
-        return (status === undefined) ? undefined : this.safeString (statuses, status, status);
+        if (status === undefined) {
+            return undefined;
+        }
+        return this.safeString (statuses, status, status);
     }
 
     encodeOrderType (status) {
@@ -1748,7 +1757,10 @@ export default class coinsph extends Exchange {
             'take_profit': 'TAKE_PROFIT',
             'take_profit_limit': 'TAKE_PROFIT_LIMIT',
         };
-        return (status === undefined) ? undefined : this.safeString (statuses, status, status);
+        if (status === undefined) {
+            return undefined;
+        }
+        return this.safeString (statuses, status, status);
     }
 
     parseOrderStatus (status: Str) {
@@ -1760,7 +1772,10 @@ export default class coinsph extends Exchange {
             'PARTIALLY_CANCELED': 'canceled',
             'REJECTED': 'rejected',
         };
-        return (status === undefined) ? undefined : this.safeString (statuses, status, status);
+        if (status === undefined) {
+            return undefined;
+        }
+        return this.safeString (statuses, status, status);
     }
 
     parseOrderTimeInForce (status) {
@@ -1769,7 +1784,10 @@ export default class coinsph extends Exchange {
             'FOK': 'FOK',
             'IOC': 'IOC',
         };
-        return (status === undefined) ? undefined : this.safeString (statuses, status, status);
+        if (status === undefined) {
+            return undefined;
+        }
+        return this.safeString (statuses, status, status);
     }
 
     /**
@@ -2118,7 +2136,10 @@ export default class coinsph extends Exchange {
             '2': 'failed',
             '3': 'pending',
         };
-        return (status === undefined) ? undefined : this.safeString (statuses, status, status);
+        if (status === undefined) {
+            return undefined;
+        }
+        return this.safeString (statuses, status, status);
     }
 
     /**

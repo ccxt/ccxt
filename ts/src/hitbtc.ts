@@ -1516,7 +1516,10 @@ export default class hitbtc extends Exchange {
             'ROLLED_BACK': 'failed',
             'SUCCESS': 'ok',
         };
-        return (status === undefined) ? undefined : this.safeString (statuses, status, status);
+        if (status === undefined) {
+            return undefined;
+        }
+        return this.safeString (statuses, status, status);
     }
 
     parseTransactionType (type) {
@@ -2478,7 +2481,10 @@ export default class hitbtc extends Exchange {
             'canceled': 'canceled',
             'expired': 'failed',
         };
-        return (status === undefined) ? undefined : this.safeString (statuses, status, status);
+        if (status === undefined) {
+            return undefined;
+        }
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {

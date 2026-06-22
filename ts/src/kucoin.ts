@@ -2851,7 +2851,10 @@ export default class kucoin extends Exchange {
             'margin': 'MARGIN',
             'swap': 'FUTURES',
         };
-        return (type === undefined) ? undefined : this.safeString (tradeTypes, type, type);
+        if (type === undefined) {
+            return undefined;
+        }
+        return this.safeString (tradeTypes, type, type);
     }
 
     /**
@@ -6486,7 +6489,10 @@ export default class kucoin extends Exchange {
             'FOK': 'FOK',
             'GTT': 'GTD',
         };
-        return (timeInForce === undefined) ? undefined : this.safeString (timeInForces, timeInForce, timeInForce);
+        if (timeInForce === undefined) {
+            return undefined;
+        }
+        return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
     parseOrderStatus (status: Str): Str {
@@ -6499,7 +6505,10 @@ export default class kucoin extends Exchange {
             '5': 'canceled', // canceled
             '6': 'closed', // partial canceled
         };
-        return (status === undefined) ? undefined : this.safeString (statuses, status, status);
+        if (status === undefined) {
+            return undefined;
+        }
+        return this.safeString (statuses, status, status);
     }
 
     /**
@@ -7443,7 +7452,10 @@ export default class kucoin extends Exchange {
             'WALLET_PROCESSING': 'pending',
             'FAILURE': 'failed',
         };
-        return (status === undefined) ? undefined : this.safeString (statuses, status, status);
+        if (status === undefined) {
+            return undefined;
+        }
+        return this.safeString (statuses, status, status);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -8560,7 +8572,10 @@ export default class kucoin extends Exchange {
         const statuses: Dict = {
             'PROCESSING': 'pending',
         };
-        return (status === undefined) ? undefined : this.safeString (statuses, status, status);
+        if (status === undefined) {
+            return undefined;
+        }
+        return this.safeString (statuses, status, status);
     }
 
     parseLedgerEntryType (type) {

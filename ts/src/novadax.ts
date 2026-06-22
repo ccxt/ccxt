@@ -1189,7 +1189,10 @@ export default class novadax extends Exchange {
             'CANCELED': 'canceled',
             'REJECTED': 'rejected',
         };
-        return (status === undefined) ? undefined : this.safeString (statuses, status, status);
+        if (status === undefined) {
+            return undefined;
+        }
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -1339,7 +1342,10 @@ export default class novadax extends Exchange {
         const statuses: Dict = {
             'SUCCESS': 'pending',
         };
-        return (status === undefined) ? 'failed' : this.safeString (statuses, status, 'failed');
+        if (status === undefined) {
+            return 'failed';
+        }
+        return this.safeString (statuses, status, 'failed');
     }
 
     /**
@@ -1523,7 +1529,10 @@ export default class novadax extends Exchange {
             'SUCCESS': 'ok',
             'FAIL': 'failed',
         };
-        return (status === undefined) ? undefined : this.safeString (statuses, status, status);
+        if (status === undefined) {
+            return undefined;
+        }
+        return this.safeString (statuses, status, status);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {

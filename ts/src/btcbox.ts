@@ -631,7 +631,10 @@ export default class btcbox extends Exchange {
             'closed': 'closed', // never encountered, seems to be bug in the doc
             'no': 'closed', // not clarified in the docs...
         };
-        return (status === undefined) ? undefined : this.safeString (statuses, status, status);
+        if (status === undefined) {
+            return undefined;
+        }
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {

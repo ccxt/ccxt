@@ -99,7 +99,8 @@ export default class hitbtc extends hitbtcRest {
         if (authenticated === undefined) {
             const timestamp = this.milliseconds ();
             const timestampString = this.numberToString (timestamp);
-            const signature = this.hmac (this.encode ((timestampString === undefined) ? '' : timestampString), this.encode (this.secret), sha256, 'hex');
+            const timestampEncoded = (timestampString === undefined) ? '' : timestampString;
+            const signature = this.hmac (this.encode (timestampEncoded), this.encode (this.secret), sha256, 'hex');
             const request: Dict = {
                 'method': 'login',
                 'params': {
@@ -560,8 +561,9 @@ export default class hitbtc extends hitbtcRest {
 
     parseWsBidAsk (ticker, market: Market = undefined) {
         const timestamp = this.safeInteger (ticker, 't');
+        const bidAskSymbol = (market !== undefined) ? market['symbol'] : undefined;
         return this.safeTicker ({
-            'symbol': (market !== undefined) ? market['symbol'] : undefined,
+            'symbol': bidAskSymbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'ask': this.safeString (ticker, 'a'),

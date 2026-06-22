@@ -1834,7 +1834,8 @@ export default class okx extends Exchange {
                 }
             }
         }
-        const fees = this.safeDict2 (this.fees, (type === undefined) ? '' : type, 'trading', {});
+        const feesType = (type === undefined) ? '' : type;
+        const fees = this.safeDict2 (this.fees, feesType, 'trading', {});
         let maxLeverage: Str = this.safeString (market, 'lever', '1');
         maxLeverage = Precise.stringMax (maxLeverage, '1');
         const maxSpotCost = this.safeNumber (market, 'maxMktSz');
@@ -3946,8 +3947,12 @@ export default class okx extends Exchange {
      */
     async cancelAllOrdersAfter (timeout: Int, params = {}) {
         await this.loadMarkets ();
+        let timeOut = 0;
+        if ((timeout !== undefined) && (timeout > 0)) {
+            timeOut = this.parseToInt (timeout / 1000);
+        }
         const request: Dict = {
-            'timeOut': ((timeout !== undefined) && (timeout > 0)) ? this.parseToInt (timeout / 1000) : 0,
+            'timeOut': timeOut,
         };
         const response = await this.privatePostTradeCancelAllAfter (this.extend (request, params));
         //
@@ -3974,7 +3979,10 @@ export default class okx extends Exchange {
             'filled': 'closed',
             'effective': 'closed',
         };
-        return (status === undefined) ? undefined : this.safeString (statuses, status, status);
+        if (status === undefined) {
+            return undefined;
+        }
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -5764,7 +5772,10 @@ export default class okx extends Exchange {
             '15': 'pending',
             '16': 'pending',
         };
-        return (status === undefined) ? undefined : this.safeString (statuses, status, status);
+        if (status === undefined) {
+            return undefined;
+        }
+        return this.safeString (statuses, status, status);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -6444,7 +6455,10 @@ export default class okx extends Exchange {
         const statuses: Dict = {
             'success': 'ok',
         };
-        return (status === undefined) ? undefined : this.safeString (statuses, status, status);
+        if (status === undefined) {
+            return undefined;
+        }
+        return this.safeString (statuses, status, status);
     }
 
     async fetchTransfer (id: string, code: Str = undefined, params = {}): Promise<TransferEntry> {

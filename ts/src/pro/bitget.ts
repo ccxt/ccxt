@@ -709,7 +709,10 @@ export default class bitget extends bitgetRest {
         //         "turnover": "4616746.46654"
         //     }
         //
-        const volumeIndex = ((market !== undefined) && market['inverse']) ? 6 : 5;
+        let volumeIndex = 5;
+        if ((market !== undefined) && market['inverse']) {
+            volumeIndex = 6;
+        }
         return [
             this.safeInteger2 (ohlcv, 'start', 0),
             this.safeNumber2 (ohlcv, 'open', 1),
@@ -2282,7 +2285,8 @@ export default class bitget extends bitgetRest {
         } else {
             params = this.extend (params, { 'uta': true });
         }
-        const messageHash = 'balance:' + ((instType === undefined) ? '' : instType.toLowerCase ());
+        const instTypeLower = (instType === undefined) ? '' : instType.toLowerCase ();
+        const messageHash = 'balance:' + instTypeLower;
         return await this.watchPrivate (uta, messageHash, messageHash, args, params);
     }
 

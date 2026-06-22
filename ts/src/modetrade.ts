@@ -863,9 +863,10 @@ export default class modetrade extends Exchange {
         const fundingTimeString = this.safeString (fundingRate, 'last_funding_rate_timestamp');
         const nextFundingTimeString = this.safeString (fundingRate, 'next_funding_time');
         const millisecondsInterval = Precise.stringSub (nextFundingTimeString, fundingTimeString);
+        const fundingSymbol = (market !== undefined) ? market['symbol'] : undefined;
         return {
             'info': fundingRate,
-            'symbol': (market !== undefined) ? market['symbol'] : undefined,
+            'symbol': fundingSymbol,
             'markPrice': undefined,
             'indexPrice': undefined,
             'interestRate': this.parseNumber ('0'),
@@ -1429,7 +1430,10 @@ export default class modetrade extends Exchange {
             'fok': 'FOK',
             'post_only': 'PO',
         };
-        return (timeInForce === undefined) ? undefined : this.safeString (timeInForces, timeInForce);
+        if (timeInForce === undefined) {
+            return undefined;
+        }
+        return this.safeString (timeInForces, timeInForce);
     }
 
     parseOrderStatus (status: Str) {
@@ -1445,7 +1449,10 @@ export default class modetrade extends Exchange {
                 'INCOMPLETE': 'open',
                 'COMPLETED': 'closed',
             };
-            return (status === undefined) ? undefined : this.safeString (statuses, status, status);
+            if (status === undefined) {
+                return undefined;
+            }
+            return this.safeString (statuses, status, status);
         }
         return status;
     }
@@ -1456,7 +1463,10 @@ export default class modetrade extends Exchange {
             'MARKET': 'market',
             'POST_ONLY': 'limit',
         };
-        return (type === undefined) ? undefined : this.safeStringLower (types, type, type);
+        if (type === undefined) {
+            return undefined;
+        }
+        return this.safeStringLower (types, type, type);
     }
 
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -2458,7 +2468,10 @@ export default class modetrade extends Exchange {
             'COMPLETED': 'ok',
             'CANCELED': 'canceled',
         };
-        return (status === undefined) ? undefined : this.safeString (statuses, status, status);
+        if (status === undefined) {
+            return undefined;
+        }
+        return this.safeString (statuses, status, status);
     }
 
     /**

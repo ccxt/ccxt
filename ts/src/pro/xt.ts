@@ -1048,7 +1048,10 @@ export default class xt extends xtRest {
             let event = this.safeString (message, 'event', '');
             const splitEvent = event.split (',');
             event = this.safeString (splitEvent, 0, '');
-            const tradeType = ((data !== undefined) && ('fu' in data)) ? 'contract' : 'spot';
+            let tradeType = 'spot';
+            if ((data !== undefined) && ('fu' in data)) {
+                tradeType = 'contract';
+            }
             const market = this.safeMarket (marketId, undefined, undefined, tradeType);
             const symbol = market['symbol'];
             const obAsks = this.safeList (data, 'a');

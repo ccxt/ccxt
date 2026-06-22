@@ -1369,7 +1369,10 @@ export default class ndax extends Exchange {
             'Expired': 'expired',
             'FullyExecuted': 'closed',
         };
-        return (status === undefined) ? undefined : this.safeString (statuses, status, status);
+        if (status === undefined) {
+            return undefined;
+        }
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -2348,7 +2351,10 @@ export default class ndax extends Exchange {
             },
         };
         const statuses = (type === undefined) ? {} : this.safeValue (statusesByType, type, {});
-        return (status === undefined) ? undefined : this.safeString (statuses, status, status);
+        if (status === undefined) {
+            return undefined;
+        }
+        return this.safeString (statuses, status, status);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {

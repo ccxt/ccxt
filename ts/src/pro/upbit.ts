@@ -466,7 +466,10 @@ export default class upbit extends upbitRest {
             'watch': 'open', // not sure what this status means
             'trade': 'open',
         };
-        return (status === undefined) ? undefined : this.safeString (statuses, status, status);
+        if (status === undefined) {
+            return undefined;
+        }
+        return this.safeString (statuses, status, status);
     }
 
     parseWsOrder (order, market: Market = undefined) {

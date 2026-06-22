@@ -1837,7 +1837,10 @@ export default class toobit extends Exchange {
             'CANCELED': 'canceled',
             'REJECTED': 'canceled',
         };
-        return (status === undefined) ? undefined : this.safeString (statuses, status, status);
+        if (status === undefined) {
+            return undefined;
+        }
+        return this.safeString (statuses, status, status);
     }
 
     parseOrderType (status) {
@@ -1846,7 +1849,10 @@ export default class toobit extends Exchange {
             'LIMIT': 'limit',
             'LIMIT_MAKER': 'limit',
         };
-        return (status === undefined) ? undefined : this.safeString (statuses, status, status);
+        if (status === undefined) {
+            return undefined;
+        }
+        return this.safeString (statuses, status, status);
     }
 
     /**
@@ -2715,7 +2721,10 @@ export default class toobit extends Exchange {
             '11': 'failed',
             '3': 'ok',
         };
-        return (status === undefined) ? undefined : this.safeString (statuses, status, status);
+        if (status === undefined) {
+            return undefined;
+        }
+        return this.safeString (statuses, status, status);
     }
 
     /**
