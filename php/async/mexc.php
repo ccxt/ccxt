@@ -6213,7 +6213,7 @@ class mexc extends Exchange {
             //    }
             //
             $data = $this->safe_list($response, 'data');
-            $positions = $this->parse_positions($data, $symbols, $params);
+            $positions = $this->parse_positions(($data), $symbols, $params);
             return $this->filter_by_since_limit($positions, $since, $limit);
         }) ();
     }

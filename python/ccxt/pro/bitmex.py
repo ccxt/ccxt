@@ -726,7 +726,7 @@ class bitmex(ccxt.async_support.bitmex):
         subscriptionHash = 'position'
         messageHash = 'positions'
         if not self.is_empty(symbols):
-            messageHash = '::' + ','.join(symbols)
+            messageHash = '::' + ','.join((symbols))
         url = self.urls['api']['ws']
         request: dict = {
             'op': 'subscribe',
@@ -1620,7 +1620,7 @@ class bitmex(ccxt.async_support.bitmex):
                 messageHash = args[0]
                 broad = self.exceptions['ws']['broad']
                 broadKey = self.find_broadly_matched_key(broad, error)
-                exception = None
+                exception: Any = None
                 if broadKey is None:
                     exception = ExchangeError(error)  # c# requirement for now
                 else:

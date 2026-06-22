@@ -16,6 +16,28 @@ func (this *Exchange) Seconds() int64 {
 	return this.Milliseconds() / 1000
 }
 
+// SetLastRestRequestTimestamp guards the write with a mutex because concurrent
+// requests would otherwise data-race on LastRestRequestTimestamp. This is a
+// hand-written Go override (blacklisted in goTranspiler.ts) of the transpiled
+// setLastRestRequestTimestamp method in ts/src/base/Exchange.ts.
+func (this *Exchange) SetLastRestRequestTimestamp() {
+	this.lastMu.Lock()
+	this.LastRestRequestTimestamp = this.Milliseconds()
+	this.lastMu.Unlock()
+}
+
+// SetLastRequest guards the writes with a mutex because concurrent requests would
+// otherwise data-race on these bookkeeping fields. This is a hand-written Go
+// override (blacklisted in goTranspiler.ts) of the transpiled setLastRequest
+// method in ts/src/base/Exchange.ts.
+func (this *Exchange) SetLastRequest(request any) {
+	this.lastMu.Lock()
+	this.Last_request_headers = GetValue(request, "headers")
+	this.Last_request_body = GetValue(request, "body")
+	this.Last_request_url = GetValue(request, "url")
+	this.lastMu.Unlock()
+}
+
 // microseconds returns the current time in microseconds since the Unix epoch.
 func (this *Exchange) Microseconds() int64 {
 	return time.Now().UnixNano() / int64(time.Microsecond)

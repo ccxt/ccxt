@@ -210,12 +210,12 @@ class paradex(ccxt.async_support.paradex):
         symbol = market['symbol']
         if not (symbol in self.orderbooks):
             self.orderbooks[symbol] = self.order_book()
-        orderbookData = {
+        orderbookData: dict = {
             'bids': [],
             'asks': [],
         }
         inserts = self.safe_list(data, 'inserts')
-        for i in range(0, len(inserts)):
+        for i in range(0, len((inserts))):
             insert = self.safe_dict(inserts, i)
             side = self.safe_string(insert, 'side')
             price = self.safe_string(insert, 'price')
@@ -276,7 +276,7 @@ class paradex(ccxt.async_support.paradex):
                 'channel': channel,
             },
         }
-        messageHashes = []
+        messageHashes: List[Any] = []
         if symbols is not None and isinstance(symbols, list):
             for i in range(0, len(symbols)):
                 messageHash = channel + '.' + symbols[i]
@@ -451,7 +451,7 @@ class paradex(ccxt.async_support.paradex):
                 'channel': channel,
             },
         }
-        messageHashes = []
+        messageHashes: List[Any] = []
         if symbols is not None:
             symbolsLength = len(symbols)
             if symbolsLength > 0:
