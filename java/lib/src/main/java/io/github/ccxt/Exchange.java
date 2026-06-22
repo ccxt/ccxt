@@ -1917,6 +1917,12 @@ public class Exchange {
         loadOrderBook(client, messageHash, symbol, null, null);
     }
 
+    /** Hand-written (not transpiled): lastRestRequestTimestamp is a volatile long,
+     *  so a plain assignment is already safe against concurrent requests. */
+    public void setLastRestRequestTimestamp() {
+        this.lastRestRequestTimestamp = this.milliseconds();
+    }
+
     /** Check if a message is binary (byte array). */
     public boolean isBinaryMessage(Object message) {
         return message instanceof byte[];
@@ -8602,7 +8608,7 @@ public Object describe()
             {
                 try
                 {
-                    this.lastRestRequestTimestamp = this.milliseconds();
+                    this.setLastRestRequestTimestamp();
                     Object request = this.sign(path, api, method, parameters, headers, body);
                     this.last_request_headers = Helpers.GetValue(request, "headers");
                     this.last_request_body = Helpers.GetValue(request, "body");
