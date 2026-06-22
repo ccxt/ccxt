@@ -403,7 +403,7 @@ export default class htx extends htxRest {
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][timeframe as string] = stored;
+            this.ohlcvs[symbol][timeframe] = stored;
         }
         const tick = this.safeValue (message, 'tick');
         const parsed = this.parseOHLCV (tick, market);
@@ -513,7 +513,7 @@ export default class htx extends htxRest {
         const id = this.safeString (message, 'id');
         const lastTimestamp = this.safeInteger (subscription, 'lastTimestamp');
         try {
-            const orderbook = this.orderbooks[symbol as string];
+            const orderbook = this.orderbooks[symbol];
             const data = this.safeValue (message, 'data');
             const messages = orderbook.cache;
             const firstMessage = this.safeValue (messages, 0, {});
@@ -537,7 +537,7 @@ export default class htx extends htxRest {
                         numAttempts = this.sum (numAttempts, 1);
                         const delayTime = this.sum (1000, lastTimestamp - snapshotTimestamp);
                         subscription['numAttempts'] = numAttempts;
-                        client.subscriptions[messageHash as string] = subscription;
+                        client.subscriptions[messageHash] = subscription;
                         this.delay (delayTime, this.watchOrderBookSnapshot, client, message, subscription);
                     }
                 } else {
@@ -551,12 +551,12 @@ export default class htx extends htxRest {
                     this.handleOrderBookMessage (client, messages[i]);
                 }
                 orderbook.cache = [];
-                this.orderbooks[symbol as string] = orderbook;
+                this.orderbooks[symbol] = orderbook;
                 client.resolve (orderbook, messageHash);
             }
         } catch (e) {
-            delete client.subscriptions[messageHash as string];
-            delete this.orderbooks[symbol as string];
+            delete client.subscriptions[messageHash];
+            delete this.orderbooks[symbol];
             client.reject (e, messageHash);
         }
     }
@@ -591,7 +591,7 @@ export default class htx extends htxRest {
             const orderbook = await this.watch (url, requestId, request, requestId, snapshotSubscription);
             return orderbook.limit ();
         } catch (e) {
-            delete client.subscriptions[messageHash as string];
+            delete client.subscriptions[messageHash];
             client.reject (e, messageHash);
         }
         return undefined;
@@ -784,7 +784,7 @@ export default class htx extends htxRest {
         const symbol = this.safeString (subscription, 'symbol');
         const market = this.market (symbol);
         const limit = this.safeInteger (subscription, 'limit');
-        this.orderbooks[symbol as string] = this.orderBook ({}, limit);
+        this.orderbooks[symbol] = this.orderBook ({}, limit);
         if (market['spot']) {
             this.spawn (this.watchOrderBookSnapshot, client, message, subscription);
         }
@@ -848,13 +848,13 @@ export default class htx extends htxRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    getOrderChannelAndMessageHash (type, subType, market: Market = undefined, params = {}) {
+    getOrderChannelAndMessageHash (type, subType, market = undefined, params = {}) {
         let messageHash: Str = undefined;
         let channel: Str = undefined;
         let orderType = this.safeString (this.options, 'orderType', 'orders'); // orders or matchOrders
         orderType = this.safeString (params, 'orderType', orderType);
         params = this.omit (params, 'orderType');
-        const marketCode = (market !== undefined) ? this.safeStringLower (market, 'lowercaseId') : undefined;
+        const marketCode = (market !== undefined) ? market['lowercaseId'].toLowerCase () : undefined;
         const baseId = (market !== undefined) ? market['baseId'] : undefined;
         const prefix = orderType;
         messageHash = prefix;
@@ -1407,7 +1407,7 @@ export default class htx extends htxRest {
         if (this.newUpdates) {
             return newPositions;
         }
-        return this.filterBySymbolsSinceLimit (this.positions[url as string][marginMode as string], symbols, since, limit, false);
+        return this.filterBySymbolsSinceLimit (this.positions[url][marginMode], symbols, since, limit, false);
     }
 
     handlePositions (client, message) {
@@ -1847,7 +1847,7 @@ export default class htx extends htxRest {
             }
             // clean up
             if (id in client.subscriptions) {
-                delete client.subscriptions[id as string];
+                delete client.subscriptions[id];
             }
         }
         if ('unsubbed' in message) {
@@ -2116,7 +2116,7 @@ export default class htx extends htxRest {
                     client.reject (e, messageHash);
                     client.reject (e, id);
                     if (id in client.subscriptions) {
-                        delete client.subscriptions[id as string];
+                        delete client.subscriptions[id];
                     }
                 }
             }

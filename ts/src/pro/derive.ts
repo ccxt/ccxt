@@ -129,7 +129,7 @@ export default class derive extends deriveRest {
         const topic = this.safeString (params, 'channel');
         if (!(symbol in this.orderbooks)) {
             const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
-            const subscription = client.subscriptions[topic as string];
+            const subscription = client.subscriptions[topic];
             const limit = this.safeInteger (subscription, 'limit', defaultLimit);
             this.orderbooks[symbol] = this.orderBook ({}, limit);
         }

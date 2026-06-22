@@ -479,7 +479,7 @@ export default class exmo extends exmoRest {
         for (let j = 0; j < trades.length; j++) {
             const trade = trades[j];
             myTrades.append (trade);
-            symbols[trade['symbol'] as string] = true;
+            symbols[trade['symbol']] = true;
         }
         const symbolKeys = Object.keys (symbols);
         for (let i = 0; i < symbolKeys.length; i++) {

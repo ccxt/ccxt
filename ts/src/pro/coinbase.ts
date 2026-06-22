@@ -833,7 +833,7 @@ export default class coinbase extends coinbaseRest {
             const side = this.safeString (this.options['sides'], sideId);
             const price = this.safeNumber (trade, 'price_level');
             const amount = this.safeNumber (trade, 'new_quantity');
-            const orderbookSide = orderbook[side as string];
+            const orderbookSide = orderbook[side];
             orderbookSide.store (price, amount);
         }
     }

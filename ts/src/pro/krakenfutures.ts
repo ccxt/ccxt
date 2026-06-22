@@ -1458,7 +1458,7 @@ export default class krakenfutures extends krakenfuturesRest {
         for (let i = 0; i < trades.length; i++) {
             const trade = trades[i];
             const parsedTrade = this.parseWsMyTrade (trade);
-            tradeSymbols[parsedTrade['symbol'] as string] = true;
+            tradeSymbols[parsedTrade['symbol']] = true;
             stored.append (parsedTrade);
         }
         const tradeSymbolKeys = Object.keys (tradeSymbols);

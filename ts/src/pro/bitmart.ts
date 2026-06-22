@@ -1138,7 +1138,7 @@ export default class bitmart extends bitmartRest {
                 symbol = this.handleTradeLoop (data[i]);
             }
         }
-        client.resolve (this.trades[symbol as string], 'trade::' + symbol);
+        client.resolve (this.trades[symbol], 'trade::' + symbol);
     }
 
     handleTradeLoop (entry) {
@@ -1146,9 +1146,9 @@ export default class bitmart extends bitmartRest {
         const symbol = trade['symbol'];
         const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
         if (this.safeValue (this.trades, symbol) === undefined) {
-            this.trades[symbol as string] = new ArrayCache (tradesLimit);
+            this.trades[symbol] = new ArrayCache (tradesLimit);
         }
-        const stored = this.trades[symbol as string];
+        const stored = this.trades[symbol];
         stored.append (trade);
         return symbol;
     }
@@ -1441,7 +1441,7 @@ export default class bitmart extends bitmartRest {
                 if (stored === undefined) {
                     const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                     stored = new ArrayCacheByTimestamp (limit);
-                    this.ohlcvs[symbol][timeframe as string] = stored;
+                    this.ohlcvs[symbol][timeframe] = stored;
                 }
                 stored.append (parsed);
                 const messageHash = 'ohlcv::' + symbol;
@@ -1457,7 +1457,7 @@ export default class bitmart extends bitmartRest {
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
-                this.ohlcvs[symbol][timeframe as string] = stored;
+                this.ohlcvs[symbol][timeframe] = stored;
             }
             for (let i = 0; i < items.length; i++) {
                 const candle = items[i];

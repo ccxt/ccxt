@@ -528,7 +528,7 @@ export default class deribit extends deribitRest {
             const trade = parsed[i];
             cachedTrades.append (trade);
             const symbol = trade['symbol'];
-            marketIds[symbol as string] = true;
+            marketIds[symbol] = true;
         }
         client.resolve (cachedTrades, channel);
     }
@@ -865,14 +865,14 @@ export default class deribit extends deribitRest {
         this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
         if (this.safeValue (this.ohlcvs[symbol], unifiedTimeframe) === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            this.ohlcvs[symbol][unifiedTimeframe as string] = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][unifiedTimeframe] = new ArrayCacheByTimestamp (limit);
         }
-        const stored = this.ohlcvs[symbol][unifiedTimeframe as string];
+        const stored = this.ohlcvs[symbol][unifiedTimeframe];
         const ohlcv = this.safeDict (params, 'data', {});
         // data contains a single OHLCV candle
         const parsed = this.parseWsOHLCV (ohlcv, market);
         stored.append (parsed);
-        this.ohlcvs[symbol][unifiedTimeframe as string] = stored;
+        this.ohlcvs[symbol][unifiedTimeframe] = stored;
         const resolveData = [ symbol, unifiedTimeframe, stored ];
         const messageHash = 'chart.trades|' + symbol + '|' + rawTimeframe;
         client.resolve (resolveData, messageHash);

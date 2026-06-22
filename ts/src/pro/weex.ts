@@ -707,9 +707,9 @@ export default class weex extends weexRest {
         const timeframe = this.findTimeframe (interval);
         if (!(timeframe in this.ohlcvs[symbol])) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            this.ohlcvs[symbol][timeframe as string] = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
         }
-        const stored = this.ohlcvs[symbol][timeframe as string];
+        const stored = this.ohlcvs[symbol][timeframe];
         for (let i = 0; i < data.length; i++) {
             const entry = this.safeDict (data, i, {});
             const parsed = this.parseWsOHLCV (entry);
@@ -1147,7 +1147,7 @@ export default class weex extends weexRest {
             const trade = this.safeDict (data, i, {});
             const parsed = this.parseWsMyTrade (trade);
             const symbol = parsed['symbol'];
-            symbols[symbol as string] = true;
+            symbols[symbol] = true;
             trades.append (parsed);
         }
         let messageHash = 'myTrades';

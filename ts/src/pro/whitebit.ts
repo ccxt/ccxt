@@ -784,7 +784,7 @@ export default class whitebit extends whitebitRest {
             const subscription: Dict = {};
             const market = this.market (symbol);
             const marketId = market['id'];
-            subscription[marketId as string] = true;
+            subscription[marketId] = true;
             marketIds = [ marketId ];
             if (isNested) {
                 marketIds = [ marketIds ];
@@ -803,7 +803,7 @@ export default class whitebit extends whitebitRest {
             const marketId = market['id'];
             const isSubscribed = this.safeBool (subscription, marketId, false);
             if (!isSubscribed) {
-                subscription[marketId as string] = true;
+                subscription[marketId] = true;
                 hasSymbolSubscription = false;
             }
             if (hasSymbolSubscription) {

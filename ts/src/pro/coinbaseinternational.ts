@@ -205,7 +205,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const symbol = this.safeString (fundingRate, 'symbol');
         if (this.newUpdates) {
             const result: Dict = {};
-            result[symbol as string] = fundingRate;
+            result[symbol] = fundingRate;
             return result;
         }
         return this.filterByArray (this.fundingRates, 'symbol', symbols);
@@ -499,9 +499,9 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
         if (this.safeValue (this.ohlcvs[symbol], timeframe) === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            this.ohlcvs[symbol][timeframe as string] = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
         }
-        const stored = this.ohlcvs[symbol][timeframe as string];
+        const stored = this.ohlcvs[symbol][timeframe];
         const data = this.safeList (message, 'candles', []);
         for (let i = 0; i < data.length; i++) {
             const tick = data[i];
@@ -568,11 +568,11 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             const tradesArrayCache = new ArrayCache (limit);
-            this.trades[symbol as string] = tradesArrayCache;
+            this.trades[symbol] = tradesArrayCache;
         }
-        const tradesArray = this.trades[symbol as string];
+        const tradesArray = this.trades[symbol];
         tradesArray.append (trade);
-        this.trades[symbol as string] = tradesArray;
+        this.trades[symbol] = tradesArray;
         client.resolve (tradesArray, channel);
         client.resolve (tradesArray, channel + '::' + trade['symbol']);
         return message;

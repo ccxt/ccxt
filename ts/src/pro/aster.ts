@@ -690,9 +690,9 @@ export default class aster extends asterRest {
         const symbol = parsed['symbol'];
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            this.trades[symbol as string] = new ArrayCache (limit);
+            this.trades[symbol] = new ArrayCache (limit);
         }
-        const stored = this.trades[symbol as string];
+        const stored = this.trades[symbol];
         stored.append (parsed);
         client.resolve (stored, 'trade::' + symbol);
     }
@@ -1185,9 +1185,9 @@ export default class aster extends asterRest {
         }
         if (this.safeValue (ohlcvsByTimeframe, timeframe) === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            this.ohlcvs[symbol][timeframe as string] = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
         }
-        const stored = this.ohlcvs[symbol][timeframe as string];
+        const stored = this.ohlcvs[symbol][timeframe];
         const parsed = this.parseWsOHLCV (kline);
         stored.append (parsed);
         const messageHash = 'ohlcv:' + symbol + ':' + timeframe;
@@ -1247,8 +1247,8 @@ export default class aster extends asterRest {
                 const messageHash = messageHashes[i];
                 client.reject (error, messageHash);
             }
-            this.options['listenKey'][type as string] = undefined;
-            this.options['lastAuthenticatedTime'][type as string] = 0;
+            this.options['listenKey'][type] = undefined;
+            this.options['lastAuthenticatedTime'][type] = 0;
             return;
         }
         // whether or not to schedule another listenKey keepAlive request

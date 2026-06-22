@@ -233,9 +233,9 @@ export default class cex extends cexRest {
         const symbol = this.safeString (this.options['watchTrades'], 'symbol');
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            this.trades[symbol as string] = new ArrayCache (limit);
+            this.trades[symbol] = new ArrayCache (limit);
         }
-        const stored = this.trades[symbol as string];
+        const stored = this.trades[symbol];
         const market = this.market (symbol);
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
@@ -245,8 +245,8 @@ export default class cex extends cexRest {
             stored.append (parsed);
         }
         const messageHash = 'trades';
-        this.trades[symbol as string] = stored;
-        client.resolve (this.trades[symbol as string], messageHash);
+        this.trades[symbol] = stored;
+        client.resolve (this.trades[symbol], messageHash);
     }
 
     /**

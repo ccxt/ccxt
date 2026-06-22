@@ -915,7 +915,7 @@ export default class xt extends xtRest {
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
-                this.ohlcvs[symbol][timeframe as string] = stored;
+                this.ohlcvs[symbol][timeframe] = stored;
             }
             stored.append (parsed);
             const event = this.safeString (message, 'event');

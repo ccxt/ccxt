@@ -469,7 +469,7 @@ export default class gate extends gateRest {
     handleOrderBookSubscription (client: Client, message, subscription) {
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');
-        this.orderbooks[symbol as string] = this.orderBook ({}, limit);
+        this.orderbooks[symbol] = this.orderBook ({}, limit);
     }
 
     handleNewSpotOrderBook (client: Client, message) {
@@ -942,7 +942,7 @@ export default class gate extends gateRest {
             if (cachedTrades === undefined) {
                 const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
                 cachedTrades = new ArrayCache (limit);
-                this.trades[symbol as string] = cachedTrades;
+                this.trades[symbol] = cachedTrades;
             }
             cachedTrades.append (trade);
             const hash = 'trades:' + symbol;
@@ -1024,7 +1024,7 @@ export default class gate extends gateRest {
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
-                this.ohlcvs[symbol][timeframe as string] = stored;
+                this.ohlcvs[symbol][timeframe] = stored;
             }
             stored.append (parsed);
             marketIds[symbol] = timeframe;
@@ -1128,7 +1128,7 @@ export default class gate extends gateRest {
             const trade = parsed[i];
             cachedTrades.append (trade);
             const symbol = trade['symbol'];
-            marketIds[symbol as string] = true;
+            marketIds[symbol] = true;
         }
         const keys = Object.keys (marketIds);
         for (let i = 0; i < keys.length; i++) {
@@ -1286,7 +1286,7 @@ export default class gate extends gateRest {
         if (!this.isEmpty (symbols)) {
             market = this.getMarketFromSymbols (symbols);
         }
-        let type: Str = undefined;
+        let type = undefined;
         let query: Dict = undefined;
         [ type, query ] = this.handleMarketTypeAndParams ('watchPositions', market, params);
         if (type === 'spot') {
@@ -1305,7 +1305,7 @@ export default class gate extends gateRest {
         let subType: Str = undefined;
         [ subType, query ] = this.handleSubTypeAndParams ('watchPositions', market, query);
         const isInverse = (subType === 'inverse');
-        const url = this.getUrlByMarketType (type as MarketType, isInverse);
+        const url = this.getUrlByMarketType (type, isInverse);
         const client = this.client (url);
         this.setPositionsCache (client, type, symbols);
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
@@ -1318,7 +1318,7 @@ export default class gate extends gateRest {
         if (this.newUpdates) {
             return positions;
         }
-        return this.filterBySymbolsSinceLimit (this.positions[type as string], symbols, since, limit, true);
+        return this.filterBySymbolsSinceLimit (this.positions[type], symbols, since, limit, true);
     }
 
     setPositionsCache (client: Client, type, symbols: Strings = undefined) {
@@ -1559,7 +1559,7 @@ export default class gate extends gateRest {
             stored.append (parsed);
             const symbol = parsed['symbol'];
             const market = this.market (symbol);
-            marketIds[market['id'] as string] = true;
+            marketIds[market['id']] = true;
         }
         const keys = Object.keys (marketIds);
         for (let i = 0; i < keys.length; i++) {
@@ -1862,7 +1862,7 @@ export default class gate extends gateRest {
             method.call (this, client, message, subscription);
         }
         if (id in client.subscriptions) {
-            delete client.subscriptions[id as string];
+            delete client.subscriptions[id];
         }
     }
 

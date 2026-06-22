@@ -269,7 +269,7 @@ export default class hitbtc extends hitbtcRest {
         const update = this.safeDict (message, 'update');
         const data = snapshot ? snapshot : update;
         const type = snapshot ? 'snapshot' : 'update';
-        const marketIds = Object.keys (data as Dict);
+        const marketIds = Object.keys (data);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket (marketId);
@@ -542,7 +542,7 @@ export default class hitbtc extends hitbtcRest {
         //     }
         //
         const data = this.safeDict (message, 'data', {});
-        const marketIds = Object.keys (data as Dict);
+        const marketIds = Object.keys (data);
         const result = [];
         const topic = 'bidask';
         for (let i = 0; i < marketIds.length; i++) {
@@ -784,7 +784,7 @@ export default class hitbtc extends hitbtcRest {
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
-                this.ohlcvs[symbol][timeframe as string] = stored;
+                this.ohlcvs[symbol][timeframe] = stored;
             }
             const ohlcvs = this.parseWsOHLCVs (data[marketId], market);
             for (let j = 0; j < ohlcvs.length; j++) {

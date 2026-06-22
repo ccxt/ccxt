@@ -459,7 +459,7 @@ export default class bullish extends bullishRest {
                 const parsedOrder = this.parseOrder (rawOrder);
                 orders.append (parsedOrder);
                 const symbol = this.safeString (parsedOrder, 'symbol');
-                symbols[symbol as string] = true;
+                symbols[symbol] = true;
             }
             const messageHash = 'orders';
             client.resolve (orders, messageHash);
@@ -565,7 +565,7 @@ export default class bullish extends bullishRest {
                 const parsedTrade = this.parseTrade (rawTrade);
                 trades.append (parsedTrade);
                 const symbol = this.safeString (parsedTrade, 'symbol');
-                symbols[symbol as string] = true;
+                symbols[symbol] = true;
             }
             const messageHash = 'myTrades';
             client.resolve (trades, messageHash);
@@ -646,12 +646,12 @@ export default class bullish extends bullishRest {
         //
         const tradingAccountId = this.safeString (message, 'tradingAccountId');
         if (!(tradingAccountId in this.balance)) {
-            this.balance[tradingAccountId as string] = {};
+            this.balance[tradingAccountId] = {};
         }
         const messageType = this.safeString (message, 'type');
         if (messageType === 'snapshot') {
             const data = this.safeList (message, 'data', []);
-            this.balance[tradingAccountId as string] = this.parseBalance (data);
+            this.balance[tradingAccountId] = this.parseBalance (data);
         } else {
             const data = this.safeDict (message, 'data', {});
             const assetId = this.safeString (data, 'assetSymbol');
@@ -659,14 +659,14 @@ export default class bullish extends bullishRest {
             account['total'] = this.safeString (data, 'availableQuantity');
             account['used'] = this.safeString (data, 'lockedQuantity');
             const code = this.safeCurrencyCode (assetId);
-            this.balance[tradingAccountId as string][code] = account;
-            this.balance[tradingAccountId as string]['info'] = message;
-            this.balance[tradingAccountId as string] = this.safeBalance (this.balance[tradingAccountId as string]);
+            this.balance[tradingAccountId][code] = account;
+            this.balance[tradingAccountId]['info'] = message;
+            this.balance[tradingAccountId] = this.safeBalance (this.balance[tradingAccountId]);
         }
         const messageHash = 'balance';
         const tradingAccountIdHash = '::' + tradingAccountId;
-        client.resolve (this.balance[tradingAccountId as string], messageHash);
-        client.resolve (this.balance[tradingAccountId as string], messageHash + tradingAccountIdHash);
+        client.resolve (this.balance[tradingAccountId], messageHash);
+        client.resolve (this.balance[tradingAccountId], messageHash + tradingAccountIdHash);
     }
 
     /**

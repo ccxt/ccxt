@@ -411,7 +411,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
             if (tradesArray === undefined) {
                 const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
                 tradesArray = new ArrayCache (tradesLimit);
-                this.trades[symbol as string] = tradesArray;
+                this.trades[symbol] = tradesArray;
             }
             tradesArray.append (trade);
             client.resolve (tradesArray, messageHash);
@@ -906,7 +906,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
                 const side = this.safeString (sides, key);
                 const price = this.safeNumber (change, 1);
                 const amount = this.safeNumber (change, 2);
-                const bookside = orderbook[side as string];
+                const bookside = orderbook[side];
                 bookside.store (price, amount);
             }
             orderbook['timestamp'] = timestamp;

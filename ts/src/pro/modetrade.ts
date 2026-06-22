@@ -441,9 +441,9 @@ export default class modetrade extends modetradeRest {
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][timeframe as string] = stored;
+            this.ohlcvs[symbol][timeframe] = stored;
         }
-        const ohlcvCache = this.ohlcvs[symbol][timeframe as string];
+        const ohlcvCache = this.ohlcvs[symbol][timeframe];
         ohlcvCache.append (parsed);
         client.resolve (ohlcvCache, topic);
     }
@@ -1232,7 +1232,7 @@ export default class modetrade extends modetradeRest {
         //
         const data = this.safeDict (message, 'data', {});
         const balances = this.safeDict (data, 'balances', {});
-        const keys = Object.keys (balances as Dict);
+        const keys = Object.keys (balances);
         const ts = this.safeInteger (message, 'ts');
         this.balance['info'] = data;
         this.balance['timestamp'] = ts;

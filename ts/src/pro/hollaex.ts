@@ -245,7 +245,7 @@ export default class hollaex extends hollaexRest {
             const symbol = trade['symbol'];
             const market = this.market (symbol);
             const marketId = market['id'];
-            marketIds[marketId as string] = true;
+            marketIds[marketId] = true;
         }
         // non-symbol specific
         client.resolve (this.myTrades, channel);
@@ -368,7 +368,7 @@ export default class hollaex extends hollaexRest {
             const symbol = order['symbol'];
             const market = this.market (symbol);
             const marketId = market['id'];
-            marketIds[marketId as string] = true;
+            marketIds[marketId] = true;
         }
         // non-symbol specific
         client.resolve (this.orders, channel);

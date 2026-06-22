@@ -610,9 +610,9 @@ export default class bybit extends bybitRest {
         const timestamp = this.safeInteger (message, 'ts');
         parsed['timestamp'] = timestamp;
         parsed['datetime'] = this.iso8601 (timestamp);
-        this.tickers[symbol as string] = parsed;
+        this.tickers[symbol] = parsed;
         const messageHash = 'ticker:' + symbol;
-        client.resolve (this.tickers[symbol as string], messageHash);
+        client.resolve (this.tickers[symbol], messageHash);
     }
 
     /**
@@ -812,9 +812,9 @@ export default class bybit extends bybitRest {
         }
         if (this.safeValue (ohlcvsByTimeframe, timeframe) === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            this.ohlcvs[symbol][timeframe as string] = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
         }
-        const stored = this.ohlcvs[symbol][timeframe as string];
+        const stored = this.ohlcvs[symbol][timeframe];
         for (let i = 0; i < data.length; i++) {
             const parsed = this.parseWsOHLCV (data[i], market);
             stored.append (parsed);
@@ -1466,7 +1466,7 @@ export default class bybit extends bybitRest {
                 parsed = this.parseTrade (rawTrade);
             }
             const symbol = parsed['symbol'];
-            symbols[symbol as string] = true;
+            symbols[symbol] = true;
             trades.append (parsed);
         }
         const keys = Object.keys (symbols);

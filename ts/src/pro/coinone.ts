@@ -309,7 +309,7 @@ export default class coinone extends coinoneRest {
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             stored = new ArrayCache (limit);
-            this.trades[symbol as string] = stored;
+            this.trades[symbol] = stored;
         }
         stored.append (trade);
         const messageHash = 'trade:' + symbol;

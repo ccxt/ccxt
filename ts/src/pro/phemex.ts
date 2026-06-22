@@ -941,7 +941,7 @@ export default class phemex extends phemexRest {
             if (type === undefined) {
                 type = (market['settle'] === 'USDT') ? 'perpetual' : market['type'];
             }
-            marketIds[symbol as string] = true;
+            marketIds[symbol] = true;
         }
         const keys = Object.keys (marketIds);
         for (let i = 0; i < keys.length; i++) {
@@ -1481,8 +1481,8 @@ export default class phemex extends phemexRest {
         // }
         const id = this.safeString (message, 'id');
         if (id in client.subscriptions) {
-            const method = client.subscriptions[id as string];
-            delete client.subscriptions[id as string];
+            const method = client.subscriptions[id];
+            delete client.subscriptions[id];
             if (method !== true) {
                 method.call (this, client, message);
                 return;

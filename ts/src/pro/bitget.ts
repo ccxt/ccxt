@@ -658,7 +658,7 @@ export default class bitget extends bitgetRest {
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][timeframe as string] = stored;
+            this.ohlcvs[symbol][timeframe] = stored;
         }
         const data = this.safeValue (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
@@ -1397,9 +1397,9 @@ export default class bitget extends bitgetRest {
         }
         const action = this.safeString (message, 'action');
         if (!(instType in this.positions) || (action === 'snapshot')) {
-            this.positions[instType as string] = new ArrayCacheBySymbolBySide ();
+            this.positions[instType] = new ArrayCacheBySymbolBySide ();
         }
-        const cache = this.positions[instType as string];
+        const cache = this.positions[instType];
         const rawPositions = this.safeList (message, 'data', []);
         const newPositions = [];
         for (let i = 0; i < rawPositions.length; i++) {
@@ -2832,7 +2832,7 @@ export default class bitget extends bitgetRest {
         }
         if (symbol in this.ohlcvs) {
             if (timeframe in this.ohlcvs[symbol]) {
-                delete this.ohlcvs[symbol][timeframe as string];
+                delete this.ohlcvs[symbol][timeframe];
             }
         }
         this.cleanUnsubscription (client, subMessageHash, messageHash);

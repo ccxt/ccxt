@@ -277,7 +277,7 @@ export default class lighter extends lighterRest {
         const data = this.safeDict (message, 'market_stats', {});
         const channel = this.safeString (message, 'channel');
         if (channel === 'market_stats:all') {
-            const marketIds = Object.keys (data as Dict);
+            const marketIds = Object.keys (data);
             for (let i = 0; i < marketIds.length; i++) {
                 const marketId = marketIds[i];
                 const market = this.safeMarket (marketId);
@@ -715,7 +715,7 @@ export default class lighter extends lighterRest {
         const parts = channel.split (':');
         const accountIndex = parts[1];
         const data = this.safeDict (message, 'trades', {});
-        const marketIds = Object.keys (data as Dict);
+        const marketIds = Object.keys (data);
         const idsLength = marketIds.length;
         if (idsLength === 0) {
             return false; // nothing to process
@@ -1025,7 +1025,7 @@ export default class lighter extends lighterRest {
         const balance = this.safeDict (this.balance, type, {});
         if (type === 'spot') {
             const assets = this.safeDict (message, 'assets', {});
-            const assetIds = Object.keys (assets as Dict);
+            const assetIds = Object.keys (assets);
             for (let i = 0; i < assetIds.length; i++) {
                 const assetId = assetIds[i];
                 const asset = assets[assetId];
@@ -1131,7 +1131,7 @@ export default class lighter extends lighterRest {
         //    }
         //
         const data = this.safeDict (message, 'orders', {});
-        const marketIds = Object.keys (data as Dict);
+        const marketIds = Object.keys (data);
         const idsLength = marketIds.length;
         if (idsLength === 0) {
             return false; // nothing to process
