@@ -3812,6 +3812,9 @@ export default class binance extends Exchange {
         let marginMode: Str = undefined;
         let query: NullableDict = undefined;
         [ marginMode, query ] = this.handleMarginModeAndParams ('fetchBalance', params);
+        if (query === undefined) {
+            query = {};
+        }
         query = this.omit (query, 'type');
         let response = undefined;
         const request: Dict = {};
@@ -9724,6 +9727,9 @@ export default class binance extends Exchange {
         if (Array.isArray (data)) {
             data = this.safeDict (data, 0, {});
         }
+        if (data === undefined) {
+            data = {};
+        }
         return this.parseTradingFee (data, market);
     }
 
@@ -14220,6 +14226,9 @@ export default class binance extends Exchange {
         if (code === 'BUSD') {
             const rows = this.safeList (response, 'rows', []);
             data = this.safeDict (rows, 0, {});
+        }
+        if (data === undefined) {
+            data = {};
         }
         const fromCurrencyId = this.safeString2 (data, 'deductedAsset', 'fromAsset');
         const toCurrencyId = this.safeString2 (data, 'targetAsset', 'toAsset');
