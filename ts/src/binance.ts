@@ -1389,6 +1389,7 @@ export default class binance extends Exchange {
                     'BTCLIGHTNING': 'LIGHTNING',
                     'ERC20': 'ETH',
                     'ETH': 'ETH',
+                    'ETC': 'ETC',
                     'TRC20': 'TRX',
                     'TRX': 'TRX',
                     'BEP2': 'BNB',
@@ -1399,6 +1400,7 @@ export default class binance extends Exchange {
                     'DOGE': 'DOGE',
                     'SPL': 'SOL', // temporarily keep support for SPL (old name)
                     'SOL': 'SOL', // we shouldn't rename SOL
+                    'SONIC': 'SONIC',
                     // 'FIAT': 'FIAT_MONEY', // not unified atm
                     // 'LEVERAGE_TOKEN': 'ETF', // not unified atm
                     // 'STAKING': 'STAKING', // not unified atm
@@ -1458,7 +1460,6 @@ export default class binance extends Exchange {
                     'TAO': 'TAO',
                     'WLD': 'WLD',
                     'ICP': 'ICP',
-                    'ETC': 'ETC',
                     'FLR': 'FLR',
                     'COSMOS': 'ATOM',
                     'ATOM': 'ATOM',
