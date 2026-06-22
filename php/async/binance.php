@@ -3108,7 +3108,7 @@ class binance extends Exchange {
             $withdrawFee = $this->safe_number($networkItem, 'withdrawFee');
             $depositEnable = $this->safe_bool($networkItem, 'depositEnable');
             $withdrawEnable = $this->safe_bool($networkItem, 'withdrawEnable');
-            $fees[$network] = $withdrawFee;
+            $fees[$networkCode] = $withdrawFee;
             $isDefault = $this->safe_bool($networkItem, 'isDefault');
             if ($isDefault || ($fee === null)) {
                 $fee = $withdrawFee;
