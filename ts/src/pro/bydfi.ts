@@ -239,7 +239,7 @@ export default class bydfi extends bydfiRest {
                     if (symbol === 'all') {
                         continue;
                     }
-                    const marketId = this.marketId (symbol);
+                    const marketId = this.marketId (symbol as string);
                     channels.push (marketId + channel);
                 }
             }
@@ -289,8 +289,8 @@ export default class bydfi extends bydfiRest {
         const ticker = this.parseTicker (message);
         const symbol = ticker['symbol'];
         const messageHash = 'ticker::' + symbol;
-        this.tickers[symbol] = ticker;
-        client.resolve (this.tickers[symbol], messageHash);
+        this.tickers[symbol as string] = ticker;
+        client.resolve (this.tickers[symbol as string], messageHash);
         client.resolve (this.tickers, 'ticker::all');
     }
 
@@ -347,7 +347,7 @@ export default class bydfi extends bydfiRest {
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const symbolAndTimeframe = symbolsAndTimeframes[i];
             const marketId = this.safeString (symbolAndTimeframe, 0);
-            const market = this.market (marketId);
+            const market = this.market (marketId as string);
             const tf = this.safeString (symbolAndTimeframe, 1);
             const timeframes = this.safeDict (this.options, 'timeframes', {});
             const interval = this.safeString (timeframes, tf as string, tf);
@@ -382,7 +382,7 @@ export default class bydfi extends bydfiRest {
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const symbolAndTimeframe = symbolsAndTimeframes[i];
             const marketId = this.safeString (symbolAndTimeframe, 0);
-            const market = this.market (marketId);
+            const market = this.market (marketId as string);
             const tf = this.safeString (symbolAndTimeframe, 1);
             const interval = this.safeString (this.timeframes, tf as string, tf);
             channels.push (market['id'] + '@kline_' + interval);
@@ -423,9 +423,9 @@ export default class bydfi extends bydfiRest {
         if (!(timeframe in this.ohlcvs[symbol])) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             const stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+            this.ohlcvs[symbol][timeframe as string] = stored;
         }
-        const ohlcv = this.ohlcvs[symbol][timeframe];
+        const ohlcv = this.ohlcvs[symbol][timeframe as string];
         const parsed = this.parseWsOHLCV (message);
         ohlcv.append (parsed);
         const messageHash = 'ohlcv::' + symbol + '::' + timeframe;
@@ -713,7 +713,7 @@ export default class bydfi extends bydfiRest {
             'cost': undefined,
             'trades': undefined,
             'fee': fee,
-            'average': this.omitZero (this.safeString (order, 'ap')),
+            'average': this.omitZero (this.safeString (order, 'ap') as string),
         }, market);
     }
 

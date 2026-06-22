@@ -341,7 +341,7 @@ export default class bitrue extends bitrueRest {
             },
         };
         const request = this.deepExtend (message, params);
-        return await this.watch (url, messageHash, request, messageHash);
+        return await this.watch (url as string, messageHash, request, messageHash);
     }
 
     handleOrderBook (client: Client, message) {
@@ -384,7 +384,7 @@ export default class bitrue extends bitrueRest {
         let market: Market = undefined;
         if (isFutures) {
             const wsBaseQuote = this.safeStringLower (parts, 2);
-            market = this.findSwapMarketByWsBaseQuote (wsBaseQuote);
+            market = this.findSwapMarketByWsBaseQuote (wsBaseQuote as string);
         } else {
             const marketId = this.safeStringUpper (parts, 1);
             market = this.safeMarket (marketId);
@@ -514,7 +514,7 @@ export default class bitrue extends bitrueRest {
         const channel = this.safeString (message, 'channel');
         const parts = channel.split ('_');
         const wsBaseQuote = this.safeStringLower (parts, 2);
-        const market = this.findSwapMarketByWsBaseQuote (wsBaseQuote);
+        const market = this.findSwapMarketByWsBaseQuote (wsBaseQuote as string);
         if (market === undefined) {
             return;
         }
@@ -630,7 +630,7 @@ export default class bitrue extends bitrueRest {
         const channel = this.safeString (message, 'channel');
         const parts = channel.split ('_');
         const wsBaseQuote = this.safeStringLower (parts, 2);
-        const market = this.findSwapMarketByWsBaseQuote (wsBaseQuote);
+        const market = this.findSwapMarketByWsBaseQuote (wsBaseQuote as string);
         if (market === undefined) {
             return;
         }
@@ -648,9 +648,9 @@ export default class bitrue extends bitrueRest {
         }
         if (!(timeframe in this.ohlcvs[symbol])) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][timeframe as string] = new ArrayCacheByTimestamp (limit);
         }
-        const stored = this.ohlcvs[symbol][timeframe];
+        const stored = this.ohlcvs[symbol][timeframe as string];
         stored.append (parsed);
         const messageHash = 'ohlcv:' + symbol + ':' + timeframe;
         client.resolve (stored, messageHash);
@@ -722,7 +722,7 @@ export default class bitrue extends bitrueRest {
         const channel = this.safeString (message, 'channel');
         const parts = channel.split ('_');
         const wsBaseQuote = this.safeStringLower (parts, 2);
-        const market = this.findSwapMarketByWsBaseQuote (wsBaseQuote);
+        const market = this.findSwapMarketByWsBaseQuote (wsBaseQuote as string);
         if (market === undefined) {
             return;
         }
@@ -829,7 +829,7 @@ export default class bitrue extends bitrueRest {
                 'BALANCE': this.handleBalance,
                 'ORDER': this.handleOrder,
             };
-            const handler = this.safeValue (handlers, event);
+            const handler = this.safeValue (handlers, event as string);
             if (handler !== undefined) {
                 handler.call (this, client, message);
             }

@@ -798,7 +798,7 @@ export default class bitbank extends Exchange {
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const market = this.market (symbol as string);
         const request: Dict = {
             'order_id': id,
             'pair': market['id'],
@@ -843,7 +843,7 @@ export default class bitbank extends Exchange {
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const market = this.market (symbol as string);
         const request: Dict = {
             'order_id': id,
             'pair': market['id'],
@@ -888,7 +888,7 @@ export default class bitbank extends Exchange {
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const market = this.market (symbol as string);
         const request: Dict = {
             'pair': market['id'],
         };

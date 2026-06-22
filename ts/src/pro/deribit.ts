@@ -336,7 +336,7 @@ export default class deribit extends deribitRest {
         const data = this.safeDict (params, 'data', {});
         const ticker = this.parseWsBidAsk (data);
         const symbol = ticker['symbol'];
-        this.bidsasks[symbol] = ticker;
+        this.bidsasks[symbol as string] = ticker;
         const messageHash = this.safeString (params, 'channel');
         client.resolve (ticker, messageHash);
     }
@@ -528,7 +528,7 @@ export default class deribit extends deribitRest {
             const trade = parsed[i];
             cachedTrades.append (trade);
             const symbol = trade['symbol'];
-            marketIds[symbol] = true;
+            marketIds[symbol as string] = true;
         }
         client.resolve (cachedTrades, channel);
     }
@@ -863,16 +863,16 @@ export default class deribit extends deribitRest {
         const timeframes = this.safeDict (wsOptions, 'timeframes', {});
         const unifiedTimeframe = this.findTimeframe (rawTimeframe, timeframes);
         this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
-        if (this.safeValue (this.ohlcvs[symbol], unifiedTimeframe) === undefined) {
+        if (this.safeValue (this.ohlcvs[symbol], unifiedTimeframe as string) === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            this.ohlcvs[symbol][unifiedTimeframe] = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][unifiedTimeframe as string] = new ArrayCacheByTimestamp (limit);
         }
-        const stored = this.ohlcvs[symbol][unifiedTimeframe];
+        const stored = this.ohlcvs[symbol][unifiedTimeframe as string];
         const ohlcv = this.safeDict (params, 'data', {});
         // data contains a single OHLCV candle
         const parsed = this.parseWsOHLCV (ohlcv, market);
         stored.append (parsed);
-        this.ohlcvs[symbol][unifiedTimeframe] = stored;
+        this.ohlcvs[symbol][unifiedTimeframe as string] = stored;
         const resolveData = [ symbol, unifiedTimeframe, stored ];
         const messageHash = 'chart.trades|' + symbol + '|' + rawTimeframe;
         client.resolve (resolveData, messageHash);
@@ -1020,9 +1020,9 @@ export default class deribit extends deribitRest {
                 'book': this.handleOrderBook,
                 'trades': this.handleTrades,
                 'chart': this.handleOHLCV,
-                'user': this.safeValue (userHandlers, this.safeString (parts, 1)),
+                'user': this.safeValue (userHandlers, this.safeString (parts, 1) as string),
             };
-            const handler = this.safeValue (handlers, channelId);
+            const handler = this.safeValue (handlers, channelId as string);
             if (handler !== undefined) {
                 handler.call (this, client, message);
                 return;

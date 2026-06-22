@@ -392,7 +392,7 @@ export default class p2b extends p2bRest {
             ticker = this.parseTicker (tickerData, market);
         }
         const symbol = ticker['symbol'];
-        this.tickers[symbol] = ticker;
+        this.tickers[symbol as string] = ticker;
         const messageHash = messageHashStart + '::' + symbol;
         client.resolve (ticker, messageHash);
         return message;

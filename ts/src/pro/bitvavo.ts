@@ -91,7 +91,7 @@ export default class bitvavo extends bitvavoRest {
         const args: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market (symbols[i]);
-            args.push (market['id']);
+            args.push (market['id'] as string);
         }
         const url = this.urls['api']['ws'];
         const request: Dict = {
@@ -170,7 +170,7 @@ export default class bitvavo extends bitvavoRest {
             const messageHash = event + '@' + marketId;
             const ticker = this.parseTicker (data, market);
             const symbol = ticker['symbol'];
-            this.tickers[symbol] = ticker;
+            this.tickers[symbol as string] = ticker;
             result.push (ticker);
             client.resolve (ticker, messageHash);
         }
@@ -202,7 +202,7 @@ export default class bitvavo extends bitvavoRest {
             const data = tickers[i];
             const ticker = this.parseWsBidAsk (data);
             const symbol = ticker['symbol'];
-            this.bidsasks[symbol] = ticker;
+            this.bidsasks[symbol as string] = ticker;
             result.push (ticker);
             const messageHash = event + ':' + symbol;
             client.resolve (ticker, messageHash);
@@ -357,11 +357,11 @@ export default class bitvavo extends bitvavoRest {
         const messageHash = name + '@' + marketId + '_' + interval;
         const candles = this.safeValue (message, 'candle');
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        let stored = this.safeValue (this.ohlcvs[symbol], timeframe as string);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+            this.ohlcvs[symbol][timeframe as string] = stored;
         }
         for (let i = 0; i < candles.length; i++) {
             const candle = candles[i];
@@ -548,9 +548,9 @@ export default class bitvavo extends bitvavoRest {
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');
         if (symbol in this.orderbooks) {
-            delete this.orderbooks[symbol];
+            delete this.orderbooks[symbol as string];
         }
-        this.orderbooks[symbol] = this.orderBook ({}, limit);
+        this.orderbooks[symbol as string] = this.orderBook ({}, limit);
     }
 
     handleOrderBookSubscriptions (client: Client, message, marketIds) {
@@ -1414,7 +1414,7 @@ export default class bitvavo extends bitvavoRest {
         const messageHash = this.safeString (message, 'requestId', buildMessage);
         let rejected = false;
         try {
-            this.handleErrors (code, error, client.url, '', {}, error, message, {}, {});
+            this.handleErrors (code as number, error, client.url, '', {}, error, message, {}, {});
         } catch (e) {
             rejected = true;
             client.reject (e, messageHash);
@@ -1502,10 +1502,10 @@ export default class bitvavo extends bitvavoRest {
             'getMarkets': this.handleMarkets,
         };
         const event = this.safeString (message, 'event');
-        let method = this.safeValue (methods, event);
+        let method = this.safeValue (methods, event as string);
         if (method === undefined) {
             const action = this.safeString (message, 'action');
-            method = this.safeValue (methods, action);
+            method = this.safeValue (methods, action as string);
             if (method !== undefined) {
                 method.call (this, client, message);
             }

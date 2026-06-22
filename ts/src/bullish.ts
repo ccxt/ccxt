@@ -2472,7 +2472,7 @@ export default class bullish extends Exchange {
         const account = this.account ();
         account['free'] = this.safeString (response, 'availableQuantity');
         account['used'] = this.safeString (response, 'lockedQuantity');
-        result[code] = account;
+        result[code as string] = account;
         return this.safeBalance (result);
     }
 

@@ -678,7 +678,7 @@ export default class bitteam extends Exchange {
         } else {
             feesByNetworkId = withdrawCommissionFixed;
         }
-        const statuses = this.safeValue (statusesResponse, numericId, {});
+        const statuses = this.safeValue (statusesResponse, numericId as number, {});
         const deposit = this.safeValue (statuses, 'depositStatus');
         const withdraw = this.safeValue (statuses, 'withdrawStatus');
         const networkIds = Object.keys (feesByNetworkId);

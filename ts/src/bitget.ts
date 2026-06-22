@@ -2141,13 +2141,13 @@ export default class bitget extends Exchange {
                 const amountDecimals = this.safeInteger (market, 'volumePlace');
                 const priceStep = this.safeString (market, 'priceEndStep');
                 const amountStep = this.safeString (market, 'sizeMultiplier');
-                const precise = new Precise (priceStep);
-                precise.decimals = Math.max (precise.decimals, priceDecimals);
+                const precise = new Precise (priceStep as string);
+                precise.decimals = Math.max (precise.decimals, priceDecimals as number);
                 precise.reduce ();
                 const priceString = precise.toString ();
                 pricePrecision = this.parseNumber (priceString);
-                const preciseAmount = new Precise (amountStep);
-                preciseAmount.decimals = Math.max (preciseAmount.decimals, amountDecimals);
+                const preciseAmount = new Precise (amountStep as string);
+                preciseAmount.decimals = Math.max (preciseAmount.decimals, amountDecimals as number);
                 preciseAmount.reduce ();
                 const amountString = preciseAmount.toString ();
                 amountPrecision = this.parseNumber (amountString);
@@ -4288,8 +4288,8 @@ export default class bitget extends Exchange {
         const recentEndpointAvailableDays = this.safeInteger (recentEndpointDaysMap, timeframe);
         const recentEndpointBoundaryTs = now - (recentEndpointAvailableDays - 1) * msInDay;
         if (limitDefined) {
-            limit = Math.min (limit, maxLimitForRecentEndpoint);
-            limit = Math.min (limit, maxLimitForThisTimeframe);
+            limit = Math.min (limit as number, maxLimitForRecentEndpoint);
+            limit = Math.min (limit, maxLimitForThisTimeframe as number);
         } else {
             limit = defaultLimit;
         }
@@ -5541,10 +5541,10 @@ export default class bitget extends Exchange {
                     }
                 }
             }
-            const orderRequest = this.createUtaOrderRequest (marketId, type, side, amount, price, orderParams);
+            const orderRequest = this.createUtaOrderRequest (marketId as string, type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
-        const market = this.market (symbol);
+        const market = this.market (symbol as string);
         const response = await this.privateUtaPostV3TradePlaceBatch (ordersRequests);
         //
         //     {
@@ -5613,10 +5613,10 @@ export default class bitget extends Exchange {
                     }
                 }
             }
-            const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
+            const orderRequest = this.createOrderRequest (marketId as string, type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
-        const market = this.market (symbol);
+        const market = this.market (symbol as string);
         const request: Dict = {
             'symbol': market['id'],
             'orderList': ordersRequests,
@@ -7631,7 +7631,7 @@ export default class bitget extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const market = this.market (symbol as string);
         let request: Dict = {};
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
         if (since !== undefined) {
@@ -8300,7 +8300,7 @@ export default class bitget extends Exchange {
         const markPrice = this.safeString (position, 'markPrice');
         const notional = Precise.stringMul (baseAmount, markPrice);
         const initialMarginPercentage = Precise.stringDiv (initialMargin, notional);
-        let liquidationPrice = this.parseNumber (this.omitZero (this.safeString (position, 'liquidationPrice')));
+        let liquidationPrice = this.parseNumber (this.omitZero (this.safeString (position, 'liquidationPrice') as string));
         const calcTakerFeeRate = '0.0006';
         const calcTakerFeeMult = '0.9994';
         if ((liquidationPrice === undefined) && (marginMode === 'isolated') && Precise.stringGt (baseAmount, '0')) {
@@ -11010,7 +11010,7 @@ export default class bitget extends Exchange {
      */
     async fetchLongShortRatioHistory (symbol: Str = undefined, timeframe: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LongShortRatio[]> {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const market = this.market (symbol as string);
         const request: Dict = {
             'symbol': market['id'],
         };

@@ -1718,7 +1718,7 @@ export default class poloniex extends Exchange {
         let resultingTrades = this.safeValue (order, 'resultingTrades');
         if (resultingTrades !== undefined) {
             if (!Array.isArray (resultingTrades)) {
-                resultingTrades = this.safeValue (resultingTrades, this.safeString (market, 'id', marketId));
+                resultingTrades = this.safeValue (resultingTrades, this.safeString (market, 'id', marketId) as string);
             }
         }
         const price = this.safeStringN (order, [ 'price', 'rate', 'px' ]);
@@ -3003,7 +3003,7 @@ export default class poloniex extends Exchange {
             const entry = response[i];
             const currencies = Object.keys (entry);
             const currencyId = this.safeString (currencies, 0);
-            data[currencyId] = entry[currencyId];
+            data[currencyId as string] = entry[currencyId as string];
         }
         return this.parseDepositWithdrawFees (data, codes);
     }
@@ -3513,7 +3513,7 @@ export default class poloniex extends Exchange {
             'collateral': collateral,
             'initialMargin': initialMargin,
             'initialMarginPercentage': undefined,
-            'leverage': parseInt (leverage),
+            'leverage': parseInt (leverage as string),
             'marginRatio': this.safeNumber (position, 'mgnRatio'),
             'stopLossPrice': this.safeNumber (position, 'slTrgPx'),
             'takeProfitPrice': this.safeNumber (position, 'tpTrgPx'),

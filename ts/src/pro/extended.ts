@@ -339,7 +339,7 @@ export default class extended extends extendedRest {
         for (let i = 0; i < rawTrades.length; i++) {
             const trade = this.parseTrade (rawTrades[i]);
             const symbol = this.safeString (trade, 'symbol');
-            symbols[symbol] = true;
+            symbols[symbol as string] = true;
             stored.append (trade);
         }
         const keys = Object.keys (symbols);
@@ -490,7 +490,7 @@ export default class extended extends extendedRest {
         for (let i = 0; i < rawOrders.length; i++) {
             const order = this.parseOrder (rawOrders[i]);
             const symbol = this.safeString (order, 'symbol');
-            symbols[symbol] = true;
+            symbols[symbol as string] = true;
             orders.append (order);
         }
         const keys = Object.keys (symbols);
@@ -548,7 +548,7 @@ export default class extended extends extendedRest {
         const data = this.safeDict (message, 'data', {});
         const fundingRate = this.parseWsFundingRate (data, undefined, message);
         const symbol = this.safeString (fundingRate, 'symbol');
-        this.fundingRates[symbol] = fundingRate;
+        this.fundingRates[symbol as string] = fundingRate;
         const messageHash = 'fundingRate:' + symbol;
         client.resolve (fundingRate, messageHash);
     }
@@ -792,13 +792,13 @@ export default class extended extends extendedRest {
         const candleType = this.safeString (subscription, 'candleType');
         const cacheKey = (candleType === 'trades') ? timeframe : timeframe + ':' + candleType;
         const messageHash = this.safeString (subscription, 'messageHash');
-        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.ohlcvs[symbol], cacheKey);
+        this.ohlcvs[symbol as string] = this.safeValue (this.ohlcvs, symbol as string, {});
+        let stored = this.safeValue (this.ohlcvs[symbol as string], cacheKey as string);
         if (stored === undefined) {
             const defaultLimit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             const limit = this.safeInteger (subscription, 'limit', defaultLimit);
             stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][cacheKey] = stored;
+            this.ohlcvs[symbol as string][cacheKey] = stored;
         }
         const previousNonce = this.safeInteger (subscription, 'nonce');
         const nonce = this.safeInteger (message, 'seq');

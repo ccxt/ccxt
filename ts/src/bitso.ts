@@ -1047,7 +1047,7 @@ export default class bitso extends Exchange {
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = 25, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const market = this.market (symbol as string);
         // the don't support fetching trades starting from a date yet
         // use the `marker` extra param for that
         // this is not a typo, the variable name is 'marker' (don't confuse with 'market')
@@ -1274,7 +1274,7 @@ export default class bitso extends Exchange {
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = 25, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const market = this.market (symbol as string);
         // the don't support fetching trades starting from a date yet
         // use the `marker` extra param for that
         // this is not a typo, the variable name is 'marker' (don't confuse with 'market')
@@ -1341,7 +1341,7 @@ export default class bitso extends Exchange {
      */
     async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const market = this.market (symbol as string);
         const request: Dict = {
             'oid': id,
         };

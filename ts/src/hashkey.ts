@@ -1052,7 +1052,7 @@ export default class hashkey extends Exchange {
         const priceFilter = this.safeDict (filters, 'PRICE_FILTER', {});
         const amountFilter = this.safeDict (filters, 'LOT_SIZE', {});
         const costFilter = this.safeDict (filters, 'MIN_NOTIONAL', {});
-        const minCostString = this.omitZero (this.safeString (costFilter, 'min_notional'));
+        const minCostString = this.omitZero (this.safeString (costFilter, 'min_notional') as string);
         const contractSizeString = this.safeString (market, 'contractMultiplier');
         let amountPrecisionString = this.safeString (amountFilter, 'stepSize');
         let amountMinLimitString = this.safeString (amountFilter, 'minQty');
@@ -1185,14 +1185,14 @@ export default class hashkey extends Exchange {
         for (let j = 0; j < networks.length; j++) {
             const network = networks[j];
             const networkId = this.safeString (network, 'chainType');
-            const networkCode = this.networkCodeToId (networkId, code);
+            const networkCode = this.networkCodeToId (networkId as string, code);
             parsedNetworks[networkCode] = {
                 'id': networkId,
                 'network': networkCode,
                 'limits': {
                     'withdraw': {
                         'min': this.safeNumber (network, 'minWithdrawQuantity'),
-                        'max': this.parseNumber (this.omitZero (this.safeString (network, 'maxWithdrawQuantity'))),
+                        'max': this.parseNumber (this.omitZero (this.safeString (network, 'maxWithdrawQuantity') as string)),
                     },
                     'deposit': {
                         'min': this.safeNumber (network, 'minDepositQuantity'),
@@ -1886,7 +1886,7 @@ export default class hashkey extends Exchange {
         if (networkCode === undefined) {
             networkCode = this.defaultNetworkCode (code);
         }
-        request['chainType'] = this.networkCodeToId (networkCode, code);
+        request['chainType'] = this.networkCodeToId (networkCode as string, code);
         const response = await this.privateGetApiV1AccountDepositAddress (this.extend (request, params));
         //
         //     {
@@ -2349,7 +2349,7 @@ export default class hashkey extends Exchange {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires an until argument');
         }
         await this.loadMarkets ();
-        const currency = this.currency (code);
+        const currency = this.currency (code as string);
         const request = {};
         request['startTime'] = since;
         if (limit !== undefined) {
@@ -2819,7 +2819,7 @@ export default class hashkey extends Exchange {
             const amount = this.safeNumber (rawOrder, 'amount');
             const price = this.safeNumber (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
-            const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, orderParams);
+            const orderRequest = this.createOrderRequest (symbol as string, type, side, amount, price, orderParams);
             const clientOrderId = this.safeString (orderRequest, 'clientOrderId');
             if (clientOrderId === undefined) {
                 orderRequest['clientOrderId'] = this.uuid (); // both spot and swap endpoints require clientOrderId
@@ -2828,7 +2828,7 @@ export default class hashkey extends Exchange {
         }
         const firstOrder = ordersRequests[0];
         const firstSymbol = this.safeString (firstOrder, 'symbol');
-        const market = this.market (firstSymbol);
+        const market = this.market (firstSymbol as string);
         const request: Dict = {
             'orders': ordersRequests,
         };
@@ -4335,12 +4335,12 @@ export default class hashkey extends Exchange {
             if ((method === 'POST') && ((path === 'api/v1/spot/batchOrders') || (path === 'api/v1/futures/batchOrders'))) {
                 headers['Content-Type'] = 'application/json';
                 body = this.json (this.safeList (params, 'orders'));
-                signature = this.hmac (this.encode (this.customUrlencode (additionalParams)), this.encode (this.secret), sha256);
+                signature = this.hmac (this.encode (this.customUrlencode (additionalParams)), this.encode (this.secret as string), sha256);
                 query = this.customUrlencode (this.extend (additionalParams, { 'signature': signature }));
                 url += '?' + query;
             } else {
                 const totalParams = this.extend (additionalParams, params);
-                signature = this.hmac (this.encode (this.customUrlencode (totalParams)), this.encode (this.secret), sha256);
+                signature = this.hmac (this.encode (this.customUrlencode (totalParams)), this.encode (this.secret as string), sha256);
                 totalParams['signature'] = signature;
                 query = this.customUrlencode (totalParams);
                 if (method === 'GET') {

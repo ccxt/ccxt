@@ -204,11 +204,11 @@ export default class lbank extends lbankRest {
             const timeframeId = this.safeString (message, 'kbar');
             const timeframe = this.findTimeframe (timeframeId, timeframes);
             this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-            let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+            let stored = this.safeValue (this.ohlcvs[symbol], timeframe as string);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
-                this.ohlcvs[symbol][timeframe] = stored;
+                this.ohlcvs[symbol][timeframe as string] = stored;
             }
             stored.append (parsed);
             const messageHash = 'fetchOHLCV:' + symbol + ':' + timeframeId;
@@ -227,11 +227,11 @@ export default class lbank extends lbankRest {
             ];
             const timeframe = this.findTimeframe (timeframeId, timeframes);
             this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-            let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+            let stored = this.safeValue (this.ohlcvs[symbol], timeframe as string);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
-                this.ohlcvs[symbol][timeframe] = stored;
+                this.ohlcvs[symbol][timeframe as string] = stored;
             }
             stored.append (parsed);
             const messageHash = 'ohlcv:' + symbol + ':' + timeframeId;
@@ -924,7 +924,7 @@ export default class lbank extends lbankRest {
             'orderUpdate': this.handleOrders,
             'assetUpdate': this.handleBalance,
         };
-        const handler = this.safeValue (handlers, type);
+        const handler = this.safeValue (handlers, type as string);
         if (handler !== undefined) {
             handler.call (this, client, message);
         }
