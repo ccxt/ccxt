@@ -1315,7 +1315,6 @@ class derive extends Exchange {
             }
             $request['signature'] = $signature;
             $params = $this->omit($params, array( 'reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'test', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trigger_price', 'stopLoss', 'takeProfit', 'trigger_price_type' ));
-            $response = null;
             if ($test) {
                 $response = Async\await($this->privatePostOrderDebug ($this->extend($request, $params)));
             } else {
@@ -1599,7 +1598,6 @@ class derive extends Exchange {
             $clientOrderIdUnified = $this->safe_string($params, 'clientOrderId');
             $clientOrderIdExchangeSpecific = $this->safe_string($params, 'label', $clientOrderIdUnified);
             $isByClientOrder = $clientOrderIdExchangeSpecific !== null;
-            $response = null;
             if ($isByClientOrder) {
                 $request['label'] = $clientOrderIdExchangeSpecific;
                 $params = $this->omit($params, array( 'clientOrderId', 'label' ));
@@ -1687,7 +1685,6 @@ class derive extends Exchange {
             $request = array(
                 'subaccount_id' => $subaccountId,
             );
-            $response = null;
             if ($market !== null) {
                 $request['instrument_name'] = $market['id'];
                 $response = Async\await($this->privatePostCancelByInstrument ($this->extend($request, $params)));
@@ -1959,7 +1956,7 @@ class derive extends Exchange {
         if ($marketId !== null) {
             $market = $this->safe_market($marketId, $market);
         }
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol');
         $price = $this->safe_string($order, 'limit_price');
         $average = $this->safe_string($order, 'average_price');
         $amount = $this->safe_string($order, 'desired_amount');
@@ -2720,7 +2717,7 @@ class derive extends Exchange {
         return null;
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api'][$api] . '/' . $path;
         if ($method === 'POST') {
             $headers = array(

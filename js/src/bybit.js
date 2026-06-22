@@ -1843,7 +1843,7 @@ export default class bybit extends Exchange {
             'category': 'spot',
         };
         const usePrivateInstrumentsInfo = this.safeBool(this.options, 'usePrivateInstrumentsInfo', false);
-        let response = undefined;
+        let response;
         if (usePrivateInstrumentsInfo) {
             response = await this.privateGetV5MarketInstrumentsInfo(this.extend(request, params));
         }
@@ -1980,7 +1980,7 @@ export default class bybit extends Exchange {
         if (paginationCursor !== undefined) {
             while (paginationCursor !== undefined) {
                 params['cursor'] = paginationCursor;
-                let responseInner = undefined;
+                let responseInner;
                 if (usePrivateInstrumentsInfo) {
                     responseInner = await this.privateGetV5MarketInstrumentsInfo(params);
                 }
@@ -2160,7 +2160,7 @@ export default class bybit extends Exchange {
             'category': 'option',
         };
         const usePrivateInstrumentsInfo = this.safeBool(this.options, 'usePrivateInstrumentsInfo', false);
-        let response = undefined;
+        let response;
         if (usePrivateInstrumentsInfo) {
             response = await this.privateGetV5MarketInstrumentsInfo(this.extend(request, params));
         }
@@ -2175,7 +2175,7 @@ export default class bybit extends Exchange {
             if (paginationCursor !== undefined) {
                 while (paginationCursor !== undefined) {
                     request['cursor'] = paginationCursor;
-                    let responseInner = undefined;
+                    let responseInner;
                     if (usePrivateInstrumentsInfo) {
                         responseInner = await this.privateGetV5MarketInstrumentsInfo(this.extend(request, params));
                     }
@@ -2625,7 +2625,8 @@ export default class bybit extends Exchange {
         //         "2.4343353100000003"
         //     ]
         //
-        const volumeIndex = (market['inverse']) ? 6 : 5;
+        const isInverse = this.safeBool(market, 'inverse');
+        const volumeIndex = (isInverse) ? 6 : 5;
         return [
             this.safeInteger(ohlcv, 0),
             this.safeNumber(ohlcv, 1),
@@ -2677,7 +2678,7 @@ export default class bybit extends Exchange {
         }
         [request, params] = this.handleUntilOption('end', request, params);
         request['interval'] = this.safeString(this.timeframes, timeframe, timeframe);
-        let response = undefined;
+        let response;
         if (market['spot']) {
             request['category'] = 'spot';
             response = await this.publicGetV5MarketKline(this.extend(request, params));
@@ -2973,7 +2974,7 @@ export default class bybit extends Exchange {
         //
         const rates = [];
         const result = this.safeDict(response, 'result');
-        const resultList = this.safeList(result, 'list');
+        const resultList = this.safeList(result, 'list', []);
         for (let i = 0; i < resultList.length; i++) {
             const entry = resultList[i];
             const timestamp = this.safeInteger(entry, 'fundingRateTimestamp');
@@ -3483,7 +3484,7 @@ export default class bybit extends Exchange {
                 const entry = currencyList[i];
                 const accountType = this.safeString(entry, 'accountType');
                 if (accountType === 'UNIFIED' || accountType === 'CONTRACT' || accountType === 'SPOT') {
-                    const coins = this.safeList(entry, 'coin');
+                    const coins = this.safeList(entry, 'coin', []);
                     for (let j = 0; j < coins.length; j++) {
                         const account = this.account();
                         const coinEntry = coins[j];
@@ -3582,7 +3583,7 @@ export default class bybit extends Exchange {
         const unifiedType = this.safeStringUpper(accountTypes, type, type);
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('fetchBalance', params);
-        let response = undefined;
+        let response;
         if (isSpot && (marginMode !== undefined)) {
             response = await this.privateGetV5SpotCrossMarginTradeAccount(this.extend(request, params));
         }
@@ -4059,7 +4060,7 @@ export default class bybit extends Exchange {
         }
         let method = undefined;
         [method, params] = this.handleOptionAndParams(params, 'createOrder', 'method', defaultMethod);
-        let response = undefined;
+        let response;
         if (method === 'privatePostV5PositionTradingStop') {
             response = await this.privatePostV5PositionTradingStop(orderRequest);
         }
@@ -6162,7 +6163,7 @@ export default class bybit extends Exchange {
         }
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('fetchLedger', undefined, params);
-        let response = undefined;
+        let response;
         if (enableUnified[1]) {
             const unifiedMarginStatus = this.safeInteger(this.options, 'unifiedMarginStatus', 5); // 3/4 uta 1.0, 5/6 uta 2.0
             if (subType === 'inverse' && (unifiedMarginStatus < 5)) {
@@ -6918,7 +6919,7 @@ export default class bybit extends Exchange {
         const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
         const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
         let market = undefined;
-        let response = undefined;
+        let response;
         if (isUnifiedAccount) {
             if (marginMode === 'isolated') {
                 marginMode = 'ISOLATED_MARGIN';
@@ -7077,10 +7078,10 @@ export default class bybit extends Exchange {
             request['coin'] = 'USDT';
         }
         else {
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
         }
         if (symbol !== undefined) {
-            request['category'] = market['linear'] ? 'linear' : 'inverse';
+            request['category'] = this.safeBool(market, 'linear') ? 'linear' : 'inverse';
         }
         else {
             let type = undefined;
@@ -7262,10 +7263,10 @@ export default class bybit extends Exchange {
         const timestamp = this.safeInteger(interest, 'timestamp');
         const openInterest = this.safeNumber2(interest, 'open_interest', 'openInterest');
         // the openInterest is in the base asset for linear and quote asset for inverse
-        const amount = market['linear'] ? openInterest : undefined;
-        const value = market['inverse'] ? openInterest : undefined;
+        const amount = this.safeBool(market, 'linear') ? openInterest : undefined;
+        const value = this.safeBool(market, 'inverse') ? openInterest : undefined;
         return this.safeOpenInterest({
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'openInterestAmount': amount,
             'openInterestValue': value,
             'timestamp': timestamp,
@@ -8031,7 +8032,7 @@ export default class bybit extends Exchange {
         const data = this.safeList(result, 'list', []);
         const settlements = this.parseSettlements(data, market);
         const sorted = this.sortBy(settlements, 'timestamp');
-        return this.filterBySymbolSinceLimit(sorted, market['symbol'], since, limit);
+        return this.filterBySymbolSinceLimit(sorted, this.safeString(market, 'symbol'), since, limit);
     }
     /**
      * @method
@@ -8092,7 +8093,7 @@ export default class bybit extends Exchange {
         const data = this.safeList(result, 'list', []);
         const settlements = this.parseSettlements(data, market);
         const sorted = this.sortBy(settlements, 'timestamp');
-        return this.filterBySymbolSinceLimit(sorted, market['symbol'], since, limit);
+        return this.filterBySymbolSinceLimit(sorted, this.safeString(market, 'symbol'), since, limit);
     }
     parseSettlement(settlement, market) {
         //
@@ -8559,7 +8560,7 @@ export default class bybit extends Exchange {
         const first = this.safeDict(result, 0);
         const total = result.length;
         const lastIndex = total - 1;
-        const last = this.safeDict(result, lastIndex);
+        const last = this.safeDict(result, lastIndex, {});
         const cursorValue = this.safeString(first, 'nextPageCursor');
         last['info'] = {
             'nextPageCursor': cursorValue,
@@ -8692,7 +8693,7 @@ export default class bybit extends Exchange {
         [type, params] = this.getBybitType('fetchFundingHistory', market, params);
         request['category'] = type;
         if (symbol !== undefined) {
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
         }
         if (since !== undefined) {
             request['startTime'] = since;
@@ -8967,7 +8968,7 @@ export default class bybit extends Exchange {
             'category': subType,
         };
         if ((symbols !== undefined) && (symbolsLength === 1)) {
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
         }
         if (since !== undefined) {
             request['startTime'] = since;
@@ -9732,6 +9733,7 @@ export default class bybit extends Exchange {
         if (method === 'POST') {
             const brokerId = this.safeString(this.options, 'brokerId');
             if (brokerId !== undefined) {
+                headers = (headers === undefined) ? {} : headers;
                 headers['Referer'] = brokerId;
             }
         }

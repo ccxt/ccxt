@@ -375,7 +375,7 @@ export default class krakenfutures extends krakenfuturesRest {
         const marketId = this.safeString (position, 'instrument');
         const hedged = 'both';
         const balanceString = this.safeString (position, 'balance');
-        let side = undefined;
+        let side: Str = undefined;
         if (Precise.stringGt (balanceString, '0')) {
             side = 'long';
         } else if (Precise.stringLt (balanceString, '0')) {
@@ -474,7 +474,7 @@ export default class krakenfutures extends krakenfuturesRest {
         await this.loadMarkets ();
         const name = 'balances';
         let messageHash = name;
-        let account = undefined;
+        let account: Str = undefined;
         [ account, params ] = this.handleOptionAndParams (params, 'watchBalance', 'account');
         if (account !== undefined) {
             if (account !== 'futures' && account !== 'flex_futures') {
@@ -920,7 +920,7 @@ export default class krakenfutures extends krakenfuturesRest {
         //
         const isCancelled = this.safeValue (order, 'is_cancel');
         let unparsedOrder = order;
-        let status = undefined;
+        let status: Str = undefined;
         if (isCancelled !== undefined) {
             unparsedOrder = this.safeValue (order, 'order');
             if (isCancelled === true) {

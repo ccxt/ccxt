@@ -1194,7 +1194,7 @@ class bitmart extends Exchange {
         return $this->array_concat($spot, $contract);
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available $currencies on an exchange
          *
@@ -2892,7 +2892,7 @@ class bitmart extends Exchange {
             $ordersRequests[] = $orderRequest;
         }
         $request = array(
-            'symbol' => $market['id'],
+            'symbol' => $this->safe_string($market, 'id'),
             'orderParams' => $ordersRequests,
         );
         $response = $this->privatePostSpotV4BatchOrders ($request);
@@ -3752,7 +3752,7 @@ class bitmart extends Exchange {
             if ($orderType !== null) {
                 $request['type'] = $orderType;
             }
-            $request['symbol'] = $market['id'];
+            $request['symbol'] = $this->safe_string($market, 'id');
             $request['order_id'] = $id;
             $response = $this->privateGetContractPrivateOrder ($this->extend($request, $params));
         }
@@ -4401,7 +4401,7 @@ class bitmart extends Exchange {
         );
     }
 
-    public function fetch_isolated_borrow_rates($params = array ()): IsolatedBorrowRates {
+    public function fetch_isolated_borrow_rates($params = array ()): array {
         /**
          * fetch the borrow interest rates of all currencies, currently only works for isolated margin
          *
@@ -5049,7 +5049,7 @@ class bitmart extends Exchange {
         $request = array();
         if ($symbolsLength === 1) {
             // only supports $symbols or sending one symbol
-            $request['symbol'] = $market['id'];
+            $request['symbol'] = $this->safe_string($market, 'id');
         }
         $response = $this->privateGetContractPrivatePositionV2 ($this->extend($request, $params));
         //
@@ -5699,7 +5699,7 @@ class bitmart extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $parts = explode('/', $path);
         // to do => refactor $api endpoints with spot/swap sections
         $category = $this->safe_string($parts, 0, 'spot');

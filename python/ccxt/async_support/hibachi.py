@@ -535,7 +535,7 @@ class hibachi(Exchange, ImplicitAPI):
         timestamp = self.safe_integer_product(trade, 'timestamp', 1000)
         cost = Precise.string_mul(price, amount)
         side: Str = None
-        fee = None
+        fee: dict = None
         orderType: Str = None
         orderId: Str = None
         takerOrMaker: Str = None
@@ -676,7 +676,7 @@ class hibachi(Exchange, ImplicitAPI):
         remaining = self.safe_string(order, 'availableQuantity')
         totalQuantity = self.safe_string(order, 'totalQuantity')
         availableQuantity = self.safe_string(order, 'availableQuantity')
-        filled = None
+        filled: Str = None
         if totalQuantity is not None and availableQuantity is not None:
             filled = Precise.string_sub(totalQuantity, availableQuantity)
         timeInForce = 'GTC'
@@ -914,7 +914,7 @@ class hibachi(Exchange, ImplicitAPI):
         # {"orders": [{nonce: '1754349993908', orderId: '589642085255349248'}]}
         #
         ret = []
-        responseOrders = self.safe_list(response, 'orders')
+        responseOrders = self.safe_list(response, 'orders', [])
         for i in range(0, len(responseOrders)):
             responseOrder = responseOrders[i]
             ret.append(self.safe_order({
@@ -1002,7 +1002,7 @@ class hibachi(Exchange, ImplicitAPI):
         # {"orders": [{"orderId": "589636801329628160"}]}
         #
         ret = []
-        responseOrders = self.safe_list(response, 'orders')
+        responseOrders = self.safe_list(response, 'orders', [])
         for i in range(0, len(responseOrders)):
             responseOrder = responseOrders[i]
             ret.append(self.safe_order({
@@ -1072,7 +1072,7 @@ class hibachi(Exchange, ImplicitAPI):
         # {"orders": [{"orderId": "589636801329628160"}]}
         #
         ret = []
-        responseOrders = self.safe_list(response, 'orders')
+        responseOrders = self.safe_list(response, 'orders', [])
         for i in range(0, len(responseOrders)):
             responseOrder = responseOrders[i]
             ret.append(self.safe_order({
@@ -1553,7 +1553,7 @@ class hibachi(Exchange, ImplicitAPI):
             'percentage': None,
         })
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         endpoint = '/' + self.implode_params(path, params)
         url = self.urls['api'][api] + endpoint
         headers = {'Hibachi-Client': 'HibachiCCXT/unversioned'}
@@ -1866,7 +1866,7 @@ class hibachi(Exchange, ImplicitAPI):
         #         },
         #     ]
         # }
-        transactions = self.safe_list(response, 'transactions')
+        transactions = self.safe_list(response, 'transactions', [])
         deposits = []
         for i in range(0, len(transactions)):
             transaction = transactions[i]
@@ -1922,7 +1922,7 @@ class hibachi(Exchange, ImplicitAPI):
         #         },
         #     ]
         # }
-        transactions = self.safe_list(response, 'transactions')
+        transactions = self.safe_list(response, 'transactions', [])
         withdrawals = []
         for i in range(0, len(transactions)):
             transaction = transactions[i]
@@ -2058,7 +2058,7 @@ class hibachi(Exchange, ImplicitAPI):
         #     ]
         # }
         #
-        data = self.safe_list(response, 'data')
+        data = self.safe_list(response, 'data', [])
         rates = []
         for i in range(0, len(data)):
             entry = data[i]

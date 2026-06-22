@@ -1532,7 +1532,7 @@ class paradex(Exchange, ImplicitAPI):
         if clientOrderId is not None:
             request['client_id'] = clientOrderId
         sizeString = '0'
-        stopPrice = None
+        stopPrice: Str = None
         if isStopOrder:
             # flags: Reduce_Only must be provided for TPSL orders.
             if isMarket:
@@ -1749,7 +1749,7 @@ class paradex(Exchange, ImplicitAPI):
         """
         self.authenticate_rest()
         self.load_markets()
-        ordersRequests = []
+        ordersRequests: List = []
         for i in range(0, len(orders)):
             rawOrder = orders[i]
             symbol = self.safe_string(rawOrder, 'symbol')
@@ -1812,7 +1812,7 @@ class paradex(Exchange, ImplicitAPI):
         self.load_markets()
         request: dict = {}
         clientOrderId = self.safe_string_n(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
-        response: dict = None
+        response: dict
         if clientOrderId is not None:
             request['client_id'] = clientOrderId
             response = self.privateDeleteOrdersByClientIdClientId(self.extend(request, params))
@@ -1875,7 +1875,7 @@ class paradex(Exchange, ImplicitAPI):
         # }
         #
         results = self.safe_list(response, 'results', [])
-        orders = []
+        orders: List = []
         for i in range(0, len(results)):
             result = results[i]
             marketId = self.safe_string(result, 'market')
@@ -1939,7 +1939,7 @@ class paradex(Exchange, ImplicitAPI):
         request: dict = {}
         clientOrderId = self.safe_string_n(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
         params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
-        response: dict = None
+        response: dict
         if clientOrderId is not None:
             request['client_id'] = clientOrderId
             response = self.privateGetOrdersByClientIdClientId(self.extend(request, params))
@@ -2422,7 +2422,7 @@ class paradex(Exchange, ImplicitAPI):
         #     }
         #
         rows = self.safe_list(response, 'results', [])
-        deposits = []
+        deposits: List = []
         for i in range(0, len(rows)):
             row = rows[i]
             if row['kind'] == 'DEPOSIT':
@@ -2478,7 +2478,7 @@ class paradex(Exchange, ImplicitAPI):
         #     }
         #
         rows = self.safe_list(response, 'results', [])
-        deposits = []
+        deposits: List = []
         for i in range(0, len(rows)):
             row = rows[i]
             if row['kind'] == 'WITHDRAWAL':
@@ -2678,7 +2678,7 @@ class paradex(Exchange, ImplicitAPI):
         marginMode = self.safe_string_lower(rawMarginMode, 'margin_type')
         return {
             'info': rawMarginMode,
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'marginMode': marginMode,
         }
 
@@ -3079,7 +3079,7 @@ class paradex(Exchange, ImplicitAPI):
         # }
         #
         results = self.safe_list(response, 'results', [])
-        rates = []
+        rates: List = []
         for i in range(0, len(results)):
             rate = results[i]
             timestamp = self.safe_integer(rate, 'created_at')
@@ -3094,7 +3094,7 @@ class paradex(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         version = self.version
         if path.find('v2/') == 0:
             version = 'v2'

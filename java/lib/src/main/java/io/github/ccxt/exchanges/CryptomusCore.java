@@ -671,7 +671,7 @@ public class CryptomusCore extends CryptomusApi
             put( "id", CryptomusCore.this.safeString(trade, "trade_id") );
             put( "timestamp", timestamp );
             put( "datetime", CryptomusCore.this.iso8601(timestamp) );
-            put( "symbol", Helpers.GetValue(market, "symbol") );
+            put( "symbol", CryptomusCore.this.safeString(market, "symbol") );
             put( "side", CryptomusCore.this.safeString(trade, "type") );
             put( "price", CryptomusCore.this.safeString(trade, "price") );
             put( "amount", CryptomusCore.this.safeString(trade, "quote_volume") );

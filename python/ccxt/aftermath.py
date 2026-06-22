@@ -314,7 +314,7 @@ class aftermath(Exchange, ImplicitAPI):
         #     }
         #
         precision = self.safe_dict(market, 'precision')
-        limits = self.safe_dict(market, 'limits')
+        limits = self.safe_dict(market, 'limits', {})
         return self.safe_market_structure({
             'id': self.safe_string(market, 'id'),
             'symbol': self.safe_string(market, 'symbol'),
@@ -836,7 +836,7 @@ class aftermath(Exchange, ImplicitAPI):
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
-        ordersRequest = []
+        ordersRequest: List = []
         for i in range(0, len(orders)):
             order = self.clone(orders[i])
             symbol = self.safe_string(order, 'symbol')
@@ -1297,7 +1297,7 @@ class aftermath(Exchange, ImplicitAPI):
             raise ExchangeError(body)
         return None
 
-    def sign(self, path, api='public', method='POST', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='POST', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api']['rest'] + '/' + path
         if api == 'private':
             self.check_required_credentials()

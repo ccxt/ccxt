@@ -153,7 +153,7 @@ export default class pacifica extends pacificaRest {
         if (code === 200) {
             success = true;
         }
-        let status = undefined;
+        let status: Str = undefined;
         if (!success) {
             status = 'rejected';
         } else {
@@ -211,7 +211,7 @@ export default class pacifica extends pacificaRest {
         if (code === 200) {
             success = true;
         }
-        let status = undefined;
+        let status: Str = undefined;
         if (!success) {
             status = 'rejected';
         } else {
@@ -286,7 +286,7 @@ export default class pacifica extends pacificaRest {
             const market = this.safeMarket (marketId);
             const orderId = this.safeString (order, 'i');
             const clientOrderId = this.safeString (order, 'I');
-            let status = undefined;
+            let status: Str = undefined;
             if ((error !== undefined) || (!success)) {
                 status = 'closed';
             } else {
@@ -344,7 +344,7 @@ export default class pacifica extends pacificaRest {
         if (code === 200) {
             success = true;
         }
-        let status = undefined;
+        let status: Str = undefined;
         if (!success) {
             status = 'rejected';
         } else {
@@ -412,7 +412,7 @@ export default class pacifica extends pacificaRest {
         this.setupApiKeyHeaders ();
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let aggLevel = undefined;
+        let aggLevel: Int = undefined;
         [ aggLevel, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'aggLevel', 1);
         const messageHash = 'orderbook:' + symbol;
         const isTestnet = this.isSandboxModeEnabled;
@@ -444,7 +444,7 @@ export default class pacifica extends pacificaRest {
     async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let aggLevel = undefined;
+        let aggLevel: Int = undefined;
         [ aggLevel, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'aggLevel', 1);
         const subMessageHash = 'orderbook:' + symbol;
         const messageHash = 'unsubscribe:' + subMessageHash;
@@ -605,7 +605,7 @@ export default class pacifica extends pacificaRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        let userAddress = undefined;
+        let userAddress: Str = undefined;
         [ userAddress, params ] = this.handleOriginAndSingleAddress ('watchMyTrades', params);
         await this.loadMarkets ();
         let messageHash = 'myTrades';
@@ -646,7 +646,7 @@ export default class pacifica extends pacificaRest {
         if (symbol !== undefined) {
             throw new NotSupported (this.id + ' unWatchMyTrades does not support a symbol argument, unWatch from all markets only');
         }
-        let userAddress = undefined;
+        let userAddress: Str = undefined;
         [ userAddress, params ] = this.handleOriginAndSingleAddress ('unWatchMyTrades', params);
         const messageHash = 'unsubscribe:myTrades';
         const isTestnet = this.isSandboxModeEnabled;
@@ -912,7 +912,7 @@ export default class pacifica extends pacificaRest {
             side = 'buy';
         }
         const eventType = this.safeString (trade, 'te');
-        let takerOrMaker = undefined;
+        let takerOrMaker: Str = undefined;
         if (eventType !== undefined) {
             takerOrMaker = (eventType === 'fulfill_maker') ? 'maker' : 'taker';
         }
@@ -1058,9 +1058,9 @@ export default class pacifica extends pacificaRest {
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        let userAddress = undefined;
+        let userAddress: Str = undefined;
         [ userAddress, params ] = this.handleOriginAndSingleAddress ('watchOrders', params);
-        let market = undefined;
+        let market: Market = undefined;
         let messageHash = 'order';
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1104,7 +1104,7 @@ export default class pacifica extends pacificaRest {
         const isTestnet = this.isSandboxModeEnabled;
         const urlKey = (isTestnet) ? 'test' : 'api';
         const url = this.urls[urlKey]['ws']['public'];
-        let userAddress = undefined;
+        let userAddress: Str = undefined;
         [ userAddress, params ] = this.handleOriginAndSingleAddress ('unWatchOrders', params);
         const request: Dict = {
             'method': 'unsubscribe',

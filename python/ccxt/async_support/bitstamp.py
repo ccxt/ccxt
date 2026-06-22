@@ -1129,14 +1129,14 @@ class bitstamp(Exchange, ImplicitAPI):
         if market is None:
             market = self.get_market_from_trade(trade)
         feeCostString = self.safe_string(trade, 'fee')
-        feeCurrency = market['quote']
-        priceId = rawMarketId if (rawMarketId is not None) else market['id']
+        feeCurrency = self.safe_string(market, 'quote')
+        priceId = rawMarketId if (rawMarketId is not None) else self.safe_string(market, 'id')
         priceString = self.safe_string(trade, priceId, priceString)
-        amountString = self.safe_string(trade, market['baseId'], amountString)
-        costString = self.safe_string(trade, market['quoteId'], costString)
+        amountString = self.safe_string(trade, self.safe_string(market, 'baseId'), amountString)
+        costString = self.safe_string(trade, self.safe_string(market, 'quoteId'), costString)
         # self endpoint is not aligned with "markets" endpoint
-        baseIdLower = market['baseId'].lower()
-        quoteIdLower = market['quoteId'].lower()
+        baseIdLower = self.safe_string(market, 'baseId').lower()
+        quoteIdLower = self.safe_string(market, 'quoteId').lower()
         dashedIdLower = baseIdLower + '_' + quoteIdLower
         if priceString is None:
             priceString = self.safe_string(trade, dashedIdLower)
@@ -1144,7 +1144,7 @@ class bitstamp(Exchange, ImplicitAPI):
             amountString = self.safe_string(trade, baseIdLower)
         if costString is None:
             costString = self.safe_string(trade, quoteIdLower)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol')
         datetimeString = self.safe_string_2(trade, 'date', 'datetime')
         timestamp: Int = None
         if datetimeString is not None:
@@ -1871,7 +1871,7 @@ class bitstamp(Exchange, ImplicitAPI):
         #         },
         #     ]
         #
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
         transactions = self.filter_by_array(response, 'type', ['0', '1'], False)
@@ -2197,7 +2197,7 @@ class bitstamp(Exchange, ImplicitAPI):
                 'referenceId': parsedTrade['order'],
                 'referenceAccount': None,
                 'type': type,
-                'currency': market['base'],
+                'currency': self.safe_string(market, 'base'),
                 'amount': parsedTrade['amount'],
                 'before': None,
                 'after': None,
@@ -2250,7 +2250,7 @@ class bitstamp(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         response = await self.privatePostUserTransactions(self.extend(request, params))
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
         return self.parse_ledger(response, currency, since, limit)
@@ -2409,7 +2409,7 @@ class bitstamp(Exchange, ImplicitAPI):
         request: dict = {
             'amount': amount,
         }
-        currency = None
+        currency: Currency = None
         method: Str = None
         if not self.is_fiat(code):
             name = self.get_currency_name(code)
@@ -2494,7 +2494,7 @@ class bitstamp(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api] + '/'
         url += self.version + '/'
         url += self.implode_params(path, params)

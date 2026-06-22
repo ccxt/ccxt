@@ -3,7 +3,7 @@
 import hyperliquidRest from '../hyperliquid.js';
 import { NotSupported } from '../base/errors.js';
 import Client from '../base/ws/Client.js';
-import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers, type Num, OrderType, OrderSide, type OrderRequest, Bool, Balances, Position } from '../base/types.js';
+import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers, type Num, OrderType, OrderSide, type OrderRequest, Bool, Balances, Position, type NullableDict } from '../base/types.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
@@ -1081,7 +1081,7 @@ export default class hyperliquid extends hyperliquidRest {
         }
         const topic = this.safeValue (message, 'channel');
         const messageHash = topic + '::balance';
-        let info = undefined;
+        let info: NullableDict = undefined;
         let rawBalances = [];
         let account: Str = undefined;
         let timestamp: Int = undefined;

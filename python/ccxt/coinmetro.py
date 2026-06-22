@@ -457,11 +457,11 @@ class coinmetro(Exchange, ImplicitAPI):
         #         ...
         #     ]
         #
-        result = []
+        result: List[Market] = []
         for i in range(0, len(response)):
             market = self.parse_market(response[i])
             # there are several broken(unavailable info) markets
-            if market['base'] is None or market['quote'] is None:
+            if self.safe_string(market, 'base') is None or self.safe_string(market, 'quote') is None:
                 continue
             result.append(market)
         return result
@@ -879,7 +879,7 @@ class coinmetro(Exchange, ImplicitAPI):
             priceString = self.safe_string(prices, i)
             price = self.safe_number(prices, i)
             volume = self.safe_number(bidasks, priceString)
-            result.append([price, volume])
+            (result).append([price, volume])
         return result
 
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
@@ -1362,7 +1362,7 @@ class coinmetro(Exchange, ImplicitAPI):
         #         "takerQty": 0.002
         #     }
         #
-        return self.parse_order(response, market)
+        return self.parse_order(response)
 
     def handle_create_order_side(self, sellingCurrency, buyingCurrency, sellingQty, buyingQty, request={}):
         request['sellingCurrency'] = sellingCurrency
@@ -1403,7 +1403,7 @@ class coinmetro(Exchange, ImplicitAPI):
         params, params = self.handle_margin_mode_and_params('cancelOrder', params)
         isMargin = self.safe_bool(params, 'margin', False)
         params = self.omit(params, 'margin')
-        response: dict = None
+        response: NullableDict = None
         if isMargin or (marginMode is not None):
             response = self.privatePostExchangeOrdersCloseOrderID(self.extend(request, params))
         else:
@@ -1808,7 +1808,7 @@ class coinmetro(Exchange, ImplicitAPI):
         if (baseAmount is not None) and (quoteAmount is not None):
             price = Precise.string_div(quoteAmount, baseAmount)
         market = self.safe_market(marketId, market)
-        fee = None
+        fee: NullableDict = None
         feeCost = self.safe_string(order, 'fees')
         if (feeCost is not None) and (feeInBaseOrQuote is not None):
             fee = {
@@ -1895,7 +1895,7 @@ class coinmetro(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = {}, body: Any = None):
         request = self.omit(params, self.extract_params(path))
         endpoint = '/' + self.implode_params(path, params)
         url = self.urls['api'][api] + endpoint

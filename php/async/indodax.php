@@ -541,8 +541,8 @@ class indodax extends Exchange {
         //
         $symbol = $this->safe_symbol(null, $market);
         $timestamp = $this->safe_timestamp($ticker, 'server_time');
-        $baseVolume = 'vol_' . strtolower($market['baseId']);
-        $quoteVolume = 'vol_' . strtolower($market['quoteId']);
+        $baseVolume = 'vol_' . strtolower($this->safe_string($market, 'baseId'));
+        $quoteVolume = 'vol_' . strtolower($this->safe_string($market, 'quoteId'));
         $last = $this->safe_string($ticker, 'last');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
@@ -1457,7 +1457,7 @@ class indodax extends Exchange {
         }) ();
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api'][$api];
         if ($api === 'public') {
             $query = $this->omit($params, $this->extract_params($path));

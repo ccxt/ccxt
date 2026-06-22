@@ -290,8 +290,8 @@ class binance(ccxt.async_support.binance):
         :returns dict: an array of `liquidation structures <https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure>`
         """
         await self.load_markets()
-        subscriptionHashes = []
-        messageHashes = []
+        subscriptionHashes: List[str] = []
+        messageHashes: List[str] = []
         streamHash = 'liquidations'
         symbols = self.market_symbols(symbols, None, True, True)
         if self.is_empty(symbols):
@@ -682,8 +682,8 @@ class binance(ccxt.async_support.binance):
         if rpi and type == 'future':
             name = 'rpiDepth'
             watchOrderBookRate = '500'
-        subParams = []
-        messageHashes = []
+        subParams: List[str] = []
+        messageHashes: List[str] = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
@@ -737,9 +737,9 @@ class binance(ccxt.async_support.binance):
         if symbols is not None:
             streamHash += '::' + ','.join(symbols)
         watchOrderBookRate = self.safe_string(self.options, 'watchOrderBookRate', '100')
-        subParams = []
-        subMessageHashes = []
-        messageHashes = []
+        subParams: List[str] = []
+        subMessageHashes: List[str] = []
+        messageHashes: List[str] = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
@@ -1079,8 +1079,8 @@ class binance(ccxt.async_support.binance):
         type = firstMarket['type']
         if firstMarket['contract']:
             type = 'future' if firstMarket['linear'] else 'delivery'
-        messageHashes = []
-        subParams = []
+        messageHashes: List[str] = []
+        subParams: List[str] = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
@@ -1135,9 +1135,9 @@ class binance(ccxt.async_support.binance):
         type = firstMarket['type']
         if firstMarket['contract']:
             type = 'future' if firstMarket['linear'] else 'delivery'
-        subMessageHashes = []
-        subParams = []
-        messageHashes = []
+        subMessageHashes: List[str] = []
+        subParams: List[str] = []
+        messageHashes: List[str] = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
@@ -1329,7 +1329,7 @@ class binance(ccxt.async_support.binance):
             if side is None:
                 side = 'sell' if trade['m'] else 'buy'  # self is reversed intentionally
             takerOrMaker = 'maker' if trade['m'] else 'taker'
-        fee: dict = None
+        fee: NullableDict = None
         feeCost = self.safe_string(trade, 'n')
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'N')
@@ -1424,8 +1424,8 @@ class binance(ccxt.async_support.binance):
         timezone: Str = None
         timezone, params = self.handle_param_string(params, 'timezone')
         isUtc8 = (timezone is not None) and ((timezone == '+08:00') or Precise.string_eq(timezone, '8'))
-        rawHashes = []
-        messageHashes = []
+        rawHashes: List[str] = []
+        messageHashes: List[str] = []
         for i in range(0, len(symbolsAndTimeframes)):
             symAndTf = symbolsAndTimeframes[i]
             symbolString = symAndTf[0]
@@ -1485,9 +1485,9 @@ class binance(ccxt.async_support.binance):
         timezone: Str = None
         timezone, params = self.handle_param_string(params, 'timezone')
         isUtc8 = (timezone is not None) and ((timezone == '+08:00') or Precise.string_eq(timezone, '8'))
-        rawHashes = []
-        subMessageHashes = []
-        messageHashes = []
+        rawHashes: List[str] = []
+        subMessageHashes: List[str] = []
+        messageHashes: List[str] = []
         for i in range(0, len(symbolsAndTimeframes)):
             symAndTf = symbolsAndTimeframes[i]
             symbolString = symAndTf[0]
@@ -1923,9 +1923,9 @@ class binance(ccxt.async_support.binance):
             raise NotSupported(self.id + ' ' + methodName + '() does not support options markets')
         if isMarkPrice and not self.in_array(marketType, ['swap', 'future']):
             raise NotSupported(self.id + ' ' + methodName + '() does not support ' + marketType + ' markets yet')
-        subscriptionArgs = []
-        messageHashes = []
-        unsubscribeMessageHashes = []
+        subscriptionArgs: List[str] = []
+        messageHashes: List[str] = []
+        unsubscribeMessageHashes: List[str] = []
         suffix = ''
         if isMarkPrice:
             suffix = '@1s' if (use1sFreq) else ''
@@ -2202,8 +2202,8 @@ class binance(ccxt.async_support.binance):
         else:
             unifiedPrefix = 'ticker'
         channelName: Str = None
-        resolvedMessageHashes = []
-        rawTickers = []
+        resolvedMessageHashes: List[str] = []
+        rawTickers: List = []
         newTickers: dict = {}
         if isinstance(message, list):
             rawTickers = message
@@ -2426,7 +2426,7 @@ class binance(ccxt.async_support.binance):
         listenKeyRefreshRate = self.safe_integer(self.options, 'listenKeyRefreshRate', 1200000)
         delay = self.sum(listenKeyRefreshRate, 10000)
         if time - lastAuthenticatedTime > delay:
-            response: dict = None
+            response: dict
             if isPortfolioMargin:
                 response = await self.papiPostListenKey(params)
                 params = self.extend(params, {'portfolioMargin': True})
@@ -2578,7 +2578,7 @@ class binance(ccxt.async_support.binance):
         #
         #
         messageHash = self.safe_string(message, 'id')
-        rawBalance = None
+        rawBalance: NullableList = None
         if isinstance(message['result'], list):
             # account.balance
             rawBalance = self.safe_list(message, 'result', [])
@@ -2734,7 +2734,7 @@ class binance(ccxt.async_support.binance):
         #
         messageHash = self.safe_string(message, 'id')
         result = self.safe_list(message, 'result', [])
-        positions = []
+        positions: List[Position] = []
         for i in range(0, len(result)):
             parsed = self.parse_position_risk(result[i])
             entryPrice = self.safe_string(parsed, 'entryPrice')
@@ -3215,7 +3215,7 @@ class binance(ccxt.async_support.binance):
         messageHash = self.safe_string(message, 'id')
         result = self.safe_dict(message, 'result', {})
         newSpotOrder = self.safe_dict(result, 'newOrderResponse')
-        order: Order = None
+        order: Order
         if newSpotOrder is not None:
             order = self.parse_order(newSpotOrder)
         else:
@@ -3414,7 +3414,7 @@ class binance(ccxt.async_support.binance):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         orders = await self.fetch_orders_ws(symbol, since, limit, params)
-        closedOrders = []
+        closedOrders: List[Order] = []
         for i in range(0, len(orders)):
             order = orders[i]
             if order['status'] == 'closed':
@@ -3637,7 +3637,7 @@ class binance(ccxt.async_support.binance):
         elif executionType == 'TRADE':
             lastTradeTimestamp = T
         lastUpdateTimestamp = T
-        fee: dict = None
+        fee: NullableDict = None
         feeCost = self.safe_string(order, 'n')
         if (feeCost is not None) and (Precise.string_gt(feeCost, '0')):
             feeCurrencyId = self.safe_string(order, 'N')
@@ -3935,7 +3935,7 @@ class binance(ccxt.async_support.binance):
         cache = self.positions[accountType]
         data = self.safe_dict(message, 'a', {})
         rawPositions = self.safe_list(data, 'P', [])
-        newPositions = []
+        newPositions: List[Position] = []
         for i in range(0, len(rawPositions)):
             rawPosition = rawPositions[i]
             position = self.parse_ws_position(rawPosition)

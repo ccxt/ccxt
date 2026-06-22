@@ -4,7 +4,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/bullish.js';
 import { AuthenticationError, ArgumentsRequired, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, InvalidAddress, InvalidNonce, InvalidOrder, InsufficientFunds, MarketClosed, NotSupported, OperationRejected, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Account, Balances, Bool, Currencies, Currency, DepositAddress, Dict, Fee, Int, int, FundingRateHistory, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, OpenInterest } from './base/types.js';
+import { Account, Balances, Bool, Currencies, Currency, DepositAddress, Dict, Fee, Int, int, FundingRateHistory, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, OpenInterest, NullableDict } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -773,7 +773,7 @@ export default class bullish extends Exchange {
         //         "premiumCapRatio": "0.1000"
         //     }
         //
-        const id = this.safeString (market, 'symbol');
+        const id = this.safeString (market, 'symbol') as string;
         const baseId = this.safeString (market, 'baseSymbol');
         const quoteId = this.safeString (market, 'quoteSymbol');
         const base = this.safeCurrencyCode (baseId);
@@ -819,7 +819,7 @@ export default class bullish extends Exchange {
             } else {
                 expiryDatetime = this.safeString (market, 'expiryDatetime');
                 const idParts = id.split ('-');
-                const datePart = this.safeString (idParts, 2);
+                const datePart = this.safeString (idParts, 2) as string;
                 const dateYmd = datePart.slice (2);
                 symbol += '-' + dateYmd;
                 if (type === 'future') {
@@ -888,7 +888,7 @@ export default class bullish extends Exchange {
         });
     }
 
-    parseMarketType (type: string, defaultType: Str = undefined): string {
+    parseMarketType (type: Str = undefined, defaultType: Str = undefined): Str {
         const types = {
             'SPOT': 'spot',
             'PERPETUAL': 'swap',
@@ -1015,7 +1015,7 @@ export default class bullish extends Exchange {
             request['symbol'] = market['id'];
         }
         const clientOrderId = this.safeString (params, 'clientOrderId');
-        let response = undefined;
+        let response: List;
         if (clientOrderId !== undefined) {
             response = await this.privateGetV1TradesClientOrderIdClientOrderId (this.extend (request, params));
         } else {
@@ -2939,7 +2939,7 @@ export default class bullish extends Exchange {
         }, market);
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const request = this.omit (params, this.extractParams (path));
         const endpoint = '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + endpoint;
@@ -2973,12 +2973,14 @@ export default class bullish extends Exchange {
                 }
             }
             if (path === 'v1/users/hmac/login') {
+                headers = (headers === undefined) ? {} : headers;
                 headers['BX-PUBLIC-KEY'] = this.apiKey;
             } else {
                 const token = this.token;
                 if ((token === undefined)) {
                     throw new AuthenticationError (this.id + ' requires a token, please call signIn() first');
                 }
+                headers = (headers === undefined) ? {} : headers;
                 headers['Authorization'] = 'Bearer ' + token;
                 // headers['BX-NONCE-WINDOW-ENABLED'] = 'false'; // default is false
             }

@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.hitbtc import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Leverage, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, OrderBooks, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Bool, Currencies, Currency, DepositAddress, Int, Leverage, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, OrderBooks, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -842,13 +842,13 @@ class hitbtc(Exchange, ImplicitAPI):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             feeCurrency = self.safe_currency_code(feeCurrencyId)
-            settleId = None
-            settle = None
+            settleId: Str = None
+            settle: Str = None
             symbol = base + '/' + quote
             type = 'spot'
-            contractSize = None
-            linear = None
-            inverse = None
+            contractSize: Num = None
+            linear: Bool = None
+            inverse: Bool = None
             if contract:
                 contractSize = self.parse_number('1')
                 settleId = feeCurrencyId
@@ -1122,7 +1122,7 @@ class hitbtc(Exchange, ImplicitAPI):
         params = self.omit(params, ['type'])
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
         account = self.safe_string(accountsByType, type, type)
-        response = None
+        response: dict
         if account == 'wallet':
             response = await self.privateGetWalletBalance(params)
         elif account == 'spot':
@@ -1275,7 +1275,7 @@ class hitbtc(Exchange, ImplicitAPI):
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         request: dict = {}
         if limit is not None:
             request['limit'] = min(limit, 1000)
@@ -1317,7 +1317,7 @@ class hitbtc(Exchange, ImplicitAPI):
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         request: dict = {}
         if symbol is not None:
             market = self.market(symbol)
@@ -1326,7 +1326,7 @@ class hitbtc(Exchange, ImplicitAPI):
             request['limit'] = limit
         if since is not None:
             request['from'] = since
-        marketType = None
+        marketType: Str = None
         marginMode = None
         response = None
         marketType, params = self.handle_market_type_and_params('fetchMyTrades', market, params)
@@ -1406,7 +1406,7 @@ class hitbtc(Exchange, ImplicitAPI):
         marketId = self.safe_string(trade, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
-        fee = None
+        fee: NullableDict = None
         feeCostString = self.safe_string(trade, 'fee')
         taker = self.safe_value(trade, 'taker')
         takerOrMaker: str
@@ -1451,7 +1451,7 @@ class hitbtc(Exchange, ImplicitAPI):
         request: dict = {
             'types': types,
         }
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
             request['currencies'] = currency['id']
@@ -1717,7 +1717,7 @@ class hitbtc(Exchange, ImplicitAPI):
         request: dict = {
             'symbol': market['id'],
         }
-        response = None
+        response: dict
         if market['type'] == 'spot':
             response = await self.privateGetSpotFeeSymbol(self.extend(request, params))
         elif market['type'] == 'swap':
@@ -1744,7 +1744,7 @@ class hitbtc(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         marketType, query = self.handle_market_type_and_params('fetchTradingFees', None, params)
-        response = None
+        response: dict
         if marketType == 'spot':
             response = await self.privateGetSpotFee(query)
         elif marketType == 'swap':
@@ -1890,7 +1890,7 @@ class hitbtc(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         request: dict = {}
         if symbol is not None:
             market = self.market(symbol)
@@ -1899,12 +1899,12 @@ class hitbtc(Exchange, ImplicitAPI):
             request['from'] = self.iso8601(since)
         if limit is not None:
             request['limit'] = limit
-        marketType = None
+        marketType: Str = None
         marginMode = None
         marketType, params = self.handle_market_type_and_params('fetchClosedOrders', market, params)
         marginMode, params = self.handle_margin_mode_and_params('fetchClosedOrders', params)
         params = self.omit(params, ['marginMode', 'margin'])
-        response = None
+        response: dict
         if marginMode is not None:
             response = await self.privateGetMarginHistoryOrder(self.extend(request, params))
         else:
@@ -1935,18 +1935,18 @@ class hitbtc(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
         request: dict = {
             'client_order_id': id,
         }
-        marketType = None
+        marketType: Str = None
         marginMode = None
         marketType, params = self.handle_market_type_and_params('fetchOrder', market, params)
         marginMode, params = self.handle_margin_mode_and_params('fetchOrder', params)
         params = self.omit(params, ['marginMode', 'margin'])
-        response = None
+        response: dict
         if marginMode is not None:
             response = await self.privateGetMarginHistoryOrder(self.extend(request, params))
         else:
@@ -1998,13 +1998,13 @@ class hitbtc(Exchange, ImplicitAPI):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
         request: dict = {
             'order_id': id,  # exchange assigned order id to the client order id
         }
-        marketType = None
+        marketType: Str = None
         marginMode = None
         marketType, params = self.handle_market_type_and_params('fetchOrderTrades', market, params)
         marginMode, params = self.handle_margin_mode_and_params('fetchOrderTrades', params)
@@ -2078,17 +2078,17 @@ class hitbtc(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         request: dict = {}
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        marketType = None
+        marketType: Str = None
         marginMode = None
         marketType, params = self.handle_market_type_and_params('fetchOpenOrders', market, params)
         marginMode, params = self.handle_margin_mode_and_params('fetchOpenOrders', params)
         params = self.omit(params, ['marginMode', 'margin'])
-        response = None
+        response: dict
         if marginMode is not None:
             response = await self.privateGetMarginOrder(self.extend(request, params))
         else:
@@ -2137,18 +2137,18 @@ class hitbtc(Exchange, ImplicitAPI):
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
         request: dict = {
             'client_order_id': id,
         }
-        marketType = None
+        marketType: Str = None
         marginMode = None
         marketType, params = self.handle_market_type_and_params('fetchOpenOrder', market, params)
         marginMode, params = self.handle_margin_mode_and_params('fetchOpenOrder', params)
         params = self.omit(params, ['marginMode', 'margin'])
-        response = None
+        response: dict
         if marginMode is not None:
             response = await self.privateGetMarginOrderClientOrderId(self.extend(request, params))
         else:
@@ -2177,17 +2177,17 @@ class hitbtc(Exchange, ImplicitAPI):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         request: dict = {}
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        marketType = None
+        marketType: Str = None
         marginMode = None
         marketType, params = self.handle_market_type_and_params('cancelAllOrders', market, params)
         marginMode, params = self.handle_margin_mode_and_params('cancelAllOrders', params)
         params = self.omit(params, ['marginMode', 'margin'])
-        response = None
+        response: dict
         if marginMode is not None:
             response = await self.privateDeleteMarginOrder(self.extend(request, params))
         else:
@@ -2217,18 +2217,18 @@ class hitbtc(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         request: dict = {
             'client_order_id': id,
         }
         if symbol is not None:
             market = self.market(symbol)
-        marketType = None
+        marketType: Str = None
         marginMode = None
         marketType, params = self.handle_market_type_and_params('cancelOrder', market, params)
         marginMode, params = self.handle_margin_mode_and_params('cancelOrder', params)
         params = self.omit(params, ['marginMode', 'margin'])
-        response = None
+        response: dict
         if marginMode is not None:
             response = await self.privateDeleteMarginOrderClientOrderId(self.extend(request, params))
         else:
@@ -2244,7 +2244,7 @@ class hitbtc(Exchange, ImplicitAPI):
 
     async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         await self.load_markets()
-        market = None
+        market: Market = None
         request: dict = {
             'client_order_id': id,
             'quantity': self.amount_to_precision(symbol, amount),
@@ -2255,12 +2255,12 @@ class hitbtc(Exchange, ImplicitAPI):
             request['price'] = self.price_to_precision(symbol, price)
         if symbol is not None:
             market = self.market(symbol)
-        marketType = None
+        marketType: Str = None
         marginMode = None
         marketType, params = self.handle_market_type_and_params('editOrder', market, params)
         marginMode, params = self.handle_margin_mode_and_params('editOrder', params)
         params = self.omit(params, ['marginMode', 'margin'])
-        response = None
+        response: dict
         if marginMode is not None:
             response = await self.privatePatchMarginOrderClientOrderId(self.extend(request, params))
         else:
@@ -2297,13 +2297,13 @@ class hitbtc(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = None
-        marketType = None
+        request: dict
+        marketType: Str = None
         marketType, params = self.handle_market_type_and_params('createOrder', market, params)
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
         request, params = self.create_order_request(market, marketType, type, side, amount, price, marginMode, params)
-        response = None
+        response: dict
         if marketType == 'swap':
             response = await self.privatePostFuturesOrder(self.extend(request, params))
         elif (marketType == 'margin') or (marginMode is not None):
@@ -2457,7 +2457,7 @@ class hitbtc(Exchange, ImplicitAPI):
         created = self.safe_string(order, 'created_at')
         timestamp = self.parse8601(created)
         updated = self.safe_string(order, 'updated_at')
-        lastTradeTimestamp = None
+        lastTradeTimestamp: Int = None
         if updated != created:
             lastTradeTimestamp = self.parse8601(updated)
         filled = self.safe_string(order, 'quantity_cumulative')
@@ -2496,7 +2496,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'stopLossPrice': None,
         }, market)
 
-    async def fetch_margin_modes(self, symbols: List[Str] = None, params={}) -> MarginModes:
+    async def fetch_margin_modes(self, symbols: Strings = None, params={}) -> MarginModes:
         """
         fetches margin mode of the user
 
@@ -2508,13 +2508,13 @@ class hitbtc(Exchange, ImplicitAPI):
         :returns dict: a list of `margin mode structures <https://docs.ccxt.com/?id=margin-mode-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         if symbols is not None:
             symbols = self.market_symbols(symbols)
             market = self.market(symbols[0])
-        marketType = None
+        marketType: Str = None
         marketType, params = self.handle_market_type_and_params('fetchMarginMode', market, params)
-        response = None
+        response: dict
         if marketType == 'margin':
             response = await self.privateGetMarginConfig(params)
             #
@@ -2703,14 +2703,14 @@ class hitbtc(Exchange, ImplicitAPI):
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         request: dict = {}
         if symbols is not None:
             symbols = self.market_symbols(symbols)
             market = self.market(symbols[0])
             queryMarketIds = self.market_ids(symbols)
             request['symbols'] = ','.join(queryMarketIds)
-        type = None
+        type: Str = None
         type, params = self.handle_market_type_and_params('fetchFundingRates', market, params)
         if type != 'swap':
             raise NotSupported(self.id + ' fetchFundingRates() does not support ' + type + ' markets')
@@ -2762,7 +2762,7 @@ class hitbtc(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
         if paginate:
             return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params, 1000)
-        market = None
+        market: Market = None
         request: dict = {
             # all arguments are optional
             # 'symbols': Comma separated list of symbol codes,
@@ -2833,14 +2833,14 @@ class hitbtc(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         request: dict = {}
-        marketType = None
+        marketType: Str = None
         marginMode = None
         marketType, params = self.handle_market_type_and_params('fetchPositions', None, params)
         if marketType == 'spot':
             marketType = 'swap'
         marginMode, params = self.handle_margin_mode_and_params('fetchPositions', params)
         params = self.omit(params, ['marginMode', 'margin'])
-        response = None
+        response: dict
         if marginMode is not None:
             response = await self.privateGetMarginAccount(self.extend(request, params))
         else:
@@ -2905,12 +2905,12 @@ class hitbtc(Exchange, ImplicitAPI):
         request: dict = {
             'symbol': market['id'],
         }
-        marketType = None
+        marketType: Str = None
         marginMode = None
         marketType, params = self.handle_market_type_and_params('fetchPosition', None, params)
         marginMode, params = self.handle_margin_mode_and_params('fetchPosition', params)
         params = self.omit(params, ['marginMode', 'margin'])
-        response = None
+        response: dict
         if marginMode is not None:
             response = await self.privateGetMarginAccountIsolatedSymbol(self.extend(request, params))
         else:
@@ -2991,16 +2991,16 @@ class hitbtc(Exchange, ImplicitAPI):
         leverage = self.safe_number(position, 'leverage')
         datetime = self.safe_string(position, 'updated_at')
         positions = self.safe_value(position, 'positions', [])
-        liquidationPrice = None
-        entryPrice = None
-        contracts = None
+        liquidationPrice: Num = None
+        entryPrice: Num = None
+        contracts: Num = None
         for i in range(0, len(positions)):
             entry = positions[i]
             liquidationPrice = self.safe_number(entry, 'price_liquidation')
             entryPrice = self.safe_number(entry, 'price_entry')
             contracts = self.safe_number(entry, 'quantity')
         currencies = self.safe_value(position, 'currencies', [])
-        collateral = None
+        collateral: Num = None
         for i in range(0, len(currencies)):
             entry = currencies[i]
             collateral = self.safe_number(entry, 'margin_balance')
@@ -3078,7 +3078,7 @@ class hitbtc(Exchange, ImplicitAPI):
         await self.load_markets()
         request: dict = {}
         symbols = self.market_symbols(symbols)
-        marketIds = None
+        marketIds: Strings = None
         if symbols is not None:
             marketIds = self.market_ids(symbols)
             request['symbols'] = ','.join(marketIds)
@@ -3237,11 +3237,11 @@ class hitbtc(Exchange, ImplicitAPI):
         }
         if leverage is not None:
             request['leverage'] = leverage
-        marketType = None
+        marketType: Str = None
         marginMode = None
         marketType, params = self.handle_market_type_and_params('modifyMarginHelper', market, params)
         marginMode, params = self.handle_margin_mode_and_params('modifyMarginHelper', params)
-        response = None
+        response: dict
         if marketType == 'swap':
             response = await self.privatePutFuturesAccountIsolatedSymbol(self.extend(request, params))
         elif (marketType == 'margin') or (marketType == 'spot') or (marginMode == 'isolated'):
@@ -3298,7 +3298,7 @@ class hitbtc(Exchange, ImplicitAPI):
         datetime = self.safe_string(data, 'updated_at')
         return {
             'info': data,
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'type': None,
             'marginMode': 'isolated',
             'amount': None,
@@ -3364,7 +3364,7 @@ class hitbtc(Exchange, ImplicitAPI):
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchLeverage', params)
         params = self.omit(params, ['marginMode', 'margin'])
-        response = None
+        response: dict
         if marginMode is not None:
             response = await self.privateGetMarginAccountIsolatedSymbol(self.extend(request, params))
         else:
@@ -3577,7 +3577,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None):
+    def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None) -> list:
         """
  @ignore
         marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'
@@ -3620,11 +3620,11 @@ class hitbtc(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         query = self.omit(params, self.extract_params(path))
         implodedPath = self.implode_params(path, params)
         url = self.urls['api'][api] + '/' + implodedPath
-        getRequest = None
+        getRequest: Str = None
         keys = list(query.keys())
         queryLength = len(keys)
         headers = {

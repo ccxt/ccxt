@@ -389,8 +389,8 @@ class ndax(ccxt.async_support.ndax):
         orderbook = self.safe_value(self.orderbooks, symbol)
         if orderbook is None:
             return
-        timestamp = None
-        nonce = None
+        timestamp: Int = None
+        nonce: Int = None
         for i in range(0, len(payload)):
             bidask = payload[i]
             if timestamp is None:

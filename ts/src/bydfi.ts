@@ -6,7 +6,7 @@ import Exchange from './abstract/bydfi.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, ExchangeError, InsufficientFunds, NotSupported, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, FundingRate, FundingRateHistory, Int, int, Leverage, MarginMode, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry, Ticker, Tickers } from './base/types.js';
+import type { Balances, Bool, Currency, Dict, Fee, FundingRate, FundingRateHistory, Int, int, Leverage, List, MarginMode, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry, Ticker, Tickers } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -444,7 +444,7 @@ export default class bydfi extends Exchange {
         //         ],
         //         "success": true
         //     }
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseMarkets (data);
     }
 
@@ -663,7 +663,7 @@ export default class bydfi extends Exchange {
         //         "success": true
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -697,7 +697,7 @@ export default class bydfi extends Exchange {
         const request: Dict = {
             'contractType': contractType,
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -733,7 +733,7 @@ export default class bydfi extends Exchange {
         //         "success": true
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -771,7 +771,7 @@ export default class bydfi extends Exchange {
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (trade, 'time');
-        let fee = undefined;
+        let fee: Dict | undefined = undefined;
         const rawType = this.safeString (trade, 'type');
         const feeCost = this.safeString (trade, 'fee');
         if (feeCost !== undefined) {
@@ -841,7 +841,7 @@ export default class bydfi extends Exchange {
         };
         let startTime = since;
         const numberOfCandles = limit ? limit : maxLimit;
-        let until = undefined;
+        let until: Int = undefined;
         [ until, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'until');
         const now = this.milliseconds ();
         const duration = this.parseTimeframe (timeframe) * 1000;
@@ -881,7 +881,7 @@ export default class bydfi extends Exchange {
         //         "success": true
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         const result = this.parseOHLCVs (data, market, timeframe, since, limit);
         return result;
     }
@@ -938,7 +938,7 @@ export default class bydfi extends Exchange {
         //         "success": true
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseTickers (data, symbols);
     }
 
@@ -958,7 +958,7 @@ export default class bydfi extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.publicGetV1FapiMarketTicker24hr (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         const ticker = this.safeDict (data, 0, {});
         return this.parseTicker (ticker, market);
     }
@@ -1101,7 +1101,7 @@ export default class bydfi extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let until = undefined;
+        let until: Int = undefined;
         [ until, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'until');
         if (until !== undefined) {
             request['endTime'] = until;
@@ -1122,7 +1122,7 @@ export default class bydfi extends Exchange {
         //         "success": true
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseFundingRateHistories (data, market, since, limit);
     }
 
@@ -1237,7 +1237,7 @@ export default class bydfi extends Exchange {
         const isTakeProfitOrder = (takeProfitPrice !== undefined);
         const trailingPercent = this.safeString (params, 'trailingPercent');
         const isTailingStopOrder = (trailingPercent !== undefined);
-        let stopPrice = undefined;
+        let stopPrice: Str = undefined;
         if (isStopLossOrder || isTakeProfitOrder) {
             stopPrice = isStopLossOrder ? stopLossPrice : takeProfitPrice;
             params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice' ]);
@@ -1339,7 +1339,7 @@ export default class bydfi extends Exchange {
         if (length > 5) {
             throw new BadRequest (this.id + ' createOrders() accepts a maximum of 5 orders');
         }
-        const ordersRequests = [];
+        const ordersRequests: List = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const symbol = this.safeString (rawOrder, 'symbol');
@@ -1358,7 +1358,7 @@ export default class bydfi extends Exchange {
             'orders': ordersRequests,
         };
         const response = await this.privatePostV1FapiTradeBatchPlaceOrder (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseOrders (data);
     }
 
@@ -1405,7 +1405,7 @@ export default class bydfi extends Exchange {
         if (length > 5) {
             throw new BadRequest (this.id + ' editOrders() accepts a maximum of 5 orders');
         }
-        const ordersRequests = [];
+        const ordersRequests: List = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const id = this.safeString (rawOrder, 'id');
@@ -1424,7 +1424,7 @@ export default class bydfi extends Exchange {
             'editOrders': ordersRequests,
         };
         const response = await this.privatePostV1FapiTradeBatchEditOrder (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseOrders (data);
     }
 
@@ -1505,7 +1505,7 @@ export default class bydfi extends Exchange {
         //         "success": true
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseOrders (data, market);
     }
 
@@ -1535,7 +1535,7 @@ export default class bydfi extends Exchange {
             'symbol': market['id'],
             'wallet': wallet,
         };
-        let response = undefined;
+        let response: Dict;
         let trigger = false;
         [ trigger, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'trigger', trigger);
         if (!trigger) {
@@ -1575,7 +1575,7 @@ export default class bydfi extends Exchange {
         } else {
             response = await this.privateGetV1FapiTradePlanOrder (this.extend (request, params));
         }
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -1611,7 +1611,7 @@ export default class bydfi extends Exchange {
         let wallet = 'W001';
         [ wallet, params ] = this.handleOptionAndParams (params, 'fetchOpenOrder', 'wallet', wallet);
         request['wallet'] = wallet;
-        let response = undefined;
+        let response: Dict;
         let trigger = false;
         [ trigger, params ] = this.handleOptionAndParams (params, 'fetchOpenOrder', 'trigger', trigger);
         if (!trigger) {
@@ -1619,7 +1619,7 @@ export default class bydfi extends Exchange {
         } else {
             response = await this.privateGetV1FapiTradePlanOrder (this.extend (request, params));
         }
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         const order = this.safeDict (data, 0, {});
         return this.parseOrder (order, market);
     }
@@ -1654,7 +1654,7 @@ export default class bydfi extends Exchange {
         const request: Dict = {
             'contractType': contractType,
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -1709,12 +1709,12 @@ export default class bydfi extends Exchange {
         //         "success": true
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseOrders (data, market, since, limit);
     }
 
     handleSinceAndUntil (methodName: string, since: Int = undefined, params = {}): Dict {
-        let until = undefined;
+        let until: Int = undefined;
         [ until, params ] = this.handleOptionAndParams2 (params, methodName, 'until', 'endTime');
         const now = this.milliseconds ();
         const sevenDays = 7 * 24 * 60 * 60 * 1000; // the maximum range is 7 days
@@ -1818,7 +1818,7 @@ export default class bydfi extends Exchange {
         const isTakeProfitOrder = (rawType === 'TAKE_PROFIT') || (rawType === 'TAKE_PROFIT_MARKET');
         const rawTimeInForce = this.safeString (order, 'timeInForce');
         const timeInForce = this.parseOrderTimeInForce (rawTimeInForce);
-        let postOnly = undefined;
+        let postOnly: Bool = undefined;
         if (timeInForce === 'PO') {
             postOnly = true;
         }
@@ -2016,7 +2016,7 @@ export default class bydfi extends Exchange {
         //         "success": true
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parsePositions (data, symbols);
     }
 
@@ -2041,7 +2041,7 @@ export default class bydfi extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.privateGetV1FapiTradePositions (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parsePositions (data, [ market['symbol'] ]);
     }
 
@@ -2102,7 +2102,7 @@ export default class bydfi extends Exchange {
         const buyOrSell = this.safeString (position, 'side');
         const rawPositionSide = this.safeStringLower (position, 'positionSide');
         let positionSide = this.parsePositionSide (buyOrSell);
-        let hedged = undefined;
+        let hedged: Bool = undefined;
         let isFetchPositionsHistory = false;
         if (rawPositionSide !== undefined) {
             isFetchPositionsHistory = true;
@@ -2188,7 +2188,7 @@ export default class bydfi extends Exchange {
         const response = await this.privateGetV1FapiTradePositionHistory (this.extend (request, params));
         //
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         const positions = this.parsePositions (data);
         return this.filterBySinceLimit (positions, since, limit);
     }
@@ -2261,7 +2261,7 @@ export default class bydfi extends Exchange {
         //         "success": true
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         const positions = this.parsePositions (data, symbols);
         return this.filterBySinceLimit (positions, since, limit);
     }
@@ -2461,12 +2461,12 @@ export default class bydfi extends Exchange {
      */
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        let wallet = undefined;
+        let wallet: Str = undefined;
         [ wallet, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'wallet');
         const request: Dict = {};
-        let response = undefined;
+        let response: Dict;
         if (wallet === undefined) {
             const options = this.safeDict (this.options, 'accountsByType', {});
             const parsedAccountType = this.safeStringUpper (options, type, type);
@@ -2520,7 +2520,7 @@ export default class bydfi extends Exchange {
             //     }
             response = await this.privateGetV1FapiAccountBalance (this.extend (request, params));
         }
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseBalance (data);
     }
 
@@ -2619,7 +2619,7 @@ export default class bydfi extends Exchange {
         const request: Dict = {
             'asset': currency['id'],
         };
-        let until = undefined;
+        let until: Int = undefined;
         [ until, params ] = this.handleOptionAndParams2 (params, 'fetchTransfers', 'until', 'endTime');
         if (until === undefined) {
             until = this.milliseconds (); // exchange requires endTime
@@ -2652,7 +2652,7 @@ export default class bydfi extends Exchange {
         //         "success": true
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseTransfers (data, currency, since, limit);
     }
 
@@ -2755,7 +2755,7 @@ export default class bydfi extends Exchange {
         const request: Dict = {
             'asset': currency['id'],
         };
-        let until = undefined;
+        let until: Int = undefined;
         [ until, params ] = this.handleOptionAndParams2 (params, 'fetchTransfers', 'until', 'endTime');
         const now = this.milliseconds ();
         const sevenDays = 7 * 24 * 60 * 60 * 1000; // the maximum range is 7 days
@@ -2783,7 +2783,7 @@ export default class bydfi extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response = undefined;
+        let response: Dict;
         if (type === 'deposit') {
             //
             //     {
@@ -2813,7 +2813,7 @@ export default class bydfi extends Exchange {
             //
             response = await this.privateGetV1SpotWithdrawRecords (this.extend (request, params));
         }
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         const transactionParams: Dict = {
             'type': type,
         };
@@ -2841,7 +2841,7 @@ export default class bydfi extends Exchange {
         const code = this.safeCurrencyCode (currencyId, currency);
         const rawStatus = this.safeStringLower (transaction, 'status');
         const timestamp = this.safeInteger (transaction, 'createTime');
-        let fee = undefined;
+        let fee: Fee = undefined;
         const feeCost = this.safeNumber (transaction, 'fee');
         if (feeCost !== undefined) {
             fee = {

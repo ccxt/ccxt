@@ -354,7 +354,7 @@ class bithumb(Exchange, ImplicitAPI):
             quote = quotes[i]
             quoteId = quote
             response = results[i]
-            data = self.safe_dict(response, 'data')
+            data = self.safe_dict(response, 'data', {})
             extension = self.safe_dict(quoteCurrencies, quote, {})
             currencyIds = list(data.keys())
             for j in range(0, len(currencyIds)):
@@ -1172,7 +1172,7 @@ class bithumb(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         endpoint = '/' + self.implode_params(path, params)
         url = self.implode_hostname(self.urls['api'][api]) + endpoint
         query = self.omit(params, self.extract_params(path))

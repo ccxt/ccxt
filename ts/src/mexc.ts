@@ -6,7 +6,7 @@ import Exchange from './abstract/mexc.js';
 import { BadRequest, InvalidNonce, BadSymbol, InvalidOrder, InvalidAddress, ExchangeError, ArgumentsRequired, NotSupported, InsufficientFunds, PermissionDenied, AuthenticationError, AccountSuspended, OnMaintenance } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Account, Balances, Bool, Currencies, Currency, DepositAddress, Dict, FundingHistory, FundingRate, FundingRateHistory, IndexType, int, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, DepositAddress, Dict, NullableDict, FundingHistory, FundingRate, FundingRateHistory, IndexType, int, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1041,7 +1041,7 @@ export default class mexc extends Exchange {
      */
     async fetchStatus (params = {}) {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchStatus', undefined, params);
-        let response: Dict = undefined;
+        let response: Dict;
         let status: Str = undefined;
         let updated: Int = undefined;
         if (marketType === 'spot') {
@@ -1080,7 +1080,7 @@ export default class mexc extends Exchange {
      */
     async fetchTime (params = {}): Promise<Int> {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTime', undefined, params);
-        let response: Dict = undefined;
+        let response: Dict;
         if (marketType === 'spot') {
             response = await this.spotPublicGetTime (query);
             //
@@ -1495,7 +1495,7 @@ export default class mexc extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let orderbook: OrderBook = undefined;
+        let orderbook: OrderBook;
         if (market['spot']) {
             const response = await this.spotPublicGetDepth (this.extend (request, params));
             //
@@ -1576,7 +1576,7 @@ export default class mexc extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let trades: Trade[] = undefined;
+        let trades: Trade[];
         if (market['spot']) {
             const until = this.safeIntegerN (params, [ 'endTime', 'until' ]);
             if (since !== undefined) {
@@ -1661,7 +1661,7 @@ export default class mexc extends Exchange {
         let timestamp: Int = undefined;
         let orderId: Str = undefined;
         let symbol: Str = undefined;
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         const type = undefined;
         let side: Str = undefined;
         let takerOrMaker: Str = undefined;
@@ -1834,7 +1834,7 @@ export default class mexc extends Exchange {
             'symbol': market['id'],
             'interval': timeframeValue,
         };
-        let candles: OHLCV[] = undefined;
+        let candles: OHLCV[];
         const until = this.safeIntegerN (params, [ 'until', 'endTime' ]);
         let start = since;
         if ((until !== undefined) && (since === undefined)) {
@@ -1886,7 +1886,7 @@ export default class mexc extends Exchange {
             }
             const priceType = this.safeString (params, 'price', 'default');
             params = this.omit (params, 'price');
-            let response: Dict = undefined;
+            let response: Dict;
             if (priceType === 'default') {
                 response = await this.contractPublicGetKlineSymbol (this.extend (request, params));
             } else if (priceType === 'index') {
@@ -1952,7 +1952,7 @@ export default class mexc extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         let tickers = undefined;
         if (isSingularMarket) {
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString (market, 'id');
         }
         if (marketType === 'spot') {
             tickers = await this.spotPublicGetTicker24hr (this.extend (request, query));
@@ -2032,7 +2032,7 @@ export default class mexc extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTicker', market, params);
-        let ticker: Ticker = undefined;
+        let ticker: Ticker;
         const request: Dict = {
             'symbol': market['id'],
         };
@@ -2336,7 +2336,7 @@ export default class mexc extends Exchange {
         }
     }
 
-    createSpotOrderRequest (market, type, side, amount, price = undefined, marginMode = undefined, params = {}) {
+    createSpotOrderRequest (market, type, side, amount, price: Num = undefined, marginMode: Str = undefined, params = {}) {
         const symbol = market['symbol'];
         const orderSide = side.toUpperCase ();
         const request: Dict = {
@@ -2410,12 +2410,12 @@ export default class mexc extends Exchange {
      * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createSpotOrder (market, type, side, amount, price = undefined, marginMode = undefined, params = {}) {
+    async createSpotOrder (market, type, side, amount, price: Num = undefined, marginMode: Str = undefined, params = {}) {
         await this.loadMarkets ();
         const test = this.safeBool (params, 'test', false);
         params = this.omit (params, 'test');
         const request = this.createSpotOrderRequest (market, type, side, amount, price, marginMode, params);
-        let response: Dict = undefined;
+        let response: Dict;
         if (test) {
             response = await this.spotPrivatePostOrderTest (request);
         } else {
@@ -2480,7 +2480,7 @@ export default class mexc extends Exchange {
      * @param {int} [params.positionMode] 1:hedge, 2:one-way, default: the user's current config
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createSwapOrder (market, type, side, amount, price = undefined, marginMode = undefined, params = {}) {
+    async createSwapOrder (market, type, side, amount, price: Num = undefined, marginMode: Str = undefined, params = {}) {
         await this.loadMarkets ();
         const symbol = market['symbol'];
         let openType: Int = undefined;
@@ -2568,7 +2568,7 @@ export default class mexc extends Exchange {
         }
         const triggerPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
         params = this.omit (params, [ 'clientOrderId', 'externalOid', 'postOnly', 'stopPrice', 'triggerPrice', 'hedged' ]);
-        let response: Dict = undefined;
+        let response: Dict;
         if (triggerPrice) {
             request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
             request['triggerType'] = this.safeInteger (params, 'triggerType', 1);
@@ -2624,7 +2624,7 @@ export default class mexc extends Exchange {
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeValue (rawOrder, 'params', {});
-            let marginMode = undefined;
+            let marginMode: Str = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
             const orderRequest = this.createSpotOrderRequest (market, type, side, amount, price, marginMode, orderParams);
             ordersRequests.push (orderRequest);
@@ -2677,7 +2677,7 @@ export default class mexc extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        let data: Dict = undefined;
+        let data: Dict;
         if (market['spot']) {
             const clientOrderId = this.safeString (params, 'clientOrderId');
             if (clientOrderId !== undefined) {
@@ -2819,7 +2819,7 @@ export default class mexc extends Exchange {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            let response: Dict = undefined;
+            let response: Dict;
             if (marginMode !== undefined) {
                 if (marginMode !== 'isolated') {
                     throw new BadRequest (this.id + ' fetchOrders() does not support marginMode ' + marginMode + ' for spot-margin trading');
@@ -3052,10 +3052,10 @@ export default class mexc extends Exchange {
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         if (marketType === 'spot') {
             if (symbol !== undefined) {
-                request['symbol'] = market['id'];
+                request['symbol'] = this.safeString (market, 'id');
             }
             const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOpenOrders', params);
-            let response: Dict = undefined;
+            let response: Dict;
             if (marginMode !== undefined) {
                 if (marginMode !== 'isolated') {
                     throw new BadRequest (this.id + ' fetchOpenOrders() does not support marginMode ' + marginMode + ' for spot-margin trading');
@@ -3197,13 +3197,13 @@ export default class mexc extends Exchange {
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('cancelOrder', params);
-        let data: Dict = undefined;
+        let data: Dict;
         if (marketType === 'spot') {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
             }
             const requestInner: Dict = {
-                'symbol': market['id'],
+                'symbol': this.safeString (market, 'id'),
             };
             const clientOrderId = this.safeString (params, 'clientOrderId');
             if (clientOrderId !== undefined) {
@@ -3258,7 +3258,7 @@ export default class mexc extends Exchange {
             // TODO: PlanorderCancel endpoint has bug atm. waiting for fix.
             let method = this.safeString (this.options, 'cancelOrder', 'contractPrivatePostOrderCancel'); // contractPrivatePostOrderCancel, contractPrivatePostPlanorderCancel
             method = this.safeString (query, 'method', method);
-            let response: Dict = undefined;
+            let response: Dict;
             if (method === 'contractPrivatePostOrderCancel') {
                 response = await this.contractPrivatePostOrderCancel ([ id ]); // the request cannot be changed or extended. This is the only way to send.
             } else if (method === 'contractPrivatePostPlanorderCancel') {
@@ -3348,8 +3348,8 @@ export default class mexc extends Exchange {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument on spot');
             }
-            request['symbol'] = market['id'];
-            let response: Dict = undefined;
+            request['symbol'] = this.safeString (market, 'id');
+            let response: Dict;
             if (marginMode !== undefined) {
                 if (marginMode !== 'isolated') {
                     throw new BadRequest (this.id + ' cancelAllOrders() does not support marginMode ' + marginMode + ' for spot-margin trading');
@@ -3397,13 +3397,13 @@ export default class mexc extends Exchange {
             return this.parseOrders (response, market);
         } else {
             if (symbol !== undefined) {
-                request['symbol'] = market['id'];
+                request['symbol'] = this.safeString (market, 'id');
             }
             // method can be either: contractPrivatePostOrderCancelAll or contractPrivatePostPlanorderCancelAll
             // the Planorder endpoints work not only for stop-market orders but also for stop-limit orders that are supposed to have separate endpoint
             let method = this.safeString (this.options, 'cancelAllOrders', 'contractPrivatePostOrderCancelAll');
             method = this.safeString (query, 'method', method);
-            let response: Dict = undefined;
+            let response: Dict;
             if (method === 'contractPrivatePostOrderCancelAll') {
                 response = await this.contractPrivatePostOrderCancelAll (this.extend (request, query));
             } else if (method === 'contractPrivatePostPlanorderCancelAll') {
@@ -3614,7 +3614,7 @@ export default class mexc extends Exchange {
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeIntegerN (order, [ 'time', 'createTime', 'transactTime' ]);
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         const feeCurrency = this.safeString (order, 'feeCurrency');
         if (feeCurrency !== undefined) {
             const takerFee = this.safeString (order, 'takerFee');
@@ -3977,7 +3977,7 @@ export default class mexc extends Exchange {
         const marginMode = this.safeString (params, 'marginMode');
         const isMargin = this.safeBool (params, 'margin', false);
         params = this.omit (params, [ 'margin', 'marginMode' ]);
-        let response: Dict = undefined;
+        let response: Dict;
         if ((marginMode !== undefined) || (isMargin) || (marketType === 'margin')) {
             let parsedSymbols: Str = undefined;
             const symbol = this.safeString (params, 'symbol');
@@ -4113,7 +4113,7 @@ export default class mexc extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        let trades: Trade[] = undefined;
+        let trades: Trade[];
         if (marketType === 'spot') {
             if (since !== undefined) {
                 request['startTime'] = since;
@@ -4209,12 +4209,12 @@ export default class mexc extends Exchange {
             market = this.market (symbol);
         }
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrderTrades', market, params);
-        let trades: Trade[] = undefined;
+        let trades: Trade[];
         if (marketType === 'spot') {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchOrderTrades() requires a symbol argument');
             }
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString (market, 'id');
             request['orderId'] = id;
             trades = await this.spotPrivateGetMyTrades (this.extend (request, query));
             //
@@ -4784,7 +4784,7 @@ export default class mexc extends Exchange {
             'coin': currency['id'],
         };
         const networkCode = this.safeString (params, 'network');
-        let networkId = undefined;
+        let networkId: Str = undefined;
         if (networkCode !== undefined) {
             // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
             const networkUnified = this.networkIdToCode (networkCode, code);
@@ -4838,7 +4838,7 @@ export default class mexc extends Exchange {
             throw new ArgumentsRequired (this.id + ' createDepositAddress requires a `network` parameter');
         }
         // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
-        let networkId = undefined;
+        let networkId: Str = undefined;
         const networkUnified = this.networkIdToCode (networkCode, code);
         const networks = this.safeDict (currency, 'networks', {});
         if (networkUnified in networks) {
@@ -4875,7 +4875,7 @@ export default class mexc extends Exchange {
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         const network = this.safeString (params, 'network');
         const addressStructures = await this.fetchDepositAddressesByNetwork (code, params) as DepositAddress[];
-        let result: Dict = undefined;
+        let result: Dict;
         if (network !== undefined) {
             result = this.safeDict (addressStructures, this.networkIdToCode (network, code));
         } else {
@@ -4915,7 +4915,7 @@ export default class mexc extends Exchange {
             // 'endTime': this.nonce(),
             // 'limit': limit, // default 1000, maximum 1000
         };
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['coin'] = currency['id'];
@@ -4979,7 +4979,7 @@ export default class mexc extends Exchange {
             // 'endTime': this.nonce(),
             // 'limit': limit, // default 1000, maximum 1000
         };
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['coin'] = currency['id'];
@@ -5093,7 +5093,7 @@ export default class mexc extends Exchange {
         let amountString = this.safeString (transaction, 'amount');
         const address = this.safeString (transaction, 'address');
         const txid = this.safeString2 (transaction, 'transHash', 'txId');
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         const feeCostString = this.safeString (transaction, 'transactionFee');
         if (feeCostString !== undefined) {
             fee = {
@@ -5129,7 +5129,7 @@ export default class mexc extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatusByType (status, type = undefined) {
+    parseTransactionStatusByType (status, type: Str = undefined) {
         const statusesByType: Dict = {
             'deposit': {
                 '1': 'failed', // SMALL
@@ -5385,7 +5385,7 @@ export default class mexc extends Exchange {
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTransfers', undefined, params);
         await this.loadMarkets ();
         const request: Dict = {};
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -5788,7 +5788,7 @@ export default class mexc extends Exchange {
         return this.parseTransactionFees (response, codes);
     }
 
-    parseTransactionFees (response, codes = undefined) {
+    parseTransactionFees (response, codes: Strings = undefined) {
         const withdrawFees: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
@@ -5987,7 +5987,7 @@ export default class mexc extends Exchange {
     }
 
     parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         let longLeverage: Int = undefined;
         let shortLeverage: Int = undefined;
         for (let i = 0; i < leverage.length; i++) {
@@ -6003,14 +6003,14 @@ export default class mexc extends Exchange {
         }
         return {
             'info': leverage,
-            'symbol': market['symbol'],
+            'symbol': this.safeString (market, 'symbol'),
             'marginMode': marginMode,
             'longLeverage': longLeverage,
             'shortLeverage': shortLeverage,
         } as Leverage;
     }
 
-    handleMarginModeAndParams (methodName, params = {}, defaultValue = undefined) {
+    handleMarginModeAndParams (methodName, params = {}, defaultValue = undefined): [any, Dict] {
         /**
          * @ignore
          * @method
@@ -6152,7 +6152,7 @@ export default class mexc extends Exchange {
         return this.milliseconds () - this.safeInteger (this.options, 'timeDifference', 0);
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const section = this.safeString (api, 0);
         const access = this.safeString (api, 1);
         [ path, params ] = this.resolvePath (path, params);
@@ -6191,6 +6191,7 @@ export default class mexc extends Exchange {
                 };
             }
             if ((method === 'POST') || (method === 'PUT') || (method === 'DELETE')) {
+                headers = (headers === undefined) ? {} : headers;
                 headers['Content-Type'] = 'application/json';
             }
         } else if (section === 'contract' || section === 'spot2') {

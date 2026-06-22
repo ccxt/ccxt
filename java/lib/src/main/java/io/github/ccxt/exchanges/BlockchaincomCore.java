@@ -340,16 +340,13 @@ public class BlockchaincomCore extends BlockchaincomApi
                 Object minOrderSize = this.parseNumber(minOrderSizePreciseString);
                 // maximum order size
                 Object maxOrderSize = null;
-                maxOrderSize = this.safeString(market, "max_order_size");
-                if (Helpers.isTrue(!Helpers.isEqual(maxOrderSize, "0")))
+                Object maxOrderSizeRaw = this.safeString(market, "max_order_size");
+                if (Helpers.isTrue(!Helpers.isEqual(maxOrderSizeRaw, "0")))
                 {
                     Object maxOrderSizeScaleString = this.safeString(market, "max_order_size_scale");
                     Object maxOrderSizeScalePrecisionString = this.parsePrecision(maxOrderSizeScaleString);
-                    Object maxOrderSizeString = Precise.stringMul(maxOrderSize, maxOrderSizeScalePrecisionString);
-                    maxOrderSize = this.parseNumber(maxOrderSizeString);
-                } else
-                {
-                    maxOrderSize = null;
+                    Object maxOrderSizeValueString = Precise.stringMul(maxOrderSizeRaw, maxOrderSizeScalePrecisionString);
+                    maxOrderSize = this.parseNumber(maxOrderSizeValueString);
                 }
     final Object finalBase = base;
                 final Object finalActive = active;
@@ -953,7 +950,7 @@ public class BlockchaincomCore extends BlockchaincomApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object orderId = this.safeString(trade, "exOrdId");
         Object tradeId = this.safeString(trade, "tradeId");
-        Object side = ((String)this.safeString(trade, "side")).toLowerCase();
+        Object side = this.safeStringLower(trade, "side");
         Object marketId = this.safeString(trade, "symbol");
         Object priceString = this.safeString(trade, "price");
         Object amountString = this.safeString(trade, "qty");
@@ -1355,7 +1352,7 @@ public class BlockchaincomCore extends BlockchaincomApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object accountName = this.safeString(parameters, "account", "primary");
+            Object accountName = ((String)this.safeString(parameters, "account", "primary"));
             parameters = this.omit(parameters, "account");
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "account", accountName );
@@ -1392,7 +1389,7 @@ public class BlockchaincomCore extends BlockchaincomApi
                 Object account = this.account();
                 Helpers.addElementToObject(account, "free", this.safeString(entry, "available"));
                 Helpers.addElementToObject(account, "total", this.safeString(entry, "balance"));
-                Helpers.addElementToObject(result, code, account);
+                Helpers.addElementToObject(result, ((String)code), account);
             }
             return this.safeBalance(result);
         });

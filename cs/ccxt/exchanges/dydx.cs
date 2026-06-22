@@ -623,7 +623,7 @@ public partial class dydx : Exchange
         // }
         //
         object timestamp = this.parse8601(this.safeString(trade, "createdAt"));
-        object symbol = getValue(market, "symbol");
+        object symbol = this.safeString(market, "symbol");
         object price = this.safeString(trade, "price");
         object amount = this.safeString(trade, "size");
         object side = this.safeStringLower(trade, "side");
@@ -1329,7 +1329,7 @@ public partial class dydx : Exchange
         // }
         //
         object response = await this.nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress(request);
-        object account = this.safeDict(response, "info");
+        object account = this.safeDict(response, "info", new Dictionary<string, object>() {});
         ((IDictionary<string,object>)account)["pub_key"] = new Dictionary<string, object>() {
             { "key", getValue(getValue(account, "pub_key"), "key") },
         };
@@ -1369,7 +1369,7 @@ public partial class dydx : Exchange
         object postOnly = this.isPostOnly(isMarket, null, parameters);
         object amountStr = this.amountToPrecision(symbol, amount);
         object priceStr = this.priceToPrecision(symbol, price);
-        object marketInfo = this.safeDict(market, "info");
+        object marketInfo = this.safeDict(market, "info", new Dictionary<string, object>() {});
         object atomicResolution = getValue(marketInfo, "atomicResolution");
         object quantumScale = this.pow("10", Precise.stringNeg(atomicResolution));
         object quantums = Precise.stringMul(amountStr, quantumScale);
@@ -1946,7 +1946,7 @@ public partial class dydx : Exchange
         }
         object defaultFeeDenom = this.safeString(this.options, "defaultFeeDenom");
         object defaultFeeMultiplier = this.safeString(this.options, "defaultFeeMultiplier");
-        object feeDenom = this.safeDict(this.options, "feeDenom");
+        object feeDenom = this.safeDict(this.options, "feeDenom", new Dictionary<string, object>() {});
         object gasPrice = null;
         object denom = null;
         if (isTrue(isEqual(defaultFeeDenom, "uusdc")))

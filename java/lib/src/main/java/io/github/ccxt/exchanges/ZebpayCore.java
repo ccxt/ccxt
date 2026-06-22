@@ -1504,7 +1504,7 @@ public class ZebpayCore extends ZebpayApi
             //         }
             //     }
             //
-            Object responseData = this.safeDict(response, "data");
+            Object responseData = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(responseData, market);
         });
 
@@ -2182,7 +2182,7 @@ public class ZebpayCore extends ZebpayApi
         Object timestamp = this.milliseconds();
         return new java.util.HashMap<String, Object>() {{
             put( "info", info );
-            put( "symbol", Helpers.GetValue(market, "id") );
+            put( "symbol", ZebpayCore.this.safeString(market, "id") );
             put( "type", null );
             put( "marginMode", null );
             put( "amount", ZebpayCore.this.safeNumber(info, "amount") );

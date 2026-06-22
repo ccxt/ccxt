@@ -866,7 +866,7 @@ class coinex(Exchange, ImplicitAPI):
         #     }
         #
         markets = self.safe_list(response, 'data', [])
-        result = []
+        result: List = []
         for i in range(0, len(markets)):
             market = markets[i]
             id = self.safe_string(market, 'market')
@@ -952,7 +952,7 @@ class coinex(Exchange, ImplicitAPI):
         #     }
         #
         markets = self.safe_list(response, 'data', [])
-        result = []
+        result: List = []
         for i in range(0, len(markets)):
             entry = markets[i]
             fees = self.fees
@@ -1102,7 +1102,7 @@ class coinex(Exchange, ImplicitAPI):
         request: dict = {
             'market': market['id'],
         }
-        response = None
+        response: dict
         if market['swap']:
             response = self.v2PublicGetFuturesTicker(self.extend(request, params))
         else:
@@ -1171,7 +1171,7 @@ class coinex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
-        market = None
+        market: Market = None
         if symbols is not None:
             symbol = self.safe_value(symbols, 0)
             market = self.market(symbol)
@@ -1274,7 +1274,7 @@ class coinex(Exchange, ImplicitAPI):
             'limit': limit,
             'interval': '0',
         }
-        response = None
+        response: dict
         if market['swap']:
             response = self.v2PublicGetFuturesDepth(self.extend(request, params))
             #
@@ -1381,7 +1381,7 @@ class coinex(Exchange, ImplicitAPI):
         marketId = self.safe_string(trade, 'market')
         market = self.safe_market(marketId, market, None, defaultType)
         feeCostString = self.safe_string(trade, 'fee')
-        fee = None
+        fee: NullableDict = None
         if feeCostString is not None:
             feeCurrencyId = self.safe_string(trade, 'fee_ccy')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
@@ -1426,7 +1426,7 @@ class coinex(Exchange, ImplicitAPI):
         }
         if limit is not None:
             request['limit'] = min(limit, 1000)
-        response = None
+        response: dict
         if market['swap']:
             response = self.v2PublicGetFuturesDeals(self.extend(request, params))
         else:
@@ -1466,7 +1466,7 @@ class coinex(Exchange, ImplicitAPI):
         request: dict = {
             'market': market['id'],
         }
-        response = None
+        response: dict
         if market['spot']:
             response = self.v2PublicGetSpotMarket(self.extend(request, params))
             #
@@ -1527,9 +1527,9 @@ class coinex(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
         """
         self.load_markets()
-        type = None
+        type: Str = None
         type, params = self.handle_market_type_and_params('fetchTradingFees', None, params)
-        response = None
+        response: dict
         if type == 'swap':
             response = self.v2PublicGetFuturesMarket(params)
             #
@@ -1641,7 +1641,7 @@ class coinex(Exchange, ImplicitAPI):
         }
         if limit is not None:
             request['limit'] = limit
-        response = None
+        response: dict
         if market['swap']:
             response = self.v2PublicGetFuturesKline(self.extend(request, params))
         else:
@@ -1822,7 +1822,7 @@ class coinex(Exchange, ImplicitAPI):
         :param str [params.type]: 'margin', 'swap', 'financial', or 'spot'
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        marketType = None
+        marketType: Str = None
         marketType, params = self.handle_market_type_and_params('fetchBalance', None, params)
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchBalance', params)
@@ -2463,7 +2463,7 @@ class coinex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         ordersRequests = []
-        symbol = None
+        symbol: Str = None
         reduceOnly = False
         isTriggerOrder = False
         isStopLossOrTakeProfitTrigger = False
@@ -2614,10 +2614,10 @@ class coinex(Exchange, ImplicitAPI):
                     #     }
                     #
         data = self.safe_list(response, 'data', [])
-        results = []
+        results: List = []
         for i in range(0, len(data)):
             entry = data[i]
-            status = None
+            status: Str = None
             code = self.safe_integer(entry, 'code')
             if code is not None:
                 if code != 0:
@@ -2625,7 +2625,7 @@ class coinex(Exchange, ImplicitAPI):
                 else:
                     status = 'open'
             innerData = self.safe_dict(entry, 'data', {})
-            order = None
+            order: Order
             if market['spot'] and not isTriggerOrder:
                 entry['status'] = status
                 order = self.parse_order(entry, market)
@@ -2660,7 +2660,7 @@ class coinex(Exchange, ImplicitAPI):
         trigger = self.safe_bool_2(params, 'stop', 'trigger')
         params = self.omit(params, ['stop', 'trigger'])
         response = None
-        requestIds = []
+        requestIds: List = []
         for i in range(0, len(ids)):
             requestIds.append(int(ids[i]))
         if trigger:
@@ -2803,7 +2803,7 @@ class coinex(Exchange, ImplicitAPI):
                 #     }
                 #
         data = self.safe_list(response, 'data', [])
-        results = []
+        results: List = []
         for i in range(0, len(data)):
             entry = data[i]
             item = self.safe_dict(entry, 'data', {})
@@ -2998,7 +2998,7 @@ class coinex(Exchange, ImplicitAPI):
         else:
             response = self.v2PrivatePostFuturesBatchModifyOrder(self.extend(request, params))
         data = self.safe_list(response, 'data', [])
-        result = []
+        result: List = []
         for i in range(0, len(data)):
             entry = data[i]
             code = self.safe_string(entry, 'code')
@@ -3288,7 +3288,7 @@ class coinex(Exchange, ImplicitAPI):
                     #         },
                     #         "message": "OK"
                     #     }
-        data = None
+        data: NullableDict = None
         if clientOrderId is not None:
             rows = self.safe_list(response, 'data', [])
             data = self.safe_dict(rows[0], 'data', {})
@@ -3446,7 +3446,7 @@ class coinex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         request: dict = {}
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['market'] = market['id']
@@ -3454,7 +3454,7 @@ class coinex(Exchange, ImplicitAPI):
             request['limit'] = limit
         trigger = self.safe_bool_2(params, 'stop', 'trigger')
         params = self.omit(params, ['stop', 'trigger'])
-        marketType = None
+        marketType: Str = None
         marketType, params = self.handle_market_type_and_params('fetchOrdersByStatus', market, params)
         response = None
         isClosed = (status == 'finished') or (status == 'closed')
@@ -3822,7 +3822,7 @@ class coinex(Exchange, ImplicitAPI):
         request: dict = {
             'ccy': currency['id'],
         }
-        networkCode = None
+        networkCode: Str = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is None:
             raise ArgumentsRequired(self.id + ' fetchDepositAddress() requires a "network" parameter')
@@ -3850,8 +3850,8 @@ class coinex(Exchange, ImplicitAPI):
         #
         coinAddress = self.safe_string(depositAddress, 'address')
         parts = coinAddress.split(':')
-        address = None
-        tag = None
+        address: Str = None
+        tag: Str = None
         partsLength = len(parts)
         if partsLength > 1 and parts[0] != 'cfx':
             address = parts[0]
@@ -3962,15 +3962,15 @@ class coinex(Exchange, ImplicitAPI):
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
         self.load_markets()
-        defaultMethod = None
+        defaultMethod: Str = None
         defaultMethod, params = self.handle_option_and_params(params, 'fetchPositions', 'method', 'v2PrivateGetFuturesPendingPosition')
         symbols = self.market_symbols(symbols)
         request: dict = {
             'market_type': 'FUTURES',
         }
-        market = None
+        market: Market = None
         if symbols is not None:
-            symbol = None
+            symbol: Str = None
             if isinstance(symbols, list):
                 symbolsLength = len(symbols)
                 if symbolsLength > 1:
@@ -3980,7 +3980,7 @@ class coinex(Exchange, ImplicitAPI):
                 symbol = symbols
             market = self.market(symbol)
             request['market'] = market['id']
-        response = None
+        response: dict
         if defaultMethod == 'v2PrivateGetFuturesPendingPosition':
             response = self.v2PrivateGetFuturesPendingPosition(self.extend(request, params))
         else:
@@ -4029,7 +4029,7 @@ class coinex(Exchange, ImplicitAPI):
         #     }
         #
         position = self.safe_list(response, 'data', [])
-        result = []
+        result: List = []
         for i in range(0, len(position)):
             result.append(self.parse_position(position[i], market))
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
@@ -4298,7 +4298,7 @@ class coinex(Exchange, ImplicitAPI):
         return self.parse_leverage_tiers(data, symbols, 'market')
 
     def parse_market_leverage_tiers(self, info, market: Market = None) -> List[LeverageTier]:
-        tiers = []
+        tiers: List = []
         brackets = self.safe_list(info, 'level', [])
         minNotional = 0
         for i in range(0, len(brackets)):
@@ -4445,7 +4445,7 @@ class coinex(Exchange, ImplicitAPI):
             'marginMode': 'isolated',
             'amount': self.parse_number(Precise.string_abs(change)),
             'total': self.safe_number(data, 'margin_avbl'),
-            'code': market['quote'],
+            'code': self.safe_string(market, 'quote'),
             'status': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -4525,7 +4525,7 @@ class coinex(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        result = []
+        result: List = []
         for i in range(0, len(data)):
             entry = data[i]
             timestamp = self.safe_integer(entry, 'created_at')
@@ -4659,7 +4659,7 @@ class coinex(Exchange, ImplicitAPI):
         self.load_markets()
         symbols = self.market_symbols(symbols)
         request: dict = {}
-        market = None
+        market: Market = None
         if symbols is not None:
             symbol = self.safe_value(symbols, 0)
             market = self.market(symbol)
@@ -4714,7 +4714,7 @@ class coinex(Exchange, ImplicitAPI):
         }
         if tag is not None:
             request['memo'] = tag
-        networkCode = None
+        networkCode: Str = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:
             request['chain'] = self.network_code_to_id(networkCode, currency['code'])  # required for on-chain, not required for inter-user transfer
@@ -4812,7 +4812,7 @@ class coinex(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        rates = []
+        rates: List = []
         for i in range(0, len(data)):
             entry = data[i]
             marketId = self.safe_string(entry, 'market')
@@ -5071,7 +5071,7 @@ class coinex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         request: dict = {}
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
             request['ccy'] = currency['id']
@@ -5127,7 +5127,7 @@ class coinex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         request: dict = {}
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
             request['ccy'] = currency['id']
@@ -5181,8 +5181,8 @@ class coinex(Exchange, ImplicitAPI):
         market = self.safe_market(marketId, market, None, 'spot')
         currency = self.safe_string(info, 'ccy')
         rate = self.safe_number(info, 'daily_interest_rate')
-        baseRate = None
-        quoteRate = None
+        baseRate: Num = None
+        quoteRate: Num = None
         if currency == market['baseId']:
             baseRate = rate
         elif currency == market['quoteId']:
@@ -5254,7 +5254,7 @@ class coinex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         request: dict = {}
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['market'] = market['id']
@@ -5800,7 +5800,7 @@ class coinex(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
-    def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None):
+    def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None) -> list:
         """
  @ignore
         marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'
@@ -5819,7 +5819,7 @@ class coinex(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = [], method='GET', params={}, headers: dict = None, body: Str = None):
         path = self.implode_params(path, params)
         version = api[0]
         requestUrl = api[1]

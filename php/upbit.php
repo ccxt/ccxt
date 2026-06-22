@@ -613,7 +613,7 @@ class upbit extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function fetch_order_books(?array $symbols = null, ?int $limit = null, $params = array ()): OrderBooks {
+    public function fetch_order_books(?array $symbols = null, ?int $limit = null, $params = array ()): array {
         /**
          *
          * @see https://docs.upbit.com/kr/reference/list-orderbooks
@@ -628,10 +628,13 @@ class upbit extends Exchange {
         $this->load_markets();
         $ids = null;
         if ($symbols === null) {
-            $ids = implode(',', $this->ids);
+            $allIds = $this->ids;
+            if ($allIds !== null) {
+                $ids = implode(',', $allIds);
+            }
         } else {
-            $ids = $this->market_ids($symbols);
-            $ids = implode(',', $ids);
+            $marketIds = $this->market_ids($symbols);
+            $ids = implode(',', $marketIds);
         }
         $request = array(
             'markets' => $ids,
@@ -1109,7 +1112,6 @@ class upbit extends Exchange {
             'timeframe' => $timeframeValue,
             'count' => $limit,
         );
-        $response = null;
         if ($since !== null) {
             // convert `$since` to `to` value
             $request['to'] = $this->iso8601($this->sum($since, $timeframePeriod * $limit * 1000));
@@ -1275,7 +1277,6 @@ class upbit extends Exchange {
         if ($request['ord_type'] === 'best' && $timeInForce === null) {
             throw new ArgumentsRequired($this->id . ' createOrder() requires a $timeInForce parameter for best $type orders');
         }
-        $response = null;
         $params = $this->omit($params, array( 'timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'cost', 'selfTradePrevention', 'smp_type', 'test' ));
         if ($test) {
             $response = $this->privatePostOrdersTest ($this->extend($request, $params));
@@ -2276,7 +2277,6 @@ class upbit extends Exchange {
         $request = array(
             'amount' => $amount,
         );
-        $response = null;
         if ($code !== 'KRW') {
             $this->check_address($address);
             // 2023-05-23 Change to required parameters for digital assets
@@ -2317,7 +2317,7 @@ class upbit extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, mixed $body = null) {
         $url = $this->implode_params($this->urls['api'][$api], array(
             'hostname' => $this->hostname,
         ));

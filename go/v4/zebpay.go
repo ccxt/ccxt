@@ -1607,7 +1607,7 @@ func (this *ZebpayCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		//         }
 		//     }
 		//
-		var responseData any = this.SafeDict(response, "data")
+		var responseData any = this.SafeDict(response, "data", map[string]any{})
 
 		ch <- this.ParseOrder(responseData, market)
 		return nil
@@ -2339,7 +2339,7 @@ func (this *ZebpayCore) ParseMarginModification(info any, optionalArgs ...any) a
 	var timestamp any = this.Milliseconds()
 	return map[string]any{
 		"info":       info,
-		"symbol":     GetValue(market, "id"),
+		"symbol":     this.SafeString(market, "id"),
 		"type":       nil,
 		"marginMode": nil,
 		"amount":     this.SafeNumber(info, "amount"),

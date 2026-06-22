@@ -739,7 +739,7 @@ class lighter(Exchange, ImplicitAPI):
                 elif timeInForce == 'gtt':
                     timeInForceNum = 1
                     orderExpiry = -1
-        marketInfo = self.safe_dict(market, 'info')
+        marketInfo = self.safe_dict(market, 'info', {})
         amountStr: Str = None
         priceStr = self.price_to_precision(symbol, price)
         amountScale = self.pow('10', marketInfo['size_decimals'])
@@ -776,7 +776,7 @@ class lighter(Exchange, ImplicitAPI):
             request['integrator_account_index'] = self.options['integratorAccountIndex']
             request['integrator_taker_fee'] = self.options['integratorTakerFee']
             request['integrator_maker_fee'] = self.options['integratorMakerFee']
-        orders = []
+        orders: List = []
         orders.append(self.extend(request, params))
         if hasStopLoss or hasTakeProfit:
             # group order
@@ -865,8 +865,8 @@ class lighter(Exchange, ImplicitAPI):
         # the nonce could be updated
         if self.safe_integer(order, 'nonce') is None:
             order['nonce'] = self.fetch_nonce(accountIndex, apiKeyIndex)
-        txType = None
-        txInfo = None
+        txType: Str = None
+        txInfo: dict = None
         if totalOrderRequests < 2:
             txType, txInfo = self.lighter_sign_create_order(signer, order)
         else:
@@ -920,7 +920,7 @@ class lighter(Exchange, ImplicitAPI):
         strApiKeyIndex = self.number_to_string(apiKeyIndex)
         signer = self.load_account(self.options['chainId'], self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params)
         market = self.market(symbol)
-        marketInfo = self.safe_dict(market, 'info')
+        marketInfo = self.safe_dict(market, 'info', {})
         amountScale = self.pow('10', marketInfo['size_decimals'])
         priceScale = self.pow('10', marketInfo['price_decimals'])
         triggerPrice = self.safe_string_n(params, ['stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
@@ -1093,7 +1093,7 @@ class lighter(Exchange, ImplicitAPI):
         spotMarkets = self.safe_list(response, 'spot_order_book_details', [])
         swapMarkets = self.safe_list(response, 'order_book_details', [])
         markets = self.array_concat(spotMarkets, swapMarkets)
-        result = []
+        result: List = []
         for i in range(0, len(markets)):
             market = markets[i]
             id = self.safe_string(market, 'market_id')
@@ -1627,7 +1627,7 @@ class lighter(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'funding_rates', [])
-        result = []
+        result: List = []
         for i in range(0, len(data)):
             exchange = self.safe_string(data[i], 'exchange')
             if exchange == 'lighter':
@@ -1809,7 +1809,7 @@ class lighter(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        allPositions = []
+        allPositions: List = []
         accounts = self.safe_list(response, 'accounts', [])
         for i in range(0, len(accounts)):
             account = accounts[i]
@@ -3079,7 +3079,7 @@ class lighter(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
         url: Str = None
         if api == 'root':
             url = self.implode_hostname(self.urls['api']['public'])

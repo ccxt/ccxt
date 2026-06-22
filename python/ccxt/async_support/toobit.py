@@ -616,7 +616,7 @@ class toobit(Exchange, ImplicitAPI):
         id = self.safe_string(rawCurrency, 'coinId')
         code = self.safe_currency_code(id)
         networks: dict = {}
-        rawNetworks = self.safe_list(rawCurrency, 'chainTypes')
+        rawNetworks = self.safe_list(rawCurrency, 'chainTypes', [])
         for j in range(0, len(rawNetworks)):
             rawNetwork = rawNetworks[j]
             networkId = self.safe_string(rawNetwork, 'chainType')
@@ -1038,7 +1038,7 @@ class toobit(Exchange, ImplicitAPI):
                 side = 'sell'
         feeCurrencyId = self.safe_string(trade, 'feeCoinId')
         feeAmount = self.safe_string(trade, 'feeAmount')
-        fee = None
+        fee: NullableDict = None
         if feeAmount is not None:
             fee = {
                 'currency': self.safe_currency_code(feeCurrencyId),
@@ -1199,7 +1199,7 @@ class toobit(Exchange, ImplicitAPI):
             if length == 1:
                 request['symbol'] = market['id']
         type, params = self.handle_market_type_and_params('fetchTickers', market, params)
-        response = None
+        response: NullableDict = None
         if type == 'spot':
             response = await self.commonGetQuoteV1Ticker24hr(self.extend(request, params))
         else:
@@ -1459,7 +1459,7 @@ class toobit(Exchange, ImplicitAPI):
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.load_markets()
-        response = None
+        response: NullableDict = None
         marketType: Str = None
         marketType, params = self.handle_market_type_and_params('fetchBalance', None, params)
         if self.in_array(marketType, ['swap', 'future']):
@@ -1789,7 +1789,7 @@ class toobit(Exchange, ImplicitAPI):
         marketType, params = self.handle_market_type_and_params('cancelOrder', market, params, 'none')
         if marketType == 'none':
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument or the "defaultType" parameter to be set to "spot" or "swap"')
-        response = None
+        response: NullableDict = None
         if marketType == 'spot':
             response = await self.privateDeleteApiV1SpotOrder(self.extend(request, params))
         else:
@@ -1821,7 +1821,7 @@ class toobit(Exchange, ImplicitAPI):
         marketType, params = self.handle_market_type_and_params('cancelAllOrders', market, params, 'none')
         if marketType == 'none':
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument or the "defaultType" parameter to be set to "spot" or "swap"')
-        response = None
+        response: NullableDict = None
         if marketType == 'spot':
             response = await self.privateDeleteApiV1SpotOpenOrders(self.extend(request, params))
             #
@@ -1862,7 +1862,7 @@ class toobit(Exchange, ImplicitAPI):
         marketType, params = self.handle_market_type_and_params('cancelOrders', market, params, 'none')
         if marketType == 'none':
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument or the "defaultType" parameter to be set to "spot" or "swap"')
-        response = None
+        response: NullableDict = None
         if marketType == 'spot':
             response = await self.privateDeleteApiV1SpotCancelOrderByIds(self.extend(request, params))
             #
@@ -2277,7 +2277,7 @@ class toobit(Exchange, ImplicitAPI):
             request['limit'] = limit
         marketType: Str = None
         marketType, params = self.handle_market_type_and_params('cancelAllOrders', None, params)
-        response = None
+        response: NullableDict = None
         if marketType == 'spot':
             response = await self.privateGetApiV1AccountBalanceFlow(self.extend(request, params))
         else:
@@ -2347,7 +2347,7 @@ class toobit(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
         """
         await self.load_markets()
-        response = None
+        response: NullableDict = None
         marketType: Str = None
         market: Market = None
         marketType, params = self.handle_market_type_and_params('fetchTradingFees', None, params)
@@ -2834,7 +2834,7 @@ class toobit(Exchange, ImplicitAPI):
             'percentage': None,
         })
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api] + '/' + self.implode_params(path, params)
         isPost = method == 'POST'
         isDelete = method == 'DELETE'

@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import mexcRest from '../mexc.js';
 import { ArgumentsRequired, AuthenticationError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, OHLCV, Str, OrderBook, Order, Trade, Ticker, Balances, Dict, Tickers, Strings, FundingRate, Fee, Market } from '../base/types.js';
+import type { Int, List, OHLCV, Str, OrderBook, Order, Trade, Ticker, Balances, Dict, Tickers, Strings, FundingRate, Fee, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -184,7 +184,7 @@ export default class mexc extends mexcRest {
         const timestamp = this.safeInteger2 (message, 't', 'sendTime');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        let ticker: Ticker = undefined;
+        let ticker: Ticker;
         if (market['spot']) {
             ticker = this.parseWsTicker (rawTicker, market);
             ticker['timestamp'] = timestamp;
@@ -212,7 +212,7 @@ export default class mexc extends mexcRest {
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined);
-        const messageHashes = [];
+        const messageHashes: List = [];
         const firstSymbol = this.safeString (symbols, 0);
         let market: Market = undefined;
         if (firstSymbol !== undefined) {
@@ -336,10 +336,10 @@ export default class mexc extends mexcRest {
         const spotPrefix = 'spot:';
         const messageHashPrefix = isSpot ? spotPrefix : '';
         const topic = messageHashPrefix + 'ticker';
-        const result = [];
+        const result: List = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
-            let ticker: Ticker = undefined;
+            let ticker: Ticker;
             if (isSpot) {
                 ticker = this.parseWsTicker (entry, market);
             } else {
@@ -354,7 +354,7 @@ export default class mexc extends mexcRest {
         client.resolve (result, topic);
     }
 
-    parseWsTicker (ticker, market = undefined) {
+    parseWsTicker (ticker, market: Market = undefined) {
         // protobuf ticker
         // "bidprice": "93387.28",  // Best bid price
         // "bidquantity": "3.73485", // Best bid quantity
@@ -436,8 +436,8 @@ export default class mexc extends mexcRest {
         if (!isSpot) {
             throw new NotSupported (this.id + ' watchBidsAsks only support spot market');
         }
-        const messageHashes = [];
-        const topics = [];
+        const messageHashes: List = [];
+        const topics: List = [];
         for (let i = 0; i < symbols.length; i++) {
             if (isSpot) {
                 const market = this.market (symbols[i]);
@@ -483,7 +483,7 @@ export default class mexc extends mexcRest {
         client.resolve (parsedTicker, messageHash);
     }
 
-    parseWsBidAsk (ticker, market = undefined) {
+    parseWsBidAsk (ticker, market: Market = undefined) {
         const data = this.safeDict (ticker, 'd');
         const marketId = this.safeString (ticker, 's');
         market = this.safeMarket (marketId, market);
@@ -655,7 +655,7 @@ export default class mexc extends mexcRest {
         //    }
         // }
         //
-        let parsed: Dict = undefined;
+        let parsed: Dict;
         let symbol: Str = undefined;
         let timeframe: Str = undefined;
         if ('publicSpotKline' in message) {
@@ -687,7 +687,7 @@ export default class mexc extends mexcRest {
         client.resolve (stored, messageHash);
     }
 
-    parseWsOHLCV (ohlcv, market = undefined): OHLCV {
+    parseWsOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         // spot
         //
@@ -1051,7 +1051,7 @@ export default class mexc extends mexcRest {
             trades = this.safeList (message, 'data', []);
         }
         for (let j = 0; j < trades.length; j++) {
-            let parsedTrade: Trade = undefined;
+            let parsedTrade: Trade;
             if (market['spot']) {
                 parsedTrade = this.parseWsTrade (trades[j], market);
             } else {
@@ -1139,7 +1139,7 @@ export default class mexc extends mexcRest {
         const marketId = this.safeString2 (message, 's', 'symbol', futuresMarketId);
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        let trade: Trade = undefined;
+        let trade: Trade;
         if (market['spot']) {
             trade = this.parseWsTrade (data, market);
         } else {
@@ -1157,7 +1157,7 @@ export default class mexc extends mexcRest {
         client.resolve (trades, symbolSpecificMessageHash);
     }
 
-    parseWsTrade (trade, market = undefined) {
+    parseWsTrade (trade, market: Market = undefined) {
         //
         // public trade (protobuf)
         //    {
@@ -1356,7 +1356,7 @@ export default class mexc extends mexcRest {
         const marketId = this.safeString2 (message, 's', 'symbol', futuresMarketId);
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        let parsed: Order = undefined;
+        let parsed: Order;
         if (market['spot']) {
             parsed = this.parseWsOrder (data, market);
         } else {
@@ -1374,7 +1374,7 @@ export default class mexc extends mexcRest {
         client.resolve (orders, symbolSpecificMessageHash);
     }
 
-    parseWsOrder (order, market = undefined) {
+    parseWsOrder (order, market: Market = undefined) {
         //
         // spot
         //     {
@@ -1479,7 +1479,7 @@ export default class mexc extends mexcRest {
         }, market);
     }
 
-    parseWsOrderStatus (status, market = undefined) {
+    parseWsOrderStatus (status, market: Market = undefined) {
         const statuses: Dict = {
             '0': 'open',     // new/pending (OCO orders)
             '1': 'open',     // new order
@@ -1710,7 +1710,7 @@ export default class mexc extends mexcRest {
     async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined);
-        const messageHashes = [];
+        const messageHashes: List = [];
         const firstSymbol = this.safeString (symbols, 0);
         let market: Market = undefined;
         if (firstSymbol !== undefined) {
@@ -1781,8 +1781,8 @@ export default class mexc extends mexcRest {
         if (!isSpot) {
             throw new NotSupported (this.id + ' watchBidsAsks only support spot market');
         }
-        const messageHashes = [];
-        const topics = [];
+        const messageHashes: List = [];
+        const topics: List = [];
         for (let i = 0; i < symbols.length; i++) {
             if (isSpot) {
                 const market = this.market (symbols[i]);

@@ -797,7 +797,7 @@ class woo extends woo$1["default"] {
         const cost = Precise["default"].stringMul(price, amount);
         const side = this.safeStringLower(trade, 'side');
         const timestamp = this.safeInteger(trade, 'timestamp');
-        const maker = this.safeBool(trade, 'marker');
+        const maker = this.safeBool(trade, 'maker');
         let takerOrMaker = undefined;
         if (maker !== undefined) {
             takerOrMaker = maker ? 'maker' : 'taker';

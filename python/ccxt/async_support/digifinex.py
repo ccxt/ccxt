@@ -1476,7 +1476,7 @@ class digifinex(Exchange, ImplicitAPI):
         #         0.029927
         #     ]
         #
-        if market['swap']:
+        if self.safe_bool(market, 'swap'):
             return [
                 self.safe_integer(ohlcv, 0),
                 self.safe_number(ohlcv, 1),  # open
@@ -1748,7 +1748,7 @@ class digifinex(Exchange, ImplicitAPI):
         marketIdRequest = 'instrument_id' if swap else 'symbol'
         request[marketIdRequest] = market['id']
         postOnly = self.is_post_only(isMarketOrder, False, params)
-        postOnlyParsed = None
+        postOnlyParsed: Int = None
         if swap:
             reduceOnly = self.safe_bool(params, 'reduceOnly', False)
             timeInForce = self.safe_string(params, 'timeInForce')
@@ -1856,7 +1856,7 @@ class digifinex(Exchange, ImplicitAPI):
         if marketType == 'swap':
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
-            request['instrument_id'] = market['id']
+            request['instrument_id'] = self.safe_string(market, 'id')
         else:
             request['market'] = marketType
         marginMode, query = self.handle_margin_mode_and_params('cancelOrder', params)
@@ -1905,8 +1905,8 @@ class digifinex(Exchange, ImplicitAPI):
             })
 
     def parse_cancel_orders(self, response):
-        success = self.safe_list(response, 'success')
-        error = self.safe_list(response, 'error')
+        success = self.safe_list(response, 'success', [])
+        error = self.safe_list(response, 'error', [])
         result = []
         for i in range(0, len(success)):
             order = success[i]
@@ -2412,7 +2412,7 @@ class digifinex(Exchange, ImplicitAPI):
                 request['start_time'] = self.parse_to_int(since / 1000)  # default 3 days from now, max 30 days
         marketIdRequest = 'instrument_id' if (marketType == 'swap') else 'symbol'
         if symbol is not None:
-            request[marketIdRequest] = market['id']
+            request[marketIdRequest] = self.safe_string(market, 'id')
         if limit is not None:
             request['limit'] = limit
         response = None
@@ -3815,7 +3815,7 @@ class digifinex(Exchange, ImplicitAPI):
             })
         return tiers
 
-    def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None):
+    def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None) -> list:
         """
  @ignore
         marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'
@@ -4023,7 +4023,7 @@ class digifinex(Exchange, ImplicitAPI):
             'marginMode': 'isolated',
             'amount': self.safe_number(data, 'amount'),
             'total': None,
-            'code': market['settle'],
+            'code': self.safe_string(market, 'settle'),
             'status': None,
             'timestamp': None,
             'datetime': None,
@@ -4116,7 +4116,7 @@ class digifinex(Exchange, ImplicitAPI):
         }
         return await self.privateSwapPostAccountPositionMode(self.extend(request, params))
 
-    def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = [], method='GET', params={}, headers: dict = None, body: Str = None):
         signed = api[0] == 'private'
         endpoint = api[1]
         pathPart = '/v3' if (endpoint == 'spot') else '/swap/v2'

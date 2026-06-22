@@ -1559,7 +1559,7 @@ class woo extends Exchange {
                 }
                 $response = Async\await($this->v3PrivateDeleteTradeAlgoOrder ($this->extend($request, $params)));
             } else {
-                $request['symbol'] = $market['id'];
+                $request['symbol'] = $this->safe_string($market, 'id');
                 if ($isByClientOrder) {
                     $request['clientOrderId'] = $clientOrderIdExchangeSpecific;
                 } else {
@@ -3195,7 +3195,7 @@ class woo extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function sign($path, $section = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $section = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $version = $section[0];
         $access = $section[1];
         $pathWithParams = $this->implode_params($path, $params);
@@ -3811,16 +3811,16 @@ class woo extends Exchange {
             if ($symbol !== null) {
                 $market = $this->market($symbol);
             }
-            if (($symbol === null) || $market['spot']) {
+            if (($symbol === null) || $this->safe_bool($market, 'spot')) {
                 return Async\await($this->v3PrivatePostSpotMarginLeverage ($this->extend($request, $params)));
-            } elseif ($market['swap']) {
-                $request['symbol'] = $market['id'];
+            } elseif ($this->safe_bool($market, 'swap')) {
+                $request['symbol'] = $this->safe_string($market, 'id');
                 $marginMode = null;
                 list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchLeverage', $params, 'cross');
                 $request['marginMode'] = $this->encode_margin_mode($marginMode);
                 return Async\await($this->v3PrivatePutFuturesLeverage ($this->extend($request, $params)));
             } else {
-                throw new NotSupported($this->id . ' fetchLeverage() is not supported for ' . $market['type'] . ' markets');
+                throw new NotSupported($this->id . ' fetchLeverage() is not supported for ' . $this->safe_string($market, 'type') . ' markets');
             }
         }) ();
     }

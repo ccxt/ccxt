@@ -1621,7 +1621,7 @@ func (this *ExtendedCore) ParseOpenInterest(interest any, optionalArgs ...any) a
 	_ = market
 	var timestamp any = this.SafeInteger(interest, "t")
 	return this.SafeOpenInterest(map[string]any{
-		"symbol":             GetValue(market, "symbol"),
+		"symbol":             this.SafeString(market, "symbol"),
 		"openInterestAmount": this.SafeNumber(interest, "I"),
 		"openInterestValue":  this.SafeNumber(interest, "i"),
 		"baseVolume":         this.SafeNumber(interest, "I"),
@@ -3629,7 +3629,7 @@ func (this *ExtendedCore) CancelOrders(ids any, optionalArgs ...any) <-chan any 
 			clientOrderIds = []any{clientOrderId}
 		}
 		var hasClientOrderIds any = !IsEqual(clientOrderIds, nil)
-		if IsTrue(hasClientOrderIds) {
+		if IsTrue(!IsEqual(clientOrderIds, nil)) {
 			var clientOrderIdsLength any = GetArrayLength(clientOrderIds)
 			if IsTrue(IsGreaterThan(clientOrderIdsLength, 0)) {
 				AddElementToObject(request, "externalOrderIds", clientOrderIds)

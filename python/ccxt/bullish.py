@@ -895,7 +895,7 @@ class bullish(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    def parse_market_type(self, type: str, defaultType: Str = None) -> str:
+    def parse_market_type(self, type: Str = None, defaultType: Str = None) -> Str:
         types = {
             'SPOT': 'spot',
             'PERPETUAL': 'swap',
@@ -1016,7 +1016,7 @@ class bullish(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['symbol'] = market['id']
         clientOrderId = self.safe_string(params, 'clientOrderId')
-        response = None
+        response: List
         if clientOrderId is not None:
             response = self.privateGetV1TradesClientOrderIdClientOrderId(self.extend(request, params))
         else:
@@ -2821,7 +2821,7 @@ class bullish(Exchange, ImplicitAPI):
             'quoteVolume': None,
         }, market)
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         request = self.omit(params, self.extract_params(path))
         endpoint = '/' + self.implode_params(path, params)
         url = self.urls['api'][api] + endpoint
@@ -2853,11 +2853,13 @@ class bullish(Exchange, ImplicitAPI):
                 if rateLimitToken is not None:
                     headers['BX-RATE-LIMIT-TOKEN'] = rateLimitToken
             if path == 'v1/users/hmac/login':
+                headers = {} if (headers is None) else headers
                 headers['BX-PUBLIC-KEY'] = self.apiKey
             else:
                 token = self.token
                 if (token is None):
                     raise AuthenticationError(self.id + ' requires a token, please call signIn() first')
+                headers = {} if (headers is None) else headers
                 headers['Authorization'] = 'Bearer ' + token
                 # headers['BX-NONCE-WINDOW-ENABLED'] = 'false'  # default is False
         if method == 'GET':

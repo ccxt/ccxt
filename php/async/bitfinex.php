@@ -3028,7 +3028,7 @@ class bitfinex extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $request = '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'v1') {
@@ -3837,7 +3837,7 @@ class bitfinex extends Exchange {
         }) ();
     }
 
-    public function parse_margin_modification($data, $market = null): array {
+    public function parse_margin_modification($data, ?array $market = null): array {
         //
         // setMargin
         //
@@ -3851,7 +3851,7 @@ class bitfinex extends Exchange {
         $marginStatus = ($marginStatusRaw === 1) ? 'ok' : 'failed';
         return array(
             'info' => $data,
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'type' => null,
             'marginMode' => 'isolated',
             'amount' => null,

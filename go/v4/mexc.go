@@ -1915,7 +1915,7 @@ func (this *MexcCore) FetchTickers(optionalArgs ...any) <-chan any {
 		query := GetValue(marketTypequeryVariable, 1)
 		var tickers any = nil
 		if IsTrue(isSingularMarket) {
-			AddElementToObject(request, "symbol", GetValue(market, "id"))
+			AddElementToObject(request, "symbol", this.SafeString(market, "id"))
 		}
 		if IsTrue(IsEqual(marketType, "spot")) {
 
@@ -3156,7 +3156,7 @@ func (this *MexcCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		params = GetValue(marketTypeparamsVariable, 1)
 		if IsTrue(IsEqual(marketType, "spot")) {
 			if IsTrue(!IsEqual(symbol, nil)) {
-				AddElementToObject(request, "symbol", GetValue(market, "id"))
+				AddElementToObject(request, "symbol", this.SafeString(market, "id"))
 			}
 			marginModequeryVariable := this.HandleMarginModeAndParams("fetchOpenOrders", params)
 			marginMode := GetValue(marginModequeryVariable, 0)
@@ -3395,7 +3395,7 @@ func (this *MexcCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 				panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 			}
 			var requestInner any = map[string]any{
-				"symbol": GetValue(market, "id"),
+				"symbol": this.SafeString(market, "id"),
 			}
 			var clientOrderId any = this.SafeString(params, "clientOrderId")
 			if IsTrue(!IsEqual(clientOrderId, nil)) {
@@ -3551,7 +3551,7 @@ func (this *MexcCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 			if IsTrue(IsEqual(symbol, nil)) {
 				panic(ArgumentsRequired(Add(this.Id, " cancelAllOrders() requires a symbol argument on spot")))
 			}
-			AddElementToObject(request, "symbol", GetValue(market, "id"))
+			AddElementToObject(request, "symbol", this.SafeString(market, "id"))
 			var response any = nil
 			if IsTrue(!IsEqual(marginMode, nil)) {
 				if IsTrue(!IsEqual(marginMode, "isolated")) {
@@ -3606,7 +3606,7 @@ func (this *MexcCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 			return nil
 		} else {
 			if IsTrue(!IsEqual(symbol, nil)) {
-				AddElementToObject(request, "symbol", GetValue(market, "id"))
+				AddElementToObject(request, "symbol", this.SafeString(market, "id"))
 			}
 			// method can be either: contractPrivatePostOrderCancelAll or contractPrivatePostPlanorderCancelAll
 			// the Planorder endpoints work not only for stop-market orders but also for stop-limit orders that are supposed to have separate endpoint
@@ -4485,7 +4485,7 @@ func (this *MexcCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan any {
 			if IsTrue(IsEqual(symbol, nil)) {
 				panic(ArgumentsRequired(Add(this.Id, " fetchOrderTrades() requires a symbol argument")))
 			}
-			AddElementToObject(request, "symbol", GetValue(market, "id"))
+			AddElementToObject(request, "symbol", this.SafeString(market, "id"))
 			AddElementToObject(request, "orderId", id)
 
 			trades = (<-this.SpotPrivateGetMyTrades(this.Extend(request, query)))
@@ -6651,7 +6651,7 @@ func (this *MexcCore) ParseLeverage(leverage any, optionalArgs ...any) any {
 	}
 	return map[string]any{
 		"info":          leverage,
-		"symbol":        GetValue(market, "symbol"),
+		"symbol":        this.SafeString(market, "symbol"),
 		"marginMode":    marginMode,
 		"longLeverage":  longLeverage,
 		"shortLeverage": shortLeverage,
@@ -6892,6 +6892,7 @@ func (this *MexcCore) Sign(path any, optionalArgs ...any) any {
 			}
 		}
 		if IsTrue(IsTrue(IsTrue((IsEqual(method, "POST"))) || IsTrue((IsEqual(method, "PUT")))) || IsTrue((IsEqual(method, "DELETE")))) {
+			headers = Ternary(IsTrue((IsEqual(headers, nil))), map[string]any{}, headers)
 			AddElementToObject(headers, "Content-Type", "application/json")
 		}
 	} else if IsTrue(IsTrue(IsEqual(section, "contract")) || IsTrue(IsEqual(section, "spot2"))) {

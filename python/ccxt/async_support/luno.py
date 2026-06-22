@@ -866,15 +866,15 @@ class luno(Exchange, ImplicitAPI):
             side = 'buy' if trade['is_buy'] else 'sell'
         feeBaseString = self.safe_string(trade, 'fee_base')
         feeCounterString = self.safe_string(trade, 'fee_counter')
-        feeCurrency = None
-        feeCost = None
+        feeCurrency: Str = None
+        feeCost: Str = None
         if feeBaseString is not None:
             if not Precise.string_equals(feeBaseString, '0.0'):
-                feeCurrency = market['base']
+                feeCurrency = self.safe_string(market, 'base')
                 feeCost = feeBaseString
         elif feeCounterString is not None:
             if not Precise.string_equals(feeCounterString, '0.0'):
-                feeCurrency = market['quote']
+                feeCurrency = self.safe_string(market, 'quote')
                 feeCost = feeCounterString
         timestamp = self.safe_integer(trade, 'timestamp')
         return self.safe_trade({
@@ -882,7 +882,7 @@ class luno(Exchange, ImplicitAPI):
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'order': orderId,
             'type': None,
             'side': side,
@@ -1390,7 +1390,7 @@ class luno(Exchange, ImplicitAPI):
             'tag': self.safe_string(depositAddress, 'name'),
         }
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if query:

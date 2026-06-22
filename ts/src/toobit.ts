@@ -5,7 +5,7 @@ import Exchange from './abstract/toobit.js';
 import { OperationFailed, ArgumentsRequired, ExchangeError, BadRequest, OrderNotFound, BadSymbol, NotSupported, PermissionDenied, RateLimitExceeded, OperationRejected, InvalidOrder, InsufficientFunds } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Bool, Currencies, Currency, DepositAddress, Dict, Fee, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry, int } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, DepositAddress, Dict, Fee, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, Market, MarketInterface, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -611,7 +611,7 @@ export default class toobit extends Exchange {
         const id = this.safeString (rawCurrency, 'coinId');
         const code = this.safeCurrencyCode (id);
         const networks: Dict = {};
-        const rawNetworks = this.safeList (rawCurrency, 'chainTypes');
+        const rawNetworks = this.safeList (rawCurrency, 'chainTypes', []);
         for (let j = 0; j < rawNetworks.length; j++) {
             const rawNetwork = rawNetworks[j];
             const networkId = this.safeString (rawNetwork, 'chainType');
@@ -1049,7 +1049,7 @@ export default class toobit extends Exchange {
         }
         const feeCurrencyId = this.safeString (trade, 'feeCoinId');
         const feeAmount = this.safeString (trade, 'feeAmount');
-        let fee = undefined;
+        let fee: NullableDict = undefined;
         if (feeAmount !== undefined) {
             fee = {
                 'currency': this.safeCurrencyCode (feeCurrencyId),
@@ -1221,7 +1221,7 @@ export default class toobit extends Exchange {
             }
         }
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-        let response = undefined;
+        let response: NullableDict = undefined;
         if (type === 'spot') {
             response = await this.commonGetQuoteV1Ticker24hr (this.extend (request, params));
         } else {
@@ -1502,7 +1502,7 @@ export default class toobit extends Exchange {
      */
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
-        let response = undefined;
+        let response: NullableDict = undefined;
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         if (this.inArray (marketType, [ 'swap', 'future' ])) {
@@ -1863,7 +1863,7 @@ export default class toobit extends Exchange {
         if (marketType === 'none') {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument or the "defaultType" parameter to be set to "spot" or "swap"');
         }
-        let response = undefined;
+        let response: NullableDict = undefined;
         if (marketType === 'spot') {
             response = await this.privateDeleteApiV1SpotOrder (this.extend (request, params));
         } else {
@@ -1900,7 +1900,7 @@ export default class toobit extends Exchange {
         if (marketType === 'none') {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument or the "defaultType" parameter to be set to "spot" or "swap"');
         }
-        let response = undefined;
+        let response: NullableDict = undefined;
         if (marketType === 'spot') {
             response = await this.privateDeleteApiV1SpotOpenOrders (this.extend (request, params));
             //
@@ -1945,7 +1945,7 @@ export default class toobit extends Exchange {
         if (marketType === 'none') {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument or the "defaultType" parameter to be set to "spot" or "swap"');
         }
-        let response = undefined;
+        let response: NullableDict = undefined;
         if (marketType === 'spot') {
             response = await this.privateDeleteApiV1SpotCancelOrderByIds (this.extend (request, params));
             //
@@ -2389,7 +2389,7 @@ export default class toobit extends Exchange {
         }
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', undefined, params);
-        let response = undefined;
+        let response: NullableDict = undefined;
         if (marketType === 'spot') {
             response = await this.privateGetApiV1AccountBalanceFlow (this.extend (request, params));
         } else {
@@ -2464,7 +2464,7 @@ export default class toobit extends Exchange {
      */
     async fetchTradingFees (params = {}): Promise<TradingFees> {
         await this.loadMarkets ();
-        let response = undefined;
+        let response: NullableDict = undefined;
         let marketType: Str = undefined;
         let market: Market = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTradingFees', undefined, params);
@@ -2983,7 +2983,7 @@ export default class toobit extends Exchange {
         });
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         const isPost = method === 'POST';
         const isDelete = method === 'DELETE';

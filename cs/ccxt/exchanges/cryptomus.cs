@@ -625,7 +625,7 @@ public partial class cryptomus : Exchange
             { "id", this.safeString(trade, "trade_id") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeString(market, "symbol") },
             { "side", this.safeString(trade, "type") },
             { "price", this.safeString(trade, "price") },
             { "amount", this.safeString(trade, "quote_volume") },

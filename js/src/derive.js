@@ -1275,7 +1275,7 @@ export default class derive extends Exchange {
         }
         request['signature'] = signature;
         params = this.omit(params, ['reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'test', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trigger_price', 'stopLoss', 'takeProfit', 'trigger_price_type']);
-        let response = undefined;
+        let response;
         if (test) {
             response = await this.privatePostOrderDebug(this.extend(request, params));
         }
@@ -1555,7 +1555,7 @@ export default class derive extends Exchange {
         const clientOrderIdUnified = this.safeString(params, 'clientOrderId');
         const clientOrderIdExchangeSpecific = this.safeString(params, 'label', clientOrderIdUnified);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
-        let response = undefined;
+        let response;
         if (isByClientOrder) {
             request['label'] = clientOrderIdExchangeSpecific;
             params = this.omit(params, ['clientOrderId', 'label']);
@@ -1642,7 +1642,7 @@ export default class derive extends Exchange {
         const request = {
             'subaccount_id': subaccountId,
         };
-        let response = undefined;
+        let response;
         if (market !== undefined) {
             request['instrument_name'] = market['id'];
             response = await this.privatePostCancelByInstrument(this.extend(request, params));
@@ -1900,7 +1900,7 @@ export default class derive extends Exchange {
         if (marketId !== undefined) {
             market = this.safeMarket(marketId, market);
         }
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol');
         const price = this.safeString(order, 'limit_price');
         const average = this.safeString(order, 'average_price');
         const amount = this.safeString(order, 'desired_amount');

@@ -977,8 +977,8 @@ class weex(ccxt.async_support.weex):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
-        marketType = None
-        market = None
+        marketType: Str = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
@@ -1008,7 +1008,7 @@ class weex(ccxt.async_support.weex):
         """
         if symbol is not None:
             raise NotSupported(self.id + ' unWatchMyTrades does not support a symbol argument. Unsubscribing from myTrades is global for all symbols.')
-        marketType = None
+        marketType: Str = None
         marketType, params = self.handle_market_type_and_params('unWatchMyTrades', None, params)
         isContract = (marketType != 'spot')
         subHash = 'myContractTrades' if isContract else 'myTrades'
@@ -1164,11 +1164,11 @@ class weex(ccxt.async_support.weex):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
-        marketType = None
+        marketType: Str = None
         marketType, params = self.handle_market_type_and_params('watchOrders', market, params)
         isContract = (marketType != 'spot')
         messageHash = 'contractOrders' if isContract else 'orders'
@@ -1194,7 +1194,7 @@ class weex(ccxt.async_support.weex):
         """
         if symbol is not None:
             raise NotSupported(self.id + ' unWatchOrders does not support a symbol argument. Unsubscribing from orders is global for all symbols.')
-        marketType = None
+        marketType: Str = None
         marketType, params = self.handle_market_type_and_params('unWatchOrders', None, params)
         isContract = (marketType != 'spot')
         subHash = 'contractOrders' if isContract else 'orders'
@@ -1391,8 +1391,8 @@ class weex(ccxt.async_support.weex):
         rawStatus = self.safe_string_lower(order, 'status')
         rawType = self.safe_string(order, 'type')
         triggerPrice = self.omit_zero(self.safe_string(order, 'triggerPrice'))
-        stopLossPrice = None
-        takeProfitPrice = None
+        stopLossPrice: Str = None
+        takeProfitPrice: Str = None
         if rawType == 'TAKE_PROFIT_MARKET' or rawType == 'TAKE_PROFIT':
             takeProfitPrice = triggerPrice
         elif rawType == 'STOP_LOSS' or rawType == 'STOP' or rawType == 'STOP_MARKET':
@@ -1437,7 +1437,7 @@ class weex(ccxt.async_support.weex):
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.load_markets()
-        type = None
+        type: Str = None
         type, params = self.handle_market_type_and_params('watchBalance', None, params)
         isContract = (type != 'spot')
         urlType = 'contract' if isContract else 'spot'

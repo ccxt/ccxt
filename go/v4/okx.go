@@ -8494,7 +8494,7 @@ func (this *OkxCore) ParseMarketLeverageTiers(info any, optionalArgs ...any) any
 		AppendToArray(&tiers, map[string]any{
 			"tier":                  this.SafeInteger(tier, "tier"),
 			"symbol":                this.SafeSymbol(marketId, market),
-			"currency":              GetValue(market, "quote"),
+			"currency":              this.SafeString(market, "quote"),
 			"minNotional":           this.SafeNumber(tier, "minSz"),
 			"maxNotional":           this.SafeNumber(tier, "maxSz"),
 			"maintenanceMarginRate": this.SafeNumber(tier, "mmr"),

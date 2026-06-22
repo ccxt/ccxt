@@ -3281,7 +3281,7 @@ public partial class grvt : Exchange
         object price = null;
         object filled = null;
         object avgPrice = null;
-        object legs = this.safeList(order, "legs");
+        object legs = this.safeList(order, "legs", new List<object>() {});
         object metadata = this.safeDict(order, "metadata", new Dictionary<string, object>() {});
         object stateObj = this.safeDict(order, "state", new Dictionary<string, object>() {});
         object filledAmounts = this.safeList(stateObj, "traded_size", new List<object>() {});
@@ -3310,7 +3310,7 @@ public partial class grvt : Exchange
             { "lastTradeTimeStamp", null },
             { "lastUpdateTimestamp", this.safeIntegerProduct(stateObj, "update_time", 0.000001) },
             { "status", this.parseOrderStatus(this.safeString(stateObj, "status")) },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeString(market, "symbol") },
             { "type", orderType },
             { "timeInForce", timeInForce },
             { "postOnly", isPostOnly },

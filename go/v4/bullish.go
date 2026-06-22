@@ -928,8 +928,10 @@ func (this *BullishCore) ParseMarket(market any) any {
 		"info":    market,
 	})
 }
-func (this *BullishCore) ParseMarketType(typeVar any, optionalArgs ...any) any {
-	defaultType := GetArg(optionalArgs, 0, nil)
+func (this *BullishCore) ParseMarketType(optionalArgs ...any) any {
+	typeVar := GetArg(optionalArgs, 0, nil)
+	_ = typeVar
+	defaultType := GetArg(optionalArgs, 1, nil)
 	_ = defaultType
 	var types any = map[string]any{
 		"SPOT":         "spot",
@@ -3666,12 +3668,14 @@ func (this *BullishCore) Sign(path any, optionalArgs ...any) any {
 			}
 		}
 		if IsTrue(IsEqual(path, "v1/users/hmac/login")) {
+			headers = Ternary(IsTrue((IsEqual(headers, nil))), map[string]any{}, headers)
 			AddElementToObject(headers, "BX-PUBLIC-KEY", this.ApiKey)
 		} else {
 			var token any = this.Token
 			if IsTrue((IsEqual(token, nil))) {
 				panic(AuthenticationError(Add(this.Id, " requires a token, please call signIn() first")))
 			}
+			headers = Ternary(IsTrue((IsEqual(headers, nil))), map[string]any{}, headers)
 			AddElementToObject(headers, "Authorization", Add("Bearer ", token))
 		}
 	}
@@ -3738,9 +3742,9 @@ func (this *BullishCore) HandleToken(optionalArgs ...any) <-chan any {
 		var tokenExpires any = this.SafeInteger(this.Options, "tokenExpires")
 		if IsTrue(IsTrue(IsTrue((IsEqual(token, nil))) || IsTrue((IsEqual(tokenExpires, nil)))) || IsTrue((IsGreaterThan(now, tokenExpires)))) {
 
-			retRes302419 := (<-this.SignIn())
-			PanicOnError(retRes302419)
-			ch <- retRes302419
+			retRes302619 := (<-this.SignIn())
+			PanicOnError(retRes302619)
+			ch <- retRes302619
 			return nil
 		} else {
 

@@ -2504,7 +2504,7 @@ class ascendex extends ascendex$1["default"] {
             'time': this.milliseconds(),
         };
         if (symbol !== undefined) {
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
         }
         let response = undefined;
         if ((type === 'spot') || (type === 'margin')) {
@@ -3066,12 +3066,12 @@ class ascendex extends ascendex$1["default"] {
         const status = (errorCode === '0') ? 'ok' : 'failed';
         return {
             'info': data,
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'type': undefined,
             'marginMode': 'isolated',
             'amount': undefined,
             'total': undefined,
-            'code': market['quote'],
+            'code': this.safeString(market, 'quote'),
             'status': status,
             'timestamp': undefined,
             'datetime': undefined,

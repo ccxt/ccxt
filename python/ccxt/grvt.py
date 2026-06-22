@@ -1660,8 +1660,8 @@ class grvt(Exchange, ImplicitAPI):
         return filteredResults[1]
 
     def filter_transfers_by_type(self, transfers: Any, transferType: str, onlyMainAccount=True) -> Any:
-        matchedResults = []
-        nonMatchedResults = []
+        matchedResults: List = []
+        nonMatchedResults: List = []
         for i in range(0, len(transfers)):
             transfer = transfers[i]
             if (onlyMainAccount and transfer['fromAccount'] == '0' and transfer['toAccount'] == '0') or (not onlyMainAccount and (transfer['fromAccount'] != '0' or transfer['toAccount'] != '0')):
@@ -1711,7 +1711,7 @@ class grvt(Exchange, ImplicitAPI):
             'transfer_metadata': None,
         }
         request = self.create_signed_request(request, 'EIP712_TRANSFER_TYPE', currency)
-        response: dict = None
+        response: NullableDict = None
         try:
             response = self.privateTradingPostFullV1Transfer(self.extend(request, params))
         except Exception as error:
@@ -1782,7 +1782,7 @@ class grvt(Exchange, ImplicitAPI):
     def load_account_infos(self):
         if self.safe_string(self.options, 'userMainAccountId') is not None:
             return False
-        promises = []
+        promises: List = []
         promises.append(self.privateTradingPostFullV1AggregatedAccountSummary())
         #
         #     {
@@ -2073,7 +2073,7 @@ class grvt(Exchange, ImplicitAPI):
     def eip_message_for_order(self, order, structureType):
         priceMultiplier = '1000000000'
         orderLegs = self.safe_list(order, 'legs', [])
-        legs = []
+        legs: List = []
         for i in range(0, len(orderLegs)):
             leg = orderLegs[i]
             market = self.market(leg['instrument'])
@@ -2851,12 +2851,12 @@ class grvt(Exchange, ImplicitAPI):
         isReduceOnly = self.safe_bool(order, 'reduce_only')
         timeInForceRaw = self.safe_string(order, 'time_in_force')
         timeInForce = 'PO' if isPostOnly else self.parse_time_in_force(timeInForceRaw)
-        size = None
+        size: Str = None
         side: Str = None
-        price = None
-        filled = None
-        avgPrice = None
-        legs = self.safe_list(order, 'legs')
+        price: Str = None
+        filled: Str = None
+        avgPrice: Str = None
+        legs = self.safe_list(order, 'legs', [])
         metadata = self.safe_dict(order, 'metadata', {})
         stateObj = self.safe_dict(order, 'state', {})
         filledAmounts = self.safe_list(stateObj, 'traded_size', [])
@@ -2883,7 +2883,7 @@ class grvt(Exchange, ImplicitAPI):
             'lastTradeTimeStamp': None,
             'lastUpdateTimestamp': self.safe_integer_product(stateObj, 'update_time', 0.000001),
             'status': self.parse_order_status(self.safe_string(stateObj, 'status')),
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'type': orderType,
             'timeInForce': timeInForce,
             'postOnly': isPostOnly,
@@ -3012,7 +3012,7 @@ class grvt(Exchange, ImplicitAPI):
         return self.convert_to_big_int_custom('10000')  # multiply needed https://t.me/c/3396937126/88
 
     def create_signed_request(self, request: Any, structureType: str, currencyObj=None, signerAddress: Str = None) -> dict:
-        messageData: dict = None
+        messageData: NullableDict = None
         if structureType == 'EIP712_TRANSFER_TYPE':
             amountMultiplier = self.convert_to_big_int_custom('1000000')
             amountInt = request['num_tokens'] * amountMultiplier
@@ -3099,7 +3099,7 @@ class grvt(Exchange, ImplicitAPI):
         self.options['requestId'] = requestId
         return requestId
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
         query = self.omit(params, self.extract_params(path))
         url = self.urls['api'][api] + path
         queryString = ''

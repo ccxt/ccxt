@@ -1323,7 +1323,7 @@ class deribit extends deribit$1["default"] {
         //         "testnet": false
         //     }
         //
-        const result = this.safeDict(response, 'result');
+        const result = this.safeDict(response, 'result', {});
         return this.parseTicker(result, market);
     }
     /**
@@ -2004,7 +2004,7 @@ class deribit extends deribit$1["default"] {
         //         }
         //     }
         //
-        const result = this.safeDict(response, 'result');
+        const result = this.safeDict(response, 'result', {});
         return this.parseOrder(result, market);
     }
     /**
@@ -2778,7 +2778,7 @@ class deribit extends deribit$1["default"] {
         //         }
         //     }
         //
-        const result = this.safeDict(response, 'result');
+        const result = this.safeDict(response, 'result', {});
         return this.parsePosition(result);
     }
     /**

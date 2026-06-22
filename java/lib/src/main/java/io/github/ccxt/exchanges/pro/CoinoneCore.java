@@ -438,7 +438,7 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
         }
         if (Helpers.isTrue(Helpers.isEqual(type, "DATA")))
         {
-            Object topic = this.safeString(message, "channel", "");
+            Object topic = ((String)this.safeString(message, "channel", ""));
             Object methods = new java.util.HashMap<String, Object>() {{
                 put( "ORDERBOOK", "handleOrderBook");
                 put( "TICKER", "handleTicker");

@@ -2801,7 +2801,7 @@ public partial class bitget : Exchange
             }
             object maxNotional = this.safeNumberN(item, new List<object>() {"endUnit", "maxBorrowableAmount", "baseMaxBorrowableAmount", "maxTierValue"});
             object marginCurrency = this.safeString2(item, "coin", "baseCoin");
-            object currencyId = ((bool) isTrue((!isEqual(marginCurrency, null)))) ? marginCurrency : getValue(market, "base");
+            object currencyId = ((bool) isTrue((!isEqual(marginCurrency, null)))) ? marginCurrency : this.safeString(market, "base");
             object marketId = this.safeString(item, "symbol");
             ((IList<object>)tiers).Add(new Dictionary<string, object>() {
                 { "tier", this.safeInteger2(item, "level", "tier") },
@@ -3692,7 +3692,7 @@ public partial class bitget : Exchange
                 object symbolsLength = getArrayLength(symbols);
                 if (isTrue(isEqual(symbolsLength, 1)))
                 {
-                    ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+                    ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
                 }
             }
             ((IDictionary<string,object>)request)["category"] = productType;
@@ -8031,7 +8031,7 @@ public partial class bitget : Exchange
         {
             if (isTrue(!isEqual(symbol, null)))
             {
-                ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+                ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
             }
             object productType = null;
             var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
@@ -9599,12 +9599,12 @@ public partial class bitget : Exchange
         object status = ((bool) isTrue((isEqual(errorCode, "00000")))) ? "ok" : "failed";
         return new Dictionary<string, object>() {
             { "info", data },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeString(market, "symbol") },
             { "type", null },
             { "marginMode", "isolated" },
             { "amount", null },
             { "total", null },
-            { "code", getValue(market, "settle") },
+            { "code", this.safeString(market, "settle") },
             { "status", status },
             { "timestamp", null },
             { "datetime", null },
@@ -9720,7 +9720,7 @@ public partial class bitget : Exchange
         object shortLevKey = ((bool) isTrue(isCrossMarginMode)) ? "crossedMarginLeverage" : "isolatedShortLever";
         return new Dictionary<string, object>() {
             { "info", leverage },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeString(market, "symbol") },
             { "marginMode", ((bool) isTrue(isCrossMarginMode)) ? "cross" : "isolated" },
             { "longLeverage", this.safeInteger(leverage, longLevKey) },
             { "shortLeverage", this.safeInteger(leverage, shortLevKey) },
@@ -10540,7 +10540,7 @@ public partial class bitget : Exchange
             {
                 throw new ArgumentsRequired ((string)add(this.id, " fetchMyLiquidations() requires a symbol argument")) ;
             }
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
             response = await this.privateMarginGetV2MarginIsolatedLiquidationHistory(this.extend(request, parameters));
         } else if (isTrue(isEqual(marginMode, "cross")))
         {
@@ -10954,7 +10954,7 @@ public partial class bitget : Exchange
             {
                 throw new ArgumentsRequired ((string)add(this.id, " fetchBorrowInterest() requires a symbol argument")) ;
             }
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
             response = await this.privateMarginGetV2MarginIsolatedInterestHistory(this.extend(request, parameters));
         } else if (isTrue(isEqual(marginMode, "cross")))
         {
@@ -11215,7 +11215,7 @@ public partial class bitget : Exchange
         marginType = ((bool) isTrue((isEqual(marginType, "crossed")))) ? "cross" : marginType;
         return new Dictionary<string, object>() {
             { "info", marginMode },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeString(market, "symbol") },
             { "marginMode", marginType },
         };
     }

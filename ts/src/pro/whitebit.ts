@@ -5,7 +5,7 @@ import whitebitRest from '../whitebit.js';
 import { Precise } from '../base/Precise.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Strings, Tickers, Bool } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, List, Market, NullableDict, Strings, Tickers, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -282,8 +282,8 @@ export default class whitebit extends whitebitRest {
         const method = 'market_subscribe';
         const url = this.urls['api']['ws'];
         const id = this.nonce ();
-        const messageHashes = [];
-        const args = [];
+        const messageHashes: string[] = [];
+        const args: List = [];
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market (symbols[i]);
             messageHashes.push ('ticker:' + market['symbol']);
@@ -475,7 +475,7 @@ export default class whitebit extends whitebitRest {
         client.resolve (stored, messageHash);
     }
 
-    parseWsTrade (trade, market = undefined) {
+    parseWsTrade (trade, market: Market = undefined) {
         //
         //   [
         //         1894994106, // id
@@ -495,7 +495,7 @@ export default class whitebit extends whitebitRest {
         const amount = this.safeString (trade, 5);
         const marketId = this.safeString (trade, 2);
         market = this.safeMarket (marketId, market);
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         const feeCost = this.safeString (trade, 6);
         if (feeCost !== undefined) {
             fee = {
@@ -590,7 +590,7 @@ export default class whitebit extends whitebitRest {
         client.resolve (this.orders, messageHash);
     }
 
-    parseWsOrder (order, market = undefined) {
+    parseWsOrder (order, market: Market = undefined) {
         //
         //   {
         //         "id": 96433622651,
@@ -625,7 +625,7 @@ export default class whitebit extends whitebitRest {
         const rawType = this.safeString (order, 'type');
         const type = this.parseWsOrderType (rawType);
         let amount: Str = undefined;
-        let remaining = undefined;
+        let remaining: Str = undefined;
         if (type === 'market') {
             amount = this.safeString (order, 'deal_stock');
             remaining = '0';
@@ -639,7 +639,7 @@ export default class whitebit extends whitebitRest {
         const rawSide = this.safeInteger (order, 'side');
         const side = (rawSide === 1) ? 'sell' : 'buy';
         const dealFee = this.safeString (order, 'deal_fee');
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         if (dealFee !== undefined) {
             fee = {
                 'cost': this.parseNumber (dealFee),
@@ -778,8 +778,8 @@ export default class whitebit extends whitebitRest {
         const url = this.urls['api']['ws'];
         const id = this.nonce ();
         const client = this.safeValue (this.clients, url);
-        let request: Dict = undefined;
-        let marketIds = [];
+        let request: NullableDict = undefined;
+        let marketIds: List = [];
         if (client === undefined) {
             const subscription: Dict = {};
             const market = this.market (symbol);
@@ -811,7 +811,7 @@ export default class whitebit extends whitebitRest {
                 return await this.watch (url, messageHash, request, method, subscription);
             } else {
                 // resubscribe
-                let marketIdsNew = [];
+                let marketIdsNew: List = [];
                 marketIdsNew = Object.keys (subscription);
                 if (isNested) {
                     marketIdsNew = [ marketIdsNew ];

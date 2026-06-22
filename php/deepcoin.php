@@ -831,8 +831,8 @@ class deepcoin extends Exchange {
 
     public function get_product_group_from_market(array $market): string {
         $productGroup = 'Spot';
-        if ($market['swap']) {
-            if ($market['linear']) {
+        if ($this->safe_bool($market, 'swap')) {
+            if ($this->safe_bool($market, 'linear')) {
                 $productGroup = 'SwapU';
             } else {
                 $productGroup = 'Swap';
@@ -2819,7 +2819,7 @@ class deepcoin extends Exchange {
         return $this->parse_funding_rate_histories($rows, $market, $since, $limit);
     }
 
-    public function parse_funding_rate_history($info, ?array $market = null) {
+    public function parse_funding_rate_history($info, ?array $market = null): array {
         //
         //     {
         //         "instrumentID" => "ETHUSD",
@@ -2974,7 +2974,7 @@ class deepcoin extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $requestPath = $path;
         if ($method === 'GET') {
             $query = $this->urlencode($params);

@@ -457,7 +457,7 @@ public partial class coinmetro : Exchange
         {
             object market = this.parseMarket(getValue(response, i));
             // there are several broken (unavailable info) markets
-            if (isTrue(isTrue(isEqual(getValue(market, "base"), null)) || isTrue(isEqual(getValue(market, "quote"), null))))
+            if (isTrue(isTrue(isEqual(this.safeString(market, "base"), null)) || isTrue(isEqual(this.safeString(market, "quote"), null))))
             {
                 continue;
             }
@@ -937,7 +937,7 @@ public partial class coinmetro : Exchange
             object priceString = this.safeString(prices, i);
             object price = this.safeNumber(prices, i);
             object volume = this.safeNumber(bidasks, priceString);
-            ((IList<object>)result).Add(new List<object>() {price, volume});
+            ((IList<object>)(result)).Add(new List<object>() {price, volume});
         }
         return result;
     }
@@ -1502,7 +1502,7 @@ public partial class coinmetro : Exchange
         //         "takerQty": 0.002
         //     }
         //
-        return this.parseOrder(response, market);
+        return this.parseOrder(response);
     }
 
     public virtual object handleCreateOrderSide(object sellingCurrency, object buyingCurrency, object sellingQty, object buyingQty, object request = null)
@@ -2102,6 +2102,7 @@ public partial class coinmetro : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        headers ??= new Dictionary<string, object>();
         object request = this.omit(parameters, this.extractParams(path));
         object endpoint = add("/", this.implodeParams(path, parameters));
         object url = add(getValue(getValue(this.urls, "api"), api), endpoint);

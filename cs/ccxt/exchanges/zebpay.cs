@@ -1368,7 +1368,7 @@ public partial class zebpay : Exchange
         //         }
         //     }
         //
-        object responseData = this.safeDict(response, "data");
+        object responseData = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(responseData, market);
     }
 
@@ -1983,7 +1983,7 @@ public partial class zebpay : Exchange
         object timestamp = this.milliseconds();
         return new Dictionary<string, object>() {
             { "info", info },
-            { "symbol", getValue(market, "id") },
+            { "symbol", this.safeString(market, "id") },
             { "type", null },
             { "marginMode", null },
             { "amount", this.safeNumber(info, "amount") },

@@ -75,10 +75,10 @@ public partial class gate
         var res = await this.fetchOptionMarkets(parameters);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
-    public async Task<List<Dictionary<string, object>>> FetchOptionUnderlyings()
+    public async Task<List<string>> FetchOptionUnderlyings()
     {
         var res = await this.fetchOptionUnderlyings();
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => (item as string)).ToList();
     }
     /// <summary>
     /// fetch the current funding rate
@@ -1747,10 +1747,10 @@ public partial class gate
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [underlying assets]{@link https://docs.ccxt.com/?id=underlying-assets-structure}.</returns>
-    public async Task<List<Dictionary<string, object>>> FetchUnderlyingAssets(Dictionary<string, object> parameters = null)
+    public async Task<List<string>> FetchUnderlyingAssets(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchUnderlyingAssets(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => (item as string)).ToList();
     }
     /// <summary>
     /// retrieves the public liquidations of a trading pair

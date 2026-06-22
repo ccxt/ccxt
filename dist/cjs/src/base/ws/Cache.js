@@ -8,8 +8,6 @@ Object.defineProperty(exports, '__esModule', { value: true });
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-/* eslint-disable max-classes-per-file */
-// @ts-nocheck
 class BaseCache extends Array {
     constructor(maxSize = undefined) {
         super();
