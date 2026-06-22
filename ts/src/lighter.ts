@@ -739,7 +739,7 @@ export default class lighter extends Exchange {
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only', false); // default false
         const orderType = type.toUpperCase ();
         const market = this.market (symbol);
-        const orderSide = side.toUpperCase ();
+        const orderSide = (side as string).toUpperCase ();
         const request: Dict = {
             'market_index': this.parseToInt (market['id']),
         };
@@ -930,14 +930,14 @@ export default class lighter extends Exchange {
         let order: NullableDict = undefined;
         if (totalOrderRequests > 0) {
             order = orderRequests[0];
-            apiKeyIndex = order['api_key_index'];
+            apiKeyIndex = (order as Dict)['api_key_index'];
         }
         const strAccountIndex = this.numberToString (accountIndex) as string;
         const strApiKeyIndex = this.numberToString (apiKeyIndex) as string;
         const signer = await this.loadAccount (this.options['chainId'], this.getLighterPrivateKey (strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params);
         // the nonce could be updated
         if (this.safeInteger (order, 'nonce') === undefined) {
-            order['nonce'] = await this.fetchNonce (accountIndex, apiKeyIndex);
+            (order as Dict)['nonce'] = await this.fetchNonce (accountIndex, apiKeyIndex);
         }
         let txType: Str = undefined;
         let txInfo: Dict;
@@ -947,14 +947,14 @@ export default class lighter extends Exchange {
             const signingPayload = {
                 'grouping_type': groupingType,
                 'orders': orderRequests,
-                'nonce': order['nonce'],
+                'nonce': (order as Dict)['nonce'],
                 'api_key_index': apiKeyIndex,
                 'account_index': accountIndex,
             };
             if (this.safeBool (this.options, 'builderFee', true)) {
-                signingPayload['integrator_account_index'] = order['integrator_account_index'];
-                signingPayload['integrator_taker_fee'] = order['integrator_taker_fee'];
-                signingPayload['integrator_maker_fee'] = order['integrator_maker_fee'];
+                signingPayload['integrator_account_index'] = (order as Dict)['integrator_account_index'];
+                signingPayload['integrator_taker_fee'] = (order as Dict)['integrator_taker_fee'];
+                signingPayload['integrator_maker_fee'] = (order as Dict)['integrator_maker_fee'];
             }
             [ txType, txInfo ] = this.lighterSignCreateGroupedOrders (signer, signingPayload);
         }
@@ -2303,7 +2303,7 @@ export default class lighter extends Exchange {
             const typeAsInteger = this.safeInteger (order, 'order_type');
             type = this.parseOrderTypeInteger (typeAsInteger);
         }
-        const triggerPrice = this.parseNumber (this.omitZero (this.safeString (order, 'trigger_price')));
+        const triggerPrice = this.parseNumber (this.omitZero ((this.safeString (order, 'trigger_price') as string)));
         let stopLossPrice: Num = undefined;
         let takeProfitPrice: Num = undefined;
         if (type !== undefined) {
@@ -2333,7 +2333,7 @@ export default class lighter extends Exchange {
         return this.safeOrder ({
             'info': order,
             'id': this.safeString (order, 'order_id'),
-            'clientOrderId': this.omitZero (this.safeString2 (order, 'client_order_id', 'client_order_index')),
+            'clientOrderId': this.omitZero ((this.safeString2 (order, 'client_order_id', 'client_order_index') as string)),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -2378,7 +2378,7 @@ export default class lighter extends Exchange {
             'canceled-child': 'canceled',
             'canceled-liquidation': 'canceled',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseOrderType (type) {
@@ -2787,7 +2787,7 @@ export default class lighter extends Exchange {
             'completed': 'ok',
             'claimable': 'ok',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     /**
@@ -3174,7 +3174,7 @@ export default class lighter extends Exchange {
      */
     async cancelAllOrdersAfter (timeout: Int, params = {}) {
         await this.loadMarkets ();
-        if ((timeout < 300000) || (timeout > 1296000000)) {
+        if (((timeout as number) < 300000) || ((timeout as number) > 1296000000)) {
             throw new BadRequest (this.id + ' timeout should be between 5 minutes and 15 days.');
         }
         let apiKeyIndex: Int = undefined;
@@ -3187,7 +3187,7 @@ export default class lighter extends Exchange {
         const nonce = await this.fetchNonce (accountIndex, apiKeyIndex, params);
         const signRaw: Dict = {
             'time_in_force': 1, // 0: IMMEDIATE 1: SCHEDULED 2: ABORT
-            'time': this.milliseconds () + timeout, // if time_in_force is not IMMEDIATE, set the timestamp_ms here
+            'time': this.milliseconds () + (timeout as number), // if time_in_force is not IMMEDIATE, set the timestamp_ms here
             'nonce': nonce,
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,

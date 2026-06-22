@@ -221,12 +221,12 @@ export default class paradex extends paradexRest {
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook ();
         }
-        const orderbookData = {
+        const orderbookData: Dict = {
             'bids': [],
             'asks': [],
         };
         const inserts = this.safeList (data, 'inserts');
-        for (let i = 0; i < inserts.length; i++) {
+        for (let i = 0; i < (inserts as any[]).length; i++) {
             const insert = this.safeDict (inserts, i);
             const side = this.safeString (insert, 'side');
             const price = this.safeString (insert, 'price');
@@ -640,7 +640,7 @@ export default class paradex extends paradexRest {
         const data = this.safeDict (message, 'params');
         if (data !== undefined) {
             const channel = this.safeString (data, 'channel');
-            const parts = channel.split ('.');
+            const parts = (channel as string).split ('.');
             const name = this.safeString (parts, 0);
             const methods: Dict = {
                 'trades': this.handleTrade,

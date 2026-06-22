@@ -335,9 +335,9 @@ export default class coinex extends coinexRest {
         const unrealizedPnl = this.safeString (firstEntry, 'unrealized_pnl');
         const isSpot = (updated !== undefined);
         const isSwap = (unrealizedPnl !== undefined);
-        let info = undefined;
+        let info: any = undefined;
         let account: Str = undefined;
-        let rawBalances = [];
+        let rawBalances: any[] = [];
         if (isSpot) {
             account = 'spot';
             for (let i = 0; i < balances.length; i++) {
@@ -603,7 +603,7 @@ export default class coinex extends coinexRest {
         const marketId = this.safeString (trade, 'market');
         market = this.safeMarket (marketId, market, undefined, defaultType);
         let fee: Dict = {};
-        const feeCost = this.omitZero (this.safeString (trade, 'fee'));
+        const feeCost = this.omitZero ((this.safeString (trade, 'fee') as string));
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fee_ccy', market['quote']);
             fee = {
@@ -927,7 +927,7 @@ export default class coinex extends coinexRest {
         [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params, 'spot');
         await this.authenticate (type);
         if (symbol !== undefined) {
-            marketList = [ market['id'] ];
+            marketList = [ (market as Dict)['id'] ];
             messageHash += ':' + symbol;
         } else {
             marketList = [];
@@ -1188,7 +1188,7 @@ export default class coinex extends coinexRest {
         const defaultType = isSpot ? 'spot' : 'swap';
         market = this.safeMarket (marketId, market, undefined, defaultType);
         let fee: NullableDict = undefined;
-        const feeCost = this.omitZero (this.safeString2 (order, 'fee', 'quote_ccy_fee'));
+        const feeCost = this.omitZero ((this.safeString2 (order, 'fee', 'quote_ccy_fee') as string));
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (order, 'fee_ccy', market['quote']);
             fee = {

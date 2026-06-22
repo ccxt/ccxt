@@ -785,7 +785,7 @@ export default class cryptocom extends Exchange {
             const strike = this.safeString (market, 'strike');
             const marginBuyEnabled = this.safeBool (market, 'margin_buy_enabled');
             const marginSellEnabled = this.safeBool (market, 'margin_sell_enabled');
-            const expiryString = this.omitZero (this.safeString (market, 'expiry_timestamp_ms'));
+            const expiryString = this.omitZero ((this.safeString (market, 'expiry_timestamp_ms') as string));
             const expiry = (expiryString !== undefined) ? parseInt (expiryString) : undefined;
             let symbol = base + '/' + quote;
             let type: Str = undefined;
@@ -1333,7 +1333,7 @@ export default class cryptocom extends Exchange {
         const uppercaseType = type.toUpperCase ();
         const request: Dict = {
             'instrument_name': market['id'],
-            'side': side.toUpperCase (),
+            'side': (side as string).toUpperCase (),
             'quantity': this.amountToPrecision (symbol, amount),
         };
         if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
@@ -1553,7 +1553,7 @@ export default class cryptocom extends Exchange {
         const uppercaseType = type.toUpperCase ();
         const request: Dict = {
             'instrument_name': market['id'],
-            'side': side.toUpperCase (),
+            'side': (side as string).toUpperCase (),
         };
         if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
             request['price'] = this.priceToPrecision (symbol, price);
@@ -1812,7 +1812,7 @@ export default class cryptocom extends Exchange {
             const market = this.market ((symbol as string));
             const orderItem: Dict = {
                 'instrument_name': market['id'],
-                'order_id': id.toString (),
+                'order_id': (id as string).toString (),
             };
             orderRequests.push (orderItem);
         }
@@ -1965,7 +1965,7 @@ export default class cryptocom extends Exchange {
         let rawTag: Str = undefined;
         if (addressString.indexOf ('?') > 0) {
             [ address, rawTag ] = addressString.split ('?');
-            const splitted = rawTag.split ('=');
+            const splitted = (rawTag as string).split ('=');
             tag = splitted[1];
         } else {
             address = addressString;
@@ -2099,7 +2099,7 @@ export default class cryptocom extends Exchange {
         const network = this.safeStringUpper (params, 'network');
         params = this.omit (params, [ 'network' ]);
         const depositAddresses = await this.fetchDepositAddressesByNetwork (code, params);
-        if (network in depositAddresses) {
+        if ((network as string) in depositAddresses) {
             return depositAddresses[(network as string)];
         }
         const keys = Object.keys (depositAddresses);
@@ -2379,7 +2379,7 @@ export default class cryptocom extends Exchange {
             'REJECTED': 'rejected',
             'EXPIRED': 'expired',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseTimeInForce (timeInForce: Str) {
@@ -2388,7 +2388,7 @@ export default class cryptocom extends Exchange {
             'IMMEDIATE_OR_CANCEL': 'IOC',
             'FILL_OR_KILL': 'FOK',
         };
-        return this.safeString (timeInForces, timeInForce, timeInForce);
+        return this.safeString (timeInForces, (timeInForce as string), timeInForce);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -2601,7 +2601,7 @@ export default class cryptocom extends Exchange {
         } as Transaction;
     }
 
-    customHandleMarginModeAndParams (methodName, params = {}) {
+    customHandleMarginModeAndParams (methodName, params = {}): [Str, Dict] {
         /**
          * @ignore
          * @method
@@ -2612,7 +2612,7 @@ export default class cryptocom extends Exchange {
         const defaultType = this.safeString (this.options, 'defaultType');
         const isMargin = this.safeBool (params, 'margin', false);
         params = this.omit (params, 'margin');
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams (methodName, params);
         if (marginMode !== undefined) {
             if (marginMode !== 'cross') {
@@ -3342,8 +3342,8 @@ export default class cryptocom extends Exchange {
             const objectKeys = Object.keys (object);
             paramsKeys = this.sort (objectKeys);
         }
-        for (let i = 0; i < paramsKeys.length; i++) {
-            const key = paramsKeys[i];
+        for (let i = 0; i < (paramsKeys as string[]).length; i++) {
+            const key = (paramsKeys as string[])[i];
             returnString += key;
             const value = object[key];
             if (value === 'undefined') {
@@ -3482,8 +3482,8 @@ export default class cryptocom extends Exchange {
         //
         const result: Dict = {};
         result['info'] = response;
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        for (let i = 0; i < (this.symbols as string[]).length; i++) {
+            const symbol = (this.symbols as string[])[i];
             const market = this.market (symbol);
             const isSwap = market['swap'];
             const takerFeeKey = isSwap ? 'effective_deriv_taker_rate_bps' : 'effective_spot_taker_rate_bps';

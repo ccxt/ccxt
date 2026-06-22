@@ -940,7 +940,7 @@ export default class bithumb extends Exchange {
             'Completed': 'closed',
             'Cancel': 'canceled',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -1134,7 +1134,7 @@ export default class bithumb extends Exchange {
         const request: Dict = {
             'side': order['side'],
         };
-        return await this.cancelOrder (order['id'], order['symbol'], this.extend (request, params));
+        return await this.cancelOrder ((order['id'] as string), order['symbol'], this.extend (request, params));
     }
 
     /**

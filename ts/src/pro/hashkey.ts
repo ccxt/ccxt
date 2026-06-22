@@ -53,7 +53,7 @@ export default class hashkey extends hashkeyRest {
 
     async wathPublic (market: Market, topic: string, messageHash: string, params = {}) {
         const request: Dict = {
-            'symbol': market['id'],
+            'symbol': (market as Dict)['id'],
             'topic': topic,
             'event': 'sub',
         };
@@ -134,7 +134,7 @@ export default class hashkey extends hashkeyRest {
         const params = this.safeDict (message, 'params');
         const klineType = this.safeString (params, 'klineType');
         const timeframe = this.findTimeframe (klineType);
-        if (!(timeframe in this.ohlcvs[symbol])) {
+        if (!((timeframe as string) in this.ohlcvs[symbol])) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             this.ohlcvs[symbol][(timeframe as string)] = new ArrayCacheByTimestamp (limit);
         }
@@ -359,7 +359,7 @@ export default class hashkey extends hashkeyRest {
         const data = this.safeList (message, 'data', []);
         const dataEntry = this.safeDict (data, 0);
         const timestamp = this.safeInteger (dataEntry, 't');
-        const snapshot = this.parseOrderBook (dataEntry, symbol, timestamp, 'b', 'a');
+        const snapshot = this.parseOrderBook ((dataEntry as Dict), symbol, timestamp, 'b', 'a');
         orderbook.reset (snapshot);
         orderbook['nonce'] = this.safeInteger (message, 'id');
         this.orderbooks[symbol] = orderbook;
@@ -448,7 +448,7 @@ export default class hashkey extends hashkeyRest {
         let side = this.safeStringLower (order, 'S');
         let reduceOnly: Bool = undefined;
         [ side, reduceOnly ] = this.parseOrderSideAndReduceOnly (side);
-        let type = this.parseOrderType (this.safeString (order, 'o'));
+        let type: Str = this.parseOrderType (this.safeString (order, 'o'));
         let timeInForce = this.safeString (order, 'f');
         let postOnly: Bool = undefined;
         [ type, timeInForce, postOnly ] = this.parseOrderTypeTimeInForceAndPostOnly (type, timeInForce);
@@ -469,18 +469,18 @@ export default class hashkey extends hashkeyRest {
             'side': side,
             'price': this.safeString (order, 'p'),
             'average': this.safeString (order, 'V'),
-            'amount': this.omitZero (this.safeString (order, 'q')),
+            'amount': this.omitZero ((this.safeString (order, 'q') as string)),
             'filled': this.safeString (order, 'z'),
             'remaining': this.safeString (order, 'r'),
             'stopPrice': undefined,
             'triggerPrice': undefined,
             'takeProfitPrice': undefined,
             'stopLossPrice': undefined,
-            'cost': this.omitZero (this.safeString (order, 'Z')),
+            'cost': this.omitZero ((this.safeString (order, 'Z') as string)),
             'trades': undefined,
             'fee': {
                 'currency': this.safeCurrencyCode (this.safeString (order, 'N')),
-                'amount': this.omitZero (this.safeString (order, 'n')),
+                'amount': this.omitZero ((this.safeString (order, 'n') as string)),
             },
             'reduceOnly': reduceOnly,
             'postOnly': postOnly,
@@ -545,7 +545,7 @@ export default class hashkey extends hashkeyRest {
         client.resolve (tradesArray, symbolSpecificMessageHash);
     }
 
-    parseWsTrade (trade, market = undefined): Trade {
+    parseWsTrade (trade, market: Market = undefined): Trade {
         //
         // watchTrades
         //     {
@@ -592,7 +592,7 @@ export default class hashkey extends hashkeyRest {
             'id': this.safeString2 (trade, 'v', 'T'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': (market as Dict)['symbol'],
             'side': side,
             'price': this.safeString (trade, 'p'),
             'amount': this.safeString (trade, 'q'),

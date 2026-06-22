@@ -376,7 +376,7 @@ export default class hyperliquid extends Exchange {
             const symbolParts = symbol.split ('/');
             const baseName = this.safeString (symbolParts, 0);
             const spotCurrencyMapping = this.safeDict (this.options, 'spotCurrencyMapping', {});
-            if (baseName in spotCurrencyMapping) {
+            if ((baseName as string) in spotCurrencyMapping) {
                 const unifiedBaseName = this.safeString (spotCurrencyMapping, (baseName as string));
                 const quote = this.safeString (symbolParts, 1);
                 const newSymbol = this.safeCurrencyCode (unifiedBaseName) + '/' + quote;
@@ -644,7 +644,7 @@ export default class hyperliquid extends Exchange {
                 data['dex'] = dexName;
                 const cachedCurrencies = this.safeDict (this.options, 'cachedCurrenciesById', {});
                 // injecting collateral token name for further usage in parseMarket, already converted from like '0' to 'USDC', etc
-                if (collateralToken in cachedCurrencies) {
+                if ((collateralToken as string) in cachedCurrencies) {
                     const name = this.safeString (data, 'name');
                     const collateralTokenCode = this.safeString (cachedCurrencies, (collateralToken as string));
                     data['collateralTokenName'] = collateralTokenCode;
@@ -865,7 +865,7 @@ export default class hyperliquid extends Exchange {
         for (let i = 0; i < meta.length; i++) {
             const market = this.safeDict (meta, i, {});
             const index = this.safeInteger (market, 'index');
-            const extraData = this.safeDict (second, index, {});
+            const extraData = this.safeDict (second, (index as number), {});
             const marketName = this.safeString (market, 'name');
             // if (marketName.indexOf ('/') < 0) {
             //     // there are some weird spot markets in testnet, eg @2
@@ -880,8 +880,8 @@ export default class hyperliquid extends Exchange {
             const tokensPos = this.safeList (market, 'tokens', []);
             const baseTokenPos = this.safeInteger (tokensPos, 0);
             const quoteTokenPos = this.safeInteger (tokensPos, 1);
-            const baseTokenInfo = this.safeDict (tokens, baseTokenPos, {});
-            const quoteTokenInfo = this.safeDict (tokens, quoteTokenPos, {});
+            const baseTokenInfo = this.safeDict (tokens, (baseTokenPos as number), {});
+            const quoteTokenInfo = this.safeDict (tokens, (quoteTokenPos as number), {});
             const baseName = this.safeString (baseTokenInfo, 'name');
             const quoteId = this.safeString (quoteTokenInfo, 'name');
             if (baseName === undefined || quoteId === undefined) {
@@ -906,7 +906,7 @@ export default class hyperliquid extends Exchange {
             }
             const pricePrecisionStr = this.numberToString (pricePrecision);
             // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
-            const baseId = this.numberToString (index + 10000);
+            const baseId = this.numberToString ((index as number) + 10000);
             const entry = {
                 'id': marketName,
                 'symbol': mappedSymbol,
@@ -1466,7 +1466,7 @@ export default class hyperliquid extends Exchange {
                 // optimization if limit is provided
                 const timeframeInMilliseconds = this.parseTimeframe (timeframe) * 1000;
                 since = this.sum (until, timeframeInMilliseconds * limit * -1);
-                if (since < 0) {
+                if ((since as number) < 0) {
                     since = 0;
                 }
                 useTail = false;
@@ -1599,11 +1599,11 @@ export default class hyperliquid extends Exchange {
     priceToPrecision (symbol: string, price): string {
         const market = this.market (symbol);
         const priceStr = this.numberToString (price);
-        const integerPart = priceStr.split ('.')[0];
+        const integerPart = (priceStr as string).split ('.')[0];
         const significantDigits = Math.max (5, integerPart.length);
         const result = this.decimalToPrecision (price, ROUND, significantDigits, SIGNIFICANT_DIGITS, this.paddingMode);
         const maxDecimals = market['spot'] ? 8 : 6;
-        const subtractedValue = maxDecimals - this.precisionFromString (this.safeString (market['precision'], 'amount'));
+        const subtractedValue = maxDecimals - this.precisionFromString ((this.safeString (market['precision'], 'amount') as string));
         return this.decimalToPrecision (result, ROUND, subtractedValue, DECIMAL_PLACES, this.paddingMode);
     }
 
@@ -1632,7 +1632,7 @@ export default class hyperliquid extends Exchange {
         };
     }
 
-    actionHash (action, vaultAddress, nonce, expiresAfter = undefined) {
+    actionHash (action, vaultAddress, nonce, expiresAfter: Int = undefined) {
         const dataBinary = this.packb (action);
         const dataHex = this.binaryToBase16 (dataBinary);
         let data = dataHex;
@@ -1650,7 +1650,7 @@ export default class hyperliquid extends Exchange {
         return this.hash (this.base16ToBinary (data), keccak, 'binary');
     }
 
-    signL1Action (action, nonce, vaultAdress = undefined, expiresAfter = undefined): object {
+    signL1Action (action, nonce, vaultAdress: Str = undefined, expiresAfter: Int = undefined): object {
         const hash = this.actionHash (action, vaultAdress, nonce, expiresAfter);
         const isTestnet = this.safeBool (this.options, 'sandboxMode', false);
         const phantomAgent = this.constructPhantomAgent (hash, isTestnet);
@@ -1882,14 +1882,14 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {bool} enableUnifiedMargin
      */
-    async isUnifiedEnabled (method: string, address: Str = undefined, shouldRefresh = false, params = {}) {
+    async isUnifiedEnabled (method: string, address: Str = undefined, shouldRefresh = false, params = {}): Promise<[Bool, Dict]> {
         let userAddress: Str = undefined;
         if (address !== undefined) {
             userAddress = address;
         } else {
             [ userAddress, params ] = this.handlePublicAddress ('isUnifiedEnabled', params);
         }
-        let enableUnifiedMargin = undefined;
+        let enableUnifiedMargin: Bool = undefined;
         [ enableUnifiedMargin, params ] = this.handleOptionAndParams (params, method, 'enableUnifiedMargin');
         if (enableUnifiedMargin === undefined || shouldRefresh) {
             const request: Dict = {
@@ -2194,7 +2194,7 @@ export default class hyperliquid extends Exchange {
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: string, price: Str = undefined, params = {}) {
         const market = this.market (symbol);
         type = type.toUpperCase ();
-        side = side.toUpperCase ();
+        side = (side as string).toUpperCase ();
         const isMarket = (type === 'MARKET');
         const isBuy = (side === 'BUY');
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
@@ -2676,7 +2676,7 @@ export default class hyperliquid extends Exchange {
         };
         const cancelAction: Dict = {
             'type': 'scheduleCancel',
-            'time': nonce + timeout,
+            'time': nonce + (timeout as number),
         };
         let vaultAddress: Str = undefined;
         [ vaultAddress, params ] = this.handleOptionAndParams2 (params, 'cancelAllOrdersAfter', 'vaultAddress', 'subAccountAddress');
@@ -4799,7 +4799,7 @@ export default class hyperliquid extends Exchange {
         return address;
     }
 
-    handlePublicAddress (methodName: string, params: Dict) {
+    handlePublicAddress (methodName: string, params: Dict): [Str, Dict] {
         let userAux = undefined;
         [ userAux, params ] = this.handleOptionAndParams2 (params, methodName, 'user', 'subAccountAddress');
         let user = userAux;

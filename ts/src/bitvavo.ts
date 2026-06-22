@@ -981,8 +981,8 @@ export default class bitvavo extends Exchange {
         const maker = this.safeNumber (feesValue, 'maker');
         const taker = this.safeNumber (feesValue, 'taker');
         const result: Dict = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        for (let i = 0; i < (this.symbols as string[]).length; i++) {
+            const symbol = (this.symbols as string[])[i];
             result[symbol] = {
                 'info': fees,
                 'symbol': symbol,
@@ -1393,7 +1393,7 @@ export default class bitvavo extends Exchange {
             'pending': 'pending',
             'failed': 'failed',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
@@ -1477,7 +1477,7 @@ export default class bitvavo extends Exchange {
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice'); // trigger when price crosses from below to above this value
         params = this.omit (params, [ 'timeInForce', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ]);
         if (isMarketOrder) {
-            let cost = undefined;
+            let cost: any = undefined;
             if (price !== undefined) {
                 const priceString = this.numberToString (price);
                 const amountString = this.numberToString (amount);
@@ -1612,7 +1612,7 @@ export default class bitvavo extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    editOrderRequest (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+    editOrderRequest (id: string, symbol, type, side, amount: Num = undefined, price: Num = undefined, params = {}) {
         let request: Dict = {};
         const market = this.market (symbol);
         const amountRemaining = this.safeNumber (params, 'amountRemaining');
@@ -1762,10 +1762,10 @@ export default class bitvavo extends Exchange {
      * @returns {object} the api result
      */
     async cancelAllOrdersAfter (timeout: Int, params = {}) {
-        if (timeout > 300000) {
+        if ((timeout as number) > 300000) {
             throw new BadRequest (this.id + ' cancelAllOrdersAfter() timeout should be less than or equal to 300000 milliseconds');
         }
-        if ((timeout > 0) && (timeout < 10000)) {
+        if (((timeout as number) > 0) && ((timeout as number) < 10000)) {
             throw new BadRequest (this.id + ' cancelAllOrdersAfter() timeout should be 0 or greater than or equal to 10000 milliseconds');
         }
         await this.loadMarkets ();
@@ -1773,7 +1773,7 @@ export default class bitvavo extends Exchange {
         [ codGroupId, params ] = this.handleOptionAndParams (params, 'cancelAllOrdersAfter', 'codGroupId', 1);
         const request: Dict = {
             'codGroupId': codGroupId,
-            'expiryAfterSeconds': (timeout > 0) ? this.parseToInt (timeout / 1000) : 0,
+            'expiryAfterSeconds': ((timeout as number) > 0) ? this.parseToInt ((timeout as number) / 1000) : 0,
         };
         const response = await this.privatePostCancelOrdersAfter (this.extend (request, params));
         //
@@ -2008,7 +2008,7 @@ export default class bitvavo extends Exchange {
             'rejected': 'canceled',
             'awaitingTrigger': 'open', // https://github.com/ccxt/ccxt/issues/8489
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -2245,7 +2245,7 @@ export default class bitvavo extends Exchange {
             'internal_transfer': 'transaction',
             'external_transferred_funds': 'transaction',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
@@ -2291,7 +2291,7 @@ export default class bitvavo extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    withdrawRequest (code: Str, amount, address, tag = undefined, params = {}) {
+    withdrawRequest (code: Str, amount, address, tag: Str = undefined, params = {}) {
         const currency = this.currency ((code as string));
         const request: Dict = {
             'symbol': currency['id'],
@@ -2459,7 +2459,7 @@ export default class bitvavo extends Exchange {
             'completed': 'ok',
             'canceled': 'canceled',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {

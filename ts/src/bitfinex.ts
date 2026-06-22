@@ -652,8 +652,8 @@ export default class bitfinex extends Exchange {
             let quote = this.safeCurrencyCode (quoteId);
             const splitBase = (base as string).split ('F0');
             const splitQuote = (quote as string).split ('F0');
-            base = this.safeString (splitBase, 0);
-            quote = this.safeString (splitQuote, 0);
+            base = this.safeString (splitBase, 0) as string;
+            quote = this.safeString (splitQuote, 0) as string;
             let symbol = base + '/' + quote;
             // baseId = 'f' + baseId;
             // quoteId = 'f' + quoteId;
@@ -871,7 +871,7 @@ export default class bitfinex extends Exchange {
         const arr = this.toArray (allowedIds);
         for (let i = 0; i < arr.length; i++) {
             const parsed = this.parseCurrencyCustom (arr[i], indexed, indexedNetworks);
-            const code = parsed['code'];
+            const code = (parsed as Dict)['code'];
             result[code] = parsed;
         }
         return result;
@@ -1407,7 +1407,7 @@ export default class bitfinex extends Exchange {
         let amountString = this.safeString (tradeList, amountIndex);
         const priceIndex = isPrivate ? 5 : 3;
         const priceString = this.safeString (tradeList, priceIndex);
-        if (amountString[0] === '-') {
+        if ((amountString as string)[0] === '-') {
             side = 'sell';
             amountString = Precise.stringAbs (amountString as string);
         } else {
@@ -1713,7 +1713,7 @@ export default class bitfinex extends Exchange {
          */
         const market = this.market (symbol);
         let amountString = this.amountToPrecision (symbol, amount);
-        amountString = (side === 'buy') ? amountString : Precise.stringNeg (amountString);
+        amountString = ((side === 'buy') ? amountString : Precise.stringNeg (amountString)) as string;
         const request: Dict = {
             'symbol': market['id'],
             'amount': amountString,
@@ -1886,7 +1886,7 @@ export default class bitfinex extends Exchange {
             const amount = this.safeNumber (rawOrder, 'amount');
             const price = this.safeNumber (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
-            const orderRequest = this.createOrderRequest ((symbol as string), type as OrderType, side as OrderSide, amount, price, orderParams);
+            const orderRequest = this.createOrderRequest ((symbol as string), type as OrderType, side as OrderSide, (amount as number), price, orderParams);
             ordersRequests.push ([ 'on', orderRequest ]);
         }
         const request: Dict = {
@@ -2494,8 +2494,8 @@ export default class bitfinex extends Exchange {
         let timestamp: Int = undefined;
         let updated: Int = undefined;
         let code: Str = undefined;
-        let amount = undefined;
-        let id = undefined;
+        let amount: any = undefined;
+        let id: any = undefined;
         let status: Str = undefined;
         let tag: Str = undefined;
         let type: Str = undefined;
@@ -2668,8 +2668,8 @@ export default class bitfinex extends Exchange {
         const takerFee = this.safeNumber (takerData, 0);
         const takerFeeFiat = this.safeNumber (takerData, 2);
         const takerFeeDeriv = this.safeNumber (takerData, 5);
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        for (let i = 0; i < (this.symbols as string[]).length; i++) {
+            const symbol = (this.symbols as string[])[i];
             const market = this.market (symbol);
             const fee = {
                 'info': response,
@@ -3886,7 +3886,7 @@ export default class bitfinex extends Exchange {
         };
         if (amount !== undefined) {
             let amountString = this.amountToPrecision (symbol, amount);
-            amountString = (side === 'buy') ? amountString : Precise.stringNeg (amountString);
+            amountString = ((side === 'buy') ? amountString : Precise.stringNeg (amountString)) as string;
             request['amount'] = amountString;
         }
         const triggerPrice = this.safeString2 (params, 'stopPrice', 'triggerPrice');

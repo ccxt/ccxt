@@ -929,7 +929,7 @@ export default class coinone extends Exchange {
             'filled': 'closed',
             'canceled': 'canceled',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {

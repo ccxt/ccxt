@@ -750,8 +750,8 @@ export default class bitmex extends bitmexRest {
         await this.authenticate ();
         const subscriptionHash = 'position';
         let messageHash = 'positions';
-        if (!this.isEmpty (symbols)) {
-            messageHash = '::' + symbols.join (',');
+        if (!this.isEmpty (symbols as string[])) {
+            messageHash = '::' + (symbols as string[]).join (',');
         }
         const url = this.urls['api']['ws'];
         const request: Dict = {
@@ -1474,7 +1474,7 @@ export default class bitmex extends bitmexRest {
         //     }
         //
         const table = this.safeString (message, 'table');
-        const interval = table.replace ('tradeBin', '');
+        const interval = (table as string).replace ('tradeBin', '');
         const timeframe = this.findTimeframe (interval);
         const duration = this.parseTimeframe ((timeframe as string));
         const candles = this.safeValue (message, 'data', []);
@@ -1696,7 +1696,7 @@ export default class bitmex extends bitmexRest {
                 const messageHash = args[0];
                 const broad = this.exceptions['ws']['broad'];
                 const broadKey = this.findBroadlyMatchedKey (broad, error);
-                let exception = undefined;
+                let exception: any = undefined;
                 if (broadKey === undefined) {
                     exception = new ExchangeError ((error as string)); // c# requirement for now
                 } else {

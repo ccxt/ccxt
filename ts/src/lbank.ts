@@ -556,7 +556,7 @@ export default class lbank extends Exchange {
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
             const marketId = this.safeString (market, 'symbol');
-            const parts = marketId.split ('_');
+            const parts = (marketId as string).split ('_');
             const baseId = parts[0];
             const quoteId = parts[1];
             const base = this.safeCurrencyCode (baseId);
@@ -1709,7 +1709,7 @@ export default class lbank extends Exchange {
             '3': 'canceled', // filled partially and cancelled
             '4': 'closed', // disposal processing
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -1810,7 +1810,7 @@ export default class lbank extends Exchange {
         let postOnly = false;
         let type = 'limit';
         const rawType = this.safeString2 (order, 'type', 'tradeType'); // buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
-        const parts = rawType.split ('_');
+        const parts = (rawType as string).split ('_');
         const side = this.safeString (parts, 0);
         const typePart = this.safeString (parts, 1); // market, maker, ioc, fok or undefined (limit)
         if (typePart === 'market') {
@@ -2232,7 +2232,7 @@ export default class lbank extends Exchange {
         const defaultNetwork = this.safeStringUpper (defaultNetworks, currencyCode);
         const networks = this.safeValue (this.options, 'networks', {});
         let network = this.safeStringUpper (params, 'network', defaultNetwork); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
+        network = this.safeString (networks, (network as string), network); // handle ERC20>ETH alias
         return network;
     }
 
@@ -2307,7 +2307,7 @@ export default class lbank extends Exchange {
         };
         const networks = this.safeValue (this.options, 'networks');
         let network = this.safeStringUpper (params, 'network');
-        network = this.safeString (networks, network, network);
+        network = this.safeString (networks, (network as string), network);
         if (network !== undefined) {
             request['networkName'] = network;
             params = this.omit (params, 'network');
@@ -2376,7 +2376,7 @@ export default class lbank extends Exchange {
         const network = this.safeStringUpper2 (params, 'network', 'networkName');
         params = this.omit (params, [ 'network', 'networkName' ]);
         const networks = this.safeValue (this.options, 'networks');
-        const networkId = this.safeString (networks, network, network);
+        const networkId = this.safeString (networks, (network as string), network);
         if (networkId !== undefined) {
             request['networkName'] = networkId;
         }

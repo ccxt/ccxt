@@ -101,7 +101,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         } else if (symbolsLength === 1) {
             market = this.market (symbols[0]);
             messageHash = name + '::' + market['symbol'];
-            productIds = [ market['id'] ];
+            productIds = [ (market['id'] as string) ];
         }
         const url = this.urls['api']['ws'];
         if (url === undefined) {
@@ -141,15 +141,15 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
     async subscribeMultiple (name: string, symbols: Strings = undefined, params = {}) {
         await this.loadMarkets ();
         this.checkRequiredCredentials ();
-        if (this.isEmpty (symbols)) {
+        if (this.isEmpty (symbols as string[])) {
             symbols = this.symbols;
         } else {
             symbols = this.marketSymbols (symbols);
         }
         const messageHashes: any[] = [];
         const productIds: any[] = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const marketId = this.marketId (symbols[i]);
+        for (let i = 0; i < (symbols as string[]).length; i++) {
+            const marketId = this.marketId ((symbols as string[])[i]);
             const symbol = this.symbol (marketId);
             productIds.push (marketId);
             messageHashes.push (name + '::' + symbol);
@@ -229,7 +229,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
     }
 
     getActiveSymbols () {
-        const symbols = this.symbols;
+        const symbols = this.symbols as string[];
         const output: any[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
@@ -565,7 +565,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const trade = this.parseWsTrade (message);
         const symbol = trade['symbol'];
         const channel = this.safeString (message, 'channel');
-        if (!(symbol in this.trades)) {
+        if (!((symbol as string) in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             const tradesArrayCache = new ArrayCache (limit);
             this.trades[(symbol as string)] = tradesArrayCache;

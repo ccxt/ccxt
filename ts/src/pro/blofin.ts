@@ -325,7 +325,7 @@ export default class blofin extends blofinRest {
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
-        const symbolsList = symbols;
+        const symbolsList = symbols as string[];
         const firstMarket = this.market (symbolsList[0]);
         const channel = 'tickers';
         let marketType: Str = undefined;
@@ -686,7 +686,7 @@ export default class blofin extends blofinRest {
         client.resolve (fundingRate, messageHash);
     }
 
-    async watchMultipleWrapper (isPublic: boolean, channelName: string, callerMethodName: string, symbolsArray = undefined, params = {}) {
+    async watchMultipleWrapper (isPublic: boolean, channelName: string, callerMethodName: string, symbolsArray: any = undefined, params = {}) {
         // underlier method for all watch-multiple symbols
         await this.loadMarkets ();
         [ callerMethodName, params ] = this.handleParamString (params, 'callerMethodName', callerMethodName);
@@ -780,7 +780,7 @@ export default class blofin extends blofinRest {
             'positions': this.handlePositions,
             'funding-rate': this.handleFundingRate,
         };
-        let method = undefined;
+        let method: any = undefined;
         if (message === 'pong') {
             method = this.safeValue (methods, 'pong');
         } else {

@@ -423,12 +423,12 @@ export default class krakenfutures extends Exchange {
             const id = this.safeString (market, 'symbol');
             const marketType = this.safeString (market, 'type');
             let type: Str = undefined;
-            const index = (marketType.indexOf (' index') >= 0);
+            const index = ((marketType as string).indexOf (' index') >= 0);
             let linear: Bool = undefined;
             let inverse: Bool = undefined;
             let expiry: Int = undefined;
             if (!index) {
-                linear = (marketType.indexOf ('_vanilla') >= 0);
+                linear = ((marketType as string).indexOf ('_vanilla') >= 0);
                 inverse = !linear;
                 const settleTime = this.safeString (market, 'lastTradingTime');
                 type = (settleTime === undefined) ? 'swap' : 'future';
@@ -439,9 +439,9 @@ export default class krakenfutures extends Exchange {
             const swap = (type === 'swap');
             const future = (type === 'future');
             let symbol = id;
-            const split = id.split ('_');
+            const split = (id as string).split ('_');
             const splitMarket = this.safeString (split, 1);
-            const baseId = splitMarket.slice (0, splitMarket.length - 3);
+            const baseId = (splitMarket as string).slice (0, (splitMarket as string).length - 3);
             const quoteId = 'usd'; // always USD
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
@@ -1467,7 +1467,7 @@ export default class krakenfutures extends Exchange {
     async cancelAllOrdersAfter (timeout: Int, params = {}) {
         await this.loadMarkets ();
         const request: Dict = {
-            'timeout': (timeout > 0) ? (this.parseToInt (timeout / 1000)) : 0,
+            'timeout': ((timeout as number) > 0) ? (this.parseToInt ((timeout as number) / 1000)) : 0,
         };
         const response = await this.privatePostCancelallordersafter (this.extend (request, params));
         //
@@ -1683,7 +1683,7 @@ export default class krakenfutures extends Exchange {
         return this.safeString (typesMap, orderType, orderType);
     }
 
-    verifyOrderActionSuccess (status, method, omit = []) {
+    verifyOrderActionSuccess (status, method, omit: string[] = []) {
         const errors: Dict = {
             'invalidOrderType': InvalidOrder,
             'invalidSide': InvalidOrder,
@@ -1746,7 +1746,7 @@ export default class krakenfutures extends Exchange {
             'PARTIALLY_FILLED': 'open',
             'UNTOUCHED': 'open',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -2925,7 +2925,7 @@ export default class krakenfutures extends Exchange {
         } else if (account in this.markets) {
             const market = this.market (account);
             const marketId = market['id'];
-            const splitId = marketId.split ('_');
+            const splitId = (marketId as string).split ('_');
             if (market['inverse']) {
                 return 'fi_' + this.safeString (splitId, 1);
             } else {
