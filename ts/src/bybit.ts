@@ -1201,6 +1201,12 @@ export default class bybit extends Exchange {
                     // 'LUNA2': 'LUNANEW' (Terra)
                     // 'LUNA1': 'LUNA' (Terra)
                 },
+                'networksById': {
+                    'ETH': 'ERC20',
+                    'TRX': 'TRC20',
+                    'BSC': 'BEP20',
+                    'OP': 'OP',
+                },
                 'defaultNetwork': 'ERC20',
                 'defaultNetworks': {
                     'USDT': 'TRC20',
