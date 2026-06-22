@@ -1129,7 +1129,7 @@ class bithumb extends Exchange {
         $request = array(
             'side' => $order['side'],
         );
-        return $this->cancel_order($order['id'], $order['symbol'], $this->extend($request, $params));
+        return $this->cancel_order(($order['id']), $order['symbol'], $this->extend($request, $params));
     }
 
     public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {

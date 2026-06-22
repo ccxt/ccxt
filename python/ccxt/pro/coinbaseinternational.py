@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Any, Bool, Int, Market, OrderBook, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade
+from ccxt.base.types import Any, Bool, Int, Market, OrderBook, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -95,7 +95,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         if symbols is None:
             symbols = self.get_active_symbols()
         symbolsLength = len(symbols)
-        messageHashes = []
+        messageHashes: List[Any] = []
         if symbolsLength > 1:
             parsedSymbols = self.market_symbols(symbols)
             marketIds = self.market_ids(parsedSymbols)
@@ -106,7 +106,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         elif symbolsLength == 1:
             market = self.market(symbols[0])
             messageHash = name + '::' + market['symbol']
-            productIds = [market['id']]
+            productIds = [(market['id'])]
         url = self.urls['api']['ws']
         if url is None:
             raise NotSupported(self.id + ' is not supported in sandbox environment')
@@ -146,10 +146,10 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             symbols = self.symbols
         else:
             symbols = self.market_symbols(symbols)
-        messageHashes = []
-        productIds = []
-        for i in range(0, len(symbols)):
-            marketId = self.market_id(symbols[i])
+        messageHashes: List[Any] = []
+        productIds: List[Any] = []
+        for i in range(0, len((symbols))):
+            marketId = self.market_id((symbols)[i])
             symbol = self.symbol(marketId)
             productIds.append(marketId)
             messageHashes.append(name + '::' + symbol)
@@ -216,13 +216,13 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
-        channel = None
+        channel: Str = None
         channel, params = self.handle_option_and_params(params, 'watchTicker', 'channel', 'LEVEL1')
         return await self.subscribe(channel, [symbol], params)
 
     def get_active_symbols(self):
         symbols = self.symbols
-        output = []
+        output: List[Any] = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.markets[symbol]
@@ -242,7 +242,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
-        channel = None
+        channel: Str = None
         channel, params = self.handle_option_and_params(params, 'watchTickers', 'channel', 'LEVEL1')
         ticker = await self.subscribe(channel, symbols, params)
         if self.newUpdates:

@@ -640,7 +640,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        result = []
+        result: List[Any] = []
         for i in range(0, len(response)):
             market = response[i]
             id = self.safe_string(market, 'id')
@@ -1146,8 +1146,8 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         maker = self.safe_number(response, 'maker_fee_rate')
         taker = self.safe_number(response, 'taker_fee_rate')
         result: dict = {}
-        for i in range(0, len(self.symbols)):
-            symbol = self.symbols[i]
+        for i in range(0, len((self.symbols))):
+            symbol = (self.symbols)[i]
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
@@ -1294,7 +1294,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         amount = self.safe_string(order, 'size', filled)
         cost = self.safe_string(order, 'executed_value')
         feeCost = self.safe_number(order, 'fill_fees')
-        fee: dict = None
+        fee: NullableDict = None
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
@@ -1779,7 +1779,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             request['id'] = id
         if limit is not None:
             request['limit'] = limit
-        response: List = None
+        response: List
         if id is None:
             response = await self.privateGetTransfers(self.extend(request, params))
             #
@@ -1929,7 +1929,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         type = self.safe_string(transaction, 'type')
         address = self.safe_string(details, 'crypto_address')
         address = self.safe_string(transaction, 'crypto_address', address)
-        fee = {
+        fee: dict = {
             'currency': None,
             'cost': None,
             'rate': None,
@@ -2019,7 +2019,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
                     body = self.json(query)
                     payload = body
             what = nonce + method + request + payload
-            secret = None
+            secret: Any = None
             try:
                 secret = self.base64_to_binary(self.secret)
             except Exception as e:

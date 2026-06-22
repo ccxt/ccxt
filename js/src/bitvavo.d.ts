@@ -218,7 +218,7 @@ export default class bitvavo extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrder(symbol: Str, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    editOrderRequest(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Dict;
+    editOrderRequest(id: string, symbol: any, type: any, side: any, amount?: Num, price?: Num, params?: {}): Dict;
     /**
      * @method
      * @name bitvavo#editOrder
@@ -338,7 +338,7 @@ export default class bitvavo extends Exchange {
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
     parseLedgerEntryType(type: Str): string;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
-    withdrawRequest(code: Str, amount: any, address: any, tag?: any, params?: {}): any;
+    withdrawRequest(code: Str, amount: any, address: any, tag?: Str, params?: {}): any;
     /**
      * @method
      * @name bitvavo#withdraw
