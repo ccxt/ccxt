@@ -424,7 +424,7 @@ class hashkey(ccxt.async_support.hashkey):
         side = self.safe_string_lower(order, 'S')
         reduceOnly: Bool = None
         side, reduceOnly = self.parseOrderSideAndReduceOnly(side)
-        type = self.parseOrderType(self.safe_string(order, 'o'))
+        type: Str = self.parseOrderType(self.safe_string(order, 'o'))
         timeInForce = self.safe_string(order, 'f')
         postOnly: Bool = None
         type, timeInForce, postOnly = self.parseOrderTypeTimeInForceAndPostOnly(type, timeInForce)
@@ -444,18 +444,18 @@ class hashkey(ccxt.async_support.hashkey):
             'side': side,
             'price': self.safe_string(order, 'p'),
             'average': self.safe_string(order, 'V'),
-            'amount': self.omit_zero(self.safe_string(order, 'q')),
+            'amount': self.omit_zero((self.safe_string(order, 'q'))),
             'filled': self.safe_string(order, 'z'),
             'remaining': self.safe_string(order, 'r'),
             'stopPrice': None,
             'triggerPrice': None,
             'takeProfitPrice': None,
             'stopLossPrice': None,
-            'cost': self.omit_zero(self.safe_string(order, 'Z')),
+            'cost': self.omit_zero((self.safe_string(order, 'Z'))),
             'trades': None,
             'fee': {
                 'currency': self.safe_currency_code(self.safe_string(order, 'N')),
-                'amount': self.omit_zero(self.safe_string(order, 'n')),
+                'amount': self.omit_zero((self.safe_string(order, 'n'))),
             },
             'reduceOnly': reduceOnly,
             'postOnly': postOnly,
@@ -514,7 +514,7 @@ class hashkey(ccxt.async_support.hashkey):
         symbolSpecificMessageHash = messageHash + ':' + symbol
         client.resolve(tradesArray, symbolSpecificMessageHash)
 
-    def parse_ws_trade(self, trade, market=None) -> Trade:
+    def parse_ws_trade(self, trade, market: Market = None) -> Trade:
         #
         # watchTrades
         #     {
@@ -587,7 +587,7 @@ class hashkey(ccxt.async_support.hashkey):
         listenKey = await self.authenticate()
         symbols = self.market_symbols(symbols)
         messageHash = 'positions'
-        messageHashes = []
+        messageHashes: List[Any] = []
         if symbols is None:
             messageHashes.append(messageHash)
         else:

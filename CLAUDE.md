@@ -276,6 +276,7 @@ A `ts/src/` change is **not done** until it transpiles cleanly to all five langu
 ```bash
 npm run tsBuild     # TS → JS only — fastest sanity check
 npm run lint        # ESLint on ts/src/*.ts and ts/src/pro/*.ts
+npm run eslint "ts/src/<exchange>.ts"   # lint single exchange (CI scoped)
 ```
 
 ### 6.2 Per-language transpile (run all five before declaring done)
@@ -283,10 +284,17 @@ npm run lint        # ESLint on ts/src/*.ts and ts/src/pro/*.ts
 ```bash
 npm run transpile         # TS → Python + PHP (regex, REST + WS)
 npm run transpileCS       # TS → C# (AST)
+npm run transpileCSWs     # C# WebSocket
 npm run transpileGO       # TS → Go (AST)
-# scoped:
-npm run transpileCsSingle
-npm run go-build-single
+npm run transpileJava     # TS → Java (REST + WS + wrappers)
+# scoped (single exchange):
+npm run transpileRest --python <ex> && npm run transpileWs --python <ex>
+npm run transpileRest -- --php <ex> && npm run transpileWs -- --php <ex>
+npm run transpileCsSingle -- <ex>          # REST
+npm run transpileCsSingle -- --ws <ex>     # WebSocket
+npm run transpileJavaSingle -- <ex>        # REST
+npm run transpileJavaSingle -- --ws <ex>   # WebSocket
+npm run go-build-single -- <ex1> <ex2> # Go scoped
 ```
 
 ### 6.3 Compile each target
@@ -294,8 +302,11 @@ npm run go-build-single
 ```bash
 npm run buildCS              # dotnet build cs/ccxt.sln
 npm run buildGO              # go build -C go ./v4 && go build -C go ./v4/pro
+npm run buildJava            # cd java/ && ./gradlew build && cd ../
 npm run check-python-syntax  # tox -e qa
 npm run check-php-syntax
+go -C go build ./tests/main.go   # Go test binary
+go fmt .                         # Go format (in go/v4 and go/tests/base)
 ```
 
 ### 6.4 Full build (slow)
@@ -303,6 +314,31 @@ npm run check-php-syntax
 ```bash
 npm run build           # incremental: pre-transpile → transpile → CS → docs
 npm run force-build     # rebuild everything (very slow — reserve for releases)
+```
+
+### 6.4.1 Offline tests (per-language)
+
+```bash
+# Base tests (only when important_modified in CI):
+npm run test-base-rest-{js,py,php,cs,go}    # REST base tests
+npm run test-base-ws-{js,py,php,cs,go}      # WS base tests
+npm run test-types-go                        # Go type tests
+# ID tests:
+npm run id-tests-{js,py,php,cs,go,java}
+# Request/response tests (full or scoped with -- <exchange>):
+npm run request-{js,py,php,cs,go,java}      # all exchanges
+npm run request-py-sync -- <ex> && npm run request-py-async -- <ex>  # Python scoped
+npm run request-php-sync -- <ex> && npm run request-php-async -- <ex> # PHP scoped
+npm run response-{js,py,php,cs,go,java}     # same pattern
+```
+
+### 6.4.2 Live tests
+
+```bash
+./run-tests-simul.sh --js                              # all JS
+./run-tests-simul.sh --js "<rest_exchanges>" "<ws_exchanges>"  # scoped
+# Same pattern: --python-async, --php-async, --csharp, --go, --java
+npm run live-tests -- --csharp && npm run live-tests-ws -- --csharp  # C# full
 ```
 
 ### 6.5 Verify-after-change checklist (paste into PR)
@@ -316,6 +352,22 @@ npm run force-build     # rebuild everything (very slow — reserve for releases
 - [ ] Offline tests touched: `request-tests`, `response-tests`, `id-tests`; `test-base-rest`/`-ws` if base changed
 - [ ] At least one live smoke test on the affected exchange
 - [ ] Diff contains **only** `ts/src/**` (+ optional hand-written base / static JSON)
+
+### 6.6 GitHub Actions CI
+
+Seven parallel workflows (`.github/workflows/`), each on `ubuntu-latest` + Node 20. `utils/init_actions.sh` detects `important_modified` (base/build/test files → full transpile + all tests) vs scoped (only changed exchanges). On `master` pushes, generated output is auto-committed.
+
+| Lang | Workflow | Pre-transpile | Full transpile | Build | Live tests |
+|---|---|---|---|---|---|
+| JS | `js.yml` | `pre-transpile-js` | ↑ (includes tsc) | ↑ | `./run-tests-simul.sh --js` |
+| Python | `python.yml` | `pre-transpile-py` | `force-transpile-fast-py` | `check-python-syntax` | `./run-tests-simul.sh --python-async` |
+| PHP | `php.yml` | `pre-transpile-php` | `force-transpile-fast-php` | `check-php-syntax` | `./run-tests-simul.sh --php-async` |
+| C# | `cs.yml` | `pre-transpile-cs` | `transpileCS && transpileCSWs` | `buildCS` | `./run-tests-simul.sh --csharp` |
+| Go | `go-app.yml` | `export-exchanges && emitAPI` | `goTranspiler.ts && --ws` | `buildGO` + `go fmt` | `./run-tests-simul.sh --go` |
+| Java | `java.yml` | `pre-transpile-java` | `transpileJava` | `buildJava` | `./run-tests-simul.sh --java` |
+| Rust | `rust.yml` | — | early-stage, no transpile/test steps wired up yet | — | — |
+
+**Reproduce locally:** `npm run export-exchanges && npm run emitAPI` first → `npm run pre-transpile-<lang>` → transpile → build → `npm run request-<lang> && npm run response-<lang>` → `./run-tests-simul.sh --<lang> "<ex>" "<ex>"` for live.
 
 ---
 

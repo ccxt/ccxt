@@ -931,7 +931,7 @@ class lighter extends lighter$1["default"] {
             order['nonce'] = await this.fetchNonce(accountIndex, apiKeyIndex);
         }
         let txType = undefined;
-        let txInfo = undefined;
+        let txInfo;
         if (totalOrderRequests < 2) {
             [txType, txInfo] = this.lighterSignCreateOrder(signer, order);
         }

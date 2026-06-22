@@ -855,7 +855,7 @@ class lighter(Exchange, ImplicitAPI):
         # for php
         totalOrderRequests = len(orderRequests)
         apiKeyIndex: Int = None
-        order: dict = None
+        order: NullableDict = None
         if totalOrderRequests > 0:
             order = orderRequests[0]
             apiKeyIndex = order['api_key_index']
@@ -866,7 +866,7 @@ class lighter(Exchange, ImplicitAPI):
         if self.safe_integer(order, 'nonce') is None:
             order['nonce'] = self.fetch_nonce(accountIndex, apiKeyIndex)
         txType: Str = None
-        txInfo: dict = None
+        txInfo: dict
         if totalOrderRequests < 2:
             txType, txInfo = self.lighter_sign_create_order(signer, order)
         else:
@@ -2171,7 +2171,7 @@ class lighter(Exchange, ImplicitAPI):
         if type is None:
             typeAsInteger = self.safe_integer(order, 'order_type')
             type = self.parse_order_type_integer(typeAsInteger)
-        triggerPrice = self.parse_number(self.omit_zero(self.safe_string(order, 'trigger_price')))
+        triggerPrice = self.parse_number(self.omit_zero((self.safe_string(order, 'trigger_price'))))
         stopLossPrice: Num = None
         takeProfitPrice: Num = None
         if type is not None:
@@ -2195,7 +2195,7 @@ class lighter(Exchange, ImplicitAPI):
         return self.safe_order({
             'info': order,
             'id': self.safe_string(order, 'order_id'),
-            'clientOrderId': self.omit_zero(self.safe_string_2(order, 'client_order_id', 'client_order_index')),
+            'clientOrderId': self.omit_zero((self.safe_string_2(order, 'client_order_id', 'client_order_index'))),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,

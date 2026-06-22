@@ -12,7 +12,7 @@ export default class kucoin extends kucoinRest {
     getUtaUrl(): Promise<string>;
     authenticateUta(): Promise<string>;
     unSubscribe(url: any, messageHash: any, topic: any, subscriptionHash: any, params?: {}, subscription?: NullableDict): Promise<any>;
-    subscribeMultiple(url: any, messageHashes: any, topic: any, subscriptionHashes: any, params?: {}, subscription?: any): Promise<any>;
+    subscribeMultiple(url: any, messageHashes: any, topic: any, subscriptionHashes: any, params?: {}, subscription?: NullableDict): Promise<any>;
     unSubscribeMultiple(url: any, messageHashes: any, topic: any, subscriptionHashes: any, params?: {}, subscription?: NullableDict): Promise<any>;
     /**
      * @method
@@ -60,7 +60,7 @@ export default class kucoin extends kucoinRest {
     handleTicker(client: Client, message: any): void;
     handleContractTicker(client: Client, message: any): void;
     handleUtaTicker(client: Client, message: any): void;
-    parseWsUtaTicker(ticker: any, market?: any): Ticker;
+    parseWsUtaTicker(ticker: any, market?: Market): Ticker;
     /**
      * @method
      * @name kucoin#watchBidsAsks
@@ -74,7 +74,7 @@ export default class kucoin extends kucoinRest {
     watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
     watchMultiHelper(methodName: any, channelName: string, isFuturesChannel: boolean, symbols?: Strings, params?: {}): Promise<any>;
     handleBidAsk(client: Client, message: any): void;
-    parseWsBidAsk(ticker: any, market?: any): Ticker;
+    parseWsBidAsk(ticker: any, market?: Market): Ticker;
     /**
      * @method
      * @name kucoin#watchOHLCV

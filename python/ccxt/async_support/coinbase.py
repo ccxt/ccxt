@@ -697,7 +697,7 @@ class coinbase(Exchange, ImplicitAPI):
         """
         response = await self.v3PrivateGetBrokeragePortfolios(params)
         portfolios = self.safe_list(response, 'portfolios', [])
-        result = []
+        result: List[Any] = []
         for i in range(0, len(portfolios)):
             portfolio = portfolios[i]
             result.append({
@@ -1327,7 +1327,7 @@ class coinbase(Exchange, ImplicitAPI):
         dataById = self.index_by(data, 'id')
         rates = self.safe_dict(self.safe_dict(exchangeRates, 'data', {}), 'rates', {})
         baseIds = list(rates.keys())
-        result = []
+        result: List[Any] = []
         for i in range(0, len(baseIds)):
             baseId = baseIds[i]
             base = self.safe_currency_code(baseId)
@@ -1509,7 +1509,7 @@ class coinbase(Exchange, ImplicitAPI):
         expiringFeeTier = self.safe_dict(expiringFees, 'fee_tier', {})  # fee tier null?
         perpetualFeeTier = self.safe_dict(perpetualFees, 'fee_tier', {})  # fee tier null?
         data = self.safe_list(spot, 'products', [])
-        result = []
+        result: List[Any] = []
         for i in range(0, len(data)):
             result.append(self.parse_spot_market(data[i], feeTier))
         futureData = self.safe_list(expiringFutures, 'products', [])
@@ -1518,7 +1518,7 @@ class coinbase(Exchange, ImplicitAPI):
         perpetualData = self.safe_list(perpetualFutures, 'products', [])
         for i in range(0, len(perpetualData)):
             result.append(self.parse_contract_market(perpetualData[i], perpetualFeeTier))
-        newMarkets = []
+        newMarkets: List[Any] = []
         for i in range(0, len(result)):
             market = result[i]
             info = self.safe_value(market, 'info', {})
@@ -4381,7 +4381,7 @@ class coinbase(Exchange, ImplicitAPI):
         return self.parse_deposit_method_id(result)
 
     def parse_deposit_method_ids(self, ids, params={}):
-        result = []
+        result: List[Any] = []
         for i in range(0, len(ids)):
             id = self.extend(self.parse_deposit_method_id(ids[i]), params)
             result.append(id)
@@ -4772,8 +4772,8 @@ class coinbase(Exchange, ImplicitAPI):
         taker_fee = self.safe_number(data, 'taker_fee_rate')
         maker_fee = self.safe_number(data, 'maker_fee_rate')
         result: dict = {}
-        for i in range(0, len(self.symbols)):
-            symbol = self.symbols[i]
+        for i in range(0, len((self.symbols))):
+            symbol = (self.symbols)[i]
             market = self.market(symbol)
             if (isSpot and market['spot']) or (not isSpot and not market['spot']):
                 result[symbol] = {
@@ -4809,7 +4809,7 @@ class coinbase(Exchange, ImplicitAPI):
         portfolioName = self.safe_string(portfolioInfo, 'name', 'Unknown')
         portfolioUuid = self.safe_string(portfolioInfo, 'uuid', '')
         spotPositions = self.safe_list(breakdown, 'spot_positions', [])
-        parsedPositions = []
+        parsedPositions: List[Any] = []
         for i in range(0, len(spotPositions)):
             position: dict = spotPositions[i]
             currencyCode = self.safe_string(position, 'asset', 'Unknown')

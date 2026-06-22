@@ -305,10 +305,10 @@ class bithumb(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        result = []
+        result: List[Any] = []
         quoteCurrencies = self.safe_dict(self.options, 'quoteCurrencies', {})
         quotes = list(quoteCurrencies.keys())
-        promises = []
+        promises: List[Any] = []
         for i in range(0, len(quotes)):
             request = {
                 'quoteId': quotes[i],
@@ -554,7 +554,7 @@ class bithumb(Exchange, ImplicitAPI):
         result: dict = {}
         quoteCurrencies = self.safe_dict(self.options, 'quoteCurrencies', {})
         quotes = list(quoteCurrencies.keys())
-        promises = []
+        promises: List[Any] = []
         for i in range(0, len(quotes)):
             request: dict = {
                 'quoteId': quotes[i],
@@ -752,7 +752,7 @@ class bithumb(Exchange, ImplicitAPI):
         priceString = self.safe_string(trade, 'price')
         amountString = self.fix_comma_number(self.safe_string_2(trade, 'units_traded', 'units'))
         costString = self.safe_string(trade, 'total')
-        fee: dict = None
+        fee: NullableDict = None
         feeCostString = self.safe_string(trade, 'fee')
         if feeCostString is not None:
             feeCurrencyId = self.safe_string(trade, 'fee_currency')
@@ -1094,7 +1094,7 @@ class bithumb(Exchange, ImplicitAPI):
         request: dict = {
             'side': order['side'],
         }
-        return await self.cancel_order(order['id'], order['symbol'], self.extend(request, params))
+        return await self.cancel_order((order['id']), order['symbol'], self.extend(request, params))
 
     async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
