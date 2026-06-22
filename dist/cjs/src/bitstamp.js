@@ -1144,8 +1144,8 @@ class bitstamp extends bitstamp$1["default"] {
         amountString = this.safeString(trade, this.safeString(market, 'baseId'), amountString);
         costString = this.safeString(trade, this.safeString(market, 'quoteId'), costString);
         // this endpoint is not aligned with "markets" endpoint
-        const baseIdLower = this.safeString(market, 'baseId').toLowerCase();
-        const quoteIdLower = this.safeString(market, 'quoteId').toLowerCase();
+        const baseIdLower = this.safeStringLower(market, 'baseId');
+        const quoteIdLower = this.safeStringLower(market, 'quoteId');
         const dashedIdLower = baseIdLower + '_' + quoteIdLower;
         if (priceString === undefined) {
             priceString = this.safeString(trade, dashedIdLower);

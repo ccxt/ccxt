@@ -639,7 +639,7 @@ class derive extends derive$1["default"] {
             const trade = this.parseTrade(message);
             myTrades.append(trade);
             client.resolve(myTrades, topic);
-            const messageHash = topic + trade['symbol'];
+            const messageHash = topic + this.safeString(trade, 'symbol', '');
             client.resolve(myTrades, messageHash);
         }
     }

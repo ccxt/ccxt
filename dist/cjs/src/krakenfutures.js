@@ -2621,7 +2621,7 @@ class krakenfutures extends krakenfutures$1["default"] {
             throw new errors.BadRequest(this.id + ' fetchFundingRateHistory() supports swap contracts only');
         }
         const request = {
-            'symbol': market['id'].toUpperCase(),
+            'symbol': this.safeStringUpper(market, 'id'),
         };
         const response = await this.publicGetHistoricalfundingrates(this.extend(request, params));
         //

@@ -623,7 +623,7 @@ export default class derive extends Exchange {
     }
     parseMarket(market) {
         const type = this.safeString(market, 'instrument_type');
-        let marketType;
+        let marketType = undefined;
         let spot = false;
         let margin = true;
         let swap = false;
