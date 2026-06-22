@@ -3085,7 +3085,7 @@ class binance(Exchange, ImplicitAPI):
             withdrawFee = self.safe_number(networkItem, 'withdrawFee')
             depositEnable = self.safe_bool(networkItem, 'depositEnable')
             withdrawEnable = self.safe_bool(networkItem, 'withdrawEnable')
-            fees[network] = withdrawFee
+            fees[networkCode] = withdrawFee
             isDefault = self.safe_bool(networkItem, 'isDefault')
             if isDefault or (fee is None):
                 fee = withdrawFee
