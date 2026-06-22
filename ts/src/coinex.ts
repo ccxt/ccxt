@@ -2530,7 +2530,7 @@ export default class coinex extends Exchange {
      */
     async createOrders (orders: OrderRequest[], params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        const ordersRequests = [];
+        const ordersRequests: Dict[] = [];
         let symbol: Str = undefined;
         let reduceOnly = false;
         let isTriggerOrder = false;
@@ -3056,8 +3056,8 @@ export default class coinex extends Exchange {
      */
     async editOrders (orders: OrderRequest[], params = {}) : Promise<Order[]> {
         await this.loadMarkets ();
-        const ordersRequests = [];
-        let orderSymbols = [];
+        const ordersRequests: Dict[] = [];
+        let orderSymbols: string[] = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const marketId = this.safeString (rawOrder, 'symbol');
@@ -3105,7 +3105,7 @@ export default class coinex extends Exchange {
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const code = this.safeString (entry, 'code');
-            const message = this.safeString (entry, 'message');
+            const message = this.safeString (entry, 'message', '');
             if ((code !== '0') || ((message !== 'Success') && (message !== 'Succeeded') && (message.toLowerCase () !== 'ok') && !data)) {
                 const feedback = this.id + ' ' + message;
                 this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
@@ -3991,7 +3991,7 @@ export default class coinex extends Exchange {
         //         "memo": ""
         //     }
         //
-        const coinAddress = this.safeString (depositAddress, 'address');
+        const coinAddress = this.safeString (depositAddress, 'address', '');
         const parts = coinAddress.split (':');
         let address: Str = undefined;
         let tag: Str = undefined;
@@ -6055,7 +6055,7 @@ export default class coinex extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    handleMarginModeAndParams (methodName, params = {}, defaultValue = undefined): [any, Dict] {
+    handleMarginModeAndParams (methodName, params = {}, defaultValue: any = undefined): [any, Dict] {
         /**
          * @ignore
          * @method
@@ -6065,7 +6065,7 @@ export default class coinex extends Exchange {
          */
         const defaultType = this.safeString (this.options, 'defaultType');
         const isMargin = this.safeBool (params, 'margin', false);
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = super.handleMarginModeAndParams (methodName, params, defaultValue);
         if (marginMode === undefined) {
             if ((defaultType === 'margin') || (isMargin === true)) {
@@ -6190,7 +6190,7 @@ export default class coinex extends Exchange {
         }
         const code = this.safeString (response, 'code');
         const data = this.safeValue (response, 'data');
-        const message = this.safeString (response, 'message');
+        const message = this.safeString (response, 'message', '');
         if ((code !== '0') || ((message !== 'Success') && (message !== 'Succeeded') && (message.toLowerCase () !== 'ok') && !data)) {
             const feedback = this.id + ' ' + message;
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
