@@ -681,9 +681,9 @@ export default class kraken extends Exchange {
             let precisionAmount = this.parseNumber (this.parsePrecision (this.safeString (market, 'lot_decimals')));
             const spot = true;
             // fix https://github.com/freqtrade/freqtrade/issues/11765#issuecomment-2894224103
-            if (spot && (base in cachedCurrencies)) {
-                const currency = cachedCurrencies[base];
-                const currencyPrecision = this.safeNumber (currency, 'precision');
+            if (spot && ((base as string) in cachedCurrencies)) {
+                const currency = cachedCurrencies[base as string];
+                const currencyPrecision = this.safeNumber (currency, 'precision') as number;
                 // if currency precision is greater (e.g. 0.01) than market precision (e.g. 0.001)
                 if (currencyPrecision > precisionAmount) {
                     precisionAmount = currencyPrecision;
@@ -856,7 +856,7 @@ export default class kraken extends Exchange {
         // Z and X prefixes: https://support.kraken.com/hc/en-us/articles/360001206766-Bitcoin-currency-code-XBT-vs-BTC
         // S and M suffixes: https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
         //
-        const id = this.safeString (rawCurrency, '_coin_id');
+        const id = this.safeString (rawCurrency, '_coin_id') as string;
         let code = this.safeCurrencyCode (id);
         // the below cannot be reliably done in `safeCurrencyCode`, so we have to do it here
         if (id.indexOf ('.') < 0) {
@@ -870,7 +870,7 @@ export default class kraken extends Exchange {
             if (id !== altName && (id.startsWith ('X') || id.startsWith ('Z'))) {
                 code = this.safeCurrencyCode (altName);
                 // also, add map in commonCurrencies:
-                this.commonCurrencies[id] = code;
+                this.commonCurrencies[id as string] = code;
             } else {
                 code = this.safeCurrencyCode (id);
             }
@@ -902,9 +902,9 @@ export default class kraken extends Exchange {
         });
     }
 
-    safeCurrencyCode (currencyId: Str, currency: Currency = undefined): Str {
+    safeCurrencyCode (currencyId: Str, currency: Currency = undefined): string {
         if (currencyId === undefined) {
-            return currencyId;
+            return currencyId as unknown as string;
         }
         if (currencyId.indexOf ('.') > 0) {
             // if ID contains .M, .S or .F, then it can't contain X or Z prefix. in such case, ID equals to ALTNAME
@@ -1028,7 +1028,7 @@ export default class kraken extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        let orderbook = this.safeValue (result, market['id']);
+        let orderbook = this.safeValue (result, market['id'] as string);
         // sometimes kraken returns wsname instead of market id
         // https://github.com/ccxt/ccxt/issues/8662
         const marketInfo = this.safeValue (market, 'info', {});
@@ -1143,7 +1143,7 @@ export default class kraken extends Exchange {
             'pair': market['id'],
         };
         const response = await this.publicGetTicker (this.extend (request, params));
-        const ticker = response['result'][market['id']];
+        const ticker = response['result'][market['id'] as string];
         return this.parseTicker (ticker, market);
     }
 
@@ -1202,7 +1202,7 @@ export default class kraken extends Exchange {
         }
         if (since !== undefined) {
             const scaledSince = this.parseToInt (since / 1000);
-            const timeFrameInSeconds = parsedTimeframe * 60;
+            const timeFrameInSeconds = (parsedTimeframe as number) * 60;
             request['since'] = this.numberToString (scaledSince - timeFrameInSeconds); // expected to be in seconds
         }
         const response = await this.publicGetOHLC (this.extend (request, params));
@@ -1220,7 +1220,7 @@ export default class kraken extends Exchange {
         //         }
         //     }
         const result = this.safeValue (response, 'result', {});
-        const ohlcvs: List = this.safeList (result, market['id'], []) as List;
+        const ohlcvs: List = this.safeList (result, market['id'] as string, []) as List;
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
@@ -1449,7 +1449,7 @@ export default class kraken extends Exchange {
         let amount: Str = undefined;
         let id: Str = undefined;
         let orderId: Str = undefined;
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         let symbol: Str = undefined;
         if (Array.isArray (trade)) {
             timestamp = this.safeTimestamp (trade, 2);
@@ -1568,7 +1568,7 @@ export default class kraken extends Exchange {
         //     }
         //
         const result = response['result'];
-        const trades = result[id];
+        const trades = result[id as string];
         // trades is a sorted array: last (most recent trade) goes last
         const length = trades.length;
         if (length <= 0) {
@@ -1596,7 +1596,7 @@ export default class kraken extends Exchange {
             const account = this.account ();
             account['used'] = this.safeString (balance, 'hold_trade');
             account['total'] = this.safeString (balance, 'balance');
-            result[code] = account;
+            result[code as string] = account;
         }
         return this.safeBalance (result);
     }
@@ -1743,7 +1743,7 @@ export default class kraken extends Exchange {
                     throw new BadRequest (this.id + ' createOrders() requires all orders to have the same symbol');
                 }
             }
-            market = this.market (marketId);
+            market = this.market (marketId as string);
             orderSymbols.push (marketId);
             const type = this.safeString (rawOrder, 'type');
             const side = this.safeString (rawOrder, 'side');
@@ -1756,11 +1756,11 @@ export default class kraken extends Exchange {
                 'ordertype': type,
                 'volume': parsedAmount,
             };
-            const orderRequest = this.orderRequest ('createOrders', marketId, type, req, amount, price, orderParams);
+            const orderRequest = this.orderRequest ('createOrders', marketId as string, type as string, req, amount, price, orderParams);
             ordersRequests.push (orderRequest[0]);
         }
         orderSymbols = this.marketSymbols (orderSymbols, undefined, false, true, true);
-        let response: Dict = undefined;
+        let response: Dict = {};
         let request: Dict = {
             'orders': ordersRequests,
             'pair': this.safeString (market, 'id'),
@@ -1850,7 +1850,7 @@ export default class kraken extends Exchange {
             'canceled': 'canceled',
             'expired': 'expired',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     parseOrderType (status) {
@@ -2018,7 +2018,7 @@ export default class kraken extends Exchange {
         const timestamp = this.safeTimestamp (order, 'opentm');
         amount = this.safeString (order, 'vol', amount);
         const filled = this.safeString (order, 'vol_exec');
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         // kraken truncates the cost in the api response so we will ignore it and calculate it from average & filled
         // const cost = this.safeString (order, 'cost');
         price = this.safeString (description, 'price', price);
@@ -2031,7 +2031,7 @@ export default class kraken extends Exchange {
             price = this.safeString2 (order, 'limitprice', 'price', price);
         }
         const flags = this.safeString (order, 'oflags', '');
-        let isPostOnly = flags.indexOf ('post') > -1;
+        let isPostOnly: Bool = flags.indexOf ('post') > -1;
         const average = this.safeNumber (order, 'price');
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -2075,10 +2075,10 @@ export default class kraken extends Exchange {
         if (rawType !== undefined) {
             if (rawType.startsWith ('take-profit')) {
                 takeProfitPrice = this.safeString (description, 'price');
-                price = this.omitZero (this.safeString (description, 'price2'));
+                price = this.omitZero (this.safeString (description, 'price2') as string);
             } else if (rawType.startsWith ('stop-loss')) {
                 stopLossPrice = this.safeString (description, 'price');
-                price = this.omitZero (this.safeString (description, 'price2'));
+                price = this.omitZero (this.safeString (description, 'price2') as string);
             } else if (rawType === 'take profit') {
                 takeProfitPrice = triggerPrice;
             } else if (rawType === 'stop loss') {
@@ -2584,7 +2584,7 @@ export default class kraken extends Exchange {
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        let response: Dict = undefined;
+        let response: Dict = {};
         const requestId = this.safeValue (params, 'userref', id); // string or integer
         params = this.omit (params, 'userref');
         let request: Dict = {
@@ -2686,12 +2686,12 @@ export default class kraken extends Exchange {
      * @returns {object} the api result
      */
     async cancelAllOrdersAfter (timeout: Int, params = {}) {
-        if (timeout > 86400000) {
+        if ((timeout as number) > 86400000) {
             throw new BadRequest (this.id + ' cancelAllOrdersAfter timeout should be less than 86400000 milliseconds');
         }
         await this.loadMarkets ();
         const request: Dict = {
-            'timeout': (timeout > 0) ? (this.parseToInt (timeout / 1000)) : 0,
+            'timeout': ((timeout as number) > 0) ? (this.parseToInt ((timeout as number) / 1000)) : 0,
         };
         const response = await this.privatePostCancelAllOrdersAfter (this.extend (request, params));
         //
@@ -2886,7 +2886,7 @@ export default class kraken extends Exchange {
             'Failure': 'failed',
             'Partial': 'ok',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     parseNetwork (network) {
@@ -3163,7 +3163,7 @@ export default class kraken extends Exchange {
         //        }
         //     }
         //
-        let rawWithdrawals: List = undefined;
+        let rawWithdrawals: List = [];
         const result = this.safeValue (response, 'result');
         if (!Array.isArray (result)) {
             rawWithdrawals = this.addPaginationCursorToResult (result);
@@ -3257,7 +3257,7 @@ export default class kraken extends Exchange {
         const currency = this.currency (code);
         let network = this.safeStringUpper (params, 'network');
         const networks = this.safeValue (this.options, 'networks', {});
-        network = this.safeString (networks, network, network); // support ETH > ERC20 aliases
+        network = this.safeString (networks, network as string, network); // support ETH > ERC20 aliases
         params = this.omit (params, 'network');
         if ((code === 'USDT') && (network === 'TRC20')) {
             code = code + '-' + network;
@@ -3272,7 +3272,7 @@ export default class kraken extends Exchange {
             if (network !== undefined) {
                 // find best matching deposit method, or fallback to the first one
                 for (let i = 0; i < depositMethods.length; i++) {
-                    const entry = this.safeString (depositMethods[i], 'method');
+                    const entry = this.safeString (depositMethods[i], 'method') as string;
                     if (entry.indexOf (network) >= 0) {
                         depositMethod = entry;
                         break;
