@@ -3698,7 +3698,7 @@ export default class htx extends Exchange {
         const finalResponse = response;
         let result: Dict = { 'info': finalResponse } as any;
         const data = this.safeValue (response, 'data');
-        if ((isMultiAssetMode || (linear && swap))) {
+        if (isMultiAssetMode || (linear && (swap || future))) {
             const details = this.safeList (data, 'details', []);
             for (let i = 0; i < details.length; i++) {
                 const balance = details[i];
