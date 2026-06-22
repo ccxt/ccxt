@@ -1205,6 +1205,7 @@ class bitbns(Exchange, ImplicitAPI):
             }
             payload = self.string_to_base64(self.json(auth))
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha512)
+            headers = {} if (headers is None) else headers
             headers['X-BITBNS-PAYLOAD'] = payload
             headers['X-BITBNS-SIGNATURE'] = signature
             headers['Content-Type'] = 'application/x-www-form-urlencoded'

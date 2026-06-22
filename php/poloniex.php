@@ -1526,7 +1526,7 @@ class poloniex extends Exchange {
             $request['limit'] = $limit;
         }
         if ($isContract && $symbol !== null) {
-            $request['symbol'] = $market['id'];
+            $request['symbol'] = $this->safe_string($market, 'id');
         }
         list($request, $params) = $this->handle_until_option($endKey, $request, $params);
         if ($isContract) {
@@ -3310,7 +3310,7 @@ class poloniex extends Exchange {
         $longLeverage = null;
         $marketId = null;
         $marginMode = null;
-        $data = $this->safe_list($leverage, 'data');
+        $data = $this->safe_list($leverage, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];
             $marketId = $this->safe_string($entry, 'symbol');

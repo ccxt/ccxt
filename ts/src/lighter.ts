@@ -794,7 +794,7 @@ export default class lighter extends Exchange {
                 }
             }
         }
-        const marketInfo = this.safeDict (market, 'info');
+        const marketInfo = this.safeDict (market, 'info', {});
         let amountStr: Str = undefined;
         const priceStr = this.priceToPrecision (symbol, price);
         const amountScale = this.pow ('10', marketInfo['size_decimals']);
@@ -999,7 +999,7 @@ export default class lighter extends Exchange {
         const strApiKeyIndex = this.numberToString (apiKeyIndex) as string;
         const signer = await this.loadAccount (this.options['chainId'], this.getLighterPrivateKey (strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params);
         const market = this.market (symbol);
-        const marketInfo = this.safeDict (market, 'info');
+        const marketInfo = this.safeDict (market, 'info', {});
         const amountScale = this.pow ('10', marketInfo['size_decimals']);
         const priceScale = this.pow ('10', marketInfo['price_decimals']);
         const triggerPrice = this.safeStringN (params, [ 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);

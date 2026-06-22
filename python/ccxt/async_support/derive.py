@@ -1858,7 +1858,7 @@ class derive(Exchange, ImplicitAPI):
         marketId = self.safe_string(order, 'instrument_name')
         if marketId is not None:
             market = self.safe_market(marketId, market)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol')
         price = self.safe_string(order, 'limit_price')
         average = self.safe_string(order, 'average_price')
         amount = self.safe_string(order, 'desired_amount')

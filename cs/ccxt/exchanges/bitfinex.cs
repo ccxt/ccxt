@@ -4023,7 +4023,7 @@ public partial class bitfinex : Exchange
         object marginStatus = ((bool) isTrue((isEqual(marginStatusRaw, 1)))) ? "ok" : "failed";
         return new Dictionary<string, object>() {
             { "info", data },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeString(market, "symbol") },
             { "type", null },
             { "marginMode", "isolated" },
             { "amount", null },

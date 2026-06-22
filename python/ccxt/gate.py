@@ -2922,7 +2922,7 @@ class gate(Exchange, ImplicitAPI):
             response = self.publicDeliveryGetSettleTickers(self.extend(request, requestParams))
         elif type == 'option':
             self.check_required_argument('fetchTickers', symbols, 'symbols')
-            marketId = market['id']
+            marketId = self.safe_string(market, 'id')
             optionParts = marketId.split('-')
             request['underlying'] = self.safe_string(optionParts, 0)
             response = self.publicOptionsGetTickers(self.extend(request, requestParams))
@@ -5986,7 +5986,7 @@ class gate(Exchange, ImplicitAPI):
             type = 'swap'  # default to swap
         if type == 'option':
             if symbols is not None:
-                marketId = market['id']
+                marketId = self.safe_string(market, 'id')
                 optionParts = marketId.split('-')
                 request['underlying'] = self.safe_string(optionParts, 0)
         else:
@@ -6261,8 +6261,8 @@ class gate(Exchange, ImplicitAPI):
             maxNotional = self.safe_number(item, 'risk_limit')
             tiers.append({
                 'tier': self.sum(i, 1),
-                'symbol': market['symbol'],
-                'currency': market['base'],
+                'symbol': self.safe_string(market, 'symbol'),
+                'currency': self.safe_string(market, 'base'),
                 'minNotional': minNotional,
                 'maxNotional': maxNotional,
                 'maintenanceMarginRate': self.safe_number(item, 'maintenance_rate'),
@@ -7630,8 +7630,8 @@ class gate(Exchange, ImplicitAPI):
         response: dict
         isUnified = self.safe_bool(params, 'unified')
         params = self.omit(params, 'unified')
-        if market['spot']:
-            request['currency_pair'] = market['id']
+        if self.safe_bool(market, 'spot'):
+            request['currency_pair'] = self.safe_string(market, 'id')
             if isUnified:
                 response = self.publicMarginGetUniCurrencyPairsCurrencyPair(self.extend(request, params))
                 #
@@ -7709,7 +7709,7 @@ class gate(Exchange, ImplicitAPI):
             #     }
             #
         else:
-            raise NotSupported(self.id + ' fetchLeverage() does not support ' + market['type'] + ' markets')
+            raise NotSupported(self.id + ' fetchLeverage() does not support ' + self.safe_string(market, 'type') + ' markets')
         return self.parse_leverage(response, market)
 
     def fetch_leverages(self, symbols: Strings = None, params={}) -> Leverages:

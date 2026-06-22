@@ -1112,7 +1112,7 @@ class weex(Exchange, ImplicitAPI):
             symbolsLength = len(symbols)
         request: dict = {}
         if symbolsLength == 1:
-            request['symbol'] = market['id']
+            request['symbol'] = self.safe_string(market, 'id')
         response = None
         if marketType == 'spot':
             #
@@ -1629,7 +1629,7 @@ class weex(Exchange, ImplicitAPI):
         request: dict = {}
         if symbolsLength == 1:
             market = self.get_market_from_symbols(symbols)
-            request['symbol'] = market['id']
+            request['symbol'] = self.safe_string(market, 'id')
         response = self.contractGetCapiV3MarketPremiumIndex(self.extend(request, params))
         #
         #     [
@@ -2304,7 +2304,7 @@ class weex(Exchange, ImplicitAPI):
             return self.fetch_paginated_call_dynamic('fetchOpenOrders', symbol, since, limit, params, maxLimit)
         request: dict = {}
         if symbol is not None:
-            request['symbol'] = market['id']
+            request['symbol'] = self.safe_string(market, 'id')
         response: NullableDict = None
         if isSpot:
             #
@@ -2546,7 +2546,7 @@ class weex(Exchange, ImplicitAPI):
             return self.fetch_paginated_call_dynamic('fetchOrders', symbol, since, limit, params, maxLimit)
         request: dict = {}
         if symbol is not None:
-            request['symbol'] = market['id']
+            request['symbol'] = self.safe_string(market, 'id')
         if since is not None:
             request['startTime'] = since
         if limit is not None:
@@ -2818,7 +2818,7 @@ class weex(Exchange, ImplicitAPI):
             return self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, params, maxLimit)
         request: dict = {}
         if symbol is not None:
-            request['symbol'] = market['id']
+            request['symbol'] = self.safe_string(market, 'id')
         if since is not None:
             request['startTime'] = since
         if limit is not None:
@@ -3543,12 +3543,12 @@ class weex(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(data, 'requestTime')
         return {
             'info': data,
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'type': None,
             'marginMode': 'isolated',
             'amount': None,
             'total': None,
-            'code': market['settle'],
+            'code': self.safe_string(market, 'settle'),
             'status': status,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),

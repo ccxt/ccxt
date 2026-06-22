@@ -314,7 +314,7 @@ class aftermath(Exchange, ImplicitAPI):
         #     }
         #
         precision = self.safe_dict(market, 'precision')
-        limits = self.safe_dict(market, 'limits')
+        limits = self.safe_dict(market, 'limits', {})
         return self.safe_market_structure({
             'id': self.safe_string(market, 'id'),
             'symbol': self.safe_string(market, 'symbol'),

@@ -588,7 +588,7 @@ class coinmate(Exchange, ImplicitAPI):
         timestamp = self.safe_timestamp(ticker, 'timestamp')
         last = self.safe_number(ticker, 'last')
         return self.safe_ticker({
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': self.safe_number(ticker, 'high'),

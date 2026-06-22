@@ -118,3 +118,49 @@ def test_precise():
     assert Precise.string_or('10', '5') == '15'  # 1010 | 0101 = 1111 = 15
     assert Precise.string_or('0', '0') == '0'
     assert Precise.string_or('7', '0') == '7'
+    # with undefined arguments
+    assert Precise.string_mul(None, '1') is None
+    assert Precise.string_mul('1', None) is None
+    assert Precise.string_mul(None, None) is None
+    assert Precise.string_div(None, '1') is None
+    assert Precise.string_div('1', None) is None
+    assert Precise.string_div(None, None) is None
+    assert Precise.string_add(None, '1') is None
+    assert Precise.string_add('1', None) is None
+    assert Precise.string_add(None, None) is None
+    assert Precise.string_sub(None, '1') is None
+    assert Precise.string_sub('1', None) is None
+    assert Precise.string_sub(None, None) is None
+    assert Precise.string_abs(None) is None
+    assert Precise.string_neg(None) is None
+    assert Precise.string_mod(None, '1') is None
+    assert Precise.string_mod('1', None) is None
+    assert Precise.string_mod(None, None) is None
+    assert Precise.string_or(None, '1') is None
+    assert Precise.string_or('1', None) is None
+    assert Precise.string_or(None, None) is None
+    assert Precise.string_min(None, '1') is None
+    assert Precise.string_min('1', None) is None
+    assert Precise.string_min(None, None) is None
+    assert Precise.string_max(None, '1') is None
+    assert Precise.string_max('1', None) is None
+    assert Precise.string_max(None, None) is None
+    # bool false
+    assert Precise.string_equals(None, '1') is False
+    assert Precise.string_equals('1', None) is False
+    assert Precise.string_equals(None, None) is False
+    assert Precise.string_eq(None, '1') is False
+    assert Precise.string_eq('1', None) is False
+    assert Precise.string_eq(None, None) is False
+    assert Precise.string_gt(None, '1') is False
+    assert Precise.string_gt('1', None) is False
+    assert Precise.string_gt(None, None) is False
+    assert Precise.string_ge(None, '1') is False
+    assert Precise.string_ge('1', None) is False
+    assert Precise.string_ge(None, None) is False
+    assert Precise.string_lt(None, '1') is False
+    assert Precise.string_lt('1', None) is False
+    assert Precise.string_lt(None, None) is False
+    assert Precise.string_le(None, '1') is False
+    assert Precise.string_le('1', None) is False
+    assert Precise.string_le(None, None) is False

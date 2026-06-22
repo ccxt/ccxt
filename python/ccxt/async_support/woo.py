@@ -1473,7 +1473,7 @@ class woo(Exchange, ImplicitAPI):
                 request['algoOrderId'] = id
             response = await self.v3PrivateDeleteTradeAlgoOrder(self.extend(request, params))
         else:
-            request['symbol'] = market['id']
+            request['symbol'] = self.safe_string(market, 'id')
             if isByClientOrder:
                 request['clientOrderId'] = clientOrderIdExchangeSpecific
             else:
@@ -3534,16 +3534,16 @@ class woo(Exchange, ImplicitAPI):
         market: Market = None
         if symbol is not None:
             market = self.market(symbol)
-        if (symbol is None) or market['spot']:
+        if (symbol is None) or self.safe_bool(market, 'spot'):
             return await self.v3PrivatePostSpotMarginLeverage(self.extend(request, params))
-        elif market['swap']:
-            request['symbol'] = market['id']
+        elif self.safe_bool(market, 'swap'):
+            request['symbol'] = self.safe_string(market, 'id')
             marginMode: Str = None
             marginMode, params = self.handle_margin_mode_and_params('fetchLeverage', params, 'cross')
             request['marginMode'] = self.encode_margin_mode(marginMode)
             return await self.v3PrivatePutFuturesLeverage(self.extend(request, params))
         else:
-            raise NotSupported(self.id + ' fetchLeverage() is not supported for ' + market['type'] + ' markets')
+            raise NotSupported(self.id + ' fetchLeverage() is not supported for ' + self.safe_string(market, 'type') + ' markets')
 
     async def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """

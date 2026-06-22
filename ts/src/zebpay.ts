@@ -1853,7 +1853,7 @@ export default class zebpay extends Exchange {
         const timestamp = this.milliseconds ();
         return {
             'info': info,
-            'symbol': market['id'],
+            'symbol': this.safeString (market, 'id'),
             'type': undefined,
             'marginMode': undefined,
             'amount': this.safeNumber (info, 'amount'),

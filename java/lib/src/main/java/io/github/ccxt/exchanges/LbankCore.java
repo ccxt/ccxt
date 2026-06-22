@@ -1134,7 +1134,7 @@ public class LbankCore extends LbankApi
         Object feeCost = this.safeString(trade, "tradeFee");
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
-            Object feeCurr = ((Helpers.isTrue((Helpers.isEqual(side, "buy"))))) ? Helpers.GetValue(market, "base") : Helpers.GetValue(market, "quote");
+            Object feeCurr = ((Helpers.isTrue((Helpers.isEqual(side, "buy"))))) ? this.safeString(market, "base") : this.safeString(market, "quote");
             final Object finalFeeCost = feeCost;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );

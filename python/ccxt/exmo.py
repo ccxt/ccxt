@@ -767,7 +767,7 @@ class exmo(Exchange, ImplicitAPI):
                     networkEntry['withdraw'] = activeProvider
                     networkEntry['limits']['withdraw']['min'] = minValue
                     networkEntry['limits']['withdraw']['max'] = maxValue
-                info = self.safe_list(networkEntry, 'info')
+                info = self.safe_list(networkEntry, 'info', [])
                 info.append(provider)
                 networkEntry['info'] = info
                 networks[networkCode] = networkEntry
@@ -1117,17 +1117,18 @@ class exmo(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbol
         """
         self.load_markets()
-        ids = None
+        ids: Str = None
         if symbols is None:
             allIds = self.ids
-            ids = ','.join(allIds)
-            # max URL length is 2083 symbols, including http schema, hostname, tld, etc...
-            if len(ids) > 2048:
-                numIds = len(self.ids)
-                raise ExchangeError(self.id + ' fetchOrderBooks() has ' + str(numIds) + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks')
+            if allIds is not None:
+                ids = ','.join(allIds)
+                # max URL length is 2083 symbols, including http schema, hostname, tld, etc...
+                if len(ids) > 2048:
+                    numIds = len(allIds)
+                    raise ExchangeError(self.id + ' fetchOrderBooks() has ' + str(numIds) + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks')
         else:
-            ids = self.market_ids(symbols)
-            ids = ','.join(ids)
+            requestedIds = self.market_ids(symbols)
+            ids = ','.join(requestedIds)
         request: dict = {
             'pair': ids,
         }

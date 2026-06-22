@@ -2339,7 +2339,7 @@ func (this *ZebpayCore) ParseMarginModification(info any, optionalArgs ...any) a
 	var timestamp any = this.Milliseconds()
 	return map[string]any{
 		"info":       info,
-		"symbol":     GetValue(market, "id"),
+		"symbol":     this.SafeString(market, "id"),
 		"type":       nil,
 		"marginMode": nil,
 		"amount":     this.SafeNumber(info, "amount"),

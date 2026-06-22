@@ -7171,7 +7171,7 @@ class okx(Exchange, ImplicitAPI):
             tiers.append({
                 'tier': self.safe_integer(tier, 'tier'),
                 'symbol': self.safe_symbol(marketId, market),
-                'currency': market['quote'],
+                'currency': self.safe_string(market, 'quote'),
                 'minNotional': self.safe_number(tier, 'minSz'),
                 'maxNotional': self.safe_number(tier, 'maxSz'),
                 'maintenanceMarginRate': self.safe_number(tier, 'mmr'),

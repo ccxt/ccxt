@@ -1085,7 +1085,7 @@ class backpack(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(interest, 'timestamp')
         openInterest = self.safe_number(interest, 'openInterest')
         return self.safe_open_interest({
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'openInterestAmount': None,
             'openInterestValue': openInterest,
             'timestamp': timestamp,

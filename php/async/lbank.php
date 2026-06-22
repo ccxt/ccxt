@@ -1081,7 +1081,7 @@ class lbank extends Exchange {
         $fee = null;
         $feeCost = $this->safe_string($trade, 'tradeFee');
         if ($feeCost !== null) {
-            $feeCurr = ($side === 'buy') ? $market['base'] : $market['quote'];
+            $feeCurr = ($side === 'buy') ? $this->safe_string($market, 'base') : $this->safe_string($market, 'quote');
             $fee = array(
                 'cost' => $feeCost,
                 'currency' => $feeCurr,

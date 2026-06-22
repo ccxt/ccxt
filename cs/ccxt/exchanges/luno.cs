@@ -937,14 +937,14 @@ public partial class luno : Exchange
         {
             if (!isTrue(Precise.stringEquals(feeBaseString, "0.0")))
             {
-                feeCurrency = getValue(market, "base");
+                feeCurrency = this.safeString(market, "base");
                 feeCost = feeBaseString;
             }
         } else if (isTrue(!isEqual(feeCounterString, null)))
         {
             if (!isTrue(Precise.stringEquals(feeCounterString, "0.0")))
             {
-                feeCurrency = getValue(market, "quote");
+                feeCurrency = this.safeString(market, "quote");
                 feeCost = feeCounterString;
             }
         }
@@ -954,7 +954,7 @@ public partial class luno : Exchange
             { "id", id },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeString(market, "symbol") },
             { "order", orderId },
             { "type", null },
             { "side", side },

@@ -700,7 +700,7 @@ class woofipro(Exchange, ImplicitAPI):
     def parse_currency(self, rawCurrency: dict) -> Currency:
         token = self.safe_dict(rawCurrency, '_token', {})
         currencyId = self.safe_string(token, 'token')
-        networks = self.safe_list(token, 'chain_details')
+        networks = self.safe_list(token, 'chain_details', [])
         code = self.safe_currency_code(currencyId)
         indexedChains = self.safe_dict(rawCurrency, '_indexedChains', {})
         resultingNetworks: dict = {}
@@ -1599,7 +1599,7 @@ class woofipro(Exchange, ImplicitAPI):
             #     }
             # }
             #
-        data = self.safe_dict(response, 'data')
+        data = self.safe_dict(response, 'data', {})
         data['timestamp'] = self.safe_integer(response, 'timestamp')
         order = self.parse_order(data, market)
         order['type'] = type
@@ -1756,7 +1756,7 @@ class woofipro(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
         request: dict = {
-            'symbol': market['id'],
+            'symbol': self.safe_string(market, 'id'),
         }
         clientOrderIdUnified = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
         clientOrderIdExchangeSpecific = self.safe_string(params, 'client_order_id', clientOrderIdUnified)
@@ -2541,7 +2541,7 @@ class woofipro(Exchange, ImplicitAPI):
         leverageValue = self.safe_integer(leverage, 'max_leverage')
         return {
             'info': leverage,
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'marginMode': None,
             'longLeverage': leverageValue,
             'shortLeverage': leverageValue,

@@ -1763,7 +1763,7 @@ export default class kraken extends Exchange {
         let response: Dict = undefined;
         let request: Dict = {
             'orders': ordersRequests,
-            'pair': market['id'],
+            'pair': this.safeString (market, 'id'),
         };
         request = this.extend (request, params);
         response = await this.privatePostAddOrderBatch (request);
@@ -2217,6 +2217,7 @@ export default class kraken extends Exchange {
         let close = this.safeDict (params, 'close');
         if (close !== undefined) {
             close = this.extend ({}, close);
+            close = (close === undefined) ? {} : close;
             const closePrice = this.safeValue (close, 'price');
             if (closePrice !== undefined) {
                 close['price'] = this.priceToPrecision (symbol, closePrice);

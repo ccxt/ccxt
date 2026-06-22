@@ -2678,7 +2678,7 @@ class paradex(Exchange, ImplicitAPI):
         marginMode = self.safe_string_lower(rawMarginMode, 'margin_type')
         return {
             'info': rawMarginMode,
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'marginMode': marginMode,
         }
 

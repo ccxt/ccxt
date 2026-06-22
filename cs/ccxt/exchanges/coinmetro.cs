@@ -457,7 +457,7 @@ public partial class coinmetro : Exchange
         {
             object market = this.parseMarket(getValue(response, i));
             // there are several broken (unavailable info) markets
-            if (isTrue(isTrue(isEqual(getValue(market, "base"), null)) || isTrue(isEqual(getValue(market, "quote"), null))))
+            if (isTrue(isTrue(isEqual(this.safeString(market, "base"), null)) || isTrue(isEqual(this.safeString(market, "quote"), null))))
             {
                 continue;
             }

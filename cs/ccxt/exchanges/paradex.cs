@@ -3025,7 +3025,7 @@ public partial class paradex : Exchange
         object marginMode = this.safeStringLower(rawMarginMode, "margin_type");
         return new Dictionary<string, object>() {
             { "info", rawMarginMode },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeString(market, "symbol") },
             { "marginMode", marginMode },
         };
     }

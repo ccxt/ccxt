@@ -699,11 +699,15 @@ public class UpbitCore extends UpbitApi
             Object ids = null;
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
-                ids = String.join((String)",", (java.util.List<String>)this.ids);
+                Object allIds = this.ids;
+                if (Helpers.isTrue(!Helpers.isEqual(allIds, null)))
+                {
+                    ids = String.join((String)",", (java.util.List<String>)allIds);
+                }
             } else
             {
-                ids = this.marketIds(symbols);
-                ids = String.join((String)",", (java.util.List<String>)ids);
+                Object marketIds = this.marketIds(symbols);
+                ids = String.join((String)",", (java.util.List<String>)marketIds);
             }
             final Object finalIds = ids;
             Object request = new java.util.HashMap<String, Object>() {{

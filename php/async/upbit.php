@@ -649,10 +649,13 @@ class upbit extends Exchange {
             Async\await($this->load_markets());
             $ids = null;
             if ($symbols === null) {
-                $ids = implode(',', $this->ids);
+                $allIds = $this->ids;
+                if ($allIds !== null) {
+                    $ids = implode(',', $allIds);
+                }
             } else {
-                $ids = $this->market_ids($symbols);
-                $ids = implode(',', $ids);
+                $marketIds = $this->market_ids($symbols);
+                $ids = implode(',', $marketIds);
             }
             $request = array(
                 'markets' => $ids,

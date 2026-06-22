@@ -947,7 +947,7 @@ export default class hibachi extends Exchange {
         // { "orders": [ { nonce: '1754349993908', orderId: '589642085255349248' } ] }
         //
         const ret = [];
-        const responseOrders = this.safeList (response, 'orders');
+        const responseOrders = this.safeList (response, 'orders', []);
         for (let i = 0; i < responseOrders.length; i++) {
             const responseOrder = responseOrders[i];
             ret.push (this.safeOrder ({
@@ -1040,7 +1040,7 @@ export default class hibachi extends Exchange {
         // { "orders": [ { "orderId": "589636801329628160" } ] }
         //
         const ret = [];
-        const responseOrders = this.safeList (response, 'orders');
+        const responseOrders = this.safeList (response, 'orders', []);
         for (let i = 0; i < responseOrders.length; i++) {
             const responseOrder = responseOrders[i];
             ret.push (this.safeOrder ({
@@ -1115,7 +1115,7 @@ export default class hibachi extends Exchange {
         // { "orders": [ { "orderId": "589636801329628160" } ] }
         //
         const ret = [];
-        const responseOrders = this.safeList (response, 'orders');
+        const responseOrders = this.safeList (response, 'orders', []);
         for (let i = 0; i < responseOrders.length; i++) {
             const responseOrder = responseOrders[i];
             ret.push (this.safeOrder ({
@@ -1949,7 +1949,7 @@ export default class hibachi extends Exchange {
         //         },
         //     ]
         // }
-        const transactions = this.safeList (response, 'transactions');
+        const transactions = this.safeList (response, 'transactions', []);
         const deposits = [];
         for (let i = 0; i < transactions.length; i++) {
             const transaction = transactions[i];
@@ -2008,7 +2008,7 @@ export default class hibachi extends Exchange {
         //         },
         //     ]
         // }
-        const transactions = this.safeList (response, 'transactions');
+        const transactions = this.safeList (response, 'transactions', []);
         const withdrawals = [];
         for (let i = 0; i < transactions.length; i++) {
             const transaction = transactions[i];
@@ -2150,7 +2150,7 @@ export default class hibachi extends Exchange {
         //     ]
         // }
         //
-        const data = this.safeList (response, 'data');
+        const data = this.safeList (response, 'data', []);
         const rates = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];

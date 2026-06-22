@@ -2809,7 +2809,7 @@ class bitmart(Exchange, ImplicitAPI):
             orderRequest = self.omit(orderRequest, ['symbol'])  # not needed because it goes in the outter object
             ordersRequests.append(orderRequest)
         request: dict = {
-            'symbol': market['id'],
+            'symbol': self.safe_string(market, 'id'),
             'orderParams': ordersRequests,
         }
         response = self.privatePostSpotV4BatchOrders(request)
@@ -3574,7 +3574,7 @@ class bitmart(Exchange, ImplicitAPI):
                 orderType = 'trailing'
             if orderType is not None:
                 request['type'] = orderType
-            request['symbol'] = market['id']
+            request['symbol'] = self.safe_string(market, 'id')
             request['order_id'] = id
             response = self.privateGetContractPrivateOrder(self.extend(request, params))
         #
@@ -4807,7 +4807,7 @@ class bitmart(Exchange, ImplicitAPI):
         request: dict = {}
         if symbolsLength == 1:
             # only supports symbols or sending one symbol
-            request['symbol'] = market['id']
+            request['symbol'] = self.safe_string(market, 'id')
         response = self.privateGetContractPrivatePositionV2(self.extend(request, params))
         #
         #     {

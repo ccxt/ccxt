@@ -781,7 +781,7 @@ class exmo extends Exchange {
                     $networkEntry['limits']['withdraw']['min'] = $minValue;
                     $networkEntry['limits']['withdraw']['max'] = $maxValue;
                 }
-                $info = $this->safe_list($networkEntry, 'info');
+                $info = $this->safe_list($networkEntry, 'info', array());
                 $info[] = $provider;
                 $networkEntry['info'] = $info;
                 $networks[$networkCode] = $networkEntry;
@@ -1157,15 +1157,17 @@ class exmo extends Exchange {
         $ids = null;
         if ($symbols === null) {
             $allIds = $this->ids;
-            $ids = implode(',', $allIds);
-            // max URL length is 2083 $symbols, including http schema, hostname, tld, etc...
-            if (strlen($ids) > 2048) {
-                $numIds = count($this->ids);
-                throw new ExchangeError($this->id . ' fetchOrderBooks() has ' . (string) $numIds . ' $symbols exceeding max URL length, you are required to specify a list of $symbols in the first argument to fetchOrderBooks');
+            if ($allIds !== null) {
+                $ids = implode(',', $allIds);
+                // max URL length is 2083 $symbols, including http schema, hostname, tld, etc...
+                if (strlen($ids) > 2048) {
+                    $numIds = count($allIds);
+                    throw new ExchangeError($this->id . ' fetchOrderBooks() has ' . (string) $numIds . ' $symbols exceeding max URL length, you are required to specify a list of $symbols in the first argument to fetchOrderBooks');
+                }
             }
         } else {
-            $ids = $this->market_ids($symbols);
-            $ids = implode(',', $ids);
+            $requestedIds = $this->market_ids($symbols);
+            $ids = implode(',', $requestedIds);
         }
         $request = array(
             'pair' => $ids,

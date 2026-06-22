@@ -354,7 +354,7 @@ class bithumb(Exchange, ImplicitAPI):
             quote = quotes[i]
             quoteId = quote
             response = results[i]
-            data = self.safe_dict(response, 'data')
+            data = self.safe_dict(response, 'data', {})
             extension = self.safe_dict(quoteCurrencies, quote, {})
             currencyIds = list(data.keys())
             for j in range(0, len(currencyIds)):

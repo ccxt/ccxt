@@ -1143,7 +1143,7 @@ class pacifica extends Exchange {
         list($request, $params) = $this->handle_until_option('end_time', $request, $params);
         $request['account'] = $userAddress;
         if ($symbol !== null) {
-            $request['symbol'] = $market['id'];
+            $request['symbol'] = $this->safe_string($market, 'id');
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -1793,7 +1793,7 @@ class pacifica extends Exchange {
         $priceNormalized = $this->price_to_precision($symbol, $price);
         $amountNormalized = $this->amount_to_precision($symbol, $amount);
         $sigPayload = array(
-            'symbol' => $market['id'],
+            'symbol' => $this->safe_string($market, 'id'),
             'price' => $priceNormalized,
             'amount' => $amountNormalized,
         );

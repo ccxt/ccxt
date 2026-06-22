@@ -474,7 +474,7 @@ func (this *CoinmetroCore) FetchMarkets(optionalArgs ...any) <-chan any {
 		for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
 			var market any = this.ParseMarket(GetValue(response, i))
 			// there are several broken (unavailable info) markets
-			if IsTrue(IsTrue(IsEqual(GetValue(market, "base"), nil)) || IsTrue(IsEqual(GetValue(market, "quote"), nil))) {
+			if IsTrue(IsTrue(IsEqual(this.SafeString(market, "base"), nil)) || IsTrue(IsEqual(this.SafeString(market, "quote"), nil))) {
 				continue
 			}
 			AppendToArray(&result, market)

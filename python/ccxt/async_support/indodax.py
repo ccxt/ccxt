@@ -530,8 +530,8 @@ class indodax(Exchange, ImplicitAPI):
         #
         symbol = self.safe_symbol(None, market)
         timestamp = self.safe_timestamp(ticker, 'server_time')
-        baseVolume = 'vol_' + market['baseId'].lower()
-        quoteVolume = 'vol_' + market['quoteId'].lower()
+        baseVolume = 'vol_' + self.safe_string(market, 'baseId').lower()
+        quoteVolume = 'vol_' + self.safe_string(market, 'quoteId').lower()
         last = self.safe_string(ticker, 'last')
         return self.safe_ticker({
             'symbol': symbol,

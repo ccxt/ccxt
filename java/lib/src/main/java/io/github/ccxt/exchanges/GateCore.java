@@ -3282,7 +3282,7 @@ public class GateCore extends GateApi
             } else if (Helpers.isTrue(Helpers.isEqual(type, "option")))
             {
                 this.checkRequiredArgument("fetchTickers", symbols, "symbols");
-                Object marketId = Helpers.GetValue(market, "id");
+                Object marketId = this.safeString(market, "id");
                 Object optionParts = Helpers.split(((String)marketId), "-");
                 Helpers.addElementToObject(request, "underlying", this.safeString(optionParts, 0));
                 response = (this.publicOptionsGetTickers(this.extend(request, requestParams))).join();
@@ -7245,7 +7245,7 @@ final Object finalRebate = rebate;
             {
                 if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
                 {
-                    Object marketId = Helpers.GetValue(market, "id");
+                    Object marketId = this.safeString(market, "id");
                     Object optionParts = Helpers.split(((String)marketId), "-");
                     Helpers.addElementToObject(request, "underlying", this.safeString(optionParts, 0));
                 }
@@ -7583,8 +7583,8 @@ final Object finalI = i;
             final Object finalMinNotional = minNotional;
                         ((java.util.List<Object>)tiers).add(new java.util.HashMap<String, Object>() {{
                 put( "tier", GateCore.this.sum(finalI, 1) );
-                put( "symbol", Helpers.GetValue(market, "symbol") );
-                put( "currency", Helpers.GetValue(market, "base") );
+                put( "symbol", GateCore.this.safeString(market, "symbol") );
+                put( "currency", GateCore.this.safeString(market, "base") );
                 put( "minNotional", finalMinNotional );
                 put( "maxNotional", maxNotional );
                 put( "maintenanceMarginRate", GateCore.this.safeNumber(item, "maintenance_rate") );
@@ -9339,9 +9339,9 @@ final Object finalI = i;
             Object response = null;
             Object isUnified = this.safeBool(parameters, "unified");
             parameters = this.omit(parameters, "unified");
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(this.safeBool(market, "spot")))
             {
-                Helpers.addElementToObject(request, "currency_pair", Helpers.GetValue(market, "id"));
+                Helpers.addElementToObject(request, "currency_pair", this.safeString(market, "id"));
                 if (Helpers.isTrue(isUnified))
                 {
                     response = (this.publicMarginGetUniCurrencyPairsCurrencyPair(this.extend(request, parameters))).join();
@@ -9354,7 +9354,7 @@ final Object finalI = i;
                 response = (this.privateUnifiedGetAccounts(this.extend(request, parameters))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchLeverage() does not support "), Helpers.GetValue(market, "type")), " markets")) ;
+                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchLeverage() does not support "), this.safeString(market, "type")), " markets")) ;
             }
             return this.parseLeverage(response, market);
         });

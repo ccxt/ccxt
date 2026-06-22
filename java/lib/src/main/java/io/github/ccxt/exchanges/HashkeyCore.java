@@ -1426,7 +1426,7 @@ public class HashkeyCore extends HashkeyApi
                 {
                     throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a symbol argument for swap markets")) ;
                 }
-                Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
+                Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
                 if (Helpers.isTrue(!Helpers.isEqual(accountId, null)))
                 {
                     Helpers.addElementToObject(request, "subAccountId", accountId);
@@ -3597,7 +3597,7 @@ public class HashkeyCore extends HashkeyApi
                 {
                     throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a symbol argument for swap markets")) ;
                 }
-                Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
+                Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
                 Object isTrigger = false;
                 var isTriggerparametersVariable = this.handleTriggerOptionAndParams(parameters, methodName, isTrigger);
                 isTrigger = ((java.util.List<Object>) isTriggerparametersVariable).get(0);
@@ -4248,7 +4248,7 @@ public class HashkeyCore extends HashkeyApi
         Object leverageValue = this.safeNumber(leverage, "leverage");
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );
-            put( "symbol", Helpers.GetValue(market, "symbol") );
+            put( "symbol", HashkeyCore.this.safeString(market, "symbol") );
             put( "marginMode", marginMode );
             put( "longLeverage", leverageValue );
             put( "shortLeverage", leverageValue );

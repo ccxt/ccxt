@@ -1392,7 +1392,7 @@ class extended(Exchange, ImplicitAPI):
         #
         timestamp = self.safe_integer(interest, 't')
         return self.safe_open_interest({
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'openInterestAmount': self.safe_number(interest, 'I'),
             'openInterestValue': self.safe_number(interest, 'i'),
             'baseVolume': self.safe_number(interest, 'I'),
@@ -2834,7 +2834,7 @@ class extended(Exchange, ImplicitAPI):
         if clientOrderIds is None and clientOrderId is not None:
             clientOrderIds = [clientOrderId]
         hasClientOrderIds = clientOrderIds is not None
-        if hasClientOrderIds:
+        if clientOrderIds is not None:
             clientOrderIdsLength = len(clientOrderIds)
             if clientOrderIdsLength > 0:
                 request['externalOrderIds'] = clientOrderIds
