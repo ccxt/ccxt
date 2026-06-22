@@ -100,7 +100,7 @@ export default class alpaca extends alpacaRest {
         //    ]
         //
         const ticker = this.parseTicker (message);
-        const symbol = ticker['symbol'];
+        const symbol = ticker['symbol'] as string;
         const messageHash = 'ticker:' + symbol;
         this.tickers[symbol] = ticker;
         client.resolve (this.tickers[symbol], messageHash);
@@ -579,7 +579,7 @@ export default class alpaca extends alpacaRest {
         //
         const marketId = this.safeString (trade, 'symbol');
         const datetime = this.safeString (trade, 'filled_at');
-        let type = this.safeString (trade, 'type');
+        let type = this.safeString (trade, 'type') as string;
         if (type.indexOf ('limit') >= 0) {
             // might be limit or stop-limit
             type = 'limit';
@@ -675,7 +675,7 @@ export default class alpaca extends alpacaRest {
                 't': this.handleTrades,
                 'o': this.handleOrderBook,
             };
-            const method = this.safeValue (methods, T);
+            const method = this.safeValue (methods, T as string);
             if (method !== undefined) {
                 method.call (this, client, data);
             }
@@ -689,7 +689,7 @@ export default class alpaca extends alpacaRest {
             'listening': this.handleSubscription,
             'trade_updates': this.handleTradeUpdate,
         };
-        const method = this.safeValue (methods, stream);
+        const method = this.safeValue (methods, stream as string);
         if (method !== undefined) {
             method.call (this, client, message);
         }

@@ -290,7 +290,7 @@ export default class woofipro extends woofiproRest {
         const topic = this.safeString (message, 'topic');
         const data = this.safeList (message, 'data', []);
         const timestamp = this.safeInteger (message, 'ts');
-        const result = [];
+        const result: Ticker[] = [];
         for (let i = 0; i < data.length; i++) {
             const marketId = this.safeString (data[i], 'symbol');
             const market = this.safeMarket (marketId);
@@ -343,10 +343,10 @@ export default class woofipro extends woofiproRest {
         const topic = this.safeString (message, 'topic');
         const data = this.safeList (message, 'data', []);
         const timestamp = this.safeInteger (message, 'ts');
-        const result = [];
+        const result: Ticker[] = [];
         for (let i = 0; i < data.length; i++) {
             const ticker = this.parseWsBidAsk (this.extend (data[i], { 'ts': timestamp }));
-            this.tickers[ticker['symbol']] = ticker;
+            this.tickers[ticker['symbol'] as string] = ticker;
             result.push (ticker);
         }
         client.resolve (result, topic);
@@ -437,13 +437,13 @@ export default class woofipro extends woofiproRest {
             this.safeNumber (data, 'volume'),
         ];
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        let stored = this.safeValue (this.ohlcvs[symbol], timeframe as string);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+            this.ohlcvs[symbol][timeframe as string] = stored;
         }
-        const ohlcvCache = this.ohlcvs[symbol][timeframe];
+        const ohlcvCache = this.ohlcvs[symbol][timeframe as string];
         ohlcvCache.append (parsed);
         client.resolve (ohlcvCache, topic);
     }
@@ -799,7 +799,7 @@ export default class woofipro extends woofiproRest {
         //
         const orderId = this.safeString (order, 'orderId');
         const marketId = this.safeString (order, 'symbol');
-        market = this.market (marketId);
+        market = this.market (marketId as string);
         const symbol = market['symbol'];
         const timestamp = this.safeInteger (order, 'timestamp');
         const fee = {
@@ -887,7 +887,7 @@ export default class woofipro extends woofiproRest {
             // algoexecutionreport
             for (let i = 0; i < data.length; i++) {
                 const order = data[i];
-                const tradeId = this.omitZero (this.safeString (data, 'tradeId'));
+                const tradeId = this.omitZero (this.safeString (data, 'tradeId') as string);
                 if (tradeId !== undefined) {
                     this.handleMyTrade (client, order);
                 }
@@ -895,7 +895,7 @@ export default class woofipro extends woofiproRest {
             }
         } else {
             // executionreport
-            const tradeId = this.omitZero (this.safeString (data, 'tradeId'));
+            const tradeId = this.omitZero (this.safeString (data, 'tradeId') as string);
             if (tradeId !== undefined) {
                 this.handleMyTrade (client, data);
             }
@@ -914,7 +914,7 @@ export default class woofipro extends woofiproRest {
             }
             const cachedOrders = this.orders;
             const orders = this.safeDict (cachedOrders.hashmap, symbol, {});
-            const order = this.safeDict (orders, orderId);
+            const order = this.safeDict (orders, orderId as string);
             if (order !== undefined) {
                 const fee = this.safeValue (order, 'fee');
                 if (fee !== undefined) {
@@ -924,7 +924,7 @@ export default class woofipro extends woofiproRest {
                 if (fees !== undefined) {
                     parsed['fees'] = fees;
                 }
-                parsed['trades'] = this.safeList (order, 'trades');
+                parsed['trades'] = this.safeList (order, 'trades', []);
                 parsed['timestamp'] = this.safeInteger (order, 'timestamp');
                 parsed['datetime'] = this.safeString (order, 'datetime');
             }
@@ -994,9 +994,9 @@ export default class woofipro extends woofiproRest {
      */
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
-        const messageHashes = [];
-        symbols = this.marketSymbols (symbols);
-        if (!this.isEmpty (symbols)) {
+        const messageHashes: string[] = [];
+        symbols = this.marketSymbols (symbols) as string[];
+        if (!this.isEmpty (symbols as string[])) {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 messageHashes.push ('positions::' + symbol);
@@ -1095,7 +1095,7 @@ export default class woofipro extends woofiproRest {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
         const cache = this.positions;
-        const newPositions = [];
+        const newPositions: Position[] = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
             const marketId = this.safeString (rawPosition, 'symbol');
@@ -1306,7 +1306,7 @@ export default class woofipro extends woofiproRest {
             'bbos': this.handleBidAsk,
         };
         const event = this.safeString (message, 'event');
-        let method = this.safeValue (methods, event);
+        let method = this.safeValue (methods, event as string);
         if (method !== undefined) {
             method.call (this, client, message);
             return;
@@ -1322,15 +1322,15 @@ export default class woofipro extends woofiproRest {
             const splitLength = splitTopic.length;
             if (splitLength === 2) {
                 const name = this.safeString (splitTopic, 1);
-                method = this.safeValue (methods, name);
+                method = this.safeValue (methods, name as string);
                 if (method !== undefined) {
                     method.call (this, client, message);
                     return;
                 }
-                const splitName = name.split ('_');
+                const splitName = (name as string).split ('_');
                 const splitNameLength = splitTopic.length;
                 if (splitNameLength === 2) {
-                    method = this.safeValue (methods, this.safeString (splitName, 0));
+                    method = this.safeValue (methods, this.safeString (splitName, 0) as string);
                     if (method !== undefined) {
                         method.call (this, client, message);
                     }
