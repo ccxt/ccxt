@@ -769,7 +769,7 @@ export default class krakenfutures extends Exchange {
         //    }
         //
         const candles = this.safeList (response, 'candles');
-        return this.parseOHLCVs (candles, market, timeframe, since, limit);
+        return this.parseOHLCVs ((candles as any[]), market, timeframe, since, limit);
     }
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
@@ -821,7 +821,7 @@ export default class krakenfutures extends Exchange {
         };
         let method: Str = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'method', 'historyGetMarketSymbolExecutions');
-        let rawTrades = undefined;
+        let rawTrades: any[] = [];
         const isFullHistoryEndpoint = (method === 'historyGetMarketSymbolExecutions');
         if (isFullHistoryEndpoint) {
             [ request, params ] = this.handleUntilOption ('before', request, params);
@@ -1252,7 +1252,7 @@ export default class krakenfutures extends Exchange {
                 extendedParams['order_tag'] = this.sum (i, 1).toString (); // sequential counter
             }
             extendedParams['order'] = 'send';
-            const orderRequest = this.createOrderRequest ((marketId as string), type, side, amount, price, extendedParams);
+            const orderRequest = this.createOrderRequest ((marketId as string), (type as string), side, amount, price, extendedParams);
             ordersRequests.push (orderRequest);
         }
         const request: Dict = {
@@ -2097,7 +2097,7 @@ export default class krakenfutures extends Exchange {
         let fixed = false;
         let statusId: Str = undefined;
         let price: Str = undefined;
-        let trades = [];
+        let trades: any[] = [];
         if (orderEventsLength) {
             const executions: any[] = [];
             for (let i = 0; i < orderEvents.length; i++) {
@@ -2157,8 +2157,8 @@ export default class krakenfutures extends Exchange {
                 const trade = trades[i];
                 const tradeAmount = this.safeString (trade, 'amount');
                 const tradePrice = this.safeString (trade, 'price');
-                filled2 = Precise.stringAdd (filled2, tradeAmount);
-                vwapSum = Precise.stringAdd (vwapSum, Precise.stringMul (tradeAmount, tradePrice));
+                filled2 = Precise.stringAdd (filled2, tradeAmount) as string;
+                vwapSum = Precise.stringAdd (vwapSum, Precise.stringMul (tradeAmount, tradePrice)) as string;
             }
             average = Precise.stringDiv (vwapSum, filled2);
             if ((amount !== undefined) && (!isClosed) && isPrior && Precise.stringGe (filled2, amount)) {
@@ -2166,9 +2166,9 @@ export default class krakenfutures extends Exchange {
                 isClosed = true;
             }
             if (isPrior) {
-                filled = Precise.stringAdd (filled, filled2);
+                filled = Precise.stringAdd (filled, filled2) as string;
             } else {
-                filled = Precise.stringMax (filled, filled2);
+                filled = Precise.stringMax (filled, filled2) as string;
             }
         }
         if (remaining === undefined) {

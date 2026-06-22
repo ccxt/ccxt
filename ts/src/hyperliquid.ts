@@ -2310,7 +2310,7 @@ export default class hyperliquid extends Exchange {
             const hasStopLoss = (stopLoss !== undefined);
             const hasTakeProfit = (takeProfit !== undefined);
             orderParams = this.omit (orderParams, [ 'stopLoss', 'takeProfit' ]);
-            const mainOrderObj: Dict = this.createOrderRequest (symbol, (type as string), side, amount, price, orderParams);
+            const mainOrderObj: Dict = this.createOrderRequest (symbol, (type as string), side, (amount as string), price, orderParams);
             if (hasStopLoss || hasTakeProfit) {
                 // grouping opposed orders for sl/tp
                 const stopLossOrderTriggerPrice = this.safeStringN (stopLoss, [ 'triggerPrice', 'stopPrice' ]);
@@ -3269,7 +3269,7 @@ export default class hyperliquid extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'order');
-        return this.parseOrder (data, market);
+        return this.parseOrder ((data as Dict), market);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {

@@ -280,7 +280,7 @@ export default class kucoin extends kucoinRest {
         return await this.unSubscribeMultiple (url, [ messageHash ], topic, [ subscriptionHash ], params, subscription);
     }
 
-    async subscribeMultiple (url, messageHashes, topic, subscriptionHashes, params = {}, subscription = undefined) {
+    async subscribeMultiple (url, messageHashes, topic, subscriptionHashes, params = {}, subscription: NullableDict = undefined) {
         const requestId = this.requestId ().toString ();
         const request: Dict = {
             'id': requestId,
@@ -799,7 +799,7 @@ export default class kucoin extends kucoinRest {
         client.resolve (parsedTicker, messageHash);
     }
 
-    parseWsBidAsk (ticker, market = undefined) {
+    parseWsBidAsk (ticker, market: Market = undefined) {
         const topic = this.safeString (ticker, 'topic');
         if ((topic as string).indexOf ('contractMarket') < 0) {
             const parts = (topic as string).split (':');

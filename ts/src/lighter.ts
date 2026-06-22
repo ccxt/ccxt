@@ -582,9 +582,9 @@ export default class lighter extends Exchange {
             'api_key_index': this.parseToInt (apiKeyIndex),
             'account_index': this.parseToInt (accountIndex),
         };
-        const token = this.lighterCreateAuthToken (this.options['auths'][(accountIndex as string)][apiKeyIndex]['signer'], request);
-        this.options['auths'][(accountIndex as string)][apiKeyIndex]['deadline'] = deadline;
-        this.options['auths'][(accountIndex as string)][apiKeyIndex]['token'] = token;
+        const token = this.lighterCreateAuthToken (this.options['auths'][(accountIndex as string)][(apiKeyIndex as string)]['signer'], request);
+        this.options['auths'][(accountIndex as string)][(apiKeyIndex as string)]['deadline'] = deadline;
+        this.options['auths'][(accountIndex as string)][(apiKeyIndex as string)]['token'] = token;
         return token;
     }
 
@@ -611,7 +611,7 @@ export default class lighter extends Exchange {
         const binaryMessageLength = this.binaryLength (binaryMessage);
         const x19 = this.base16ToBinary ('19');
         const newline = this.base16ToBinary ('0a');
-        const prefix = this.binaryConcat (x19, this.encode ('Ethereum Signed Message:'), newline, this.encode (this.numberToString (binaryMessageLength)));
+        const prefix = this.binaryConcat (x19, this.encode ('Ethereum Signed Message:'), newline, this.encode (this.numberToString (binaryMessageLength) as string));
         return '0x' + this.hash (this.binaryConcat (prefix, binaryMessage), keccak, 'hex');
     }
 
@@ -705,7 +705,7 @@ export default class lighter extends Exchange {
         await this.publicPostSendTx (request);
         this.options['auths'][strAccountIndex][strApiKeyIndex]['lighterPrivateKey'] = privateKey;
         this.options['auths'][strAccountIndex][strApiKeyIndex]['signer'] = signer; // reassign signer in go
-        await this.handleBuilderFeeApproval ((accountIndex as number), apiKeyIndex);
+        await this.handleBuilderFeeApproval ((accountIndex as number), (apiKeyIndex as number));
         return signer;
     }
 

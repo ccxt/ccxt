@@ -3,7 +3,7 @@ import assert from 'assert';
 import testSharedMethods from './base/test.sharedMethods.js';
 import testOrder from './base/test.order.js';
 import Precise from '../../base/Precise.js';
-import type { Order, Num, Dict, NullableDict } from '../../base/types.js';
+import type { Order, Num, Str, Dict, NullableDict } from '../../base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -180,7 +180,7 @@ function tcoAssertFilledOrder (exchange, market, logPrefix, skippedProperties, c
 
 // ----------------------------------------------------------------------------
 
-async function tcoCancelOrder (exchange, symbol, orderId = undefined) {
+async function tcoCancelOrder (exchange, symbol, orderId: Str = undefined) {
     const logPrefix = testSharedMethods.logTemplate (exchange, 'createOrder', [ symbol ]);
     let usedMethod = '';
     let cancelResult: NullableDict = undefined;

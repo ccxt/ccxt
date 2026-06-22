@@ -1485,7 +1485,7 @@ export default class cryptocom extends Exchange {
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
-            const orderRequest = this.createAdvancedOrderRequest ((marketId as string), type, side, amount, price, orderParams);
+            const orderRequest = this.createAdvancedOrderRequest ((marketId as string), (type as string), side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
         const contigency = this.safeString (params, 'contingency_type', 'LIST');

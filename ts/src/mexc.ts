@@ -2510,7 +2510,7 @@ export default class mexc extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
             // 'price': parseFloat (this.priceToPrecision (symbol, price)),
-            'vol': parseFloat (this.amountToPrecision ((symbol as string), amount)),
+            'vol': parseFloat (this.amountToPrecision ((symbol as string), amount) as string),
             // 'leverage': int, // required for isolated margin
             // 'side': side, // 1 open long, 2 close short, 3 open short, 4 close long
             //
@@ -4744,7 +4744,7 @@ export default class mexc extends Exchange {
             });
             initialMarginRate = Precise.stringAdd (initialMarginRate, riskIncrImr);
             maintenanceMarginRate = Precise.stringAdd (maintenanceMarginRate, riskIncrMmr);
-            floor = cap;
+            floor = cap as string;
         }
         return tiers as LeverageTier[];
     }
@@ -6102,7 +6102,7 @@ export default class mexc extends Exchange {
         //    }
         //
         const data = this.safeList (response, 'data');
-        const positions = this.parsePositions (data, symbols, params);
+        const positions = this.parsePositions ((data as any[]), symbols, params);
         return this.filterBySinceLimit (positions, since, limit);
     }
 

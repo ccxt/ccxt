@@ -2791,7 +2791,7 @@ export default class lbank extends Exchange {
         return response;
     }
 
-    async fetchPrivateDepositWithdrawFees (codes = undefined, params = {}) {
+    async fetchPrivateDepositWithdrawFees (codes: Strings = undefined, params = {}) {
         // complete response
         // incl. for coins which undefined in public method
         await this.loadMarkets ();
@@ -2830,7 +2830,7 @@ export default class lbank extends Exchange {
         return this.parseDepositWithdrawFees (data, codes, 'coin');
     }
 
-    async fetchPublicDepositWithdrawFees (codes = undefined, params = {}) {
+    async fetchPublicDepositWithdrawFees (codes: Strings = undefined, params = {}) {
         // extremely incomplete response
         // vast majority fees undefined
         await this.loadMarkets ();
@@ -2861,7 +2861,7 @@ export default class lbank extends Exchange {
         return this.parsePublicDepositWithdrawFees (data, codes);
     }
 
-    parsePublicDepositWithdrawFees (response, codes = undefined) {
+    parsePublicDepositWithdrawFees (response, codes: Strings = undefined) {
         //
         //    [
         //        {
@@ -3115,7 +3115,7 @@ export default class lbank extends Exchange {
                 '10601': 'Interface closed unavailable',
                 '10701': 'invalid asset code',
                 '10702': 'not allowed deposit',
-            }, errorCode, this.json (response));
+            }, (errorCode as string), this.json (response));
             const ErrorClass = this.safeValue ({
                 '10001': BadRequest,
                 '10002': AuthenticationError,
