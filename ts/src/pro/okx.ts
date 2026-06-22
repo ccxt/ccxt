@@ -2006,8 +2006,10 @@ export default class okx extends okxRest {
                 const order = parsed[i];
                 stored.append (order);
                 const symbol = order['symbol'];
-                const market = this.market (symbol);
-                marketIds.push (market['id']);
+                if (symbol !== undefined) {
+                    const market = this.market (symbol);
+                    marketIds.push (market['id']);
+                }
             }
             client.resolve (stored, channel);
             for (let i = 0; i < marketIds.length; i++) {

@@ -614,6 +614,9 @@ export default class bit2c extends Exchange {
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder () requires a symbol argument');
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'id': id,

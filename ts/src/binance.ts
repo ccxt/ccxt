@@ -14409,6 +14409,9 @@ export default class binance extends Exchange {
      */
     async fetchLongShortRatioHistory (symbol: Str = undefined, timeframe: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LongShortRatio[]> {
         await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchLongShortRatioHistory () requires a symbol argument');
+        }
         const market = this.market (symbol);
         if (timeframe === undefined) {
             timeframe = '1d';

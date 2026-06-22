@@ -3680,6 +3680,9 @@ export default class weex extends Exchange {
      */
     async fetchPositionMode (symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchPositionMode () requires a symbol argument');
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],

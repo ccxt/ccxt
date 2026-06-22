@@ -1094,6 +1094,9 @@ export default class zebpay extends Exchange {
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder () requires a symbol argument');
+        }
         const market = this.market (symbol);
         let response: NullableDict = undefined;
         const request: Dict = {};
@@ -1165,6 +1168,9 @@ export default class zebpay extends Exchange {
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders () requires a symbol argument');
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -1233,6 +1239,9 @@ export default class zebpay extends Exchange {
      */
     async fetchOrder (id: Str, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder () requires a symbol argument');
+        }
         const market = this.market (symbol);
         const request: Dict = {};
         let response: NullableDict = undefined;

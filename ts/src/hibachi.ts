@@ -8,7 +8,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import type{ Balances, Currencies, Dict, Market, Str, Ticker, Trade, Int, Num, OrderSide, OrderType, OrderBook, TradingFees, Transaction, DepositAddress, OHLCV, Order, LedgerEntry, Currency, int, Position, Strings, FundingRate, FundingRateHistory, OrderRequest, Fee, NullableDict } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { Precise } from './base/Precise.js';
-import { BadRequest, ExchangeError, OrderNotFound } from './base/errors.js';
+import { ArgumentsRequired, BadRequest, ExchangeError, OrderNotFound } from './base/errors.js';
 
 // ---------------------------------------------------------------------------
 
@@ -621,7 +621,7 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters specific to the hibachi api endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchTicker (symbol: Str, params = {}): Promise<Ticker> {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -2133,6 +2133,9 @@ export default class hibachi extends Exchange {
      */
     async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory () requires a symbol argument');
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],

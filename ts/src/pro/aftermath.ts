@@ -109,6 +109,9 @@ export default class aftermath extends aftermathRest {
         //
         const trade = this.parseTrade (message);
         const symbol = trade['symbol'];
+        if (symbol === undefined) {
+            return;
+        }
         const market = this.market (symbol);
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -161,6 +164,9 @@ export default class aftermath extends aftermathRest {
         // }
         //
         const symbol = this.safeString (message, 'symbol');
+        if (symbol === undefined) {
+            return;
+        }
         const market = this.market (symbol);
         const topic = market['id'] + '@orderbook';
         if (!(symbol in this.orderbooks)) {
@@ -183,6 +189,9 @@ export default class aftermath extends aftermathRest {
 
     async fetchOrderBookSnapshot (client, message, subscription) {
         const symbol = this.safeString (message, 'symbol');
+        if (symbol === undefined) {
+            return;
+        }
         const market = this.market (symbol);
         const messageHash = market['id'] + '@orderbook';
         try {
