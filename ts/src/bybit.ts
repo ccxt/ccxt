@@ -1206,6 +1206,7 @@ export default class bybit extends Exchange {
                     'TRX': 'TRC20',
                     'BSC': 'BEP20',
                     'OP': 'OP',
+                    'MATIC': 'MATIC',
                 },
                 'defaultNetwork': 'ERC20',
                 'defaultNetworks': {
