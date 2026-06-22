@@ -3041,7 +3041,7 @@ public partial class binance : Exchange
             object withdrawFee = this.safeNumber(networkItem, "withdrawFee");
             object depositEnable = this.safeBool(networkItem, "depositEnable");
             object withdrawEnable = this.safeBool(networkItem, "withdrawEnable");
-            ((IDictionary<string,object>)fees)[(string)network] = withdrawFee;
+            ((IDictionary<string,object>)fees)[(string)networkCode] = withdrawFee;
             object isDefault = this.safeBool(networkItem, "isDefault");
             if (isTrue(isTrue(isDefault) || isTrue((isEqual(fee, null)))))
             {
