@@ -1246,7 +1246,7 @@ export default class lighter extends lighterRest {
         //     }
         //
         const type = this.safeString (message, 'type', '');
-        const id = this.safeString (message, 'session_id');
+        const id = this.safeString (message, 'session_id', '');
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
         const subscription = this.safeDict (subscriptionsById, id, {});
         if (type === 'unsubscribed') {

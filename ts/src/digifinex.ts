@@ -943,7 +943,7 @@ export default class digifinex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response = undefined;
+        let response: Dict = {};
         if (marketType === 'swap') {
             request['instrument_id'] = market['id'];
             response = await this.publicSwapGetPublicDepth (this.extend (request, query));
@@ -1347,7 +1347,7 @@ export default class digifinex extends Exchange {
             }
         } else {
             const parts = side.split ('_');
-            side = this.safeString (parts, 0);
+            side = this.safeString (parts, 0, side);
             type = this.safeString (parts, 1);
             if (type === undefined) {
                 type = 'limit';

@@ -487,7 +487,7 @@ export default class backpack extends backpackRest {
             const symbolAndTimeframe = symbolsAndTimeframes[i];
             const marketId = this.safeString (symbolAndTimeframe, 0);
             const market = this.market (marketId);
-            const tf = this.safeString (symbolAndTimeframe, 1);
+            const tf = this.safeString (symbolAndTimeframe, 1, '');
             const interval = this.safeString (this.timeframes, tf, tf);
             topics.push ('kline.' + interval + '.' + market['id']);
             messageHashes.push ('candles:' + market['symbol'] + ':' + interval);
@@ -521,7 +521,7 @@ export default class backpack extends backpackRest {
             const symbolAndTimeframe = symbolsAndTimeframes[i];
             const marketId = this.safeString (symbolAndTimeframe, 0);
             const market = this.market (marketId);
-            const tf = this.safeString (symbolAndTimeframe, 1);
+            const tf = this.safeString (symbolAndTimeframe, 1, '');
             const interval = this.safeString (this.timeframes, tf, tf);
             topics.push ('kline.' + interval + '.' + market['id']);
             messageHashes.push ('unsubscribe:candles:' + market['symbol'] + ':' + interval);

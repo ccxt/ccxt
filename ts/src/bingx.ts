@@ -5156,8 +5156,8 @@ export default class bingx extends Exchange {
         const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         const fromAccount = this.safeString (params, 'fromAccount');
         const toAccount = this.safeString (params, 'toAccount');
-        const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
-        const toId = this.safeString (accountsByType, toAccount, toAccount);
+        const fromId = (fromAccount !== undefined) ? this.safeString (accountsByType, fromAccount, fromAccount) : undefined;
+        const toId = (toAccount !== undefined) ? this.safeString (accountsByType, toAccount, toAccount) : undefined;
         if (fromId === undefined || toId === undefined) {
             throw new ExchangeError (this.id + ' fromAccount & toAccount parameters are required');
         }
@@ -5211,8 +5211,8 @@ export default class bingx extends Exchange {
         const accountsById = this.safeDict (this.options, 'accountsById', {});
         const fromId = this.safeString (transfer, 'fromAccount');
         const toId = this.safeString (transfer, 'toAccount');
-        const fromAccount = this.safeString (accountsById, fromId, fromId);
-        const toAccount = this.safeString (accountsById, toId, toId);
+        const fromAccount = (fromId !== undefined) ? this.safeString (accountsById, fromId, fromId) : undefined;
+        const toAccount = (toId !== undefined) ? this.safeString (accountsById, toId, toId) : undefined;
         return {
             'info': transfer,
             'id': tranId,
@@ -6055,7 +6055,7 @@ export default class bingx extends Exchange {
             'perpetual': 3,
             'spot': 15,
         };
-        walletType = this.safeInteger (walletTypes, walletType, defaultWalletType);
+        walletType = (walletType !== undefined) ? this.safeInteger (walletTypes, walletType, defaultWalletType) : defaultWalletType;
         const request: Dict = {
             'coin': currency['id'],
             'address': address,

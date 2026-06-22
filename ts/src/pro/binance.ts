@@ -1697,7 +1697,7 @@ export default class binance extends binanceRest {
         //         }
         //     }
         //
-        let event = this.safeString (message, 'e');
+        let event = this.safeString (message, 'e', '');
         const eventMap: Dict = {
             'indexPrice_kline': 'indexPriceKline',
             'markPrice_kline': 'markPriceKline',

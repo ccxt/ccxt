@@ -1569,7 +1569,9 @@ export default class dydx extends Exchange {
         } else {
             if (goodTillBlock === undefined) {
                 const latestBlockHeight = await this.fetchLatestBlockHeight ();
-                goodTillBlock = latestBlockHeight + 20;
+                if (latestBlockHeight !== undefined) {
+                    goodTillBlock = latestBlockHeight + 20;
+                }
             }
         }
         const credentials = this.retrieveCredentials ();
@@ -1640,7 +1642,9 @@ export default class dydx extends Exchange {
         let goodTillBlock = this.safeInteger (params, 'goodTillBlock');
         if (goodTillBlock === undefined) {
             const latestBlockHeight = await this.fetchLatestBlockHeight ();
-            goodTillBlock = latestBlockHeight + 20;
+            if (latestBlockHeight !== undefined) {
+                goodTillBlock = latestBlockHeight + 20;
+            }
         }
         params = this.omit (params, [ 'clientOrderIds', 'goodTillBlock', 'subaccountId' ]);
         const credentials = this.retrieveCredentials ();

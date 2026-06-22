@@ -3205,7 +3205,7 @@ export default class xt extends Exchange {
         if (resultDict !== undefined) {
             orders = this.safeList (resultDict, 'items', []);
         } else {
-            orders = this.safeList (response, 'result');
+            orders = this.safeList (response, 'result', []);
         }
         return this.parseOrders (orders, market, since, limit);
     }
@@ -3971,7 +3971,7 @@ export default class xt extends Exchange {
         let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         const networkIdsByCodes = this.safeValue (this.options, 'networks', {});
-        const networkId = this.safeString2 (networkIdsByCodes, networkCode, code, code);
+        const networkId = (networkCode !== undefined) ? this.safeString2 (networkIdsByCodes, networkCode, code, code) : this.safeString (networkIdsByCodes, code, code);
         const request = {
             'currency': currency['id'],
             'chain': networkId,

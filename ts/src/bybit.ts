@@ -4839,7 +4839,7 @@ export default class bybit extends Exchange {
             'swap': 'DERIVATIVES',
             'option': 'OPTIONS',
         };
-        const product = this.safeString (productMap, type, type);
+        const product = (type !== undefined) ? this.safeString (productMap, type, type) : undefined;
         request['product'] = product;
         const response = await this.privatePostV5OrderDisconnectedCancelAll (this.extend (request, params));
         //
@@ -7475,8 +7475,8 @@ export default class bybit extends Exchange {
         await this.loadMarkets ();
         const transferId = this.safeString (params, 'transferId', this.uuid ());
         const accountTypes = this.safeDict (this.options, 'accountsByType', {});
-        const fromId = this.safeString (accountTypes, fromAccount, fromAccount);
-        const toId = this.safeString (accountTypes, toAccount, toAccount);
+        const fromId = (fromAccount !== undefined) ? this.safeString (accountTypes, fromAccount, fromAccount) : undefined;
+        const toId = (toAccount !== undefined) ? this.safeString (accountTypes, toAccount, toAccount) : undefined;
         const currency = this.currency (code);
         const amountToPrecision = this.currencyToPrecision (code, amount);
         const request: Dict = {
@@ -7706,8 +7706,8 @@ export default class bybit extends Exchange {
         const fromAccountId = this.safeString (transfer, 'fromAccountType');
         const toAccountId = this.safeString (transfer, 'toAccountType');
         const accountIds = this.safeDict (this.options, 'accountsById', {});
-        const fromAccount = this.safeString (accountIds, fromAccountId, fromAccountId);
-        const toAccount = this.safeString (accountIds, toAccountId, toAccountId);
+        const fromAccount = (fromAccountId !== undefined) ? this.safeString (accountIds, fromAccountId, fromAccountId) : undefined;
+        const toAccount = (toAccountId !== undefined) ? this.safeString (accountIds, toAccountId, toAccountId) : undefined;
         return {
             'info': transfer,
             'id': this.safeString (transfer, 'transferId'),

@@ -1417,7 +1417,7 @@ export default class bydfi extends Exchange {
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const id = this.safeString (rawOrder, 'id');
-            const symbol = this.safeString (rawOrder, 'symbol');
+             const symbol = this.safeString (rawOrder, 'symbol', '');
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeNumber (rawOrder, 'amount');
             const price = this.safeNumber (rawOrder, 'price');
@@ -2579,8 +2579,8 @@ export default class bydfi extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const accountsByType = this.safeDict (this.options, 'accountsByType', {});
-        const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
-        const toId = this.safeString (accountsByType, toAccount, toAccount);
+        const fromId = (fromAccount !== undefined) ? this.safeString (accountsByType, fromAccount, fromAccount) : undefined;
+        const toId = (toAccount !== undefined) ? this.safeString (accountsByType, toAccount, toAccount) : undefined;
         const request: Dict = {
             'asset': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
@@ -2701,8 +2701,8 @@ export default class bydfi extends Exchange {
         const accountsById = this.safeDict (this.options, 'accountsById', {});
         const fromId = this.safeStringUpper (transfer, 'sourceWallet');
         const toId = this.safeStringUpper (transfer, 'targetWallet');
-        const fromAccount = this.safeString (accountsById, fromId, fromId);
-        const toAccount = this.safeString (accountsById, toId, toId);
+        const fromAccount = (fromId !== undefined) ? this.safeString (accountsById, fromId, fromId) : undefined;
+        const toAccount = (toId !== undefined) ? this.safeString (accountsById, toId, toId) : undefined;
         const timestamp = this.safeInteger (transfer, 'timestamp');
         const currencyId = this.safeString (transfer, 'asset');
         return {
