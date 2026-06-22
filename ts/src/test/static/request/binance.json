@@ -3836,15 +3836,15 @@
                 "method": "withdraw",
                 "url": "https://api.binance.com/sapi/v1/capital/withdraw/apply",
                 "input": [
-                  "ASR",
+                  "USDT",
                   10.34,
                   "xyz",
                   null,
                   {
-                    "network": "CHZ"
+                    "network": "TRX"
                   }
                 ],
-                "output": "timestamp=1718724487672&coin=ASR&address=xyz&amount=10&network=CHZ&recvWindow=10000&signature=signature"
+                "output": "timestamp=1718724487672&coin=USDT&address=xyz&amount=10.34&network=TRX&recvWindow=10000&signature=signature"
             }
         ],
         "fetchCurrencies": [

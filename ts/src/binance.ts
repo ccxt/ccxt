@@ -1451,6 +1451,7 @@ export default class binance extends Exchange {
                     'ONT': 'ONT', // ontology
                     'WLD': 'WLD',
                     // SEI & SEIEVM
+                    'CHZ1': 'CHZ',
                     'CHZ2': 'CHZ2',
                     'ETHW': 'ETHW',
                     'IOTA': 'IOTA',
