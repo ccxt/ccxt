@@ -267,7 +267,7 @@ export default class zaif extends Exchange {
     parseMarket (market: Dict): Market {
         const id = this.safeString (market, 'currency_pair');
         const name = this.safeString (market, 'name');
-        const [ baseId, quoteId ] = name.split ('/');
+        const [ baseId, quoteId ] = (name as string).split ('/');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const symbol = base + '/' + quote;
@@ -594,7 +594,7 @@ export default class zaif extends Exchange {
         //    }
         //
         const data = this.safeDict (response, 'return');
-        return this.parseOrder (data);
+        return this.parseOrder (data as Dict);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -759,7 +759,7 @@ export default class zaif extends Exchange {
         //     }
         //
         const returnData = this.safeDict (result, 'return');
-        return this.parseTransaction (returnData, currency);
+        return this.parseTransaction (returnData as Dict, currency);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -811,7 +811,7 @@ export default class zaif extends Exchange {
 
     customNonce () {
         const num = this.numberToString (this.milliseconds () / 1000);
-        const nonce = parseFloat (num);
+        const nonce = parseFloat (num as string);
         return nonce.toFixed (8);
     }
 
