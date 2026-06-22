@@ -1668,7 +1668,7 @@ export default class polymarket extends Exchange {
      */
     async createOrder (outcome: string, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Promise<PredictionOrder> {
         await this.loadApiCredentials ();
-        const built = await this.buildClobOrderBody (outcome, type, side, amount, price, params);
+        const built = this.buildClobOrderBody (outcome, type, side, amount, price, params);
         const response = await this.clobPrivatePostOrder (this.safeDict (built, 'body'));
         return this.parseOrder (response, this.safeDict (built, 'outcome') as any);
     }
@@ -1694,7 +1694,7 @@ export default class polymarket extends Exchange {
                 // a distinct salt per order so two identical orders in one batch don't collide
                 orderParams = this.extend (orderParams, { 'salt': this.numberToString (this.sum (batchSalt, i)) });
             }
-            const built = await this.buildClobOrderBody (this.safeString (o, 'symbol'), this.safeString (o, 'type'), this.safeString (o, 'side'), this.safeNumber (o, 'amount'), this.safeNumber (o, 'price'), orderParams);
+            const built = this.buildClobOrderBody (this.safeString (o, 'symbol'), this.safeString (o, 'type'), this.safeString (o, 'side'), this.safeNumber (o, 'amount'), this.safeNumber (o, 'price'), orderParams);
             bodies.push (this.safeDict (built, 'body'));
             outcomes.push (this.safeDict (built, 'outcome'));
         }
@@ -1717,7 +1717,10 @@ export default class polymarket extends Exchange {
      * @description builds and signs a single CLOB order request body (shared by createOrder and createOrders)
      * @returns {object} an object with 'body' (the signed order request) and 'outcome' (the resolved outcome)
      */
-    async buildClobOrderBody (outcome: string, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Promise<Dict> {
+    buildClobOrderBody (outcome: string, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Dict {
+        // pure builder, no network I/O — intentionally synchronous. a no-op async method
+        // transpiles in php to a promise-typed wrapper around a body that returns a plain
+        // dict, which throws a TypeError
         // outcome () validates the outcome against the loaded outcomes (built from events or markets)
         const outcomeObj = this.outcome (outcome);
         const tokenId = outcomeObj['outcomeId'] as string;
@@ -1869,8 +1872,14 @@ export default class polymarket extends Exchange {
         };
     }
 
-    signClobOrder (message: Dict, exchangeAddress: string, domainVersion: string, signatureType: number): string {
-        const chainId = this.safeInteger (this.options, 'chainId', 137);
+    signClobOrder (message: Dict, exchangeAddress: string, domainVersion: string, sigType: number): string {
+        // param is sigType, not signatureType: the php regex transpiler would rewrite the
+        // substring "signatureType" inside the orderTypeString literal below into the local
+        // var '$signatureType', corrupting the EIP-712 type hash
+        // chainIdValue, not chainId: the php regex transpiler would rewrite the substring "chainId"
+        // inside the 'EIP712Domain(...uint256 chainId,...)' literal below to the local var '$chainId',
+        // corrupting the domain type hash
+        const chainIdValue = this.safeInteger (this.options, 'chainId', 137);
         const domainName = this.safeString (this.options, 'ctfExchangeName', 'Polymarket CTF Exchange');
         const orderTypeString = 'Order(uint256 salt,address maker,address signer,uint256 tokenId,uint256 makerAmount,uint256 takerAmount,uint8 side,uint8 signatureType,uint256 timestamp,bytes32 metadata,bytes32 builder)';
         const orderStruct = [
@@ -1886,8 +1895,10 @@ export default class polymarket extends Exchange {
             { 'name': 'metadata', 'type': 'bytes32' },
             { 'name': 'builder', 'type': 'bytes32' },
         ];
-        const orderDomain: Dict = { 'name': domainName, 'version': domainVersion, 'chainId': chainId, 'verifyingContract': exchangeAddress };
-        if (signatureType !== 3) {
+        const orderDomain: Dict = { 'name': domainName, 'version': domainVersion, 'chainId': chainIdValue, 'verifyingContract': exchangeAddress };
+        // parseToInt: php types the number param as float, and 3.0 !== 3 (int) is true under
+        // strict comparison, which would always wrongly select the EOA path
+        if (this.parseToInt (sigType) !== 3) {
             // standard EOA EIP-712 order signature
             const encoded = this.ethEncodeStructuredData (orderDomain, { 'Order': orderStruct }, message);
             const eoaSig = this.signMessage (encoded, this.privateKey);
@@ -1910,7 +1921,7 @@ export default class polymarket extends Exchange {
         const versionHash = this.hash (this.encode (domainVersion), keccak, 'binary');
         const appDomainData = this.ethAbiEncode (
             [ 'bytes32', 'bytes32', 'bytes32', 'uint256', 'address' ],
-            [ domainTypeHash, nameHash, versionHash, this.convertToBigInt (this.numberToString (chainId)), exchangeAddress ]
+            [ domainTypeHash, nameHash, versionHash, this.convertToBigInt (this.numberToString (chainIdValue)), exchangeAddress ]
         );
         const appDomainSep = '0x' + this.hash (appDomainData, keccak, 'hex');
         const typedDataSignStruct = [
@@ -1926,7 +1937,7 @@ export default class polymarket extends Exchange {
             'contents': message,
             'name': 'DepositWallet',
             'version': '1',
-            'chainId': chainId,
+            'chainId': chainIdValue,
             'verifyingContract': message['signer'],
             'salt': bytes32Zero,
         };
@@ -1934,10 +1945,11 @@ export default class polymarket extends Exchange {
         const innerSigObj = this.signMessage (innerEncoded, this.privateKey);
         const innerSig = this.remove0xPrefix (innerSigObj['r']) + this.remove0xPrefix (innerSigObj['s']) + this.intToBase16 (innerSigObj['v']);
         // innerSig(65) || appDomainSep(32) || contentsHash(32) || contentsType || uint16_BE(len)
-        const ctLen = orderTypeString.length;
+        // orderTypeString.length is used inline (not via a `const n = str.length;` statement) so the
+        // php transpiler emits strlen() — the standalone statement form wrongly becomes count() (array)
+        const ctLenHex = this.intToBase16 (orderTypeString.length);
         // assign before padStart so the PHP transpiler's str_pad regex (which only matches a
         // simple identifier) picks it up instead of leaking a padStart() function call
-        const ctLenHex = this.intToBase16 (ctLen);
         const lenHex = ctLenHex.padStart (4, '0');
         const orderTypeStringHex = this.binaryToBase16 (this.encode (orderTypeString));
         const wrappedSignature = '0x' + innerSig + this.remove0xPrefix (appDomainSep) + this.remove0xPrefix (contentsHash) + orderTypeStringHex + lenHex;
@@ -2300,7 +2312,12 @@ export default class polymarket extends Exchange {
             'Content-Type': 'application/json',
         }, headerDefaults);
         if (access === 'private') {
-            const isL1Auth = (path === 'auth/api-key') || (path === 'auth/derive-api-key') || (path === 'auth/api-keys');
+            // 'auth/derive-api-key' is built by concatenation so the substring "api" sits at a
+            // string-literal boundary: the php regex transpiler rewrites a bare "api" flanked by
+            // '-' into the local var '$api' (it only skips quote/slash-adjacent matches), which
+            // would corrupt the literal to 'auth/derive-$api-key' and break this check
+            const deriveApiKeyPath = 'auth/derive-' + 'api-key';
+            const isL1Auth = (path === 'auth/api-key') || (path === deriveApiKeyPath) || (path === 'auth/api-keys');
             if (isL1Auth) {
                 // L1 (private-key / EIP-712) auth used to create or derive the L2 api credentials
                 if (this.privateKey === undefined) {
@@ -2334,11 +2351,17 @@ export default class polymarket extends Exchange {
                 if (body !== undefined) {
                     auth = auth + body;
                 }
-                // the L2 api secret is base64url-encoded; decode it to raw bytes for the HMAC key
-                const secretBytes = this.base64ToBinary ((secret as string).replaceAll ('-', '+').replaceAll ('_', '/'));
+                // the L2 api secret is base64url-encoded; decode it to raw bytes for the HMAC key.
+                // unchained replaceAll: the php transpiler only converts the outermost .replaceAll
+                // in a chain, leaving the inner call as an (invalid) method call
+                let normalizedSecret = secret as string;
+                normalizedSecret = normalizedSecret.replaceAll ('-', '+');
+                normalizedSecret = normalizedSecret.replaceAll ('_', '/');
+                const secretBytes = this.base64ToBinary (normalizedSecret);
                 let signature = this.hmac (this.encode (auth), secretBytes, sha256, 'base64');
                 // url-safe base64, preserving '=' padding (matches the reference client)
-                signature = signature.replaceAll ('+', '-').replaceAll ('/', '_');
+                signature = signature.replaceAll ('+', '-');
+                signature = signature.replaceAll ('/', '_');
                 headers = this.extend (headers, {
                     'POLY_ADDRESS': address,
                     'POLY_API_KEY': apiKey,
