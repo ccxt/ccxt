@@ -3048,7 +3048,10 @@ export default class pacifica extends Exchange {
         }
         const timestamp = this.milliseconds ();
         let expiryWindow: Int = undefined;
-        [ expiryWindow, params ] = this.handleOptionAndParams2 (params, 'createSubAccount', 'expiryWindow', 'expiry_window', 5000);
+        [ expiryWindow, params ] = this.handleOptionAndParams2 (params, 'createSubAccount', 'expiryWindow', 'expiry_window');
+        if (expiryWindow === undefined) {
+            expiryWindow = 5000;
+        }
         const subaccountSignatureHeader = {
             'timestamp': timestamp,
             'expiry_window': expiryWindow,
@@ -3285,7 +3288,10 @@ export default class pacifica extends Exchange {
             }
         }
         let expiryWindow: Int = undefined;
-        [ expiryWindow, params ] = this.handleOptionAndParams2 (params, 'postActionRequest', 'expiryWindow', 'expiry_window', 5000);
+        [ expiryWindow, params ] = this.handleOptionAndParams2 (params, 'postActionRequest', 'expiryWindow', 'expiry_window');
+        if (expiryWindow === undefined) {
+            expiryWindow = 5000;
+        }
         const timestamp = this.safeInteger (params, 'timestamp', this.milliseconds ());
         const signatureHeader = {
             'timestamp': timestamp,
