@@ -2742,6 +2742,16 @@ class Exchange {
         return true;
     }
 
+    public function set_last_rest_request_timestamp() {
+        $this->lastRestRequestTimestamp = $this->milliseconds();
+    }
+
+    public function set_last_request($request) {
+        $this->last_request_headers = $request['headers'];
+        $this->last_request_body = $request['body'];
+        $this->last_request_url = $request['url'];
+    }
+
     // ########################################################################
     // ########################################################################
     // ########################################################################
@@ -3301,7 +3311,7 @@ class Exchange {
         return $result;
     }
 
-    public function find_timeframe($timeframe, $timeframes = null) {
+    public function find_timeframe($timeframe, ?array $timeframes = null) {
         if ($timeframes === null) {
             $timeframes = $this->timeframes;
         }
@@ -6308,11 +6318,9 @@ class Exchange {
         list($retryDelay, $params) = $this->handle_option_and_params($params, $path, 'maxRetriesOnFailureDelay', 0);
         for ($i = 0; $i < $retries + 1; $i++) {
             try {
-                $this->lastRestRequestTimestamp = $this->milliseconds();
+                $this->set_last_rest_request_timestamp();
                 $request = $this->sign($path, $api, $method, $params, $headers, $body);
-                $this->last_request_headers = $request['headers'];
-                $this->last_request_body = $request['body'];
-                $this->last_request_url = $request['url'];
+                $this->set_last_request($request);
                 return $this->fetch($request['url'], $request['method'], $request['headers'], $request['body']);
             } catch (Exception $e) {
                 if ($e instanceof OperationFailed) {
@@ -6524,7 +6532,7 @@ class Exchange {
         if (($currencyId === null) && ($currency !== null)) {
             return $currency;
         }
-        if (($this->currencies_by_id !== null) && (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) && ($this->currencies_by_id[$currencyId] !== null)) {
+        if (($currencyId !== null) && ($this->currencies_by_id !== null) && (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) && ($this->currencies_by_id[$currencyId] !== null)) {
             return $this->currencies_by_id[$currencyId];
         }
         $code = $currencyId;

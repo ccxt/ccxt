@@ -2,7 +2,7 @@ import * as functions from './functions.js';
 import WsClient from './ws/WsClient.js';
 import type Client from './ws/Client.js';
 import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook, OrderBook as Ob } from './ws/OrderBook.js';
-import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL, NullableDict, SubType } from './types.js';
+import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL, NullableDict, SubType, NestedDictionary } from './types.js';
 import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
 export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, Bool, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion, DepositAddress, LongShortRatio, ADL } from './types.js';
 /**
@@ -16,20 +16,20 @@ export default class Exchange {
     pro: boolean;
     countries: Str[];
     proxy: any;
-    proxyUrl: string;
-    proxy_url: string;
+    proxyUrl: Str;
+    proxy_url: Str;
     proxyUrlCallback: any;
     proxy_url_callback: any;
-    httpProxy: string;
-    http_proxy: string;
+    httpProxy: Str;
+    http_proxy: Str;
     httpProxyCallback: any;
     http_proxy_callback: any;
-    httpsProxy: string;
-    https_proxy: string;
+    httpsProxy: Str;
+    https_proxy: Str;
     httpsProxyCallback: any;
     https_proxy_callback: any;
-    socksProxy: string;
-    socks_proxy: string;
+    socksProxy: Str;
+    socks_proxy: Str;
     socksProxyCallback: any;
     socks_proxy_callback: any;
     userAgent: {
@@ -38,12 +38,12 @@ export default class Exchange {
     user_agent: {
         'User-Agent': string;
     } | false;
-    wsProxy: string;
-    ws_proxy: string;
-    wssProxy: string;
-    wss_proxy: string;
-    wsSocksProxy: string;
-    ws_socks_proxy: string;
+    wsProxy: Str;
+    ws_proxy: Str;
+    wssProxy: Str;
+    wss_proxy: Str;
+    wsSocksProxy: Str;
+    ws_socks_proxy: Str;
     userAgents: Dictionary<string>;
     headers: Dictionary<string>;
     returnResponseHeaders: boolean;
@@ -53,7 +53,7 @@ export default class Exchange {
     nodeHttpModuleLoaded: boolean;
     httpAgent: any;
     httpsAgent: any;
-    minFundingAddressLength: Int;
+    minFundingAddressLength: number;
     substituteCommonCurrencyCodes: boolean;
     quoteJsonNumbers: boolean;
     number: (numberString: string) => number;
@@ -64,7 +64,7 @@ export default class Exchange {
     FetchError: any;
     validateServerSsl: boolean;
     validateClientSsl: boolean;
-    timeout: Int;
+    timeout: number;
     verbose: boolean;
     apiKey: string;
     secret: string;
@@ -92,8 +92,8 @@ export default class Exchange {
     positions: any;
     urls: {
         logo?: string;
-        api?: string | Dictionary<string>;
-        test?: string | Dictionary<string>;
+        api: string | NestedDictionary;
+        test: string | NestedDictionary;
         www?: string;
         doc?: string[];
         api_management?: string;
@@ -306,7 +306,7 @@ export default class Exchange {
     throttle(cost?: Num): any;
     initThrottler(): void;
     defineRestApiEndpoint(methodName: any, uppercaseMethod: any, lowercaseMethod: any, camelcaseMethod: any, path: any, paths: any, config?: {}): void;
-    defineRestApi(api: any, methodName: any, paths?: any[]): void;
+    defineRestApi(api: any, methodName: any, paths?: string[]): void;
     log(...args: any[]): void;
     loadProxyModules(): Promise<any>;
     setProxyAgents(httpProxy: any, httpsProxy: any, socksProxy: any): any;
@@ -358,7 +358,7 @@ export default class Exchange {
     handleMessage(client: any, message: any): void;
     ping(client: Client): any;
     client(url: string): WsClient;
-    watchMultiple(url: string, messageHashes: string[], message?: any, subscribeHashes?: any, subscription?: any): import("./ws/Future.js").FutureInterface;
+    watchMultiple(url: string, messageHashes: string[], message?: any, subscribeHashes?: Strings, subscription?: any): import("./ws/Future.js").FutureInterface;
     watch(url: string, messageHash: string, message?: any, subscribeHash?: any, subscription?: any): any;
     onConnected(client: any, message?: any): void;
     onError(client: any, error: any): void;
@@ -420,6 +420,8 @@ export default class Exchange {
     lighterSignApproveIntegrator(signer: any, request: any): any[];
     lighterGenerateApiKey(signer: any): any[];
     lighterSignChangePubkey(signer: any, request: any): any[];
+    setLastRestRequestTimestamp(): void;
+    setLastRequest(request: any): void;
     describe(): any;
     safeBoolN(dictionaryOrList: any, keys: IndexType[], defaultValue?: boolean): boolean | undefined;
     safeBool2(dictionaryOrList: any, key1: IndexType, key2: IndexType, defaultValue?: boolean): boolean | undefined;
@@ -442,7 +444,7 @@ export default class Exchange {
     handleDeltasWithKeys(bookSide: any, deltas: any, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): void;
     getCacheIndex(orderbook: any, deltas: any): number;
     arraysConcat(arraysOfArrays: any[]): any[];
-    findTimeframe(timeframe: any, timeframes?: any): string;
+    findTimeframe(timeframe: any, timeframes?: NullableDict): string;
     checkProxyUrlSettings(url?: Str, method?: Str, headers?: any, body?: any): any;
     urlEncoderForProxyUrl(targetUrl: string): string;
     checkProxySettings(url?: Str, method?: Str, headers?: any, body?: any): any[];
@@ -782,9 +784,9 @@ export default class Exchange {
     fetchIsolatedBorrowRate(symbol: string, params?: {}): Promise<IsolatedBorrowRate>;
     handleOptionAndParams(params: object, methodName: string, optionName: string, defaultValue?: any): [any, Dict];
     handleOptionAndParams2(params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue?: any): [any, Dict];
-    handleOption(methodName: string, optionName: string, defaultValue?: unknown): any;
+    handleOption(methodName: string, optionName: string, defaultValue?: any): any;
     handleMarketTypeAndParams(methodName: string, market?: Market, params?: {}, defaultValue?: any): [string, Dict];
-    handleSubTypeAndParams(methodName: string, market?: any, params?: {}, defaultValue?: any): [SubType, Dict];
+    handleSubTypeAndParams(methodName: string, market?: Market, params?: {}, defaultValue?: any): [SubType, Dict];
     handleMarginModeAndParams(methodName: string, params?: {}, defaultValue?: any): [any, Dict];
     throwExactlyMatchedException(exact: any, string: any, message: any): void;
     throwBroadlyMatchedException(broad: any, string: any, message: any): void;
@@ -962,7 +964,7 @@ export default class Exchange {
     createStopMarketOrder(symbol: string, side: OrderSide, amount: number, triggerPrice: number, params?: {}): Promise<Order>;
     createStopMarketOrderWs(symbol: string, side: OrderSide, amount: number, triggerPrice: number, params?: {}): Promise<Order>;
     createSubAccount(name: string, params?: {}): Promise<{}>;
-    safeCurrencyCode(currencyId: Str, currency?: Currency): Str;
+    safeCurrencyCode(currencyId: Str, currency?: Currency): string;
     filterBySymbolSinceLimit(array: any, symbol?: Str, since?: Int, limit?: Int, tail?: boolean): any;
     filterByCurrencySinceLimit(array: any, code?: Str, since?: Int, limit?: Int, tail?: boolean): any;
     filterBySymbolsSinceLimit(array: any, symbols?: string[], since?: Int, limit?: Int, tail?: boolean): any;
@@ -1018,9 +1020,9 @@ export default class Exchange {
     handleMaxEntriesPerRequestAndParams(method: string, maxEntriesPerRequest?: Int, params?: {}): [Int, any];
     fetchPaginatedCallDynamic(method: string, symbol?: Str, since?: Int, limit?: Int, params?: {}, maxEntriesPerRequest?: Int, removeRepeated?: boolean): Promise<any>;
     safeDeterministicCall(method: string, symbol?: Str, since?: Int, limit?: Int, timeframe?: Str, params?: {}): Promise<any>;
-    fetchPaginatedCallDeterministic(method: string, symbol?: Str, since?: Int, limit?: Int, timeframe?: Str, params?: {}, maxEntriesPerRequest?: any): Promise<any>;
-    fetchPaginatedCallCursor(method: string, symbol?: Str, since?: Int, limit?: Int, params?: {}, cursorReceived?: any, cursorSent?: any, cursorIncrement?: any, maxEntriesPerRequest?: any): Promise<any>;
-    fetchPaginatedCallIncremental(method: string, symbol?: Str, since?: Int, limit?: Int, params?: {}, pageKey?: any, maxEntriesPerRequest?: any): Promise<any>;
+    fetchPaginatedCallDeterministic(method: string, symbol?: Str, since?: Int, limit?: Int, timeframe?: Str, params?: {}, maxEntriesPerRequest?: Int): Promise<any>;
+    fetchPaginatedCallCursor(method: string, symbol?: Str, since?: Int, limit?: Int, params?: {}, cursorReceived?: Str, cursorSent?: Str, cursorIncrement?: Int, maxEntriesPerRequest?: Int): Promise<any>;
+    fetchPaginatedCallIncremental(method: string, symbol?: Str, since?: Int, limit?: Int, params?: {}, pageKey?: Str, maxEntriesPerRequest?: Int): Promise<any>;
     sortCursorPaginatedResult(result: any): any;
     removeRepeatedElementsFromArray(input: any, fallbackToTimestamp?: boolean): any;
     removeRepeatedTradesFromArray(input: any): any;

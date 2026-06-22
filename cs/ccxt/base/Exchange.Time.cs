@@ -26,6 +26,18 @@ public partial class Exchange
 
     }
 
+    public virtual void setLastRestRequestTimestamp()
+    {
+        this.lastRestRequestTimestamp = this.milliseconds();
+    }
+
+    public virtual void setLastRequest(object request)
+    {
+        this.last_request_headers = getValue(request, "headers");
+        this.last_request_body = getValue(request, "body");
+        this.last_request_url = getValue(request, "url");
+    }
+
     public long microseconds()
     {
 #if NET7_0_OR_GREATER

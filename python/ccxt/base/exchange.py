@@ -2528,6 +2528,14 @@ class Exchange(object):
             raise Exception('lighter_sign_change_pubkey() failed with error: ' + str(error))
         return [tx_type, tx_info, message_to_sign]
 
+    def set_last_rest_request_timestamp(self):
+        self.lastRestRequestTimestamp = self.milliseconds()
+
+    def set_last_request(self, request):
+        self.last_request_headers = request['headers']
+        self.last_request_body = request['body']
+        self.last_request_url = request['url']
+
     # ########################################################################
     # ########################################################################
     # ########################################################################
@@ -3052,7 +3060,7 @@ class Exchange(object):
             result = self.array_concat(result, arraysOfArrays[i])
         return result
 
-    def find_timeframe(self, timeframe, timeframes=None):
+    def find_timeframe(self, timeframe, timeframes: dict = None):
         if timeframes is None:
             timeframes = self.timeframes
         keys = list(timeframes.keys())
@@ -4466,7 +4474,7 @@ class Exchange(object):
             # the fee is always in feeSide currency
             useQuote = feeSide == 'quote'
         cost = self.number_to_string(amount)
-        key = None
+        key: Str = None
         if useQuote:
             priceString = self.number_to_string(price)
             cost = Precise.string_mul(cost, priceString)
@@ -5507,11 +5515,9 @@ class Exchange(object):
         retryDelay, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailureDelay', 0)
         for i in range(0, retries + 1):
             try:
-                self.lastRestRequestTimestamp = self.milliseconds()
+                self.set_last_rest_request_timestamp()
                 request = self.sign(path, api, method, params, headers, body)
-                self.last_request_headers = request['headers']
-                self.last_request_body = request['body']
-                self.last_request_url = request['url']
+                self.set_last_request(request)
                 return self.fetch(request['url'], request['method'], request['headers'], request['body'])
             except Exception as e:
                 if isinstance(e, OperationFailed):
@@ -5682,7 +5688,7 @@ class Exchange(object):
     def safe_currency(self, currencyId: Str, currency: Currency = None):
         if (currencyId is None) and (currency is not None):
             return currency
-        if (self.currencies_by_id is not None) and (currencyId in self.currencies_by_id) and (self.currencies_by_id[currencyId] is not None):
+        if (currencyId is not None) and (self.currencies_by_id is not None) and (currencyId in self.currencies_by_id) and (self.currencies_by_id[currencyId] is not None):
             return self.currencies_by_id[currencyId]
         code = currencyId
         if currencyId is not None:

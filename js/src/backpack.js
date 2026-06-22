@@ -716,7 +716,7 @@ export default class backpack extends Exchange {
         const maxQuantity = this.safeNumber(quantityFilter, 'maxQuantity');
         const minQuantity = this.safeNumber(quantityFilter, 'minQuantity');
         const amountPrecision = this.safeNumber(quantityFilter, 'stepSize');
-        let type;
+        let type = undefined;
         const typeOfMarket = this.parseMarketType(this.safeString(market, 'marketType'));
         let linear = undefined;
         let inverse = undefined;
