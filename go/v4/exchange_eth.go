@@ -1474,20 +1474,6 @@ func (this *Exchange) EncodeTypedData(td apitypes.TypedData) ([]byte, error) {
 
 func toTypedDataTypes(rawTypes map[string]any, domain map[string]any) (map[string][]apitypes.Type, string, error) {
 	typed := make(map[string][]apitypes.Type, len(rawTypes))
-	inferred := ""
-	// the first key in the map is the primary type, but the order is not guaranteed
-	// so we need to check for the primary type explicitly
-	if _, ok := rawTypes["OrderWithBuilderFee"]; ok {
-		inferred = "OrderWithBuilderFee"
-	} else if _, ok := rawTypes["Order"]; ok {
-		inferred = "Order"
-	} else {
-		for typeName := range rawTypes {
-			if inferred == "" {
-				inferred = typeName
-			}
-		}
-	}
 
 	for typeName, fieldsAny := range rawTypes {
 		fields, ok := fieldsAny.([]any)
@@ -1505,6 +1491,42 @@ func toTypedDataTypes(rawTypes map[string]any, domain map[string]any) (map[strin
 			typedFields[i] = apitypes.Type{Name: nameVal, Type: typeVal}
 		}
 		typed[typeName] = typedFields
+	}
+
+	// The EIP-712 primary (root) type is the struct that no other struct
+	// references as a field type — ethers' TypedDataEncoder infers it the same
+	// way. This is required for nested typed data such as the ERC-7739
+	// TypedDataSign(Order contents,…) wrapper, where the root is TypedDataSign
+	// (it references Order), not Order itself.
+	referenced := make(map[string]bool)
+	for _, fields := range typed {
+		for _, f := range fields {
+			base := strings.TrimSuffix(f.Type, "[]")
+			referenced[base] = true
+		}
+	}
+	candidates := []string{}
+	for typeName := range typed {
+		if typeName == "EIP712Domain" {
+			continue
+		}
+		if !referenced[typeName] {
+			candidates = append(candidates, typeName)
+		}
+	}
+	inferred := ""
+	if len(candidates) == 1 {
+		inferred = candidates[0]
+	} else if _, ok := rawTypes["OrderWithBuilderFee"]; ok {
+		inferred = "OrderWithBuilderFee"
+	} else if _, ok := rawTypes["Order"]; ok {
+		inferred = "Order"
+	} else {
+		for typeName := range rawTypes {
+			if inferred == "" {
+				inferred = typeName
+			}
+		}
 	}
 
 	// Add EIP712Domain type based on what's actually in the domain
