@@ -4313,7 +4313,6 @@ export default class kucoin extends Exchange {
         const isUnified = (accountMode === 'unified');
         let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
-        const marginModeDefined = (marginMode !== undefined);
         const tradeType = this.handleTradeType (isContract, marginMode, isUnified, params);
         const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId', this.uuid ());
         params = this.omit (params, [ 'clientOid', 'clientOrderId' ]);
@@ -4664,7 +4663,6 @@ export default class kucoin extends Exchange {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrders() requires a symbol for each order');
             }
-            const market = this.market (symbol);
             const type = this.safeString (rawOrder, 'type', '');
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeValue (rawOrder, 'amount');

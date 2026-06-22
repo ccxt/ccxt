@@ -4,7 +4,7 @@
 import { sha256 } from '@noble/hashes/sha2.js';
 import hitbtcRest from '../hitbtc.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Tickers, Int, OHLCV, OrderSide, OrderType, Strings, Num, Dict, Market, List, NullableList } from '../base/types.js';
+import type { Tickers, Int, OHLCV, OrderSide, OrderType, Strings, Num, Dict, Market, NullableList } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types.js';
 import { AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
@@ -267,7 +267,6 @@ export default class hitbtc extends hitbtcRest {
         //    }
         //
         const snapshot = this.safeDict (message, 'snapshot');
-        const update = this.safeDict (message, 'update');
         const data = this.safeDict2 (message, 'snapshot', 'update', {});
         const type = snapshot ? 'snapshot' : 'update';
         const marketIds = Object.keys (data);
