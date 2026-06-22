@@ -311,7 +311,7 @@ class exmo extends exmo$1["default"] {
             'position_id': market['id'],
             'quantity': amount,
         };
-        let response = undefined;
+        let response = {};
         if (type === 'add') {
             response = await this.privatePostMarginUserPositionMarginAdd(this.extend(request, params));
         }
@@ -777,7 +777,7 @@ class exmo extends exmo$1["default"] {
                     networkEntry['limits']['withdraw']['min'] = minValue;
                     networkEntry['limits']['withdraw']['max'] = maxValue;
                 }
-                const info = this.safeList(networkEntry, 'info');
+                const info = this.safeList(networkEntry, 'info', []);
                 info.push(provider);
                 networkEntry['info'] = info;
                 networks[networkCode] = networkEntry;
@@ -1083,7 +1083,7 @@ class exmo extends exmo$1["default"] {
         if (marginMode === 'cross') {
             throw new errors.BadRequest(this.id + ' does not support cross margin');
         }
-        let response = undefined;
+        let response;
         if (marginMode === 'isolated') {
             response = await this.privatePostMarginUserWalletList(params);
             //
@@ -1153,16 +1153,18 @@ class exmo extends exmo$1["default"] {
         let ids = undefined;
         if (symbols === undefined) {
             const allIds = this.ids;
-            ids = allIds.join(',');
-            // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
-            if (ids.length > 2048) {
-                const numIds = this.ids.length;
-                throw new errors.ExchangeError(this.id + ' fetchOrderBooks() has ' + numIds.toString() + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks');
+            if (allIds !== undefined) {
+                ids = allIds.join(',');
+                // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
+                if (ids.length > 2048) {
+                    const numIds = allIds.length;
+                    throw new errors.ExchangeError(this.id + ' fetchOrderBooks() has ' + numIds.toString() + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks');
+                }
             }
         }
         else {
-            ids = this.marketIds(symbols);
-            ids = ids.join(',');
+            const requestedIds = this.marketIds(symbols);
+            ids = requestedIds.join(',');
         }
         const request = {
             'pair': ids,
@@ -1450,7 +1452,7 @@ class exmo extends exmo$1["default"] {
         }
         const offset = this.safeInteger(params, 'offset', 0);
         request['offset'] = offset;
-        let response = undefined;
+        let response;
         if (isSpot) {
             response = await this.privatePostUserTrades(this.extend(request, params));
             //
@@ -1623,7 +1625,7 @@ class exmo extends exmo$1["default"] {
         if (price !== undefined) {
             request['price'] = this.priceToPrecision(market['symbol'], price);
         }
-        let response = undefined;
+        let response;
         if (isSpot) {
             if (triggerPrice !== undefined) {
                 if (type === 'limit') {
@@ -1706,7 +1708,7 @@ class exmo extends exmo$1["default"] {
         if (marginMode === 'cross') {
             throw new errors.BadRequest(this.id + ' only supports isolated margin');
         }
-        let response = undefined;
+        let response;
         if ((marginMode === 'isolated')) {
             request['order_id'] = id;
             response = await this.privatePostMarginUserOrderCancel(this.extend(request, params));
@@ -1803,7 +1805,7 @@ class exmo extends exmo$1["default"] {
         const request = {
             'order_id': id.toString(),
         };
-        let response = undefined;
+        let response;
         if (marginMode === 'isolated') {
             response = await this.privatePostMarginUserOrderTrades(this.extend(request, params));
             //
@@ -1877,7 +1879,7 @@ class exmo extends exmo$1["default"] {
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('fetchOpenOrders', params);
         const isMargin = ((marginMode === 'cross') || (marginMode === 'isolated'));
-        let response = undefined;
+        let response;
         let orders = [];
         if (isMargin) {
             response = await this.privatePostMarginUserOrderList(params);
@@ -2154,7 +2156,7 @@ class exmo extends exmo$1["default"] {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        let response = undefined;
+        let response;
         if (isSpot) {
             response = await this.privatePostUserCancelledOrders(this.extend(request, params));
             //

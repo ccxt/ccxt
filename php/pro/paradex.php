@@ -586,7 +586,7 @@ class paradex extends \ccxt\async\paradex {
         );
     }
 
-    public function handle_error_message(Client $client, $message): Bool {
+    public function handle_error_message(Client $client, $message): ?bool {
         //
         //     {
         //         "jsonrpc" => "2.0",

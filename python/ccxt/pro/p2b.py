@@ -154,8 +154,8 @@ class p2b(ccxt.async_support.p2b):
         watchTickerOptions = self.safe_dict(self.options, 'watchTicker')
         name = self.safe_string(watchTickerOptions, 'name', 'state')  # or price
         name, params = self.handle_option_and_params(params, 'method', 'name', name)
-        messageHashes = []
-        args = []
+        messageHashes: List[str] = []
+        args: List = []
         for i in range(0, len(symbols)):
             market = self.market(symbols[i])
             messageHashes.append(name + '::' + market['symbol'])
@@ -197,7 +197,7 @@ class p2b(ccxt.async_support.p2b):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False, True, True)
-        messageHashes = []
+        messageHashes: List[str] = []
         if symbols is not None:
             for i in range(0, len(symbols)):
                 messageHashes.append('deals::' + symbols[i])
@@ -363,7 +363,7 @@ class p2b(ccxt.async_support.p2b):
         splitMethod = method.split('.')
         messageHashStart = self.safe_string(splitMethod, 0)
         tickerData = self.safe_dict(data, 1)
-        ticker = None
+        ticker: Ticker
         if method == 'price.update':
             lastPrice = self.safe_string(data, 1)
             ticker = self.safe_ticker({

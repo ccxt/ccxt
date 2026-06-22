@@ -881,7 +881,7 @@ class backpack extends backpack$1["default"] {
         client.resolve(storedOrderBook, messageHash);
     }
     handleDelta(orderbook, delta) {
-        const timestamp = this.parseToInt(this.safeInteger(delta, 'T') / 1000);
+        const timestamp = this.parseToInt(this.safeInteger(delta, 'T', 0) / 1000);
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601(timestamp);
         orderbook['nonce'] = this.safeInteger(delta, 'u');

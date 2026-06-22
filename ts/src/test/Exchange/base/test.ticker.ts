@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { Exchange, Ticker } from "../../../../ccxt.js";
+import { Exchange, Ticker, Market } from "../../../../ccxt.js";
 import Precise from '../../../base/Precise.js';
 import testSharedMethods from './test.sharedMethods.js';
 
@@ -37,7 +37,7 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
     testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, entry);
     const logText = testSharedMethods.logTemplate (exchange, method, entry);
     // check market
-    let market = undefined;
+    let market: Market = undefined;
     let isUnrecognizedSymbol = false;
     const isFetchTickerCalled = method === 'fetchTicker';
     const symbolForMarket = (symbol !== undefined) ? symbol : exchange.safeString (entry, 'symbol');

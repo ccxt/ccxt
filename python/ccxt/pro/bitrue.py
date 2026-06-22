@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Str, Ticker, Trade
+from ccxt.base.types import Any, Balances, Int, Market, Order, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import NotSupported
@@ -307,9 +307,9 @@ class bitrue(ccxt.async_support.bitrue):
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'orderbook:' + symbol
-        url = None
-        channel = None
-        cbId = None
+        url: Str = None
+        channel: Str = None
+        cbId: Str = None
         if market['swap']:
             baseIdLower = self.safe_string_lower(market, 'baseId')
             quoteIdLower = self.safe_string_lower(market, 'quoteId')
@@ -318,7 +318,7 @@ class bitrue(ccxt.async_support.bitrue):
             cbId = wsId
             url = self.urls['api']['ws']['futurePublic']
         else:
-            marketIdLowercase = market['id'].lower()
+            marketIdLowercase = self.safe_string_lower(market, 'id')
             channel = 'market_' + marketIdLowercase + '_simple_depth_step0'
             cbId = marketIdLowercase
             url = self.urls['api']['ws']['public']
@@ -369,7 +369,7 @@ class bitrue(ccxt.async_support.bitrue):
         parts = channel.split('_')
         channelKind = self.safe_string(parts, 1)
         isFutures = (channelKind == 'e')
-        market = None
+        market: Market = None
         if isFutures:
             wsBaseQuote = self.safe_string_lower(parts, 2)
             market = self.find_swap_market_by_ws_base_quote(wsBaseQuote)

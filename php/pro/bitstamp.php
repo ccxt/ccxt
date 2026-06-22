@@ -195,7 +195,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         }) ();
     }
 
-    public function parse_ws_trade($trade, $market = null) {
+    public function parse_ws_trade($trade, ?array $market = null) {
         //
         //     {
         //         "buy_order_id" => 1211625836466176,
@@ -340,7 +340,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         $client->resolve ($this->orders, $channel);
     }
 
-    public function parse_ws_order($order, $market = null) {
+    public function parse_ws_order($order, ?array $market = null) {
         //
         //    {
         //        "id" => "1894876776091648",
@@ -499,7 +499,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         }
     }
 
-    public function handle_error_message(Client $client, $message): Bool {
+    public function handle_error_message(Client $client, $message): ?bool {
         // {
         //     "event" => "bts:error",
         //     "channel" => '',

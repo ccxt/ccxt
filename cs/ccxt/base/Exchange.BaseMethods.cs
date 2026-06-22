@@ -1670,7 +1670,7 @@ public partial class Exchange
 
     public virtual object featuresMapper(object initialFeatures, object marketType, object subType = null)
     {
-        object featuresObj = ((bool) isTrue((!isEqual(subType, null)))) ? getValue(getValue(initialFeatures, marketType), subType) : getValue(initialFeatures, marketType);
+        object featuresObj = ((bool) isTrue((!isEqual(subType, null)))) ? getValue(getValue(initialFeatures, ((string)marketType)), subType) : getValue(initialFeatures, ((string)marketType));
         // if exchange does not have that market-type (eg. future>inverse)
         if (isTrue(isEqual(featuresObj, null)))
         {
@@ -2781,7 +2781,7 @@ public partial class Exchange
         cost = Precise.stringMul(cost, rate);
         return new Dictionary<string, object>() {
             { "type", takerOrMaker },
-            { "currency", getValue(market, key) },
+            { "currency", getValue(market, ((string)key)) },
             { "rate", this.parseNumber(rate) },
             { "cost", this.parseNumber(cost) },
         };
@@ -4370,11 +4370,9 @@ public partial class Exchange
         {
             try
             {
-                this.lastRestRequestTimestamp = this.milliseconds();
+                this.setLastRestRequestTimestamp();
                 object request = this.sign(path, api, method, parameters, headers, body);
-                this.last_request_headers = getValue(request, "headers");
-                this.last_request_body = getValue(request, "body");
-                this.last_request_url = getValue(request, "url");
+                this.setLastRequest(request);
                 return await this.fetch(getValue(request, "url"), getValue(request, "method"), getValue(request, "headers"), getValue(request, "body"));
             } catch(Exception e)
             {
@@ -4646,7 +4644,7 @@ public partial class Exchange
         {
             return currency;
         }
-        if (isTrue(isTrue(isTrue((!isEqual(this.currencies_by_id, null))) && isTrue((inOp(this.currencies_by_id, currencyId)))) && isTrue((!isEqual(getValue(this.currencies_by_id, currencyId), null)))))
+        if (isTrue(isTrue(isTrue(isTrue((!isEqual(currencyId, null))) && isTrue((!isEqual(this.currencies_by_id, null)))) && isTrue((inOp(this.currencies_by_id, currencyId)))) && isTrue((!isEqual(getValue(this.currencies_by_id, currencyId), null)))))
         {
             return getValue(this.currencies_by_id, currencyId);
         }
@@ -6329,7 +6327,7 @@ public partial class Exchange
             for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
             {
                 object market = getValue(markets, i);
-                if (isTrue(getValue(market, defaultType)))
+                if (isTrue(getValue(market, ((string)defaultType))))
                 {
                     return market;
                 }
@@ -6990,7 +6988,7 @@ public partial class Exchange
             object item = getValue(info, i);
             object borrowRate = this.parseIsolatedBorrowRate(item);
             object symbol = this.safeString(borrowRate, "symbol");
-            ((IDictionary<string,object>)result)[(string)symbol] = borrowRate;
+            ((IDictionary<string,object>)result)[(string)((string)symbol)] = borrowRate;
         }
         return ((object)result);
     }
@@ -7525,7 +7523,7 @@ public partial class Exchange
             object code = this.safeString(currency, "code");
             if (isTrue(isTrue((isEqual(codes, null))) || isTrue((this.inArray(code, codes)))))
             {
-                ((IDictionary<string,object>)depositWithdrawFees)[(string)code] = this.parseDepositWithdrawFee(dictionary, currency);
+                ((IDictionary<string,object>)depositWithdrawFees)[(string)((string)code)] = this.parseDepositWithdrawFee(dictionary, currency);
             }
         }
         return depositWithdrawFees;
@@ -7809,7 +7807,7 @@ public partial class Exchange
                     errors = 0;
                     result = this.arrayConcat(result, response);
                     object last = this.safeValue(response, subtract(responseLength, 1));
-                    paginationTimestamp = add(this.safeInteger(last, "timestamp"), 1);
+                    paginationTimestamp = add(this.safeInteger(last, "timestamp", 0), 1);
                     if (isTrue(isTrue((!isEqual(until, null))) && isTrue((isGreaterThanOrEqual(paginationTimestamp, until)))))
                     {
                         break;
@@ -7954,7 +7952,7 @@ public partial class Exchange
                     {
                         cursorValue = add(this.parseToInt(cursorValue), cursorIncrement);
                     }
-                    ((IDictionary<string,object>)parameters)[(string)cursorSent] = cursorValue;
+                    ((IDictionary<string,object>)parameters)[(string)((string)cursorSent)] = cursorValue;
                 }
                 object response = null;
                 if (isTrue(isEqual(method, "fetchAccounts")))
@@ -8044,7 +8042,7 @@ public partial class Exchange
         {
             try
             {
-                ((IDictionary<string,object>)parameters)[(string)pageKey] = add(i, 1);
+                ((IDictionary<string,object>)parameters)[(string)((string)pageKey)] = add(i, 1);
                 object response = await ((Task<object>)callDynamically(this, method, new object[] { symbol, since, maxEntriesPerRequest, parameters }));
                 errors = 0;
                 object responseLength = getArrayLength(response);
@@ -8627,9 +8625,9 @@ public partial class Exchange
                 object timeframe = this.safeString(symbolAndTimeFrame, 1);
                 if (isTrue(isTrue((!isEqual(this.ohlcvs, null))) && isTrue((inOp(this.ohlcvs, symbol)))))
                 {
-                    if (isTrue(inOp(getValue(this.ohlcvs, symbol), timeframe)))
+                    if (isTrue(inOp(getValue(this.ohlcvs, ((string)symbol)), timeframe)))
                     {
-                        ((IDictionary<string,object>)getValue(this.ohlcvs, symbol)).Remove((string)timeframe);
+                        ((IDictionary<string,object>)getValue(this.ohlcvs, ((string)symbol))).Remove((string)((string)timeframe));
                     }
                 }
             }

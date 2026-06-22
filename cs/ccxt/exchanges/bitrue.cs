@@ -1247,7 +1247,7 @@ public partial class bitrue : Exchange
         object last = this.safeString2(ticker, "lastPrice", "last");
         object timestamp = this.safeInteger(ticker, "time");
         object percentage = null;
-        if (isTrue(getValue(market, "swap")))
+        if (isTrue(this.safeBool(market, "swap")))
         {
             percentage = Precise.stringMul(this.safeString(ticker, "rose"), "100");
         } else
@@ -3230,7 +3230,7 @@ public partial class bitrue : Exchange
         //
         return new Dictionary<string, object>() {
             { "info", data },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeString(market, "symbol") },
             { "type", null },
             { "marginMode", "isolated" },
             { "amount", null },

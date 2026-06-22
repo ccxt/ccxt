@@ -726,8 +726,8 @@ export default class hashkey extends hashkeyRest {
         const url = this.getPrivateUrl (listenKey);
         const client = this.client (url);
         this.setBalanceCache (client, type, messageHash);
-        let fetchBalanceSnapshot = undefined;
-        let awaitBalanceSnapshot = undefined;
+        let fetchBalanceSnapshot: Bool = undefined;
+        let awaitBalanceSnapshot: Bool = undefined;
         [ fetchBalanceSnapshot, params ] = this.handleOptionAndParams (this.options, 'watchBalance', 'fetchBalanceSnapshot', true);
         [ awaitBalanceSnapshot, params ] = this.handleOptionAndParams (this.options, 'watchBalance', 'awaitBalanceSnapshot', false);
         if (fetchBalanceSnapshot && awaitBalanceSnapshot) {

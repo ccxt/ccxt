@@ -1346,7 +1346,7 @@ class bitrue extends Exchange {
         $last = $this->safe_string_2($ticker, 'lastPrice', 'last');
         $timestamp = $this->safe_integer($ticker, 'time');
         $percentage = null;
-        if ($market['swap']) {
+        if ($this->safe_bool($market, 'swap')) {
             $percentage = Precise::string_mul($this->safe_string($ticker, 'rose'), '100');
         } else {
             $percentage = $this->safe_string($ticker, 'priceChangePercent');
@@ -3204,7 +3204,7 @@ class bitrue extends Exchange {
         //
         return array(
             'info' => $data,
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'type' => null,
             'marginMode' => 'isolated',
             'amount' => null,
@@ -3255,7 +3255,7 @@ class bitrue extends Exchange {
         }) ();
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $type = $this->safe_string($api, 0);
         $version = $this->safe_string($api, 1);
         $access = $this->safe_string($api, 2);

@@ -450,7 +450,7 @@ class bit2c(Exchange, ImplicitAPI):
             request['date'] = self.parse_to_int(since)
         if limit is not None:
             request['limit'] = limit  # max 100000
-        response = None
+        response: List = None
         if method == 'public_get_exchanges_pair_trades':
             response = await self.publicGetExchangesPairTrades(self.extend(request, params))
         else:
@@ -652,7 +652,7 @@ class bit2c(Exchange, ImplicitAPI):
         #          "initialAmount": 2.00000000
         #      }
         #
-        orderUnified = None
+        orderUnified: dict = None
         isNewOrder = False
         if 'NewOrder' in order:
             orderUnified = order['NewOrder']
@@ -667,7 +667,7 @@ class bit2c(Exchange, ImplicitAPI):
         # 0 = New
         # 1 = Open
         # 5 = Completed
-        status: str
+        status: Str = None
         if isNewOrder:
             tempStatus = self.safe_integer(orderUnified, 'status_type')
             if tempStatus == 0 or tempStatus == 1:
@@ -695,8 +695,8 @@ class bit2c(Exchange, ImplicitAPI):
         elif side == '1':
             side = 'sell'
         price = self.safe_string(orderUnified, 'price')
-        amount = None
-        remaining = None
+        amount: Str = None
+        remaining: Str = None
         if isNewOrder:
             amount = self.safe_string(orderUnified, 'amount')  # NOTE:'initialAmount' is currently not set on new order
             remaining = self.safe_string(orderUnified, 'amount')
@@ -740,7 +740,7 @@ class bit2c(Exchange, ImplicitAPI):
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         request: dict = {}
         if limit is not None:
             request['take'] = limit
@@ -834,12 +834,12 @@ class bit2c(Exchange, ImplicitAPI):
         #
         timestamp: Int
         id: Str
-        price = None
-        amount = None
-        orderId = None
-        fee = None
+        price: Str = None
+        amount: Str = None
+        orderId: Str = None
+        fee: dict = None
         side: str
-        makerOrTaker = None
+        makerOrTaker: Str = None
         reference = self.safe_string(trade, 'reference')
         if reference is not None:
             id = reference
@@ -943,7 +943,7 @@ class bit2c(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api']['rest'] + '/' + self.implode_params(path, params)
         if api == 'public':
             url += '.json'

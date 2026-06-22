@@ -681,12 +681,12 @@ class derive extends \ccxt\async\derive {
             $trade = $this->parse_trade($message);
             $myTrades->append ($trade);
             $client->resolve ($myTrades, $topic);
-            $messageHash = $topic . $trade['symbol'];
+            $messageHash = $topic . $this->safe_string($trade, 'symbol', '');
             $client->resolve ($myTrades, $messageHash);
         }
     }
 
-    public function handle_error_message(Client $client, $message): Bool {
+    public function handle_error_message(Client $client, $message): ?bool {
         //
         // {
         //     id => '690c6276-0fc6-4121-aafa-f28bf5adedcb',

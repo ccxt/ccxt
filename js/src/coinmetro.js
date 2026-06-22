@@ -458,7 +458,7 @@ export default class coinmetro extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const market = this.parseMarket(response[i]);
             // there are several broken (unavailable info) markets
-            if (market['base'] === undefined || market['quote'] === undefined) {
+            if (this.safeString(market, 'base') === undefined || this.safeString(market, 'quote') === undefined) {
                 continue;
             }
             result.push(market);
@@ -899,7 +899,7 @@ export default class coinmetro extends Exchange {
             const priceString = this.safeString(prices, i);
             const price = this.safeNumber(prices, i);
             const volume = this.safeNumber(bidasks, priceString);
-            result.push([price, volume]);
+            (result).push([price, volume]);
         }
         return result;
     }
@@ -1412,7 +1412,7 @@ export default class coinmetro extends Exchange {
         //         "takerQty": 0.002
         //     }
         //
-        return this.parseOrder(response, market);
+        return this.parseOrder(response);
     }
     handleCreateOrderSide(sellingCurrency, buyingCurrency, sellingQty, buyingQty, request = {}) {
         request['sellingCurrency'] = sellingCurrency;
@@ -1965,7 +1965,7 @@ export default class coinmetro extends Exchange {
             'info': info,
         };
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = 'public', method = 'GET', params = {}, headers = {}, body = undefined) {
         const request = this.omit(params, this.extractParams(path));
         const endpoint = '/' + this.implodeParams(path, params);
         let url = this.urls['api'][api] + endpoint;

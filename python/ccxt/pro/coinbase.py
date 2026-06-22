@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCacheBySymbolById
 import hashlib
-from ccxt.base.types import Any, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -73,7 +73,7 @@ class coinbase(ccxt.async_support.coinbase):
         :returns dict: subscription to a websocket channel
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         messageHash = name
         productIds = []
         if isinstance(symbol, list):
@@ -115,7 +115,7 @@ class coinbase(ccxt.async_support.coinbase):
         if self.safe_bool(self.options, 'unSubscriptionPending', False):
             raise ExchangeError(self.id + ' another unSubscription is pending, coinbase does not support concurrent unSubscriptions')
         self.options['unSubscriptionPending'] = True
-        market = None
+        market: Market = None
         watchMessageHash = name
         unWatchMessageHash = 'unsubscribe:' + name
         productIds = []

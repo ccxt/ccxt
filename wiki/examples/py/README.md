@@ -459,6 +459,8 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 
 - [Measure Latency](./examples/py/measure-latency.md)
 
+- [Memleak Test](./examples/py/memleak-test.md)
+
 - [Minimal 2 Lines](./examples/py/minimal-2-lines.md)
 
 - [Multiple Exchanges Watch Orderbook Continuously](./examples/py/multiple-exchanges-watch-orderbook-continuously.md)
@@ -519,10 +521,6 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 
 - [Poloniex Fetch Trades With Pagination To Csv](./examples/py/poloniex-fetch-trades-with-pagination-to-csv.md)
 
-- [Poloniex Python2 Memleak Test](./examples/py/poloniex-python2-memleak-test.md)
-
-- [Poloniex Python3 Memleak Test](./examples/py/poloniex-python3-memleak-test.md)
-
 - [Proxy Usage](./examples/py/proxy-usage.md)
 
 - [Rsi](./examples/py/rsi.md)
@@ -544,8 +542,6 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 - [Symbols](./examples/py/symbols.md)
 
 - [Test Server](./examples/py/test-server.md)
-
-- [Theocean](./examples/py/theocean.md)
 
 - [Tickers](./examples/py/tickers.md)
 
@@ -574,8 +570,6 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 - [WatchPositionsForSymbols](./examples/py/watchPositionsForSymbols.md)
 
 - [WatchTradesForSymbols](./examples/py/watchTradesForSymbols.md)
-
-- [Wazirx Create Cancel Orders](./examples/py/wazirx-create-cancel-orders.md)
 
 - [Withdraw From One Exchange To Another](./examples/py/withdraw-from-one-exchange-to-another.md)
 

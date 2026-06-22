@@ -1809,7 +1809,7 @@ class bitmex extends Exchange {
                 // we can emulate the open $timestamp by shifting all the timestamps one place
                 // so the previous close becomes the current open, and we drop the first candle
                 for ($i = 0; $i < count($result); $i++) {
-                    $result[$i][0] = $result[$i][0] - $duration;
+                    $result[$i][0] = $this->parse_to_int($result[$i][0]) - $duration;
                 }
             }
             return $result;
@@ -3728,7 +3728,7 @@ class bitmex extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $query = '/api/' . $this->version . '/' . $path;
         if ($method === 'GET') {
             if ($params) {

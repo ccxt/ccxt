@@ -795,7 +795,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             self.load_time_difference()
         data = self.safe_value(response, 'data', {})
         list = self.safe_value(data, 'list', [])
-        result = []
+        result: List = []
         for i in range(0, len(list)):
             market = list[i]
             baseId = self.safe_string(market, 'baseAsset')
@@ -917,9 +917,9 @@ class tokocrypto(Exchange, ImplicitAPI):
         request: dict = {}
         if limit is not None:
             request['limit'] = limit  # default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
-        response = None
+        response: dict
         if market['quote'] == 'USDT':
-            request['symbol'] = market['baseId'] + market['quoteId']
+            request['symbol'] = self.safe_string(market, 'baseId', '') + self.safe_string(market, 'quoteId', '')
             response = self.binanceGetDepth(self.extend(request, params))
         else:
             request['symbol'] = market['id']
@@ -1073,7 +1073,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         else:
             if 'isBuyer' in trade:
                 side = 'buy' if trade['isBuyer'] else 'sell'  # self is a True side
-        fee = None
+        fee: NullableDict = None
         if 'commission' in trade:
             fee = {
                 'cost': self.safe_string(trade, 'commission'),
@@ -1252,8 +1252,8 @@ class tokocrypto(Exchange, ImplicitAPI):
         symbol = self.safe_symbol(marketId, market)
         last = self.safe_string(ticker, 'lastPrice')
         isCoinm = ('baseVolume' in ticker)
-        baseVolume = None
-        quoteVolume = None
+        baseVolume: Str = None
+        quoteVolume: Str = None
         if isCoinm:
             baseVolume = self.safe_string(ticker, 'baseVolume')
             quoteVolume = self.safe_string(ticker, 'volume')
@@ -1315,7 +1315,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         request: dict = {
-            'symbol': market['baseId'] + market['quoteId'],
+            'symbol': self.safe_string(market, 'baseId', '') + self.safe_string(market, 'quoteId', ''),
         }
         response = self.binanceGetTicker24hr(self.extend(request, params))
         if isinstance(response, list):
@@ -2153,7 +2153,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         self.load_markets()
-        currency = None
+        currency: Currency = None
         request: dict = {}
         until = self.safe_integer(params, 'until')
         if code is not None:
@@ -2210,7 +2210,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         """
         self.load_markets()
         request: dict = {}
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
             request['coin'] = currency['id']
@@ -2324,7 +2324,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             txid = txid[18:]
         currencyId = self.safe_string_2(transaction, 'coin', 'fiatCurrency')
         code = self.safe_currency_code(currencyId, currency)
-        timestamp = None
+        timestamp: Int = None
         insertTime = self.safe_integer(transaction, 'insertTime')
         createTime = self.safe_integer_2(transaction, 'createTime', 'timestamp')
         type = self.safe_string(transaction, 'type')
@@ -2420,7 +2420,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
         if not (api in self.urls['api']['rest']):
             raise NotSupported(self.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints')
         url = self.urls['api']['rest'][api]
@@ -2441,7 +2441,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                 raise AuthenticationError(self.id + ' userDataStream endpoint requires `apiKey` credential')
         elif (api == 'private') or (api == 'sapi' and path != 'system/status') or (api == 'sapiV3') or (api == 'wapi' and path != 'systemStatus') or (api == 'dapiPrivate') or (api == 'dapiPrivateV2') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2'):
             self.check_required_credentials()
-            query = None
+            query: Str = None
             defaultRecvWindow = self.safe_integer(self.options, 'recvWindow')
             extendedParams = self.extend({
                 'timestamp': self.nonce(),
@@ -2492,7 +2492,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         success = self.safe_bool(response, 'success', True)
         if not success:
             messageInner = self.safe_string(response, 'msg')
-            parsedMessage = None
+            parsedMessage: NullableDict = None
             if messageInner is not None:
                 try:
                     parsedMessage = json.loads(messageInner)

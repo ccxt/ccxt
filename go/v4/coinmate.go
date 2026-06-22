@@ -599,7 +599,7 @@ func (this *CoinmateCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	var timestamp any = this.SafeTimestamp(ticker, "timestamp")
 	var last any = this.SafeNumber(ticker, "last")
 	return this.SafeTicker(map[string]any{
-		"symbol":        GetValue(market, "symbol"),
+		"symbol":        this.SafeString(market, "symbol"),
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
 		"high":          this.SafeNumber(ticker, "high"),

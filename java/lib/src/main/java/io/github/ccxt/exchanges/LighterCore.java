@@ -477,8 +477,8 @@ public class LighterCore extends LighterApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " requires accountIndex or account_index")) ;
             }
-            Object strAccountIndex = this.numberToString(accountIndex);
-            Object strApiKeyIndex = this.numberToString(apiKeyIndex);
+            Object strAccountIndex = ((String)this.numberToString(accountIndex));
+            Object strApiKeyIndex = ((String)this.numberToString(apiKeyIndex));
             this.initAuthObject(strAccountIndex, strApiKeyIndex);
             Object signer = this.safeDict(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.options, "auths"), strAccountIndex), strApiKeyIndex), "signer");
             if (Helpers.isTrue(!Helpers.isEqual(signer, null)))
@@ -599,8 +599,8 @@ public class LighterCore extends LighterApi
                 put( "api_key_index", finalApiKeyIndex );
                 put( "account_index", finalAccountIndex );
             }};
-            Object strAccountIndex = this.numberToString(accountIndex);
-            Object strApiKeyIndex = this.numberToString(apiKeyIndex);
+            Object strAccountIndex = ((String)this.numberToString(accountIndex));
+            Object strApiKeyIndex = ((String)this.numberToString(apiKeyIndex));
             Object signer = (this.loadAccount(Helpers.GetValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
             var txTypetxInfoVariable = this.lighterSignCreateSubAccount(signer, this.extend(signRaw, parameters));
             var txType = ((java.util.List<Object>) txTypetxInfoVariable).get(0);
@@ -636,13 +636,13 @@ public class LighterCore extends LighterApi
         Object cachedDeadline = this.safeInteger(cachedAuth, "deadline");
         if (Helpers.isTrue(!Helpers.isEqual(cachedDeadline, null)))
         {
-            Object minimumDeadline = Helpers.add(this.seconds(), this.safeInteger(this.options, "authDeadlineMinimumRemaining"));
+            Object minimumDeadline = Helpers.add(this.seconds(), this.safeInteger(this.options, "authDeadlineMinimumRemaining", 60));
             if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(cachedDeadline, minimumDeadline)))
             {
                 return this.safeString(cachedAuth, "token");
             }
         }
-        Object deadline = Helpers.add(this.seconds(), this.safeInteger(this.options, "authDeadlineExpiry"));
+        Object deadline = Helpers.add(this.seconds(), this.safeInteger(this.options, "authDeadlineExpiry", 28800));
         final Object finalApiKeyIndex = apiKeyIndex;
         final Object finalAccountIndex = accountIndex;
         Object request = new java.util.HashMap<String, Object>() {{
@@ -745,8 +745,8 @@ public class LighterCore extends LighterApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object strAccountIndex = this.numberToString(accountIndex);
-            Object strApiKeyIndex = this.numberToString(apiKeyIndex);
+            Object strAccountIndex = ((String)this.numberToString(accountIndex));
+            Object strApiKeyIndex = ((String)this.numberToString(apiKeyIndex));
             Object signer = (this.loadAccount(Helpers.GetValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
             Object nonce = (this.fetchNonce(accountIndex, apiKeyIndex, this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "skipNonce", false );
@@ -790,8 +790,8 @@ public class LighterCore extends LighterApi
             var accountIndexparametersVariable = (this.handleAccountIndex(parameters, "changeApiKey", "accountIndex", "account_index")).join();
             accountIndex = ((java.util.List<Object>) accountIndexparametersVariable).get(0);
             parameters = ((java.util.List<Object>) accountIndexparametersVariable).get(1);
-            Object strAccountIndex = this.numberToString(accountIndex);
-            Object strApiKeyIndex = this.numberToString(apiKeyIndex);
+            Object strAccountIndex = ((String)this.numberToString(accountIndex));
+            Object strApiKeyIndex = ((String)this.numberToString(apiKeyIndex));
             Object signerNotLoad = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.options, "auths"), strAccountIndex), strApiKeyIndex), "signer");
             var privateKeypublicKeyVariable = this.lighterGenerateApiKey(signerNotLoad);
             var privateKey = ((java.util.List<Object>) privateKeypublicKeyVariable).get(0);
@@ -935,7 +935,7 @@ public class LighterCore extends LighterApi
                 }
             }
         }
-        Object marketInfo = this.safeDict(market, "info");
+        Object marketInfo = this.safeDict(market, "info", new java.util.HashMap<String, Object>() {{}});
         Object amountStr = null;
         Object priceStr = this.priceToPrecision(symbol, price);
         Object amountScale = this.pow("10", Helpers.GetValue(marketInfo, "size_decimals"));
@@ -1118,8 +1118,8 @@ public class LighterCore extends LighterApi
                 order = Helpers.GetValue(orderRequests, 0);
                 apiKeyIndex = Helpers.GetValue(order, "api_key_index");
             }
-            Object strAccountIndex = this.numberToString(accountIndex);
-            Object strApiKeyIndex = this.numberToString(apiKeyIndex);
+            Object strAccountIndex = ((String)this.numberToString(accountIndex));
+            Object strApiKeyIndex = ((String)this.numberToString(apiKeyIndex));
             Object signer = (this.loadAccount(Helpers.GetValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
             // the nonce could be updated
             if (Helpers.isTrue(Helpers.isEqual(this.safeInteger(order, "nonce"), null)))
@@ -1208,11 +1208,11 @@ public class LighterCore extends LighterApi
             var accountIndexparametersVariable = (this.handleAccountIndex(parameters, "editOrder", "accountIndex", "account_index")).join();
             accountIndex = ((java.util.List<Object>) accountIndexparametersVariable).get(0);
             parameters = ((java.util.List<Object>) accountIndexparametersVariable).get(1);
-            Object strAccountIndex = this.numberToString(accountIndex);
-            Object strApiKeyIndex = this.numberToString(apiKeyIndex);
+            Object strAccountIndex = ((String)this.numberToString(accountIndex));
+            Object strApiKeyIndex = ((String)this.numberToString(apiKeyIndex));
             Object signer = (this.loadAccount(Helpers.GetValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
             Object market = this.market(symbol);
-            Object marketInfo = this.safeDict(market, "info");
+            Object marketInfo = this.safeDict(market, "info", new java.util.HashMap<String, Object>() {{}});
             Object amountScale = this.pow("10", Helpers.GetValue(marketInfo, "size_decimals"));
             Object priceScale = this.pow("10", Helpers.GetValue(marketInfo, "price_decimals"));
             Object triggerPrice = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice")));
@@ -2506,8 +2506,8 @@ public class LighterCore extends LighterApi
             var apiKeyIndexparametersVariable = this.handleApiKeyIndex(parameters, "fetchOpenOrders", "apiKeyIndex", "api_key_index");
             apiKeyIndex = ((java.util.List<Object>) apiKeyIndexparametersVariable).get(0);
             parameters = ((java.util.List<Object>) apiKeyIndexparametersVariable).get(1);
-            Object strAccountIndex = this.numberToString(accountIndex);
-            Object strApiKeyIndex = this.numberToString(apiKeyIndex);
+            Object strAccountIndex = ((String)this.numberToString(accountIndex));
+            Object strApiKeyIndex = ((String)this.numberToString(apiKeyIndex));
             (this.loadAccount(Helpers.GetValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
             Object market = this.market(symbol);
             final Object finalAccountIndex = accountIndex;
@@ -2598,8 +2598,8 @@ public class LighterCore extends LighterApi
             var apiKeyIndexparametersVariable = this.handleApiKeyIndex(parameters, "fetchClosedOrders", "apiKeyIndex", "api_key_index");
             apiKeyIndex = ((java.util.List<Object>) apiKeyIndexparametersVariable).get(0);
             parameters = ((java.util.List<Object>) apiKeyIndexparametersVariable).get(1);
-            Object strAccountIndex = this.numberToString(accountIndex);
-            Object strApiKeyIndex = this.numberToString(apiKeyIndex);
+            Object strAccountIndex = ((String)this.numberToString(accountIndex));
+            Object strApiKeyIndex = ((String)this.numberToString(apiKeyIndex));
             (this.loadAccount(Helpers.GetValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
             Object market = this.market(symbol);
             final Object finalAccountIndex = accountIndex;
@@ -2912,8 +2912,8 @@ public class LighterCore extends LighterApi
             var toAccountIndexparametersVariable = this.handleOptionAndParams2(parameters, "transfer", "toAccountIndex", "to_account_index", accountIndex);
             toAccountIndex = ((java.util.List<Object>) toAccountIndexparametersVariable).get(0);
             parameters = ((java.util.List<Object>) toAccountIndexparametersVariable).get(1);
-            Object strAccountIndex = this.numberToString(accountIndex);
-            Object strApiKeyIndex = this.numberToString(apiKeyIndex);
+            Object strAccountIndex = ((String)this.numberToString(accountIndex));
+            Object strApiKeyIndex = ((String)this.numberToString(apiKeyIndex));
             Object signer = (this.loadAccount(Helpers.GetValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
             Object currency = this.currency(code);
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(currency, "code"), "USDC")))
@@ -3003,8 +3003,8 @@ public class LighterCore extends LighterApi
             var apiKeyIndexparametersVariable = this.handleApiKeyIndex(parameters, "fetchTransfers", "apiKeyIndex", "api_key_index");
             apiKeyIndex = ((java.util.List<Object>) apiKeyIndexparametersVariable).get(0);
             parameters = ((java.util.List<Object>) apiKeyIndexparametersVariable).get(1);
-            Object strAccountIndex = this.numberToString(accountIndex);
-            Object strApiKeyIndex = this.numberToString(apiKeyIndex);
+            Object strAccountIndex = ((String)this.numberToString(accountIndex));
+            Object strApiKeyIndex = ((String)this.numberToString(apiKeyIndex));
             (this.loadAccount(Helpers.GetValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
@@ -3139,8 +3139,8 @@ public class LighterCore extends LighterApi
             var apiKeyIndexparametersVariable = this.handleApiKeyIndex(parameters, "fetchDeposits", "apiKeyIndex", "api_key_index");
             apiKeyIndex = ((java.util.List<Object>) apiKeyIndexparametersVariable).get(0);
             parameters = ((java.util.List<Object>) apiKeyIndexparametersVariable).get(1);
-            Object strAccountIndex = this.numberToString(accountIndex);
-            Object strApiKeyIndex = this.numberToString(apiKeyIndex);
+            Object strAccountIndex = ((String)this.numberToString(accountIndex));
+            Object strApiKeyIndex = ((String)this.numberToString(apiKeyIndex));
             (this.loadAccount(Helpers.GetValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
@@ -3220,8 +3220,8 @@ public class LighterCore extends LighterApi
             var apiKeyIndexparametersVariable = this.handleApiKeyIndex(parameters, "fetchWithdrawals", "apiKeyIndex", "api_key_index");
             apiKeyIndex = ((java.util.List<Object>) apiKeyIndexparametersVariable).get(0);
             parameters = ((java.util.List<Object>) apiKeyIndexparametersVariable).get(1);
-            Object strAccountIndex = this.numberToString(accountIndex);
-            Object strApiKeyIndex = this.numberToString(apiKeyIndex);
+            Object strAccountIndex = ((String)this.numberToString(accountIndex));
+            Object strApiKeyIndex = ((String)this.numberToString(apiKeyIndex));
             (this.loadAccount(Helpers.GetValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
@@ -3359,8 +3359,8 @@ public class LighterCore extends LighterApi
             var accountIndexparametersVariable = (this.handleAccountIndex(parameters, "withdraw", "accountIndex", "account_index")).join();
             accountIndex = ((java.util.List<Object>) accountIndexparametersVariable).get(0);
             parameters = ((java.util.List<Object>) accountIndexparametersVariable).get(1);
-            Object strAccountIndex = this.numberToString(accountIndex);
-            Object strApiKeyIndex = this.numberToString(apiKeyIndex);
+            Object strAccountIndex = ((String)this.numberToString(accountIndex));
+            Object strApiKeyIndex = ((String)this.numberToString(apiKeyIndex));
             Object signer = (this.loadAccount(Helpers.GetValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
             Object currency = this.currency(code);
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(currency, "code"), "USDC")))
@@ -3440,8 +3440,8 @@ public class LighterCore extends LighterApi
             var apiKeyIndexparametersVariable = this.handleApiKeyIndex(parameters, "fetchMyTrades", "apiKeyIndex", "api_key_index");
             apiKeyIndex = ((java.util.List<Object>) apiKeyIndexparametersVariable).get(0);
             parameters = ((java.util.List<Object>) apiKeyIndexparametersVariable).get(1);
-            Object strAccountIndex = this.numberToString(accountIndex);
-            Object strApiKeyIndex = this.numberToString(apiKeyIndex);
+            Object strAccountIndex = ((String)this.numberToString(accountIndex));
+            Object strApiKeyIndex = ((String)this.numberToString(apiKeyIndex));
             (this.loadAccount(Helpers.GetValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
             final Object finalAccountIndex = accountIndex;
             Object request = new java.util.HashMap<String, Object>() {{
@@ -3688,8 +3688,8 @@ public class LighterCore extends LighterApi
             var accountIndexparametersVariable = (this.handleAccountIndex(parameters, "modifyLeverageAndMarginMode", "accountIndex", "account_index")).join();
             accountIndex = ((java.util.List<Object>) accountIndexparametersVariable).get(0);
             parameters = ((java.util.List<Object>) accountIndexparametersVariable).get(1);
-            Object strAccountIndex = this.numberToString(accountIndex);
-            Object strApiKeyIndex = this.numberToString(apiKeyIndex);
+            Object strAccountIndex = ((String)this.numberToString(accountIndex));
+            Object strApiKeyIndex = ((String)this.numberToString(apiKeyIndex));
             Object signer = (this.loadAccount(Helpers.GetValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
             Object market = this.market(symbol);
             Object nonce = (this.fetchNonce(accountIndex, apiKeyIndex, parameters)).join();
@@ -3750,8 +3750,8 @@ public class LighterCore extends LighterApi
             var accountIndexparametersVariable = (this.handleAccountIndex(parameters, "cancelOrder", "accountIndex", "account_index")).join();
             accountIndex = ((java.util.List<Object>) accountIndexparametersVariable).get(0);
             parameters = ((java.util.List<Object>) accountIndexparametersVariable).get(1);
-            Object strAccountIndex = this.numberToString(accountIndex);
-            Object strApiKeyIndex = this.numberToString(apiKeyIndex);
+            Object strAccountIndex = ((String)this.numberToString(accountIndex));
+            Object strApiKeyIndex = ((String)this.numberToString(apiKeyIndex));
             Object signer = (this.loadAccount(Helpers.GetValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
             Object nonce = (this.fetchNonce(accountIndex, apiKeyIndex, parameters)).join();
             final Object finalApiKeyIndex = apiKeyIndex;
@@ -3811,8 +3811,8 @@ public class LighterCore extends LighterApi
             var accountIndexparametersVariable = (this.handleAccountIndex(parameters, "cancelAllOrders", "accountIndex", "account_index")).join();
             accountIndex = ((java.util.List<Object>) accountIndexparametersVariable).get(0);
             parameters = ((java.util.List<Object>) accountIndexparametersVariable).get(1);
-            Object strAccountIndex = this.numberToString(accountIndex);
-            Object strApiKeyIndex = this.numberToString(apiKeyIndex);
+            Object strAccountIndex = ((String)this.numberToString(accountIndex));
+            Object strApiKeyIndex = ((String)this.numberToString(apiKeyIndex));
             Object signer = (this.loadAccount(Helpers.GetValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
             Object nonce = (this.fetchNonce(accountIndex, apiKeyIndex, parameters)).join();
             final Object finalApiKeyIndex = apiKeyIndex;
@@ -3864,8 +3864,8 @@ public class LighterCore extends LighterApi
             var accountIndexparametersVariable = (this.handleAccountIndex(parameters, "cancelAllOrdersAfter", "accountIndex", "account_index")).join();
             accountIndex = ((java.util.List<Object>) accountIndexparametersVariable).get(0);
             parameters = ((java.util.List<Object>) accountIndexparametersVariable).get(1);
-            Object strAccountIndex = this.numberToString(accountIndex);
-            Object strApiKeyIndex = this.numberToString(apiKeyIndex);
+            Object strAccountIndex = ((String)this.numberToString(accountIndex));
+            Object strApiKeyIndex = ((String)this.numberToString(apiKeyIndex));
             Object signer = (this.loadAccount(Helpers.GetValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
             Object nonce = (this.fetchNonce(accountIndex, apiKeyIndex, parameters)).join();
             final Object finalTimeout = timeout;
@@ -3976,8 +3976,8 @@ public class LighterCore extends LighterApi
             var accountIndexparametersVariable = (this.handleAccountIndex(parameters, "setMargin", "accountIndex", "account_index")).join();
             accountIndex = ((java.util.List<Object>) accountIndexparametersVariable).get(0);
             parameters = ((java.util.List<Object>) accountIndexparametersVariable).get(1);
-            Object strAccountIndex = this.numberToString(accountIndex);
-            Object strApiKeyIndex = this.numberToString(apiKeyIndex);
+            Object strAccountIndex = ((String)this.numberToString(accountIndex));
+            Object strApiKeyIndex = ((String)this.numberToString(apiKeyIndex));
             Object signer = (this.loadAccount(Helpers.GetValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
             Object market = this.market(symbol);
             Object nonce = (this.fetchNonce(accountIndex, apiKeyIndex, parameters)).join();

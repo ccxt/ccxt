@@ -288,7 +288,7 @@ class ndax(ccxt.async_support.ndax):
                     ]
                     updates[marketId][timeframe] = True
                 else:
-                    if length and (parsed[0] < stored[length - 1][0]):
+                    if length and (self.parse_to_int(parsed[0]) < self.parse_to_int(stored[length - 1][0])):
                         continue
                     else:
                         stored.append(parsed)
@@ -389,8 +389,8 @@ class ndax(ccxt.async_support.ndax):
         orderbook = self.safe_value(self.orderbooks, symbol)
         if orderbook is None:
             return
-        timestamp = None
-        nonce = None
+        timestamp: Int = None
+        nonce: Int = None
         for i in range(0, len(payload)):
             bidask = payload[i]
             if timestamp is None:

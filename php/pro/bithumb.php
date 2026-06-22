@@ -135,7 +135,7 @@ class bithumb extends \ccxt\async\bithumb {
         $client->resolve ($this->tickers[$symbol], $messageHash);
     }
 
-    public function parse_ws_ticker($ticker, $market = null) {
+    public function parse_ws_ticker($ticker, ?array $market = null) {
         //
         //    {
         //        "symbol" : "BTC_KRW",           // 통화코드
@@ -345,7 +345,7 @@ class bithumb extends \ccxt\async\bithumb {
         }
     }
 
-    public function parse_ws_trade($trade, $market = null) {
+    public function parse_ws_trade($trade, ?array $market = null) {
         //
         //    {
         //        "symbol" : "BTC_KRW",
@@ -360,7 +360,7 @@ class bithumb extends \ccxt\async\bithumb {
         $marketId = $this->safe_string($trade, 'symbol');
         $datetime = $this->safe_string($trade, 'contDtm');
         // that date is not UTC iso8601, but exchange's local time, -9hr difference
-        $timestamp = $this->parse8601($datetime) - 32400000;
+        $timestamp = $this->parse_to_int($this->parse8601($datetime)) - 32400000;
         $sideId = $this->safe_string($trade, 'buySellGb');
         return $this->safe_trade(array(
             'id' => null,
@@ -379,7 +379,7 @@ class bithumb extends \ccxt\async\bithumb {
         ), $market);
     }
 
-    public function handle_error_message(Client $client, $message): Bool {
+    public function handle_error_message(Client $client, $message): ?bool {
         //
         //    {
         //        "status" : "5100",
@@ -563,7 +563,7 @@ class bithumb extends \ccxt\async\bithumb {
         $client->resolve ($cachedOrders, $symbolSpecificMessageHash);
     }
 
-    public function parse_ws_order($order, $market = null) {
+    public function parse_ws_order($order, ?array $market = null) {
         //
         //    {
         //        "type" => "myOrder",

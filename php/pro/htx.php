@@ -718,7 +718,7 @@ class htx extends \ccxt\async\htx {
             $orderbook->reset ($snapshot);
             $orderbook['nonce'] = $version;
         }
-        if (($prevSeqNum !== null) && $prevSeqNum > $orderbook['nonce']) {
+        if (($prevSeqNum !== null) && $prevSeqNum > $this->safe_integer($orderbook, 'nonce', 0)) {
             $checksum = $this->handle_option('watchOrderBook', 'checksum', true);
             if ($checksum) {
                 throw new ChecksumError($this->id . ' ' . $this->orderbook_checksum_message($symbol));
@@ -2104,7 +2104,7 @@ class htx extends \ccxt\async\htx {
         $promise->resolve ($message);
     }
 
-    public function handle_error_message(Client $client, $message): Bool {
+    public function handle_error_message(Client $client, $message): ?bool {
         //
         //     {
         //         "action" => "sub",

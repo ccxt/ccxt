@@ -2414,7 +2414,7 @@ class bybit extends \ccxt\async\bybit {
         }) ();
     }
 
-    public function handle_error_message(Client $client, $message): Bool {
+    public function handle_error_message(Client $client, $message): ?bool {
         //
         //   {
         //       "success" => false,

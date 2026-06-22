@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import hollaexRest from '../hollaex.js';
 import { AuthenticationError, BadSymbol, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Balances, Dict, Bool } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Balances, Dict, Bool, Market, NullableList } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -188,7 +188,7 @@ export default class hollaex extends hollaexRest {
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         let messageHash = 'usertrade';
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -271,7 +271,7 @@ export default class hollaex extends hollaexRest {
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         let messageHash = 'order';
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -354,7 +354,7 @@ export default class hollaex extends hollaexRest {
             this.orders = new ArrayCacheBySymbolById (limit);
         }
         const stored = this.orders;
-        let rawOrders = undefined;
+        let rawOrders: NullableList = undefined;
         if (!Array.isArray (data)) {
             rawOrders = [ data ];
         } else {

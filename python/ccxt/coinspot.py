@@ -523,7 +523,7 @@ class coinspot(Exchange, ImplicitAPI):
         """
         self.load_markets()
         request: dict = {}
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
         if since is not None:
@@ -590,9 +590,9 @@ class coinspot(Exchange, ImplicitAPI):
         #       "side": "buy",
         #       "price": 0.5168600000125209
         #     }
-        timestamp = None
-        priceString = None
-        fee = None
+        timestamp: Int = None
+        priceString: Str = None
+        fee: Fee = None
         audTotal = self.safe_string(trade, 'audtotal')
         costString = self.safe_string(trade, 'total', audTotal)
         side = self.safe_string(trade, 'side')
@@ -656,7 +656,7 @@ class coinspot(Exchange, ImplicitAPI):
             'amount': amount,
             'rate': price,
         }
-        response = None
+        response: dict
         if sideUpper == 'BUY':
             response = self.privatePostMyBuy(self.extend(request, params))
         elif sideUpper == 'SELL':
@@ -689,7 +689,7 @@ class coinspot(Exchange, ImplicitAPI):
         request: dict = {
             'id': id,
         }
-        response = None
+        response: dict
         if side == 'buy':
             response = self.privatePostMyBuyCancel(self.extend(request, params))
         else:
@@ -710,7 +710,7 @@ class coinspot(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         isVersionedApi = isinstance(api, list)
         version = api[0] if isVersionedApi else None
         accessType = api[1] if isVersionedApi else api

@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
-from ccxt.base.types import Any, Balances, Int, Liquidation, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Int, Liquidation, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.precise import Precise
@@ -415,7 +415,7 @@ class lighter(ccxt.async_support.lighter):
         """
         return await self.un_watch_tickers(symbols, params)
 
-    def parse_ws_trade(self, trade, market=None):
+    def parse_ws_trade(self, trade, market: Market = None):
         #
         #     {
         #         "trade_id": 526801155,
@@ -565,7 +565,7 @@ class lighter(ccxt.async_support.lighter):
         messageHash = self.get_message_hash('unsubscribe', symbol)
         return await self.unsubscribe(messageHash, self.extend(request, params))
 
-    def parse_ws_order_trade(self, trade, market=None):
+    def parse_ws_order_trade(self, trade, market: Market = None):
         #
         #     {
         #         "trade_id": 526801155,
@@ -602,8 +602,8 @@ class lighter(ccxt.async_support.lighter):
         isMakerAsk = self.safe_bool(trade, 'is_maker_ask')
         side = 'buy' if isMakerAsk else 'sell'
         accountIndex = self.safe_integer(trade, 'accountIndex')
-        order = None
-        takerOrMaker = None
+        order: Str = None
+        takerOrMaker: Str = None
         if accountIndex is not None:
             if self.safe_integer(trade, 'bid_account_id') == accountIndex:
                 order = self.safe_string(trade, 'bid_id')
@@ -611,7 +611,7 @@ class lighter(ccxt.async_support.lighter):
             elif self.safe_integer(trade, 'ask_account_id') == accountIndex:
                 order = self.safe_string(trade, 'ask_id')
                 takerOrMaker = 'maker' if isMakerAsk else 'taker'
-        fee = None
+        fee: NullableDict = None
         if takerOrMaker is not None:
             feeRateRaw = self.safe_string(trade, 'maker_fee') if (takerOrMaker == 'maker') else self.safe_string(trade, 'taker_fee')
             feeRate = Precise.string_div(feeRateRaw, '1000000') if (feeRateRaw is not None) else '0'
@@ -716,7 +716,7 @@ class lighter(ccxt.async_support.lighter):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         await self.load_markets()
-        accountIndex = None
+        accountIndex: Int = None
         accountIndex, params = await self.handleAccountIndex(params, 'watchMyTrades', 'accountIndex', 'account_index')
         messageHash = self.get_message_hash('myTrades')
         if symbol is not None:
@@ -741,7 +741,7 @@ class lighter(ccxt.async_support.lighter):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        accountIndex = None
+        accountIndex: Int = None
         accountIndex, params = await self.handleAccountIndex(params, 'unWatchMyTrades', 'accountIndex', 'account_index')
         messageHash = self.get_message_hash('unsubscribe', 'myTrades')
         if symbol is not None:
@@ -754,7 +754,7 @@ class lighter(ccxt.async_support.lighter):
         }
         return await self.unsubscribe(messageHash, self.extend(request, params))
 
-    def parse_ws_liquidation(self, liquidation, market=None):
+    def parse_ws_liquidation(self, liquidation, market: Market = None):
         #
         #     {
         #         "trade_id": 526801155,
@@ -892,9 +892,9 @@ class lighter(ccxt.async_support.lighter):
         """
         await self.load_markets()
         defaultType = self.safe_string_2(self.options, 'watchBalance', 'defaultType', 'spot')
-        type = None
+        type: Str = None
         type, params = self.handle_param_string(params, 'type', defaultType)
-        accountIndex = None
+        accountIndex: Int = None
         accountIndex, params = await self.handleAccountIndex(params, 'watchBalance', 'accountIndex', 'account_index')
         messageHash = self.get_message_hash('balances', None, type)
         request = {}
@@ -1005,9 +1005,9 @@ class lighter(ccxt.async_support.lighter):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        accountIndex = None
+        accountIndex: Int = None
         accountIndex, params = await self.handleAccountIndex(params, 'watchOrders', 'accountIndex', 'account_index')
-        messageHash = None
+        messageHash: Str = None
         request = {}
         if symbol is not None:
             market = self.market(symbol)
@@ -1032,9 +1032,9 @@ class lighter(ccxt.async_support.lighter):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        accountIndex = None
+        accountIndex: Int = None
         accountIndex, params = await self.handleAccountIndex(params, 'watchOrders', 'accountIndex', 'account_index')
-        messageHash = None
+        messageHash: Str = None
         request = {}
         if symbol is not None:
             market = self.market(symbol)

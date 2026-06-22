@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Any, Balances, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, SubType, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -429,7 +429,7 @@ class htx(ccxt.async_support.htx):
             limit = self.safe_integer(options, 'depth', 150)
         if not self.in_array(limit, allowedLimits):
             raise ExchangeError(self.id + ' watchOrderBook market accepts limits of 5, 20, 150 or 400 only')
-        messageHash = None
+        messageHash: Str = None
         if market['spot']:
             messageHash = 'market.' + market['id'] + '.mbp.' + self.number_to_string(limit)
         else:
@@ -461,7 +461,7 @@ class htx(ccxt.async_support.htx):
         topic = 'orderbook'
         options = self.safe_dict(self.options, 'watchOrderBook', {})
         depth = self.safe_integer(options, 'depth', 150)
-        subMessageHash = None
+        subMessageHash: Str = None
         if market['spot']:
             subMessageHash = 'market.' + market['id'] + '.mbp.' + self.number_to_string(depth)
         else:
@@ -665,7 +665,7 @@ class htx(ccxt.async_support.htx):
             snapshot = self.parse_order_book(tick, symbol, timestamp)
             orderbook.reset(snapshot)
             orderbook['nonce'] = version
-        if (prevSeqNum is not None) and prevSeqNum > orderbook['nonce']:
+        if (prevSeqNum is not None) and prevSeqNum > self.safe_integer(orderbook, 'nonce', 0):
             checksum = self.handle_option('watchOrderBook', 'checksum', True)
             if checksum:
                 raise ChecksumError(self.id + ' ' + self.orderbook_checksum_message(symbol))
@@ -767,13 +767,13 @@ class htx(ccxt.async_support.htx):
         """
         self.check_required_credentials()
         await self.load_markets()
-        type = None
+        type: Str = None
         marketId = '*'  # wildcard
-        market = None
-        messageHash = None
-        channel = None
+        market: Market = None
+        messageHash: Str = None
+        channel: Str = None
         trades = None
-        subType = None
+        subType: Str = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
@@ -787,7 +787,7 @@ class htx(ccxt.async_support.htx):
             subType = self.safe_string(params, 'subType', subType)
             params = self.omit(params, ['type', 'subType'])
         if type == 'spot':
-            mode = None
+            mode: Str = None
             if mode is None:
                 mode = self.safe_string_2(self.options, 'watchMyTrades', 'mode', '0')
                 mode = self.safe_string(params, 'mode', mode)
@@ -807,8 +807,8 @@ class htx(ccxt.async_support.htx):
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
     def get_order_channel_and_message_hash(self, type, subType, market=None, params={}):
-        messageHash = None
-        channel = None
+        messageHash: Str = None
+        channel: Str = None
         orderType = self.safe_string(self.options, 'orderType', 'orders')  # orders or matchOrders
         orderType = self.safe_string(params, 'orderType', orderType)
         params = self.omit(params, 'orderType')
@@ -855,9 +855,9 @@ class htx(ccxt.async_support.htx):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        type = None
-        subType = None
-        market = None
+        type: Str = None
+        subType: Str = None
+        market: Market = None
         suffix = '*'  # wildcard
         if symbol is not None:
             market = self.market(symbol)
@@ -871,8 +871,8 @@ class htx(ccxt.async_support.htx):
             subType = self.safe_string_2(self.options, 'subType', 'defaultSubType', 'linear')
             subType = self.safe_string(params, 'subType', subType)
             params = self.omit(params, ['type', 'subType'])
-        messageHash = None
-        channel = None
+        messageHash: Str = None
+        channel: Str = None
         if type == 'spot':
             messageHash = 'orders' + '#' + suffix
             channel = messageHash
@@ -1201,7 +1201,7 @@ class htx(ccxt.async_support.htx):
         filled = self.safe_string(order, 'execAmt')
         typeSide = self.safe_string(order, 'type')
         feeCost = self.safe_string(order, 'fee')
-        fee = None
+        fee: dict = None
         if feeCost is not None:
             feeCurrencyId = self.safe_string(order, 'fee_asset')
             fee = {
@@ -1272,13 +1272,13 @@ class htx(ccxt.async_support.htx):
         order = self.safe_string(trade, 'orderId')
         timestamp = self.safe_integer(trade, 'tradeTime')
         type = self.safe_string(trade, 'type')
-        side = None
+        side: Str = None
         if type is not None:
             typeParts = type.split('-')
             side = typeParts[0]
             type = typeParts[1]
         aggressor = self.safe_value(trade, 'aggressor')
-        takerOrMaker = None
+        takerOrMaker: Str = None
         if aggressor is not None:
             takerOrMaker = 'taker' if aggressor else 'maker'
         return self.safe_trade({
@@ -1313,13 +1313,13 @@ class htx(ccxt.async_support.htx):
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         messageHash = ''
         if not self.is_empty(symbols):
             market = self.get_market_from_symbols(symbols)
             messageHash = '::' + ','.join(symbols)
-        type = None
-        subType = None
+        type: Str = None
+        subType: SubType = None
         if market is not None:
             type = market['type']
             subType = 'linear' if market['linear'] else 'inverse'
@@ -1329,7 +1329,7 @@ class htx(ccxt.async_support.htx):
                 type = 'future'
             subType, params = self.handle_option_and_params(params, 'watchPositions', 'subType', subType)
         symbols = self.market_symbols(symbols)
-        marginMode = None
+        marginMode: Str = None
         marginMode, params = self.handle_margin_mode_and_params('watchPositions', params, 'cross')
         isLinear = (subType == 'linear')
         url = self.get_url_by_market_type(type, isLinear, True)
@@ -1421,16 +1421,16 @@ class htx(ccxt.async_support.htx):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        type = None
+        type: Str = None
         type, params = self.handle_market_type_and_params('watchBalance', None, params)
-        subType = None
+        subType: SubType = None
         subType, params = self.handle_sub_type_and_params('watchBalance', None, params, 'linear')
         isUnifiedAccount = self.safe_value_2(params, 'isUnifiedAccount', 'unified', False)
         params = self.omit(params, ['isUnifiedAccount', 'unified'])
         await self.load_markets()
-        messageHash = None
-        channel = None
-        marginMode = None
+        messageHash: Str = None
+        channel: Str = None
+        marginMode: Str = None
         if type == 'spot':
             mode = self.safe_string_2(self.options, 'watchBalance', 'mode', '2')
             mode = self.safe_string(params, 'mode', mode)
@@ -2222,15 +2222,15 @@ class htx(ccxt.async_support.htx):
         market = self.market(symbol)
         orderType = self.safe_string(trade, 'orderType')
         aggressor = self.safe_value(trade, 'aggressor')
-        takerOrMaker = None
+        takerOrMaker: Str = None
         if aggressor is not None:
             takerOrMaker = 'taker' if aggressor else 'maker'
-        type = None
+        type: Str = None
         orderTypeParts = []
         if orderType is not None:
             orderTypeParts = orderType.split('-')
             type = self.safe_string(orderTypeParts, 1)
-        fee = None
+        fee: dict = None
         feeCurrency = self.safe_currency_code(self.safe_string(trade, 'feeCurrency'))
         if feeCurrency is not None:
             fee = {
@@ -2256,8 +2256,8 @@ class htx(ccxt.async_support.htx):
     def get_url_by_market_type(self, type, isLinear=True, isPrivate=False, isFeed=False):
         api = self.safe_string(self.options, 'api', 'api')
         hostname: dict = {'hostname': self.hostname}
-        hostnameURL = None
-        url = None
+        hostnameURL: Str = None
+        url: Str = None
         if type == 'spot':
             if isPrivate:
                 hostnameURL = self.urls['api']['ws'][api]['spot']['private']
@@ -2320,7 +2320,7 @@ class htx(ccxt.async_support.htx):
             'params': params,
         }
         extendedSubsription = self.extend(subscription, subscriptionParams)
-        request = None
+        request: dict = None
         if type == 'spot':
             request = {
                 'action': 'sub',
@@ -2357,7 +2357,7 @@ class htx(ccxt.async_support.htx):
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             timestamp = self.ymdhms(self.milliseconds(), 'T')
-            signatureParams = None
+            signatureParams: dict = None
             if type == 'spot':
                 signatureParams = {
                     'accessKey': self.apiKey,
@@ -2376,7 +2376,7 @@ class htx(ccxt.async_support.htx):
             auth = self.urlencode(signatureParams, True)  # True required in go
             payload = "\n".join(['GET', hostname, relativePath, auth])  # eslint-disable-line quotes
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
-            request = None
+            request: dict = None
             if type == 'spot':
                 newParams: dict = {
                     'authType': 'api',

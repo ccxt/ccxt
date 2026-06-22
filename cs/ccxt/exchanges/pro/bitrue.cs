@@ -346,7 +346,7 @@ public partial class bitrue : ccxt.bitrue
             url = getValue(getValue(getValue(this.urls, "api"), "ws"), "futurePublic");
         } else
         {
-            object marketIdLowercase = ((string)getValue(market, "id")).ToLower();
+            object marketIdLowercase = this.safeStringLower(market, "id");
             channel = add(add("market_", marketIdLowercase), "_simple_depth_step0");
             cbId = marketIdLowercase;
             url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");

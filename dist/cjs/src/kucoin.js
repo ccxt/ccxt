@@ -5836,7 +5836,7 @@ class kucoin extends kucoin$1["default"] {
                 if (symbol === undefined) {
                     throw new errors.ArgumentsRequired(this.id + ' fetchOrder() requires a symbol parameter for hf and margin orders');
                 }
-                request['symbol'] = market['id'];
+                request['symbol'] = this.safeString(market, 'id');
             }
         }
         params = this.omit(params, ['stop', 'clientOid', 'clientOrderId', 'trigger']);
@@ -5849,7 +5849,7 @@ class kucoin extends kucoin$1["default"] {
                 }
                 else {
                     if (symbol !== undefined) {
-                        request['symbol'] = market['id'];
+                        request['symbol'] = this.safeString(market, 'id');
                     }
                     response = await this.privateGetStopOrderQueryOrderByClientOid(this.extend(request, params));
                 }
@@ -8387,7 +8387,7 @@ class kucoin extends kucoin$1["default"] {
         const response = await this.utaPrivatePostAccountTransfer(this.extend(request, params));
         //
         //
-        const data = this.safeDict(response, 'data');
+        const data = this.safeDict(response, 'data', {});
         const transfer = this.parseTransfer(data, currency);
         const transferOptions = this.safeDict(this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
@@ -8472,7 +8472,7 @@ class kucoin extends kucoin$1["default"] {
             //
             response = await this.privatePostAccountsUniversalTransfer(this.extend(request, params));
         }
-        const data = this.safeDict(response, 'data');
+        const data = this.safeDict(response, 'data', {});
         const transfer = this.parseTransfer(data, currency);
         const transferOptions = this.safeDict(this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
@@ -9688,7 +9688,7 @@ class kucoin extends kucoin$1["default"] {
                 throw new errors.ArgumentsRequired(this.id + ' setLeverage requires a symbol parameter for isolated margin');
             }
             if (symbol !== undefined) {
-                request['symbol'] = market['id'];
+                request['symbol'] = this.safeString(market, 'id');
             }
             request['isIsolated'] = (marginMode === 'isolated');
             response = await this.privatePostPositionUpdateUserLeverage(this.extend(request, params));
@@ -10611,7 +10611,7 @@ class kucoin extends kucoin$1["default"] {
                 throw new errors.ArgumentsRequired(this.id + ' cancelOrders() requires a symbol argument when cancelling by clientOrderIds');
             }
             ordersRequests.push({
-                'symbol': market['id'],
+                'symbol': this.safeString(market, 'id'),
                 'clientOid': this.safeString(clientOrderIds, i),
             });
         }
@@ -10620,7 +10620,7 @@ class kucoin extends kucoin$1["default"] {
             if (uta) {
                 ordersRequests.push({
                     'orderId': orderId,
-                    'symbol': market['id'],
+                    'symbol': this.safeString(market, 'id'),
                 });
             }
             else {
@@ -10847,7 +10847,7 @@ class kucoin extends kucoin$1["default"] {
         marginType = (marginType === 'ISOLATED') ? 'isolated' : 'cross';
         return {
             'info': marginMode,
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'marginMode': marginType,
         };
     }
@@ -11324,6 +11324,7 @@ class kucoin extends kucoin$1["default"] {
                 'KC-API-KEY': this.apiKey,
                 'KC-API-TIMESTAMP': timestamp,
             }, headers);
+            headers = (headers === undefined) ? {} : headers;
             const apiKeyVersion = this.safeString(headers, 'KC-API-KEY-VERSION');
             if (apiKeyVersion === '2') {
                 const passphrase = this.hmac(this.encode(this.password), this.encode(this.secret), sha2_js.sha256, 'base64');

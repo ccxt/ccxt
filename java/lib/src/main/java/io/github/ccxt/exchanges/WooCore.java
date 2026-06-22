@@ -1697,7 +1697,7 @@ public class WooCore extends WooApi
                 response = (this.v3PrivateDeleteTradeAlgoOrder(this.extend(request, parameters))).join();
             } else
             {
-                Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
+                Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
                 if (Helpers.isTrue(isByClientOrder))
                 {
                     Helpers.addElementToObject(request, "clientOrderId", clientOrderIdExchangeSpecific);
@@ -4111,12 +4111,12 @@ public class WooCore extends WooApi
             {
                 market = this.market(symbol);
             }
-            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(symbol, null))) || Helpers.isTrue(Helpers.GetValue(market, "spot"))))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(symbol, null))) || Helpers.isTrue(this.safeBool(market, "spot"))))
             {
                 return (this.v3PrivatePostSpotMarginLeverage(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            } else if (Helpers.isTrue(this.safeBool(market, "swap")))
             {
-                Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
+                Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
                 Object marginMode = null;
                 var marginModeparametersVariable = this.handleMarginModeAndParams("fetchLeverage", parameters, "cross");
                 marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
@@ -4125,7 +4125,7 @@ public class WooCore extends WooApi
                 return (this.v3PrivatePutFuturesLeverage(this.extend(request, parameters))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchLeverage() is not supported for "), Helpers.GetValue(market, "type")), " markets")) ;
+                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchLeverage() is not supported for "), this.safeString(market, "type")), " markets")) ;
             }
         });
 

@@ -337,7 +337,7 @@ public class AftermathCore extends AftermathApi
         //     }
         //
         Object precision = this.safeDict(market, "precision");
-        Object limits = this.safeDict(market, "limits");
+        Object limits = this.safeDict(market, "limits", new java.util.HashMap<String, Object>() {{}});
         return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
             put( "id", AftermathCore.this.safeString(market, "id") );
             put( "symbol", AftermathCore.this.safeString(market, "symbol") );

@@ -3,7 +3,7 @@
 
 import coinoneRest from '../coinone.js';
 import { AuthenticationError } from '../base/errors.js';
-import type { Int, Market, OrderBook, Ticker, Trade, Dict, Bool } from '../base/types.js';
+import type { Bool, Dict, Int, Market, OrderBook, Str, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 
@@ -336,7 +336,7 @@ export default class coinone extends coinoneRest {
         const timestamp = this.safeInteger (trade, 'timestamp');
         market = this.safeMarket (symbol, market);
         const isSellerMaker = this.safeValue (trade, 'is_seller_maker');
-        let side = undefined;
+        let side: Str = undefined;
         if (isSellerMaker !== undefined) {
             side = isSellerMaker ? 'sell' : 'buy';
         }
@@ -384,7 +384,7 @@ export default class coinone extends coinoneRest {
             return;
         }
         if (type === 'DATA') {
-            const topic = this.safeString (message, 'channel', '');
+            const topic = this.safeString (message, 'channel', '') as string;
             const methods: Dict = {
                 'ORDERBOOK': this.handleOrderBook,
                 'TICKER': this.handleTicker,

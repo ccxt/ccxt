@@ -1331,7 +1331,7 @@ class bitrue extends bitrue$1["default"] {
         const last = this.safeString2(ticker, 'lastPrice', 'last');
         const timestamp = this.safeInteger(ticker, 'time');
         let percentage = undefined;
-        if (market['swap']) {
+        if (this.safeBool(market, 'swap')) {
             percentage = Precise["default"].stringMul(this.safeString(ticker, 'rose'), '100');
         }
         else {
@@ -3163,7 +3163,7 @@ class bitrue extends bitrue$1["default"] {
         //
         return {
             'info': data,
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'type': undefined,
             'marginMode': 'isolated',
             'amount': undefined,

@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/coincheck.js';
 import { BadSymbol, ExchangeError, AuthenticationError, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction, int } from './base/types.js';
+import type { Balances, Currency, Dict, Fee, Int, Market, NullableDict, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -308,14 +308,14 @@ export default class coincheck extends Exchange {
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         // Only BTC/JPY is meaningful
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
         const response = await this.privateGetExchangeOrdersOpens (params);
         const rawOrders = this.safeValue (response, 'orders', []);
         const parsedOrders = this.parseOrders (rawOrders, market, since, limit);
-        const result = [];
+        const result: Order[] = [];
         for (let i = 0; i < parsedOrders.length; i++) {
             result.push (this.extend (parsedOrders[i], { 'status': 'open' }));
         }
@@ -502,12 +502,12 @@ export default class coincheck extends Exchange {
         const baseId = market['baseId'];
         const quoteId = market['quoteId'];
         const symbol = market['symbol'];
-        let takerOrMaker = undefined;
-        let amountString = undefined;
-        let costString = undefined;
-        let side = undefined;
-        let fee = undefined;
-        let orderId = undefined;
+        let takerOrMaker: Str = undefined;
+        let amountString: Str = undefined;
+        let costString: Str = undefined;
+        let side: Str = undefined;
+        let fee: NullableDict = undefined;
+        let orderId: Str = undefined;
         if ('liquidity' in trade) {
             if (this.safeString (trade, 'liquidity') === 'T') {
                 takerOrMaker = 'taker';
@@ -753,7 +753,7 @@ export default class coincheck extends Exchange {
      */
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         await this.loadMarkets ();
-        let currency = undefined;
+        let currency: Currency = undefined;
         const request: Dict = {};
         if (code !== undefined) {
             currency = this.currency (code);
@@ -803,7 +803,7 @@ export default class coincheck extends Exchange {
      */
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         await this.loadMarkets ();
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -886,7 +886,7 @@ export default class coincheck extends Exchange {
         const code = this.safeCurrencyCode (currencyId, currency);
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const updated = this.parse8601 (this.safeString (transaction, 'confirmed_at'));
-        let fee = undefined;
+        let fee: Fee = undefined;
         const feeCost = this.safeNumber (transaction, 'fee');
         if (feeCost !== undefined) {
             fee = {
@@ -922,7 +922,7 @@ export default class coincheck extends Exchange {
         return this.milliseconds ();
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         let url = this.urls['api']['rest'] + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {

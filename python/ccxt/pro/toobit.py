@@ -186,8 +186,8 @@ class toobit(ccxt.async_support.toobit):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
-        messageHashes = []
-        subParams = []
+        messageHashes: List = []
+        subParams: List = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
@@ -282,9 +282,9 @@ class toobit(ccxt.async_support.toobit):
         """
         await self.load_markets()
         url = self.urls['api']['ws']['common'] + '/quote/ws/v1'
-        messageHashes = []
+        messageHashes: List = []
         timeframes = self.safe_dict(self.options['ws'], 'timeframes', {})
-        marketIds = []
+        marketIds: List = []
         selectedTimeframe: Str = None
         for i in range(0, len(symbolsAndTimeframes)):
             data = symbolsAndTimeframes[i]
@@ -400,8 +400,8 @@ class toobit(ccxt.async_support.toobit):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
-        messageHashes = []
-        subParams = []
+        messageHashes: List = []
+        subParams: List = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
@@ -501,8 +501,8 @@ class toobit(ccxt.async_support.toobit):
         symbols = self.market_symbols(symbols, None, False)
         channel: Str = None
         channel, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'channel', 'depth')
-        messageHashes = []
-        subParams = []
+        messageHashes: List = []
+        subParams: List = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
@@ -624,7 +624,7 @@ class toobit(ccxt.async_support.toobit):
         """
         await self.load_markets()
         await self.authenticate()
-        marketType = None
+        marketType: Str = None
         marketType, params = self.handle_market_type_and_params('watchBalance', None, params)
         isSpot = (marketType == 'spot')
         type = 'spot' if isSpot else 'contract'
@@ -795,7 +795,7 @@ class toobit(ccxt.async_support.toobit):
         else:
             orderType = rawOrderType
         feeCost = self.safe_number(order, 'n')
-        fee = None
+        fee: Fee = None
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
@@ -992,7 +992,7 @@ class toobit(ccxt.async_support.toobit):
         if not (accountType in self.positions):
             self.positions[accountType] = ArrayCacheBySymbolBySide()
         cache = self.positions[accountType]
-        newPositions = []
+        newPositions: List = []
         for i in range(0, len(message)):
             rawPosition = message[i]
             position = self.parse_ws_position(rawPosition)

@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/extended.js';
 import { Precise } from './base/Precise.js';
-import type { Account, Balances, Currencies, Currency, Dict, FundingHistory, FundingRateHistory, Int, int, LedgerEntry, Leverage, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, Dict, Fee, FundingHistory, FundingRateHistory, Int, int, LedgerEntry, Leverage, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, NullableDict } from './base/types.js';
 import { ArgumentsRequired, BadRequest, InsufficientFunds, InvalidOrder, ExchangeError, AuthenticationError } from './base/errors.js';
 import { DECIMAL_PLACES, NO_PADDING, TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 
@@ -538,14 +538,14 @@ export default class extended extends Exchange {
         const minAmount = this.safeNumber (tradingConfig, 'minOrderSize');
         const maxCost = this.safeNumber (tradingConfig, 'maxLimitOrderValue');
         const created: Int = this.safeInteger (market, 'createdAt');
-        let settleId = undefined;
-        let settle = undefined;
+        let settleId: Str = undefined;
+        let settle: Str = undefined;
         let symbol = base + '/' + quote;
         let isSpot = false;
         let type = this.safeStringLower (market, 'type');
-        let contractSize = undefined;
-        let linear = undefined;
-        let inverse = undefined;
+        let contractSize: Num = undefined;
+        let linear: Bool = undefined;
+        let inverse: Bool = undefined;
         if (type === 'spot') {
             isSpot = true;
         } else {
@@ -807,7 +807,7 @@ export default class extended extends Exchange {
         return this.filterByArrayTickers (tickers, 'symbol', symbols);
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //     {
         //       "dailyVolume": "231216165.666600",
@@ -975,7 +975,7 @@ export default class extended extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchMyTrades', symbol, since, limit, params, 'cursor', 'cursor', undefined, 100) as Trade[];
         }
-        let market = undefined;
+        let market: Market = undefined;
         const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1045,7 +1045,7 @@ export default class extended extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchFundingHistory', symbol, since, limit, params, 'cursor', 'cursor', undefined, 100) as FundingHistory[];
         }
-        let market = undefined;
+        let market: Market = undefined;
         const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1137,7 +1137,7 @@ export default class extended extends Exchange {
         return this.filterBySymbolSinceLimit (result, symbol, since, limit) as FundingHistory[];
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchTrades
         //
@@ -1182,7 +1182,7 @@ export default class extended extends Exchange {
             'currency': (market === undefined) ? undefined : market['settle'],
         };
         const isTaker = this.safeBool (trade, 'isTaker');
-        let takerOrMaker = undefined;
+        let takerOrMaker: Str = undefined;
         if (isTaker !== undefined) {
             takerOrMaker = isTaker ? 'taker' : 'maker';
         }
@@ -1263,7 +1263,7 @@ export default class extended extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     {
         //       "o": "75657.5",
@@ -1442,7 +1442,7 @@ export default class extended extends Exchange {
         //
         const timestamp = this.safeInteger (interest, 't');
         return this.safeOpenInterest ({
-            'symbol': market['symbol'],
+            'symbol': this.safeString (market, 'symbol'),
             'openInterestAmount': this.safeNumber (interest, 'I'),
             'openInterestValue': this.safeNumber (interest, 'i'),
             'baseVolume': this.safeNumber (interest, 'I'),
@@ -1583,7 +1583,7 @@ export default class extended extends Exchange {
 
     parseAccount (account: Dict): Account {
         const accountIndex = this.safeInteger (account, 'accountIndex');
-        let type = undefined;
+        let type: Str = undefined;
         if (accountIndex !== undefined) {
             type = (accountIndex === 0) ? 'main' : 'subaccount';
         }
@@ -1614,7 +1614,7 @@ export default class extended extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchLedger', code, since, limit, params, 'cursor', 'cursor', undefined, 50) as LedgerEntry[];
         }
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -1661,7 +1661,7 @@ export default class extended extends Exchange {
         if (amountString !== undefined) {
             direction = Precise.stringLt (amountString, '0') ? 'out' : 'in';
         }
-        let fee = undefined;
+        let fee: Dict = undefined;
         const feeCost = this.safeString (item, 'fee');
         if (feeCost !== undefined) {
             fee = {
@@ -1707,7 +1707,7 @@ export default class extended extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchTransactions', code, since, limit, params, 'cursor', 'cursor', undefined, 50) as Transaction[];
         }
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -1873,7 +1873,7 @@ export default class extended extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchTransfers', code, since, limit, params, 'cursor', 'cursor', undefined, 50) as TransferEntry[];
         }
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -2062,7 +2062,7 @@ export default class extended extends Exchange {
         const code = this.getExtendedCurrencyCodeById (assetId, currency);
         const amountString = this.safeString (transaction, 'amount');
         const amount = (amountString === undefined) ? undefined : this.parseNumber (Precise.stringAbs (amountString));
-        let fee = undefined;
+        let fee: Fee = undefined;
         const feeCost = this.safeString (transaction, 'fee');
         if (feeCost !== undefined) {
             fee = {
@@ -2168,7 +2168,7 @@ export default class extended extends Exchange {
         return result;
     }
 
-    parseTradingFee (fee, market = undefined): TradingFeeInterface {
+    parseTradingFee (fee, market: Market = undefined): TradingFeeInterface {
         //
         //     {
         //         "market": "BTC-USD",
@@ -2251,7 +2251,7 @@ export default class extended extends Exchange {
         return this.parseLeverage (data, market);
     }
 
-    parseLeverage (leverage, market = undefined): Leverage {
+    parseLeverage (leverage, market: Market = undefined): Leverage {
         //
         //     {
         //         "market": "BTC-USD",
@@ -2405,7 +2405,7 @@ export default class extended extends Exchange {
         return this.filterBySinceLimit (positions, since, limit, 'timestamp') as Position[];
     }
 
-    parsePosition (position, market = undefined): Position {
+    parsePosition (position, market: Market = undefined): Position {
         //
         //     {
         //         "id": 1,
@@ -2621,8 +2621,8 @@ export default class extended extends Exchange {
             timeInForce = (uppercaseType === 'MARKET') ? 'IOC' : 'GTT';
         }
         const fee = this.safeString (params, 'fee', '0.0005');
-        let builderFeeRate = undefined;
-        let builderId = undefined;
+        let builderFeeRate: Str = undefined;
+        let builderId: Str = undefined;
         if (this.isSandboxModeEnabled) {
             builderFeeRate = this.safeString2 (params, 'builderFeeRate', 'defaultBuilderFeeRate');
             builderId = this.safeString2 (params, 'builderId', 'defaultBuilderId');
@@ -2934,11 +2934,11 @@ export default class extended extends Exchange {
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let response = undefined;
+        let response: Dict = undefined;
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
         params = this.omit (params, [ 'clientOrderId', 'client_id' ]);
         if (clientOrderId !== undefined) {
@@ -3002,7 +3002,7 @@ export default class extended extends Exchange {
             clientOrderIds = [ clientOrderId ];
         }
         const hasClientOrderIds = clientOrderIds !== undefined;
-        if (hasClientOrderIds) {
+        if (clientOrderIds !== undefined) {
             const clientOrderIdsLength = clientOrderIds.length;
             if (clientOrderIdsLength > 0) {
                 request['externalOrderIds'] = clientOrderIds;
@@ -3035,7 +3035,7 @@ export default class extended extends Exchange {
         const request: Dict = {
             'cancelAll': true,
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['markets'] = [ market['id'] ];
@@ -3081,12 +3081,12 @@ export default class extended extends Exchange {
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let response = undefined;
-        let order = undefined;
+        let response: Dict = undefined;
+        let order: Dict = undefined;
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
         params = this.omit (params, [ 'clientOrderId', 'client_id' ]);
         if (clientOrderId !== undefined) {
@@ -3122,7 +3122,7 @@ export default class extended extends Exchange {
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -3180,7 +3180,7 @@ export default class extended extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchOrders', symbol, since, limit, params, 'cursor', 'cursor', undefined, 100) as Order[];
         }
-        let market = undefined;
+        let market: Market = undefined;
         const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -3287,7 +3287,7 @@ export default class extended extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         //     {
         //         "id": 1784963886257016832,
@@ -3541,7 +3541,7 @@ export default class extended extends Exchange {
         return undefined;
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const version = this.safeString (api, 0);
         const accessibility = this.safeString (api, 1);
         const endpoint = '/' + this.implodeParams (path, params);

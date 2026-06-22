@@ -291,14 +291,14 @@ class gemini extends \ccxt\async\gemini {
             $timeframeId = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $request = array(
                 'type' => 'subscribe',
-                'subscriptions' => [
+                'subscriptions' => array(
                     array(
                         'name' => 'candles_' . $timeframeId,
-                        'symbols' => [
-                            strtoupper($market['id']),
-                        ],
+                        'symbols' => array(
+                            $this->safe_string_upper($market, 'id'),
+                        ),
                     ),
-                ],
+                ),
             );
             $messageHash = 'ohlcv:' . $market['symbol'] . ':' . $timeframeId;
             $url = $this->urls['api']['ws'] . '/v2/marketdata';

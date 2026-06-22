@@ -1,5 +1,5 @@
 import Exchange from './abstract/hyperliquid.js';
-import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency, TradingFeeInterface, Ticker, Tickers, LedgerEntry, FundingRates, FundingRate, OpenInterests, MarketInterface } from './base/types.js';
+import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, NullableDict, Num, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency, TradingFeeInterface, Ticker, Tickers, LedgerEntry, FundingRates, FundingRate, OpenInterests, MarketInterface } from './base/types.js';
 /**
  * @class hyperliquid
  * @augments Exchange
@@ -228,7 +228,7 @@ export default class hyperliquid extends Exchange {
         s: string;
         v: any;
     };
-    setRef(): Promise<any>;
+    setRef(): Promise<true | Dict>;
     approveBuilderFee(builder: string, maxFeeRate: string): Promise<any>;
     initializeClient(): Promise<boolean>;
     handleBuilderFeeApproval(): Promise<boolean>;
@@ -561,7 +561,7 @@ export default class hyperliquid extends Exchange {
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     fetchPosition(symbol: string, params?: {}): Promise<Position>;
-    getDexFromSymbols(methodName: string, symbols?: Strings): any;
+    getDexFromSymbols(methodName: string, symbols?: Strings): string;
     /**
      * @method
      * @name hyperliquid#fetchPositions
@@ -779,11 +779,11 @@ export default class hyperliquid extends Exchange {
     handlePublicAddress(methodName: string, params: Dict): any[];
     coinToMarketId(coin: Str): string;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: string;
+        headers: Dict;
     };
     calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}): any;
     parseCreateEditOrderArgs(id: Str, symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): {}[];

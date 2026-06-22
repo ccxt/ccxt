@@ -481,7 +481,7 @@ class upbit extends \ccxt\async\upbit {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_ws_order($order, $market = null) {
+    public function parse_ws_order($order, ?array $market = null) {
         //
         // {
         //     "type" => "myOrder",
@@ -551,7 +551,7 @@ class upbit extends \ccxt\async\upbit {
         ));
     }
 
-    public function parse_ws_trade($trade, $market = null) {
+    public function parse_ws_trade($trade, ?array $market = null) {
         // see => parseWsOrder
         $side = $this->safe_string_lower($trade, 'ask_bid');
         if ($side === 'bid') {

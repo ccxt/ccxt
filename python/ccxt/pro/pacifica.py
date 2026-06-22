@@ -152,7 +152,7 @@ class pacifica(ccxt.async_support.pacifica):
         success = False
         if code == 200:
             success = True
-        status = None
+        status: Str = None
         if not success:
             status = 'rejected'
         else:
@@ -207,7 +207,7 @@ class pacifica(ccxt.async_support.pacifica):
         success = False
         if code == 200:
             success = True
-        status = None
+        status: Str = None
         if not success:
             status = 'rejected'
         else:
@@ -279,7 +279,7 @@ class pacifica(ccxt.async_support.pacifica):
             market = self.safe_market(marketId)
             orderId = self.safe_string(order, 'i')
             clientOrderId = self.safe_string(order, 'I')
-            status = None
+            status: Str = None
             if (error is not None) or (not success):
                 status = 'closed'
             else:
@@ -332,7 +332,7 @@ class pacifica(ccxt.async_support.pacifica):
         success = False
         if code == 200:
             success = True
-        status = None
+        status: Str = None
         if not success:
             status = 'rejected'
         else:
@@ -397,7 +397,7 @@ class pacifica(ccxt.async_support.pacifica):
         self.setup_api_key_headers()
         await self.load_markets()
         market = self.market(symbol)
-        aggLevel = None
+        aggLevel: Int = None
         aggLevel, params = self.handle_option_and_params(params, 'fetchOrderBook', 'aggLevel', 1)
         messageHash = 'orderbook:' + symbol
         isTestnet = self.isSandboxModeEnabled
@@ -428,7 +428,7 @@ class pacifica(ccxt.async_support.pacifica):
         """
         await self.load_markets()
         market = self.market(symbol)
-        aggLevel = None
+        aggLevel: Int = None
         aggLevel, params = self.handle_option_and_params(params, 'fetchOrderBook', 'aggLevel', 1)
         subMessageHash = 'orderbook:' + symbol
         messageHash = 'unsubscribe:' + subMessageHash
@@ -581,7 +581,7 @@ class pacifica(ccxt.async_support.pacifica):
         :param str|None [params.account]: will default to options' walletAddress if not provided
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        userAddress = None
+        userAddress: Str = None
         userAddress, params = self.handleOriginAndSingleAddress('watchMyTrades', params)
         await self.load_markets()
         messageHash = 'myTrades'
@@ -618,7 +618,7 @@ class pacifica(ccxt.async_support.pacifica):
         await self.load_markets()
         if symbol is not None:
             raise NotSupported(self.id + ' unWatchMyTrades does not support a symbol argument, unWatch from all markets only')
-        userAddress = None
+        userAddress: Str = None
         userAddress, params = self.handleOriginAndSingleAddress('unWatchMyTrades', params)
         messageHash = 'unsubscribe:myTrades'
         isTestnet = self.isSandboxModeEnabled
@@ -868,7 +868,7 @@ class pacifica(ccxt.async_support.pacifica):
         elif side == 'close_short':
             side = 'buy'
         eventType = self.safe_string(trade, 'te')
-        takerOrMaker = None
+        takerOrMaker: Str = None
         if eventType is not None:
             takerOrMaker = 'maker' if (eventType == 'fulfill_maker') else 'taker'
         orderId = self.safe_string(trade, 'i')
@@ -1005,9 +1005,9 @@ class pacifica(ccxt.async_support.pacifica):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        userAddress = None
+        userAddress: Str = None
         userAddress, params = self.handleOriginAndSingleAddress('watchOrders', params)
-        market = None
+        market: Market = None
         messageHash = 'order'
         if symbol is not None:
             market = self.market(symbol)
@@ -1047,7 +1047,7 @@ class pacifica(ccxt.async_support.pacifica):
         isTestnet = self.isSandboxModeEnabled
         urlKey = 'test' if (isTestnet) else 'api'
         url = self.urls[urlKey]['ws']['public']
-        userAddress = None
+        userAddress: Str = None
         userAddress, params = self.handleOriginAndSingleAddress('unWatchOrders', params)
         request: dict = {
             'method': 'unsubscribe',

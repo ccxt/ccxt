@@ -359,7 +359,7 @@ class upbit(Exchange, ImplicitAPI):
         maxOnetimeWithdrawal = self.safe_string(withdrawLimits, 'onetime')
         maxDailyWithdrawal = self.safe_string(withdrawLimits, 'daily', maxOnetimeWithdrawal)
         remainingDailyWithdrawal = self.safe_string(withdrawLimits, 'remaining_daily', maxDailyWithdrawal)
-        maxWithdrawLimit = None
+        maxWithdrawLimit: Str = None
         if Precise.string_gt(remainingDailyWithdrawal, '0'):
             maxWithdrawLimit = remainingDailyWithdrawal
         else:
@@ -626,12 +626,14 @@ class upbit(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbol
         """
         self.load_markets()
-        ids = None
+        ids: Str = None
         if symbols is None:
-            ids = ','.join(self.ids)
+            allIds = self.ids
+            if allIds is not None:
+                ids = ','.join(allIds)
         else:
-            ids = self.market_ids(symbols)
-            ids = ','.join(ids)
+            marketIds = self.market_ids(symbols)
+            ids = ','.join(marketIds)
         request: dict = {
             'markets': ids,
             # 'count': limit,
@@ -768,7 +770,7 @@ class upbit(Exchange, ImplicitAPI):
         self.load_markets()
         symbols = self.market_symbols(symbols)
         ids = self.market_ids(symbols) if (symbols is not None) else self.ids
-        promises = []
+        promises: List = []
         queries = self.ids_query_strings(ids, 6400)  # seems upbit server limitations
         for i in range(0, len(queries)):
             idsQuery = queries[i]
@@ -807,7 +809,7 @@ class upbit(Exchange, ImplicitAPI):
 
     def ids_query_strings(self, ids: List[str], maxQueryLength: float):
         idsString = ''
-        queries = []
+        queries: List = []
         for i in range(0, len(ids)):
             id = ids[i]
             if idsString != '':
@@ -868,7 +870,7 @@ class upbit(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(trade, 'timestamp')
         if timestamp is None:
             timestamp = self.parse8601(self.safe_string(trade, 'created_at'))
-        side = None
+        side: Str = None
         askOrBid = self.safe_string_lower_2(trade, 'ask_bid', 'side')
         if askOrBid == 'ask':
             side = 'sell'
@@ -879,7 +881,7 @@ class upbit(Exchange, ImplicitAPI):
         amount = self.safe_string_2(trade, 'trade_volume', 'volume')
         marketId = self.safe_string_2(trade, 'market', 'code')
         market = self.safe_market(marketId, market, '-')
-        fee = None
+        fee: NullableDict = None
         feeCost = self.safe_string(trade, askOrBid + '_fee')
         if feeCost is not None:
             fee = {
@@ -1084,7 +1086,7 @@ class upbit(Exchange, ImplicitAPI):
             'timeframe': timeframeValue,
             'count': limit,
         }
-        response = None
+        response: List
         if since is not None:
             # convert `since` to `to` value
             request['to'] = self.iso8601(self.sum(since, timeframePeriod * limit * 1000))
@@ -1127,7 +1129,7 @@ class upbit(Exchange, ImplicitAPI):
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def calc_order_price(self, symbol: str, amount: float, price: Num = None, params={}) -> str:
-        quoteAmount = None
+        quoteAmount: Str = None
         createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice')
         cost = self.safe_string(params, 'cost')
         if cost is not None:
@@ -1177,7 +1179,7 @@ class upbit(Exchange, ImplicitAPI):
         test = self.safe_bool(params, 'test', False)
         if postOnly and (selfTradePrevention is not None):
             raise ExchangeError(self.id + ' createOrder() does not support post_only and selfTradePrevention simultaneously.')
-        orderSide = None
+        orderSide: Str = None
         if side == 'buy':
             orderSide = 'bid'
         elif side == 'sell':
@@ -1228,7 +1230,7 @@ class upbit(Exchange, ImplicitAPI):
                 request['time_in_force'] = timeInForce
         if request['ord_type'] == 'best' and timeInForce is None:
             raise ArgumentsRequired(self.id + ' createOrder() requires a timeInForce parameter for best type orders')
-        response = None
+        response: dict
         params = self.omit(params, ['timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'cost', 'selfTradePrevention', 'smp_type', 'test'])
         if test:
             response = self.privatePostOrdersTest(self.extend(request, params))
@@ -1422,7 +1424,7 @@ class upbit(Exchange, ImplicitAPI):
             # 'page': 1,
             # 'order_by': 'asc',  # 'desc'
         }
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
             request['currency'] = currency['id']
@@ -1464,7 +1466,7 @@ class upbit(Exchange, ImplicitAPI):
         request: dict = {
             'uuid': id,
         }
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
             request['currency'] = currency['id']
@@ -1503,7 +1505,7 @@ class upbit(Exchange, ImplicitAPI):
         request: dict = {
             # 'state': 'submitting',  # 'submitted', 'almost_accepted', 'rejected', 'accepted', 'processing', 'done', 'canceled'
         }
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
             request['currency'] = currency['id']
@@ -1546,7 +1548,7 @@ class upbit(Exchange, ImplicitAPI):
         request: dict = {
             'uuid': id,
         }
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
             request['currency'] = currency['id']
@@ -1744,13 +1746,13 @@ class upbit(Exchange, ImplicitAPI):
         amount = self.safe_string(order, 'volume')
         remaining = self.safe_string(order, 'remaining_volume')
         filled = self.safe_string(order, 'executed_volume')
-        cost = None
+        cost: Str = None
         if type == 'price':
             type = 'market'
             cost = price
             price = None
-        average = None
-        fee = None
+        average: Str = None
+        fee: NullableDict = None
         feeCost = self.safe_string(order, 'paid_fee')
         marketId = self.safe_string(order, 'market')
         market = self.safe_market(marketId, market)
@@ -1822,7 +1824,7 @@ class upbit(Exchange, ImplicitAPI):
         """
         self.load_markets()
         request: dict = {}
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['market'] = market['id']
@@ -1871,7 +1873,7 @@ class upbit(Exchange, ImplicitAPI):
         request: dict = {
             'state': 'done',
         }
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['market'] = market['id']
@@ -1924,7 +1926,7 @@ class upbit(Exchange, ImplicitAPI):
         request: dict = {
             'state': 'cancel',
         }
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['market'] = market['id']
@@ -2092,7 +2094,7 @@ class upbit(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = self.currency(code)
-        networkCode = None
+        networkCode: Str = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is None:
             raise ArgumentsRequired(self.id + ' fetchDepositAddress requires params["network"]')
@@ -2168,7 +2170,7 @@ class upbit(Exchange, ImplicitAPI):
         request: dict = {
             'amount': amount,
         }
-        response = None
+        response: dict
         if code != 'KRW':
             self.check_address(address)
             # 2023-05-23 Change to required parameters for digital assets
@@ -2204,7 +2206,7 @@ class upbit(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
         url = self.implode_params(self.urls['api'][api], {
             'hostname': self.hostname,
         })
@@ -2222,7 +2224,7 @@ class upbit(Exchange, ImplicitAPI):
                 'nonce': nonce,
             }
             hasQuery = query
-            auth = None
+            auth: Str = None
             if (method != 'GET') and (method != 'DELETE'):
                 body = self.json(params)
                 headers['Content-Type'] = 'application/json'

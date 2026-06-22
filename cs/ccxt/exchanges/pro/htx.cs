@@ -748,7 +748,7 @@ public partial class htx : ccxt.htx
             (orderbook as IOrderBook).reset(snapshot);
             ((IDictionary<string,object>)orderbook)["nonce"] = version;
         }
-        if (isTrue(isTrue((!isEqual(prevSeqNum, null))) && isTrue(isGreaterThan(prevSeqNum, getValue(orderbook, "nonce")))))
+        if (isTrue(isTrue((!isEqual(prevSeqNum, null))) && isTrue(isGreaterThan(prevSeqNum, this.safeInteger(orderbook, "nonce", 0)))))
         {
             object checksum = this.handleOption("watchOrderBook", "checksum", true);
             if (isTrue(checksum))

@@ -5,7 +5,7 @@ import { sha512 } from '@noble/hashes/sha2.js';
 import gateRest from '../gate.js';
 import { AuthenticationError, BadRequest, ArgumentsRequired, ChecksumError, ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict, Liquidation, OrderType, OrderSide, Num, Market, MarketType, OrderRequest, Bool } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict, Liquidation, List, OrderType, OrderSide, Num, Market, MarketType, OrderRequest, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Precise } from '../base/Precise.js';
 
@@ -364,7 +364,7 @@ export default class gate extends gateRest {
      */
     async fetchOrdersByStatusWs (status: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -414,7 +414,7 @@ export default class gate extends gateRest {
                 limit = 50; // max 50 for options
             }
         }
-        let payload = [];
+        let payload: List = [];
         let channel = '';
         if (market['spot']) {
             channel = 'spot.obu';
@@ -578,7 +578,7 @@ export default class gate extends gateRest {
         //         }
         //     }
         //
-        const channel = this.safeString (message, 'channel');
+        const channel = this.safeString (message, 'channel') as string;
         if (channel === 'spot.obu') {
             this.handleNewSpotOrderBook (client, message);
             return;
@@ -770,7 +770,7 @@ export default class gate extends gateRest {
         const market = this.market (symbols[0]);
         const messageType = this.getTypeByMarket (market);
         const marketIds = this.marketIds (symbols);
-        let channelName = undefined;
+        let channelName: Str = undefined;
         [ channelName, params ] = this.handleOptionAndParams (params, callerMethodName, 'method');
         const url = this.getUrlByMarket (market);
         const channel = messageType + '.' + channelName;
@@ -792,7 +792,7 @@ export default class gate extends gateRest {
     }
 
     handleTickerAndBidAsk (objectName: string, client: Client, message) {
-        const channel = this.safeString (message, 'channel');
+        const channel = this.safeString (message, 'channel') as string;
         const parts = channel.split ('.');
         const rawMarketType = this.safeString (parts, 0);
         const marketType = (rawMarketType === 'futures') ? 'contract' : 'spot';
@@ -1000,7 +1000,7 @@ export default class gate extends gateRest {
         //     }
         //   }
         //
-        const channel = this.safeString (message, 'channel');
+        const channel = this.safeString (message, 'channel') as string;
         const channelParts = channel.split ('.');
         const rawMarketType = this.safeString (channelParts, 0);
         const marketType = (rawMarketType === 'spot') ? 'spot' : 'contract';
@@ -1056,10 +1056,10 @@ export default class gate extends gateRest {
      */
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        let subType = undefined;
+        let subType: Str = undefined;
         let type = undefined;
         let marketId = '!' + 'all';
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             marketId = market['id'];
@@ -1153,7 +1153,7 @@ export default class gate extends gateRest {
     async watchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
         let type = undefined;
-        let subType = undefined;
+        let subType: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         [ subType, params ] = this.handleSubTypeAndParams ('watchBalance', undefined, params);
         const isInverse = (subType === 'inverse');
@@ -1252,7 +1252,7 @@ export default class gate extends gateRest {
             account['total'] = this.safeString2 (rawBalance, 'total', 'balance');
             this.balance[code] = account;
         }
-        const channel = this.safeString (message, 'channel');
+        const channel = this.safeString (message, 'channel') as string;
         const parts = channel.split ('.');
         const rawType = this.safeString (parts, 0);
         const channelType = this.getSupportedMapping (rawType, {
@@ -1280,14 +1280,14 @@ export default class gate extends gateRest {
      */
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         symbols = this.marketSymbols (symbols);
         const payload = [ '!' + 'all' ];
         if (!this.isEmpty (symbols)) {
             market = this.getMarketFromSymbols (symbols);
         }
         let type = undefined;
-        let query = undefined;
+        let query: Dict = undefined;
         [ type, query ] = this.handleMarketTypeAndParams ('watchPositions', market, params);
         if (type === 'spot') {
             type = 'swap';
@@ -1302,7 +1302,7 @@ export default class gate extends gateRest {
             messageHash += '::' + symbols.join (',');
         }
         const channel = typeId + '.positions';
-        let subType = undefined;
+        let subType: Str = undefined;
         [ subType, query ] = this.handleSubTypeAndParams ('watchPositions', market, query);
         const isInverse = (subType === 'inverse');
         const url = this.getUrlByMarketType (type, isInverse);
@@ -1393,7 +1393,7 @@ export default class gate extends gateRest {
         const type = this.getMarketTypeByUrl (client.url);
         const data = this.safeValue (message, 'result', []);
         const cache = this.positions[type];
-        const newPositions = [];
+        const newPositions: Position[] = [];
         for (let i = 0; i < data.length; i++) {
             const rawPosition = data[i];
             const position = this.parsePosition (rawPosition);
@@ -1456,13 +1456,13 @@ export default class gate extends gateRest {
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
         }
         let type = undefined;
-        let query = undefined;
+        let query: Dict = undefined;
         [ type, query ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         const typeId = this.getSupportedMapping (type, {
             'spot': 'spot',
@@ -1478,7 +1478,7 @@ export default class gate extends gateRest {
             messageHash += ':' + market['id'];
             payload = [ market['id'] ];
         }
-        let subType = undefined;
+        let subType: Str = undefined;
         [ subType, query ] = this.handleSubTypeAndParams ('watchOrders', market, query);
         const isInverse = (subType === 'inverse');
         const url = this.getUrlByMarketType (type, isInverse);
@@ -1604,14 +1604,14 @@ export default class gate extends gateRest {
         symbols = this.marketSymbols (symbols, undefined, true, true);
         const market = this.getMarketFromSymbols (symbols);
         let type = undefined;
-        let query = undefined;
+        let query: Dict = undefined;
         [ type, query ] = this.handleMarketTypeAndParams ('watchMyLiquidationsForSymbols', market, params);
         const typeId = this.getSupportedMapping (type, {
             'future': 'futures',
             'swap': 'futures',
             'option': 'options',
         });
-        let subType = undefined;
+        let subType: Str = undefined;
         [ subType, query ] = this.handleSubTypeAndParams ('watchMyLiquidationsForSymbols', market, query);
         const isInverse = (subType === 'inverse');
         const url = this.getUrlByMarketType (type, isInverse);
@@ -1701,7 +1701,7 @@ export default class gate extends gateRest {
         client.resolve (newLiquidations, 'myLiquidations');
     }
 
-    parseWsLiquidation (liquidation, market = undefined) {
+    parseWsLiquidation (liquidation, market: Market = undefined) {
         //
         // future / delivery
         //    {
@@ -1820,7 +1820,7 @@ export default class gate extends gateRest {
                     delete client.subscriptions[messageHash];
                 }
                 // remove subscriptions for watchSymbols
-                const channel = this.safeString (message, 'channel');
+                const channel = this.safeString (message, 'channel') as string;
                 if ((channel !== undefined) && (channel.indexOf ('.') > 0)) {
                     const parsedChannel = channel.split ('.');
                     const payload = this.safeList (message, 'payload', []);
@@ -1847,7 +1847,7 @@ export default class gate extends gateRest {
     }
 
     handleSubscriptionStatus (client: Client, message) {
-        const channel = this.safeString (message, 'channel');
+        const channel = this.safeString (message, 'channel') as string;
         const methods: Dict = {
             'balance': this.handleBalanceSubscription,
             'spot.order_book_update': this.handleOrderBookSubscription,

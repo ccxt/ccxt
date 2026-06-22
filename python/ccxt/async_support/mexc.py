@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.mexc import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Account, Any, Balances, Currencies, Currency, DepositAddress, IndexType, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Account, Any, Balances, Bool, Currencies, Currency, DepositAddress, IndexType, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1053,9 +1053,9 @@ class mexc(Exchange, ImplicitAPI):
         :returns dict: a `status structure <https://docs.ccxt.com/?id=exchange-status-structure>`
         """
         marketType, query = self.handle_market_type_and_params('fetchStatus', None, params)
-        response = None
-        status = None
-        updated = None
+        response: dict = {}
+        status: Str = None
+        updated: Int = None
         if marketType == 'spot':
             response = await self.spotPublicGetPing(query)
             #
@@ -1090,7 +1090,7 @@ class mexc(Exchange, ImplicitAPI):
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
         marketType, query = self.handle_market_type_and_params('fetchTime', None, params)
-        response = None
+        response: dict
         if marketType == 'spot':
             response = await self.spotPublicGetTime(query)
             #
@@ -1491,7 +1491,7 @@ class mexc(Exchange, ImplicitAPI):
         }
         if limit is not None:
             request['limit'] = limit
-        orderbook = None
+        orderbook: OrderBook | None = None
         if market['spot']:
             response = await self.spotPublicGetDepth(self.extend(request, params))
             #
@@ -1567,7 +1567,7 @@ class mexc(Exchange, ImplicitAPI):
         }
         if limit is not None:
             request['limit'] = limit
-        trades = None
+        trades: List[Trade] = []
         if market['spot']:
             until = self.safe_integer_n(params, ['endTime', 'until'])
             if since is not None:
@@ -1641,17 +1641,17 @@ class mexc(Exchange, ImplicitAPI):
         return self.parse_trades(trades, market, since, limit)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
-        id = None
-        timestamp = None
-        orderId = None
-        symbol = None
-        fee = None
+        id: Str = None
+        timestamp: Int = None
+        orderId: Str = None
+        symbol: Str = None
+        fee: NullableDict = None
         type = None
-        side = None
-        takerOrMaker = None
-        priceString = None
-        amountString = None
-        costString = None
+        side: Str = None
+        takerOrMaker: Str = None
+        priceString: Str = None
+        amountString: Str = None
+        costString: Str = None
         # if swap
         if 'v' in trade:
             #
@@ -1809,7 +1809,7 @@ class mexc(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'interval': timeframeValue,
         }
-        candles = None
+        candles: List[OHLCV] = []
         until = self.safe_integer_n(params, ['until', 'endTime'])
         start = since
         if (until is not None) and (since is None):
@@ -1853,7 +1853,7 @@ class mexc(Exchange, ImplicitAPI):
                     request['start'] = self.parse_to_int(start / 1000)
             priceType = self.safe_string(params, 'price', 'default')
             params = self.omit(params, 'price')
-            response = None
+            response: dict
             if priceType == 'default':
                 response = await self.contractPublicGetKlineSymbol(self.extend(request, params))
             elif priceType == 'index':
@@ -1904,7 +1904,7 @@ class mexc(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         request: dict = {}
-        market = None
+        market: Market = None
         isSingularMarket = False
         if symbols is not None:
             length = len(symbols)
@@ -1914,7 +1914,7 @@ class mexc(Exchange, ImplicitAPI):
         marketType, query = self.handle_market_type_and_params('fetchTickers', market, params)
         tickers = None
         if isSingularMarket:
-            request['symbol'] = market['id']
+            request['symbol'] = self.safe_string(market, 'id')
         if marketType == 'spot':
             tickers = await self.spotPublicGetTicker24hr(self.extend(request, query))
             #
@@ -1990,7 +1990,7 @@ class mexc(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         marketType, query = self.handle_market_type_and_params('fetchTicker', market, params)
-        ticker = None
+        ticker: Ticker | None = None
         request: dict = {
             'symbol': market['id'],
         }
@@ -2052,19 +2052,19 @@ class mexc(Exchange, ImplicitAPI):
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         marketId = self.safe_string(ticker, 'symbol')
         market = self.safe_market(marketId, market)
-        timestamp = None
-        bid = None
-        ask = None
-        bidVolume = None
-        askVolume = None
-        baseVolume = None
-        quoteVolume = None
-        open = None
-        high = None
-        low = None
-        changePcnt = None
-        changeValue = None
-        prevClose = None
+        timestamp: Int = None
+        bid: Str = None
+        ask: Str = None
+        bidVolume: Str = None
+        askVolume: Str = None
+        baseVolume: Str = None
+        quoteVolume: Str = None
+        open: Str = None
+        high: Str = None
+        low: Str = None
+        changePcnt: Str = None
+        changeValue: Str = None
+        prevClose: Str = None
         isSwap = self.safe_value(market, 'swap')
         # if swap
         if isSwap or ('timestamp' in ticker):
@@ -2173,7 +2173,7 @@ class mexc(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         isSingularMarket = False
         if symbols is not None:
             length = len(symbols)
@@ -2278,7 +2278,7 @@ class mexc(Exchange, ImplicitAPI):
         else:
             return await self.create_swap_order(market, type, side, amount, price, marginMode, query)
 
-    def create_spot_order_request(self, market, type, side, amount, price=None, marginMode=None, params={}):
+    def create_spot_order_request(self, market, type, side, amount, price: Num = None, marginMode: Str = None, params={}):
         symbol = market['symbol']
         orderSide = side.upper()
         request: dict = {
@@ -2312,7 +2312,7 @@ class mexc(Exchange, ImplicitAPI):
         if marginMode is not None:
             if marginMode != 'isolated':
                 raise BadRequest(self.id + ' createOrder() does not support marginMode ' + marginMode + ' for spot-margin trading')
-        postOnly = None
+        postOnly: Bool = None
         postOnly, params = self.handle_post_only(type == 'market', type == 'LIMIT_MAKER', params)
         if postOnly:
             request['type'] = 'LIMIT_MAKER'
@@ -2325,7 +2325,7 @@ class mexc(Exchange, ImplicitAPI):
                 request['type'] = 'FILL_OR_KILL'
         return self.extend(request, params)
 
-    async def create_spot_order(self, market, type, side, amount, price=None, marginMode=None, params={}):
+    async def create_spot_order(self, market, type, side, amount, price: Num = None, marginMode: Str = None, params={}):
         """
  @ignore
         create a trade order
@@ -2346,7 +2346,7 @@ class mexc(Exchange, ImplicitAPI):
         test = self.safe_bool(params, 'test', False)
         params = self.omit(params, 'test')
         request = self.create_spot_order_request(market, type, side, amount, price, marginMode, params)
-        response = None
+        response: dict
         if test:
             response = await self.spotPrivatePostOrderTest(request)
         else:
@@ -2379,7 +2379,7 @@ class mexc(Exchange, ImplicitAPI):
             order['amount'] = amount
         return order
 
-    async def create_swap_order(self, market, type, side, amount, price=None, marginMode=None, params={}):
+    async def create_swap_order(self, market, type, side, amount, price: Num = None, marginMode: Str = None, params={}):
         """
  @ignore
         create a trade order
@@ -2410,7 +2410,7 @@ class mexc(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         symbol = market['symbol']
-        openType = None
+        openType: Int = None
         if marginMode is not None:
             if marginMode == 'cross':
                 openType = 2
@@ -2422,7 +2422,7 @@ class mexc(Exchange, ImplicitAPI):
             openType = self.safe_integer(params, 'openType', 2)  # defaulting to cross margin
         if (type != 'limit') and (type != 'market') and (type != 1) and (type != 2) and (type != 3) and (type != 4) and (type != 5) and (type != 6):
             raise InvalidOrder(self.id + ' createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price')
-        postOnly = None
+        postOnly: Bool = None
         postOnly, params = self.handle_post_only(type == 'market', type == 2, params)
         if postOnly:
             type = 2
@@ -2464,7 +2464,7 @@ class mexc(Exchange, ImplicitAPI):
                 raise ArgumentsRequired(self.id + ' createSwapOrder() requires a leverage parameter for isolated margin orders')
         reduceOnly = self.safe_bool(params, 'reduceOnly', False)
         hedged = self.safe_bool(params, 'hedged', False)
-        sideInteger = None
+        sideInteger: Int = None
         if hedged:
             if reduceOnly:
                 params = self.omit(params, 'reduceOnly')  # hedged mode does not accept self parameter
@@ -2484,7 +2484,7 @@ class mexc(Exchange, ImplicitAPI):
             request['externalOid'] = clientOrderId
         triggerPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
         params = self.omit(params, ['clientOrderId', 'externalOid', 'postOnly', 'stopPrice', 'triggerPrice', 'hedged'])
-        response = None
+        response: dict
         if triggerPrice:
             request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
             request['triggerType'] = self.safe_integer(params, 'triggerType', 1)
@@ -2518,7 +2518,7 @@ class mexc(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         ordersRequests = []
-        symbol = None
+        symbol: Str = None
         for i in range(0, len(orders)):
             rawOrder = orders[i]
             marketId = self.safe_string(rawOrder, 'symbol')
@@ -2535,7 +2535,7 @@ class mexc(Exchange, ImplicitAPI):
             amount = self.safe_value(rawOrder, 'amount')
             price = self.safe_value(rawOrder, 'price')
             orderParams = self.safe_value(rawOrder, 'params', {})
-            marginMode = None
+            marginMode: Str = None
             marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
             orderRequest = self.create_spot_order_request(market, type, side, amount, price, marginMode, orderParams)
             ordersRequests.append(orderRequest)
@@ -2585,7 +2585,7 @@ class mexc(Exchange, ImplicitAPI):
         request: dict = {
             'symbol': market['id'],
         }
-        data = None
+        data: dict = {}
         if market['spot']:
             clientOrderId = self.safe_string(params, 'clientOrderId')
             if clientOrderId is not None:
@@ -2700,7 +2700,7 @@ class mexc(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         request: dict = {}
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -2717,7 +2717,7 @@ class mexc(Exchange, ImplicitAPI):
                 request['endTime'] = until
             if limit is not None:
                 request['limit'] = limit
-            response = None
+            response: dict
             if marginMode is not None:
                 if marginMode != 'isolated':
                     raise BadRequest(self.id + ' fetchOrders() does not support marginMode ' + marginMode + ' for spot-margin trading')
@@ -2866,7 +2866,7 @@ class mexc(Exchange, ImplicitAPI):
     async def fetch_orders_by_ids(self, ids, symbol: Str = None, params={}):
         await self.load_markets()
         request: dict = {}
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -2930,16 +2930,16 @@ class mexc(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         request: dict = {}
-        market = None
-        marketType = None
+        market: Market = None
+        marketType: Str = None
         if symbol is not None:
             market = self.market(symbol)
         marketType, params = self.handle_market_type_and_params('fetchOpenOrders', market, params)
         if marketType == 'spot':
             if symbol is not None:
-                request['symbol'] = market['id']
+                request['symbol'] = self.safe_string(market, 'id')
             marginMode, query = self.handle_margin_mode_and_params('fetchOpenOrders', params)
-            response = None
+            response: dict
             if marginMode is not None:
                 if marginMode != 'isolated':
                     raise BadRequest(self.id + ' fetchOpenOrders() does not support marginMode ' + marginMode + ' for spot-margin trading')
@@ -3037,7 +3037,7 @@ class mexc(Exchange, ImplicitAPI):
     async def fetch_orders_by_state(self, state, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         await self.load_markets()
         request: dict = {}
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
         marketType = self.handle_market_type_and_params('fetchOrdersByState', market, params)
@@ -3063,19 +3063,19 @@ class mexc(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         request: dict = {}
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        marketType = None
+        marketType: Str = None
         marketType, params = self.handle_market_type_and_params('cancelOrder', market, params)
         marginMode, query = self.handle_margin_mode_and_params('cancelOrder', params)
-        data = None
+        data: dict
         if marketType == 'spot':
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
             requestInner: dict = {
-                'symbol': market['id'],
+                'symbol': self.safe_string(market, 'id'),
             }
             clientOrderId = self.safe_string(params, 'clientOrderId')
             if clientOrderId is not None:
@@ -3127,7 +3127,7 @@ class mexc(Exchange, ImplicitAPI):
             # TODO: PlanorderCancel endpoint has bug atm. waiting for fix.
             method = self.safe_string(self.options, 'cancelOrder', 'contractPrivatePostOrderCancel')  # contractPrivatePostOrderCancel, contractPrivatePostPlanorderCancel
             method = self.safe_string(query, 'method', method)
-            response = None
+            response: dict
             if method == 'contractPrivatePostOrderCancel':
                 response = await self.contractPrivatePostOrderCancel([id])  # the request cannot be changed or extended. This is the only way to send.
             elif method == 'contractPrivatePostPlanorderCancel':
@@ -3204,14 +3204,14 @@ class mexc(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol) if (symbol is not None) else None
         request: dict = {}
-        marketType = None
+        marketType: Str = None
         marketType, params = self.handle_market_type_and_params('cancelAllOrders', market, params)
         marginMode, query = self.handle_margin_mode_and_params('cancelAllOrders', params)
         if marketType == 'spot':
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument on spot')
-            request['symbol'] = market['id']
-            response = None
+            request['symbol'] = self.safe_string(market, 'id')
+            response: dict
             if marginMode is not None:
                 if marginMode != 'isolated':
                     raise BadRequest(self.id + ' cancelAllOrders() does not support marginMode ' + marginMode + ' for spot-margin trading')
@@ -3257,12 +3257,12 @@ class mexc(Exchange, ImplicitAPI):
             return self.parse_orders(response, market)
         else:
             if symbol is not None:
-                request['symbol'] = market['id']
+                request['symbol'] = self.safe_string(market, 'id')
             # method can be either: contractPrivatePostOrderCancelAll or contractPrivatePostPlanorderCancelAll
             # the Planorder endpoints work not only for stop-market orders but also for stop-limit orders that are supposed to have separate endpoint
             method = self.safe_string(self.options, 'cancelAllOrders', 'contractPrivatePostOrderCancelAll')
             method = self.safe_string(query, 'method', method)
-            response = None
+            response: dict = {}
             if method == 'contractPrivatePostOrderCancelAll':
                 response = await self.contractPrivatePostOrderCancelAll(self.extend(request, query))
             elif method == 'contractPrivatePostPlanorderCancelAll':
@@ -3455,7 +3455,7 @@ class mexc(Exchange, ImplicitAPI):
                 'status': 'rejected',
                 'clientOrderId': self.safe_string(order, 'newClientOrderId'),
             })
-        id = None
+        id: Str = None
         if isinstance(order, str):
             id = order
         else:
@@ -3467,7 +3467,7 @@ class mexc(Exchange, ImplicitAPI):
         marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
         timestamp = self.safe_integer_n(order, ['time', 'createTime', 'transactTime'])
-        fee = None
+        fee: NullableDict = None
         feeCurrency = self.safe_string(order, 'feeCurrency')
         if feeCurrency is not None:
             takerFee = self.safe_string(order, 'takerFee')
@@ -3804,20 +3804,22 @@ class mexc(Exchange, ImplicitAPI):
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.load_markets()
-        marketType = None
+        marketType: Str = None
         request: dict = {}
         marketType, params = self.handle_market_type_and_params('fetchBalance', None, params)
         marginMode = self.safe_string(params, 'marginMode')
         isMargin = self.safe_bool(params, 'margin', False)
         params = self.omit(params, ['margin', 'marginMode'])
-        response = None
+        response: dict
         if (marginMode is not None) or (isMargin) or (marketType == 'margin'):
-            parsedSymbols = None
+            parsedSymbols: Str = None
             symbol = self.safe_string(params, 'symbol')
             if symbol is None:
                 symbols = self.safe_value(params, 'symbols')
                 if symbols is not None:
-                    parsedSymbols = ','.join(self.market_ids(symbols))
+                    symbolIds = self.market_ids(symbols)
+                    if symbolIds is not None:
+                        parsedSymbols = ','.join(symbolIds)
             else:
                 market = self.market(symbol)
                 parsedSymbols = market['id']
@@ -3941,7 +3943,7 @@ class mexc(Exchange, ImplicitAPI):
         request: dict = {
             'symbol': market['id'],
         }
-        trades = None
+        trades: List[Trade]
         if marketType == 'spot':
             if since is not None:
                 request['startTime'] = since
@@ -4024,15 +4026,15 @@ class mexc(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         request: dict = {}
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
         marketType, query = self.handle_market_type_and_params('fetchOrderTrades', market, params)
-        trades = None
+        trades: List[Trade]
         if marketType == 'spot':
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' fetchOrderTrades() requires a symbol argument')
-            request['symbol'] = market['id']
+            request['symbol'] = self.safe_string(market, 'id')
             request['orderId'] = id
             trades = await self.spotPrivateGetMyTrades(self.extend(request, query))
             #
@@ -4172,7 +4174,7 @@ class mexc(Exchange, ImplicitAPI):
         :returns dict: a `funding history structure <https://docs.ccxt.com/?id=funding-history-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         request: dict = {
             # 'symbol': market['id'],
             # 'position_id': positionId,
@@ -4260,7 +4262,7 @@ class mexc(Exchange, ImplicitAPI):
         symbol = self.safe_symbol(marketId, market, None, 'contract')
         timestamp = self.safe_integer(contract, 'timestamp')
         interval = self.safe_string(contract, 'collectCycle')
-        intervalString = None
+        intervalString: Str = None
         if interval is not None:
             intervalString = interval + 'h'
         return {
@@ -4576,7 +4578,7 @@ class mexc(Exchange, ImplicitAPI):
             'coin': currency['id'],
         }
         networkCode = self.safe_string(params, 'network')
-        networkId = None
+        networkId: Str = None
         if networkCode is not None:
             # createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
             networkUnified = self.network_id_to_code(networkCode, code)
@@ -4625,7 +4627,7 @@ class mexc(Exchange, ImplicitAPI):
         if networkCode is None:
             raise ArgumentsRequired(self.id + ' createDepositAddress requires a `network` parameter')
         # createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
-        networkId = None
+        networkId: Str = None
         networkUnified = self.network_id_to_code(networkCode, code)
         networks = self.safe_dict(currency, 'networks', {})
         if networkUnified in networks:
@@ -4659,7 +4661,7 @@ class mexc(Exchange, ImplicitAPI):
         """
         network = self.safe_string(params, 'network')
         addressStructures = await self.fetch_deposit_addresses_by_network(code, params)
-        result = None
+        result: dict
         if network is not None:
             result = self.safe_dict(addressStructures, self.network_id_to_code(network, code))
         else:
@@ -4695,7 +4697,7 @@ class mexc(Exchange, ImplicitAPI):
             # 'endTime': self.nonce(),
             # 'limit': limit,  # default 1000, maximum 1000
         }
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
             request['coin'] = currency['id']
@@ -4753,7 +4755,7 @@ class mexc(Exchange, ImplicitAPI):
             # 'endTime': self.nonce(),
             # 'limit': limit,  # default 1000, maximum 1000
         }
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
             request['coin'] = currency['id']
@@ -4847,12 +4849,12 @@ class mexc(Exchange, ImplicitAPI):
         type = 'deposit' if (id is None) else 'withdrawal'
         timestamp = self.safe_integer_2(transaction, 'insertTime', 'applyTime')
         updated = self.safe_integer(transaction, 'updateTime')
-        currencyId = None
+        currencyId: Str = None
         currencyWithNetwork = self.safe_string(transaction, 'coin')
         if currencyWithNetwork is not None:
             currencyId = currencyWithNetwork.split('-')[0]
         code = self.safe_currency_code(currencyId, currency)
-        network = None
+        network: Str = None
         rawNetwork = self.safe_string(transaction, 'network')
         if rawNetwork is not None:
             network = self.network_id_to_code(rawNetwork, code)
@@ -4860,7 +4862,7 @@ class mexc(Exchange, ImplicitAPI):
         amountString = self.safe_string(transaction, 'amount')
         address = self.safe_string(transaction, 'address')
         txid = self.safe_string_2(transaction, 'transHash', 'txId')
-        fee = None
+        fee: NullableDict = None
         feeCostString = self.safe_string(transaction, 'transactionFee')
         if feeCostString is not None:
             fee = {
@@ -4893,7 +4895,7 @@ class mexc(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def parse_transaction_status_by_type(self, status, type=None):
+    def parse_transaction_status_by_type(self, status, type: Str = None):
         statusesByType: dict = {
             'deposit': {
                 '1': 'failed',  # SMALL
@@ -5139,14 +5141,14 @@ class mexc(Exchange, ImplicitAPI):
         :param str [params.toAccountType]: 'SPOT' for spot wallet, 'FUTURES' for contract wallet
         :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        marketType = None
+        marketType: Str = None
         marketType, params = self.handle_market_type_and_params('fetchTransfers', None, params)
         await self.load_markets()
         request: dict = {}
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
-        fromAccountType = None
+        fromAccountType: Str = None
         fromAccountType, params = self.handle_option_and_params(params, 'fetchTransfers', 'fromAccountType')
         accountTypes = {
             'spot': 'SPOT',
@@ -5159,7 +5161,7 @@ class mexc(Exchange, ImplicitAPI):
             request['fromAccountType'] = self.safe_string(accountTypes, fromAccountType, fromAccountType)
         else:
             raise ArgumentsRequired(self.id + ' fetchTransfers() requires a fromAccountType parameter, one of "SPOT", "FUTURES"')
-        toAccountType = None
+        toAccountType: Str = None
         toAccountType, params = self.handle_option_and_params(params, 'fetchTransfers', 'toAccountType')
         if toAccountType is not None:
             request['toAccountType'] = self.safe_string(accountTypes, toAccountType, toAccountType)
@@ -5328,8 +5330,8 @@ class mexc(Exchange, ImplicitAPI):
         timestamp = self.safe_integer_2(transfer, 'createTime', 'timestamp')
         datetime = self.iso8601(timestamp) if (timestamp is not None) else None
         direction = self.safe_string(transfer, 'type')
-        accountFrom = None
-        accountTo = None
+        accountFrom: Str = None
+        accountTo: Str = None
         fromAccountType = self.safe_string(transfer, 'fromAccountType')
         toAccountType = self.safe_string(transfer, 'toAccountType')
         if (fromAccountType is not None) and (toAccountType is not None):
@@ -5520,7 +5522,7 @@ class mexc(Exchange, ImplicitAPI):
         #
         return self.parse_transaction_fees(response, codes)
 
-    def parse_transaction_fees(self, response, codes=None):
+    def parse_transaction_fees(self, response, codes: Strings = None):
         withdrawFees: dict = {}
         for i in range(0, len(response)):
             entry = response[i]
@@ -5710,9 +5712,9 @@ class mexc(Exchange, ImplicitAPI):
         return self.parse_leverage(data, market)
 
     def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
-        marginMode = None
-        longLeverage = None
-        shortLeverage = None
+        marginMode: Str = None
+        longLeverage: Int = None
+        shortLeverage: Int = None
         for i in range(0, len(leverage)):
             entry = leverage[i]
             openType = self.safe_integer(entry, 'openType')
@@ -5724,13 +5726,13 @@ class mexc(Exchange, ImplicitAPI):
             marginMode = 'isolated' if (openType == 1) else 'cross'
         return {
             'info': leverage,
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'marginMode': marginMode,
             'longLeverage': longLeverage,
             'shortLeverage': shortLeverage,
         }
 
-    def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None):
+    def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None) -> list:
         """
  @ignore
         marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'
@@ -5858,11 +5860,11 @@ class mexc(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         section = self.safe_string(api, 0)
         access = self.safe_string(api, 1)
         path, params = self.resolve_path(path, params)
-        url = None
+        url: Str = None
         if section == 'spot' or section == 'broker':
             if section == 'broker':
                 url = self.urls['api'][section][access] + '/' + path
@@ -5892,6 +5894,7 @@ class mexc(Exchange, ImplicitAPI):
                     'source': self.safe_string(self.options, 'broker', 'CCXT'),
                 }
             if (method == 'POST') or (method == 'PUT') or (method == 'DELETE'):
+                headers = {} if (headers is None) else headers
                 headers['Content-Type'] = 'application/json'
         elif section == 'contract' or section == 'spot2':
             url = self.urls['api'][section][access] + '/' + self.implode_params(path, params)

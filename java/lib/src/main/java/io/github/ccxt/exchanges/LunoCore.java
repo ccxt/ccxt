@@ -1037,14 +1037,14 @@ public class LunoCore extends LunoApi
         {
             if (!Helpers.isTrue(Precise.stringEquals(feeBaseString, "0.0")))
             {
-                feeCurrency = Helpers.GetValue(market, "base");
+                feeCurrency = this.safeString(market, "base");
                 feeCost = feeBaseString;
             }
         } else if (Helpers.isTrue(!Helpers.isEqual(feeCounterString, null)))
         {
             if (!Helpers.isTrue(Precise.stringEquals(feeCounterString, "0.0")))
             {
-                feeCurrency = Helpers.GetValue(market, "quote");
+                feeCurrency = this.safeString(market, "quote");
                 feeCost = feeCounterString;
             }
         }
@@ -1059,7 +1059,7 @@ public class LunoCore extends LunoApi
             put( "id", id );
             put( "timestamp", timestamp );
             put( "datetime", LunoCore.this.iso8601(timestamp) );
-            put( "symbol", Helpers.GetValue(market, "symbol") );
+            put( "symbol", LunoCore.this.safeString(market, "symbol") );
             put( "order", finalOrderId );
             put( "type", null );
             put( "side", finalSide );

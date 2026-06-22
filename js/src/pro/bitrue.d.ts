@@ -1,5 +1,5 @@
 import bitrueRest from '../bitrue.js';
-import type { Int, Str, OrderBook, Order, Balances, Trade, Ticker, OHLCV } from '../base/types.js';
+import type { Balances, Int, OHLCV, Order, OrderBook, Str, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bitrue extends bitrueRest {
     describe(): any;

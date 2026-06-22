@@ -2096,7 +2096,7 @@ func (this *DeriveCore) ParseOrder(rawOrder any, optionalArgs ...any) any {
 	if IsTrue(!IsEqual(marketId, nil)) {
 		market = this.SafeMarket(marketId, market)
 	}
-	var symbol any = GetValue(market, "symbol")
+	var symbol any = this.SafeString(market, "symbol")
 	var price any = this.SafeString(order, "limit_price")
 	var average any = this.SafeString(order, "average_price")
 	var amount any = this.SafeString(order, "desired_amount")

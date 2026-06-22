@@ -82,9 +82,9 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
     async subscribe (name: string, symbols: Strings = undefined, params = {}) {
         await this.loadMarkets ();
         this.checkRequiredCredentials ();
-        let market = undefined;
+        let market: Market = undefined;
         let messageHash = name;
-        let productIds = undefined;
+        let productIds: Strings = undefined;
         if (symbols === undefined) {
             symbols = this.getActiveSymbols ();
         }

@@ -451,7 +451,7 @@ class mercado(Exchange, ImplicitAPI):
         price = self.safe_string(trade, 'price')
         amount = self.safe_string_2(trade, 'amount', 'quantity')
         feeCost = self.safe_string(trade, 'fee_rate')
-        fee = None
+        fee: NullableDict = None
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
@@ -642,7 +642,7 @@ class mercado(Exchange, ImplicitAPI):
         #
         id = self.safe_string(order, 'order_id')
         order_type = self.safe_string(order, 'order_type')
-        side = None
+        side: Str = None
         if 'order_type' in order:
             side = 'buy' if (order_type == '1') else 'sell'
         status = self.parse_order_status(self.safe_string(order, 'status'))
@@ -914,7 +914,7 @@ class mercado(Exchange, ImplicitAPI):
                 result.append(trades[y])
         return result
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api] + '/'
         query = self.omit(params, self.extract_params(path))
         if (api == 'public') or (api == 'v4Public') or (api == 'v4PublicNet'):

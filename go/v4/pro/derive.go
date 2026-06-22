@@ -808,7 +808,7 @@ func  (this *DeriveCore) HandleMyTrade(client any, message any)  {
         var trade any = this.ParseTrade(message)
         myTrades.(ccxt.Appender).Append(trade)
         client.(ccxt.ClientInterface).Resolve(myTrades, topic)
-        var messageHash any = ccxt.Add(topic, ccxt.GetValue(trade, "symbol"))
+        var messageHash any = ccxt.Add(topic, this.SafeString(trade, "symbol", ""))
         client.(ccxt.ClientInterface).Resolve(myTrades, messageHash)
     }
 }

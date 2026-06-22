@@ -722,12 +722,12 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                         {
                             ((IDictionary<string,object>)previousOrder)["fee"] = new Dictionary<string, object>() {
                                 { "cost", 0 },
-                                { "currency", getValue(getValue(trade, "fee"), "currency") },
+                                { "currency", this.safeString(getValue(trade, "fee"), "currency") },
                             };
                         }
-                        if (isTrue(isTrue((!isEqual(getValue(getValue(previousOrder, "fee"), "cost"), null))) && isTrue((!isEqual(getValue(getValue(trade, "fee"), "cost"), null)))))
+                        if (isTrue(isTrue((!isEqual(getValue(getValue(previousOrder, "fee"), "cost"), null))) && isTrue((!isEqual(this.safeNumber(getValue(trade, "fee"), "cost"), null)))))
                         {
-                            ((IDictionary<string,object>)getValue(previousOrder, "fee"))["cost"] = this.sum(getValue(getValue(previousOrder, "fee"), "cost"), getValue(getValue(trade, "fee"), "cost"));
+                            ((IDictionary<string,object>)getValue(previousOrder, "fee"))["cost"] = this.sum(getValue(getValue(previousOrder, "fee"), "cost"), this.safeNumber(getValue(trade, "fee"), "cost"));
                             object previousOrderFee = this.safeDict(previousOrder, "fee");
                             object tradeFee = this.safeDict(trade, "fee");
                             ((IDictionary<string,object>)getValue(previousOrder, "fee"))["cost"] = this.parseNumber(Precise.stringAdd(this.safeString(previousOrderFee, "cost"), this.safeString(tradeFee, "cost")));

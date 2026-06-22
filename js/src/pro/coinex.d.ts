@@ -1,11 +1,11 @@
 import coinexRest from '../coinex.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Balances, Dict, int } from '../base/types.js';
+import type { Balances, Dict, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class coinex extends coinexRest {
     describe(): any;
     requestId(): any;
     handleTicker(client: Client, message: any): void;
-    parseWSTicker(ticker: any, market?: any): Ticker;
+    parseWSTicker(ticker: any, market?: Market): Ticker;
     /**
      * @method
      * @name coinex#watchBalance
@@ -17,7 +17,7 @@ export default class coinex extends coinexRest {
      */
     watchBalance(params?: {}): Promise<Balances>;
     handleBalance(client: Client, message: any): void;
-    parseWsBalance(balance: any, accountType?: any): void;
+    parseWsBalance(balance: any, accountType?: Str): void;
     /**
      * @method
      * @name coinex#watchMyTrades
@@ -33,7 +33,7 @@ export default class coinex extends coinexRest {
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleMyTrades(client: Client, message: any): void;
     handleTrades(client: Client, message: any): void;
-    parseWsTrade(trade: any, market?: any): Trade;
+    parseWsTrade(trade: any, market?: Market): Trade;
     /**
      * @method
      * @name coinex#watchTicker
@@ -124,7 +124,7 @@ export default class coinex extends coinexRest {
      */
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     handleOrders(client: Client, message: any): void;
-    parseWsOrder(order: any, market?: any): Order;
+    parseWsOrder(order: any, market?: Market): Order;
     parseWsOrderStatus(status: any): string;
     /**
      * @method
@@ -138,7 +138,7 @@ export default class coinex extends coinexRest {
      */
     watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
     handleBidAsk(client: Client, message: any): void;
-    parseWsBidAsk(ticker: any, market?: any): Ticker;
+    parseWsBidAsk(ticker: any, market?: Market): Ticker;
     handleMessage(client: Client, message: any): void;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
     handleAuthenticationMessage(client: Client, message: any): void;

@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Any, Balances, Bool, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import AuthenticationError
@@ -271,8 +271,8 @@ class whitebit(ccxt.async_support.whitebit):
         method = 'market_subscribe'
         url = self.urls['api']['ws']
         id = self.nonce()
-        messageHashes = []
-        args = []
+        messageHashes: List[str] = []
+        args: List = []
         for i in range(0, len(symbols)):
             market = self.market(symbols[i])
             messageHashes.append('ticker:' + market['symbol'])
@@ -449,7 +449,7 @@ class whitebit(ccxt.async_support.whitebit):
         messageHash = 'myTrades:' + symbol
         client.resolve(stored, messageHash)
 
-    def parse_ws_trade(self, trade, market=None):
+    def parse_ws_trade(self, trade, market: Market = None):
         #
         #   [
         #         1894994106,  # id
@@ -469,7 +469,7 @@ class whitebit(ccxt.async_support.whitebit):
         amount = self.safe_string(trade, 5)
         marketId = self.safe_string(trade, 2)
         market = self.safe_market(marketId, market)
-        fee = None
+        fee: NullableDict = None
         feeCost = self.safe_string(trade, 6)
         if feeCost is not None:
             fee = {
@@ -557,7 +557,7 @@ class whitebit(ccxt.async_support.whitebit):
         messageHash = 'orders:' + symbol
         client.resolve(self.orders, messageHash)
 
-    def parse_ws_order(self, order, market=None):
+    def parse_ws_order(self, order, market: Market = None):
         #
         #   {
         #         "id": 96433622651,
@@ -591,8 +591,8 @@ class whitebit(ccxt.async_support.whitebit):
         stopPrice = self.safe_string(order, 'activation_price')
         rawType = self.safe_string(order, 'type')
         type = self.parse_ws_order_type(rawType)
-        amount = None
-        remaining = None
+        amount: Str = None
+        remaining: Str = None
         if type == 'market':
             amount = self.safe_string(order, 'deal_stock')
             remaining = '0'
@@ -605,13 +605,13 @@ class whitebit(ccxt.async_support.whitebit):
         rawSide = self.safe_integer(order, 'side')
         side = 'sell' if (rawSide == 1) else 'buy'
         dealFee = self.safe_string(order, 'deal_fee')
-        fee = None
+        fee: NullableDict = None
         if dealFee is not None:
             fee = {
                 'cost': self.parse_number(dealFee),
                 'currency': market['quote'],
             }
-        unifiedStatus = None
+        unifiedStatus: Str = None
         if (status == 1) or (status == 2):
             unifiedStatus = 'open'
         else:
@@ -670,10 +670,10 @@ class whitebit(ccxt.async_support.whitebit):
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.load_markets()
-        type = None
+        type: Str = None
         type, params = self.handle_market_type_and_params('watchBalance', None, params)
         messageHash = 'wallet:'
-        method = None
+        method: Str = None
         if type == 'spot':
             method = 'balanceSpot_subscribe'
             messageHash += 'spot'
@@ -734,8 +734,8 @@ class whitebit(ccxt.async_support.whitebit):
         url = self.urls['api']['ws']
         id = self.nonce()
         client = self.safe_value(self.clients, url)
-        request = None
-        marketIds = []
+        request: NullableDict = None
+        marketIds: List = []
         if client is None:
             subscription: dict = {}
             market = self.market(symbol)
@@ -765,7 +765,7 @@ class whitebit(ccxt.async_support.whitebit):
                 return await self.watch(url, messageHash, request, method, subscription)
             else:
                 # resubscribe
-                marketIdsNew = []
+                marketIdsNew: List = []
                 marketIdsNew = list(subscription.keys())
                 if isNested:
                     marketIdsNew = [marketIdsNew]

@@ -541,7 +541,7 @@ class bittrade(Exchange, ImplicitAPI):
         numMarkets = len(markets)
         if numMarkets < 1:
             raise NetworkError(self.id + ' fetchMarkets() returned empty response: ' + self.json(markets))
-        result = []
+        result: List = []
         for i in range(0, len(markets)):
             market = markets[i]
             baseId = self.safe_string(market, 'base-currency')
@@ -644,10 +644,10 @@ class bittrade(Exchange, ImplicitAPI):
         #
         symbol = self.safe_symbol(None, market)
         timestamp = self.safe_integer(ticker, 'ts')
-        bid = None
-        bidVolume = None
-        ask = None
-        askVolume = None
+        bid: Str = None
+        bidVolume: Str = None
+        ask: Str = None
+        askVolume: Str = None
         if 'bid' in ticker:
             if isinstance(ticker['bid'], list):
                 bid = self.safe_string(ticker['bid'], 0)
@@ -844,7 +844,7 @@ class bittrade(Exchange, ImplicitAPI):
         price = self.safe_string(trade, 'price')
         amount = self.safe_string_2(trade, 'filled-amount', 'amount')
         cost = Precise.string_mul(price, amount)
-        fee = None
+        fee: NullableDict = None
         feeCost = self.safe_string(trade, 'filled-fees')
         feeCurrency = self.safe_currency_code(self.safe_string(trade, 'fee-currency'))
         filledPoints = self.safe_string(trade, 'filled-points')
@@ -902,7 +902,7 @@ class bittrade(Exchange, ImplicitAPI):
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         self.load_markets()
-        market = None
+        market: Market = None
         request: dict = {}
         if symbol is not None:
             market = self.market(symbol)
@@ -957,7 +957,7 @@ class bittrade(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        result = []
+        result: List = []
         for i in range(0, len(data)):
             trades = self.safe_value(data[i], 'data', [])
             for j in range(0, len(trades)):
@@ -1134,7 +1134,7 @@ class bittrade(Exchange, ImplicitAPI):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
-            account = None
+            account: NullableDict = None
             if code in result:
                 account = result[code]
             else:
@@ -1166,7 +1166,7 @@ class bittrade(Exchange, ImplicitAPI):
         request: dict = {
             'states': states,
         }
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -1249,7 +1249,7 @@ class bittrade(Exchange, ImplicitAPI):
     def fetch_open_orders_v2(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         self.load_markets()
         request: dict = {}
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -1335,9 +1335,9 @@ class bittrade(Exchange, ImplicitAPI):
         #             "canceled-at":  0                      }
         #
         id = self.safe_string(order, 'id')
-        side = None
-        type = None
-        status = None
+        side: Str = None
+        type: Str = None
+        status: Str = None
         if 'type' in order:
             orderType = order['type'].split('-')
             side = orderType[0]
@@ -1352,7 +1352,7 @@ class bittrade(Exchange, ImplicitAPI):
         price = self.safe_string(order, 'price')
         cost = self.safe_string_2(order, 'filled-cash-amount', 'field-cash-amount')  # same typo
         feeCost = self.safe_string_2(order, 'filled-fees', 'field-fees')  # typo in their API, filled fees
-        fee = None
+        fee: NullableDict = None
         if feeCost is not None:
             feeCurrency = market['quote'] if (side == 'sell') else market['base']
             fee = {
@@ -1426,7 +1426,7 @@ class bittrade(Exchange, ImplicitAPI):
             request['client-order-id'] = clientOrderId
         params = self.omit(params, ['clientOrderId', 'client-order-id'])
         if (type == 'market') and (side == 'buy'):
-            quoteAmount = None
+            quoteAmount: Str = None
             createMarketBuyOrderRequiresPrice = True
             createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
             cost = self.safe_number(params, 'cost')
@@ -1578,13 +1578,13 @@ class bittrade(Exchange, ImplicitAPI):
         #    }
         #
         successes = self.safe_string(orders, 'successes')
-        success = None
+        success: Strings = None
         if successes is not None:
             success = successes.split(',')
         else:
             success = self.safe_list(orders, 'success', [])
         failed = self.safe_list_2(orders, 'errors', 'failed', [])
-        result = []
+        result: List = []
         for i in range(0, len(success)):
             order = success[i]
             result.append(self.safe_order({
@@ -1617,7 +1617,7 @@ class bittrade(Exchange, ImplicitAPI):
             # 'side': 'buy',  # or 'sell'
             # 'size': 100,  # the number of orders to cancel 1-100
         }
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -1679,7 +1679,7 @@ class bittrade(Exchange, ImplicitAPI):
         if limit is None or limit > 100:
             limit = 100
         self.load_markets()
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
         request: dict = {
@@ -1706,7 +1706,7 @@ class bittrade(Exchange, ImplicitAPI):
         if limit is None or limit > 100:
             limit = 100
         self.load_markets()
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
         request: dict = {
@@ -1862,7 +1862,7 @@ class bittrade(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
         url = '/'
         if api == 'market':
             url += api

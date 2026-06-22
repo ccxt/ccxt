@@ -644,7 +644,7 @@ class woofipro extends Exchange {
         return $this->parse_markets($rows);
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          *
@@ -696,7 +696,7 @@ class woofipro extends Exchange {
     public function parse_currency(array $rawCurrency): array {
         $token = $this->safe_dict($rawCurrency, '_token', array());
         $currencyId = $this->safe_string($token, 'token');
-        $networks = $this->safe_list($token, 'chain_details');
+        $networks = $this->safe_list($token, 'chain_details', array());
         $code = $this->safe_currency_code($currencyId);
         $indexedChains = $this->safe_dict($rawCurrency, '_indexedChains', array());
         $resultingNetworks = array();
@@ -1647,7 +1647,7 @@ class woofipro extends Exchange {
             // }
             //
         }
-        $data = $this->safe_dict($response, 'data');
+        $data = $this->safe_dict($response, 'data', array());
         $data['timestamp'] = $this->safe_integer($response, 'timestamp');
         $order = $this->parse_order($data, $market);
         $order['type'] = $type;
@@ -1817,7 +1817,7 @@ class woofipro extends Exchange {
             $market = $this->market($symbol);
         }
         $request = array(
-            'symbol' => $market['id'],
+            'symbol' => $this->safe_string($market, 'id'),
         );
         $clientOrderIdUnified = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
         $clientOrderIdExchangeSpecific = $this->safe_string($params, 'client_order_id', $clientOrderIdUnified);
@@ -2659,7 +2659,7 @@ class woofipro extends Exchange {
         $leverageValue = $this->safe_integer($leverage, 'max_leverage');
         return array(
             'info' => $leverage,
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'marginMode' => null,
             'longLeverage' => $leverageValue,
             'shortLeverage' => $leverageValue,
@@ -2907,7 +2907,7 @@ class woofipro extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, $section = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $section = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $version = $section[0];
         $access = $section[1];
         $pathWithParams = $this->implode_params($path, $params);

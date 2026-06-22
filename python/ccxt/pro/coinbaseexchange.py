@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
 import hashlib
-from ccxt.base.types import Any, Bool, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Bool, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -67,7 +67,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
 
     async def subscribe(self, name, symbol=None, messageHashStart=None, params={}):
         await self.load_markets()
-        market = None
+        market: Market = None
         messageHash = messageHashStart
         productIds = []
         if symbol is not None:
@@ -90,7 +90,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
 
     async def subscribe_multiple(self, name, symbols=[], messageHashStart=None, params={}):
         await self.load_markets()
-        market = None
+        market: Market = None
         symbols = self.market_symbols(symbols)
         messageHashes = []
         productIds = []
@@ -387,7 +387,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             client.resolve(tradesArray, messageHash)
         return message
 
-    def parse_ws_trade(self, trade, market=None):
+    def parse_ws_trade(self, trade, market: Market = None):
         #
         # private trades
         # {
@@ -439,7 +439,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         #     "order_type": "limit"
         # }
         parsed = super(coinbaseexchange, self).parse_trade(trade)
-        feeRate = None
+        feeRate: Str = None
         isMaker = False
         if 'maker_fee_rate' in trade:
             isMaker = True
@@ -459,7 +459,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         parsed['order'] = self.safe_string(trade, idKey)
         market = self.market(parsed['symbol'])
         feeCurrency = market['quote']
-        feeCost = None
+        feeCost: Str = None
         if (parsed['cost'] is not None) and (feeRate is not None):
             cost = self.safe_string(parsed, 'cost')
             feeCost = Precise.string_mul(cost, feeRate)
@@ -607,10 +607,10 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
                         if previousOrder['fee'] is None:
                             previousOrder['fee'] = {
                                 'cost': 0,
-                                'currency': trade['fee']['currency'],
+                                'currency': self.safe_string(trade['fee'], 'currency'),
                             }
-                        if (previousOrder['fee']['cost'] is not None) and (trade['fee']['cost'] is not None):
-                            previousOrder['fee']['cost'] = self.sum(previousOrder['fee']['cost'], trade['fee']['cost'])
+                        if (previousOrder['fee']['cost'] is not None) and (self.safe_number(trade['fee'], 'cost') is not None):
+                            previousOrder['fee']['cost'] = self.sum(previousOrder['fee']['cost'], self.safe_number(trade['fee'], 'cost'))
                             previousOrderFee = self.safe_dict(previousOrder, 'fee')
                             tradeFee = self.safe_dict(trade, 'fee')
                             previousOrder['fee']['cost'] = self.parse_number(Precise.string_add(self.safe_string(previousOrderFee, 'cost'), self.safe_string(tradeFee, 'cost')))
@@ -630,7 +630,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
                         orders.append(previousOrder)
                         client.resolve(orders, messageHash)
 
-    def parse_ws_order(self, order, market=None):
+    def parse_ws_order(self, order, market: Market = None):
         id = self.safe_string(order, 'order_id')
         clientOrderId = self.safe_string(order, 'client_oid')
         marketId = self.safe_string(order, 'product_id')
@@ -645,7 +645,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         orderType = self.safe_string(order, 'order_type')
         remaining = self.safe_string(order, 'remaining_size')
         type = self.safe_string(order, 'type')
-        filled = None
+        filled: Str = None
         if (amount is not None) and (remaining is not None):
             filled = Precise.string_sub(amount, remaining)
         elif type == 'received':
@@ -708,7 +708,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             client.resolve(ticker, idMessageHash)
         return message
 
-    def parse_ticker(self, ticker, market=None) -> Ticker:
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         #     {
         #         "type": "ticker",

@@ -2670,7 +2670,7 @@ class krakenfutures extends Exchange {
                 throw new BadRequest($this->id . ' fetchFundingRateHistory() supports swap contracts only');
             }
             $request = array(
-                'symbol' => strtoupper($market['id']),
+                'symbol' => $this->safe_string_upper($market, 'id'),
             );
             $response = Async\await($this->publicGetHistoricalfundingrates ($this->extend($request, $params)));
             //
@@ -3174,7 +3174,7 @@ class krakenfutures extends Exchange {
         throw new ExchangeError($feedback); // unknown message
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $apiVersions = $this->safe_value($this->options['versions'], $api, array());
         $methodVersions = $this->safe_value($apiVersions, $method, array());
         $defaultVersion = $this->safe_string($methodVersions, $path, $this->version);

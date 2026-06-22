@@ -463,7 +463,7 @@ class derive(ccxt.async_support.derive):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        subaccountId = None
+        subaccountId: Int = None
         subaccountId, params = self.handleDeriveSubaccountId('watchOrders', params)
         topic = self.number_to_string(subaccountId) + '.orders'
         messageHash = topic
@@ -575,7 +575,7 @@ class derive(ccxt.async_support.derive):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
-        subaccountId = None
+        subaccountId: Int = None
         subaccountId, params = self.handleDeriveSubaccountId('watchMyTrades', params)
         topic = self.number_to_string(subaccountId) + '.trades'
         messageHash = topic
@@ -615,7 +615,7 @@ class derive(ccxt.async_support.derive):
             trade = self.parse_trade(message)
             myTrades.append(trade)
             client.resolve(myTrades, topic)
-            messageHash = topic + trade['symbol']
+            messageHash = topic + self.safe_string(trade, 'symbol', '')
             client.resolve(myTrades, messageHash)
 
     def handle_error_message(self, client: Client, message) -> Bool:
@@ -655,7 +655,7 @@ class derive(ccxt.async_support.derive):
             'orders': self.handle_order,
             'mytrades': self.handle_my_trade,
         }
-        event = None
+        event: Str = None
         params = self.safe_dict(message, 'params')
         if params is not None:
             channel = self.safe_string(params, 'channel')

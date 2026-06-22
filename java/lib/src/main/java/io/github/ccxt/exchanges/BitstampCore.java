@@ -1195,14 +1195,14 @@ public class BitstampCore extends BitstampApi
             market = this.getMarketFromTrade(trade);
         }
         Object feeCostString = this.safeString(trade, "fee");
-        Object feeCurrency = Helpers.GetValue(market, "quote");
-        Object priceId = ((Helpers.isTrue((!Helpers.isEqual(rawMarketId, null))))) ? rawMarketId : Helpers.GetValue(market, "id");
+        Object feeCurrency = this.safeString(market, "quote");
+        Object priceId = ((Helpers.isTrue((!Helpers.isEqual(rawMarketId, null))))) ? rawMarketId : this.safeString(market, "id");
         priceString = this.safeString(trade, priceId, priceString);
-        amountString = this.safeString(trade, Helpers.GetValue(market, "baseId"), amountString);
-        costString = this.safeString(trade, Helpers.GetValue(market, "quoteId"), costString);
+        amountString = this.safeString(trade, this.safeString(market, "baseId"), amountString);
+        costString = this.safeString(trade, this.safeString(market, "quoteId"), costString);
         // this endpoint is not aligned with "markets" endpoint
-        Object baseIdLower = ((String)Helpers.GetValue(market, "baseId")).toLowerCase();
-        Object quoteIdLower = ((String)Helpers.GetValue(market, "quoteId")).toLowerCase();
+        Object baseIdLower = this.safeStringLower(market, "baseId");
+        Object quoteIdLower = this.safeStringLower(market, "quoteId");
         Object dashedIdLower = Helpers.add(Helpers.add(baseIdLower, "_"), quoteIdLower);
         if (Helpers.isTrue(Helpers.isEqual(priceString, null)))
         {
@@ -1216,7 +1216,7 @@ public class BitstampCore extends BitstampApi
         {
             costString = this.safeString(trade, quoteIdLower);
         }
-        symbol = Helpers.GetValue(market, "symbol");
+        symbol = this.safeString(market, "symbol");
         Object datetimeString = this.safeString2(trade, "date", "datetime");
         Object timestamp = null;
         if (Helpers.isTrue(!Helpers.isEqual(datetimeString, null)))
@@ -2603,7 +2603,7 @@ public class BitstampCore extends BitstampApi
                 put( "referenceId", Helpers.GetValue(parsedTrade, "order") );
                 put( "referenceAccount", null );
                 put( "type", finalType );
-                put( "currency", Helpers.GetValue(finalMarket, "base") );
+                put( "currency", BitstampCore.this.safeString(finalMarket, "base") );
                 put( "amount", Helpers.GetValue(parsedTrade, "amount") );
                 put( "before", null );
                 put( "after", null );

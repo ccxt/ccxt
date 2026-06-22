@@ -526,8 +526,8 @@ export default class indodax extends Exchange {
         //
         const symbol = this.safeSymbol(undefined, market);
         const timestamp = this.safeTimestamp(ticker, 'server_time');
-        const baseVolume = 'vol_' + market['baseId'].toLowerCase();
-        const quoteVolume = 'vol_' + market['quoteId'].toLowerCase();
+        const baseVolume = 'vol_' + this.safeStringLower(market, 'baseId');
+        const quoteVolume = 'vol_' + this.safeStringLower(market, 'quoteId');
         const last = this.safeString(ticker, 'last');
         return this.safeTicker({
             'symbol': symbol,
@@ -1097,9 +1097,9 @@ export default class indodax extends Exchange {
         await this.loadMarkets();
         const request = {};
         if (since !== undefined) {
-            const startTime = this.iso8601(since).slice(0, 10);
+            const startTime = this.yyyymmdd(since);
             request['start'] = startTime;
-            request['end'] = this.iso8601(this.milliseconds()).slice(0, 10);
+            request['end'] = this.yyyymmdd(this.milliseconds());
         }
         const response = await this.privatePostTransHistory(this.extend(request, params));
         //

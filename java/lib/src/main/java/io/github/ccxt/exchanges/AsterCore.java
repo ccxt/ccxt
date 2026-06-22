@@ -1709,7 +1709,7 @@ public class AsterCore extends AsterApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeInteger(entry, "time");
         return new java.util.HashMap<String, Object>() {{
-            put( "symbol", Helpers.GetValue(market, "symbol") );
+            put( "symbol", AsterCore.this.safeString(market, "symbol") );
             put( "timestamp", timestamp );
             put( "datetime", AsterCore.this.iso8601(timestamp) );
             put( "price", AsterCore.this.safeNumberOmitZero(entry, "price") );
@@ -3428,7 +3428,7 @@ public class AsterCore extends AsterApi
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
             put( "info", marginMode );
-            put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
+            put( "symbol", AsterCore.this.safeString(finalMarket, "symbol") );
             put( "marginMode", AsterCore.this.safeStringLower(marginMode, "marginType") );
         }};
     }
@@ -4139,7 +4139,7 @@ public class AsterCore extends AsterApi
     public Object parseAccountPositions(Object account, Object... optionalArgs)
     {
         Object filterClosed = Helpers.getArg(optionalArgs, 0, false);
-        Object positions = this.safeList(account, "positions");
+        Object positions = this.safeList(account, "positions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object assets = this.safeList(account, "assets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object balances = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(assets)); i++)
@@ -4677,12 +4677,11 @@ public class AsterCore extends AsterApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " transfer() requires fromAccount and toAccount parameters to be either SPOT or FUTURE")) ;
             }
-            Object response = null;
             Object defaultClientTranId = this.numberToString(this.milliseconds());
             Object clientTranId = this.safeString(parameters, "clientTranId", defaultClientTranId);
             Helpers.addElementToObject(request, "kindType", type);
             Helpers.addElementToObject(request, "clientTranId", clientTranId);
-            response = (this.sapiPrivatePostV3AssetWalletTransfer(this.extend(request, parameters))).join();
+            Object response = (this.sapiPrivatePostV3AssetWalletTransfer(this.extend(request, parameters))).join();
             return this.parseTransfer(response, currency);
         });
 

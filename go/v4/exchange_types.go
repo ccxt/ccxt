@@ -2221,6 +2221,34 @@ func NewAccountArray(orders2 any) []Account {
 	return result
 }
 
+// NewStringArray converts an untyped result holding a list of strings (e.g. the
+// transpiled return of a method typed `Str[]` / `string[]` / `Strings`) into a
+// concrete []string. Mirrors the NewXArray helpers above but for the primitive
+// string element type, which has no struct constructor.
+func NewStringArray(data2 any) []string {
+	if data2 == nil {
+		return nil
+	}
+	if strs, ok := data2.([]string); ok {
+		return strs
+	}
+	var items []any
+	if cache, ok := data2.(*ArrayCache); ok {
+		items = cache.ToArray()
+	} else if arr, ok := data2.([]any); ok {
+		items = arr
+	} else {
+		return nil
+	}
+	result := make([]string, 0, len(items))
+	for _, it := range items {
+		if s, ok := it.(string); ok {
+			result = append(result, s)
+		}
+	}
+	return result
+}
+
 // ADL Type
 
 type ADL struct {

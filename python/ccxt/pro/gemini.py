@@ -273,7 +273,7 @@ class gemini(ccxt.async_support.gemini):
                 {
                     'name': 'candles_' + timeframeId,
                     'symbols': [
-                        market['id'].upper(),
+                        self.safe_string_upper(market, 'id'),
                     ],
                 },
             ],

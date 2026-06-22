@@ -1616,7 +1616,7 @@ public partial class aster : Exchange
         //
         object timestamp = this.safeInteger(entry, "time");
         return new Dictionary<string, object>() {
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeString(market, "symbol") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "price", this.safeNumberOmitZero(entry, "price") },
@@ -3186,7 +3186,7 @@ public partial class aster : Exchange
         market = this.safeMarket(marketId, market, null, "swap");
         return new Dictionary<string, object>() {
             { "info", marginMode },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeString(market, "symbol") },
             { "marginMode", this.safeStringLower(marginMode, "marginType") },
         };
     }
@@ -3827,7 +3827,7 @@ public partial class aster : Exchange
     public virtual object parseAccountPositions(object account, object filterClosed = null)
     {
         filterClosed ??= false;
-        object positions = this.safeList(account, "positions");
+        object positions = this.safeList(account, "positions", new List<object>() {});
         object assets = this.safeList(account, "assets", new List<object>() {});
         object balances = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(assets)); postFixIncrement(ref i))
@@ -4331,12 +4331,11 @@ public partial class aster : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " transfer() requires fromAccount and toAccount parameters to be either SPOT or FUTURE")) ;
         }
-        object response = null;
         object defaultClientTranId = this.numberToString(this.milliseconds());
         object clientTranId = this.safeString(parameters, "clientTranId", defaultClientTranId);
         ((IDictionary<string,object>)request)["kindType"] = type;
         ((IDictionary<string,object>)request)["clientTranId"] = clientTranId;
-        response = await this.sapiPrivatePostV3AssetWalletTransfer(this.extend(request, parameters));
+        object response = await this.sapiPrivatePostV3AssetWalletTransfer(this.extend(request, parameters));
         return this.parseTransfer(response, currency);
     }
 

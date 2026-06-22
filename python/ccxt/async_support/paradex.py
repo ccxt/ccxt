@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.paradex import ImplicitAPI
-from ccxt.base.types import Any, Balances, Currency, FundingHistory, Greeks, Int, Leverage, Liquidation, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Bool, Currency, FundingHistory, Greeks, Int, Leverage, Liquidation, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1436,7 +1436,7 @@ class paradex(Exchange, ImplicitAPI):
         remaining = self.omit_zero(self.safe_string(order, 'remaining_size'))
         lastUpdateTimestamp = self.safe_integer(order, 'last_updated_at')
         flags = self.safe_list(order, 'flags', [])
-        reduceOnly = None
+        reduceOnly: Bool = None
         if 'REDUCE_ONLY' in flags:
             reduceOnly = True
         return self.safe_order({
@@ -1532,7 +1532,7 @@ class paradex(Exchange, ImplicitAPI):
         if clientOrderId is not None:
             request['client_id'] = clientOrderId
         sizeString = '0'
-        stopPrice = None
+        stopPrice: Str = None
         if isStopOrder:
             # flags: Reduce_Only must be provided for TPSL orders.
             if isMarket:
@@ -1749,7 +1749,7 @@ class paradex(Exchange, ImplicitAPI):
         """
         await self.authenticate_rest()
         await self.load_markets()
-        ordersRequests = []
+        ordersRequests: List = []
         for i in range(0, len(orders)):
             rawOrder = orders[i]
             symbol = self.safe_string(rawOrder, 'symbol')
@@ -1812,7 +1812,7 @@ class paradex(Exchange, ImplicitAPI):
         await self.load_markets()
         request: dict = {}
         clientOrderId = self.safe_string_n(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
-        response = None
+        response: dict
         if clientOrderId is not None:
             request['client_id'] = clientOrderId
             response = await self.privateDeleteOrdersByClientIdClientId(self.extend(request, params))
@@ -1875,13 +1875,13 @@ class paradex(Exchange, ImplicitAPI):
         # }
         #
         results = self.safe_list(response, 'results', [])
-        orders = []
+        orders: List = []
         for i in range(0, len(results)):
             result = results[i]
             marketId = self.safe_string(result, 'market')
             market = self.safe_market(marketId, None)
             status = self.safe_string(result, 'status')
-            orderStatus = None
+            orderStatus: Str = None
             if status == 'QUEUED_FOR_CANCELLATION':
                 orderStatus = 'canceled'
             elif status == 'ALREADY_CLOSED':
@@ -1939,7 +1939,7 @@ class paradex(Exchange, ImplicitAPI):
         request: dict = {}
         clientOrderId = self.safe_string_n(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
         params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
-        response = None
+        response: dict
         if clientOrderId is not None:
             request['client_id'] = clientOrderId
             response = await self.privateGetOrdersByClientIdClientId(self.extend(request, params))
@@ -2334,7 +2334,7 @@ class paradex(Exchange, ImplicitAPI):
             request['from'] = since
         else:
             request['from'] = 1
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
         request, params = self.handle_until_option('to', request, params)
@@ -2422,7 +2422,7 @@ class paradex(Exchange, ImplicitAPI):
         #     }
         #
         rows = self.safe_list(response, 'results', [])
-        deposits = []
+        deposits: List = []
         for i in range(0, len(rows)):
             row = rows[i]
             if row['kind'] == 'DEPOSIT':
@@ -2478,7 +2478,7 @@ class paradex(Exchange, ImplicitAPI):
         #     }
         #
         rows = self.safe_list(response, 'results', [])
-        deposits = []
+        deposits: List = []
         for i in range(0, len(rows)):
             row = rows[i]
             if row['kind'] == 'WITHDRAWAL':
@@ -2506,7 +2506,7 @@ class paradex(Exchange, ImplicitAPI):
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchTransfers', code, since, limit, params, 'next', 'cursor', None, 100)
         request: dict = {}
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.safe_currency(code)
         if limit is not None:
@@ -2559,8 +2559,8 @@ class paradex(Exchange, ImplicitAPI):
         code = self.safe_currency_code(currencyId, currency)
         timestamp = self.safe_integer(transfer, 'created_at')
         kind = self.safe_string(transfer, 'kind')
-        fromAccount = None
-        toAccount = None
+        fromAccount: Str = None
+        toAccount: Str = None
         if kind == 'DEPOSIT':
             fromAccount = 'external'
             toAccount = 'account'
@@ -2678,7 +2678,7 @@ class paradex(Exchange, ImplicitAPI):
         marginMode = self.safe_string_lower(rawMarginMode, 'margin_type')
         return {
             'info': rawMarginMode,
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'marginMode': marginMode,
         }
 
@@ -3079,7 +3079,7 @@ class paradex(Exchange, ImplicitAPI):
         # }
         #
         results = self.safe_list(response, 'results', [])
-        rates = []
+        rates: List = []
         for i in range(0, len(results)):
             rate = results[i]
             timestamp = self.safe_integer(rate, 'created_at')
@@ -3094,7 +3094,7 @@ class paradex(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         version = self.version
         if path.find('v2/') == 0:
             version = 'v2'

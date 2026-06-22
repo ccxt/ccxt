@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
-from ccxt.base.types import Any, Balances, Bool, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -126,7 +126,7 @@ class bithumb(ccxt.async_support.bithumb):
         self.tickers[symbol] = ticker
         client.resolve(self.tickers[symbol], messageHash)
 
-    def parse_ws_ticker(self, ticker, market=None):
+    def parse_ws_ticker(self, ticker, market: Market = None):
         #
         #    {
         #        "symbol" : "BTC_KRW",           # 통화코드
@@ -320,7 +320,7 @@ class bithumb(ccxt.async_support.bithumb):
             messageHash = 'trade' + ':' + symbol
             client.resolve(trades, messageHash)
 
-    def parse_ws_trade(self, trade, market=None):
+    def parse_ws_trade(self, trade, market: Market = None):
         #
         #    {
         #        "symbol" : "BTC_KRW",
@@ -335,7 +335,7 @@ class bithumb(ccxt.async_support.bithumb):
         marketId = self.safe_string(trade, 'symbol')
         datetime = self.safe_string(trade, 'contDtm')
         # that date is not UTC iso8601, but exchange's local time, -9hr difference
-        timestamp = self.parse8601(datetime) - 32400000
+        timestamp = self.parse_to_int(self.parse8601(datetime)) - 32400000
         sideId = self.safe_string(trade, 'buySellGb')
         return self.safe_trade({
             'id': None,
@@ -518,7 +518,7 @@ class bithumb(ccxt.async_support.bithumb):
         symbolSpecificMessageHash = messageHash + ':' + symbol
         client.resolve(cachedOrders, symbolSpecificMessageHash)
 
-    def parse_ws_order(self, order, market=None):
+    def parse_ws_order(self, order, market: Market = None):
         #
         #    {
         #        "type": "myOrder",
@@ -549,7 +549,7 @@ class bithumb(ccxt.async_support.bithumb):
         sideId = self.safe_string(order, 'ask_bid')
         side = ('buy') if (sideId == 'BID') else ('sell')
         typeId = self.safe_string(order, 'order_type')
-        type = None
+        type: Str = None
         if typeId == 'limit':
             type = 'limit'
         elif typeId == 'price':
@@ -557,7 +557,7 @@ class bithumb(ccxt.async_support.bithumb):
         elif typeId == 'market':
             type = 'market'
         stateId = self.safe_string(order, 'state')
-        status = None
+        status: Str = None
         if stateId == 'wait':
             status = 'open'
         elif stateId == 'trade':
@@ -572,7 +572,7 @@ class bithumb(ccxt.async_support.bithumb):
         filled = self.safe_string(order, 'executed_volume')
         cost = self.safe_string(order, 'executed_funds')
         feeCost = self.safe_string(order, 'paid_fee')
-        fee = None
+        fee: NullableDict = None
         if feeCost is not None:
             marketForFee = self.safe_market(marketId, market)
             feeCurrency = self.safe_string(marketForFee, 'quote')

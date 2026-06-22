@@ -354,7 +354,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         marketId = self.safe_string(position, 'instrument')
         hedged = 'both'
         balanceString = self.safe_string(position, 'balance')
-        side = None
+        side: Str = None
         if Precise.string_gt(balanceString, '0'):
             side = 'long'
         elif Precise.string_lt(balanceString, '0'):
@@ -445,7 +445,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         await self.load_markets()
         name = 'balances'
         messageHash = name
-        account = None
+        account: Str = None
         account, params = self.handle_option_and_params(params, 'watchBalance', 'account')
         if account is not None:
             if account != 'futures' and account != 'flex_futures':
@@ -731,11 +731,11 @@ class krakenfutures(ccxt.async_support.krakenfutures):
                     previousOrder['fee'] = {
                         'rate': None,
                         'cost': '0',
-                        'currency': self.number_to_string(trade['fee']['currency']),
+                        'currency': self.number_to_string(self.safe_string(trade['fee'], 'currency')),
                     }
-                if (previousOrder['fee']['cost'] is not None) and (trade['fee']['cost'] is not None):
+                if (previousOrder['fee']['cost'] is not None) and (self.safe_number(trade['fee'], 'cost') is not None):
                     stringOrderCost = self.number_to_string(previousOrder['fee']['cost'])
-                    stringTradeCost = self.number_to_string(trade['fee']['cost'])
+                    stringTradeCost = self.number_to_string(self.safe_number(trade['fee'], 'cost'))
                     previousOrder['fee']['cost'] = Precise.string_add(stringOrderCost, stringTradeCost)
                 # update the newUpdates count
                 orders.append(self.safe_order(previousOrder))
@@ -865,7 +865,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         #
         isCancelled = self.safe_value(order, 'is_cancel')
         unparsedOrder = order
-        status = None
+        status: Str = None
         if isCancelled is not None:
             unparsedOrder = self.safe_value(order, 'order')
             if isCancelled is True:

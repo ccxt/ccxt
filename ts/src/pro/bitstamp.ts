@@ -4,7 +4,7 @@
 import bitstampRest from '../bitstamp.js';
 import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Dict, Bool } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Dict, Market, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Precise } from '../base/Precise.js';
 
@@ -193,7 +193,7 @@ export default class bitstamp extends bitstampRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    parseWsTrade (trade, market = undefined) {
+    parseWsTrade (trade, market: Market = undefined) {
         //
         //     {
         //         "buy_order_id": 1211625836466176,
@@ -338,7 +338,7 @@ export default class bitstamp extends bitstampRest {
         client.resolve (this.orders, channel);
     }
 
-    parseWsOrder (order, market = undefined) {
+    parseWsOrder (order, market: Market = undefined) {
         //
         //    {
         //        "id": "1894876776091648",
@@ -381,7 +381,7 @@ export default class bitstamp extends bitstampRest {
         const amount = this.safeString (order, 'amount_str');
         const filled = this.safeString (order, 'amount_traded');
         const event = this.safeString (order, 'event');
-        let status = undefined;
+        let status: Str = undefined;
         if (Precise.stringEq (filled, amount)) {
             status = 'closed';
         } else if (event === 'order_deleted') {

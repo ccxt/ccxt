@@ -610,7 +610,7 @@ class cryptomus extends cryptomus$1["default"] {
             'id': this.safeString(trade, 'trade_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'side': this.safeString(trade, 'type'),
             'price': this.safeString(trade, 'price'),
             'amount': this.safeString(trade, 'quote_volume'), // quote_volume is amount
@@ -707,7 +707,7 @@ class cryptomus extends cryptomus$1["default"] {
         const priceToString = this.numberToString(price);
         let cost = undefined;
         [cost, params] = this.handleParamString(params, 'cost');
-        let response = undefined;
+        let response;
         if (type === 'market') {
             if (sideBuy) {
                 let createMarketBuyOrderRequiresPrice = true;

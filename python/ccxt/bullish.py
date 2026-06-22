@@ -895,7 +895,7 @@ class bullish(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    def parse_market_type(self, type: str, defaultType: Str = None) -> str:
+    def parse_market_type(self, type: Str = None, defaultType: Str = None) -> Str:
         types = {
             'SPOT': 'spot',
             'PERPETUAL': 'swap',
@@ -1016,7 +1016,7 @@ class bullish(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['symbol'] = market['id']
         clientOrderId = self.safe_string(params, 'clientOrderId')
-        response = None
+        response: List
         if clientOrderId is not None:
             response = self.privateGetV1TradesClientOrderIdClientOrderId(self.extend(request, params))
         else:
@@ -1132,10 +1132,10 @@ class bullish(Exchange, ImplicitAPI):
         currency = market['quote']
         code = self.safe_currency_code(currency)
         feeCost = self.safe_number(trade, 'quoteFee')
-        fee = None
+        fee: Fee = None
         if feeCost is not None:
             fee = {'currency': code, 'cost': feeCost}
-        takerOrMaker = None
+        takerOrMaker: Str = None
         if isTaker:
             takerOrMaker = 'taker'
         else:
@@ -1280,7 +1280,7 @@ class bullish(Exchange, ImplicitAPI):
         }, market)
 
     def safe_deterministic_call(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, timeframe: Str = None, params={}):
-        maxRetries = None
+        maxRetries: Int = None
         maxRetries, params = self.handle_option_and_params(params, method, 'maxRetries', 3)
         errors = 0
         params = self.omit(params, 'until')
@@ -1452,7 +1452,7 @@ class bullish(Exchange, ImplicitAPI):
         if paginate:
             params = self.handle_pagination_params('fetchOrders', since, params)
             return self.fetch_paginated_call_dynamic('fetchOrders', symbol, since, limit, params, 100)
-        market = None
+        market: Market = None
         request: dict = {
             'tradingAccountId': tradingAccountId,
         }
@@ -1464,7 +1464,7 @@ class bullish(Exchange, ImplicitAPI):
             request['_pageSize'] = self.get_closest_limit(limit)
         method = 'privateGetV2HistoryOrders'
         method, params = self.handle_option_and_params(params, 'fetchOrders', 'method', method)
-        response = None
+        response: List[dict] = None
         if method == 'privateGetV2Orders':
             #
             #     [
@@ -1632,7 +1632,7 @@ class bullish(Exchange, ImplicitAPI):
         """
         [self.load_markets(), self.handle_token()]
         tradingAccountId = self.load_account(params)
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
         request: dict = {
@@ -1821,7 +1821,7 @@ class bullish(Exchange, ImplicitAPI):
         request: dict = {
             'tradingAccountId': tradingAccountId,
         }
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -2011,7 +2011,7 @@ class bullish(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        currency = None
+        currency: Currency = None
         if code is not None:
             currency = self.currency(code)
         return self.parse_transactions(data, currency, since, limit)
@@ -2296,7 +2296,7 @@ class bullish(Exchange, ImplicitAPI):
         safeResponse = self.to_array(response)
         length = len(safeResponse)
         data = self.safe_dict(safeResponse, 0, {})
-        network = None
+        network: Str = None
         network, params = self.handle_network_code_and_params(params)
         networkDefinedByUser = network is not None
         if (length > 1) or (networkDefinedByUser):
@@ -2821,7 +2821,7 @@ class bullish(Exchange, ImplicitAPI):
             'quoteVolume': None,
         }, market)
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         request = self.omit(params, self.extract_params(path))
         endpoint = '/' + self.implode_params(path, params)
         url = self.urls['api'][api] + endpoint
@@ -2853,11 +2853,13 @@ class bullish(Exchange, ImplicitAPI):
                 if rateLimitToken is not None:
                     headers['BX-RATE-LIMIT-TOKEN'] = rateLimitToken
             if path == 'v1/users/hmac/login':
+                headers = {} if (headers is None) else headers
                 headers['BX-PUBLIC-KEY'] = self.apiKey
             else:
                 token = self.token
                 if (token is None):
                     raise AuthenticationError(self.id + ' requires a token, please call signIn() first')
+                headers = {} if (headers is None) else headers
                 headers['Authorization'] = 'Bearer ' + token
                 # headers['BX-NONCE-WINDOW-ENABLED'] = 'false'  # default is False
         if method == 'GET':

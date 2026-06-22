@@ -2795,7 +2795,7 @@ export default class bitget extends Exchange {
             }
             const maxNotional = this.safeNumberN(item, ['endUnit', 'maxBorrowableAmount', 'baseMaxBorrowableAmount', 'maxTierValue']);
             const marginCurrency = this.safeString2(item, 'coin', 'baseCoin');
-            const currencyId = (marginCurrency !== undefined) ? marginCurrency : market['base'];
+            const currencyId = (marginCurrency !== undefined) ? marginCurrency : this.safeString(market, 'base');
             const marketId = this.safeString(item, 'symbol');
             tiers.push({
                 'tier': this.safeInteger2(item, 'level', 'tier'),
@@ -3597,7 +3597,7 @@ export default class bitget extends Exchange {
             if (symbols !== undefined) {
                 const symbolsLength = symbols.length;
                 if (symbolsLength === 1) {
-                    request['symbol'] = market['id'];
+                    request['symbol'] = this.safeString(market, 'id');
                 }
             }
             request['category'] = productType;
@@ -7561,7 +7561,7 @@ export default class bitget extends Exchange {
         }
         else {
             if (symbol !== undefined) {
-                request['symbol'] = market['id'];
+                request['symbol'] = this.safeString(market, 'id');
             }
             let productType = undefined;
             [productType, params] = this.handleProductTypeAndParams(market, params);
@@ -9075,12 +9075,12 @@ export default class bitget extends Exchange {
         const status = (errorCode === '00000') ? 'ok' : 'failed';
         return {
             'info': data,
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'type': undefined,
             'marginMode': 'isolated',
             'amount': undefined,
             'total': undefined,
-            'code': market['settle'],
+            'code': this.safeString(market, 'settle'),
             'status': status,
             'timestamp': undefined,
             'datetime': undefined,
@@ -9180,7 +9180,7 @@ export default class bitget extends Exchange {
         const shortLevKey = isCrossMarginMode ? 'crossedMarginLeverage' : 'isolatedShortLever';
         return {
             'info': leverage,
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'marginMode': isCrossMarginMode ? 'cross' : 'isolated',
             'longLeverage': this.safeInteger(leverage, longLevKey),
             'shortLeverage': this.safeInteger(leverage, shortLevKey),
@@ -9968,7 +9968,7 @@ export default class bitget extends Exchange {
             if (symbol === undefined) {
                 throw new ArgumentsRequired(this.id + ' fetchMyLiquidations() requires a symbol argument');
             }
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
             response = await this.privateMarginGetV2MarginIsolatedLiquidationHistory(this.extend(request, params));
         }
         else if (marginMode === 'cross') {
@@ -10353,7 +10353,7 @@ export default class bitget extends Exchange {
             if (symbol === undefined) {
                 throw new ArgumentsRequired(this.id + ' fetchBorrowInterest() requires a symbol argument');
             }
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
             response = await this.privateMarginGetV2MarginIsolatedInterestHistory(this.extend(request, params));
         }
         else if (marginMode === 'cross') {
@@ -10651,7 +10651,7 @@ export default class bitget extends Exchange {
         marginType = (marginType === 'crossed') ? 'cross' : marginType;
         return {
             'info': marginMode,
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'marginMode': marginType,
         };
     }

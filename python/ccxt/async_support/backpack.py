@@ -573,9 +573,9 @@ class backpack(Exchange, ImplicitAPI):
                 'precision': None,
                 'info': network,
             }
-        active = None
-        deposit = None
-        withdraw = None
+        active: Bool = None
+        deposit: Bool = None
+        withdraw: Bool = None
         if self.is_empty(parsedNetworks):  # if networks are not provided
             active = False
             deposit = False
@@ -722,7 +722,7 @@ class backpack(Exchange, ImplicitAPI):
         maxQuantity = self.safe_number(quantityFilter, 'maxQuantity')
         minQuantity = self.safe_number(quantityFilter, 'minQuantity')
         amountPrecision = self.safe_number(quantityFilter, 'stepSize')
-        type: MarketType
+        type: MarketType | None = None
         typeOfMarket = self.parse_market_type(self.safe_string(market, 'marketType'))
         linear: Bool = None
         inverse: Bool = None
@@ -1085,7 +1085,7 @@ class backpack(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(interest, 'timestamp')
         openInterest = self.safe_number(interest, 'openInterest')
         return self.safe_open_interest({
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'openInterestAmount': None,
             'openInterestValue': openInterest,
             'timestamp': timestamp,
@@ -1124,7 +1124,7 @@ class backpack(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        rates = []
+        rates: List = []
         for i in range(0, len(response)):
             rate = response[i]
             datetime = self.safe_string(rate, 'intervalEndTimestamp')
@@ -1184,7 +1184,7 @@ class backpack(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         request: dict = {}
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -1245,7 +1245,7 @@ class backpack(Exchange, ImplicitAPI):
             takerOrMaker = 'taker'
             side = 'sell' if isBuyerMaker else 'buy'
         orderId = self.safe_string(trade, 'orderId')
-        fee = None
+        fee: dict = None
         feeAmount = self.safe_string(trade, 'fee')
         timestamp = self.safe_integer(trade, 'timestamp')
         if feeAmount is not None:
@@ -1530,7 +1530,7 @@ class backpack(Exchange, ImplicitAPI):
         tag = self.safe_string(transaction, 'platformMemo')
         feeCost = self.safe_number(transaction, 'fee')
         internal = self.safe_bool(transaction, 'isInternal', False)
-        fee = None
+        fee: Fee = None
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
@@ -1584,7 +1584,7 @@ class backpack(Exchange, ImplicitAPI):
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
         await self.load_markets()
-        networkCode = None
+        networkCode: Str = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is None:
             raise ArgumentsRequired(self.id + ' fetchDepositAddress() requires a network parameter, see https://docs.ccxt.com/?id=network-codes')
@@ -1660,7 +1660,7 @@ class backpack(Exchange, ImplicitAPI):
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        ordersRequests = []
+        ordersRequests: List = []
         for i in range(0, len(orders)):
             rawOrder = orders[i]
             marketId = self.safe_string(rawOrder, 'symbol')
@@ -1726,7 +1726,7 @@ class backpack(Exchange, ImplicitAPI):
             if stopLossPrice is not None:
                 request['stopLossLimitPrice'] = self.price_to_precision(symbol, stopLossPrice)
             params = self.omit(params, 'stopLoss')
-        selfTradePrevention = None
+        selfTradePrevention: Str = None
         selfTradePrevention, params = self.handle_option_and_params(params, 'createOrder', 'selfTradePrevention')
         if selfTradePrevention is not None:
             if selfTradePrevention == 'EXPIRE_MAKER':
@@ -1758,7 +1758,7 @@ class backpack(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         request: dict = {}
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -1843,7 +1843,7 @@ class backpack(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         request: dict = {}
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -2127,7 +2127,7 @@ class backpack(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         request: dict = {}
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -2167,7 +2167,7 @@ class backpack(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         endpoint = '/' + path
         url = self.urls['api'][api]
         sortedParams = params if isinstance(params, list) else self.keysort(params)

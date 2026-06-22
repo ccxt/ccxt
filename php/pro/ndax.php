@@ -304,7 +304,7 @@ class ndax extends \ccxt\async\ndax {
                     ];
                     $updates[$marketId][$timeframe] = true;
                 } else {
-                    if ($length && ($parsed[0] < $stored[$length - 1][0])) {
+                    if ($length && ($this->parse_to_int($parsed[0]) < $this->parse_to_int($stored[$length - 1][0]))) {
                         continue;
                     } else {
                         $stored[] = $parsed;

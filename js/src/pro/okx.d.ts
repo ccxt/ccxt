@@ -1,5 +1,5 @@
 import okxRest from '../okx.js';
-import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates, Liquidation, Bool } from '../base/types.js';
+import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates, Liquidation, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class okx extends okxRest {
     describe(): any;
@@ -152,7 +152,7 @@ export default class okx extends okxRest {
      */
     watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
     handleBidAsk(client: Client, message: any): void;
-    parseWsBidAsk(ticker: any, market?: any): Ticker;
+    parseWsBidAsk(ticker: any, market?: Market): Ticker;
     /**
      * @method
      * @name okx#watchLiquidationsForSymbols
@@ -179,8 +179,8 @@ export default class okx extends okxRest {
      */
     watchMyLiquidationsForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
     handleMyLiquidation(client: Client, message: any): void;
-    parseWsMyLiquidation(liquidation: any, market?: any): Liquidation;
-    parseWsLiquidation(liquidation: any, market?: any): Liquidation;
+    parseWsMyLiquidation(liquidation: any, market?: Market): Liquidation;
+    parseWsLiquidation(liquidation: any, market?: Market): Liquidation;
     /**
      * @method
      * @name okx#watchOHLCV
