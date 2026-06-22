@@ -1679,8 +1679,8 @@ export default class htx extends Exchange {
             symbols = this.symbols;
         }
         const result: Dict = {};
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < (symbols as string[]).length; i++) {
+            const symbol = (symbols as string[])[i];
             result[symbol] = await this.fetchTradingLimitsById (this.marketId (symbol), params);
         }
         return result;
@@ -1769,7 +1769,7 @@ export default class htx extends Exchange {
         [ types, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'types', {});
         let allMarkets: List = [];
         let promises: List = [];
-        const keys = Object.keys (types);
+        const keys = Object.keys (types as Dict);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             if (this.safeBool (types, key)) {
@@ -1929,7 +1929,7 @@ export default class htx extends Exchange {
             let inverse: Bool = undefined;
             // check if parsed market is contract
             if (contract) {
-                id = this.safeString (market, 'contract_code');
+                id = this.safeString (market, 'contract_code') as string;
                 lowercaseId = id.toLowerCase ();
                 const delivery_date = this.safeString (market, 'delivery_date');
                 const business_type = this.safeString (market, 'business_type');
@@ -1950,7 +1950,7 @@ export default class htx extends Exchange {
                         quoteId = 'USD';
                         settleId = baseId;
                     } else {
-                        const pair = this.safeString (market, 'pair');
+                        const pair = this.safeString (market, 'pair') as string;
                         const parts = pair.split ('-');
                         quoteId = this.safeStringLower (parts, 1);
                         settleId = quoteId;
@@ -1960,7 +1960,7 @@ export default class htx extends Exchange {
                 type = 'spot';
                 baseId = this.safeString (market, 'base-currency');
                 quoteId = this.safeString (market, 'quote-currency');
-                id = baseId + quoteId;
+                id = (baseId as string) + (quoteId as string);
                 lowercaseId = id.toLowerCase ();
             }
             const base = this.safeCurrencyCode (baseId);
@@ -2116,7 +2116,7 @@ export default class htx extends Exchange {
             const market = futureMarkets[i];
             const info = this.safeValue (market, 'info', {});
             const contractType = this.safeString (info, 'contract_type');
-            const contractSuffix = futuresCharsMaps[contractType];
+            const contractSuffix = futuresCharsMaps[contractType as string];
             // see comment on formats a bit above
             const constructedId = market['linear'] ? market['base'] + '-' + market['quote'] + '-' + contractSuffix : market['base'] + '_' + contractSuffix;
             if (constructedId === symbolOrMarketId) {
@@ -2626,8 +2626,8 @@ export default class htx extends Exchange {
         //         }
         //     }
         //
-        if ('tick' in response) {
-            if (!response['tick']) {
+        if ('tick' in (response as Dict)) {
+            if (!(response as Dict)['tick']) {
                 throw new BadSymbol (this.id + ' fetchOrderBook() returned empty response: ' + this.json (response));
             }
             const tick = this.safeValue (response, 'tick');
@@ -3341,7 +3341,7 @@ export default class htx extends Exchange {
         //
         const typeId = this.safeString (account, 'type');
         const accountsById = this.safeValue (this.options, 'accountsById', {});
-        const type = this.safeValue (accountsById, typeId, typeId);
+        const type = this.safeValue (accountsById, typeId as string, typeId);
         return {
             'info': account,
             'id': this.safeString (account, 'id'),
@@ -3465,8 +3465,8 @@ export default class htx extends Exchange {
             const chainEntry = chains[j];
             const uniqueChainId = this.safeString (chainEntry, 'chain'); // i.e. usdterc20, trc20usdt ...
             const title = this.safeString2 (chainEntry, 'baseChain', 'displayName'); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
-            this.options['networkChainIdsByNames'][code][title] = uniqueChainId;
-            this.options['networkNamesByChainIds'][uniqueChainId] = title;
+            this.options['networkChainIdsByNames'][code as string][title as string] = uniqueChainId;
+            this.options['networkNamesByChainIds'][uniqueChainId as string] = title;
             const networkCode = this.networkIdToCode (uniqueChainId, code);
             networks[networkCode] = {
                 'info': chainEntry,
@@ -3525,7 +3525,7 @@ export default class htx extends Exchange {
         if (keysLength === 0) {
             throw new ExchangeError (this.id + ' networkIdToCode() - markets need to be loaded at first');
         }
-        const networkTitle = this.safeValue (this.options['networkNamesByChainIds'], networkId, networkId);
+        const networkTitle = this.safeValue (this.options['networkNamesByChainIds'], networkId as string, networkId);
         return super.networkIdToCode (networkTitle, currencyCode);
     }
 
@@ -4071,10 +4071,10 @@ export default class htx extends Exchange {
             account = this.account ();
         }
         if (balance['type'] === 'trade') {
-            account['free'] = this.safeString (balance, 'balance');
+            (account as Dict)['free'] = this.safeString (balance, 'balance');
         }
         if (balance['type'] === 'frozen') {
-            account['used'] = this.safeString (balance, 'balance');
+            (account as Dict)['used'] = this.safeString (balance, 'balance');
         }
         return account;
     }
@@ -4882,7 +4882,7 @@ export default class htx extends Exchange {
             'partially_filled': 'open',
             'partially_canceled': 'canceled',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -5742,7 +5742,7 @@ export default class htx extends Exchange {
         } else {
             result = this.safeValue (response, 'data', {});
         }
-        return this.parseOrder (result, market) as Order;
+        return this.parseOrder (result as Dict, market) as Order;
     }
 
     /**
@@ -5789,14 +5789,14 @@ export default class htx extends Exchange {
                     }
                 }
             }
-            market = this.market (symbol);
+            market = this.market (symbol as string);
             let orderRequest: NullableDict = undefined;
             if (market['spot']) {
-                orderRequest = await this.createSpotOrderRequest (marketId, type, side, amount, price, orderParams);
+                orderRequest = await this.createSpotOrderRequest (marketId as string, type as OrderType, side, amount, price, orderParams);
             } else {
-                orderRequest = this.createContractOrderRequest (marketId, type, side, amount, price, orderParams);
+                orderRequest = this.createContractOrderRequest (marketId as string, type as OrderType, side, amount, price, orderParams);
             }
-            orderRequest = this.omit (orderRequest, 'marginMode');
+            orderRequest = this.omit (orderRequest as Dict, 'marginMode');
             ordersRequests.push (orderRequest);
         }
         const request: Dict = {};
@@ -5893,7 +5893,7 @@ export default class htx extends Exchange {
                 result = this.arrayConcat (success, errors);
             }
         }
-        return this.parseOrders (result, market);
+        return this.parseOrders (result as Dict, market);
     }
 
     /**
@@ -6069,7 +6069,7 @@ export default class htx extends Exchange {
         } else {
             result = response;
         }
-        return this.extend (this.parseOrder (result, market), {
+        return this.extend (this.parseOrder (result as Dict, market), {
             'id': id,
             'status': 'canceled',
         }) as Order;
@@ -6489,7 +6489,7 @@ export default class htx extends Exchange {
     async cancelAllOrdersAfter (timeout: Int, params = {}) {
         await this.loadMarkets ();
         const request: Dict = {
-            'timeout': (timeout > 0) ? this.parseToInt (timeout / 1000) : 0,
+            'timeout': ((timeout as number) > 0) ? this.parseToInt ((timeout as number) / 1000) : 0,
         };
         const response = await this.v2PrivatePostAlgoOrdersCancelAllAfter (this.extend (request, params));
         //
@@ -6581,7 +6581,7 @@ export default class htx extends Exchange {
         const [ networkCode, paramsOmited ] = this.handleNetworkCodeAndParams (params);
         const indexedAddresses = await this.fetchDepositAddressesByNetwork (code, paramsOmited);
         const selectedNetworkCode = this.selectNetworkCodeFromUnifiedNetworks (currency['code'], networkCode, indexedAddresses);
-        return indexedAddresses[selectedNetworkCode] as DepositAddress;
+        return indexedAddresses[selectedNetworkCode as string] as DepositAddress;
     }
 
     async fetchWithdrawAddresses (code: string, note = undefined, networkCode = undefined, params = {}) {
@@ -6801,7 +6801,7 @@ export default class htx extends Exchange {
             feeCost = Precise.stringAbs (feeCost);
         }
         const networkId = this.safeString (transaction, 'chain');
-        let txHash = this.safeString (transaction, 'tx-hash');
+        let txHash = this.safeString (transaction, 'tx-hash') as string;
         if (networkId === 'ETH' && txHash.indexOf ('0x') < 0) {
             txHash = '0x' + txHash;
         }
@@ -6857,7 +6857,7 @@ export default class htx extends Exchange {
             'pre-transfer': 'pending',
             'verifying': 'pending',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     /**
@@ -6889,14 +6889,14 @@ export default class htx extends Exchange {
         if (networkCode !== undefined) {
             request['chain'] = this.networkCodeToId (networkCode, code);
         }
-        amount = parseFloat (this.currencyToPrecision (code, amount, networkCode));
+        amount = parseFloat (this.currencyToPrecision (code, amount, networkCode) as string);
         const withdrawOptions = this.safeValue (this.options, 'withdraw', {});
         if (this.safeBool (withdrawOptions, 'includeFee', false)) {
             let fee = this.safeNumber (params, 'fee');
             if (fee === undefined) {
                 const currencies = await this.fetchCurrencies ();
                 this.currencies = this.mapToSafeMap (this.deepExtend (this.currencies, currencies));
-                const targetNetwork = this.safeValue (currency['networks'], networkCode, {});
+                const targetNetwork = this.safeValue (currency['networks'], networkCode as string, {});
                 fee = this.safeNumber (targetNetwork, 'fee');
                 if (fee === undefined) {
                     throw new ArgumentsRequired (this.id + ' withdraw() function can not find withdraw fee for chosen network. You need to re-load markets with "exchange.loadMarkets(true)", or provide the "fee" parameter');
@@ -6907,9 +6907,9 @@ export default class htx extends Exchange {
             params = this.omit (params, 'fee');
             const amountString = this.numberToString (amount);
             const amountSubtractedString = Precise.stringSub (amountString, feeString);
-            const amountSubtracted = parseFloat (amountSubtractedString);
-            request['fee'] = parseFloat (feeString);
-            amount = parseFloat (this.currencyToPrecision (code, amountSubtracted, networkCode));
+            const amountSubtracted = parseFloat (amountSubtractedString as string);
+            request['fee'] = parseFloat (feeString as string);
+            amount = parseFloat (this.currencyToPrecision (code, amountSubtracted, networkCode) as string);
         }
         request['amount'] = amount;
         const response = await this.spotPrivatePostV1DwWithdrawApiCreate (this.extend (request, params));
@@ -6971,7 +6971,7 @@ export default class htx extends Exchange {
         const currency = this.currency (code);
         const request: Dict = {
             'currency': currency['id'],
-            'amount': parseFloat (this.currencyToPrecision (code, amount)),
+            'amount': parseFloat (this.currencyToPrecision (code, amount) as string),
         };
         let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('transfer', undefined, params);
@@ -6979,8 +6979,8 @@ export default class htx extends Exchange {
         let toAccountId = this.convertTypeToAccount (toAccount);
         const toCross = toAccountId === 'cross';
         const fromCross = fromAccountId === 'cross';
-        const toIsolated = this.inArray (toAccountId, this.ids);
-        const fromIsolated = this.inArray (fromAccountId, this.ids);
+        const toIsolated = this.inArray (toAccountId, this.ids as string[]);
+        const fromIsolated = this.inArray (fromAccountId, this.ids as string[]);
         const fromSpot = fromAccountId === 'pro';
         const toSpot = toAccountId === 'pro';
         if (fromSpot && toSpot) {
@@ -7033,7 +7033,7 @@ export default class htx extends Exchange {
         //        "print-log": true
         //    }
         //
-        return this.parseTransfer (response, currency);
+        return this.parseTransfer (response as Dict, currency);
     }
 
     /**
@@ -7398,7 +7398,7 @@ export default class htx extends Exchange {
         [ subType, params ] = this.handleOptionAndParams (params, 'fetchFundingRates', 'subType', defaultSubType);
         if (symbols !== undefined) {
             const firstSymbol = this.safeString (symbols, 0);
-            const market = this.market (firstSymbol);
+            const market = this.market (firstSymbol as string);
             const isLinear = market['linear'];
             subType = isLinear ? 'linear' : 'inverse';
         }
@@ -7620,8 +7620,8 @@ export default class htx extends Exchange {
                     };
                 }
             } else {
-                if (Object.keys (query).length) {
-                    url += '?' + this.urlencode (query);
+                if (Object.keys (query as Dict).length) {
+                    url += '?' + this.urlencode (query as Dict);
                 }
             }
             url = this.implodeParams (this.urls['api'][api], {
@@ -7635,9 +7635,9 @@ export default class htx extends Exchange {
             const levelOneNestedPath = this.safeString (api, 2);
             const levelTwoNestedPath = this.safeString (api, 3);
             let hostname = undefined;
-            let hostnames = this.safeValue (this.urls['hostnames'], type);
+            let hostnames = this.safeValue (this.urls['hostnames'], type as string);
             if (typeof hostnames !== 'string') {
-                hostnames = this.safeValue (hostnames, levelOneNestedPath);
+                hostnames = this.safeValue (hostnames, levelOneNestedPath as string);
                 if ((typeof hostnames !== 'string') && (levelTwoNestedPath !== undefined)) {
                     hostnames = this.safeValue (hostnames, levelTwoNestedPath);
                 }
@@ -7645,8 +7645,8 @@ export default class htx extends Exchange {
             hostname = hostnames;
             url += this.implodeParams (path, params);
             if (access === 'public') {
-                if (Object.keys (query).length) {
-                    url += '?' + this.urlencode (query);
+                if (Object.keys (query as Dict).length) {
+                    url += '?' + this.urlencode (query as Dict);
                 }
             } else if (access === 'private') {
                 this.checkRequiredCredentials ();
@@ -7679,7 +7679,7 @@ export default class htx extends Exchange {
                 // sorting needs such flow exactly, before urlencoding (more at: https://github.com/ccxt/ccxt/issues/24930 )
                 request = this.keysort (request) as any;
                 if (method !== 'POST') {
-                    const sortedQuery = this.keysort (query) as any;
+                    const sortedQuery = this.keysort (query as Dict) as any;
                     request = this.extend (request, sortedQuery);
                 }
                 let auth = this.urlencode (request, true).replace ('%2c', '%2C'); // in c# it manually needs to be uppercased
@@ -7710,7 +7710,7 @@ export default class htx extends Exchange {
                 }
             }
             const finalHostname = hostname; // java req
-            url = this.implodeParams (this.urls['api'][type], {
+            url = this.implodeParams (this.urls['api'][type as string], {
                 'hostname': finalHostname,
             }) + url;
         }
@@ -7771,7 +7771,7 @@ export default class htx extends Exchange {
      */
     async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const market = this.market (symbol as string);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchFundingHistory', market, params);
         const request: Dict = {
             'type': '30,31',
@@ -7858,7 +7858,7 @@ export default class htx extends Exchange {
      * @param {string} [params.position_side] linear swap supports 'long', 'short' and 'both', 'both' is the default
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<{}> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -7917,7 +7917,7 @@ export default class htx extends Exchange {
             //     }
             //
         }
-        return response;
+        return response as Dict;
     }
 
     parseIncome (income, market: Market = undefined) {
@@ -8106,7 +8106,7 @@ export default class htx extends Exchange {
             const symbolsLength = symbols.length;
             if (symbolsLength > 0) {
                 const first = this.safeString (symbols, 0);
-                market = this.market (first);
+                market = this.market (first as string);
             }
         }
         let subType: SubType = undefined;
@@ -8377,7 +8377,7 @@ export default class htx extends Exchange {
         } else {
             account = this.safeValue (data, 0);
         }
-        const omitted = this.omit (account, [ 'positions' ]);
+        const omitted = this.omit (account as Dict, [ 'positions' ]);
         const positions = this.safeValue (account, 'positions');
         let position: NullableDict = undefined;
         if (market['future'] && market['inverse']) {
@@ -8745,7 +8745,7 @@ export default class htx extends Exchange {
             const symbolsLength = symbols.length;
             if (symbolsLength > 0) {
                 const first = this.safeString (symbols, 0);
-                market = this.market (first);
+                market = this.market (first as string);
             }
         }
         const request: Dict = {};
@@ -9641,7 +9641,7 @@ export default class htx extends Exchange {
             const data = this.safeDict (response, 'data', {});
             return this.parseOrder (data, market);
         }
-        return this.parseOrder (response, market);
+        return this.parseOrder (response as Dict, market);
     }
 
     /**
@@ -9701,7 +9701,7 @@ export default class htx extends Exchange {
             const symbolsLength = symbols.length;
             if (symbolsLength > 0) {
                 const first = this.safeString (symbols, 0);
-                market = this.market (first);
+                market = this.market (first as string);
             }
         }
         let subType: SubType = undefined;
