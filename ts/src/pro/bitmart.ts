@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import bitmartRest from '../bitmart.js';
 import { AuthenticationError, ExchangeError, NotSupported, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { Int, Market, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict, Bool, FundingRate, FundingRates } from '../base/types.js';
+import type { Int, Market, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict, Bool, FundingRate, FundingRates, List, NullableList } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Asks, Bids } from '../base/ws/OrderBookSide.js';
 
@@ -145,11 +145,14 @@ export default class bitmart extends bitmartRest {
 
     async subscribeMultiple (unifiedName: string, channel: string, type: string, symbols: Strings = undefined, params = {}) {
         symbols = this.marketSymbols (symbols, type, false, true);
+        if (symbols === undefined) {
+            symbols = [];
+        }
         const url = this.implodeHostname (this.urls['api']['ws'][type]['public']);
         const channelType = (type === 'spot') ? 'spot' : 'futures';
         const actionType = (type === 'spot') ? 'op' : 'action';
-        const rawSubscriptions = [];
-        const messageHashes = [];
+        const rawSubscriptions: string[] = [];
+        const messageHashes: string[] = [];
         const unsubscribe = this.safeBool (params, 'unsubscribe', false);
         let prefix = '';
         let requestOp = 'subscribe';
@@ -408,7 +411,7 @@ export default class bitmart extends bitmartRest {
             throw new NotSupported (this.id + ' ' + methodName + '() accepts a maximum of 20 symbols in one request');
         }
         const market = this.market (symbols[0]);
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params);
         return [ symbols, marketType, params ];
     }
@@ -500,14 +503,17 @@ export default class bitmart extends bitmartRest {
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
+        if (symbols === undefined) {
+            symbols = [];
+        }
         const firstMarket = this.getMarketFromSymbols (symbols);
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchBidsAsks', firstMarket, params);
         const url = this.implodeHostname (this.urls['api']['ws'][marketType]['public']);
         const channelType = (marketType === 'spot') ? 'spot/bookTicker' : 'futures/ticker';
         const actionType = (marketType === 'spot') ? 'op' : 'action';
-        let rawSubscriptions = [];
-        const messageHashes = [];
+        let rawSubscriptions: string[] = [];
+        const messageHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market (symbols[i]);
             const rawHash = channelType + ':' + market['id'];
@@ -536,7 +542,7 @@ export default class bitmart extends bitmartRest {
     handleBidAsk (client: Client, message) {
         const table = this.safeString (message, 'table');
         const isSpot = (table !== undefined);
-        let rawTickers = [];
+        let rawTickers: List = [];
         if (isSpot) {
             rawTickers = this.safeList (message, 'data', []);
         } else {
@@ -548,7 +554,9 @@ export default class bitmart extends bitmartRest {
         for (let i = 0; i < rawTickers.length; i++) {
             const ticker = this.parseWsBidAsk (rawTickers[i]);
             const symbol = ticker['symbol'];
-            this.bidsasks[symbol] = ticker;
+            if (symbol !== undefined) {
+                this.bidsasks[symbol] = ticker;
+            }
             const messageHash = 'bidask::' + symbol;
             client.resolve (ticker, messageHash);
         }
@@ -598,7 +606,7 @@ export default class bitmart extends bitmartRest {
         let request: Dict;
         if (type === 'spot') {
             let argsRequest = 'spot/user/order:';
-            if (symbol !== undefined) {
+            if ((symbol !== undefined) && (market !== undefined)) {
                 argsRequest += market['id'];
             } else {
                 argsRequest = 'spot/user/orders:ALL_SYMBOLS';
@@ -649,7 +657,7 @@ export default class bitmart extends bitmartRest {
         let request: Dict;
         if (type === 'spot') {
             let argsRequest = 'spot/user/order:';
-            if (symbol !== undefined) {
+            if ((symbol !== undefined) && (market !== undefined)) {
                 argsRequest += market['id'];
             } else {
                 argsRequest = 'spot/user/orders:ALL_SYMBOLS';
@@ -727,7 +735,7 @@ export default class bitmart extends bitmartRest {
             return;
         }
         const ordersLength = orders.length;
-        const newOrders = [];
+        const newOrders: Order[] = [];
         const symbols: Dict = {};
         if (ordersLength > 0) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
@@ -740,7 +748,9 @@ export default class bitmart extends bitmartRest {
                 stored.append (order);
                 newOrders.push (order);
                 const symbol = order['symbol'];
-                symbols[symbol] = true;
+                if (symbol !== undefined) {
+                    symbols[symbol] = true;
+                }
             }
         }
         const messageHash = 'orders';
@@ -847,8 +857,8 @@ export default class bitmart extends bitmartRest {
             const lastTrade = this.safeDict (orderInfo, 'last_trade');
             const cachedOrders = this.orders;
             const orders = this.safeValue (cachedOrders.hashmap, symbol, {});
-            const cachedOrder = this.safeValue (orders, orderId);
-            let trades = undefined;
+            const cachedOrder = (orderId === undefined) ? undefined : this.safeValue (orders, orderId);
+            let trades: NullableList = undefined;
             if (cachedOrder !== undefined) {
                 trades = this.safeValue (order, 'trades');
             }
@@ -1010,7 +1020,7 @@ export default class bitmart extends bitmartRest {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
         const cache = this.positions;
-        const newPositions = [];
+        const newPositions: Position[] = [];
         for (let i = 0; i < data.length; i++) {
             const rawPosition = data[i];
             const position = this.parseWsPosition (rawPosition);
@@ -1138,12 +1148,17 @@ export default class bitmart extends bitmartRest {
                 symbol = this.handleTradeLoop (data[i]);
             }
         }
-        client.resolve (this.trades[symbol], 'trade::' + symbol);
+        if (symbol !== undefined) {
+            client.resolve (this.trades[symbol], 'trade::' + symbol);
+        }
     }
 
     handleTradeLoop (entry) {
         const trade = this.parseWsTrade (entry);
         const symbol = trade['symbol'];
+        if (symbol === undefined) {
+            return symbol;
+        }
         const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
         if (this.safeValue (this.trades, symbol) === undefined) {
             this.trades[symbol] = new ArrayCache (tradesLimit);
@@ -1252,7 +1267,7 @@ export default class bitmart extends bitmartRest {
         this.handleBidAsk (client, message);
         const table = this.safeString (message, 'table');
         const isSpot = (table !== undefined);
-        let rawTickers = [];
+        let rawTickers: List = [];
         if (isSpot) {
             rawTickers = this.safeList (message, 'data', []);
         } else {
@@ -1264,7 +1279,9 @@ export default class bitmart extends bitmartRest {
         for (let i = 0; i < rawTickers.length; i++) {
             const ticker = isSpot ? this.parseTicker (rawTickers[i]) : this.parseWsSwapTicker (rawTickers[i]);
             const symbol = ticker['symbol'];
-            this.tickers[symbol] = ticker;
+            if (symbol !== undefined) {
+                this.tickers[symbol] = ticker;
+            }
             const messageHash = 'ticker::' + symbol;
             client.resolve (ticker, messageHash);
         }
@@ -1411,7 +1428,7 @@ export default class bitmart extends bitmartRest {
         //        }
         //    }
         //
-        const channel = this.safeString2 (message, 'table', 'group');
+        const channel = this.safeString2 (message, 'table', 'group', '');
         const isSpot = (channel.indexOf ('spot') >= 0);
         const data = this.safeValue (message, 'data');
         if (data === undefined) {
@@ -1422,11 +1439,14 @@ export default class bitmart extends bitmartRest {
         let interval = part1.replace ('kline', '');
         interval = interval.replace ('Bin', '');
         const intervalParts = interval.split (':');
-        interval = this.safeString (intervalParts, 0);
+        interval = this.safeString (intervalParts, 0, '');
         // use a reverse lookup in a static map instead
         const timeframes = this.safeDict (this.options, 'timeframes', {});
         const timeframe = this.findTimeframe (interval, timeframes);
-        const duration = this.parseTimeframe (timeframe as string);
+        if (timeframe === undefined) {
+            return;
+        }
+        const duration = this.parseTimeframe (timeframe);
         const durationInMs = duration * 1000;
         if (isSpot) {
             for (let i = 0; i < data.length; i++) {
@@ -1637,7 +1657,7 @@ export default class bitmart extends bitmartRest {
         //    }
         //
         const isSpot = ('table' in message);
-        let datas = [];
+        let datas: List = [];
         if (isSpot) {
             datas = this.safeList (message, 'data', datas);
         } else {
@@ -1650,7 +1670,7 @@ export default class bitmart extends bitmartRest {
         if (length <= 0) {
             return;
         }
-        const channelName = this.safeString2 (message, 'table', 'group');
+        const channelName = this.safeString2 (message, 'table', 'group', '');
         // find limit subscribed to
         const limitsToCheck = [ '100', '50', '20', '10', '5' ];
         let limit = 0;
@@ -1743,7 +1763,7 @@ export default class bitmart extends bitmartRest {
         if (type === 'swap' && channel === 'depth/increase100') {
             channel = 'depth50';
         }
-        const orderbook = await this.subscribeMultiple ('orderbook', channel as string, type, symbols, params);
+        const orderbook = await this.subscribeMultiple ('orderbook', channel as string, type as string, symbols, params);
         return orderbook.limit ();
     }
 
@@ -1767,7 +1787,7 @@ export default class bitmart extends bitmartRest {
             channel = 'depth50';
         }
         params = this.extend (params, { 'unsubscribe': true });
-        return await this.subscribeMultiple ('orderbook', channel as string, type, symbols, params);
+        return await this.subscribeMultiple ('orderbook', channel as string, type as string, symbols, params);
     }
 
     /**
@@ -1831,7 +1851,9 @@ export default class bitmart extends bitmartRest {
         const data = this.safeDict (message, 'data', {});
         const fundingRate = this.parseFundingRate (data);
         const symbol = fundingRate['symbol'];
-        this.fundingRates[symbol] = fundingRate;
+        if (symbol !== undefined) {
+            this.fundingRates[symbol] = fundingRate;
+        }
         const messageHash = 'fundingRate::' + symbol;
         client.resolve (fundingRate, messageHash);
     }
@@ -1966,7 +1988,7 @@ export default class bitmart extends bitmartRest {
         //         }
         //     }
         //
-        const messageTopic = this.safeString2 (message, 'topic', 'group');
+        const messageTopic = this.safeString2 (message, 'topic', 'group', '');
         const unSubMessageTopic = 'unsubscribe::' + messageTopic;
         // one message includes info about one unsubscription only even if we requested multiple
         // so we can not just create subscription object in unWatch method and use it here
@@ -1983,17 +2005,17 @@ export default class bitmart extends bitmartRest {
 
     getUnSubParams (messageTopic) {
         const parts = messageTopic.split (':');
-        const channel = this.safeString (parts, 0);
+        const channel = this.safeString (parts, 0, '');
         const marketTypeAndTopic = channel.split ('/');
         const rawMarketType = this.safeStringLower (marketTypeAndTopic, 0);
         const marketType = this.parseMarketType (rawMarketType as string);
-        let topic = this.safeString (marketTypeAndTopic, 1);
+        let topic = this.safeString (marketTypeAndTopic, 1, '');
         const thirdPart = this.safeString (marketTypeAndTopic, 2);
         if (thirdPart !== undefined) {
             topic += '/' + thirdPart;
         }
         const marketId = this.safeString (parts, 1);
-        const symbols = [];
+        const symbols: string[] = [];
         let symbol: Str = undefined;
         let subHash = topic;
         let hashDelimiter = ':';
@@ -2013,7 +2035,7 @@ export default class bitmart extends bitmartRest {
         } else {
             subHashIsPrefix = true; // need to clean all subHashes with this prefix
         }
-        const symbolsAndTimeframes = [];
+        const symbolsAndTimeframes: List = [];
         if (topic.startsWith ('kline')) {
             let interval = topic.replace ('kline', '');
             if (interval.startsWith ('Bin')) {
@@ -2133,7 +2155,7 @@ export default class bitmart extends bitmartRest {
                 }
             }
         } else {
-            const channel = this.safeString2 (message, 'table', 'group');
+            const channel = this.safeString2 (message, 'table', 'group', '');
             const methods: Dict = {
                 'depth': this.handleOrderBook,
                 'bookTicker': this.handleBidAsk,
