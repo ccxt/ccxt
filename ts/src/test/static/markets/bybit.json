@@ -1837,7 +1837,7 @@
                 "minNotionalValue": "5"
             },
             "unifiedMarginTrade": true,
-            "fundingInterval": "480",
+            "fundingInterval": "60",
             "settleCoin": "USDT",
             "copyTrading": "both",
             "upperFundingRate": "0.02",
