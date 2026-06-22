@@ -4,7 +4,7 @@
 import { ed25519 } from '@noble/curves/ed25519.js';
 import backpackRest from '../backpack.js';
 import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
-import type { Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Bool, Dict, Int, Market, NullableDict, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 import { eddsa } from '../base/functions/crypto.js';
@@ -119,8 +119,8 @@ export default class backpack extends backpackRest {
                 }
             } else if (messageHash.indexOf ('candles') >= 0) {
                 const splitHashes = messageHash.split (':');
-                const symbol = this.safeString (splitHashes, 2);
-                const timeframe = this.safeString (splitHashes, 3);
+                const symbol = this.safeString (splitHashes, 2, '');
+                const timeframe = this.safeString (splitHashes, 3, '');
                 if (symbol in this.ohlcvs) {
                     if (timeframe in this.ohlcvs[symbol]) {
                         delete this.ohlcvs[symbol][timeframe];
@@ -213,11 +213,13 @@ export default class backpack extends backpackRest {
         symbols = this.marketSymbols (symbols, undefined, false);
         const messageHashes: string[] = [];
         const topics: string[] = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
-            const marketId = this.marketId (symbol);
-            messageHashes.push ('ticker:' + symbol);
-            topics.push ('ticker.' + marketId);
+        if (symbols !== undefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                const marketId = this.marketId (symbol);
+                messageHashes.push ('ticker:' + symbol);
+                topics.push ('ticker.' + marketId);
+            }
         }
         await this.watchPublic (topics, messageHashes, params);
         return this.filterByArray (this.tickers, 'symbol', symbols);
@@ -237,11 +239,13 @@ export default class backpack extends backpackRest {
         symbols = this.marketSymbols (symbols, undefined, false);
         const topics: string[] = [];
         const messageHashes: string[] = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
-            const marketId = this.marketId (symbol);
-            topics.push ('ticker.' + marketId);
-            messageHashes.push ('unsubscribe:ticker:' + symbol);
+        if (symbols !== undefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                const marketId = this.marketId (symbol);
+                topics.push ('ticker.' + marketId);
+                messageHashes.push ('unsubscribe:ticker:' + symbol);
+            }
         }
         return await this.watchPublic (topics, messageHashes, params, true);
     }
@@ -289,8 +293,7 @@ export default class backpack extends backpackRest {
         //         v: '5542.3911'
         //     }
         //
-        const microseconds = this.safeInteger (ticker, 'E');
-        const timestamp = this.parseToInt (microseconds / 1000);
+        const timestamp = this.safeIntegerProduct (ticker, 'E', 0.001);
         const marketId = this.safeString (ticker, 's');
         market = this.safeMarket (marketId, market);
         const symbol = this.safeSymbol (marketId, market);
@@ -334,11 +337,13 @@ export default class backpack extends backpackRest {
         symbols = this.marketSymbols (symbols, undefined, false);
         const topics: string[] = [];
         const messageHashes: string[] = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
-            const marketId = this.marketId (symbol);
-            topics.push ('bookTicker.' + marketId);
-            messageHashes.push ('bidask:' + symbol);
+        if (symbols !== undefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                const marketId = this.marketId (symbol);
+                topics.push ('bookTicker.' + marketId);
+                messageHashes.push ('bidask:' + symbol);
+            }
         }
         await this.watchPublic (topics, messageHashes, params);
         return this.filterByArray (this.bidsasks, 'symbol', symbols);
@@ -357,11 +362,13 @@ export default class backpack extends backpackRest {
         symbols = this.marketSymbols (symbols, undefined, false);
         const topics: string[] = [];
         const messageHashes: string[] = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
-            const marketId = this.marketId (symbol);
-            topics.push ('bookTicker.' + marketId);
-            messageHashes.push ('unsubscribe:bidask:' + symbol);
+        if (symbols !== undefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                const marketId = this.marketId (symbol);
+                topics.push ('bookTicker.' + marketId);
+                messageHashes.push ('unsubscribe:bidask:' + symbol);
+            }
         }
         return await this.watchPublic (topics, messageHashes, params, true);
     }
@@ -409,8 +416,7 @@ export default class backpack extends backpackRest {
         const marketId = this.safeString (ticker, 's');
         market = this.safeMarket (marketId, market);
         const symbol = this.safeString (market, 'symbol');
-        const microseconds = this.safeInteger (ticker, 'E');
-        const timestamp = this.parseToInt (microseconds / 1000);
+        const timestamp = this.safeIntegerProduct (ticker, 'E', 0.001);
         const ask = this.safeString (ticker, 'a');
         const askVolume = this.safeString (ticker, 'A');
         const bid = this.safeString (ticker, 'b');
@@ -545,11 +551,17 @@ export default class backpack extends backpackRest {
         //
         const data = this.safeDict (message, 'data', {});
         const marketId = this.safeString (data, 's');
+        if (marketId === undefined) {
+            return;
+        }
         const market = this.market (marketId);
         const symbol = market['symbol'];
-        const stream = this.safeString (message, 'stream');
+        const stream = this.safeString (message, 'stream', '');
         const parts = stream.split ('.');
         const timeframe = this.safeString (parts, 1);
+        if (timeframe === undefined) {
+            return;
+        }
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
@@ -733,8 +745,7 @@ export default class backpack extends backpackRest {
         //         t: 10782547
         //     }
         //
-        const microseconds = this.safeInteger (trade, 'E');
-        const timestamp = this.parseToInt (microseconds / 1000);
+        const timestamp = this.safeIntegerProduct (trade, 'E', 0.001);
         const id = this.safeString (trade, 't');
         const marketId = this.safeString (trade, 's');
         market = this.safeMarket (marketId, market);
@@ -895,7 +906,7 @@ export default class backpack extends backpackRest {
             }
             storedOrderBook.cache.push (data);
             return;
-        } else if (nonce > deltaNonce) {
+        } else if ((deltaNonce !== undefined) && (nonce > deltaNonce)) {
             return;
         }
         this.handleDelta (storedOrderBook, data);
@@ -926,15 +937,15 @@ export default class backpack extends backpackRest {
         //
         // {"E":"1759338824897386","T":"1759338824895616","U":1662976171,"a":[],"b":[["117357.0","0.00000"]],"e":"depth","s":"BTC_USDC_PERP","u":1662976171}
         const firstDelta = this.safeDict (cache, 0);
-        const nonce = this.safeInteger (orderbook, 'nonce');
-        const firstDeltaStart = this.safeInteger (firstDelta, 'U');
+        const nonce = this.safeInteger (orderbook, 'nonce', 0);
+        const firstDeltaStart = this.safeInteger (firstDelta, 'U', 0);
         if (nonce < firstDeltaStart - 1) {
             return -1;
         }
         for (let i = 0; i < cache.length; i++) {
             const delta = cache[i];
-            const deltaStart = this.safeInteger (delta, 'U');
-            const deltaEnd = this.safeInteger (delta, 'u');
+            const deltaStart = this.safeInteger (delta, 'U', 0);
+            const deltaEnd = this.safeInteger (delta, 'u', 0);
             if ((nonce >= deltaStart - 1) && (nonce < deltaEnd)) {
                 return i;
             }
@@ -1070,8 +1081,7 @@ export default class backpack extends backpackRest {
         //
         const id = this.safeString (order, 'i');
         const clientOrderId = this.safeString (order, 'c');
-        const microseconds = this.safeInteger (order, 'E');
-        const timestamp = this.parseToInt (microseconds / 1000);
+        const timestamp = this.safeIntegerProduct (order, 'E', 0.001);
         const status = this.parseWsOrderStatus (this.safeString (order, 'X'), market);
         const marketId = this.safeString (order, 's');
         market = this.safeMarket (marketId, market);
@@ -1084,7 +1094,7 @@ export default class backpack extends backpackRest {
         const amount = this.safeString (order, 'q');
         const cost = this.safeString (order, 'Z');
         const filled = this.safeString (order, 'l');
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         const feeCurrency = this.safeString (order, 'N');
         if (feeCurrency !== undefined) {
             fee = {
@@ -1117,7 +1127,7 @@ export default class backpack extends backpackRest {
         }, market);
     }
 
-    parseWsOrderStatus (status, market = undefined) {
+    parseWsOrderStatus (status, market: Market = undefined) {
         const statuses: Dict = {
             'New': 'open',
             'Filled': 'closed',
@@ -1229,8 +1239,7 @@ export default class backpack extends backpackRest {
         }
         const cache = this.positions;
         const parsedPosition = this.parseWsPosition (data);
-        const microseconds = this.safeInteger (data, 'E');
-        const timestamp = this.parseToInt (microseconds / 1000);
+        const timestamp = this.safeIntegerProduct (data, 'E', 0.001);
         parsedPosition['timestamp'] = timestamp;
         parsedPosition['datetime'] = this.iso8601 (timestamp);
         cache.append (parsedPosition);
@@ -1239,7 +1248,7 @@ export default class backpack extends backpackRest {
         client.resolve ([ parsedPosition ], symbolSpecificMessageHash);
     }
 
-    parseWsPosition (position, market = undefined) {
+    parseWsPosition (position, market: Market = undefined) {
         //
         //     {
         //         B: '4236.36',
@@ -1272,17 +1281,16 @@ export default class backpack extends backpackRest {
         const contracts = this.safeString (position, 'Q');
         const markPrice = this.safeString (position, 'M');
         const netQuantity = this.safeNumber (position, 'q');
-        let hedged = false;
-        let side = 'long';
-        if (netQuantity < 0) {
+        let hedged: Bool = false;
+        let side: Str = 'long';
+        if ((netQuantity !== undefined) && (netQuantity < 0)) {
             side = 'short';
         }
         if (netQuantity === undefined) {
             hedged = undefined;
             side = undefined;
         }
-        const microseconds = this.safeInteger (position, 'E');
-        const timestamp = this.parseToInt (microseconds / 1000);
+        const timestamp = this.safeIntegerProduct (position, 'E', 0.001);
         const maintenanceMarginPercentage = this.safeNumber (position, 'm');
         const initialMarginPercentage = this.safeNumber (position, 'f');
         return this.safePosition ({
