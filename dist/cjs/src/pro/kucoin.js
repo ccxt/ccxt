@@ -446,7 +446,7 @@ class kucoin extends kucoin$1["default"] {
             }
         }
         const url = await this.negotiate(false, isFuturesMethod);
-        let tickers = undefined;
+        let tickers;
         if (symbols === undefined) {
             const allTopic = method + ':all';
             tickers = await this.subscribe(url, messageHash, allTopic, params);

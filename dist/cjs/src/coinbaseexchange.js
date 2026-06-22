@@ -1845,7 +1845,7 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response = undefined;
+        let response;
         if (id === undefined) {
             response = await this.privateGetTransfers(this.extend(request, params));
             //

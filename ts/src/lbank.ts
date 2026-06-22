@@ -381,7 +381,7 @@ export default class lbank extends Exchange {
     async fetchTime (params = {}): Promise<Int> {
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTime', undefined, params);
-        let response: Dict = undefined;
+        let response: Dict;
         if (type === 'swap') {
             response = await this.contractPublicGetCfdOpenApiV1PubGetTime (params);
         } else {
@@ -552,11 +552,11 @@ export default class lbank extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const result = [];
+        const result: any[] = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
             const marketId = this.safeString (market, 'symbol');
-            const parts = marketId.split ('_');
+            const parts = (marketId as string).split ('_');
             const baseId = parts[0];
             const quoteId = parts[1];
             const base = this.safeCurrencyCode (baseId);
@@ -649,7 +649,7 @@ export default class lbank extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const result = [];
+        const result: any[] = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
             const marketId = this.safeString (market, 'symbol');
@@ -843,7 +843,7 @@ export default class lbank extends Exchange {
         const request: Dict = {};
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-        let response: Dict = undefined;
+        let response: Dict;
         if (type === 'swap') {
             request['productGroup'] = 'SwapU';
             response = await this.contractPublicGetCfdOpenApiV1PubMarketData (this.extend (request, params));
@@ -922,7 +922,7 @@ export default class lbank extends Exchange {
         };
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
-        let response: Dict = undefined;
+        let response: Dict;
         if (type === 'swap') {
             request['depth'] = limit;
             response = await this.contractPublicGetCfdOpenApiV1PubMarketOrder (this.extend (request, params));
@@ -1063,7 +1063,7 @@ export default class lbank extends Exchange {
         }
         const order = this.safeString (trade, 'orderUuid');
         const symbol = this.safeSymbol (undefined, market);
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         const feeCost = this.safeString (trade, 'tradeFee');
         if (feeCost !== undefined) {
             const feeCurr = (side === 'buy') ? this.safeString (market, 'base') : this.safeString (market, 'quote');
@@ -1120,7 +1120,7 @@ export default class lbank extends Exchange {
         const defaultMethod = this.safeString (options, 'method', 'spotPublicGetTrades');
         const method = this.safeString (params, 'method', defaultMethod);
         params = this.omit (params, 'method');
-        let response: Dict = undefined;
+        let response: Dict;
         if (method === 'spotPublicGetSupplementTrades') {
             response = await this.spotPublicGetSupplementTrades (this.extend (request, params));
         } else {
@@ -1480,7 +1480,7 @@ export default class lbank extends Exchange {
         const options = this.safeValue (this.options, 'fetchBalance', {});
         const defaultMethod = this.safeString (options, 'method', 'spotPrivatePostSupplementUserInfo');
         const method = this.safeString (params, 'method', defaultMethod);
-        let response: Dict = undefined;
+        let response: Dict;
         if (method === 'spotPrivatePostSupplementUserInfoAccount') {
             response = await this.spotPrivatePostSupplementUserInfoAccount ();
         } else if (method === 'spotPrivatePostUserInfo') {
@@ -1573,7 +1573,7 @@ export default class lbank extends Exchange {
         for (let i = 0; i < fees.length; i++) {
             const fee = this.parseTradingFee (fees[i]);
             const symbol = fee['symbol'];
-            result[symbol] = fee;
+            result[(symbol as string)] = fee;
         }
         return result;
     }
@@ -1676,7 +1676,7 @@ export default class lbank extends Exchange {
         const defaultMethod = this.safeString (options, 'method', 'spotPrivatePostSupplementCreateOrder');
         const method = this.safeString (params, 'method', defaultMethod);
         params = this.omit (params, 'method');
-        let response: Dict = undefined;
+        let response: Dict;
         if (method === 'spotPrivatePostCreateOrder') {
             response = await this.spotPrivatePostCreateOrder (this.extend (request, params));
         } else {
@@ -1709,7 +1709,7 @@ export default class lbank extends Exchange {
             '3': 'canceled', // filled partially and cancelled
             '4': 'closed', // disposal processing
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -1810,7 +1810,7 @@ export default class lbank extends Exchange {
         let postOnly = false;
         let type = 'limit';
         const rawType = this.safeString2 (order, 'type', 'tradeType'); // buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
-        const parts = rawType.split ('_');
+        const parts = (rawType as string).split ('_');
         const side = this.safeString (parts, 0);
         const typePart = this.safeString (parts, 1); // market, maker, ioc, fok or undefined (limit)
         if (typePart === 'market') {
@@ -2232,7 +2232,7 @@ export default class lbank extends Exchange {
         const defaultNetwork = this.safeStringUpper (defaultNetworks, currencyCode);
         const networks = this.safeValue (this.options, 'networks', {});
         let network = this.safeStringUpper (params, 'network', defaultNetwork); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
+        network = this.safeString (networks, (network as string), network); // handle ERC20>ETH alias
         return network;
     }
 
@@ -2252,7 +2252,7 @@ export default class lbank extends Exchange {
         const defaultMethod = this.safeString (options, 'method', 'fetchDepositAddressDefault');
         const method = this.safeString (params, 'method', defaultMethod);
         params = this.omit (params, 'method');
-        let response: Dict = undefined;
+        let response: Dict;
         if (method === 'fetchDepositAddressSupplement') {
             response = await this.fetchDepositAddressSupplement (code, params);
         } else {
@@ -2307,7 +2307,7 @@ export default class lbank extends Exchange {
         };
         const networks = this.safeValue (this.options, 'networks');
         let network = this.safeStringUpper (params, 'network');
-        network = this.safeString (networks, network, network);
+        network = this.safeString (networks, (network as string), network);
         if (network !== undefined) {
             request['networkName'] = network;
             params = this.omit (params, 'network');
@@ -2376,7 +2376,7 @@ export default class lbank extends Exchange {
         const network = this.safeStringUpper2 (params, 'network', 'networkName');
         params = this.omit (params, [ 'network', 'networkName' ]);
         const networks = this.safeValue (this.options, 'networks');
-        const networkId = this.safeString (networks, network, network);
+        const networkId = this.safeString (networks, (network as string), network);
         if (networkId !== undefined) {
             request['networkName'] = networkId;
         }
@@ -2626,7 +2626,7 @@ export default class lbank extends Exchange {
         // private only returns information for currencies with non-zero balance
         await this.loadMarkets ();
         const isAuthorized = this.checkRequiredCredentials (false);
-        let result: Dict = undefined;
+        let result: Dict;
         if (isAuthorized === true) {
             const options = this.safeValue (this.options, 'fetchTransactionFees', {});
             const defaultMethod = this.safeString (options, 'method', 'fetchPrivateTransactionFees');
@@ -2774,7 +2774,7 @@ export default class lbank extends Exchange {
     async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
         await this.loadMarkets ();
         const isAuthorized = this.checkRequiredCredentials (false);
-        let response: Dict = undefined;
+        let response: Dict;
         if (isAuthorized === true) {
             const options = this.safeValue (this.options, 'fetchDepositWithdrawFees', {});
             const defaultMethod = this.safeString (options, 'method', 'fetchPrivateDepositWithdrawFees');
@@ -2791,7 +2791,7 @@ export default class lbank extends Exchange {
         return response;
     }
 
-    async fetchPrivateDepositWithdrawFees (codes = undefined, params = {}) {
+    async fetchPrivateDepositWithdrawFees (codes: Strings = undefined, params = {}) {
         // complete response
         // incl. for coins which undefined in public method
         await this.loadMarkets ();
@@ -2830,7 +2830,7 @@ export default class lbank extends Exchange {
         return this.parseDepositWithdrawFees (data, codes, 'coin');
     }
 
-    async fetchPublicDepositWithdrawFees (codes = undefined, params = {}) {
+    async fetchPublicDepositWithdrawFees (codes: Strings = undefined, params = {}) {
         // extremely incomplete response
         // vast majority fees undefined
         await this.loadMarkets ();
@@ -2861,7 +2861,7 @@ export default class lbank extends Exchange {
         return this.parsePublicDepositWithdrawFees (data, codes);
     }
 
-    parsePublicDepositWithdrawFees (response, codes = undefined) {
+    parsePublicDepositWithdrawFees (response, codes: Strings = undefined) {
         //
         //    [
         //        {
@@ -3115,7 +3115,7 @@ export default class lbank extends Exchange {
                 '10601': 'Interface closed unavailable',
                 '10701': 'invalid asset code',
                 '10702': 'not allowed deposit',
-            }, errorCode, this.json (response));
+            }, (errorCode as string), this.json (response));
             const ErrorClass = this.safeValue ({
                 '10001': BadRequest,
                 '10002': AuthenticationError,
@@ -3166,7 +3166,7 @@ export default class lbank extends Exchange {
                 '10601': ExchangeError, // 'Interface closed unavailable',
                 '10701': BadSymbol, // 'invalid asset code',
                 '10702': PermissionDenied, // 'not allowed deposit',
-            }, errorCode, ExchangeError);
+            }, (errorCode as string), ExchangeError);
             throw new ErrorClass (message);
         }
         return undefined;

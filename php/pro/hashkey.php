@@ -485,18 +485,18 @@ class hashkey extends \ccxt\async\hashkey {
             'side' => $side,
             'price' => $this->safe_string($order, 'p'),
             'average' => $this->safe_string($order, 'V'),
-            'amount' => $this->omit_zero($this->safe_string($order, 'q')),
+            'amount' => $this->omit_zero(($this->safe_string($order, 'q'))),
             'filled' => $this->safe_string($order, 'z'),
             'remaining' => $this->safe_string($order, 'r'),
             'stopPrice' => null,
             'triggerPrice' => null,
             'takeProfitPrice' => null,
             'stopLossPrice' => null,
-            'cost' => $this->omit_zero($this->safe_string($order, 'Z')),
+            'cost' => $this->omit_zero(($this->safe_string($order, 'Z'))),
             'trades' => null,
             'fee' => array(
                 'currency' => $this->safe_currency_code($this->safe_string($order, 'N')),
-                'amount' => $this->omit_zero($this->safe_string($order, 'n')),
+                'amount' => $this->omit_zero(($this->safe_string($order, 'n'))),
             ),
             'reduceOnly' => $reduceOnly,
             'postOnly' => $postOnly,
@@ -563,7 +563,7 @@ class hashkey extends \ccxt\async\hashkey {
         $client->resolve ($tradesArray, $symbolSpecificMessageHash);
     }
 
-    public function parse_ws_trade($trade, $market = null): array {
+    public function parse_ws_trade($trade, ?array $market = null): array {
         //
         // watchTrades
         //     {
