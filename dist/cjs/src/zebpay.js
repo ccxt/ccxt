@@ -1835,7 +1835,7 @@ class zebpay extends zebpay$1["default"] {
         const timestamp = this.milliseconds();
         return {
             'info': info,
-            'symbol': market['id'],
+            'symbol': this.safeString(market, 'id'),
             'type': undefined,
             'marginMode': undefined,
             'amount': this.safeNumber(info, 'amount'),

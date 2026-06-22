@@ -519,7 +519,7 @@ public partial class coinmate : Exchange
         object timestamp = this.safeTimestamp(ticker, "timestamp");
         object last = this.safeNumber(ticker, "last");
         return this.safeTicker(new Dictionary<string, object>() {
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeString(market, "symbol") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "high", this.safeNumber(ticker, "high") },

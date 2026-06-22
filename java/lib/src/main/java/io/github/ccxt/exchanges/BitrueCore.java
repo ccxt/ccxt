@@ -1303,7 +1303,7 @@ public class BitrueCore extends BitrueApi
         Object last = this.safeString2(ticker, "lastPrice", "last");
         Object timestamp = this.safeInteger(ticker, "time");
         Object percentage = null;
-        if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+        if (Helpers.isTrue(this.safeBool(market, "swap")))
         {
             percentage = Precise.stringMul(this.safeString(ticker, "rose"), "100");
         } else
@@ -3447,7 +3447,7 @@ public class BitrueCore extends BitrueApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         return new java.util.HashMap<String, Object>() {{
             put( "info", data );
-            put( "symbol", Helpers.GetValue(market, "symbol") );
+            put( "symbol", BitrueCore.this.safeString(market, "symbol") );
             put( "type", null );
             put( "marginMode", "isolated" );
             put( "amount", null );

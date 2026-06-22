@@ -610,7 +610,7 @@ class cryptomus(Exchange, ImplicitAPI):
             'id': self.safe_string(trade, 'trade_id'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'side': self.safe_string(trade, 'type'),
             'price': self.safe_string(trade, 'price'),
             'amount': self.safe_string(trade, 'quote_volume'),  # quote_volume is amount

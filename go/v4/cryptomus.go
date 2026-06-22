@@ -695,7 +695,7 @@ func (this *CryptomusCore) ParseTrade(trade any, optionalArgs ...any) any {
 		"id":           this.SafeString(trade, "trade_id"),
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
-		"symbol":       GetValue(market, "symbol"),
+		"symbol":       this.SafeString(market, "symbol"),
 		"side":         this.SafeString(trade, "type"),
 		"price":        this.SafeString(trade, "price"),
 		"amount":       this.SafeString(trade, "quote_volume"),

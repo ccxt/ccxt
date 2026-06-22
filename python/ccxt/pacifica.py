@@ -1112,7 +1112,7 @@ class pacifica(Exchange, ImplicitAPI):
         request, params = self.handle_until_option('end_time', request, params)
         request['account'] = userAddress
         if symbol is not None:
-            request['symbol'] = market['id']
+            request['symbol'] = self.safe_string(market, 'id')
         if limit is not None:
             request['limit'] = limit
         if since is not None:
@@ -1711,7 +1711,7 @@ class pacifica(Exchange, ImplicitAPI):
         priceNormalized = self.price_to_precision(symbol, price)
         amountNormalized = self.amount_to_precision(symbol, amount)
         sigPayload: dict = {
-            'symbol': market['id'],
+            'symbol': self.safe_string(market, 'id'),
             'price': priceNormalized,
             'amount': amountNormalized,
         }

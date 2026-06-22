@@ -4,6 +4,7 @@ import path from 'path'
 import errors from "../js/src/base/errors.js"
 import { basename, join, resolve } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile, checkCreateFolder } from './fsLocal.js'
+import { writeOverloadStrippedFile, removeOverloadStrippedFile } from './stripOverloads.js'
 import { writeFile } from 'fs/promises';
 import { platform } from 'process'
 import fs from 'fs'
@@ -887,7 +888,9 @@ class NewTranspiler {
         const javaExchangeBase = BASE_METHODS_FILE;
         const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT'
 
-        const baseFile: any = this.transpiler.transpileJavaByPath(baseExchangeFile);
+        const strippedBaseFile = writeOverloadStrippedFile (baseExchangeFile);
+        const baseFile: any = this.transpiler.transpileJavaByPath(strippedBaseFile);
+        removeOverloadStrippedFile (strippedBaseFile, baseExchangeFile);
         let baseClass = baseFile.content as any;// remove this later
 
         // custom transformations needed for Java

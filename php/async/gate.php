@@ -3060,7 +3060,7 @@ class gate extends Exchange {
                 $response = Async\await($this->publicDeliveryGetSettleTickers ($this->extend($request, $requestParams)));
             } elseif ($type === 'option') {
                 $this->check_required_argument('fetchTickers', $symbols, 'symbols');
-                $marketId = $market['id'];
+                $marketId = $this->safe_string($market, 'id');
                 $optionParts = explode('-', $marketId);
                 $request['underlying'] = $this->safe_string($optionParts, 0);
                 $response = Async\await($this->publicOptionsGetTickers ($this->extend($request, $requestParams)));
@@ -6406,7 +6406,7 @@ class gate extends Exchange {
             }
             if ($type === 'option') {
                 if ($symbols !== null) {
-                    $marketId = $market['id'];
+                    $marketId = $this->safe_string($market, 'id');
                     $optionParts = explode('-', $marketId);
                     $request['underlying'] = $this->safe_string($optionParts, 0);
                 }
@@ -6697,8 +6697,8 @@ class gate extends Exchange {
             $maxNotional = $this->safe_number($item, 'risk_limit');
             $tiers[] = array(
                 'tier' => $this->sum($i, 1),
-                'symbol' => $market['symbol'],
-                'currency' => $market['base'],
+                'symbol' => $this->safe_string($market, 'symbol'),
+                'currency' => $this->safe_string($market, 'base'),
                 'minNotional' => $minNotional,
                 'maxNotional' => $maxNotional,
                 'maintenanceMarginRate' => $this->safe_number($item, 'maintenance_rate'),
@@ -8195,8 +8195,8 @@ class gate extends Exchange {
             $request = array();
             $isUnified = $this->safe_bool($params, 'unified');
             $params = $this->omit($params, 'unified');
-            if ($market['spot']) {
-                $request['currency_pair'] = $market['id'];
+            if ($this->safe_bool($market, 'spot')) {
+                $request['currency_pair'] = $this->safe_string($market, 'id');
                 if ($isUnified) {
                     $response = Async\await($this->publicMarginGetUniCurrencyPairsCurrencyPair ($this->extend($request, $params)));
                     //
@@ -8275,7 +8275,7 @@ class gate extends Exchange {
                 //     }
                 //
             } else {
-                throw new NotSupported($this->id . ' fetchLeverage() does not support ' . $market['type'] . ' markets');
+                throw new NotSupported($this->id . ' fetchLeverage() does not support ' . $this->safe_string($market, 'type') . ' markets');
             }
             return $this->parse_leverage($response, $market);
         }) ();

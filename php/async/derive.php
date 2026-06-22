@@ -1956,7 +1956,7 @@ class derive extends Exchange {
         if ($marketId !== null) {
             $market = $this->safe_market($marketId, $market);
         }
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol');
         $price = $this->safe_string($order, 'limit_price');
         $average = $this->safe_string($order, 'average_price');
         $amount = $this->safe_string($order, 'desired_amount');

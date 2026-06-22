@@ -935,7 +935,7 @@ public class LighterCore extends LighterApi
                 }
             }
         }
-        Object marketInfo = this.safeDict(market, "info");
+        Object marketInfo = this.safeDict(market, "info", new java.util.HashMap<String, Object>() {{}});
         Object amountStr = null;
         Object priceStr = this.priceToPrecision(symbol, price);
         Object amountScale = this.pow("10", Helpers.GetValue(marketInfo, "size_decimals"));
@@ -1212,7 +1212,7 @@ public class LighterCore extends LighterApi
             Object strApiKeyIndex = ((String)this.numberToString(apiKeyIndex));
             Object signer = (this.loadAccount(Helpers.GetValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
             Object market = this.market(symbol);
-            Object marketInfo = this.safeDict(market, "info");
+            Object marketInfo = this.safeDict(market, "info", new java.util.HashMap<String, Object>() {{}});
             Object amountScale = this.pow("10", Helpers.GetValue(marketInfo, "size_decimals"));
             Object priceScale = this.pow("10", Helpers.GetValue(marketInfo, "price_decimals"));
             Object triggerPrice = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice")));

@@ -1551,6 +1551,12 @@ class Transpiler {
             let part = this.moveJsDocInside(methods[i].trim());
             // let part = methods[i].trim ()
             let lines = part.split ("\n")
+            // strip TypeScript overload signature lines (body-less declarations ending with ';')
+            // they carry no runtime code and the implementation signature below handles all cases
+            while (lines.length > 1 && /^\s*(?:async\s+)?[a-zA-Z0-9_$]+\s*\([^{]*\)\s*:\s*[^{};]+;\s*$/.test (lines[0])) {
+                lines.shift ()
+            }
+            part = lines.join ("\n")
             let signature = lines[0].trim ()
             signature = signature.replace('function ', '')
             // detect generic methods, e.g. "valueOr<T> (value: T, defaultValue: T): T {"
@@ -1629,12 +1635,14 @@ class Transpiler {
                 'string': 'str',
                 'number': 'float',
                 'any': 'Any',
+                'unknown': 'Any',
                 'boolean': 'bool',
                 'Int': 'Int',
                 'OHLCV': 'list',
                 'Dictionary<any>': 'dict',
                 'Dict': 'dict',
-                'NullableDict': 'dict'
+                'NullableDict': 'dict',
+                'NullableList': 'List[Any]'
             }
             const unwrapLists = (type: string) => {
                 let count = 0
@@ -1649,6 +1657,7 @@ class Transpiler {
                 // add $ to each argument name in PHP method signature
                 const phpTypes: dict = {
                     'any': 'mixed',
+                    'unknown': 'mixed',
                     'string': 'string',
                     'MarketType': 'string',
                     'SubType': 'string',
@@ -1665,6 +1674,7 @@ class Transpiler {
                     'Dictionary<any>': 'array',
                     'Dict': 'array',
                     'NullableDict': '?array',
+                    'NullableList': '?array',
                 }
                 const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|ADL|Order|OrderBooks?|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRates?|IsolatedBorrowRates?|FundingRates|FundingRate|FundingRateHistory|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|LongShortRatio|Position|BorrowInterest|OpenInterests?|Options?|OptionChain|Liquidations?)( \| undefined)?$|\w+\[\]/
 

@@ -2851,7 +2851,7 @@ func (this *AscendexCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 			"time":             this.Milliseconds(),
 		}
 		if IsTrue(!IsEqual(symbol, nil)) {
-			AddElementToObject(request, "symbol", GetValue(market, "id"))
+			AddElementToObject(request, "symbol", this.SafeString(market, "id"))
 		}
 		var response any = nil
 		if IsTrue(IsTrue((IsEqual(typeVar, "spot"))) || IsTrue((IsEqual(typeVar, "margin")))) {
@@ -3555,12 +3555,12 @@ func (this *AscendexCore) ParseMarginModification(data any, optionalArgs ...any)
 	var status any = Ternary(IsTrue((IsEqual(errorCode, "0"))), "ok", "failed")
 	return map[string]any{
 		"info":       data,
-		"symbol":     GetValue(market, "symbol"),
+		"symbol":     this.SafeString(market, "symbol"),
 		"type":       nil,
 		"marginMode": "isolated",
 		"amount":     nil,
 		"total":      nil,
-		"code":       GetValue(market, "quote"),
+		"code":       this.SafeString(market, "quote"),
 		"status":     status,
 		"timestamp":  nil,
 		"datetime":   nil,

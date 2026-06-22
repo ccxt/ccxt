@@ -1896,7 +1896,7 @@ public class MexcCore extends MexcApi
             Object tickers = null;
             if (Helpers.isTrue(isSingularMarket))
             {
-                Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
+                Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
             }
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
@@ -3117,7 +3117,7 @@ public class MexcCore extends MexcApi
             {
                 if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
                 {
-                    Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
+                    Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
                 }
                 var marginModequeryVariable = this.handleMarginModeAndParams("fetchOpenOrders", parameters);
                 var marginMode = ((java.util.List<Object>) marginModequeryVariable).get(0);
@@ -3325,7 +3325,7 @@ public class MexcCore extends MexcApi
                 }
                 final Object finalMarket = market;
                 Object requestInner = new java.util.HashMap<String, Object>() {{
-                    put( "symbol", Helpers.GetValue(finalMarket, "id") );
+                    put( "symbol", MexcCore.this.safeString(finalMarket, "id") );
                 }};
                 Object clientOrderId = this.safeString(parameters, "clientOrderId");
                 if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
@@ -3471,7 +3471,7 @@ public class MexcCore extends MexcApi
                 {
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelAllOrders() requires a symbol argument on spot")) ;
                 }
-                Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
+                Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
                 Object response = null;
                 if (Helpers.isTrue(!Helpers.isEqual(marginMode, null)))
                 {
@@ -3525,7 +3525,7 @@ public class MexcCore extends MexcApi
             {
                 if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
                 {
-                    Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
+                    Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
                 }
                 // method can be either: contractPrivatePostOrderCancelAll or contractPrivatePostPlanorderCancelAll
                 // the Planorder endpoints work not only for stop-market orders but also for stop-limit orders that are supposed to have separate endpoint
@@ -4399,7 +4399,7 @@ public class MexcCore extends MexcApi
                 {
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrderTrades() requires a symbol argument")) ;
                 }
-                Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
+                Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
                 Helpers.addElementToObject(request, "orderId", id);
                 trades = (this.spotPrivateGetMyTrades(this.extend(request, query))).join();
             } else
@@ -6448,7 +6448,7 @@ final Object finalRiskIncrVol = riskIncrVol;
         final Object finalShortLeverage = shortLeverage;
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );
-            put( "symbol", Helpers.GetValue(market, "symbol") );
+            put( "symbol", MexcCore.this.safeString(market, "symbol") );
             put( "marginMode", finalMarginMode );
             put( "longLeverage", finalLongLeverage );
             put( "shortLeverage", finalShortLeverage );
@@ -6688,6 +6688,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             }
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(method, "POST"))) || Helpers.isTrue((Helpers.isEqual(method, "PUT")))) || Helpers.isTrue((Helpers.isEqual(method, "DELETE")))))
             {
+                headers = ((Helpers.isTrue((Helpers.isEqual(headers, null))))) ? new java.util.HashMap<String, Object>() {{}} : headers;
                 Helpers.addElementToObject(headers, "Content-Type", "application/json");
             }
         } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(section, "contract")) || Helpers.isTrue(Helpers.isEqual(section, "spot2"))))

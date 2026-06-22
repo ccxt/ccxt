@@ -1117,7 +1117,7 @@ public class WeexCore extends WeexApi
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 1)))
             {
-                Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
+                Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
             }
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
@@ -1799,7 +1799,7 @@ public class WeexCore extends WeexApi
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 1)))
             {
                 Object market = this.getMarketFromSymbols(symbols);
-                Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
+                Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
             }
             Object response = (this.contractGetCapiV3MarketPremiumIndex(this.extend(request, parameters))).join();
             //
@@ -2761,7 +2761,7 @@ public class WeexCore extends WeexApi
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
+                Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
             }
             Object response = null;
             if (Helpers.isTrue(isSpot))
@@ -3103,7 +3103,7 @@ public class WeexCore extends WeexApi
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
+                Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
             }
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
@@ -3441,7 +3441,7 @@ public class WeexCore extends WeexApi
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
+                Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
             }
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
@@ -4424,12 +4424,12 @@ public class WeexCore extends WeexApi
         Object timestamp = this.safeInteger(data, "requestTime");
         return new java.util.HashMap<String, Object>() {{
             put( "info", data );
-            put( "symbol", Helpers.GetValue(market, "symbol") );
+            put( "symbol", WeexCore.this.safeString(market, "symbol") );
             put( "type", null );
             put( "marginMode", "isolated" );
             put( "amount", null );
             put( "total", null );
-            put( "code", Helpers.GetValue(market, "settle") );
+            put( "code", WeexCore.this.safeString(market, "settle") );
             put( "status", status );
             put( "timestamp", timestamp );
             put( "datetime", WeexCore.this.iso8601(timestamp) );

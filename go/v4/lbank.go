@@ -1163,7 +1163,7 @@ func (this *LbankCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var fee any = nil
 	var feeCost any = this.SafeString(trade, "tradeFee")
 	if IsTrue(!IsEqual(feeCost, nil)) {
-		var feeCurr any = Ternary(IsTrue((IsEqual(side, "buy"))), GetValue(market, "base"), GetValue(market, "quote"))
+		var feeCurr any = Ternary(IsTrue((IsEqual(side, "buy"))), this.SafeString(market, "base"), this.SafeString(market, "quote"))
 		fee = map[string]any{
 			"cost":     feeCost,
 			"currency": feeCurr,

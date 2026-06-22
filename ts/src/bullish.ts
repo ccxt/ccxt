@@ -2973,12 +2973,14 @@ export default class bullish extends Exchange {
                 }
             }
             if (path === 'v1/users/hmac/login') {
+                headers = (headers === undefined) ? {} : headers;
                 headers['BX-PUBLIC-KEY'] = this.apiKey;
             } else {
                 const token = this.token;
                 if ((token === undefined)) {
                     throw new AuthenticationError (this.id + ' requires a token, please call signIn() first');
                 }
+                headers = (headers === undefined) ? {} : headers;
                 headers['Authorization'] = 'Bearer ' + token;
                 // headers['BX-NONCE-WINDOW-ENABLED'] = 'false'; // default is false
             }

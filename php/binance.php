@@ -3705,7 +3705,7 @@ class binance extends Exchange {
                 $result[$code] = $account;
             }
         } elseif ($isolated) {
-            $assets = $this->safe_list($response, 'assets');
+            $assets = $this->safe_list($response, 'assets', array());
             for ($i = 0; $i < count($assets); $i++) {
                 $asset = $assets[$i];
                 $marketId = $this->safe_string($asset, 'symbol');
@@ -8089,7 +8089,7 @@ class binance extends Exchange {
             $currentTimestamp = $this->milliseconds();
             $oneWeek = 7 * 24 * 60 * 60 * 1000;
             if (($currentTimestamp - $startTime) >= $oneWeek) {
-                if (($endTime === null) && $market['linear']) {
+                if (($endTime === null) && $this->safe_bool($market, 'linear')) {
                     $endTime = $this->sum($startTime, $oneWeek);
                     $endTime = min ($endTime, $currentTimestamp);
                 }
@@ -8100,7 +8100,7 @@ class binance extends Exchange {
             $params = $this->omit($params, array( 'endTime', 'until' ));
         }
         if ($limit !== null) {
-            if (($type === 'option') || $market['contract']) {
+            if (($type === 'option') || $this->safe_bool($market, 'contract')) {
                 $limit = min ($limit, 1000); // above 1000, returns error
             }
             $request['limit'] = $limit;
@@ -8126,13 +8126,13 @@ class binance extends Exchange {
                 } else {
                     $response = $this->privateGetMyTrades ($this->extend($request, $params));
                 }
-            } elseif ($market['linear']) {
+            } elseif ($this->safe_bool($market, 'linear')) {
                 if ($isPortfolioMargin) {
                     $response = $this->papiGetUmUserTrades ($this->extend($request, $params));
                 } else {
                     $response = $this->fapiPrivateGetUserTrades ($this->extend($request, $params));
                 }
-            } elseif ($market['inverse']) {
+            } elseif ($this->safe_bool($market, 'inverse')) {
                 if ($isPortfolioMargin) {
                     $response = $this->papiGetCmUserTrades ($this->extend($request, $params));
                 } else {
@@ -10098,7 +10098,7 @@ class binance extends Exchange {
     }
 
     public function parse_account_positions($account, $filterClosed = false) {
-        $positions = $this->safe_list($account, 'positions');
+        $positions = $this->safe_list($account, 'positions', array());
         $assets = $this->safe_list($account, 'assets', array());
         $balances = array();
         for ($i = 0; $i < count($assets); $i++) {
@@ -11633,8 +11633,8 @@ class binance extends Exchange {
         }
         $request = array();
         if ($symbol !== null) {
-            $symbol = $market['symbol'];
-            $request['underlying'] = $market['baseId'] . $market['quoteId'];
+            $symbol = $this->safe_string($market, 'symbol');
+            $request['underlying'] = $this->safe_string($market, 'baseId') . $this->safe_string($market, 'quoteId');
         }
         if ($since !== null) {
             $request['startTime'] = $since;
@@ -11680,8 +11680,8 @@ class binance extends Exchange {
         }
         $request = array();
         if ($symbol !== null) {
-            $request['symbol'] = $market['id'];
-            $symbol = $market['symbol'];
+            $request['symbol'] = $this->safe_string($market, 'id');
+            $symbol = $this->safe_string($market, 'symbol');
         }
         if ($since !== null) {
             $request['startTime'] = $since;
@@ -12106,7 +12106,7 @@ class binance extends Exchange {
             $query = null;
             // handle $batchOrders
             if (($path === 'batchOrders') && (($method === 'POST') || ($method === 'PUT'))) {
-                $batchOrders = $this->safe_list($params, 'batchOrders');
+                $batchOrders = $this->safe_list($params, 'batchOrders', array());
                 $checkedBatchOrders = $batchOrders;
                 if ($method === 'POST' && $api === 'fapiPrivate') {
                     // check $broker id if $batchOrders are called with fapiPrivatePostBatchOrders
@@ -13194,7 +13194,7 @@ class binance extends Exchange {
         // compared with https://www.binance.com/en/futures/funding-history/quarterly/4
         return $this->safe_open_interest(array(
             'symbol' => $this->safe_symbol($id, $market, null, 'contract'),
-            'baseVolume' => $market['inverse'] ? null : $amount,  // deprecated
+            'baseVolume' => $this->safe_bool($market, 'inverse') ? null : $amount,  // deprecated
             'quoteVolume' => $value,  // deprecated
             'openInterestAmount' => $amount,
             'openInterestValue' => $value,
@@ -13282,7 +13282,7 @@ class binance extends Exchange {
                 $response = $this->dapiPrivateGetForceOrders ($this->extend($request, $params));
             }
         } else {
-            throw new NotSupported($this->id . ' fetchMyLiquidations() does not support ' . $market['type'] . ' markets');
+            throw new NotSupported($this->id . ' fetchMyLiquidations() does not support ' . $this->safe_string($market, 'type') . ' markets');
         }
         //
         // margin
@@ -13575,7 +13575,7 @@ class binance extends Exchange {
         $tradingLimits = array();
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($market, 'symbol');
             if (($symbols === null) || ($this->in_array($symbol, $symbols))) {
                 $tradingLimits[$symbol] = $market['limits']['amount'];
             }
@@ -13772,7 +13772,7 @@ class binance extends Exchange {
         }
         return array(
             'info' => $marginMode,
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'marginMode' => $reMarginMode,
         );
     }

@@ -1469,7 +1469,7 @@ class extended extends Exchange {
         //
         $timestamp = $this->safe_integer($interest, 't');
         return $this->safe_open_interest(array(
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'openInterestAmount' => $this->safe_number($interest, 'I'),
             'openInterestValue' => $this->safe_number($interest, 'i'),
             'baseVolume' => $this->safe_number($interest, 'I'),
@@ -3074,7 +3074,7 @@ class extended extends Exchange {
                 $clientOrderIds = array( $clientOrderId );
             }
             $hasClientOrderIds = $clientOrderIds !== null;
-            if ($hasClientOrderIds) {
+            if ($clientOrderIds !== null) {
                 $clientOrderIdsLength = count($clientOrderIds);
                 if ($clientOrderIdsLength > 0) {
                     $request['externalOrderIds'] = $clientOrderIds;

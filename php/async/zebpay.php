@@ -1912,7 +1912,7 @@ class zebpay extends Exchange {
         $timestamp = $this->milliseconds();
         return array(
             'info' => $info,
-            'symbol' => $market['id'],
+            'symbol' => $this->safe_string($market, 'id'),
             'type' => null,
             'marginMode' => null,
             'amount' => $this->safe_number($info, 'amount'),

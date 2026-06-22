@@ -1776,7 +1776,7 @@ class zebpay(Exchange, ImplicitAPI):
         timestamp = self.milliseconds()
         return {
             'info': info,
-            'symbol': market['id'],
+            'symbol': self.safe_string(market, 'id'),
             'type': None,
             'marginMode': None,
             'amount': self.safe_number(info, 'amount'),

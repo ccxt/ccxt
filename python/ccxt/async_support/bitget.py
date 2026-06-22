@@ -2754,7 +2754,7 @@ class bitget(Exchange, ImplicitAPI):
                 minNotional = minimumNotional
             maxNotional = self.safe_number_n(item, ['endUnit', 'maxBorrowableAmount', 'baseMaxBorrowableAmount', 'maxTierValue'])
             marginCurrency = self.safe_string_2(item, 'coin', 'baseCoin')
-            currencyId = marginCurrency if (marginCurrency is not None) else market['base']
+            currencyId = marginCurrency if (marginCurrency is not None) else self.safe_string(market, 'base')
             marketId = self.safe_string(item, 'symbol')
             tiers.append({
                 'tier': self.safe_integer_2(item, 'level', 'tier'),
@@ -3526,7 +3526,7 @@ class bitget(Exchange, ImplicitAPI):
             if symbols is not None:
                 symbolsLength = len(symbols)
                 if symbolsLength == 1:
-                    request['symbol'] = market['id']
+                    request['symbol'] = self.safe_string(market, 'id')
             request['category'] = productType
             response = await self.publicUtaGetV3MarketTickers(self.extend(request, params))
         elif type == 'spot' and passedSubType is None:
@@ -7096,7 +7096,7 @@ class bitget(Exchange, ImplicitAPI):
             response = await self.privateSpotGetV2SpotAccountBills(self.extend(request, params))
         else:
             if symbol is not None:
-                request['symbol'] = market['id']
+                request['symbol'] = self.safe_string(market, 'id')
             productType: Str = None
             productType, params = self.handle_product_type_and_params(market, params)
             request['productType'] = productType
@@ -8528,12 +8528,12 @@ class bitget(Exchange, ImplicitAPI):
         status = 'ok' if (errorCode == '00000') else 'failed'
         return {
             'info': data,
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'type': None,
             'marginMode': 'isolated',
             'amount': None,
             'total': None,
-            'code': market['settle'],
+            'code': self.safe_string(market, 'settle'),
             'status': status,
             'timestamp': None,
             'datetime': None,
@@ -8630,7 +8630,7 @@ class bitget(Exchange, ImplicitAPI):
         shortLevKey = 'crossedMarginLeverage' if isCrossMarginMode else 'isolatedShortLever'
         return {
             'info': leverage,
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'marginMode': 'cross' if isCrossMarginMode else 'isolated',
             'longLeverage': self.safe_integer(leverage, longLevKey),
             'shortLeverage': self.safe_integer(leverage, shortLevKey),
@@ -9390,7 +9390,7 @@ class bitget(Exchange, ImplicitAPI):
         if marginMode == 'isolated':
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' fetchMyLiquidations() requires a symbol argument')
-            request['symbol'] = market['id']
+            request['symbol'] = self.safe_string(market, 'id')
             response = await self.privateMarginGetV2MarginIsolatedLiquidationHistory(self.extend(request, params))
         elif marginMode == 'cross':
             response = await self.privateMarginGetV2MarginCrossedLiquidationHistory(self.extend(request, params))
@@ -9764,7 +9764,7 @@ class bitget(Exchange, ImplicitAPI):
         if marginMode == 'isolated':
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' fetchBorrowInterest() requires a symbol argument')
-            request['symbol'] = market['id']
+            request['symbol'] = self.safe_string(market, 'id')
             response = await self.privateMarginGetV2MarginIsolatedInterestHistory(self.extend(request, params))
         elif marginMode == 'cross':
             response = await self.privateMarginGetV2MarginCrossedInterestHistory(self.extend(request, params))
@@ -10054,7 +10054,7 @@ class bitget(Exchange, ImplicitAPI):
         marginType = 'cross' if (marginType == 'crossed') else marginType
         return {
             'info': marginMode,
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'marginMode': marginType,
         }
 

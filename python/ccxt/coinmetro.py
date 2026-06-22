@@ -461,7 +461,7 @@ class coinmetro(Exchange, ImplicitAPI):
         for i in range(0, len(response)):
             market = self.parse_market(response[i])
             # there are several broken(unavailable info) markets
-            if market['base'] is None or market['quote'] is None:
+            if self.safe_string(market, 'base') is None or self.safe_string(market, 'quote') is None:
                 continue
             result.append(market)
         return result

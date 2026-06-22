@@ -1116,7 +1116,7 @@ func (this *WeexCore) FetchTickers(optionalArgs ...any) <-chan any {
 		}
 		var request any = map[string]any{}
 		if IsTrue(IsEqual(symbolsLength, 1)) {
-			AddElementToObject(request, "symbol", GetValue(market, "id"))
+			AddElementToObject(request, "symbol", this.SafeString(market, "id"))
 		}
 		var response any = nil
 		if IsTrue(IsEqual(marketType, "spot")) {
@@ -1844,7 +1844,7 @@ func (this *WeexCore) FetchFundingRates(optionalArgs ...any) <-chan any {
 		var request any = map[string]any{}
 		if IsTrue(IsEqual(symbolsLength, 1)) {
 			var market any = this.GetMarketFromSymbols(symbols)
-			AddElementToObject(request, "symbol", GetValue(market, "id"))
+			AddElementToObject(request, "symbol", this.SafeString(market, "id"))
 		}
 
 		response := (<-this.ContractGetCapiV3MarketPremiumIndex(this.Extend(request, params)))
@@ -2846,7 +2846,7 @@ func (this *WeexCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		}
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(symbol, nil)) {
-			AddElementToObject(request, "symbol", GetValue(market, "id"))
+			AddElementToObject(request, "symbol", this.SafeString(market, "id"))
 		}
 		var response any = nil
 		if IsTrue(isSpot) {
@@ -3225,7 +3225,7 @@ func (this *WeexCore) FetchCanceledAndClosedOrders(optionalArgs ...any) <-chan a
 		}
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(symbol, nil)) {
-			AddElementToObject(request, "symbol", GetValue(market, "id"))
+			AddElementToObject(request, "symbol", this.SafeString(market, "id"))
 		}
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "startTime", since)
@@ -3565,7 +3565,7 @@ func (this *WeexCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		}
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(symbol, nil)) {
-			AddElementToObject(request, "symbol", GetValue(market, "id"))
+			AddElementToObject(request, "symbol", this.SafeString(market, "id"))
 		}
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "startTime", since)
@@ -4640,12 +4640,12 @@ func (this *WeexCore) ParseMarginModification(data any, optionalArgs ...any) any
 	var timestamp any = this.SafeInteger(data, "requestTime")
 	return map[string]any{
 		"info":       data,
-		"symbol":     GetValue(market, "symbol"),
+		"symbol":     this.SafeString(market, "symbol"),
 		"type":       nil,
 		"marginMode": "isolated",
 		"amount":     nil,
 		"total":      nil,
-		"code":       GetValue(market, "settle"),
+		"code":       this.SafeString(market, "settle"),
 		"status":     status,
 		"timestamp":  timestamp,
 		"datetime":   this.Iso8601(timestamp),

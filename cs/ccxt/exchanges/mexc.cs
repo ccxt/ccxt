@@ -1809,7 +1809,7 @@ public partial class mexc : Exchange
         object tickers = null;
         if (isTrue(isSingularMarket))
         {
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
         }
         if (isTrue(isEqual(marketType, "spot")))
         {
@@ -2934,7 +2934,7 @@ public partial class mexc : Exchange
         {
             if (isTrue(!isEqual(symbol, null)))
             {
-                ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+                ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
             }
             var marginModequeryVariable = this.handleMarginModeAndParams("fetchOpenOrders", parameters);
             var marginMode = ((IList<object>) marginModequeryVariable)[0];
@@ -3111,7 +3111,7 @@ public partial class mexc : Exchange
                 throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
             object requestInner = new Dictionary<string, object>() {
-                { "symbol", getValue(market, "id") },
+                { "symbol", this.safeString(market, "id") },
             };
             object clientOrderId = this.safeString(parameters, "clientOrderId");
             if (isTrue(!isEqual(clientOrderId, null)))
@@ -3245,7 +3245,7 @@ public partial class mexc : Exchange
             {
                 throw new ArgumentsRequired ((string)add(this.id, " cancelAllOrders() requires a symbol argument on spot")) ;
             }
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
             object response = null;
             if (isTrue(!isEqual(marginMode, null)))
             {
@@ -3299,7 +3299,7 @@ public partial class mexc : Exchange
         {
             if (isTrue(!isEqual(symbol, null)))
             {
-                ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+                ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
             }
             // method can be either: contractPrivatePostOrderCancelAll or contractPrivatePostPlanorderCancelAll
             // the Planorder endpoints work not only for stop-market orders but also for stop-limit orders that are supposed to have separate endpoint
@@ -4130,7 +4130,7 @@ public partial class mexc : Exchange
             {
                 throw new ArgumentsRequired ((string)add(this.id, " fetchOrderTrades() requires a symbol argument")) ;
             }
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
             ((IDictionary<string,object>)request)["orderId"] = id;
             trades = await this.spotPrivateGetMyTrades(this.extend(request, query));
         } else
@@ -5998,7 +5998,7 @@ public partial class mexc : Exchange
         }
         return new Dictionary<string, object>() {
             { "info", leverage },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeString(market, "symbol") },
             { "marginMode", marginMode },
             { "longLeverage", longLeverage },
             { "shortLeverage", shortLeverage },
@@ -6219,6 +6219,7 @@ public partial class mexc : Exchange
             }
             if (isTrue(isTrue(isTrue((isEqual(method, "POST"))) || isTrue((isEqual(method, "PUT")))) || isTrue((isEqual(method, "DELETE")))))
             {
+                headers = ((bool) isTrue((isEqual(headers, null)))) ? new Dictionary<string, object>() {} : headers;
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
             }
         } else if (isTrue(isTrue(isEqual(section, "contract")) || isTrue(isEqual(section, "spot2"))))

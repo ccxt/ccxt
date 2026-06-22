@@ -605,7 +605,7 @@ class toobit extends Exchange {
         $id = $this->safe_string($rawCurrency, 'coinId');
         $code = $this->safe_currency_code($id);
         $networks = array();
-        $rawNetworks = $this->safe_list($rawCurrency, 'chainTypes');
+        $rawNetworks = $this->safe_list($rawCurrency, 'chainTypes', array());
         for ($j = 0; $j < count($rawNetworks); $j++) {
             $rawNetwork = $rawNetworks[$j];
             $networkId = $this->safe_string($rawNetwork, 'chainType');

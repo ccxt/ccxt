@@ -605,7 +605,7 @@ class coinmate extends Exchange {
         $timestamp = $this->safe_timestamp($ticker, 'timestamp');
         $last = $this->safe_number($ticker, 'last');
         return $this->safe_ticker(array(
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_number($ticker, 'high'),

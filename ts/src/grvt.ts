@@ -2986,7 +2986,7 @@ export default class grvt extends Exchange {
         let price: Str = undefined;
         let filled: Str = undefined;
         let avgPrice: Str = undefined;
-        const legs = this.safeList (order, 'legs');
+        const legs = this.safeList (order, 'legs', []);
         const metadata = this.safeDict (order, 'metadata', {});
         const stateObj = this.safeDict (order, 'state', {});
         const filledAmounts = this.safeList (stateObj, 'traded_size', []);
@@ -3014,7 +3014,7 @@ export default class grvt extends Exchange {
             'lastTradeTimeStamp': undefined,
             'lastUpdateTimestamp': this.safeIntegerProduct (stateObj, 'update_time', 0.000001),
             'status': this.parseOrderStatus (this.safeString (stateObj, 'status')),
-            'symbol': market['symbol'],
+            'symbol': this.safeString (market, 'symbol'),
             'type': orderType,
             'timeInForce': timeInForce,
             'postOnly': isPostOnly,

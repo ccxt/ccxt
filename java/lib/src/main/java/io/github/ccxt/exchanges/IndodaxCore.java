@@ -556,8 +556,8 @@ public class IndodaxCore extends IndodaxApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object symbol = this.safeSymbol(null, market);
         Object timestamp = this.safeTimestamp(ticker, "server_time");
-        Object baseVolume = Helpers.add("vol_", ((String)Helpers.GetValue(market, "baseId")).toLowerCase());
-        Object quoteVolume = Helpers.add("vol_", ((String)Helpers.GetValue(market, "quoteId")).toLowerCase());
+        Object baseVolume = Helpers.add("vol_", ((String)this.safeString(market, "baseId")).toLowerCase());
+        Object quoteVolume = Helpers.add("vol_", ((String)this.safeString(market, "quoteId")).toLowerCase());
         Object last = this.safeString(ticker, "last");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );

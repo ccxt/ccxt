@@ -1296,6 +1296,7 @@ public partial class bitbns : Exchange
             };
             object payload = this.stringToBase64(this.json(auth));
             object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512);
+            headers = ((bool) isTrue((isEqual(headers, null)))) ? new Dictionary<string, object>() {} : headers;
             ((IDictionary<string,object>)headers)["X-BITBNS-PAYLOAD"] = payload;
             ((IDictionary<string,object>)headers)["X-BITBNS-SIGNATURE"] = signature;
             ((IDictionary<string,object>)headers)["Content-Type"] = "application/x-www-form-urlencoded";

@@ -941,9 +941,9 @@ public class DeepcoinCore extends DeepcoinApi
     public Object getProductGroupFromMarket(Object market)
     {
         Object productGroup = "Spot";
-        if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+        if (Helpers.isTrue(this.safeBool(market, "swap")))
         {
-            if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+            if (Helpers.isTrue(this.safeBool(market, "linear")))
             {
                 productGroup = "SwapU";
             } else

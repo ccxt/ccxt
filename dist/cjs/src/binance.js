@@ -3727,7 +3727,7 @@ class binance extends binance$1["default"] {
             }
         }
         else if (isolated) {
-            const assets = this.safeList(response, 'assets');
+            const assets = this.safeList(response, 'assets', []);
             for (let i = 0; i < assets.length; i++) {
                 const asset = assets[i];
                 const marketId = this.safeString(asset, 'symbol');
@@ -8254,7 +8254,7 @@ class binance extends binance$1["default"] {
             const currentTimestamp = this.milliseconds();
             const oneWeek = 7 * 24 * 60 * 60 * 1000;
             if ((currentTimestamp - startTime) >= oneWeek) {
-                if ((endTime === undefined) && market['linear']) {
+                if ((endTime === undefined) && this.safeBool(market, 'linear')) {
                     endTime = this.sum(startTime, oneWeek);
                     endTime = Math.min(endTime, currentTimestamp);
                 }
@@ -8265,7 +8265,7 @@ class binance extends binance$1["default"] {
             params = this.omit(params, ['endTime', 'until']);
         }
         if (limit !== undefined) {
-            if ((type === 'option') || market['contract']) {
+            if ((type === 'option') || this.safeBool(market, 'contract')) {
                 limit = Math.min(limit, 1000); // above 1000, returns error
             }
             request['limit'] = limit;
@@ -8295,7 +8295,7 @@ class binance extends binance$1["default"] {
                     response = await this.privateGetMyTrades(this.extend(request, params));
                 }
             }
-            else if (market['linear']) {
+            else if (this.safeBool(market, 'linear')) {
                 if (isPortfolioMargin) {
                     response = await this.papiGetUmUserTrades(this.extend(request, params));
                 }
@@ -8303,7 +8303,7 @@ class binance extends binance$1["default"] {
                     response = await this.fapiPrivateGetUserTrades(this.extend(request, params));
                 }
             }
-            else if (market['inverse']) {
+            else if (this.safeBool(market, 'inverse')) {
                 if (isPortfolioMargin) {
                     response = await this.papiGetCmUserTrades(this.extend(request, params));
                 }
@@ -10266,7 +10266,7 @@ class binance extends binance$1["default"] {
         };
     }
     parseAccountPositions(account, filterClosed = false) {
-        const positions = this.safeList(account, 'positions');
+        const positions = this.safeList(account, 'positions', []);
         const assets = this.safeList(account, 'assets', []);
         const balances = {};
         for (let i = 0; i < assets.length; i++) {
@@ -11842,8 +11842,8 @@ class binance extends binance$1["default"] {
         }
         const request = {};
         if (symbol !== undefined) {
-            symbol = market['symbol'];
-            request['underlying'] = market['baseId'] + market['quoteId'];
+            symbol = this.safeString(market, 'symbol');
+            request['underlying'] = this.safeString(market, 'baseId') + this.safeString(market, 'quoteId');
         }
         if (since !== undefined) {
             request['startTime'] = since;
@@ -11888,8 +11888,8 @@ class binance extends binance$1["default"] {
         }
         const request = {};
         if (symbol !== undefined) {
-            request['symbol'] = market['id'];
-            symbol = market['symbol'];
+            request['symbol'] = this.safeString(market, 'id');
+            symbol = this.safeString(market, 'symbol');
         }
         if (since !== undefined) {
             request['startTime'] = since;
@@ -12314,7 +12314,7 @@ class binance extends binance$1["default"] {
             let query = undefined;
             // handle batchOrders
             if ((path === 'batchOrders') && ((method === 'POST') || (method === 'PUT'))) {
-                const batchOrders = this.safeList(params, 'batchOrders');
+                const batchOrders = this.safeList(params, 'batchOrders', []);
                 let checkedBatchOrders = batchOrders;
                 if (method === 'POST' && api === 'fapiPrivate') {
                     // check broker id if batchOrders are called with fapiPrivatePostBatchOrders
@@ -13402,7 +13402,7 @@ class binance extends binance$1["default"] {
         // compared with https://www.binance.com/en/futures/funding-history/quarterly/4
         return this.safeOpenInterest({
             'symbol': this.safeSymbol(id, market, undefined, 'contract'),
-            'baseVolume': market['inverse'] ? undefined : amount, // deprecated
+            'baseVolume': this.safeBool(market, 'inverse') ? undefined : amount, // deprecated
             'quoteVolume': value, // deprecated
             'openInterestAmount': amount,
             'openInterestValue': value,
@@ -13496,7 +13496,7 @@ class binance extends binance$1["default"] {
             }
         }
         else {
-            throw new errors.NotSupported(this.id + ' fetchMyLiquidations() does not support ' + market['type'] + ' markets');
+            throw new errors.NotSupported(this.id + ' fetchMyLiquidations() does not support ' + this.safeString(market, 'type') + ' markets');
         }
         //
         // margin
@@ -13784,7 +13784,7 @@ class binance extends binance$1["default"] {
         const tradingLimits = {};
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            const symbol = market['symbol'];
+            const symbol = this.safeString(market, 'symbol');
             if ((symbols === undefined) || (this.inArray(symbol, symbols))) {
                 tradingLimits[symbol] = market['limits']['amount'];
             }
@@ -13983,7 +13983,7 @@ class binance extends binance$1["default"] {
         }
         return {
             'info': marginMode,
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'marginMode': reMarginMode,
         };
     }

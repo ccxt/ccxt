@@ -1387,7 +1387,7 @@ class hashkey extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a $symbol argument for swap markets');
             }
-            $request['symbol'] = $market['id'];
+            $request['symbol'] = $this->safe_string($market, 'id');
             if ($accountId !== null) {
                 $request['subAccountId'] = $accountId;
                 $response = $this->privateGetApiV1FuturesSubAccountUserTrades ($this->extend($request, $params));
@@ -3471,7 +3471,7 @@ class hashkey extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a $symbol argument for swap markets');
             }
-            $request['symbol'] = $market['id'];
+            $request['symbol'] = $this->safe_string($market, 'id');
             $isTrigger = false;
             list($isTrigger, $params) = $this->handle_trigger_option_and_params($params, $methodName, $isTrigger);
             if ($isTrigger) {
@@ -4037,7 +4037,7 @@ class hashkey extends Exchange {
         $leverageValue = $this->safe_number($leverage, 'leverage');
         return array(
             'info' => $leverage,
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'marginMode' => $marginMode,
             'longLeverage' => $leverageValue,
             'shortLeverage' => $leverageValue,

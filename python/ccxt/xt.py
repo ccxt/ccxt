@@ -1498,7 +1498,8 @@ class xt(Exchange, ImplicitAPI):
         #         "v": "702461.58895"
         #     }
         #
-        volumeIndex = 'v' if (market['inverse']) else 'a'
+        isInverse = self.safe_bool(market, 'inverse')
+        volumeIndex = 'v' if (isInverse) else 'a'
         return [
             self.safe_integer(ohlcv, 't'),
             self.safe_number(ohlcv, 'o'),

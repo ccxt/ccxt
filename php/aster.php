@@ -1592,7 +1592,7 @@ class aster extends Exchange {
         //
         $timestamp = $this->safe_integer($entry, 'time');
         return array(
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'price' => $this->safe_number_omit_zero($entry, 'price'),
@@ -3046,7 +3046,7 @@ class aster extends Exchange {
         $market = $this->safe_market($marketId, $market, null, 'swap');
         return array(
             'info' => $marginMode,
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'marginMode' => $this->safe_string_lower($marginMode, 'marginType'),
         );
     }
@@ -3612,7 +3612,7 @@ class aster extends Exchange {
     }
 
     public function parse_account_positions($account, $filterClosed = false) {
-        $positions = $this->safe_list($account, 'positions');
+        $positions = $this->safe_list($account, 'positions', array());
         $assets = $this->safe_list($account, 'assets', array());
         $balances = array();
         for ($i = 0; $i < count($assets); $i++) {

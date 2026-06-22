@@ -1113,7 +1113,7 @@ class weex extends Exchange {
         }
         $request = array();
         if ($symbolsLength === 1) {
-            $request['symbol'] = $market['id'];
+            $request['symbol'] = $this->safe_string($market, 'id');
         }
         $response = null;
         if ($marketType === 'spot') {
@@ -1668,7 +1668,7 @@ class weex extends Exchange {
         $request = array();
         if ($symbolsLength === 1) {
             $market = $this->get_market_from_symbols($symbols);
-            $request['symbol'] = $market['id'];
+            $request['symbol'] = $this->safe_string($market, 'id');
         }
         $response = $this->contractGetCapiV3MarketPremiumIndex ($this->extend($request, $params));
         //
@@ -2417,7 +2417,7 @@ class weex extends Exchange {
         }
         $request = array();
         if ($symbol !== null) {
-            $request['symbol'] = $market['id'];
+            $request['symbol'] = $this->safe_string($market, 'id');
         }
         $response = null;
         if ($isSpot) {
@@ -2682,7 +2682,7 @@ class weex extends Exchange {
         }
         $request = array();
         if ($symbol !== null) {
-            $request['symbol'] = $market['id'];
+            $request['symbol'] = $this->safe_string($market, 'id');
         }
         if ($since !== null) {
             $request['startTime'] = $since;
@@ -2972,7 +2972,7 @@ class weex extends Exchange {
         }
         $request = array();
         if ($symbol !== null) {
-            $request['symbol'] = $market['id'];
+            $request['symbol'] = $this->safe_string($market, 'id');
         }
         if ($since !== null) {
             $request['startTime'] = $since;
@@ -3753,12 +3753,12 @@ class weex extends Exchange {
         $timestamp = $this->safe_integer($data, 'requestTime');
         return array(
             'info' => $data,
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'type' => null,
             'marginMode' => 'isolated',
             'amount' => null,
             'total' => null,
-            'code' => $market['settle'],
+            'code' => $this->safe_string($market, 'settle'),
             'status' => $status,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),

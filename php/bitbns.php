@@ -1249,6 +1249,7 @@ class bitbns extends Exchange {
             );
             $payload = base64_encode($this->json($auth));
             $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha512');
+            $headers = ($headers === null) ? array() : $headers;
             $headers['X-BITBNS-PAYLOAD'] = $payload;
             $headers['X-BITBNS-SIGNATURE'] = $signature;
             $headers['Content-Type'] = 'application/x-www-form-urlencoded';

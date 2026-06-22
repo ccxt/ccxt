@@ -1716,7 +1716,7 @@ func (this *WooCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 			response = (<-this.V3PrivateDeleteTradeAlgoOrder(this.Extend(request, params)))
 			PanicOnError(response)
 		} else {
-			AddElementToObject(request, "symbol", GetValue(market, "id"))
+			AddElementToObject(request, "symbol", this.SafeString(market, "id"))
 			if IsTrue(isByClientOrder) {
 				AddElementToObject(request, "clientOrderId", clientOrderIdExchangeSpecific)
 			} else {
@@ -4276,14 +4276,14 @@ func (this *WooCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any {
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 		}
-		if IsTrue(IsTrue((IsEqual(symbol, nil))) || IsTrue(GetValue(market, "spot"))) {
+		if IsTrue(IsTrue((IsEqual(symbol, nil))) || IsTrue(this.SafeBool(market, "spot"))) {
 
 			retRes372619 := (<-this.V3PrivatePostSpotMarginLeverage(this.Extend(request, params)))
 			PanicOnError(retRes372619)
 			ch <- retRes372619
 			return nil
-		} else if IsTrue(GetValue(market, "swap")) {
-			AddElementToObject(request, "symbol", GetValue(market, "id"))
+		} else if IsTrue(this.SafeBool(market, "swap")) {
+			AddElementToObject(request, "symbol", this.SafeString(market, "id"))
 			var marginMode any = nil
 			marginModeparamsVariable := this.HandleMarginModeAndParams("fetchLeverage", params, "cross")
 			marginMode = GetValue(marginModeparamsVariable, 0)
@@ -4295,7 +4295,7 @@ func (this *WooCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any {
 			ch <- retRes373219
 			return nil
 		} else {
-			panic(NotSupported(Add(Add(Add(this.Id, " fetchLeverage() is not supported for "), GetValue(market, "type")), " markets")))
+			panic(NotSupported(Add(Add(Add(this.Id, " fetchLeverage() is not supported for "), this.SafeString(market, "type")), " markets")))
 		}
 
 	}()

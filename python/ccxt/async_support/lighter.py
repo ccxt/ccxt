@@ -739,7 +739,7 @@ class lighter(Exchange, ImplicitAPI):
                 elif timeInForce == 'gtt':
                     timeInForceNum = 1
                     orderExpiry = -1
-        marketInfo = self.safe_dict(market, 'info')
+        marketInfo = self.safe_dict(market, 'info', {})
         amountStr: Str = None
         priceStr = self.price_to_precision(symbol, price)
         amountScale = self.pow('10', marketInfo['size_decimals'])
@@ -920,7 +920,7 @@ class lighter(Exchange, ImplicitAPI):
         strApiKeyIndex = self.number_to_string(apiKeyIndex)
         signer = await self.load_account(self.options['chainId'], self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params)
         market = self.market(symbol)
-        marketInfo = self.safe_dict(market, 'info')
+        marketInfo = self.safe_dict(market, 'info', {})
         amountScale = self.pow('10', marketInfo['size_decimals'])
         priceScale = self.pow('10', marketInfo['price_decimals'])
         triggerPrice = self.safe_string_n(params, ['stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])

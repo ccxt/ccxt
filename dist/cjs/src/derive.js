@@ -1899,7 +1899,7 @@ class derive extends derive$1["default"] {
         if (marketId !== undefined) {
             market = this.safeMarket(marketId, market);
         }
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol');
         const price = this.safeString(order, 'limit_price');
         const average = this.safeString(order, 'average_price');
         const amount = this.safeString(order, 'desired_amount');

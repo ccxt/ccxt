@@ -2857,7 +2857,7 @@ class grvt(Exchange, ImplicitAPI):
         price: Str = None
         filled: Str = None
         avgPrice: Str = None
-        legs = self.safe_list(order, 'legs')
+        legs = self.safe_list(order, 'legs', [])
         metadata = self.safe_dict(order, 'metadata', {})
         stateObj = self.safe_dict(order, 'state', {})
         filledAmounts = self.safe_list(stateObj, 'traded_size', [])
@@ -2884,7 +2884,7 @@ class grvt(Exchange, ImplicitAPI):
             'lastTradeTimeStamp': None,
             'lastUpdateTimestamp': self.safe_integer_product(stateObj, 'update_time', 0.000001),
             'status': self.parse_order_status(self.safe_string(stateObj, 'status')),
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'type': orderType,
             'timeInForce': timeInForce,
             'postOnly': isPostOnly,

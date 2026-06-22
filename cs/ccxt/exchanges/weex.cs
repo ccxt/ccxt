@@ -1072,7 +1072,7 @@ public partial class weex : Exchange
         object request = new Dictionary<string, object>() {};
         if (isTrue(isEqual(symbolsLength, 1)))
         {
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
         }
         object response = null;
         if (isTrue(isEqual(marketType, "spot")))
@@ -1691,7 +1691,7 @@ public partial class weex : Exchange
         if (isTrue(isEqual(symbolsLength, 1)))
         {
             object market = this.getMarketFromSymbols(symbols);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
         }
         object response = await this.contractGetCapiV3MarketPremiumIndex(this.extend(request, parameters));
         //
@@ -2573,7 +2573,7 @@ public partial class weex : Exchange
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbol, null)))
         {
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
         }
         object response = null;
         if (isTrue(isSpot))
@@ -2883,7 +2883,7 @@ public partial class weex : Exchange
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbol, null)))
         {
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
         }
         if (isTrue(!isEqual(since, null)))
         {
@@ -3200,7 +3200,7 @@ public partial class weex : Exchange
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbol, null)))
         {
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
         }
         if (isTrue(!isEqual(since, null)))
         {
@@ -4072,12 +4072,12 @@ public partial class weex : Exchange
         object timestamp = this.safeInteger(data, "requestTime");
         return new Dictionary<string, object>() {
             { "info", data },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeString(market, "symbol") },
             { "type", null },
             { "marginMode", "isolated" },
             { "amount", null },
             { "total", null },
-            { "code", getValue(market, "settle") },
+            { "code", this.safeString(market, "settle") },
             { "status", status },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },

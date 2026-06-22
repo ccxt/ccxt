@@ -1129,14 +1129,14 @@ class bitstamp(Exchange, ImplicitAPI):
         if market is None:
             market = self.get_market_from_trade(trade)
         feeCostString = self.safe_string(trade, 'fee')
-        feeCurrency = market['quote']
-        priceId = rawMarketId if (rawMarketId is not None) else market['id']
+        feeCurrency = self.safe_string(market, 'quote')
+        priceId = rawMarketId if (rawMarketId is not None) else self.safe_string(market, 'id')
         priceString = self.safe_string(trade, priceId, priceString)
-        amountString = self.safe_string(trade, market['baseId'], amountString)
-        costString = self.safe_string(trade, market['quoteId'], costString)
+        amountString = self.safe_string(trade, self.safe_string(market, 'baseId'), amountString)
+        costString = self.safe_string(trade, self.safe_string(market, 'quoteId'), costString)
         # self endpoint is not aligned with "markets" endpoint
-        baseIdLower = market['baseId'].lower()
-        quoteIdLower = market['quoteId'].lower()
+        baseIdLower = self.safe_string(market, 'baseId').lower()
+        quoteIdLower = self.safe_string(market, 'quoteId').lower()
         dashedIdLower = baseIdLower + '_' + quoteIdLower
         if priceString is None:
             priceString = self.safe_string(trade, dashedIdLower)
@@ -1144,7 +1144,7 @@ class bitstamp(Exchange, ImplicitAPI):
             amountString = self.safe_string(trade, baseIdLower)
         if costString is None:
             costString = self.safe_string(trade, quoteIdLower)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol')
         datetimeString = self.safe_string_2(trade, 'date', 'datetime')
         timestamp: Int = None
         if datetimeString is not None:
@@ -2197,7 +2197,7 @@ class bitstamp(Exchange, ImplicitAPI):
                 'referenceId': parsedTrade['order'],
                 'referenceAccount': None,
                 'type': type,
-                'currency': market['base'],
+                'currency': self.safe_string(market, 'base'),
                 'amount': parsedTrade['amount'],
                 'before': None,
                 'after': None,

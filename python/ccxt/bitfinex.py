@@ -3604,7 +3604,7 @@ class bitfinex(Exchange, ImplicitAPI):
         marginStatus = 'ok' if (marginStatusRaw == 1) else 'failed'
         return {
             'info': data,
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'type': None,
             'marginMode': 'isolated',
             'amount': None,

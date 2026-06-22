@@ -3467,7 +3467,7 @@ export default class hitbtc extends Exchange {
         const datetime = this.safeString(data, 'updated_at');
         return {
             'info': data,
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'type': undefined,
             'marginMode': 'isolated',
             'amount': undefined,

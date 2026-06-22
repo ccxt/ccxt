@@ -831,8 +831,8 @@ class deepcoin extends Exchange {
 
     public function get_product_group_from_market(array $market): string {
         $productGroup = 'Spot';
-        if ($market['swap']) {
-            if ($market['linear']) {
+        if ($this->safe_bool($market, 'swap')) {
+            if ($this->safe_bool($market, 'linear')) {
                 $productGroup = 'SwapU';
             } else {
                 $productGroup = 'Swap';

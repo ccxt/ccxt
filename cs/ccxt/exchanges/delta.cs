@@ -3286,7 +3286,7 @@ public partial class delta : Exchange
         object result = this.safeList(response, "result", new List<object>() {});
         object settlements = this.parseSettlements(result, market);
         object sorted = this.sortBy(settlements, "timestamp");
-        return this.filterBySymbolSinceLimit(sorted, getValue(market, "symbol"), since, limit);
+        return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit);
     }
 
     public virtual object parseSettlement(object settlement, object market)

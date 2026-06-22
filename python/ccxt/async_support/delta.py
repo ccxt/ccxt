@@ -3145,7 +3145,7 @@ class delta(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'result', [])
         settlements = self.parse_settlements(result, market)
         sorted = self.sort_by(settlements, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
+        return self.filter_by_symbol_since_limit(sorted, self.safe_string(market, 'symbol'), since, limit)
 
     def parse_settlement(self, settlement, market):
         #

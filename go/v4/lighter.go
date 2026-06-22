@@ -943,7 +943,7 @@ func (this *LighterCore) CreateOrderRequest(symbol any, typeVar any, side any, a
 			}
 		}
 	}
-	var marketInfo any = this.SafeDict(market, "info")
+	var marketInfo any = this.SafeDict(market, "info", map[string]any{})
 	var amountStr any = nil
 	var priceStr any = this.PriceToPrecision(symbol, price)
 	var amountScale any = this.Pow("10", GetValue(marketInfo, "size_decimals"))
@@ -1216,7 +1216,7 @@ func (this *LighterCore) EditOrder(id any, symbol any, typeVar any, side any, op
 		signer := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
 		PanicOnError(signer)
 		var market any = this.Market(symbol)
-		var marketInfo any = this.SafeDict(market, "info")
+		var marketInfo any = this.SafeDict(market, "info", map[string]any{})
 		var amountScale any = this.Pow("10", GetValue(marketInfo, "size_decimals"))
 		var priceScale any = this.Pow("10", GetValue(marketInfo, "price_decimals"))
 		var triggerPrice any = this.SafeStringN(params, []any{"stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"})

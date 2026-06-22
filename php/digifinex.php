@@ -1497,7 +1497,7 @@ class digifinex extends Exchange {
         //         0.029927
         //     )
         //
-        if ($market['swap']) {
+        if ($this->safe_bool($market, 'swap')) {
             return array(
                 $this->safe_integer($ohlcv, 0),
                 $this->safe_number($ohlcv, 1), // open
@@ -1919,7 +1919,7 @@ class digifinex extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
             }
-            $request['instrument_id'] = $market['id'];
+            $request['instrument_id'] = $this->safe_string($market, 'id');
         } else {
             $request['market'] = $marketType;
         }
@@ -1973,8 +1973,8 @@ class digifinex extends Exchange {
     }
 
     public function parse_cancel_orders($response) {
-        $success = $this->safe_list($response, 'success');
-        $error = $this->safe_list($response, 'error');
+        $success = $this->safe_list($response, 'success', array());
+        $error = $this->safe_list($response, 'error', array());
         $result = array();
         for ($i = 0; $i < count($success); $i++) {
             $order = $success[$i];
@@ -2518,7 +2518,7 @@ class digifinex extends Exchange {
         }
         $marketIdRequest = ($marketType === 'swap') ? 'instrument_id' : 'symbol';
         if ($symbol !== null) {
-            $request[$marketIdRequest] = $market['id'];
+            $request[$marketIdRequest] = $this->safe_string($market, 'id');
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -4233,7 +4233,7 @@ class digifinex extends Exchange {
             'marginMode' => 'isolated',
             'amount' => $this->safe_number($data, 'amount'),
             'total' => null,
-            'code' => $market['settle'],
+            'code' => $this->safe_string($market, 'settle'),
             'status' => null,
             'timestamp' => null,
             'datetime' => null,

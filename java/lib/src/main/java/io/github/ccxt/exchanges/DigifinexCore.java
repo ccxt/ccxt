@@ -1581,7 +1581,7 @@ public class DigifinexCore extends DigifinexApi
         //     ]
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+        if (Helpers.isTrue(this.safeBool(market, "swap")))
         {
             return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 5)));
         } else
@@ -2100,7 +2100,7 @@ public class DigifinexCore extends DigifinexApi
                 {
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
                 }
-                Helpers.addElementToObject(request, "instrument_id", Helpers.GetValue(market, "id"));
+                Helpers.addElementToObject(request, "instrument_id", this.safeString(market, "id"));
             } else
             {
                 Helpers.addElementToObject(request, "market", marketType);
@@ -2168,8 +2168,8 @@ public class DigifinexCore extends DigifinexApi
 
     public Object parseCancelOrders(Object response)
     {
-        Object success = this.safeList(response, "success");
-        Object error = this.safeList(response, "error");
+        Object success = this.safeList(response, "success", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object error = this.safeList(response, "error", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(success)); i++)
         {
@@ -2836,7 +2836,7 @@ public class DigifinexCore extends DigifinexApi
             Object marketIdRequest = ((Helpers.isTrue((Helpers.isEqual(marketType, "swap"))))) ? "instrument_id" : "symbol";
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Helpers.addElementToObject(request, marketIdRequest, Helpers.GetValue(market, "id"));
+                Helpers.addElementToObject(request, marketIdRequest, this.safeString(market, "id"));
             }
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
@@ -4895,7 +4895,7 @@ final Object finalI = i;
             put( "marginMode", "isolated" );
             put( "amount", DigifinexCore.this.safeNumber(data, "amount") );
             put( "total", null );
-            put( "code", Helpers.GetValue(market, "settle") );
+            put( "code", DigifinexCore.this.safeString(market, "settle") );
             put( "status", null );
             put( "timestamp", null );
             put( "datetime", null );

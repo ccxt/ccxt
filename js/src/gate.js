@@ -3007,7 +3007,7 @@ export default class gate extends Exchange {
         }
         else if (type === 'option') {
             this.checkRequiredArgument('fetchTickers', symbols, 'symbols');
-            const marketId = market['id'];
+            const marketId = this.safeString(market, 'id');
             const optionParts = marketId.split('-');
             request['underlying'] = this.safeString(optionParts, 0);
             response = await this.publicOptionsGetTickers(this.extend(request, requestParams));
@@ -6362,7 +6362,7 @@ export default class gate extends Exchange {
         }
         if (type === 'option') {
             if (symbols !== undefined) {
-                const marketId = market['id'];
+                const marketId = this.safeString(market, 'id');
                 const optionParts = marketId.split('-');
                 request['underlying'] = this.safeString(optionParts, 0);
             }
@@ -6652,8 +6652,8 @@ export default class gate extends Exchange {
             const maxNotional = this.safeNumber(item, 'risk_limit');
             tiers.push({
                 'tier': this.sum(i, 1),
-                'symbol': market['symbol'],
-                'currency': market['base'],
+                'symbol': this.safeString(market, 'symbol'),
+                'currency': this.safeString(market, 'base'),
                 'minNotional': minNotional,
                 'maxNotional': maxNotional,
                 'maintenanceMarginRate': this.safeNumber(item, 'maintenance_rate'),
@@ -8113,8 +8113,8 @@ export default class gate extends Exchange {
         let response;
         const isUnified = this.safeBool(params, 'unified');
         params = this.omit(params, 'unified');
-        if (market['spot']) {
-            request['currency_pair'] = market['id'];
+        if (this.safeBool(market, 'spot')) {
+            request['currency_pair'] = this.safeString(market, 'id');
             if (isUnified) {
                 response = await this.publicMarginGetUniCurrencyPairsCurrencyPair(this.extend(request, params));
                 //
@@ -8196,7 +8196,7 @@ export default class gate extends Exchange {
             //
         }
         else {
-            throw new NotSupported(this.id + ' fetchLeverage() does not support ' + market['type'] + ' markets');
+            throw new NotSupported(this.id + ' fetchLeverage() does not support ' + this.safeString(market, 'type') + ' markets');
         }
         return this.parseLeverage(response, market);
     }

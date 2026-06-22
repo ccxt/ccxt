@@ -530,13 +530,13 @@ func WithFetchMarginModesParams(params map[string]any) FetchMarginModesOptions {
 }
 
 type FetchRestOrderBookSafeOptionsStruct struct {
-	Limit  *any
+	Limit  *int64
 	Params *map[string]any
 }
 
 type FetchRestOrderBookSafeOptions func(opts *FetchRestOrderBookSafeOptionsStruct)
 
-func WithFetchRestOrderBookSafeLimit(limit any) FetchRestOrderBookSafeOptions {
+func WithFetchRestOrderBookSafeLimit(limit int64) FetchRestOrderBookSafeOptions {
 	return func(opts *FetchRestOrderBookSafeOptionsStruct) {
 		opts.Limit = &limit
 	}
@@ -4531,8 +4531,8 @@ func WithFetchPaginatedCallDeterministicMaxEntriesPerRequest(maxEntriesPerReques
 
 type FetchPaginatedCallCursorOptionsStruct struct {
 	Symbol               *string
-	Since                *any
-	Limit                *any
+	Since                *int64
+	Limit                *int64
 	Params               *map[string]any
 	CursorReceived       *any
 	CursorSent           *any
@@ -4548,13 +4548,13 @@ func WithFetchPaginatedCallCursorSymbol(symbol string) FetchPaginatedCallCursorO
 	}
 }
 
-func WithFetchPaginatedCallCursorSince(since any) FetchPaginatedCallCursorOptions {
+func WithFetchPaginatedCallCursorSince(since int64) FetchPaginatedCallCursorOptions {
 	return func(opts *FetchPaginatedCallCursorOptionsStruct) {
 		opts.Since = &since
 	}
 }
 
-func WithFetchPaginatedCallCursorLimit(limit any) FetchPaginatedCallCursorOptions {
+func WithFetchPaginatedCallCursorLimit(limit int64) FetchPaginatedCallCursorOptions {
 	return func(opts *FetchPaginatedCallCursorOptionsStruct) {
 		opts.Limit = &limit
 	}
@@ -4592,8 +4592,8 @@ func WithFetchPaginatedCallCursorMaxEntriesPerRequest(maxEntriesPerRequest any) 
 
 type FetchPaginatedCallIncrementalOptionsStruct struct {
 	Symbol               *string
-	Since                *any
-	Limit                *any
+	Since                *int64
+	Limit                *int64
 	Params               *map[string]any
 	PageKey              *any
 	MaxEntriesPerRequest *any
@@ -4607,13 +4607,13 @@ func WithFetchPaginatedCallIncrementalSymbol(symbol string) FetchPaginatedCallIn
 	}
 }
 
-func WithFetchPaginatedCallIncrementalSince(since any) FetchPaginatedCallIncrementalOptions {
+func WithFetchPaginatedCallIncrementalSince(since int64) FetchPaginatedCallIncrementalOptions {
 	return func(opts *FetchPaginatedCallIncrementalOptionsStruct) {
 		opts.Since = &since
 	}
 }
 
-func WithFetchPaginatedCallIncrementalLimit(limit any) FetchPaginatedCallIncrementalOptions {
+func WithFetchPaginatedCallIncrementalLimit(limit int64) FetchPaginatedCallIncrementalOptions {
 	return func(opts *FetchPaginatedCallIncrementalOptionsStruct) {
 		opts.Limit = &limit
 	}

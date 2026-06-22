@@ -3215,7 +3215,7 @@ class delta extends delta$1["default"] {
         const result = this.safeList(response, 'result', []);
         const settlements = this.parseSettlements(result, market);
         const sorted = this.sortBy(settlements, 'timestamp');
-        return this.filterBySymbolSinceLimit(sorted, market['symbol'], since, limit);
+        return this.filterBySymbolSinceLimit(sorted, this.safeString(market, 'symbol'), since, limit);
     }
     parseSettlement(settlement, market) {
         //

@@ -1043,7 +1043,7 @@ class lbank(Exchange, ImplicitAPI):
         fee: dict = None
         feeCost = self.safe_string(trade, 'tradeFee')
         if feeCost is not None:
-            feeCurr = market['base'] if (side == 'buy') else market['quote']
+            feeCurr = self.safe_string(market, 'base') if (side == 'buy') else self.safe_string(market, 'quote')
             fee = {
                 'cost': feeCost,
                 'currency': feeCurr,

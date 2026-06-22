@@ -894,13 +894,13 @@ class luno extends luno$1["default"] {
         let feeCost = undefined;
         if (feeBaseString !== undefined) {
             if (!Precise["default"].stringEquals(feeBaseString, '0.0')) {
-                feeCurrency = market['base'];
+                feeCurrency = this.safeString(market, 'base');
                 feeCost = feeBaseString;
             }
         }
         else if (feeCounterString !== undefined) {
             if (!Precise["default"].stringEquals(feeCounterString, '0.0')) {
-                feeCurrency = market['quote'];
+                feeCurrency = this.safeString(market, 'quote');
                 feeCost = feeCounterString;
             }
         }
@@ -910,7 +910,7 @@ class luno extends luno$1["default"] {
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'order': orderId,
             'type': undefined,
             'side': side,

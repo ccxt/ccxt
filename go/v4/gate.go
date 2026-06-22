@@ -3348,7 +3348,7 @@ func (this *GateCore) FetchTickers(optionalArgs ...any) <-chan any {
 			PanicOnError(response)
 		} else if IsTrue(IsEqual(typeVar, "option")) {
 			this.CheckRequiredArgument("fetchTickers", symbols, "symbols")
-			var marketId any = GetValue(market, "id")
+			var marketId any = this.SafeString(market, "id")
 			var optionParts any = Split(marketId, "-")
 			AddElementToObject(request, "underlying", this.SafeString(optionParts, 0))
 
@@ -7368,7 +7368,7 @@ func (this *GateCore) FetchPositions(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(typeVar, "option")) {
 			if IsTrue(!IsEqual(symbols, nil)) {
-				var marketId any = GetValue(market, "id")
+				var marketId any = this.SafeString(market, "id")
 				var optionParts any = Split(marketId, "-")
 				AddElementToObject(request, "underlying", this.SafeString(optionParts, 0))
 			}
@@ -7715,8 +7715,8 @@ func (this *GateCore) ParseMarketLeverageTiers(info any, optionalArgs ...any) an
 		var maxNotional any = this.SafeNumber(item, "risk_limit")
 		AppendToArray(&tiers, map[string]any{
 			"tier":                  this.Sum(i, 1),
-			"symbol":                GetValue(market, "symbol"),
-			"currency":              GetValue(market, "base"),
+			"symbol":                this.SafeString(market, "symbol"),
+			"currency":              this.SafeString(market, "base"),
 			"minNotional":           minNotional,
 			"maxNotional":           maxNotional,
 			"maintenanceMarginRate": this.SafeNumber(item, "maintenance_rate"),
@@ -9555,8 +9555,8 @@ func (this *GateCore) FetchLeverage(symbol any, optionalArgs ...any) <-chan any 
 		var response any = nil
 		var isUnified any = this.SafeBool(params, "unified")
 		params = this.Omit(params, "unified")
-		if IsTrue(GetValue(market, "spot")) {
-			AddElementToObject(request, "currency_pair", GetValue(market, "id"))
+		if IsTrue(this.SafeBool(market, "spot")) {
+			AddElementToObject(request, "currency_pair", this.SafeString(market, "id"))
 			if IsTrue(isUnified) {
 
 				response = (<-this.PublicMarginGetUniCurrencyPairsCurrencyPair(this.Extend(request, params)))
@@ -9571,7 +9571,7 @@ func (this *GateCore) FetchLeverage(symbol any, optionalArgs ...any) <-chan any 
 			response = (<-this.PrivateUnifiedGetAccounts(this.Extend(request, params)))
 			PanicOnError(response)
 		} else {
-			panic(NotSupported(Add(Add(Add(this.Id, " fetchLeverage() does not support "), GetValue(market, "type")), " markets")))
+			panic(NotSupported(Add(Add(Add(this.Id, " fetchLeverage() does not support "), this.SafeString(market, "type")), " markets")))
 		}
 
 		ch <- this.ParseLeverage(response, market)
