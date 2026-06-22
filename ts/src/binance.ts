@@ -12182,7 +12182,8 @@ export default class binance extends Exchange {
             let signature: Str = undefined;
             if (this.secret.indexOf ('PRIVATE KEY') > -1) {
                 if (this.secret.length > 120) {
-                    signature = this.encodeURIComponent (await rsa (query, this.secret, sha256));
+                    const rsaSignature = await rsa (query, this.secret, sha256);
+                    signature = this.encodeURIComponent (rsaSignature);
                 } else {
                     signature = this.encodeURIComponent (eddsa (this.encode (query), this.secret, ed25519));
                 }

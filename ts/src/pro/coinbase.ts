@@ -91,7 +91,8 @@ export default class coinbase extends coinbaseRest {
             // 'signature': this.hmac (this.encode (auth), this.encode (this.secret), sha256),
         };
         if (isPrivate) {
-            subscribe = this.extend (subscribe, await this.createWSAuth (name, productIds));
+            const wsAuth = await this.createWSAuth (name, productIds);
+            subscribe = this.extend (subscribe, wsAuth);
         }
         return await this.watch (url, messageHash, subscribe, messageHash);
     }
@@ -144,7 +145,8 @@ export default class coinbase extends coinbaseRest {
             'symbols': [ symbol ],
         };
         if (isPrivate) {
-            message = this.extend (message, await this.createWSAuth (name, productIds));
+            const wsAuth = await this.createWSAuth (name, productIds);
+            message = this.extend (message, wsAuth);
         }
         this.options['unSubscription'] = subscription;
         const res = await this.watch (url, unWatchMessageHash, message, unWatchMessageHash, subscription);
@@ -183,7 +185,8 @@ export default class coinbase extends coinbaseRest {
             'channel': name,
         };
         if (isPrivate) {
-            subscribe = this.extend (subscribe, await this.createWSAuth (name, productIds));
+            const wsAuth = await this.createWSAuth (name, productIds);
+            subscribe = this.extend (subscribe, wsAuth);
         }
         return await this.watchMultiple (url, messageHashes, subscribe, messageHashes);
     }
@@ -225,7 +228,8 @@ export default class coinbase extends coinbaseRest {
             'channel': name,
         };
         if (isPrivate) {
-            message = this.extend (message, await this.createWSAuth (name, productIds));
+            const wsAuth = await this.createWSAuth (name, productIds);
+            message = this.extend (message, wsAuth);
         }
         const subscription = {
             'messageHashes': unWatchMessageHashes,
