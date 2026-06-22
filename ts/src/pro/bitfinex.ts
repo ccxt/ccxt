@@ -226,7 +226,7 @@ export default class bitfinex extends bitfinexRest {
         //   ]
         //
         const data = this.safeValue (message, 1, []);
-        let ohlcvs: NullableList = undefined;
+        let ohlcvs: any[] = [];
         const first = this.safeValue (data, 0);
         if (Array.isArray (first)) {
             // snapshot
@@ -236,7 +236,7 @@ export default class bitfinex extends bitfinexRest {
             ohlcvs = [ data ];
         }
         const channel = this.safeValue (subscription, 'channel');
-        const key = this.safeString (subscription, 'key');
+        const key = this.safeString (subscription, 'key', '');
         const keyParts = key.split (':');
         const interval = this.safeString (keyParts, 1);
         let marketId = key;
@@ -713,6 +713,9 @@ export default class bitfinex extends bitfinexRest {
                 for (let i = 0; i < deltas.length; i++) {
                     const delta = deltas[i];
                     const amount = this.safeNumber (delta, 2);
+                    if (amount === undefined) {
+                        continue;
+                    }
                     const counter = this.safeNumber (delta, 1);
                     const price = this.safeNumber (delta, 0);
                     const size = (amount < 0) ? -amount : amount;
@@ -763,7 +766,7 @@ export default class bitfinex extends bitfinexRest {
             return;
         }
         const depth = 25; // covers the first 25 bids and asks
-        const stringArray = [];
+        const stringArray: string[] = [];
         const bids = book['bids'];
         const asks = book['asks'];
         const prec = this.safeString (subscription, 'prec', 'P0');
@@ -774,13 +777,13 @@ export default class bitfinex extends bitfinexRest {
             const bid = this.safeValue (bids, i);
             const ask = this.safeValue (asks, i);
             if (bid !== undefined) {
-                stringArray.push (this.numberToString (bids[i][idToCheck]));
-                stringArray.push (this.numberToString (bids[i][1]));
+                stringArray.push (this.numberToString (bids[i][idToCheck]) as string);
+                stringArray.push (this.numberToString (bids[i][1]) as string);
             }
             if (ask !== undefined) {
-                stringArray.push (this.numberToString (asks[i][idToCheck]));
+                stringArray.push (this.numberToString (asks[i][idToCheck]) as string);
                 const aski1 = asks[i][1];
-                stringArray.push (this.numberToString (-aski1));
+                stringArray.push (this.numberToString (-aski1) as string);
             }
         }
         const payload = stringArray.join (':');
@@ -877,7 +880,7 @@ export default class bitfinex extends bitfinexRest {
         //   ]
         //
         const updateType = this.safeValue (message, 1);
-        let data: NullableList = undefined;
+        let data: any[] = [];
         if (updateType === 'ws') {
             data = this.safeValue (message, 2);
         } else {
@@ -1210,13 +1213,13 @@ export default class bitfinex extends bitfinexRest {
             side = 'sell';
         }
         const remaining = Precise.stringAbs (this.safeString (order, 6));
-        let type = this.safeString (order, 8);
+        let type = this.safeString (order, 8, '');
         if (type.indexOf ('LIMIT') > -1) {
             type = 'limit';
         } else if (type.indexOf ('MARKET') > -1) {
             type = 'market';
         }
-        const rawState = this.safeString (order, 13);
+        const rawState = this.safeString (order, 13, '');
         const stateParts = rawState.split (' ');
         const trimmedStatus = this.safeString (stateParts, 0);
         const status = this.parseWsOrderStatus (trimmedStatus);
