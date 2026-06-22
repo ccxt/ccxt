@@ -613,7 +613,7 @@ export default class woo extends Exchange {
     }
 
     parseMarket (market: Dict): Market {
-        const marketId = this.safeString (market, 'symbol');
+        const marketId = this.safeString (market, 'symbol', '');
         const parts = marketId.split ('_');
         const first = this.safeString (parts, 0);
         let marketType: MarketType | undefined = undefined;
@@ -657,7 +657,7 @@ export default class woo extends Exchange {
             'baseId': baseId,
             'quoteId': quoteId,
             'settleId': settleId,
-            'type': marketType,
+            'type': (marketType as MarketType),
             'spot': spot,
             'margin': margin,
             'swap': swap,
@@ -791,7 +791,7 @@ export default class woo extends Exchange {
         const order_id = this.safeString2 (trade, 'order_id', 'orderId');
         const fee = this.parseTokenAndFeeTemp (trade, [ 'fee_asset', 'feeAsset' ], [ 'fee' ]);
         const feeCost = this.safeString (fee, 'cost');
-        if (feeCost !== undefined) {
+        if ((fee !== undefined) && (feeCost !== undefined)) {
             fee['cost'] = feeCost;
         }
         const cost = Precise.stringMul (price, amount);
@@ -925,8 +925,12 @@ export default class woo extends Exchange {
         const maker = this.safeString (data, 'makerFeeRate');
         const taker = this.safeString (data, 'takerFeeRate');
         const result: Dict = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        if (symbols === undefined) {
+            return result;
+        }
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
@@ -1038,7 +1042,7 @@ export default class woo extends Exchange {
                 '_networks_by_id': networksById[id],
             };
             const parsed = this.parseCurrency (customCurrency);
-            const code = parsed['code'];
+            const code = this.safeString (parsed, 'code');
             result[code] = parsed;
         }
         return result;
@@ -1609,7 +1613,7 @@ export default class woo extends Exchange {
     async cancelAllOrdersAfter (timeout: Int, params = {}) {
         await this.loadMarkets ();
         const request: Dict = {
-            'triggerAfter': (timeout > 0) ? Math.min (timeout, 900000) : 0,
+            'triggerAfter': ((timeout as number) > 0) ? Math.min ((timeout as number), 900000) : 0,
         };
         const response = await this.v3PrivatePostTradeCancelAllAfter (this.extend (request, params));
         //
@@ -2557,7 +2561,7 @@ export default class woo extends Exchange {
         let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
-            request['network'] = this.networkCodeToId (networkCode, currency['code']);
+            request['network'] = this.networkCodeToId (networkCode, this.safeString (currency, 'code'));
         }
         if (since !== undefined) {
             request['startTime'] = since;
@@ -2755,7 +2759,7 @@ export default class woo extends Exchange {
         };
         const currencyRows = await this.getAssetHistoryRows (code, since, limit, this.extend (request, params));
         const currency = this.safeValue (currencyRows, 0);
-        const rows = this.safeList (currencyRows, 1);
+        const rows = this.safeList (currencyRows, 1, []);
         return this.parseTransactions (rows, currency, since, limit, params);
     }
 
@@ -3519,7 +3523,7 @@ export default class woo extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const rows = this.safeList (data, 'rows', []);
-        const rates = [];
+        const rates: Dict[] = [];
         for (let i = 0; i < rows.length; i++) {
             const entry = rows[i];
             const marketId = this.safeString (entry, 'symbol');
@@ -3674,7 +3678,7 @@ export default class woo extends Exchange {
         const marginMode = this.safeStringLower (leverage, 'marginMode');
         let spotLeverage = this.safeInteger (leverage, 'leverage');
         if (spotLeverage === 0) {
-            spotLeverage = null;
+            spotLeverage = undefined;
         }
         let longLeverage = spotLeverage;
         let shortLeverage = spotLeverage;
