@@ -766,7 +766,7 @@ public class TestMain extends BaseTest
             if (Helpers.isTrue(Helpers.isGreaterThan(valuesLength, 0)))
             {
                 Object first = Helpers.GetValue(values, 0);
-                if (Helpers.isTrue(!Helpers.isEqual(first, null)))
+                if (Helpers.isTrue(first))
                 {
                     symbol = Helpers.GetValue(first, "symbol");
                 }

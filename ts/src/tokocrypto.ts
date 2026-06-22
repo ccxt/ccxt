@@ -909,7 +909,7 @@ export default class tokocrypto extends Exchange {
         }
         let response: Dict;
         if (market['quote'] === 'USDT') {
-            request['symbol'] = market['baseId'] + market['quoteId'];
+            request['symbol'] = this.safeString (market, 'baseId', '') + this.safeString (market, 'quoteId', '');
             response = await this.binanceGetDepth (this.extend (request, params));
         } else {
             request['symbol'] = market['id'];
@@ -1323,7 +1323,7 @@ export default class tokocrypto extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
-            'symbol': market['baseId'] + market['quoteId'],
+            'symbol': this.safeString (market, 'baseId', '') + this.safeString (market, 'quoteId', ''),
         };
         const response = await this.binanceGetTicker24hr (this.extend (request, params));
         if (Array.isArray (response)) {

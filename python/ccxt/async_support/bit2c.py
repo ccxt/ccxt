@@ -667,7 +667,7 @@ class bit2c(Exchange, ImplicitAPI):
         # 0 = New
         # 1 = Open
         # 5 = Completed
-        status: str
+        status: Str = None
         if isNewOrder:
             tempStatus = self.safe_integer(orderUnified, 'status_type')
             if tempStatus == 0 or tempStatus == 1:

@@ -288,7 +288,7 @@ class ndax(ccxt.async_support.ndax):
                     ]
                     updates[marketId][timeframe] = True
                 else:
-                    if length and (parsed[0] < stored[length - 1][0]):
+                    if length and (self.parse_to_int(parsed[0]) < self.parse_to_int(stored[length - 1][0])):
                         continue
                     else:
                         stored.append(parsed)

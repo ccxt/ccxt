@@ -579,12 +579,12 @@ class lighter extends Exchange {
         $cachedAuth = $this->safe_dict($accountAuths, $apiKeyIndex);
         $cachedDeadline = $this->safe_integer($cachedAuth, 'deadline');
         if ($cachedDeadline !== null) {
-            $minimumDeadline = $this->seconds() . $this->safe_integer($this->options, 'authDeadlineMinimumRemaining');
+            $minimumDeadline = $this->seconds() . $this->safe_integer($this->options, 'authDeadlineMinimumRemaining', 60);
             if ($cachedDeadline >= $minimumDeadline) {
                 return $this->safe_string($cachedAuth, 'token');
             }
         }
-        $deadline = $this->seconds() . $this->safe_integer($this->options, 'authDeadlineExpiry');
+        $deadline = $this->seconds() . $this->safe_integer($this->options, 'authDeadlineExpiry', 28800);
         $request = array(
             'deadline' => $deadline,
             'api_key_index' => $this->parse_to_int($apiKeyIndex),

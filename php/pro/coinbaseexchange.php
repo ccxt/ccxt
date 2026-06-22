@@ -677,11 +677,11 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
                         if ($previousOrder['fee'] === null) {
                             $previousOrder['fee'] = array(
                                 'cost' => 0,
-                                'currency' => $trade['fee']['currency'],
+                                'currency' => $this->safe_string($trade['fee'], 'currency'),
                             );
                         }
-                        if (($previousOrder['fee']['cost'] !== null) && ($trade['fee']['cost'] !== null)) {
-                            $previousOrder['fee']['cost'] = $this->sum($previousOrder['fee']['cost'], $trade['fee']['cost']);
+                        if (($previousOrder['fee']['cost'] !== null) && ($this->safe_number($trade['fee'], 'cost') !== null)) {
+                            $previousOrder['fee']['cost'] = $this->sum($previousOrder['fee']['cost'], $this->safe_number($trade['fee'], 'cost'));
                             $previousOrderFee = $this->safe_dict($previousOrder, 'fee');
                             $tradeFee = $this->safe_dict($trade, 'fee');
                             $previousOrder['fee']['cost'] = $this->parse_number(Precise::string_add($this->safe_string($previousOrderFee, 'cost'), $this->safe_string($tradeFee, 'cost')));

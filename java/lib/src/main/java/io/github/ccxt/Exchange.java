@@ -5701,7 +5701,7 @@ public Object describe()
     public Object featuresMapper(Object initialFeatures, Object marketType, Object... optionalArgs)
     {
         Object subType = Helpers.getArg(optionalArgs, 0, null);
-        Object featuresObj = ((Helpers.isTrue((!Helpers.isEqual(subType, null))))) ? Helpers.GetValue(Helpers.GetValue(initialFeatures, marketType), subType) : Helpers.GetValue(initialFeatures, marketType);
+        Object featuresObj = ((Helpers.isTrue((!Helpers.isEqual(subType, null))))) ? Helpers.GetValue(Helpers.GetValue(initialFeatures, ((String)marketType)), subType) : Helpers.GetValue(initialFeatures, ((String)marketType));
         // if exchange does not have that market-type (eg. future>inverse)
         if (Helpers.isTrue(Helpers.isEqual(featuresObj, null)))
         {
@@ -6849,7 +6849,7 @@ public Object describe()
         final Object finalCost = cost;
         return new java.util.HashMap<String, Object>() {{
             put( "type", finalTakerOrMaker );
-            put( "currency", Helpers.GetValue(market, finalKey) );
+            put( "currency", Helpers.GetValue(market, ((String)finalKey)) );
             put( "rate", Exchange.this.parseNumber(rate) );
             put( "cost", Exchange.this.parseNumber(finalCost) );
         }};
@@ -9024,7 +9024,7 @@ public Object describe()
         {
             return currency;
         }
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(this.currencies_by_id, null))) && Helpers.isTrue((Helpers.inOp(this.currencies_by_id, currencyId)))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(this.currencies_by_id, currencyId), null)))))
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(currencyId, null))) && Helpers.isTrue((!Helpers.isEqual(this.currencies_by_id, null)))) && Helpers.isTrue((Helpers.inOp(this.currencies_by_id, currencyId)))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(this.currencies_by_id, currencyId), null)))))
         {
             return Helpers.GetValue(this.currencies_by_id, currencyId);
         }
@@ -11422,7 +11422,7 @@ public Object describe()
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(markets)); i++)
             {
                 Object market = Helpers.GetValue(markets, i);
-                if (Helpers.isTrue(Helpers.GetValue(market, defaultType)))
+                if (Helpers.isTrue(Helpers.GetValue(market, ((String)defaultType))))
                 {
                     return market;
                 }
@@ -12239,7 +12239,7 @@ public Object describe()
             Object item = Helpers.GetValue(info, i);
             Object borrowRate = this.parseIsolatedBorrowRate(item);
             Object symbol = this.safeString(borrowRate, "symbol");
-            Helpers.addElementToObject(result, symbol, borrowRate);
+            Helpers.addElementToObject(result, ((String)symbol), borrowRate);
         }
         return result;
     }
@@ -12851,7 +12851,7 @@ public Object describe()
             Object code = this.safeString(currency, "code");
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(codes, null))) || Helpers.isTrue((this.inArray(code, codes)))))
             {
-                Helpers.addElementToObject(depositWithdrawFees, code, this.parseDepositWithdrawFee(dictionary, currency));
+                Helpers.addElementToObject(depositWithdrawFees, ((String)code), this.parseDepositWithdrawFee(dictionary, currency));
             }
         }
         return depositWithdrawFees;
@@ -13164,7 +13164,7 @@ public Object describe()
                         errors = 0;
                         result = this.arrayConcat(result, response);
                         Object last = this.safeValue(response, Helpers.subtract(responseLength, 1));
-                        paginationTimestamp = Helpers.add(this.safeInteger(last, "timestamp"), 1);
+                        paginationTimestamp = Helpers.add(this.safeInteger(last, "timestamp", 0), 1);
                         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(until, null))) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(paginationTimestamp, until)))))
                         {
                             break;
@@ -13340,7 +13340,7 @@ public Object describe()
                         {
                             cursorValue = Helpers.add(this.parseToInt(cursorValue), cursorIncrement);
                         }
-                        Helpers.addElementToObject(parameters, cursorSent, cursorValue);
+                        Helpers.addElementToObject(parameters, ((String)cursorSent), cursorValue);
                     }
                     Object response = null;
                     if (Helpers.isTrue(Helpers.isEqual(method, "fetchAccounts")))
@@ -13440,7 +13440,7 @@ public Object describe()
             {
                 try
                 {
-                    Helpers.addElementToObject(parameters, pageKey, Helpers.add(i, 1));
+                    Helpers.addElementToObject(parameters, ((String)pageKey), Helpers.add(i, 1));
                     Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, since, maxEntriesPerRequest, parameters })).join();
                     errors = 0;
                     Object responseLength = Helpers.getArrayLength(response);
@@ -14138,9 +14138,9 @@ public Object describe()
                 Object timeframe = this.safeString(symbolAndTimeFrame, 1);
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(this.ohlcvs, null))) && Helpers.isTrue((Helpers.inOp(this.ohlcvs, symbol)))))
                 {
-                    if (Helpers.isTrue(Helpers.inOp(Helpers.GetValue(this.ohlcvs, symbol), timeframe)))
+                    if (Helpers.isTrue(Helpers.inOp(Helpers.GetValue(this.ohlcvs, ((String)symbol)), timeframe)))
                     {
-                        ((java.util.Map<String,Object>)Helpers.GetValue(this.ohlcvs, symbol)).remove((String)timeframe);
+                        ((java.util.Map<String,Object>)Helpers.GetValue(this.ohlcvs, ((String)symbol))).remove((String)((String)timeframe));
                     }
                 }
             }

@@ -904,7 +904,7 @@ class tokocrypto extends Exchange {
             $request['limit'] = $limit; // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
         }
         if ($market['quote'] === 'USDT') {
-            $request['symbol'] = $market['baseId'] . $market['quoteId'];
+            $request['symbol'] = $this->safe_string($market, 'baseId', '') . $this->safe_string($market, 'quoteId', '');
             $response = $this->binanceGetDepth ($this->extend($request, $params));
         } else {
             $request['symbol'] = $market['id'];
@@ -1318,7 +1318,7 @@ class tokocrypto extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
-            'symbol' => $market['baseId'] . $market['quoteId'],
+            'symbol' => $this->safe_string($market, 'baseId', '') . $this->safe_string($market, 'quoteId', ''),
         );
         $response = $this->binanceGetTicker24hr ($this->extend($request, $params));
         if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {

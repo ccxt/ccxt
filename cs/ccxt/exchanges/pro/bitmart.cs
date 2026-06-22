@@ -1606,7 +1606,7 @@ public partial class bitmart : ccxt.bitmart
                 object symbol = getValue(market, "symbol");
                 object rawOHLCV = this.safeList(getValue(data, i), "candle");
                 object parsed = this.parseOHLCV(rawOHLCV, market);
-                ((List<object>)parsed)[Convert.ToInt32(0)] = multiply(this.parseToInt(divide(getValue(parsed, 0), durationInMs)), durationInMs);
+                ((List<object>)parsed)[Convert.ToInt32(0)] = multiply(this.parseToInt(divide(this.parseToInt(getValue(parsed, 0)), durationInMs)), durationInMs);
                 ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
                 object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
                 if (isTrue(isEqual(stored, null)))

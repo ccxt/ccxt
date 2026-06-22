@@ -3038,7 +3038,7 @@ func (this *BinanceCore) ParseCurrency(rawCurrency any) any {
 		var withdrawFee any = this.SafeNumber(networkItem, "withdrawFee")
 		var depositEnable any = this.SafeBool(networkItem, "depositEnable")
 		var withdrawEnable any = this.SafeBool(networkItem, "withdrawEnable")
-		AddElementToObject(fees, network, withdrawFee)
+		AddElementToObject(fees, networkCode, withdrawFee)
 		var isDefault any = this.SafeBool(networkItem, "isDefault")
 		if IsTrue(IsTrue(isDefault) || IsTrue((IsEqual(fee, nil)))) {
 			fee = withdrawFee
@@ -12800,7 +12800,7 @@ func (this *BinanceCore) FetchSettlementHistory(optionalArgs ...any) <-chan any 
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(symbol, nil)) {
 			symbol = this.SafeString(market, "symbol")
-			AddElementToObject(request, "underlying", Add(this.SafeString(market, "baseId"), this.SafeString(market, "quoteId")))
+			AddElementToObject(request, "underlying", Add(this.SafeString(market, "baseId", ""), this.SafeString(market, "quoteId", "")))
 		}
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "startTime", since)

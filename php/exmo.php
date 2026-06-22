@@ -307,6 +307,7 @@ class exmo extends Exchange {
             'position_id' => $market['id'],
             'quantity' => $amount,
         );
+        $response = array();
         if ($type === 'add') {
             $response = $this->privatePostMarginUserPositionMarginAdd ($this->extend($request, $params));
         } elseif ($type === 'reduce') {

@@ -636,13 +636,13 @@ public class LighterCore extends LighterApi
         Object cachedDeadline = this.safeInteger(cachedAuth, "deadline");
         if (Helpers.isTrue(!Helpers.isEqual(cachedDeadline, null)))
         {
-            Object minimumDeadline = Helpers.add(this.seconds(), this.safeInteger(this.options, "authDeadlineMinimumRemaining"));
+            Object minimumDeadline = Helpers.add(this.seconds(), this.safeInteger(this.options, "authDeadlineMinimumRemaining", 60));
             if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(cachedDeadline, minimumDeadline)))
             {
                 return this.safeString(cachedAuth, "token");
             }
         }
-        Object deadline = Helpers.add(this.seconds(), this.safeInteger(this.options, "authDeadlineExpiry"));
+        Object deadline = Helpers.add(this.seconds(), this.safeInteger(this.options, "authDeadlineExpiry", 28800));
         final Object finalApiKeyIndex = apiKeyIndex;
         final Object finalAccountIndex = accountIndex;
         Object request = new java.util.HashMap<String, Object>() {{

@@ -2754,7 +2754,7 @@ public partial class krakenfutures : Exchange
             throw new BadRequest ((string)add(this.id, " fetchFundingRateHistory() supports swap contracts only")) ;
         }
         object request = new Dictionary<string, object>() {
-            { "symbol", ((string)getValue(market, "id")).ToUpper() },
+            { "symbol", this.safeStringUpper(market, "id") },
         };
         object response = await this.publicGetHistoricalfundingrates(this.extend(request, parameters));
         //

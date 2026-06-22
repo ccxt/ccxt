@@ -614,7 +614,7 @@ class woo extends woo$1["default"] {
         const marketId = this.safeString(market, 'symbol');
         const parts = marketId.split('_');
         const first = this.safeString(parts, 0);
-        let marketType;
+        let marketType = undefined;
         let spot = false;
         let swap = false;
         if (first === 'SPOT') {

@@ -619,7 +619,7 @@ class woo(Exchange, ImplicitAPI):
         marketId = self.safe_string(market, 'symbol')
         parts = marketId.split('_')
         first = self.safe_string(parts, 0)
-        marketType: MarketType
+        marketType: MarketType | None = None
         spot = False
         swap = False
         if first == 'SPOT':

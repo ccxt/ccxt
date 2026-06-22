@@ -108,7 +108,7 @@ class deepcoin(ccxt.async_support.deepcoin):
     def create_public_request(self, market: Market, requestId: float, topicID: str, suffix: str = '', unWatch: bool = False):
         marketId = market['symbol']  # spot markets use symbol with slash
         if market['type'] == 'swap':
-            marketId = market['baseId'] + market['quoteId']  # swap markets use symbol without slash
+            marketId = self.safe_string(market, 'baseId', '') + self.safe_string(market, 'quoteId', '')  # swap markets use symbol without slash
         action = '1'  # subscribe
         if unWatch:
             action = '0'  # unsubscribe

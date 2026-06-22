@@ -1065,13 +1065,13 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
                         Helpers.addElementToObject(previousOrder, "fee", new java.util.HashMap<String, Object>() {{
     put( "rate", null );
     put( "cost", 0 );
-    put( "currency", Helpers.GetValue(Helpers.GetValue(trade, "fee"), "currency") );
+    put( "currency", PoloniexCore.this.safeString(Helpers.GetValue(trade, "fee"), "currency") );
 }});
                     }
-                    if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(Helpers.GetValue(previousOrder, "fee"), "cost"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(Helpers.GetValue(trade, "fee"), "cost"), null)))))
+                    if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(Helpers.GetValue(previousOrder, "fee"), "cost"), null))) && Helpers.isTrue((!Helpers.isEqual(this.safeNumber(Helpers.GetValue(trade, "fee"), "cost"), null)))))
                     {
                         Object stringOrderCost = this.numberToString(Helpers.GetValue(Helpers.GetValue(previousOrder, "fee"), "cost"));
-                        Object stringTradeCost = this.numberToString(Helpers.GetValue(Helpers.GetValue(trade, "fee"), "cost"));
+                        Object stringTradeCost = this.numberToString(this.safeNumber(Helpers.GetValue(trade, "fee"), "cost"));
                         Helpers.addElementToObject(Helpers.GetValue(previousOrder, "fee"), "cost", Precise.stringAdd(stringOrderCost, stringTradeCost));
                     }
                     Object rawState = this.safeString(order, "state");

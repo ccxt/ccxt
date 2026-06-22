@@ -624,6 +624,7 @@ class woo extends Exchange {
         $marketId = $this->safe_string($market, 'symbol');
         $parts = explode('_', $marketId);
         $first = $this->safe_string($parts, 0);
+        $marketType = null;
         $spot = false;
         $swap = false;
         if ($first === 'SPOT') {

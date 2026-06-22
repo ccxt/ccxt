@@ -1388,7 +1388,7 @@ class zebpay extends zebpay$1["default"] {
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
-            'symbol': market['id'].toUpperCase(),
+            'symbol': this.safeStringUpper(market, 'id'),
         };
         const response = await this.privateSwapGetV1TradeUserLeverage(this.extend(request, params));
         //

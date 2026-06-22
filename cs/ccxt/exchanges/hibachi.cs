@@ -304,7 +304,7 @@ public partial class hibachi : Exchange
             { "optionType", null },
             { "precision", new Dictionary<string, object>() {
                 { "amount", this.parseNumber(this.parsePrecision(this.safeString(market, "underlyingDecimals"))) },
-                { "price", divide(this.parseNumber(getValue(this.safeList(market, "orderbookGranularities"), 0)), 10000) },
+                { "price", divide(this.parseNumber(this.safeValue(this.safeList(market, "orderbookGranularities", new List<object>() {}), 0)), 10000) },
             } },
             { "limits", new Dictionary<string, object>() {
                 { "leverage", new Dictionary<string, object>() {

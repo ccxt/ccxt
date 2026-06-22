@@ -1210,8 +1210,8 @@ export default class bigone extends Exchange {
             'cost': undefined,
             'info': trade,
         };
-        let makerCurrencyCode: string;
-        let takerCurrencyCode: string;
+        let makerCurrencyCode: Str = undefined;
+        let takerCurrencyCode: Str = undefined;
         if (takerOrMaker !== undefined) {
             if (side === 'buy') {
                 if (takerOrMaker === 'maker') {

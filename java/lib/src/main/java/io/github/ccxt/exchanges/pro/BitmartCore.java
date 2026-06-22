@@ -1755,7 +1755,7 @@ public class BitmartCore extends io.github.ccxt.exchanges.Bitmart
                 Object symbol = Helpers.GetValue(market, "symbol");
                 Object rawOHLCV = this.safeList(Helpers.GetValue(data, i), "candle");
                 Object parsed = this.parseOHLCV(rawOHLCV, market);
-                Helpers.addElementToObject(parsed, 0, Helpers.multiply(this.parseToInt(Helpers.divide(Helpers.GetValue(parsed, 0), durationInMs)), durationInMs));
+                Helpers.addElementToObject(parsed, 0, Helpers.multiply(this.parseToInt(Helpers.divide(this.parseToInt(Helpers.GetValue(parsed, 0)), durationInMs)), durationInMs));
                 Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
                 Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
                 if (Helpers.isTrue(Helpers.isEqual(stored, null)))

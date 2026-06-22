@@ -307,7 +307,7 @@ func (this *HibachiCore) ParseMarket(market any) any {
 		"optionType":     nil,
 		"precision": map[string]any{
 			"amount": this.ParseNumber(this.ParsePrecision(this.SafeString(market, "underlyingDecimals"))),
-			"price":  Divide(this.ParseNumber(GetValue(this.SafeList(market, "orderbookGranularities"), 0)), 10000),
+			"price":  Divide(this.ParseNumber(this.SafeValue(this.SafeList(market, "orderbookGranularities", []any{}), 0)), 10000),
 		},
 		"limits": map[string]any{
 			"leverage": map[string]any{

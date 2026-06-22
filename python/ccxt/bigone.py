@@ -1187,8 +1187,8 @@ class bigone(Exchange, ImplicitAPI):
             'cost': None,
             'info': trade,
         }
-        makerCurrencyCode: str
-        takerCurrencyCode: str
+        makerCurrencyCode: Str = None
+        takerCurrencyCode: Str = None
         if takerOrMaker is not None:
             if side == 'buy':
                 if takerOrMaker == 'maker':

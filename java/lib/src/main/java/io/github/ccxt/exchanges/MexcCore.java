@@ -865,7 +865,7 @@ public class MexcCore extends MexcApi
             var marketTypequeryVariable = this.handleMarketTypeAndParams("fetchStatus", null, parameters);
             var marketType = ((java.util.List<Object>) marketTypequeryVariable).get(0);
             var query = ((java.util.List<Object>) marketTypequeryVariable).get(1);
-            Object response = null;
+            Object response = new java.util.HashMap<String, Object>() {{}};
             Object status = null;
             Object updated = null;
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
@@ -1484,7 +1484,7 @@ public class MexcCore extends MexcApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object trades = null;
+            Object trades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
             {
                 Object until = this.safeIntegerN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("endTime", "until")));
@@ -1757,7 +1757,7 @@ public class MexcCore extends MexcApi
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "interval", timeframeValue );
             }};
-            Object candles = null;
+            Object candles = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object until = this.safeIntegerN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until", "endTime")));
             Object start = since;
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(until, null))) && Helpers.isTrue((Helpers.isEqual(since, null)))))
@@ -2716,7 +2716,7 @@ public class MexcCore extends MexcApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object data = null;
+            Object data = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
             {
                 Object clientOrderId = this.safeString(parameters, "clientOrderId");
@@ -3531,7 +3531,7 @@ public class MexcCore extends MexcApi
                 // the Planorder endpoints work not only for stop-market orders but also for stop-limit orders that are supposed to have separate endpoint
                 Object method = this.safeString(this.options, "cancelAllOrders", "contractPrivatePostOrderCancelAll");
                 method = this.safeString(query, "method", method);
-                Object response = null;
+                Object response = new java.util.HashMap<String, Object>() {{}};
                 if (Helpers.isTrue(Helpers.isEqual(method, "contractPrivatePostOrderCancelAll")))
                 {
                     response = (this.contractPrivatePostOrderCancelAll(this.extend(request, query))).join();
@@ -4150,7 +4150,11 @@ public class MexcCore extends MexcApi
                     Object symbols = this.safeValue(parameters, "symbols");
                     if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
                     {
-                        parsedSymbols = String.join((String)",", (java.util.List<String>)this.marketIds(symbols));
+                        Object symbolIds = this.marketIds(symbols);
+                        if (Helpers.isTrue(!Helpers.isEqual(symbolIds, null)))
+                        {
+                            parsedSymbols = String.join((String)",", (java.util.List<String>)symbolIds);
+                        }
                     }
                 } else
                 {

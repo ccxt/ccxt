@@ -290,7 +290,7 @@ export default class ndax extends ndaxRest {
                     updates[marketId][timeframe] = true;
                 }
                 else {
-                    if (length && (parsed[0] < stored[length - 1][0])) {
+                    if (length && (this.parseToInt(parsed[0]) < this.parseToInt(stored[length - 1][0]))) {
                         continue;
                     }
                     else {

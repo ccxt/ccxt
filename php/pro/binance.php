@@ -1048,19 +1048,19 @@ class binance extends \ccxt\async\binance {
                 if ($pu === null) {
                     // spot
                     // 4. Drop any event where $u is <= lastUpdateId in the snapshot
-                    if ($u > $orderbook['nonce']) {
+                    if ($u > $nonce) {
                         $timestamp = $this->safe_integer($orderbook, 'timestamp');
                         $conditional = null;
                         if ($timestamp === null) {
                             // 5. The first processed event should have $U <= lastUpdateId+1 AND $u >= lastUpdateId+1
-                            $conditional = (($U - 1) <= $orderbook['nonce']) && (($u - 1) >= $orderbook['nonce']);
+                            $conditional = (($U - 1) <= $nonce) && (($u - 1) >= $nonce);
                         } else {
                             // 6. While listening to the stream, each new event's $U should be equal to the previous event's $u+1.
-                            $conditional = (($U - 1) === $orderbook['nonce']);
+                            $conditional = (($U - 1) === $nonce);
                         }
                         if ($conditional) {
                             $this->handle_order_book_message($client, $message, $orderbook);
-                            if ($nonce < $orderbook['nonce']) {
+                            if ($nonce < $this->safe_integer($orderbook, 'nonce', 0)) {
                                 $client->resolve ($orderbook, $messageHash);
                             }
                         } else {
@@ -1074,12 +1074,12 @@ class binance extends \ccxt\async\binance {
                 } else {
                     // future
                     // 4. Drop any event where $u is < lastUpdateId in the snapshot
-                    if ($u >= $orderbook['nonce']) {
+                    if ($u >= $nonce) {
                         // 5. The first processed event should have $U <= lastUpdateId AND $u >= lastUpdateId
                         // 6. While listening to the stream, each new event's $pu should be equal to the previous event's $u, otherwise initialize the process from step 3
-                        if (($U <= $orderbook['nonce']) || ($pu === $orderbook['nonce'])) {
+                        if (($U <= $nonce) || ($pu === $nonce)) {
                             $this->handle_order_book_message($client, $message, $orderbook);
-                            if ($nonce <= $orderbook['nonce']) {
+                            if ($nonce <= $this->safe_integer($orderbook, 'nonce', 0)) {
                                 $client->resolve ($orderbook, $messageHash);
                             }
                         } else {

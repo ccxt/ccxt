@@ -1514,7 +1514,7 @@ class bitmex extends \ccxt\async\bitmex {
             $symbol = $market['symbol'];
             $messageHash = $table . ':' . $market['id'];
             $result = array(
-                $this->parse8601($this->safe_string($candle, 'timestamp')) - $duration * 1000,
+                $this->parse_to_int($this->parse8601($this->safe_string($candle, 'timestamp'))) - $duration * 1000,
                 null, // set open price to null, see => https://github.com/ccxt/ccxt/pull/21356#issuecomment-1969565862
                 $this->safe_float($candle, 'high'),
                 $this->safe_float($candle, 'low'),

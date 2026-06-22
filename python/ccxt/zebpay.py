@@ -1333,7 +1333,7 @@ class zebpay(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         request: dict = {
-            'symbol': market['id'].upper(),
+            'symbol': self.safe_string_upper(market, 'id'),
         }
         response = self.privateSwapGetV1TradeUserLeverage(self.extend(request, params))
         #

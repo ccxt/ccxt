@@ -615,7 +615,7 @@ class derive(ccxt.async_support.derive):
             trade = self.parse_trade(message)
             myTrades.append(trade)
             client.resolve(myTrades, topic)
-            messageHash = topic + trade['symbol']
+            messageHash = topic + self.safe_string(trade, 'symbol', '')
             client.resolve(myTrades, messageHash)
 
     def handle_error_message(self, client: Client, message) -> Bool:

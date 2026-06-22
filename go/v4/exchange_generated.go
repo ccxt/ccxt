@@ -5222,7 +5222,7 @@ func  (this *Exchange) SafeCurrency(currencyId any, optionalArgs ...any) any  {
     if IsTrue(IsTrue((IsEqual(currencyId, nil))) && IsTrue((!IsEqual(currency, nil)))) {
         return currency
     }
-    if IsTrue(IsTrue(IsTrue((!IsEqual(this.Currencies_by_id, nil))) && IsTrue((InOp(this.Currencies_by_id, currencyId)))) && IsTrue((!IsEqual(GetValue(this.Currencies_by_id, currencyId), nil)))) {
+    if IsTrue(IsTrue(IsTrue(IsTrue((!IsEqual(currencyId, nil))) && IsTrue((!IsEqual(this.Currencies_by_id, nil)))) && IsTrue((InOp(this.Currencies_by_id, currencyId)))) && IsTrue((!IsEqual(GetValue(this.Currencies_by_id, currencyId), nil)))) {
         return GetValue(this.Currencies_by_id, currencyId)
     }
     var code any = currencyId
@@ -9687,7 +9687,7 @@ func  (this *Exchange) FetchPaginatedCallDynamic(method any, optionalArgs ...any
                                 errors = 0
                                 result = this.ArrayConcat(result, response)
                                 var last any = this.SafeValue(response, Subtract(responseLength, 1))
-                                paginationTimestamp = Add(this.SafeInteger(last, "timestamp"), 1)
+                                paginationTimestamp = Add(this.SafeInteger(last, "timestamp", 0), 1)
                                 if IsTrue(IsTrue((!IsEqual(until, nil))) && IsTrue((IsGreaterThanOrEqual(paginationTimestamp, until)))) {
                                     panic("break")
                                 }

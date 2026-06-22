@@ -665,7 +665,7 @@ class htx(ccxt.async_support.htx):
             snapshot = self.parse_order_book(tick, symbol, timestamp)
             orderbook.reset(snapshot)
             orderbook['nonce'] = version
-        if (prevSeqNum is not None) and prevSeqNum > orderbook['nonce']:
+        if (prevSeqNum is not None) and prevSeqNum > self.safe_integer(orderbook, 'nonce', 0):
             checksum = self.handle_option('watchOrderBook', 'checksum', True)
             if checksum:
                 raise ChecksumError(self.id + ' ' + self.orderbook_checksum_message(symbol))

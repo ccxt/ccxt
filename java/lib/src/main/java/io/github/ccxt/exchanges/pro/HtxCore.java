@@ -810,7 +810,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
             Helpers.addElementToObject(orderbook, "nonce", version);
         }
-        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(prevSeqNum, null))) && Helpers.isTrue(Helpers.isGreaterThan(prevSeqNum, Helpers.GetValue(orderbook, "nonce")))))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(prevSeqNum, null))) && Helpers.isTrue(Helpers.isGreaterThan(prevSeqNum, this.safeInteger(orderbook, "nonce", 0)))))
         {
             Object checksum = this.handleOption("watchOrderBook", "checksum", true);
             if (Helpers.isTrue(checksum))

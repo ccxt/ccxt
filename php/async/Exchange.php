@@ -930,7 +930,7 @@ class Exchange extends \ccxt\Exchange {
         return $result;
     }
 
-    public function find_timeframe($timeframe, $timeframes = null) {
+    public function find_timeframe($timeframe, ?array $timeframes = null) {
         if ($timeframes === null) {
             $timeframes = $this->timeframes;
         }
@@ -3896,7 +3896,7 @@ class Exchange extends \ccxt\Exchange {
         return $this->get_list_from_object_values($filteredMarkets, 'symbol');
     }
 
-    public function filter_by_array($objects, int|string $key, $values = null, $indexed = true) {
+    public function filter_by_array($objects, int|string $key, mixed $values = null, $indexed = true) {
         $objects = $this->to_array($objects);
         // return all of them if no $values were passed
         if ($values === null || !$values) {
@@ -4191,7 +4191,7 @@ class Exchange extends \ccxt\Exchange {
         if (($currencyId === null) && ($currency !== null)) {
             return $currency;
         }
-        if (($this->currencies_by_id !== null) && (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) && ($this->currencies_by_id[$currencyId] !== null)) {
+        if (($currencyId !== null) && ($this->currencies_by_id !== null) && (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) && ($this->currencies_by_id[$currencyId] !== null)) {
             return $this->currencies_by_id[$currencyId];
         }
         $code = $currencyId;
@@ -4395,7 +4395,7 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
-    public function handle_option_and_params(array $params, string $methodName, string $optionName, $defaultValue = null) {
+    public function handle_option_and_params(array $params, string $methodName, string $optionName, mixed $defaultValue = null) {
         // This method can be used to obtain method specific properties, i.e => $this->handle_option_and_params($params, 'fetchPosition', 'marginMode', 'isolated')
         $defaultOptionName = 'default' . $this->capitalize($optionName); // we also need to check the 'defaultXyzWhatever'
         // check if $params contain the key
@@ -4440,7 +4440,7 @@ class Exchange extends \ccxt\Exchange {
         return $this->safe_value($res, 0);
     }
 
-    public function handle_market_type_and_params(string $methodName, ?array $market = null, $params = array (), $defaultValue = null) {
+    public function handle_market_type_and_params(string $methodName, ?array $market = null, $params = array (), mixed $defaultValue = null) {
         /**
          * @ignore
          * @param $methodName the method calling handleMarketTypeAndParams
@@ -4480,7 +4480,7 @@ class Exchange extends \ccxt\Exchange {
         return array( $defaultType, $params );
     }
 
-    public function handle_sub_type_and_params(string $methodName, $market = null, $params = array (), $defaultValue = null) {
+    public function handle_sub_type_and_params(string $methodName, ?array $market = null, $params = array (), mixed $defaultValue = null) {
         $subType = null;
         // if set in $params, it takes precedence
         $subTypeInParams = $this->safe_string_2($params, 'subType', 'defaultSubType');
@@ -4506,7 +4506,7 @@ class Exchange extends \ccxt\Exchange {
         return array( $subType, $params );
     }
 
-    public function handle_margin_mode_and_params(string $methodName, $params = array (), $defaultValue = null) {
+    public function handle_margin_mode_and_params(string $methodName, $params = array (), mixed $defaultValue = null) {
         /**
          * @ignore
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -6593,7 +6593,7 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
-    public function filter_by_array_positions($objects, int|string $key, $values = null, $indexed = true) {
+    public function filter_by_array_positions($objects, int|string $key, mixed $values = null, $indexed = true) {
         /**
          * @ignore
          * Typed wrapper for filterByArray that returns a list of positions
@@ -6601,7 +6601,7 @@ class Exchange extends \ccxt\Exchange {
         return $this->filter_by_array($objects, $key, $values, $indexed);
     }
 
-    public function filter_by_array_tickers($objects, int|string $key, $values = null, $indexed = true) {
+    public function filter_by_array_tickers($objects, int|string $key, mixed $values = null, $indexed = true) {
         /**
          * @ignore
          * Typed wrapper for filterByArray that returns a dictionary of tickers
@@ -6703,7 +6703,7 @@ class Exchange extends \ccxt\Exchange {
                         $errors = 0;
                         $result = $this->array_concat($result, $response);
                         $last = $this->safe_value($response, $responseLength - 1);
-                        $paginationTimestamp = $this->safe_integer($last, 'timestamp') + 1;
+                        $paginationTimestamp = $this->safe_integer($last, 'timestamp', 0) + 1;
                         if (($until !== null) && ($paginationTimestamp >= $until)) {
                             break;
                         }
@@ -6751,7 +6751,7 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
-    public function fetch_paginated_call_deterministic(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, ?string $timeframe = null, $params = array (), $maxEntriesPerRequest = null) {
+    public function fetch_paginated_call_deterministic(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, ?string $timeframe = null, $params = array (), ?int $maxEntriesPerRequest = null) {
         return Async\async(function () use ($method, $symbol, $since, $limit, $timeframe, $params, $maxEntriesPerRequest) {
             $maxCalls = null;
             list($maxCalls, $params) = $this->handle_option_and_params($params, $method, 'paginationCalls', 10);
@@ -6794,7 +6794,7 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
-    public function fetch_paginated_call_cursor(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array (), $cursorReceived = null, $cursorSent = null, $cursorIncrement = null, $maxEntriesPerRequest = null) {
+    public function fetch_paginated_call_cursor(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array (), ?string $cursorReceived = null, ?string $cursorSent = null, ?int $cursorIncrement = null, ?int $maxEntriesPerRequest = null) {
         return Async\async(function () use ($method, $symbol, $since, $limit, $params, $cursorReceived, $cursorSent, $cursorIncrement, $maxEntriesPerRequest) {
             $maxCalls = null;
             list($maxCalls, $params) = $this->handle_option_and_params($params, $method, 'paginationCalls', 10);
@@ -6871,7 +6871,7 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
-    public function fetch_paginated_call_incremental(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array (), $pageKey = null, $maxEntriesPerRequest = null) {
+    public function fetch_paginated_call_incremental(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array (), ?string $pageKey = null, ?int $maxEntriesPerRequest = null) {
         return Async\async(function () use ($method, $symbol, $since, $limit, $params, $pageKey, $maxEntriesPerRequest) {
             $maxCalls = null;
             list($maxCalls, $params) = $this->handle_option_and_params($params, $method, 'paginationCalls', 10);

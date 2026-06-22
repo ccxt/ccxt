@@ -1109,7 +1109,7 @@ class bitteam extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
-            'pairId' => (string) $market['numericId'],
+            'pairId' => $this->safe_string($market, 'numericId'),
             'type' => $type,
             'side' => $side,
             'amount' => $this->amount_to_precision($symbol, $amount),
@@ -1192,7 +1192,7 @@ class bitteam extends Exchange {
         $request = array();
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $request['pairId'] = (string) $market['numericId'];
+            $request['pairId'] = $this->safe_string($market, 'numericId');
         } else {
             $request['pairId'] = '0'; // '0' for all markets
         }

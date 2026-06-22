@@ -1440,7 +1440,7 @@ class zebpay extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
-                'symbol' => strtoupper($market['id']),
+                'symbol' => $this->safe_string_upper($market, 'id'),
             );
             $response = Async\await($this->privateSwapGetV1TradeUserLeverage ($this->extend($request, $params)));
             //

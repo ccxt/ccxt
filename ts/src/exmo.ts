@@ -312,7 +312,7 @@ export default class exmo extends Exchange {
             'position_id': market['id'],
             'quantity': amount,
         };
-        let response: Dict;
+        let response: Dict = {};
         if (type === 'add') {
             response = await this.privatePostMarginUserPositionMarginAdd (this.extend (request, params));
         } else if (type === 'reduce') {

@@ -1550,7 +1550,7 @@ public partial class bitmex : ccxt.bitmex
             object market = this.safeMarket(marketId);
             object symbol = getValue(market, "symbol");
             object messageHash = add(add(table, ":"), getValue(market, "id"));
-            object result = new List<object>() {subtract(this.parse8601(this.safeString(candle, "timestamp")), multiply(duration, 1000)), null, this.safeFloat(candle, "high"), this.safeFloat(candle, "low"), this.safeFloat(candle, "close"), this.safeFloat(candle, "volume")};
+            object result = new List<object>() {subtract(this.parseToInt(this.parse8601(this.safeString(candle, "timestamp"))), multiply(duration, 1000)), null, this.safeFloat(candle, "high"), this.safeFloat(candle, "low"), this.safeFloat(candle, "close"), this.safeFloat(candle, "volume")};
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
             object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
             if (isTrue(isEqual(stored, null)))
