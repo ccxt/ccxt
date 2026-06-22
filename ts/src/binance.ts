@@ -2744,7 +2744,7 @@ export default class binance extends Exchange {
         } else {
             base = this.safeString (optionParts, 0);
         }
-        const expiry = this.safeString (optionParts, 1);
+        const expiry = this.safeString (optionParts, 1, '');
         const strike = this.safeInteger (optionParts, 2);
         const strikeAsString = this.safeString (optionParts, 2);
         const optionType = this.safeString (optionParts, 3);
@@ -5594,10 +5594,10 @@ export default class binance extends Exchange {
             const marketId = this.safeString (rawOrder, 'symbol');
             orderSymbols.push (marketId);
             const id = this.safeString (rawOrder, 'id');
-            if ((marketId === undefined) || (id === undefined)) {
-                throw new ArgumentsRequired (this.id + ' editOrders() requires a symbol and an id for each order');
-            }
             const type = this.safeString (rawOrder, 'type');
+            if ((marketId === undefined) || (id === undefined) || (type === undefined)) {
+                throw new ArgumentsRequired (this.id + ' editOrders() requires a symbol, an id and a type for each order');
+            }
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
@@ -6325,10 +6325,10 @@ export default class binance extends Exchange {
             const rawOrder = orders[i];
             const marketId = this.safeString (rawOrder, 'symbol');
             orderSymbols.push (marketId);
-            if (marketId === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrders() requires a symbol for each order');
-            }
             const type = this.safeString (rawOrder, 'type');
+            if ((marketId === undefined) || (type === undefined)) {
+                throw new ArgumentsRequired (this.id + ' createOrders() requires a symbol and a type for each order');
+            }
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');

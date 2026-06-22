@@ -1490,6 +1490,9 @@ export default class pacifica extends Exchange {
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
             const symbol = this.safeString (order, 'symbol');
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrders() requires a symbol for each order');
+            }
             const side = this.safeString (order, 'side');
             const price = this.safeString (order, 'price');
             const type = this.safeString (order, 'type', 'limit');
@@ -2275,7 +2278,10 @@ export default class pacifica extends Exchange {
         return this.safeString (sideMap, sideRaw, sideRaw);
     }
 
-    parseOrderType (status: string) {
+    parseOrderType (status: Str) {
+        if (status === undefined) {
+            return undefined;
+        }
         const statuses: Dict = {
             'stop_limit': 'limit',
             'stop_market': 'market',

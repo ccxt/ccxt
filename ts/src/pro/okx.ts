@@ -2191,7 +2191,7 @@ export default class okx extends okxRest {
         args = this.filterBy (args, 'sCode', '0');
         // if empty means request failed and handle error
         if (this.isEmpty (args)) {
-            const method = this.safeString (message, 'op');
+            const method = this.safeString (message, 'op', '');
             const stringMsg = this.json (message);
             this.handleErrors (1, '', client.url, method, {}, stringMsg, message, {}, {});
         }

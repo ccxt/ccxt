@@ -659,7 +659,10 @@ export default class hibachi extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    parseOrderStatus (status: string): string {
+    parseOrderStatus (status: Str): Str {
+        if (status === undefined) {
+            return undefined;
+        }
         const statuses: Dict = {
             'PENDING': 'open',
             'CHILD_PENDING': 'open',
@@ -930,6 +933,9 @@ export default class hibachi extends Exchange {
             const rawOrder = orders[i];
             const symbol = this.safeString (rawOrder, 'symbol');
             const type = this.safeString (rawOrder, 'type');
+            if ((symbol === undefined) || (type === undefined)) {
+                throw new ArgumentsRequired (this.id + ' createOrders() requires a symbol and a type for each order');
+            }
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
@@ -1023,6 +1029,9 @@ export default class hibachi extends Exchange {
             const id = this.safeString (rawOrder, 'id');
             const symbol = this.safeString (rawOrder, 'symbol');
             const type = this.safeString (rawOrder, 'type');
+            if ((id === undefined) || (symbol === undefined) || (type === undefined)) {
+                throw new ArgumentsRequired (this.id + ' editOrders() requires an id, a symbol and a type for each order');
+            }
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');

@@ -2702,11 +2702,15 @@ export default class bitmex extends Exchange {
         const qty = this.convertFromRealAmount (code, amount);
         let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        let networkId: Str = undefined;
+        if (networkCode !== undefined) {
+            networkId = this.networkCodeToId (networkCode, currency['code']);
+        }
         const request: Dict = {
             'currency': currency['id'],
             'amount': qty,
             'address': address,
-            'network': this.networkCodeToId (networkCode, currency['code']),
+            'network': networkId,
             // 'otpToken': '123456', // requires if two-factor auth (OTP) is enabled
             // 'fee': 0.001, // bitcoin network fee
         };
