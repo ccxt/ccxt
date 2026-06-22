@@ -3071,7 +3071,7 @@ public class BinanceCore extends BinanceApi
             Object withdrawFee = this.safeNumber(networkItem, "withdrawFee");
             Object depositEnable = this.safeBool(networkItem, "depositEnable");
             Object withdrawEnable = this.safeBool(networkItem, "withdrawEnable");
-            Helpers.addElementToObject(fees, network, withdrawFee);
+            Helpers.addElementToObject(fees, networkCode, withdrawFee);
             Object isDefault = this.safeBool(networkItem, "isDefault");
             if (Helpers.isTrue(Helpers.isTrue(isDefault) || Helpers.isTrue((Helpers.isEqual(fee, null)))))
             {
