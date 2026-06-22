@@ -9098,36 +9098,24 @@ export default class htx extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchSettlementHistory() requires a symbol argument');
         }
-        const until = this.safeInteger (params, 'until');
-        params = this.omit (params, [ 'until' ]);
         const market = this.market (symbol);
-        const request: Dict = {};
+        let request: Dict = {};
         if (market['future']) {
             request['symbol'] = market['baseId'];
         } else {
             request['contract_code'] = market['id'];
         }
-        if (since !== undefined) {
-            if (market['linear']) {
-                request['start_time'] = since;
-            } else {
-                request['start_at'] = since;
-            }
-        }
         if (limit !== undefined) {
-            if (market['linear']) {
+            if (market['linear'] && market['swap']) {
                 request['limit'] = limit;
             } else {
                 request['page_size'] = limit;
             }
         }
-        if (until !== undefined) {
-            if (market['linear']) {
-                request['end_time'] = until;
-            } else {
-                request['end_at'] = until;
-            }
+        if (since !== undefined) {
+            request['start_time'] = since;
         }
+        [ request, params ] = this.handleUntilOption ('end_time', request, params);
         let response: NullableDict = undefined;
         if (market['swap']) {
             if (market['linear']) {
