@@ -1193,7 +1193,7 @@ export default class Exchange {
 
     parseNumber (value, d: Num = undefined): number {
         if (value === undefined) {
-            return d;
+            return d as number;
         } else {
             try {
                 // we should handle scientific notation here
@@ -1201,13 +1201,16 @@ export default class Exchange {
                 // this function will return 0.00000001
                 // check https://github.com/ccxt/ccxt/issues/24135
                 const numberNormalized = this.numberToString (value);
+                if (numberNormalized === undefined) {
+                    return d as number;
+                }
                 if (numberNormalized.indexOf ('e-') > -1) {
                     return this.number (numberToString (parseFloat (numberNormalized)));
                 }
                 const result = this.number (numberNormalized);
-                return Number.isNaN (result) ? d : result;
+                return (Number.isNaN (result) ? d : result) as number;
             } catch (e) {
-                return d;
+                return d as number;
             }
         }
     }
@@ -1570,7 +1573,7 @@ export default class Exchange {
         return value.split ('');
     }
 
-    valueIsDefined (value: any) {
+    valueIsDefined<T> (value: T): value is NonNullable<T> {
         return value !== undefined && value !== null;
     }
 
@@ -2798,8 +2801,8 @@ export default class Exchange {
     }
 
     checkProxyUrlSettings (url: Str = undefined, method: Str = undefined, headers = undefined, body = undefined) {
-        const usedProxies = [];
-        let proxyUrl = undefined;
+        const usedProxies: string[] = [];
+        let proxyUrl: Str = undefined;
         if (this.proxyUrl !== undefined) {
             usedProxies.push ('proxyUrl');
             proxyUrl = this.proxyUrl;
@@ -2841,10 +2844,10 @@ export default class Exchange {
     }
 
     checkProxySettings (url: Str = undefined, method: Str = undefined, headers = undefined, body = undefined) {
-        const usedProxies = [];
-        let httpProxy = undefined;
-        let httpsProxy = undefined;
-        let socksProxy = undefined;
+        const usedProxies: string[] = [];
+        let httpProxy: Str = undefined;
+        let httpsProxy: Str = undefined;
+        let socksProxy: Str = undefined;
         // httpProxy
         const isHttpProxyDefined = this.valueIsDefined (this.httpProxy);
         const isHttp_proxy_defined = this.valueIsDefined (this.http_proxy);
@@ -2894,10 +2897,10 @@ export default class Exchange {
     }
 
     checkWsProxySettings () {
-        const usedProxies = [];
-        let wsProxy = undefined;
-        let wssProxy = undefined;
-        let wsSocksProxy = undefined;
+        const usedProxies: string[] = [];
+        let wsProxy: Str = undefined;
+        let wssProxy: Str = undefined;
+        let wsSocksProxy: Str = undefined;
         // ws proxy
         const isWsProxyDefined = this.valueIsDefined (this.wsProxy);
         const is_ws_proxy_defined = this.valueIsDefined (this.ws_proxy);
@@ -2948,7 +2951,7 @@ export default class Exchange {
     }
 
     findMessageHashes (client, element: string): string[] {
-        const result = [];
+        const result: string[] = [];
         const messageHashes = Object.keys (client.futures);
         for (let i = 0; i < messageHashes.length; i++) {
             const messageHash = messageHashes[i];
@@ -4018,7 +4021,7 @@ export default class Exchange {
     }
 
     setMarkets (markets, currencies = undefined) {
-        const values = [];
+        const values: Dict[] = [];
         this.markets_by_id = this.createSafeDictionary ();
         // handle marketId conflicts
         // we insert spot markets first
@@ -4059,8 +4062,8 @@ export default class Exchange {
             // currencies is always undefined when called in constructor but not when called from loadMarkets
             this.currencies = this.mapToSafeMap (this.deepExtend (this.currencies, currencies));
         } else {
-            let baseCurrencies = [];
-            let quoteCurrencies = [];
+            let baseCurrencies: CurrencyInterface[] = [];
+            let quoteCurrencies: CurrencyInterface[] = [];
             for (let i = 0; i < values.length; i++) {
                 const market = values[i];
                 const defaultCurrencyPrecision = (this.precisionMode === DECIMAL_PLACES) ? 8 : this.parseNumber ('1e-8');
@@ -4091,7 +4094,7 @@ export default class Exchange {
             const allCurrencies = this.arrayConcat (baseCurrencies, quoteCurrencies);
             const groupedCurrencies = this.groupBy (allCurrencies, 'code');
             const codes = Object.keys (groupedCurrencies);
-            const resultingCurrencies = [];
+            const resultingCurrencies: CurrencyInterface[] = [];
             for (let i = 0; i < codes.length; i++) {
                 const code = codes[i];
                 const groupedCurrenciesCode = this.safeList (groupedCurrencies, code, []);
