@@ -336,9 +336,9 @@ export default class lbank extends Exchange {
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<Dict>;
-    fetchPrivateDepositWithdrawFees(codes?: any, params?: {}): Promise<any>;
-    fetchPublicDepositWithdrawFees(codes?: any, params?: {}): Promise<Dict>;
-    parsePublicDepositWithdrawFees(response: any, codes?: any): Dict;
+    fetchPrivateDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
+    fetchPublicDepositWithdrawFees(codes?: Strings, params?: {}): Promise<Dict>;
+    parsePublicDepositWithdrawFees(response: any, codes?: Strings): Dict;
     parseDepositWithdrawFee(fee: any, currency?: Currency): any;
     sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;

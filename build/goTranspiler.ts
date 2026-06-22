@@ -1032,6 +1032,8 @@ class NewTranspiler {
             'loadOrderBook',
             'setPositionCache',
             'setPositionsCache',
+            'setLastRequest',
+            'setLastRestRequestTimestamp',
             'setProperty',
             'setProxyAgents',
             'setSandBoxMode',

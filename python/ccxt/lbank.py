@@ -390,7 +390,7 @@ class lbank(Exchange, ImplicitAPI):
         """
         type: Str = None
         type, params = self.handle_market_type_and_params('fetchTime', None, params)
-        response: dict = None
+        response: dict
         if type == 'swap':
             response = self.contractPublicGetCfdOpenApiV1PubGetTime(params)
         else:
@@ -552,7 +552,7 @@ class lbank(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        result = []
+        result: List[Any] = []
         for i in range(0, len(data)):
             market = data[i]
             marketId = self.safe_string(market, 'symbol')
@@ -647,7 +647,7 @@ class lbank(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        result = []
+        result: List[Any] = []
         for i in range(0, len(data)):
             market = data[i]
             marketId = self.safe_string(market, 'symbol')
@@ -834,7 +834,7 @@ class lbank(Exchange, ImplicitAPI):
         request: dict = {}
         type: Str = None
         type, params = self.handle_market_type_and_params('fetchTickers', market, params)
-        response: dict = None
+        response: dict
         if type == 'swap':
             request['productGroup'] = 'SwapU'
             response = self.contractPublicGetCfdOpenApiV1PubMarketData(self.extend(request, params))
@@ -910,7 +910,7 @@ class lbank(Exchange, ImplicitAPI):
         }
         type: Str = None
         type, params = self.handle_market_type_and_params('fetchOrderBook', market, params)
-        response: dict = None
+        response: dict
         if type == 'swap':
             request['depth'] = limit
             response = self.contractPublicGetCfdOpenApiV1PubMarketOrder(self.extend(request, params))
@@ -1040,7 +1040,7 @@ class lbank(Exchange, ImplicitAPI):
             id = self.safe_string(trade, 'txUuid')
         order = self.safe_string(trade, 'orderUuid')
         symbol = self.safe_symbol(None, market)
-        fee: dict = None
+        fee: NullableDict = None
         feeCost = self.safe_string(trade, 'tradeFee')
         if feeCost is not None:
             feeCurr = self.safe_string(market, 'base') if (side == 'buy') else self.safe_string(market, 'quote')
@@ -1093,7 +1093,7 @@ class lbank(Exchange, ImplicitAPI):
         defaultMethod = self.safe_string(options, 'method', 'spotPublicGetTrades')
         method = self.safe_string(params, 'method', defaultMethod)
         params = self.omit(params, 'method')
-        response: dict = None
+        response: dict
         if method == 'spotPublicGetSupplementTrades':
             response = self.spotPublicGetSupplementTrades(self.extend(request, params))
         else:
@@ -1436,7 +1436,7 @@ class lbank(Exchange, ImplicitAPI):
         options = self.safe_value(self.options, 'fetchBalance', {})
         defaultMethod = self.safe_string(options, 'method', 'spotPrivatePostSupplementUserInfo')
         method = self.safe_string(params, 'method', defaultMethod)
-        response: dict = None
+        response: dict
         if method == 'spotPrivatePostSupplementUserInfoAccount':
             response = self.spotPrivatePostSupplementUserInfoAccount()
         elif method == 'spotPrivatePostUserInfo':
@@ -1617,7 +1617,7 @@ class lbank(Exchange, ImplicitAPI):
         defaultMethod = self.safe_string(options, 'method', 'spotPrivatePostSupplementCreateOrder')
         method = self.safe_string(params, 'method', defaultMethod)
         params = self.omit(params, 'method')
-        response: dict = None
+        response: dict
         if method == 'spotPrivatePostCreateOrder':
             response = self.spotPrivatePostCreateOrder(self.extend(request, params))
         else:
@@ -2160,7 +2160,7 @@ class lbank(Exchange, ImplicitAPI):
         defaultMethod = self.safe_string(options, 'method', 'fetchDepositAddressDefault')
         method = self.safe_string(params, 'method', defaultMethod)
         params = self.omit(params, 'method')
-        response: dict = None
+        response: dict
         if method == 'fetchDepositAddressSupplement':
             response = self.fetch_deposit_address_supplement(code, params)
         else:
@@ -2512,7 +2512,7 @@ class lbank(Exchange, ImplicitAPI):
         # private only returns information for currencies with non-zero balance
         self.load_markets()
         isAuthorized = self.check_required_credentials(False)
-        result: dict = None
+        result: dict
         if isAuthorized is True:
             options = self.safe_value(self.options, 'fetchTransactionFees', {})
             defaultMethod = self.safe_string(options, 'method', 'fetchPrivateTransactionFees')
@@ -2647,7 +2647,7 @@ class lbank(Exchange, ImplicitAPI):
         """
         self.load_markets()
         isAuthorized = self.check_required_credentials(False)
-        response: dict = None
+        response: dict
         if isAuthorized is True:
             options = self.safe_value(self.options, 'fetchDepositWithdrawFees', {})
             defaultMethod = self.safe_string(options, 'method', 'fetchPrivateDepositWithdrawFees')
@@ -2661,7 +2661,7 @@ class lbank(Exchange, ImplicitAPI):
             response = self.fetch_public_deposit_withdraw_fees(codes, params)
         return response
 
-    def fetch_private_deposit_withdraw_fees(self, codes=None, params={}):
+    def fetch_private_deposit_withdraw_fees(self, codes: Strings = None, params={}):
         # complete response
         # incl. for coins which None in public method
         self.load_markets()
@@ -2699,7 +2699,7 @@ class lbank(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_deposit_withdraw_fees(data, codes, 'coin')
 
-    def fetch_public_deposit_withdraw_fees(self, codes=None, params={}):
+    def fetch_public_deposit_withdraw_fees(self, codes: Strings = None, params={}):
         # extremely incomplete response
         # vast majority fees None
         self.load_markets()
@@ -2729,7 +2729,7 @@ class lbank(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_public_deposit_withdraw_fees(data, codes)
 
-    def parse_public_deposit_withdraw_fees(self, response, codes=None):
+    def parse_public_deposit_withdraw_fees(self, response, codes: Strings = None):
         #
         #    [
         #        {

@@ -715,7 +715,7 @@ class blofin extends \ccxt\async\blofin {
         $client->resolve ($fundingRate, $messageHash);
     }
 
-    public function watch_multiple_wrapper(bool $isPublic, string $channelName, string $callerMethodName, $symbolsArray = null, $params = array ()) {
+    public function watch_multiple_wrapper(bool $isPublic, string $channelName, string $callerMethodName, mixed $symbolsArray = null, $params = array ()) {
         return Async\async(function () use ($isPublic, $channelName, $callerMethodName, $symbolsArray, $params) {
             // underlier method for all watch-multiple $symbols
             Async\await($this->load_markets());
