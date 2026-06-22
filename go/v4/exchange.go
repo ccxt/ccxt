@@ -94,7 +94,10 @@ type Exchange struct {
 
 	// timestamps
 	LastRestRequestTimestamp int64
-	lastRestRequestMu        sync.Mutex
+	// lastMu guards the per-instance "last request/response" bookkeeping fields
+	// (timestamp, request headers/body/url, response headers) which are otherwise
+	// written by concurrent request goroutines that share the same *Exchange.
+	lastMu sync.Mutex
 	LastRequestHeaders       any
 	Last_request_headers     any
 	Last_response_headers    any

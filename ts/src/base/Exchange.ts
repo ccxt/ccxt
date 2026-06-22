@@ -2222,6 +2222,15 @@ export default class Exchange {
         this.lastRestRequestTimestamp = this.milliseconds ();
     }
 
+    setLastRequest (request) {
+        // hand-written per language (not transpiled): plain assignments in most
+        // languages, but the Go implementation guards the writes with a mutex because
+        // concurrent requests would otherwise data-race on these bookkeeping fields
+        this.last_request_headers = request['headers'];
+        this.last_request_body = request['body'];
+        this.last_request_url = request['url'];
+    }
+
     // ------------------------------------------------------------------------
 
     // ########################################################################
@@ -5837,9 +5846,7 @@ export default class Exchange {
             try {
                 this.setLastRestRequestTimestamp ();
                 const request = this.sign (path, api, method, params, headers, body);
-                this.last_request_headers = request['headers'];
-                this.last_request_body = request['body'];
-                this.last_request_url = request['url'];
+                this.setLastRequest (request);
                 return await this.fetch (request['url'], request['method'], request['headers'], request['body']);
             } catch (e) {
                 if (e instanceof OperationFailed) {

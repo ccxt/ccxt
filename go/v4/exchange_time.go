@@ -21,9 +21,21 @@ func (this *Exchange) Seconds() int64 {
 // hand-written Go override (blacklisted in goTranspiler.ts) of the transpiled
 // setLastRestRequestTimestamp method in ts/src/base/Exchange.ts.
 func (this *Exchange) SetLastRestRequestTimestamp() {
-	this.lastRestRequestMu.Lock()
+	this.lastMu.Lock()
 	this.LastRestRequestTimestamp = this.Milliseconds()
-	this.lastRestRequestMu.Unlock()
+	this.lastMu.Unlock()
+}
+
+// SetLastRequest guards the writes with a mutex because concurrent requests would
+// otherwise data-race on these bookkeeping fields. This is a hand-written Go
+// override (blacklisted in goTranspiler.ts) of the transpiled setLastRequest
+// method in ts/src/base/Exchange.ts.
+func (this *Exchange) SetLastRequest(request any) {
+	this.lastMu.Lock()
+	this.Last_request_headers = GetValue(request, "headers")
+	this.Last_request_body = GetValue(request, "body")
+	this.Last_request_url = GetValue(request, "url")
+	this.lastMu.Unlock()
 }
 
 // microseconds returns the current time in microseconds since the Unix epoch.

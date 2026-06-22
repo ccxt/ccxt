@@ -90,7 +90,7 @@ const ALLOWED_PREFIXES = ['fetch', 'create', 'edit', 'cancel', 'close', 'setP', 
 const BLACKLIST = new Set([
     'fetch', 'fetchCurrenciesWs', 'fetchMarketsWs', 'setSandBoxMode', 'loadOrderBook',
     'loadMarketsHelper', 'createNetworksByIdObject', 'setMarketsFromExchange',
-    'setLastRestRequestTimestamp',
+    'setLastRequest', 'setLastRestRequestTimestamp',
     'setProperty', 'setProxyAgents', 'watch', 'watchMultiple', 'watchMultipleSubscription',
     'watchPrivate', 'watchPublic', 'setPositionsCache', 'setPositionCache',
     'watchMany', 'watchMultiHelper', 'watchMultipleWrapper', 'watchMultiRequest',
