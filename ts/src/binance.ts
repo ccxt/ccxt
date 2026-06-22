@@ -3099,7 +3099,7 @@ export default class binance extends Exchange {
             const withdrawFee = this.safeNumber (networkItem, 'withdrawFee');
             const depositEnable = this.safeBool (networkItem, 'depositEnable');
             const withdrawEnable = this.safeBool (networkItem, 'withdrawEnable');
-            fees[network] = withdrawFee;
+            fees[networkCode] = withdrawFee;
             const isDefault = this.safeBool (networkItem, 'isDefault');
             if (isDefault || (fee === undefined)) {
                 fee = withdrawFee;
