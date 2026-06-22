@@ -3569,7 +3569,7 @@ export default class bybit extends Exchange {
             }
         }
         const accountTypes = this.safeDict (this.options, 'accountsByType', {});
-        const unifiedType = this.safeStringUpper (accountTypes, type, type);
+        const unifiedType = ((type !== undefined) ? this.safeStringUpper (accountTypes, type, type) : type);
         let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBalance', params);
         let response: Dict;

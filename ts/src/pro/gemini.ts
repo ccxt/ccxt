@@ -167,7 +167,7 @@ export default class gemini extends geminiRest {
         const trade = this.parseWsTrade (message);
         const symbol = trade['symbol'];
         const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
-        let stored = this.safeValue (this.trades, symbol);
+        let stored = ((symbol !== undefined) ? this.safeValue (this.trades, symbol) : undefined);
         if (stored === undefined) {
             stored = new ArrayCache (tradesLimit);
             if (symbol !== undefined) {

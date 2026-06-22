@@ -5301,7 +5301,7 @@ export default class bingx extends Exchange {
             } else {
                 const keys = Object.keys (addressStructures);
                 const key = this.safeString (keys, 0);
-                return this.safeDict (addressStructures, key) as DepositAddress;
+                return ((key !== undefined) ? this.safeDict (addressStructures, key) : undefined) as DepositAddress;
             }
         }
     }

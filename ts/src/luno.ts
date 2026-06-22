@@ -1285,7 +1285,7 @@ export default class luno extends Exchange {
         const firstWord = this.safeString (words, 0);
         const thirdWord = this.safeString (words, 2);
         const fourthWord = this.safeString (words, 3);
-        let type = this.safeString (types, firstWord);
+        let type = ((firstWord !== undefined) ? this.safeString (types, firstWord) : undefined);
         if ((type === undefined) && (thirdWord === 'fee')) {
             type = 'fee';
         }

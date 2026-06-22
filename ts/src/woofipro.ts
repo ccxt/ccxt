@@ -714,7 +714,7 @@ export default class woofipro extends Exchange {
         for (let j = 0; j < networks.length; j++) {
             const networkEntry = networks[j];
             const networkId = this.safeString (networkEntry, 'chain_id');
-            const networkRow = this.safeDict (indexedChains, networkId);
+            const networkRow = ((networkId !== undefined) ? this.safeDict (indexedChains, networkId) : undefined);
             const networkName = this.safeString (networkRow, 'name');
             const networkCode = this.networkIdToCode (networkName, code);
             resultingNetworks[networkCode] = {
@@ -1471,7 +1471,7 @@ export default class woofipro extends Exchange {
             'fok': 'FOK',
             'post_only': 'PO',
         };
-        return this.safeString (timeInForces, timeInForce);
+        return ((timeInForce !== undefined) ? this.safeString (timeInForces, timeInForce) : undefined);
     }
 
     parseOrderStatus (status: Str) {
@@ -1501,7 +1501,7 @@ export default class woofipro extends Exchange {
             'MARKET': 'market',
             'POST_ONLY': 'limit',
         };
-        return this.safeStringLower (types, type, type);
+        return ((type !== undefined) ? this.safeStringLower (types, type, type) : type);
     }
 
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
