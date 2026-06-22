@@ -1319,7 +1319,7 @@ export default class gate extends Exchange {
         if (this.checkRequiredCredentials (false)) {
             await this.loadUnifiedStatus ();
         }
-        const rawPromises = [];
+        const rawPromises: Promise<Dict[]>[] = [];
         const fetchMarketsOptions = this.safeDict (this.options, 'fetchMarkets');
         const types = this.safeList (fetchMarketsOptions, 'types', [ 'spot', 'swap', 'future', 'option' ]);
         for (let i = 0; i < types.length; i++) {
@@ -1383,7 +1383,7 @@ export default class gate extends Exchange {
         //         }
         //     ]
         //
-        const result = [];
+        const result: Dict[] = [];
         for (let i = 0; i < spotMarketsResponse.length; i++) {
             const spotMarket = spotMarketsResponse[i];
             const id = this.safeString (spotMarket, 'id');
@@ -1457,7 +1457,7 @@ export default class gate extends Exchange {
     }
 
     async fetchSwapMarkets (params = {}) {
-        const result = [];
+        const result: Dict[] = [];
         let swapSettlementCurrencies = this.getSettlementCurrencies ('swap', 'fetchMarkets');
         if (this.options['sandboxMode']) {
             swapSettlementCurrencies = [ 'usdt' ]; // gate sandbox only has usdt-margined swaps
@@ -1480,7 +1480,7 @@ export default class gate extends Exchange {
         if (this.options['sandboxMode']) {
             return []; // right now sandbox does not have inverse swaps
         }
-        const result = [];
+        const result: Dict[] = [];
         const futureSettlementCurrencies = this.getSettlementCurrencies ('future', 'fetchMarkets');
         for (let c = 0; c < futureSettlementCurrencies.length; c++) {
             const settleId = futureSettlementCurrencies[c];
@@ -1669,7 +1669,7 @@ export default class gate extends Exchange {
     }
 
     async fetchOptionMarkets (params = {}) {
-        const result = [];
+        const result: Dict[] = [];
         const underlyings = await this.fetchOptionUnderlyings ();
         for (let i = 0; i < underlyings.length; i++) {
             const underlying = underlyings[i];
@@ -2430,8 +2430,8 @@ export default class gate extends Exchange {
 
     parseTradingFees (response) {
         const result: Dict = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        for (let i = 0; i < (this.symbols as string[]).length; i++) {
+            const symbol = (this.symbols as string[])[i];
             const market = this.market (symbol);
             result[symbol] = this.parseTradingFee (response, market);
         }
@@ -2511,7 +2511,7 @@ export default class gate extends Exchange {
             }
             const withdrawFixOnChains = this.safeValue (entry, 'withdraw_fix_on_chains');
             if (withdrawFixOnChains === undefined) {
-                withdrawFees = this.safeNumber (entry, 'withdraw_fix');
+                withdrawFees = this.safeNumber (entry, 'withdraw_fix') as {};
             } else {
                 const networkIds = Object.keys (withdrawFixOnChains);
                 for (let j = 0; j < networkIds.length; j++) {
@@ -2670,7 +2670,7 @@ export default class gate extends Exchange {
     }
 
     parseFundingHistories (response, symbol, since, limit): FundingHistory[] {
-        const result = [];
+        const result: Dict[] = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const funding = this.parseFundingHistory (entry);
@@ -2816,7 +2816,7 @@ export default class gate extends Exchange {
         //
         let timestamp = this.safeInteger (response, 'current');
         if (!market['spot']) {
-            timestamp = timestamp * 1000;
+            timestamp = (timestamp as number) * 1000;
         }
         const priceKey = market['spot'] ? 0 : 'p';
         const amountKey = market['spot'] ? 1 : 's';
@@ -2869,7 +2869,7 @@ export default class gate extends Exchange {
         } else {
             ticker = this.safeValue (response, 0);
         }
-        return this.parseTicker (ticker, market);
+        return this.parseTicker (ticker as Dict, market);
     }
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
@@ -3407,7 +3407,7 @@ export default class gate extends Exchange {
         } else {
             response = await this.publicSpotGetCandlesticks (this.extend (request, params));
         }
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        return this.parseOHLCVs (response as unknown as Dict[], market, timeframe, since, limit);
     }
 
     async fetchOptionOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -3951,12 +3951,12 @@ export default class gate extends Exchange {
         const feeAmount = this.safeString (trade, 'fee');
         const gtFee = this.omitZero (this.safeString (trade, 'gt_fee') as string);
         const pointFee = this.omitZero (this.safeString (trade, 'point_fee') as string);
-        const fees = [];
+        const fees: Dict[] = [];
         if (feeAmount !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fee_currency');
             let feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             if (feeCurrencyCode === undefined) {
-                feeCurrencyCode = this.safeString (market, 'settle');
+                feeCurrencyCode = this.safeString (market, 'settle') as string;
             }
             fees.push ({
                 'cost': feeAmount,
@@ -4421,7 +4421,7 @@ export default class gate extends Exchange {
             const orderRequest = this.createOrderRequest (marketId as string, type as OrderType, side as OrderSide, amount, price, extendedParams);
             ordersRequests.push (orderRequest);
         }
-        const symbols = this.marketSymbols (orderSymbols, undefined, false, true, true);
+        const symbols = this.marketSymbols (orderSymbols as string[], undefined, false, true, true);
         const market = this.market (symbols[0]);
         if (market['future'] || market['option']) {
             throw new NotSupported (this.id + ' createOrders() does not support futures or options markets');
@@ -4451,7 +4451,7 @@ export default class gate extends Exchange {
         } else if (market['swap']) {
             response = await this.privateFuturesPostSettleBatchOrders (ordersRequests);
         }
-        return this.parseOrders (response);
+        return this.parseOrders (response as unknown as Dict);
     }
 
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -5121,7 +5121,7 @@ export default class gate extends Exchange {
         }
         const exchangeSymbol = this.safeString2 (order, 'currency_pair', 'market', contract);
         const symbol = this.safeSymbol (exchangeSymbol, market, '_', marketType);
-        const fees = [];
+        const fees: Dict[] = [];
         const gtFee = this.safeString (order, 'gt_fee');
         if (gtFee !== undefined) {
             fees.push ({
@@ -6289,7 +6289,7 @@ export default class gate extends Exchange {
         //         "pending_orders": 0
         //     }
         //
-        return this.parsePosition (response, market);
+        return this.parsePosition (response as unknown as Dict, market);
     }
 
     /**
@@ -6398,7 +6398,7 @@ export default class gate extends Exchange {
         //         }
         //     ]
         //
-        return this.parsePositions (response, symbols);
+        return this.parsePositions (response as unknown as Dict[], symbols);
     }
 
     /**
@@ -6684,7 +6684,7 @@ export default class gate extends Exchange {
         } else {
             // deprecated and not present in the exchange's docs but still works
             response = await this.privateMarginPostCrossRepayments (this.extend (request, params));
-            response = this.safeDict (response, 0);
+            response = this.safeDict (response, 0) as Dict;
             //
             //     [
             //         {
@@ -8028,7 +8028,7 @@ export default class gate extends Exchange {
             'askPrice': this.parseNumber (this.safeNumber (greeks, 'ask1_price')),
             'markPrice': this.parseNumber (this.safeNumber (greeks, 'mark_price')),
             'lastPrice': this.parseNumber (this.safeNumber (greeks, 'last_price')),
-            'underlyingPrice': this.parseNumber (market['info']['underlying_price']),
+            'underlyingPrice': this.parseNumber ((market as Dict)['info']['underlying_price']),
             'info': greeks,
         } as unknown as Greeks;
     }
