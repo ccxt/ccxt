@@ -1625,7 +1625,7 @@ export default class bitrue extends Exchange {
         //     }
         //
         const data: Dict = {};
-        data[market['id'] as string] = response;
+        data[market['id']] = response;
         return this.parseTickers (data, symbols);
     }
 
@@ -1711,7 +1711,7 @@ export default class bitrue extends Exchange {
         for (let i = 0; i < data.length; i++) {
             const ticker = this.safeDict (data, i, {});
             const market = this.safeMarket (this.safeString (ticker, 'symbol'));
-            tickers[market['id'] as string] = ticker;
+            tickers[market['id']] = ticker;
         }
         return this.parseTickers (tickers, symbols);
     }
@@ -3206,7 +3206,7 @@ export default class bitrue extends Exchange {
         if ((type === 'api' && version === 'kline') || (type === 'open' && path.indexOf ('listenKey') >= 0)) {
             url = this.urls['api'][type];
         } else {
-            url = this.urls['api'][type as string] + '/' + version;
+            url = this.urls['api'][type] + '/' + version;
         }
         url = url + '/' + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));

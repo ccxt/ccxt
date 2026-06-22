@@ -333,7 +333,7 @@ export default class bitflyer extends Exchange {
                     const currencyIds = this.safeString (splitAlias, 0);
                     baseId = currencyIds.slice (0, -3);
                     quoteId = currencyIds.slice (-3);
-                    const splitId = id.split (currencyIds as string);
+                    const splitId = id.split (currencyIds);
                     const expiryDate = this.safeString (splitId, 1);
                     expiry = this.parseExpiryDate (expiryDate);
                 }

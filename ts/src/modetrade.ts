@@ -677,7 +677,7 @@ export default class modetrade extends Exchange {
             if (precision !== undefined) {
                 minPrecision = (minPrecision === undefined) ? precision : Precise.stringMin (precision, minPrecision);
             }
-            resultingNetworks[networkId as string] = {
+            resultingNetworks[networkId] = {
                 'id': networkId,
                 'network': networkId,
                 'limits': {

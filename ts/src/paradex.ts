@@ -798,7 +798,7 @@ export default class paradex extends Exchange {
         for (let i = 0; i < fees.length; i++) {
             const fee = this.parseTradingFee (fees[i]);
             const symbol = fee['symbol'];
-            result[symbol as string] = fee;
+            result[symbol] = fee;
         }
         return result as TradingFees;
     }
@@ -3252,7 +3252,7 @@ export default class paradex extends Exchange {
             version = 'v2';
             path = path.replace ('v2/', '');
         }
-        let url = this.implodeHostname (this.urls['api'][version as string]) + '/' + this.implodeParams (path, params);
+        let url = this.implodeHostname (this.urls['api'][version]) + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
             if (Object.keys (query).length) {

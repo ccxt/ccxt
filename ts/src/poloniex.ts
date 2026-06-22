@@ -3003,7 +3003,7 @@ export default class poloniex extends Exchange {
             const entry = response[i];
             const currencies = Object.keys (entry);
             const currencyId = this.safeString (currencies, 0);
-            data[currencyId as string] = entry[currencyId as string];
+            data[currencyId] = entry[currencyId];
         }
         return this.parseDepositWithdrawFees (data, codes);
     }

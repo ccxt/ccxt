@@ -2601,7 +2601,7 @@ export default class kucoin extends Exchange {
         const accountsByType = this.safeDict (this.options, 'accountsByType');
         const type = this.safeString (accountsByType, requestedType);
         if (type === undefined) {
-            const keys = Object.keys (accountsByType as Dict);
+            const keys = Object.keys (accountsByType);
             throw new ExchangeError (this.id + ' isFuturesMethod() type must be one of ' + keys.join (', '));
         }
         params = this.omit (params, 'type');
@@ -6000,7 +6000,7 @@ export default class kucoin extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    handleTradeType (isContractMarket = false, marginMode: Str = undefined, isUnified = false, params = {}) {
+    handleTradeType (isContractMarket = false, marginMode = undefined, isUnified = false, params = {}) {
         let tradeType = this.safeString (params, 'tradeType');
         if (tradeType === undefined) {
             if (isContractMarket) {

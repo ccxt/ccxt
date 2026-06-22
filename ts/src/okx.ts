@@ -8080,7 +8080,7 @@ export default class okx extends Exchange {
                 if (depositWithdrawFee === undefined) {
                     depositWithdrawFees[code] = this.depositWithdrawFee ({});
                 }
-                depositWithdrawFees[code]['info'][currencyId as string] = feeInfo;
+                depositWithdrawFees[code]['info'][currencyId] = feeInfo;
                 const chain = this.safeString (feeInfo, 'chain');
                 if (chain === undefined) {
                     continue;

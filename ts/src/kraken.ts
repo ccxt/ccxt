@@ -646,7 +646,7 @@ export default class kraken extends Exchange {
         //
         const markets = this.safeDict (assetsResponse, 'result', {});
         const cachedCurrencies = this.safeDict (this.options, 'cachedCurrencies', {});
-        const keys = Object.keys (markets as Dict);
+        const keys = Object.keys (markets);
         const result: List = [];
         for (let i = 0; i < keys.length; i++) {
             const id = keys[i];
@@ -682,7 +682,7 @@ export default class kraken extends Exchange {
             const spot = true;
             // fix https://github.com/freqtrade/freqtrade/issues/11765#issuecomment-2894224103
             if (spot && (base in cachedCurrencies)) {
-                const currency = cachedCurrencies[base as string];
+                const currency = cachedCurrencies[base];
                 const currencyPrecision = this.safeNumber (currency, 'precision');
                 // if currency precision is greater (e.g. 0.01) than market precision (e.g. 0.001)
                 if (currencyPrecision > precisionAmount) {
@@ -870,7 +870,7 @@ export default class kraken extends Exchange {
             if (id !== altName && (id.startsWith ('X') || id.startsWith ('Z'))) {
                 code = this.safeCurrencyCode (altName);
                 // also, add map in commonCurrencies:
-                this.commonCurrencies[id as string] = code;
+                this.commonCurrencies[id] = code;
             } else {
                 code = this.safeCurrencyCode (id);
             }
@@ -1143,7 +1143,7 @@ export default class kraken extends Exchange {
             'pair': market['id'],
         };
         const response = await this.publicGetTicker (this.extend (request, params));
-        const ticker = response['result'][market['id'] as string];
+        const ticker = response['result'][market['id']];
         return this.parseTicker (ticker, market);
     }
 
@@ -1568,7 +1568,7 @@ export default class kraken extends Exchange {
         //     }
         //
         const result = response['result'];
-        const trades = result[id as string];
+        const trades = result[id];
         // trades is a sorted array: last (most recent trade) goes last
         const length = trades.length;
         if (length <= 0) {
@@ -1596,7 +1596,7 @@ export default class kraken extends Exchange {
             const account = this.account ();
             account['used'] = this.safeString (balance, 'hold_trade');
             account['total'] = this.safeString (balance, 'balance');
-            result[code as string] = account;
+            result[code] = account;
         }
         return this.safeBalance (result);
     }
@@ -2780,7 +2780,7 @@ export default class kraken extends Exchange {
         const result = this.safeDict (response, 'result', {});
         const open = this.safeDict (result, 'open', {});
         const orders: List = [];
-        const orderIds = Object.keys (open as Dict);
+        const orderIds = Object.keys (open);
         for (let i = 0; i < orderIds.length; i++) {
             const id = orderIds[i];
             const item = open[id];
@@ -2867,7 +2867,7 @@ export default class kraken extends Exchange {
         const result = this.safeDict (response, 'result', {});
         const closed = this.safeDict (result, 'closed', {});
         const orders: List = [];
-        const orderIds = Object.keys (closed as Dict);
+        const orderIds = Object.keys (closed);
         for (let i = 0; i < orderIds.length; i++) {
             const id = orderIds[i];
             const item = closed[id];

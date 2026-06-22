@@ -1807,7 +1807,7 @@ export default class hitbtc extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const fee = this.parseTradingFee (response[i]);
             const symbol = fee['symbol'];
-            result[symbol as string] = fee;
+            result[symbol] = fee;
         }
         return result;
     }

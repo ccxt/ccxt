@@ -1573,7 +1573,7 @@ export default class lbank extends Exchange {
         for (let i = 0; i < fees.length; i++) {
             const fee = this.parseTradingFee (fees[i]);
             const symbol = fee['symbol'];
-            result[symbol as string] = fee;
+            result[symbol] = fee;
         }
         return result;
     }

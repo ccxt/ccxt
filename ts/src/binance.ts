@@ -2833,7 +2833,7 @@ export default class binance extends Exchange {
                 // end diff
                 for (let i = 0; i < markets.length; i++) {
                     const market = markets[i];
-                    if (market[defaultType as string]) {
+                    if (market[defaultType]) {
                         return market;
                     }
                 }
@@ -3099,7 +3099,7 @@ export default class binance extends Exchange {
             const withdrawFee = this.safeNumber (networkItem, 'withdrawFee');
             const depositEnable = this.safeBool (networkItem, 'depositEnable');
             const withdrawEnable = this.safeBool (networkItem, 'withdrawEnable');
-            fees[network as string] = withdrawFee;
+            fees[network] = withdrawFee;
             const isDefault = this.safeBool (networkItem, 'isDefault');
             if (isDefault || (fee === undefined)) {
                 fee = withdrawFee;
@@ -6808,7 +6808,7 @@ export default class binance extends Exchange {
             request['positionSide'] = (side === 'buy') ? 'LONG' : 'SHORT';
         }
         // unified stp
-        let selfTradePrevention: Str = undefined;
+        let selfTradePrevention = undefined;
         [ selfTradePrevention, params ] = this.handleOptionAndParams (params, 'createOrder', 'selfTradePrevention');
         if (selfTradePrevention !== undefined) {
             if (market['spot']) {
@@ -9126,11 +9126,11 @@ export default class binance extends Exchange {
             const toId = this.safeString (accountsByType, toAccount);
             if (type === undefined) {
                 if (fromId === undefined) {
-                    const keys = Object.keys (accountsByType as Dict);
+                    const keys = Object.keys (accountsByType);
                     throw new ExchangeError (this.id + ' fromAccount parameter must be one of ' + keys.join (', '));
                 }
                 if (toId === undefined) {
-                    const keys = Object.keys (accountsByType as Dict);
+                    const keys = Object.keys (accountsByType);
                     throw new ExchangeError (this.id + ' toAccount parameter must be one of ' + keys.join (', '));
                 }
                 type = fromId + '_' + toId;
@@ -9777,7 +9777,7 @@ export default class binance extends Exchange {
             for (let i = 0; i < response.length; i++) {
                 const fee = this.parseTradingFee (response[i]);
                 const symbol = fee['symbol'];
-                result[symbol as string] = fee;
+                result[symbol] = fee;
             }
             return result;
         } else if (isLinear) {
@@ -12038,7 +12038,7 @@ export default class binance extends Exchange {
         let networkCode: Str = undefined;
         const currency = this.currency (currencyCode);
         const networks = this.safeDict (currency, 'networks', {});
-        const networkCodes = Object.keys (networks as Dict);
+        const networkCodes = Object.keys (networks);
         for (let i = 0; i < networkCodes.length; i++) {
             const currentNetworkCode = networkCodes[i];
             const info = this.safeDict (networks[currentNetworkCode], 'info', {});

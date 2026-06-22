@@ -622,7 +622,7 @@ export default class indodax extends Exchange {
         //
         const response = await this.publicGetApiTickerAll (params);
         const tickers = this.safeDict (response, 'tickers', {});
-        const keys = Object.keys (tickers as Dict);
+        const keys = Object.keys (tickers);
         const parsedTickers: Dict = {};
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
@@ -986,7 +986,7 @@ export default class indodax extends Exchange {
                     const costRequest = Precise.stringMul (amountString, priceString);
                     quoteAmount = this.costToPrecision (symbol, costRequest);
                 }
-                request[market['quoteId'] as string] = quoteAmount;
+                request[market['quoteId']] = quoteAmount;
             } else {
                 quantityIsRequired = true;
             }
@@ -994,7 +994,7 @@ export default class indodax extends Exchange {
             priceIsRequired = true;
             quantityIsRequired = true;
             if (side === 'buy') {
-                request[market['quoteId'] as string] = this.parseToNumeric (Precise.stringMul (this.numberToString (amount), this.numberToString (price)));
+                request[market['quoteId']] = this.parseToNumeric (Precise.stringMul (this.numberToString (amount), this.numberToString (price)));
             }
         }
         if (priceIsRequired) {
@@ -1004,7 +1004,7 @@ export default class indodax extends Exchange {
             request['price'] = price;
         }
         if (quantityIsRequired) {
-            request[market['baseId'] as string] = this.amountToPrecision (symbol, amount);
+            request[market['baseId']] = this.amountToPrecision (symbol, amount);
         }
         const result = await this.privatePostTrade (this.extend (request, params));
         const data = this.safeValue (result, 'return', {});
@@ -1388,7 +1388,7 @@ export default class indodax extends Exchange {
         const data = this.safeDict (response, 'return');
         const addresses = this.safeDict (data, 'address', {});
         const networks = this.safeDict (data, 'network', {});
-        const addressKeys = Object.keys (addresses as Dict);
+        const addressKeys = Object.keys (addresses);
         const result: Dict = {
             'info': data,
         };

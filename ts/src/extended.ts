@@ -2163,7 +2163,7 @@ export default class extended extends Exchange {
             const fee = this.safeDict (data, i, {});
             const parsed = this.parseTradingFee (fee);
             const symbol = this.safeString (parsed, 'symbol');
-            result[symbol as string] = parsed;
+            result[symbol] = parsed;
         }
         return result;
     }

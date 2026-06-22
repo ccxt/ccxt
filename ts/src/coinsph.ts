@@ -1830,7 +1830,7 @@ export default class coinsph extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const fee = this.parseTradingFee (response[i]);
             const symbol = fee['symbol'];
-            result[symbol as string] = fee;
+            result[symbol] = fee;
         }
         return result;
     }
@@ -2166,7 +2166,7 @@ export default class coinsph extends Exchange {
         return {
             'info': depositAddress,
             'currency': parsedCurrency,
-            'network': undefined,
+            'network': null,
             'address': this.safeString (depositAddress, 'address'),
             'tag': this.safeString (depositAddress, 'addressTag'),
         } as DepositAddress;

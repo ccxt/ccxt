@@ -476,7 +476,7 @@ export default class hyperliquid extends Exchange {
         const id = this.safeString (rawCurrency, 'index');
         const name = this.safeString (rawCurrency, 'name');
         const code = this.safeCurrencyCode (name);
-        this.options['cachedCurrenciesById'][id as string] = name;
+        this.options['cachedCurrenciesById'][id] = name;
         const result = this.safeCurrencyStructure ({
             'id': id,
             'name': name,
@@ -650,7 +650,7 @@ export default class hyperliquid extends Exchange {
                     data['collateralTokenName'] = collateralTokenCode;
                     // eg: 'flx:crcl' => {'quote': 'USDC', 'code': 'FLX-CRCL'}
                     const safeCode = this.safeCurrencyCode (name);
-                    this.options['hip3TokensByName'][name as string] = {
+                    this.options['hip3TokensByName'][name] = {
                         'quote': collateralTokenCode,
                         'code': safeCode.replace (':', '-'),
                     };
@@ -1294,7 +1294,7 @@ export default class hyperliquid extends Exchange {
             const info = market['info'];
             const ticker = this.parseTicker (info, market);
             const symbol = this.safeString (ticker, 'symbol');
-            result[symbol as string] = ticker;
+            result[symbol] = ticker;
         }
         return this.filterByArrayTickers (result, 'symbol', symbols);
     }

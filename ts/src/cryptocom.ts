@@ -2100,7 +2100,7 @@ export default class cryptocom extends Exchange {
         params = this.omit (params, [ 'network' ]);
         const depositAddresses = await this.fetchDepositAddressesByNetwork (code, params);
         if (network in depositAddresses) {
-            return depositAddresses[network as string];
+            return depositAddresses[network];
         }
         const keys = Object.keys (depositAddresses);
         return depositAddresses[keys[0]];
@@ -3524,7 +3524,7 @@ export default class cryptocom extends Exchange {
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const type = this.safeString (api, 0);
         const access = this.safeString (api, 1);
-        let url = this.urls['api'][type as string] + '/' + path;
+        let url = this.urls['api'][type] + '/' + path;
         const query = this.omit (params, this.extractParams (path));
         if (access === 'public') {
             if (Object.keys (query).length) {

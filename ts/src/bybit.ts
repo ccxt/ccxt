@@ -3875,7 +3875,7 @@ export default class bybit extends Exchange {
         const side = this.safeStringLower (order, 'side');
         let fee: Fee = undefined;
         const cumFeeDetail = this.safeDict (order, 'cumFeeDetail', {});
-        const feeCoins = Object.keys (cumFeeDetail as Dict);
+        const feeCoins = Object.keys (cumFeeDetail);
         const feeCoinId = this.safeString (feeCoins, 0);
         if (feeCoinId !== undefined) {
             fee = {
@@ -5835,7 +5835,7 @@ export default class bybit extends Exchange {
         const [ networkCode, paramsOmited ] = this.handleNetworkCodeAndParams (params);
         const indexedAddresses = await this.fetchDepositAddressesByNetwork (code, paramsOmited);
         const selectedNetworkCode = this.selectNetworkCodeFromUnifiedNetworks (currency['code'], networkCode, indexedAddresses);
-        return indexedAddresses[selectedNetworkCode as string];
+        return indexedAddresses[selectedNetworkCode];
     }
 
     /**
@@ -7870,7 +7870,7 @@ export default class bybit extends Exchange {
         for (let i = 0; i < fees.length; i++) {
             const fee = this.parseTradingFee (fees[i]);
             const symbol = fee['symbol'];
-            result[symbol as string] = fee;
+            result[symbol] = fee;
         }
         return result;
     }

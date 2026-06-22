@@ -1312,7 +1312,7 @@ export default class bitmart extends Exchange {
             let network = this.safeDict (networks, currencyCode); // trying to find network that has the same code as currency
             if (network === undefined) {
                 // use the first network in the networks list if there is no network code with the same code as currency
-                const keys = Object.keys (networks as Dict);
+                const keys = Object.keys (networks);
                 const length = keys.length;
                 if (length > 0) {
                     network = this.safeValue (networks, keys[0]);

@@ -1931,7 +1931,7 @@ export default class pacifica extends Exchange {
             const info = data[i];
             const ticker = this.parseTicker (info);
             const symbol = this.safeString (ticker, 'symbol');
-            result[symbol as string] = ticker;
+            result[symbol] = ticker;
         }
         return this.filterByArrayTickers (result, 'symbol', symbols);
     }

@@ -1360,7 +1360,7 @@ export default class coinbase extends Exchange {
         const data = this.safeList (currencies, 'data', []);
         const dataById = this.indexBy (data, 'id');
         const rates = this.safeDict (this.safeDict (exchangeRates, 'data', {}), 'rates', {});
-        const baseIds = Object.keys (rates as Dict);
+        const baseIds = Object.keys (rates);
         const result = [];
         for (let i = 0; i < baseIds.length; i++) {
             const baseId = baseIds[i];
@@ -1968,7 +1968,7 @@ export default class coinbase extends Exchange {
         const cryptoData = this.safeList (cryptoResponse, 'data', []);
         const ratesData = this.safeDict (ratesResponse, 'data', {});
         const rates = this.safeDict (ratesData, 'rates', {});
-        const ratesIds = Object.keys (rates as Dict);
+        const ratesIds = Object.keys (rates);
         const currencies = this.arrayConcat (fiatData, cryptoData);
         const result: Dict = {};
         const networks: Dict = {};
@@ -2073,7 +2073,7 @@ export default class coinbase extends Exchange {
         const rates = this.safeDict (data, 'rates', {});
         const quoteId = this.safeString (data, 'currency');
         const result: Dict = {};
-        const baseIds = Object.keys (rates as Dict);
+        const baseIds = Object.keys (rates);
         const delimiter = '-';
         for (let i = 0; i < baseIds.length; i++) {
             const baseId = baseIds[i];
