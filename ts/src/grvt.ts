@@ -2000,7 +2000,7 @@ export default class grvt extends Exchange {
         const isMarketOrder = (type === 'market');
         const subAccountId = this.getSubAccountId (params);
         const isReduceOnly = this.safeBool (params, 'reduceOnly', false);
-        const orderRequest = {
+        const orderRequest: Dict = {
             'sub_account_id': subAccountId,
             'time_in_force': undefined,
             'legs': [ orderLeg ],

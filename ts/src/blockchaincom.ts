@@ -751,8 +751,9 @@ export default class blockchaincom extends Exchange {
         const makerFee = this.safeNumber (response, 'makerRate');
         const takerFee = this.safeNumber (response, 'takerRate');
         const result: Dict = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const allSymbols = (this.symbols !== undefined) ? this.symbols : [];
+        for (let i = 0; i < allSymbols.length; i++) {
+            const symbol = allSymbols[i];
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,

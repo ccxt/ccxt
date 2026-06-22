@@ -872,8 +872,9 @@ export default class independentreserve extends Exchange {
             };
         }
         const result: Dict = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const allSymbols = (this.symbols !== undefined) ? this.symbols : [];
+        for (let i = 0; i < allSymbols.length; i++) {
+            const symbol = allSymbols[i];
             const market = this.market (symbol);
             const fee = this.safeValue (fees, market['base'], {});
             result[symbol] = {

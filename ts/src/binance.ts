@@ -4329,7 +4329,7 @@ export default class binance extends Exchange {
         //     }
         //
         const statusRaw = this.safeString (response, 'status');
-        let status = undefined;
+        let status: Str = undefined;
         if (statusRaw !== undefined) {
             status = this.safeString ({ '0': 'ok', '1': 'maintenance' }, statusRaw, statusRaw);
         }
