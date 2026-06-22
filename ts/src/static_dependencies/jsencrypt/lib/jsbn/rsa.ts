@@ -46,7 +46,7 @@ function pkcs1pad2(s:string, n:number) {
         console.error("Message too long for RSA");
         return null;
     }
-    const ba = [];
+    const ba: number[] = [];
     let i = s.length - 1;
     while (i >= 0 && n > 0) {
         const c = s.charCodeAt(i--);
@@ -63,7 +63,7 @@ function pkcs1pad2(s:string, n:number) {
     }
     ba[--n] = 0;
     const rng = new SecureRandom();
-    const x = [];
+    const x: number[] = [];
     while (n > 2) { // random non-zero pad
         x[0] = 0;
         while (x[0] == 0) {
@@ -79,14 +79,14 @@ function pkcs1pad2(s:string, n:number) {
 // "empty" RSA key constructor
 export class RSAKey {
   constructor() {
-        this.n = null;
+        this.n = null as unknown as BigInteger;
         this.e = 0;
-        this.d = null;
-        this.p = null;
-        this.q = null;
-        this.dmp1 = null;
-        this.dmq1 = null;
-        this.coeff = null;
+        this.d = null as unknown as BigInteger;
+        this.p = null as unknown as BigInteger;
+        this.q = null as unknown as BigInteger;
+        this.dmp1 = null as unknown as BigInteger;
+        this.dmq1 = null as unknown as BigInteger;
+        this.coeff = null as unknown as BigInteger;
     }
 
     //#region PROTECTED
@@ -297,11 +297,11 @@ export class RSAKey {
         const digest = header + digestMethod(text).toString();
         const m = pkcs1pad1(digest, this.n.bitLength() / 4);
         if (m == null) {
-            return null;
+            return null as unknown as string;
         }
         const c = this.doPrivate(m);
         if (c == null) {
-            return null;
+            return null as unknown as string;
         }
         const h = c.toString(16);
         if ((h.length & 1) == 0) {
@@ -315,7 +315,7 @@ export class RSAKey {
         const c = parseBigInt(signature, 16);
         const m = this.doPublic(c);
         if (m == null) {
-            return null;
+            return null as unknown as boolean;
         }
         const unpadded = m.toString(16).replace(/^1f+00/, "");
         const digest = removeDigestHeader(unpadded);
@@ -342,11 +342,11 @@ function pkcs1unpad2(d:BigInteger, n:number):string {
     let i = 0;
     while (i < b.length && b[i] == 0) { ++i; }
     if (b.length - i != n - 1 || b[i] != 2) {
-        return null;
+        return null as unknown as string;
     }
     ++i;
     while (b[i] != 0) {
-        if (++i >= b.length) { return null; }
+        if (++i >= b.length) { return null as unknown as string; }
     }
     let ret = "";
     while (++i < b.length) {

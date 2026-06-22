@@ -60,11 +60,11 @@ export class AbiCoder {
 
     #getCoder(param: ParamType): Coder {
         if (param.isArray()) {
-            return new ArrayCoder(this.#getCoder(param.arrayChildren), param.arrayLength, param.name);
+            return new ArrayCoder(this.#getCoder(param.arrayChildren as ParamType), param.arrayLength as number, param.name);
         }
 
         if (param.isTuple()) {
-            return new TupleCoder(param.components.map((c) => this.#getCoder(c)), param.name);
+            return new TupleCoder((param.components as ParamType[]).map((c) => this.#getCoder(c)), param.name);
         }
 
         switch (param.baseType) {

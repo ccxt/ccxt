@@ -34,7 +34,7 @@ export const Hex = {
                 decoder[ignore.charAt(i)] = -1;
             }
         }
-        const out = [];
+        const out: number[] = [];
         let bits = 0;
         let char_count = 0;
         for (i = 0; i < a.length; ++i) {
