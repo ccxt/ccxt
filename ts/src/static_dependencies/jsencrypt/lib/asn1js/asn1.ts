@@ -547,8 +547,8 @@ export class ASN1 {
                     }
                 }
                 sub = getSub();
-                for (let i = 0; i < sub!.length; ++i) {
-                    if (sub![i].tag.isEOC()) {
+                for (let i = 0; i < sub.length; ++i) {
+                    if (sub[i].tag.isEOC()) {
                         throw new Error("EOC is not supposed to be actual content.");
                     }
                 }

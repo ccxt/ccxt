@@ -155,8 +155,6 @@ export class JSEncrypt {
      * @returns {JSEncryptRSAKey} the JSEncryptRSAKey object
      * @public
      */
-    public getKey(): JSEncryptRSAKey;
-    public getKey(cb: () => void): void;
     public getKey(cb?: () => void) {
         // Only create new if it does not exist.
         if (!this.key) {

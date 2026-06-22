@@ -64,7 +64,7 @@ export class AbiCoder {
         }
 
         if (param.isTuple()) {
-            return new TupleCoder(param.components!.map((c) => this.#getCoder(c)), param.name);
+            return new TupleCoder(param.components.map((c) => this.#getCoder(c)), param.name);
         }
 
         switch (param.baseType) {
