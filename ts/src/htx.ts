@@ -766,7 +766,7 @@ export default class htx extends Exchange {
                             'swap-api/v1/swap_track_openorders': 1,
                             'swap-api/v1/swap_track_hisorders': 1,
                             // Linear Swap Interface
-                            'v5/account/asset_mode': 100, // 0.1 requests per second = 1000ms / ( 100 * 100)
+                            'v5/account/asset_mode': 100, // 0.1 requests per second = 1000ms / (100 * 100)
                             'v5/trade/order': 0.41679,
                             'v5/trade/batch_orders': 0.41679,
                             'v5/trade/cancel_order': 0.41679,
@@ -3514,6 +3514,11 @@ export default class htx extends Exchange {
      */
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
+        let isUnifiedAccount = undefined;
+        [ isUnifiedAccount, params ] = this.handleOptionAndParams2 (params, 'fetchBalance', 'unified', 'uta', false);
+        if (isUnifiedAccount) {
+            throw new NotSupported (this.id + ' fetchBalance() unified account has been deprecated on htx');
+        }
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         let subType: SubType = undefined;
