@@ -524,7 +524,7 @@ export default class coinbaseinternational extends Exchange {
         await this.loadMarkets ();
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
-        let maxEntriesPerRequest = undefined;
+        let maxEntriesPerRequest: Int = undefined;
         [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'maxEntriesPerRequest', 100);
         const pageKey = 'ccxtPageKey';
         if (paginate) {
@@ -532,7 +532,7 @@ export default class coinbaseinternational extends Exchange {
         }
         const market = this.market (symbol);
         const page = this.safeInteger (params, pageKey, 1) - 1;
-        const offSet = this.safeInteger2 (params, 'offset', 'result_offset', page * maxEntriesPerRequest);
+        const offSet = this.safeInteger2 (params, 'offset', 'result_offset', page * ((maxEntriesPerRequest === undefined) ? 100 : maxEntriesPerRequest));
         const request: Dict = {
             'instrument': market['id'],
             'result_offset': offSet,
@@ -966,14 +966,14 @@ export default class coinbaseinternational extends Exchange {
         await this.loadMarkets ();
         let paginate: Bool = undefined;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchDepositsWithdrawals', 'paginate');
-        let maxEntriesPerRequest = undefined;
+        let maxEntriesPerRequest: Int = undefined;
         [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchDepositsWithdrawals', 'maxEntriesPerRequest', 100);
         const pageKey = 'ccxtPageKey';
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchDepositsWithdrawals', code, since, limit, params, pageKey, maxEntriesPerRequest) as Transaction[];
         }
         const page = this.safeInteger (params, pageKey, 1) - 1;
-        const offSet = this.safeInteger2 (params, 'offset', 'result_offset', page * maxEntriesPerRequest);
+        const offSet = this.safeInteger2 (params, 'offset', 'result_offset', page * ((maxEntriesPerRequest === undefined) ? 100 : maxEntriesPerRequest));
         const request: Dict = {
             'result_offset': offSet,
         };
@@ -1148,7 +1148,7 @@ export default class coinbaseinternational extends Exchange {
         //    ]
         //
         const positions = this.parsePositions (response);
-        if (this.isEmpty (symbols)) {
+        if ((symbols === undefined) || (this.isEmpty (symbols))) {
             return positions;
         }
         symbols = this.marketSymbols (symbols);
@@ -1219,9 +1219,9 @@ export default class coinbaseinternational extends Exchange {
         // const transactionType = this.safeString (transaction, 'type');
         const datetime = this.safeString (transaction, 'updated_at');
         const fromPorfolio = this.safeDict (transaction, 'from_portfolio', {});
-        const addressFrom = this.safeStringN (transaction, [ 'from_address', 'from_cb_account', this.safeStringN (fromPorfolio, [ 'id', 'uuid', 'name' ]), 'from_counterparty_id' ]);
+        const addressFrom = this.safeStringN (transaction, [ 'from_address', 'from_cb_account', this.safeStringN (fromPorfolio, [ 'id', 'uuid', 'name' ], ''), 'from_counterparty_id' ]);
         const toPorfolio = this.safeDict (transaction, 'from_portfolio', {});
-        const addressTo = this.safeStringN (transaction, [ 'to_address', 'to_cb_account', this.safeStringN (toPorfolio, [ 'id', 'uuid', 'name' ]), 'to_counterparty_id' ]);
+        const addressTo = this.safeStringN (transaction, [ 'to_address', 'to_cb_account', this.safeStringN (toPorfolio, [ 'id', 'uuid', 'name' ], ''), 'to_counterparty_id' ]);
         const code = this.safeString (currency, 'code');
         return {
             'info': transaction,
@@ -1412,7 +1412,7 @@ export default class coinbaseinternational extends Exchange {
         //       }
         //    }
         //
-        const marketId = this.safeString (market, 'symbol');
+        const marketId = this.safeString (market, 'symbol', '');
         const baseId = this.safeString (market, 'base_asset_name');
         const quoteId = this.safeString (market, 'quote_asset_name');
         const typeId = this.safeString (market, 'type'); // 'SPOT', 'PERP'
@@ -1426,7 +1426,7 @@ export default class coinbaseinternational extends Exchange {
         }
         const isLinear = isSpot ? undefined : (settleId === quoteId);
         const isInverse = isSpot ? undefined : (settleId !== quoteId);
-        return {
+        return this.safeMarketStructure ({
             'id': marketId,
             'lowercaseId': marketId.toLowerCase (),
             'symbol': symbol,
@@ -1478,7 +1478,7 @@ export default class coinbaseinternational extends Exchange {
             },
             'info': market,
             'created': undefined,
-        };
+        });
     }
 
     /**
@@ -2111,14 +2111,14 @@ export default class coinbaseinternational extends Exchange {
         [ portfolio, params ] = await this.handlePortfolioAndParams ('fetchOpenOrders', params);
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'paginate');
-        let maxEntriesPerRequest = undefined;
+        let maxEntriesPerRequest: Int = undefined;
         [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'maxEntriesPerRequest', 100);
         const pageKey = 'ccxtPageKey';
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchOpenOrders', symbol, since, limit, params, pageKey, maxEntriesPerRequest) as Order[];
         }
         const page = this.safeInteger (params, pageKey, 1) - 1;
-        const offSet = this.safeInteger2 (params, 'offset', 'result_offset', page * maxEntriesPerRequest);
+        const offSet = this.safeInteger2 (params, 'offset', 'result_offset', page * ((maxEntriesPerRequest === undefined) ? 100 : maxEntriesPerRequest));
         const request: Dict = {
             'portfolio': portfolio,
             'result_offset': offSet,
@@ -2194,7 +2194,7 @@ export default class coinbaseinternational extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         const pageKey = 'ccxtPageKey';
-        let maxEntriesPerRequest = undefined;
+        let maxEntriesPerRequest: Int = undefined;
         [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'maxEntriesPerRequest', 100);
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchMyTrades', symbol, since, limit, params, pageKey, maxEntriesPerRequest) as Trade[];
@@ -2204,7 +2204,7 @@ export default class coinbaseinternational extends Exchange {
             market = this.market (symbol);
         }
         const page = this.safeInteger (params, pageKey, 1) - 1;
-        const offSet = this.safeInteger2 (params, 'offset', 'result_offset', page * maxEntriesPerRequest);
+        const offSet = this.safeInteger2 (params, 'offset', 'result_offset', page * ((maxEntriesPerRequest === undefined) ? 100 : maxEntriesPerRequest));
         const request: Dict = {
             'result_offset': offSet,
         };
