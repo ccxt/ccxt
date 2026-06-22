@@ -2662,12 +2662,11 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra params (currently unused)
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/#/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: Str, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
-        const outcome = symbol;
+    async watchOrderBook (outcome: Str, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
         const outcomeObj = this.outcome (outcome);
         const tokenId = this.safeString (outcomeObj, 'outcomeId');
-        symbol = this.safeString (outcomeObj, 'outcome');
-        const messageHash = 'orderbook::' + symbol;
+        outcome = this.safeString (outcomeObj, 'outcome');
+        const messageHash = 'orderbook::' + outcome;
         const subscribeHash = 'subscribe::' + tokenId;
         const subscribeMsg = { 'assets_ids': [ tokenId ], 'type': 'market' };
         const url = this.urls['api']['ws'];
@@ -2679,18 +2678,17 @@ export default class polymarket extends Exchange {
      * @method
      * @name polymarket#watchTrades
      * @description streams live fills for a single Polymarket outcome token
-     * @param {string} symbol unified outcome symbol
+     * @param {string} outcome unified outcome outcome
      * @param {int} [since] optional unix timestamp (ms) lower bound
      * @param {int} [limit] optional max number of trades to return
      * @param {object} [params] extra params (unused)
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
-    async watchTrades (symbol: Str, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
-        const outcome = symbol;
+    async watchTrades (outcome: Str, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
         const outcomeObj = this.outcome (outcome);
         const tokenId = this.safeString (outcomeObj, 'outcomeId');
-        symbol = this.safeString (outcomeObj, 'outcome');
-        const messageHash = 'trades::' + symbol;
+        outcome = this.safeString (outcomeObj, 'outcome');
+        const messageHash = 'trades::' + outcome;
         const subscribeHash = 'subscribe::' + tokenId;
         const subscribeMsg = { 'assets_ids': [ tokenId ], 'type': 'market' };
         const url = this.urls['api']['ws'];
@@ -2702,20 +2700,19 @@ export default class polymarket extends Exchange {
      * @method
      * @name polymarket#watchTicker
      * @description streams a synthetic ticker derived from order-book snapshots and deltas (mid = (bid + ask) / 2)
-     * @param {string} symbol unified outcome symbol
+     * @param {string} outcome unified outcome outcome
      * @param {object} [params] extra params (unused)
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    async watchTicker (symbol: Str, params = {}): Promise<PredictionTicker> {
-        const outcome = symbol;
+    async watchTicker (outcome: Str, params = {}): Promise<PredictionTicker> {
         const outcomeObj = this.outcome (outcome);
         const tokenId = this.safeString (outcomeObj, 'outcomeId');
-        symbol = this.safeString (outcomeObj, 'outcome');
-        const messageHash = 'ticker::' + symbol;
+        outcome = this.safeString (outcomeObj, 'outcome');
+        const messageHash = 'ticker::' + outcome;
         const subscribeHash = 'subscribe::' + tokenId;
         const subscribeMsg = { 'assets_ids': [ tokenId ], 'type': 'market' };
-        if (this.orderbooks[symbol] === undefined) {
-            this.orderbooks[symbol] = this.orderBook ([]);
+        if (this.orderbooks[outcome] === undefined) {
+            this.orderbooks[outcome] = this.orderBook ([]);
         }
         const url = this.urls['api']['ws'];
         const orderbook = await this.watch (url, messageHash, subscribeMsg, subscribeHash);
@@ -2750,9 +2747,9 @@ export default class polymarket extends Exchange {
         } else {
             mid = bestAsk;
         }
-        const market = this.safeOutcome (symbol);
+        const market = this.safeOutcome (outcome);
         return this.safePredictionTicker ({
-            'outcome': symbol,
+            'outcome': outcome,
             'outcomeId': this.safeString (market, 'outcomeId'),
             'label': this.safeString (market, 'label'),
             'market': this.safeString (market, 'market'),
@@ -2783,25 +2780,25 @@ export default class polymarket extends Exchange {
      * @name polymarket#watchOrders
      * @description watches the authenticated user's order updates over the CLOB user websocket channel
      * @see https://docs.polymarket.com/developers/CLOB/websocket/user-channel
-     * @param {string} [symbol] unified outcome symbol to filter the stream to one market
+     * @param {string} [symbol] unified outcome outcome to filter the stream to one market
      * @param {int} [since] the earliest time in ms to return orders for
      * @param {int} [limit] the maximum number of orders to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+    async watchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
         await this.loadApiCredentials ();
         let messageHash = 'orders';
-        if (symbol !== undefined) {
-            const outcomeObj = this.outcome (symbol);
-            symbol = this.safeString (outcomeObj, 'outcome');
-            messageHash = 'orders::' + symbol;
+        if (outcome !== undefined) {
+            const outcomeObj = this.outcome (outcome);
+            outcome = this.safeString (outcomeObj, 'outcome');
+            messageHash = 'orders::' + outcome;
         }
         const orders = await this.subscribeUserChannel (messageHash, params);
         if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
+            limit = orders.getLimit (outcome, limit);
         }
-        return this.filterByOutcomeSinceLimit (orders, symbol, since, limit, true);
+        return this.filterByOutcomeSinceLimit (orders, outcome, since, limit, true);
     }
 
     /**
@@ -2815,19 +2812,19 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
      */
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+    async watchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
         await this.loadApiCredentials ();
         let messageHash = 'myTrades';
-        if (symbol !== undefined) {
-            const outcomeObj = this.outcome (symbol);
-            symbol = this.safeString (outcomeObj, 'outcome');
-            messageHash = 'myTrades::' + symbol;
+        if (outcome !== undefined) {
+            const outcomeObj = this.outcome (outcome);
+            outcome = this.safeString (outcomeObj, 'outcome');
+            messageHash = 'myTrades::' + outcome;
         }
         const trades = await this.subscribeUserChannel (messageHash, params);
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limit = trades.getLimit (outcome, limit);
         }
-        return this.filterByOutcomeSinceLimit (trades, symbol, since, limit, true);
+        return this.filterByOutcomeSinceLimit (trades, outcome, since, limit, true);
     }
 
     async subscribeUserChannel (messageHash: string, params = {}) {

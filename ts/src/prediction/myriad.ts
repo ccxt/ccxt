@@ -384,7 +384,6 @@ export default class myriad extends Exchange {
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
     async fetchPositions (outcomes: Strings = undefined, params = {}): Promise<PredictionPosition[]> {
-        const symbols = outcomes;
         const address = this.safeString2 (params, 'address', 'user', this.walletAddress);
         if (address === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchPositions() requires a walletAddress or an address parameter');
@@ -396,7 +395,7 @@ export default class myriad extends Exchange {
         for (let i = 0; i < data.length; i++) {
             result.push (this.parsePosition (data[i]));
         }
-        return this.filterByArrayPositions (result, 'outcome', symbols, false) as PredictionPosition[];
+        return this.filterByArrayPositions (result, 'outcome', outcomes, false) as PredictionPosition[];
     }
 
     /**
@@ -2234,10 +2233,9 @@ export default class myriad extends Exchange {
      * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome symbol
      */
     async fetchTickers (outcomes: Strings = undefined, params = {}): Promise<PredictionTickers> {
-        const symbols = outcomes;
         this.ensureOutcomesLoaded ();
         const result: PredictionTickers = {};
-        if (symbols === undefined) {
+        if (outcomes === undefined) {
             const rawMarkets = await this.fetchRawMarketsList (params);
             for (let i = 0; i < rawMarkets.length; i++) {
                 const raw = rawMarkets[i];
@@ -2256,8 +2254,8 @@ export default class myriad extends Exchange {
         // group target outcomes by their parent market to fetch each market only once
         const outcomesByMarket: Dict = {};
         const marketKeys: any[] = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const outcomeObj = this.outcome (symbols[i]);
+        for (let i = 0; i < outcomes.length; i++) {
+            const outcomeObj = this.outcome (outcomes[i]);
             const info = this.safeDict (outcomeObj, 'info', {});
             const networkId = this.safeString (info, 'networkId');
             const marketId = this.safeString (info, 'marketId');
@@ -2667,13 +2665,13 @@ export default class myriad extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
+    async watchOrderBook (outcome: string, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
         this.ensureOutcomesLoaded ();
-        const outcomeObj = this.outcome (symbol);
+        const outcomeObj = this.outcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
         const networkId = this.safeString (info, 'networkId');
         const marketId = this.safeString (info, 'marketId');
-        const sym = this.safeOutcomeSymbol (symbol, outcomeObj);
+        const sym = this.safeOutcomeSymbol (outcome, outcomeObj);
         const channel = 'orderbook:' + networkId + ':' + marketId;
         const messageHash = 'orderbook::' + sym;
         const url = this.safeString (this.urls['api'] as Dict, 'ws');
@@ -2684,7 +2682,7 @@ export default class myriad extends Exchange {
         if (isNewSubscription) {
             // the channel only streams deltas, so (re)seed the live book from the REST snapshot on a
             // fresh subscription (first call or after a reconnect that cleared client.subscriptions)
-            await this.seedOrderBook (symbol, sym, limit);
+            await this.seedOrderBook (outcome, sym, limit);
         }
         const requestId = this.requestId (url);
         const subscribeMsg: Dict = { 'subscribe': { 'channel': channel }, 'id': requestId };
@@ -2751,13 +2749,13 @@ export default class myriad extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+    async watchTrades (outcome: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
         this.ensureOutcomesLoaded ();
-        const outcomeObj = this.outcome (symbol);
+        const outcomeObj = this.outcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
         const networkId = this.safeString (info, 'networkId');
         const marketId = this.safeString (info, 'marketId');
-        const sym = this.safeOutcomeSymbol (symbol, outcomeObj);
+        const sym = this.safeOutcomeSymbol (outcome, outcomeObj);
         const channel = 'trades:' + networkId + ':' + marketId;
         const messageHash = 'trades::' + sym;
         const trades = await this.subscribeMyriadChannel (messageHash, channel, params);
@@ -2776,16 +2774,16 @@ export default class myriad extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
      */
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' watchMyTrades() requires a symbol (the trades channel is per-market)');
+    async watchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+        if (outcome === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchMyTrades() requires a outcome (the trades channel is per-market)');
         }
         this.ensureOutcomesLoaded ();
-        const outcomeObj = this.outcome (symbol);
+        const outcomeObj = this.outcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
         const networkId = this.safeString (info, 'networkId');
         const marketId = this.safeString (info, 'marketId');
-        const sym = this.safeOutcomeSymbol (symbol, outcomeObj);
+        const sym = this.safeOutcomeSymbol (outcome, outcomeObj);
         const channel = 'trades:' + networkId + ':' + marketId;
         const messageHash = 'myTrades';
         const trades = await this.subscribeMyriadChannel (messageHash, channel, params);
@@ -2916,13 +2914,13 @@ export default class myriad extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    async watchTicker (symbol: string, params = {}): Promise<PredictionTicker> {
+    async watchTicker (outcome: string, params = {}): Promise<PredictionTicker> {
         this.ensureOutcomesLoaded ();
-        const outcomeObj = this.outcome (symbol);
+        const outcomeObj = this.outcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
         const networkId = this.safeString (info, 'networkId');
         const marketId = this.safeString (info, 'marketId');
-        const sym = this.safeOutcomeSymbol (symbol, outcomeObj);
+        const sym = this.safeOutcomeSymbol (outcome, outcomeObj);
         const channel = 'prices:' + networkId + ':' + marketId;
         const messageHash = 'ticker::' + sym;
         return await this.subscribeMyriadChannel (messageHash, channel, params);
@@ -2937,24 +2935,24 @@ export default class myriad extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dict of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by symbol
      */
-    async watchTickers (symbols: Strings = undefined, params = {}): Promise<PredictionTickers> {
+    async watchTickers (outcomes: Strings = undefined, params = {}): Promise<PredictionTickers> {
         this.ensureOutcomesLoaded ();
-        if (symbols === undefined) {
-            throw new ArgumentsRequired (this.id + ' watchTickers() requires a list of symbols (the prices channel is per-market)');
+        if (outcomes === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchTickers() requires a list of outcomes (the prices channel is per-market)');
         }
-        const symbolsLength = symbols.length;
+        const symbolsLength = outcomes.length;
         const url = this.safeString (this.urls['api'] as Dict, 'ws');
         await this.connectCentrifugo (url);
         const client = this.client (url);
         const seenChannels: Dict = {};
         const resolvedSymbols = [];
         for (let i = 0; i < symbolsLength; i++) {
-            const outcomeObj = this.outcome (symbols[i]);
+            const outcomeObj = this.outcome (outcomes[i]);
             const info = this.safeDict (outcomeObj, 'info', {});
             const networkId = this.safeString (info, 'networkId');
             const marketId = this.safeString (info, 'marketId');
             const channel = 'prices:' + networkId + ':' + marketId;
-            resolvedSymbols.push (this.safeOutcomeSymbol (symbols[i], outcomeObj));
+            resolvedSymbols.push (this.safeOutcomeSymbol (outcomes[i], outcomeObj));
             if (this.safeValue (seenChannels, channel) === undefined) {
                 seenChannels[channel] = true;
                 const requestId = this.requestId (url);
@@ -2978,9 +2976,9 @@ export default class myriad extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} a list of [timestamp, open, high, low, close, volume] candles
      */
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async watchOHLCV (outcome: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         // Myriad has no OHLCV websocket channel, so build candles from the live trade stream
-        const trades = await this.watchTrades (symbol, since, limit, params);
+        const trades = await this.watchTrades (outcome, since, limit, params);
         const ohlcvc = this.buildOHLCVC (trades, timeframe, 0, 2147483647);
         const result = [];
         const ohlcvcLength = ohlcvc.length;
@@ -3052,20 +3050,20 @@ export default class myriad extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+    async watchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
         this.ensureOutcomesLoaded ();
         const trader = this.walletAddressFromKeys ();
         let networkId = this.safeString (this.options, 'defaultNetworkId', '56');
-        if (symbol !== undefined) {
-            const outcomeObj = this.outcome (symbol);
+        if (outcome !== undefined) {
+            const outcomeObj = this.outcome (outcome);
             const info = this.safeDict (outcomeObj, 'info', {});
             networkId = this.safeString (info, 'networkId', networkId);
-            symbol = this.safeOutcomeSymbol (symbol, outcomeObj);
+            outcome = this.safeOutcomeSymbol (outcome, outcomeObj);
         }
         const channel = 'orders:' + networkId + ':' + trader;
         const messageHash = 'orders';
         const orders = await this.subscribeMyriadChannel (messageHash, channel, params);
-        return this.filterByValueSinceLimit (orders, 'outcome', symbol, since, limit, 'timestamp', true) as PredictionOrder[];
+        return this.filterByValueSinceLimit (orders, 'outcome', outcome, since, limit, 'timestamp', true) as PredictionOrder[];
     }
 
     handleOrder (client, data) {
@@ -3127,7 +3125,7 @@ export default class myriad extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionPosition[]> {
+    async watchPositions (outcomes: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionPosition[]> {
         this.ensureOutcomesLoaded ();
         const trader = this.walletAddressFromKeys ();
         const networkId = this.safeString (this.options, 'defaultNetworkId', '56');
@@ -3148,7 +3146,7 @@ export default class myriad extends Exchange {
         if (this.newUpdates) {
             return positions;
         }
-        return this.filterByOutcomesSinceLimit (positions, symbols, since, limit, true) as PredictionPosition[];
+        return this.filterByOutcomesSinceLimit (positions, outcomes, since, limit, true) as PredictionPosition[];
     }
 
     async seedPositionBalances (trader: string) {

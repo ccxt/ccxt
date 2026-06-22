@@ -1048,9 +1048,8 @@ export default class limitless extends Exchange {
      * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome symbol
      */
     async fetchTickers (outcomes: Strings = undefined, params = {}): Promise<PredictionTickers> {
-        const symbols = outcomes;
         const result: PredictionTickers = {};
-        if (symbols === undefined) {
+        if (outcomes === undefined) {
             // parse tickers for every loaded outcome from the cached listing data, without the per-market order books
             const allMarkets = await this.fetchMarkets (params);
             for (let i = 0; i < allMarkets.length; i++) {
@@ -1070,9 +1069,9 @@ export default class limitless extends Exchange {
         // group target outcomes by their parent market to fetch each market and book only once
         const outcomesBySlug: Dict = {};
         const slugs: any[] = [];
-        for (let i = 0; i < symbols.length; i++) {
-            this.checkEvents (symbols[i]);
-            const outcomeObj = this.outcome (symbols[i]);
+        for (let i = 0; i < outcomes.length; i++) {
+            this.checkEvents (outcomes[i]);
+            const outcomeObj = this.outcome (outcomes[i]);
             const slug = this.safeString (outcomeObj['info'], 'slug');
             if (!(slug in outcomesBySlug)) {
                 outcomesBySlug[slug] = [];
@@ -2659,14 +2658,13 @@ export default class limitless extends Exchange {
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
     async fetchPositions (outcomes: Strings = undefined, params = {}): Promise<PredictionPosition[]> {
-        const symbols = outcomes;
         let symbolsLength = 0;
-        if (symbols !== undefined) {
-            symbolsLength = symbols.length;
+        if (outcomes !== undefined) {
+            symbolsLength = outcomes.length;
         }
         if (symbolsLength > 0) {
-            for (let i = 0; i < symbols.length; i++) {
-                this.checkEvents (symbols[i]);
+            for (let i = 0; i < outcomes.length; i++) {
+                this.checkEvents (outcomes[i]);
             }
         } else {
             this.checkEvents ();

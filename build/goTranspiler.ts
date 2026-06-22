@@ -1608,7 +1608,9 @@ class NewTranspiler {
             missingMethodsWrappers,
         ].join('\n');
         if (ws || this.isPrediction) {
-            const baseNames = this.extractTypeAndFuncNames(EXCHANGES_FOLDER);
+            // copy — extractTypeAndFuncNames returns a CACHED Set; mutating it below would
+            // corrupt the cache for every later exchange/call
+            const baseNames = new Set (this.extractTypeAndFuncNames(EXCHANGES_FOLDER));
             if (this.isPrediction) {
                 // only for methods THIS exchange actually defines: keep its renamed-param option
                 // overrides unqualified so the wrapper binds to the local struct (with `Outcomes`).

@@ -717,12 +717,11 @@ export default class kalshi extends Exchange {
      * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome symbol
      */
     async fetchTickers (outcomes: Strings = undefined, params = {}): Promise<PredictionTickers> {
-        const symbols = outcomes;
         const targets: any[] = [];
-        if (symbols !== undefined) {
-            for (let i = 0; i < symbols.length; i++) {
-                this.checkEvents (symbols[i]);
-                targets.push (symbols[i]);
+        if (outcomes !== undefined) {
+            for (let i = 0; i < outcomes.length; i++) {
+                this.checkEvents (outcomes[i]);
+                targets.push (outcomes[i]);
             }
         } else {
             this.checkEvents ();
