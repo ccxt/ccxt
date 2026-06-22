@@ -1641,6 +1641,9 @@ export default class mexc extends mexcRest {
         };
         url = this.urls['api']['ws']['swap'];
         this.watchSwapPublic (channel, messageHash, requestParams, params);
+        if (url === undefined) {
+            url = '';
+        }
         const client = this.client (url);
         this.handleUnsubscriptions (client, [ messageHash ]);
         return undefined;
@@ -1693,6 +1696,9 @@ export default class mexc extends mexcRest {
             };
             url = this.urls['api']['ws']['swap'];
             this.watchSwapPublic (channel, messageHash, requestParams, params);
+        }
+        if (url === undefined) {
+            url = '';
         }
         const client = this.client (url);
         this.handleUnsubscriptions (client, [ messageHash ]);
@@ -1833,6 +1839,9 @@ export default class mexc extends mexcRest {
             };
             this.watchSwapPublic (channel, messageHash, requestParams, params);
         }
+        if (url === undefined) {
+            url = '';
+        }
         const client = this.client (url);
         this.handleUnsubscriptions (client, [ messageHash ]);
         return undefined;
@@ -1868,6 +1877,9 @@ export default class mexc extends mexcRest {
             };
             this.watchSwapPublic (channel, messageHash, requestParams, params);
         }
+        if (url === undefined) {
+            url = '';
+        }
         const client = this.client (url);
         this.handleUnsubscriptions (client, [ messageHash ]);
         return undefined;
@@ -1900,6 +1912,9 @@ export default class mexc extends mexcRest {
                 'symbol': market['id'],
             };
             this.watchSwapPublic (channel, messageHash, requestParams, params);
+        }
+        if (url === undefined) {
+            url = '';
         }
         const client = this.client (url);
         this.handleUnsubscriptions (client, [ messageHash ]);
