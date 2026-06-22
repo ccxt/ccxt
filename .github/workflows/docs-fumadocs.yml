@@ -13,7 +13,11 @@ on:
   push:
     branches: [master]
     paths:
-      - 'wiki/**'
+      # NB: deliberately NOT 'wiki/**'. Wiki content commits land many times a day; rebuilding
+      # + swapping the docs container that often churns connected clients (stale JS chunks and
+      # "Failed to find Server Action" after each new build) and adds deploy-window blips. Docs
+      # now redeploy on release (which bakes in the wiki as of that release) + docs-app changes
+      # + manual dispatch — not on every wiki commit.
       - 'website/**'
       - 'build/wiki-to-fumadocs.ts'
       - '.github/workflows/docs-fumadocs.yml'
@@ -59,6 +63,12 @@ jobs:
           context: website
           platforms: linux/arm64
           push: true
+          # Consistent Server Actions encryption key across builds, so a client served by an
+          # earlier deploy doesn't hit "Failed to find Server Action" after a redeploy. If the
+          # secret is unset Next generates a random key per build (the bug); set it once with:
+          #   openssl rand -base64 32 | gh secret set NEXT_SERVER_ACTIONS_ENCRYPTION_KEY -R ccxt/ccxt
+          build-args: |
+            NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=${{ secrets.NEXT_SERVER_ACTIONS_ENCRYPTION_KEY }}
           # SHA tag enables canary validation + rollback; latest is moved only after smoke passes.
           tags: |
             ${{ env.IMAGE }}:latest
@@ -110,22 +120,39 @@ jobs:
             echo "smoke: OK (grid-area:main x$n)"
           }
 
-          # Canary on a temp port — the live container is untouched until smoke passes.
-          CANARY="${CONTAINER}-canary"; TMP_PORT=3006
-          docker rm -f "$CANARY" 2>/dev/null || true
-          docker run -d -p 127.0.0.1:${TMP_PORT}:${PORT} $ENVFILE_ARG --name "$CANARY" "$IMAGE:$SHA"
-          if smoke "$TMP_PORT"; then
-            docker rm -f "$CANARY"
-            docker rm -f "$CONTAINER" 2>/dev/null || true
-            docker run -d --restart=always -p 127.0.0.1:${PORT}:${PORT} $ENVFILE_ARG --name "$CONTAINER" "$IMAGE:$SHA"
-            docker tag "$IMAGE:$SHA" "$IMAGE:latest"
-            docker image prune -f
-            docker logout ghcr.io || true
-            echo "deployed $SHA"
+          # Zero-downtime blue/green swap. nginx proxies the docs to 127.0.0.1:<active port>; we
+          # bring the new build up on the *other* port, smoke-test it there, then repoint nginx with
+          # a graceful reload (in-flight requests drain) and only then drop the old container. This
+          # removes the rm->run gap of the old swap, which briefly 502'd on every deploy.
+          NGINX_CONF=/etc/nginx/sites-available/docs
+          CUR_PORT=$(grep -oE '127\.0\.0\.1:30(05|06)' "$NGINX_CONF" 2>/dev/null | grep -oE '30(05|06)' | head -1)
+          [ -n "$CUR_PORT" ] || CUR_PORT="$PORT"
+          NEW_PORT=$([ "$CUR_PORT" = 3005 ] && echo 3006 || echo 3005)
+          NEW_NAME="${CONTAINER}-${NEW_PORT}"
+
+          docker rm -f "$NEW_NAME" 2>/dev/null || true
+          docker run -d --restart=always -p 127.0.0.1:${NEW_PORT}:${PORT} $ENVFILE_ARG --name "$NEW_NAME" "$IMAGE:$SHA"
+          if smoke "$NEW_PORT"; then
+            sed -i "s/127\.0\.0\.1:${CUR_PORT}/127.0.0.1:${NEW_PORT}/g" "$NGINX_CONF"
+            if nginx -t 2>/dev/null; then
+              nginx -s reload
+              sleep 3                                              # let in-flight requests on the old container finish
+              docker rm -f "${CONTAINER}-${CUR_PORT}" "${CONTAINER}" 2>/dev/null || true
+              docker tag "$IMAGE:$SHA" "$IMAGE:latest"
+              docker image prune -f
+              docker logout ghcr.io || true
+              echo "deployed $SHA on :${NEW_PORT} (zero-downtime; nginx ${CUR_PORT} -> ${NEW_PORT})"
+            else
+              sed -i "s/127\.0\.0\.1:${NEW_PORT}/127.0.0.1:${CUR_PORT}/g" "$NGINX_CONF"   # revert the port swap
+              docker rm -f "$NEW_NAME" || true
+              docker logout ghcr.io || true
+              echo "::error::nginx config invalid after port swap — reverted; live untouched on :${CUR_PORT}"
+              exit 1
+            fi
           else
-            echo "::error::smoke test failed — NOT promoting; live site left on previous image"
-            docker logs "$CANARY" 2>&1 | tail -40 || true
-            docker rm -f "$CANARY" || true
+            echo "::error::smoke test failed — NOT switching; live stays on :${CUR_PORT}"
+            docker logs "$NEW_NAME" 2>&1 | tail -40 || true
+            docker rm -f "$NEW_NAME" || true
             docker logout ghcr.io || true
             exit 1
           fi
