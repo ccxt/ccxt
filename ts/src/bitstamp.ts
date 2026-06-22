@@ -1742,6 +1742,9 @@ export default class bitstamp extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
+        if (status === undefined) {
+            return undefined;
+        }
         const statuses: Dict = {
             'In Queue': 'open',
             'Open': 'open',
@@ -2132,6 +2135,9 @@ export default class bitstamp extends Exchange {
     }
 
     parseTransactionStatus (status: Str) {
+        if (status === undefined) {
+            return undefined;
+        }
         //
         //   withdrawals:
         //   0 (open), 1 (in process), 2 (finished), 3 (canceled) or 4 (failed).
@@ -2612,6 +2618,9 @@ export default class bitstamp extends Exchange {
     }
 
     parseTransferStatus (status: Str): Str {
+        if (status === undefined) {
+            return undefined;
+        }
         const statuses: Dict = {
             'ok': 'ok',
             'error': 'failed',

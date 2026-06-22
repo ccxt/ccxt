@@ -1037,6 +1037,9 @@ export default class latoken extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
+        if (status === undefined) {
+            return undefined;
+        }
         const statuses: Dict = {
             'ORDER_STATUS_PLACED': 'open',
             'ORDER_STATUS_CLOSED': 'closed',
@@ -1054,6 +1057,9 @@ export default class latoken extends Exchange {
     }
 
     parseTimeInForce (timeInForce: Str) {
+        if (timeInForce === undefined) {
+            return undefined;
+        }
         const timeInForces: Dict = {
             'ORDER_CONDITION_GOOD_TILL_CANCELLED': 'GTC',
             'ORDER_CONDITION_IMMEDIATE_OR_CANCEL': 'IOC',
@@ -1610,6 +1616,9 @@ export default class latoken extends Exchange {
     }
 
     parseTransactionStatus (status: Str) {
+        if (status === undefined) {
+            return undefined;
+        }
         const statuses: Dict = {
             'TRANSACTION_STATUS_CONFIRMED': 'ok',
             'TRANSACTION_STATUS_EXECUTED': 'ok',
@@ -1777,6 +1786,9 @@ export default class latoken extends Exchange {
     }
 
     parseTransferStatus (status: Str): Str {
+        if (status === undefined) {
+            return undefined;
+        }
         const statuses: Dict = {
             'TRANSFER_STATUS_COMPLETED': 'ok',
             'TRANSFER_STATUS_PENDING': 'pending',

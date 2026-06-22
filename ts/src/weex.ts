@@ -1926,6 +1926,9 @@ export default class weex extends Exchange {
     }
 
     parseTransferStatus (status: Str): string {
+        if (status === undefined) {
+            return undefined;
+        }
         const statuses: Dict = {
             'Successful': 'ok',
         };
@@ -2162,6 +2165,9 @@ export default class weex extends Exchange {
     }
 
     encodeTriggerPriceType (triggerPriceType: Str) {
+        if (triggerPriceType === undefined) {
+            return undefined;
+        }
         const types: Dict = {
             'mark': 'MARK_PRICE',
             'last': 'CONTRACT_PRICE',
@@ -2877,6 +2883,9 @@ export default class weex extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
+        if (status === undefined) {
+            return undefined;
+        }
         const statuses: Dict = {
             'new': 'open',
             'partial_fill': 'closed',
@@ -2891,6 +2900,9 @@ export default class weex extends Exchange {
     }
 
     parseOrderType (type: Str) {
+        if (type === undefined) {
+            return undefined;
+        }
         const types: Dict = {
             'LIMIT': 'limit',
             'MARKET': 'market',
@@ -3186,6 +3198,9 @@ export default class weex extends Exchange {
     }
 
     parseLedgerType (type: Str) {
+        if (type === undefined) {
+            return undefined;
+        }
         const types: Dict = {
             'transfer_in': 'transfer',
             'transfer_out': 'transfer',
@@ -3524,6 +3539,9 @@ export default class weex extends Exchange {
     }
 
     parseMarginType (marginType: Str) {
+        if (marginType === undefined) {
+            return undefined;
+        }
         const marginTypes: Dict = {
             'CROSSED': 'cross',
             'ISOLATED': 'isolated',

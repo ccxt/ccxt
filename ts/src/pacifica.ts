@@ -2245,6 +2245,9 @@ export default class pacifica extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
+        if (status === undefined) {
+            return undefined;
+        }
         const statuses: Dict = {
             'open': 'open',
             'partially_filled': 'open',
@@ -2268,6 +2271,9 @@ export default class pacifica extends Exchange {
         let tif: Str = undefined;
         if (tifRaw !== undefined) {
             tif = tifRaw.toUpperCase ();
+        }
+        if (tif === undefined) {
+            return undefined;
         }
         return this.safeString (tifMap, tif, undefined);
     }

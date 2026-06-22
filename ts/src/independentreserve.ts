@@ -642,6 +642,9 @@ export default class independentreserve extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
+        if (status === undefined) {
+            return undefined;
+        }
         const statuses: Dict = {
             'Open': 'open',
             'PartiallyFilled': 'open',
@@ -656,6 +659,9 @@ export default class independentreserve extends Exchange {
     }
 
     parseTimeInForce (timeInForce: Str) {
+        if (timeInForce === undefined) {
+            return undefined;
+        }
         const timeInForces: Dict = {
             'Gtc': 'GTC',
             'Moc': 'PO',

@@ -5665,6 +5665,9 @@ export default class binance extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
+        if (status === undefined) {
+            return undefined;
+        }
         const statuses: Dict = {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
@@ -5684,6 +5687,9 @@ export default class binance extends Exchange {
     }
 
     parseOrderTypeByMarket (type: Str, marketType: Str) {
+        if (type === undefined) {
+            return undefined;
+        }
         let types = {};
         if ((marketType !== undefined) && marketType === 'spot') {
             types = {
@@ -8861,6 +8867,9 @@ export default class binance extends Exchange {
     }
 
     parseTransferStatus (status: Str): Str {
+        if (status === undefined) {
+            return undefined;
+        }
         const statuses: Dict = {
             'CONFIRMED': 'ok',
         };

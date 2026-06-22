@@ -1509,6 +1509,9 @@ export default class bitmex extends Exchange {
     }
 
     parseTransactionStatus (status: Str) {
+        if (status === undefined) {
+            return undefined;
+        }
         const statuses: Dict = {
             'Confirmed': 'pending',
             'Canceled': 'canceled',
@@ -1898,6 +1901,9 @@ export default class bitmex extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
+        if (status === undefined) {
+            return undefined;
+        }
         const statuses: Dict = {
             'New': 'open',
             'PartiallyFilled': 'open',
@@ -1916,6 +1922,9 @@ export default class bitmex extends Exchange {
     }
 
     parseTimeInForce (timeInForce: Str) {
+        if (timeInForce === undefined) {
+            return undefined;
+        }
         const timeInForces: Dict = {
             'Day': 'Day',
             'GoodTillCancel': 'GTC',

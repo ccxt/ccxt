@@ -3046,6 +3046,9 @@ export default class grvt extends Exchange {
     }
 
     timeInForceToInt (timeInForce: Str): Int {
+        if (timeInForce === undefined) {
+            return undefined;
+        }
         const timeInForces: Dict = {
             'GOOD_TILL_TIME': 1,
             'ALL_OR_NONE': 2,
@@ -3057,6 +3060,9 @@ export default class grvt extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
+        if (status === undefined) {
+            return undefined;
+        }
         const statuses: Dict = {
             'PENDING': 'pending',
             'OPEN': 'open',

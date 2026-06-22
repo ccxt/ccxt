@@ -759,6 +759,9 @@ export default class coinbaseinternational extends Exchange {
     }
 
     parseTransferStatus (status: Str): Str {
+        if (status === undefined) {
+            return undefined;
+        }
         const statuses: Dict = {
             'FAILED': 'failed',
             'PROCESSED': 'ok',
@@ -1196,6 +1199,9 @@ export default class coinbaseinternational extends Exchange {
     }
 
     parseTransactionStatus (status: Str) {
+        if (status === undefined) {
+            return undefined;
+        }
         const statuses: Dict = {
             'PROCESSED': 'ok',
             'NEW': 'pending',
@@ -1879,6 +1885,9 @@ export default class coinbaseinternational extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
+        if (status === undefined) {
+            return undefined;
+        }
         const statuses: Dict = {
             'NEW': 'open',
             'PARTIAL_FILLED': 'open',
@@ -1895,6 +1904,9 @@ export default class coinbaseinternational extends Exchange {
     }
 
     parseOrderType (type: Str) {
+        if (type === undefined) {
+            return undefined;
+        }
         if (type === 'UNKNOWN_ORDER_TYPE') {
             return undefined;
         }
