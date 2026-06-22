@@ -2104,10 +2104,17 @@ public class Exchange {
         if ("GET".equalsIgnoreCase(method)) {
             requestBuilder.GET();
         } else {
-            String ct = contentType.isEmpty() ? "application/json" : contentType;
             String requestBody = (body != null) ? body : "";
             HttpRequest.BodyPublisher publisher = HttpRequest.BodyPublishers.ofString(requestBody, java.nio.charset.StandardCharsets.UTF_8);
-            requestBuilder.header("Content-Type", ct);
+            // only send Content-Type when the exchange set one, or there is an actual body.
+            // forcing application/json on a body-less request (e.g. limitless DELETE
+            // /orders/{id}) makes some APIs reject with "Body cannot be empty when
+            // content-type is set to 'application/json'" — matches the other langs' HTTP clients
+            if (!contentType.isEmpty()) {
+                requestBuilder.header("Content-Type", contentType);
+            } else if (!requestBody.isEmpty()) {
+                requestBuilder.header("Content-Type", "application/json");
+            }
             if ("POST".equalsIgnoreCase(method)) {
                 requestBuilder.POST(publisher);
             } else if ("PUT".equalsIgnoreCase(method)) {
