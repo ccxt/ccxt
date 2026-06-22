@@ -5,7 +5,7 @@ import Exchange from './abstract/coinmetro.js';
 import { ArgumentsRequired, BadRequest, BadSymbol, InsufficientFunds, InvalidOrder, ExchangeError, OrderNotFound, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import { Balances, Currencies, Currency, Dict, IndexType, int, Int, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, LedgerEntry } from './base/types.js';
+import { Balances, Currencies, Currency, Dict, IndexType, int, Int, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, LedgerEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -436,7 +436,7 @@ export default class coinmetro extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        const promises = [];
+        const promises: List = [];
         promises.push (this.publicGetMarkets (params));
         const responses = await Promise.all (promises);
         const response = responses[0];
@@ -900,11 +900,11 @@ export default class coinmetro extends Exchange {
 
     parseOrderBookBidsAsks (bidasks, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
         const prices = Object.keys (bidasks);
-        const result = [];
+        const result: List = [];
         for (let i = 0; i < prices.length; i++) {
             const priceString = this.safeString (prices, i);
             const price = this.safeNumber (prices, i);
-            const volume = this.safeNumber (bidasks, priceString);
+            const volume = (priceString === undefined) ? undefined : this.safeNumber (bidasks, priceString);
             (result).push ([ price, volume ]);
         }
         return result;
@@ -1231,7 +1231,7 @@ export default class coinmetro extends Exchange {
         //     }
         //
         const ledgerByCurrencies = this.safeValue (response, 'list', []);
-        const ledger = [];
+        const ledger: Dict[] = [];
         for (let i = 0; i < ledgerByCurrencies.length; i++) {
             const currencyLedger = ledgerByCurrencies[i];
             const currencyId = this.safeString (currencyLedger, 'currency');
@@ -1470,7 +1470,7 @@ export default class coinmetro extends Exchange {
         [ params, params ] = this.handleMarginModeAndParams ('cancelOrder', params);
         const isMargin = this.safeBool (params, 'margin', false);
         params = this.omit (params, 'margin');
-        let response: NullableDict = undefined;
+        let response: Dict = {};
         if (isMargin || (marginMode !== undefined)) {
             response = await this.privatePostExchangeOrdersCloseOrderID (this.extend (request, params));
         } else {
