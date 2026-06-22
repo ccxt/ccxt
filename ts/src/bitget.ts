@@ -3084,7 +3084,7 @@ export default class bitget extends Exchange {
             'pending_review_fail': 'failed',
             'reject': 'failed',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     /**
@@ -4696,7 +4696,7 @@ export default class bitget extends Exchange {
             'fail_execute': 'rejected',
             'executed': 'closed',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -9482,9 +9482,9 @@ export default class bitget extends Exchange {
         const currencyId = this.safeString (transfer, 'coin');
         const fromAccountRaw = this.safeString (transfer, 'fromType');
         const accountsById = this.safeValue (this.options, 'accountsById', {});
-        const fromAccount = this.safeString (accountsById, fromAccountRaw, fromAccountRaw);
+        const fromAccount = this.safeString (accountsById, fromAccountRaw as string, fromAccountRaw);
         const toAccountRaw = this.safeString (transfer, 'toType');
-        const toAccount = this.safeString (accountsById, toAccountRaw, toAccountRaw);
+        const toAccount = this.safeString (accountsById, toAccountRaw as string, toAccountRaw);
         return {
             'info': transfer,
             'id': this.safeString (transfer, 'transferId'),
@@ -9502,7 +9502,7 @@ export default class bitget extends Exchange {
         const statuses: Dict = {
             'successful': 'ok',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     parseDepositWithdrawFee (fee, currency: Currency = undefined) {

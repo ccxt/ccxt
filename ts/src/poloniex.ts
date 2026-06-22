@@ -6,7 +6,7 @@ import Exchange from './abstract/poloniex.js';
 import { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, NotSupported, RequestTimeout, AuthenticationError, PermissionDenied, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, OnMaintenance, BadSymbol, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { TransferEntry, Int, Bool, Leverage, OrderSide, OrderType, OHLCV, Trade, OrderBook, Order, Balances, Str, MarginModification, Transaction, Ticker, Tickers, Market, Strings, Currency, Num, Currencies, TradingFees, Dict, int, DepositAddress, Position, NullableDict } from './base/types.js';
+import type { TransferEntry, Int, Bool, Leverage, OrderSide, OrderType, OHLCV, Trade, OrderBook, Order, Balances, Str, MarginModification, Transaction, Ticker, Tickers, Market, Strings, Currency, Num, Currencies, TradingFees, Dict, int, DepositAddress, Position, NullableDict, List } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1606,7 +1606,7 @@ export default class poloniex extends Exchange {
             'CANCELED': 'canceled',
             'FAILED': 'canceled',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -2614,8 +2614,8 @@ export default class poloniex extends Exchange {
         const timestamp = this.safeInteger (response, 'time');
         const asks = this.safeValue (response, 'asks');
         const bids = this.safeValue (response, 'bids');
-        const asksResult = [];
-        const bidsResult = [];
+        const asksResult: List = [];
+        const bidsResult: List = [];
         for (let i = 0; i < asks.length; i++) {
             if ((i % 2) < 1) {
                 const price = this.safeNumber (asks, i);
@@ -3124,7 +3124,7 @@ export default class poloniex extends Exchange {
             'COMPLETE ERROR': 'failed',
             'COMPLETE_ERROR': 'failed',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {

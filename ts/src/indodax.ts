@@ -751,7 +751,7 @@ export default class indodax extends Exchange {
             'filled': 'closed',
             'cancelled': 'canceled',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -1335,7 +1335,7 @@ export default class indodax extends Exchange {
         const statuses: Dict = {
             'success': 'ok',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     /**

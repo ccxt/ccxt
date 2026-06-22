@@ -4,7 +4,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import deribitRest from '../deribit.js';
 import { NotSupported, ExchangeError, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Strings, Tickers, Bool, Market } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Strings, Tickers, Bool, Market, List } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -90,7 +90,7 @@ export default class deribit extends deribitRest {
         const messageHash = 'balance';
         const url = this.urls['api']['ws'];
         const currencies = this.safeValue (this.options, 'currencies', []);
-        const channels = [];
+        const channels: List = [];
         for (let i = 0; i < currencies.length; i++) {
             const currencyCode = currencies[i];
             channels.push ('user.portfolio.' + currencyCode);
@@ -215,7 +215,7 @@ export default class deribit extends deribitRest {
         if (interval === 'raw') {
             await this.authenticate ();
         }
-        const channels = [];
+        const channels: List = [];
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market (symbols[i]);
             channels.push ('ticker.' + market['id'] + '.' + interval);
@@ -291,7 +291,7 @@ export default class deribit extends deribitRest {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
         const url = this.urls['api']['ws'];
-        const channels = [];
+        const channels: List = [];
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market (symbols[i]);
             channels.push ('quote.' + market['id']);
@@ -666,11 +666,11 @@ export default class deribit extends deribitRest {
     cleanOrderBook (data) {
         const bids = this.safeList (data, 'bids', []);
         const asks = this.safeList (data, 'asks', []);
-        const cleanedBids = [];
+        const cleanedBids: List = [];
         for (let i = 0; i < bids.length; i++) {
             cleanedBids.push ([ bids[i][1], bids[i][2] ]);
         }
-        const cleanedAsks = [];
+        const cleanedAsks: List = [];
         for (let i = 0; i < asks.length; i++) {
             cleanedAsks.push ([ asks[i][1], asks[i][2] ]);
         }
@@ -903,8 +903,8 @@ export default class deribit extends deribitRest {
     async watchMultipleWrapper (channelName: string, channelDescriptor: Str, symbolsArray = undefined, params = {}) {
         await this.loadMarkets ();
         const url = this.urls['api']['ws'];
-        const rawSubscriptions = [];
-        const messageHashes = [];
+        const rawSubscriptions: List = [];
+        const messageHashes: List = [];
         const isOHLCV = (channelName === 'chart.trades');
         const symbols = isOHLCV ? this.getListFromObjectValues (symbolsArray, 0) : symbolsArray;
         this.marketSymbols (symbols, undefined, false);

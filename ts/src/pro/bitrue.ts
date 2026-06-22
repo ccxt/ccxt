@@ -3,7 +3,7 @@
 import bitrueRest from '../bitrue.js';
 import { NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Str, Ticker, Trade } from '../base/types.js';
+import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Str, Ticker, Trade, List } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -428,7 +428,7 @@ export default class bitrue extends bitrueRest {
     }
 
     parseContractBidsAsks (bidsAsks, symbol: string) {
-        const result = [];
+        const result: List = [];
         for (let i = 0; i < bidsAsks.length; i++) {
             const level = bidsAsks[i];
             const price = this.safeNumber (level, 0);

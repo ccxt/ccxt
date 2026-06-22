@@ -6,7 +6,7 @@ import Exchange from './abstract/bitso.js';
 import { ExchangeError, InvalidNonce, AuthenticationError, OrderNotFound, BadRequest, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, Int, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFees, Transaction, int, LedgerEntry, DepositAddress } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFees, Transaction, int, LedgerEntry, DepositAddress, List } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -516,8 +516,8 @@ export default class bitso extends Exchange {
                 'percentage': true,
                 'tierBased': true,
             };
-            const takerFees = [];
-            const makerFees = [];
+            const takerFees: List = [];
+            const makerFees: List = [];
             for (let j = 0; j < feeTiers.length; j++) {
                 const tier = feeTiers[j];
                 const volume = this.safeNumber (tier, 'volume');
@@ -1211,7 +1211,7 @@ export default class bitso extends Exchange {
             'queued': 'open',
             'completed': 'closed',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -1841,7 +1841,7 @@ export default class bitso extends Exchange {
             'complete': 'ok',
             'failed': 'failed',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     nonce () {

@@ -333,7 +333,7 @@ export default class bitflyer extends Exchange {
                     const currencyIds = this.safeString (splitAlias, 0);
                     baseId = currencyIds.slice (0, -3);
                     quoteId = currencyIds.slice (-3);
-                    const splitId = id.split (currencyIds);
+                    const splitId = id.split (currencyIds as string);
                     const expiryDate = this.safeString (splitId, 1);
                     expiry = this.parseExpiryDate (expiryDate);
                 }
@@ -724,7 +724,7 @@ export default class bitflyer extends Exchange {
             'EXPIRED': 'canceled',
             'REJECTED': 'canceled',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {

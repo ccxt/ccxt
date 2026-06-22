@@ -1369,7 +1369,7 @@ export default class bitteam extends Exchange {
             'executing': 'open',
             'created': 'open',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     parseOrderType (status) {
@@ -2388,7 +2388,7 @@ export default class bitteam extends Exchange {
             'approving': 'pending',
             'success': 'ok',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
