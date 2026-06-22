@@ -2809,7 +2809,7 @@ export default class bitmex extends Exchange {
         await this.loadMarkets ();
         const request: Dict = {};
         let market: Market = undefined;
-        if (symbol in this.currencies) {
+        if ((symbol !== undefined) && (symbol in this.currencies)) {
             const code = this.currency (symbol);
             request['symbol'] = code['id'];
         } else if (symbol !== undefined) {

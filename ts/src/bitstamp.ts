@@ -2312,9 +2312,11 @@ export default class bitstamp extends Exchange {
                 direction = Precise.stringGt (amount, '0') ? 'in' : 'out';
             } else if (('currency' in parsedTransaction) && parsedTransaction['currency'] !== undefined) {
                 const currencyCode = this.safeString (parsedTransaction, 'currency');
-                currency = this.currency (currencyCode);
-                const amount = this.safeString (item, currency['id']);
-                direction = Precise.stringGt (amount, '0') ? 'in' : 'out';
+                if (currencyCode !== undefined) {
+                    currency = this.currency (currencyCode);
+                    const amount = this.safeString (item, currency['id']);
+                    direction = Precise.stringGt (amount, '0') ? 'in' : 'out';
+                }
             }
             return this.safeLedgerEntry ({
                 'info': item,

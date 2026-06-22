@@ -5594,6 +5594,9 @@ export default class binance extends Exchange {
             const marketId = this.safeString (rawOrder, 'symbol');
             orderSymbols.push (marketId);
             const id = this.safeString (rawOrder, 'id');
+            if ((marketId === undefined) || (id === undefined)) {
+                throw new ArgumentsRequired (this.id + ' editOrders() requires a symbol and an id for each order');
+            }
             const type = this.safeString (rawOrder, 'type');
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeValue (rawOrder, 'amount');
@@ -6322,6 +6325,9 @@ export default class binance extends Exchange {
             const rawOrder = orders[i];
             const marketId = this.safeString (rawOrder, 'symbol');
             orderSymbols.push (marketId);
+            if (marketId === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrders() requires a symbol for each order');
+            }
             const type = this.safeString (rawOrder, 'type');
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeValue (rawOrder, 'amount');
@@ -10351,7 +10357,7 @@ export default class binance extends Exchange {
                 const rightSide = Precise.stringSub (Precise.stringMul (Precise.stringDiv ('1', entryPriceSignString), size), walletBalance);
                 liquidationPriceStringRaw = Precise.stringDiv (leftSide, rightSide);
             }
-            const pricePrecision = this.precisionFromString (this.safeString (market['precision'], 'price'));
+            const pricePrecision = this.precisionFromString (this.safeString (market['precision'], 'price', ''));
             const pricePrecisionPlusOne = pricePrecision + 1;
             const pricePrecisionPlusOneString = pricePrecisionPlusOne.toString ();
             // round half up
@@ -10540,7 +10546,7 @@ export default class binance extends Exchange {
                     }
                     const inner = Precise.stringMul (liquidationPriceString, onePlusMaintenanceMarginPercentageString);
                     const leftSide = Precise.stringAdd (inner, entryPriceSignString);
-                    const quotePrecision = this.precisionFromString (this.safeString2 (precision, 'quote', 'price'));
+                    const quotePrecision = this.precisionFromString (this.safeString2 (precision, 'quote', 'price', ''));
                     if (quotePrecision !== undefined) {
                         collateralString = Precise.stringDiv (Precise.stringMul (leftSide, contractsAbs), '1', quotePrecision);
                     }
@@ -10556,7 +10562,7 @@ export default class binance extends Exchange {
                     }
                     const leftSide = Precise.stringMul (contractsAbs, contractSizeString);
                     const rightSide = Precise.stringSub (Precise.stringDiv ('1', entryPriceSignString), Precise.stringDiv (onePlusMaintenanceMarginPercentageString, liquidationPriceString));
-                    const basePrecision = this.precisionFromString (this.safeString (precision, 'base'));
+                    const basePrecision = this.precisionFromString (this.safeString (precision, 'base', ''));
                     if (basePrecision !== undefined) {
                         collateralString = Precise.stringDiv (Precise.stringMul (leftSide, rightSide), '1', basePrecision);
                     }
@@ -11827,7 +11833,9 @@ export default class binance extends Exchange {
         if (type !== 'option') {
             throw new BadRequest (this.id + ' fetchLedgerEntry() can only be used for type option');
         }
-        this.checkRequiredArgument ('fetchLedgerEntry', code, 'code');
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchLedgerEntry() requires a code argument');
+        }
         const currency = this.currency (code);
         const request: Dict = {
             'recordId': id,

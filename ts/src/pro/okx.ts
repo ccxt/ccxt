@@ -110,8 +110,11 @@ export default class okx extends okxRest {
         });
     }
 
-    getUrl (channel: string, access = 'public') {
+    getUrl (channel: Str = undefined, access = 'public') {
         // for context: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url
+        if (channel === undefined) {
+            channel = '';
+        }
         const isSandbox = this.options['sandboxMode'];
         const sandboxSuffix = isSandbox ? '?brokerId=9999' : '';
         const isBusiness = (access === 'business');
