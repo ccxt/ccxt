@@ -431,7 +431,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         #    }
         #
         instruments = self.safe_value(response, 'instruments', [])
-        result = []
+        result: List[Any] = []
         for i in range(0, len(instruments)):
             market = instruments[i]
             id = self.safe_string(market, 'symbol')
@@ -532,7 +532,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'info': market,
             })
         settlementCurrencies = self.options['settlementCurrencies']['flex']
-        currencies = []
+        currencies: List[Any] = []
         for i in range(0, len(settlementCurrencies)):
             code = settlementCurrencies[i]
             currencies.append({
@@ -768,7 +768,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         #    }
         #
         candles = self.safe_list(response, 'candles')
-        return self.parse_ohlcvs(candles, market, timeframe, since, limit)
+        return self.parse_ohlcvs((candles), market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
@@ -817,7 +817,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         }
         method: Str = None
         method, params = self.handle_option_and_params(params, 'fetchTrades', 'method', 'historyGetMarketSymbolExecutions')
-        rawTrades = None
+        rawTrades: List[Any] = []
         isFullHistoryEndpoint = (method == 'historyGetMarketSymbolExecutions')
         if isFullHistoryEndpoint:
             request, params = self.handle_until_option('before', request, params)
@@ -1025,7 +1025,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             if taker is not None:
                 side = self.safe_string_lower(taker, 'direction')
                 takerOrMaker = 'taker'
-        fee: dict = None
+        fee: NullableDict = None
         if (takerOrMaker is not None) and (cost is not None):
             feeRate = self.safe_string(market, takerOrMaker)
             fee = {
@@ -1208,7 +1208,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
-        ordersRequests = []
+        ordersRequests: List[Any] = []
         for i in range(0, len(orders)):
             rawOrder = orders[i]
             marketId = self.safe_string(rawOrder, 'symbol')
@@ -1312,7 +1312,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
-        orders = []
+        orders: List[Any] = []
         clientOrderIds = self.safe_value(params, 'clientOrderIds', [])
         clientOrderIdsLength = len(clientOrderIds)
         if clientOrderIdsLength > 0:
@@ -1404,7 +1404,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         #
         cancelStatus = self.safe_dict(response, 'cancelStatus')
         orderEvents = self.safe_list(cancelStatus, 'orderEvents', [])
-        orders = []
+        orders: List[Any] = []
         for i in range(0, len(orderEvents)):
             orderEvent = self.safe_dict(orderEvents, 0)
             order = self.safe_dict(orderEvent, 'order', {})
@@ -1522,14 +1522,14 @@ class krakenfutures(Exchange, ImplicitAPI):
         if since is not None:
             request['since'] = since
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
-        response: dict = None
+        response: dict
         if isTrigger:
             params = self.omit(params, ['trigger', 'stop'])
             response = self.historyGetTriggers(self.extend(request, params))
         else:
             response = self.historyGetOrders(self.extend(request, params))
         allOrders = self.safe_list(response, 'elements', [])
-        closedOrders = []
+        closedOrders: List[Any] = []
         for i in range(0, len(allOrders)):
             order = allOrders[i]
             event = self.safe_dict(order, 'event', {})
@@ -1571,7 +1571,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             request['count'] = limit
         if since is not None:
             request['from'] = since
-        response: dict = None
+        response: dict
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
         if isTrigger:
             params = self.omit(params, ['trigger', 'stop'])
@@ -1579,7 +1579,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         else:
             response = self.historyGetOrders(self.extend(request, params))
         allOrders = self.safe_list(response, 'elements', [])
-        canceledAndRejected = []
+        canceledAndRejected: List[Any] = []
         for i in range(0, len(allOrders)):
             order = allOrders[i]
             event = self.safe_dict(order, 'event', {})
@@ -1612,7 +1612,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         }
         return self.safe_string(typesMap, orderType, orderType)
 
-    def verify_order_action_success(self, status, method, omit=[]):
+    def verify_order_action_success(self, status, method, omit: List[str] = []):
         errors: dict = {
             'invalidOrderType': InvalidOrder,
             'invalidSide': InvalidOrder,
@@ -2016,14 +2016,14 @@ class krakenfutures(Exchange, ImplicitAPI):
         if ('orderEvents' in order) and (errorStatus is not None) and (orderEventsLength == 0):
             # creteOrders error response
             return self.safe_order({'info': order, 'status': 'rejected'})
-        details: dict = None
+        details: NullableDict = None
         isPrior = False
         fixed = False
         statusId: Str = None
         price: Str = None
-        trades = []
+        trades: List[Any] = []
         if orderEventsLength:
-            executions = []
+            executions: List[Any] = []
             for i in range(0, len(orderEvents)):
                 item = orderEvents[i]
                 if self.safe_string(item, 'type') == 'EXECUTION':
@@ -2409,7 +2409,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         marketIds = self.market_ids(symbols)
         response = self.publicGetTickers(params)
         tickers = self.safe_list(response, 'tickers', [])
-        fundingRates = []
+        fundingRates: List[Any] = []
         for i in range(0, len(tickers)):
             entry = tickers[i]
             entry_symbol = self.safe_value(entry, 'symbol')
@@ -2521,7 +2521,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         #    }
         #
         rates = self.safe_value(response, 'rates')
-        result = []
+        result: List[Any] = []
         for i in range(0, len(rates)):
             item = rates[i]
             datetime = self.safe_string(item, 'timestamp')
@@ -2568,7 +2568,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
     def parse_positions(self, response, symbols: Strings = None, params={}):
-        result = []
+        result: List[Any] = []
         positions = self.safe_value(response, 'openPositions')
         for i in range(0, len(positions)):
             position = self.parse_position(positions[i])
@@ -2730,7 +2730,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         marginLevels = self.safe_value(info, 'marginLevels')
         marketId = self.safe_string(info, 'symbol')
         market = self.safe_market(marketId, market)
-        tiers = []
+        tiers: List[Any] = []
         if marginLevels is None:
             return tiers
         for i in range(0, len(marginLevels)):
@@ -2830,7 +2830,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         request: dict = {
             'amount': amount,
         }
-        response: dict = None
+        response: dict
         if toAccount == 'spot':
             if self.parse_account(fromAccount) != 'cash':
                 raise BadRequest(self.id + ' transfer cannot transfer from ' + fromAccount + ' to ' + toAccount)

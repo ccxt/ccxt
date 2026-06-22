@@ -481,7 +481,7 @@ class bitvavo(Exchange, ImplicitAPI):
         return self.parse_markets(response)
 
     def parse_markets(self, markets):
-        result = []
+        result: List[Any] = []
         fees = self.fees
         for i in range(0, len(markets)):
             market = markets[i]
@@ -976,8 +976,8 @@ class bitvavo(Exchange, ImplicitAPI):
         maker = self.safe_number(feesValue, 'maker')
         taker = self.safe_number(feesValue, 'taker')
         result: dict = {}
-        for i in range(0, len(self.symbols)):
-            symbol = self.symbols[i]
+        for i in range(0, len((self.symbols))):
+            symbol = (self.symbols)[i]
             result[symbol] = {
                 'info': fees,
                 'symbol': symbol,
@@ -1437,7 +1437,7 @@ class bitvavo(Exchange, ImplicitAPI):
         takeProfitPrice = self.safe_value(params, 'takeProfitPrice')  # trigger when price crosses from below to above self value
         params = self.omit(params, ['timeInForce', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice'])
         if isMarketOrder:
-            cost = None
+            cost: Any = None
             if price is not None:
                 priceString = self.number_to_string(price)
                 amountString = self.number_to_string(amount)
@@ -1558,7 +1558,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def edit_order_request(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+    def edit_order_request(self, id: str, symbol, type, side, amount: Num = None, price: Num = None, params={}):
         request: dict = {}
         market = self.market(symbol)
         amountRemaining = self.safe_number(params, 'amountRemaining')
@@ -2188,7 +2188,7 @@ class bitvavo(Exchange, ImplicitAPI):
             'fee': fee,
         }, currency)
 
-    def withdraw_request(self, code: Str, amount, address, tag=None, params={}):
+    def withdraw_request(self, code: Str, amount, address, tag: Str = None, params={}):
         currency = self.currency(code)
         request: dict = {
             'symbol': currency['id'],

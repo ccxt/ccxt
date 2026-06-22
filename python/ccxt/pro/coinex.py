@@ -334,9 +334,9 @@ class coinex(ccxt.async_support.coinex):
         unrealizedPnl = self.safe_string(firstEntry, 'unrealized_pnl')
         isSpot = (updated is not None)
         isSwap = (unrealizedPnl is not None)
-        info = None
+        info: Any = None
         account: Str = None
-        rawBalances = []
+        rawBalances: List[Any] = []
         if isSpot:
             account = 'spot'
             for i in range(0, len(balances)):
@@ -417,7 +417,7 @@ class coinex(ccxt.async_support.coinex):
         type, params = self.handle_market_type_and_params('watchMyTrades', market, params, 'spot')
         await self.authenticate(type)
         url = self.urls['api']['ws'][type]
-        subscribedSymbols = []
+        subscribedSymbols: List[Any] = []
         messageHash = 'myTrades'
         if market is not None:
             messageHash += ':' + symbol
@@ -581,7 +581,7 @@ class coinex(ccxt.async_support.coinex):
         marketId = self.safe_string(trade, 'market')
         market = self.safe_market(marketId, market, None, defaultType)
         fee: dict = {}
-        feeCost = self.omit_zero(self.safe_string(trade, 'fee'))
+        feeCost = self.omit_zero((self.safe_string(trade, 'fee')))
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'fee_ccy', market['quote'])
             fee = {
@@ -634,7 +634,7 @@ class coinex(ccxt.async_support.coinex):
         await self.load_markets()
         marketIds = self.market_ids(symbols)
         market: Market = None
-        messageHashes = []
+        messageHashes: List[Any] = []
         symbolsDefined = (symbols is not None)
         if symbolsDefined:
             for i in range(0, len(symbols)):
@@ -688,8 +688,8 @@ class coinex(ccxt.async_support.coinex):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         await self.load_markets()
-        subscribedSymbols = []
-        messageHashes = []
+        subscribedSymbols: List[Any] = []
+        messageHashes: List[Any] = []
         market: Market = None
         callerMethodName: Str = None
         callerMethodName, params = self.handle_param_string(params, 'callerMethodName', 'watchTradesForSymbols')
@@ -730,7 +730,7 @@ class coinex(ccxt.async_support.coinex):
         """
         await self.load_markets()
         watchOrderBookSubscriptions: dict = {}
-        messageHashes = []
+        messageHashes: List[Any] = []
         market: Market = None
         type: Str = None
         callerMethodName: Str = None
@@ -1131,8 +1131,8 @@ class coinex(ccxt.async_support.coinex):
         isSpot = ('margin_market' in order)
         defaultType = 'spot' if isSpot else 'swap'
         market = self.safe_market(marketId, market, None, defaultType)
-        fee: dict = None
-        feeCost = self.omit_zero(self.safe_string_2(order, 'fee', 'quote_ccy_fee'))
+        fee: NullableDict = None
+        feeCost = self.omit_zero((self.safe_string_2(order, 'fee', 'quote_ccy_fee')))
         if feeCost is not None:
             feeCurrencyId = self.safe_string(order, 'fee_ccy', market['quote'])
             fee = {
@@ -1185,7 +1185,7 @@ class coinex(ccxt.async_support.coinex):
         """
         await self.load_markets()
         marketIds = self.market_ids(symbols)
-        messageHashes = []
+        messageHashes: List[Any] = []
         market: Market = None
         symbolsDefined = (symbols is not None)
         if symbolsDefined:

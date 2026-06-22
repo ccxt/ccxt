@@ -632,7 +632,7 @@ class blofin(ccxt.async_support.blofin):
         messageHash = 'fundingRate:' + symbol
         client.resolve(fundingRate, messageHash)
 
-    async def watch_multiple_wrapper(self, isPublic: bool, channelName: str, callerMethodName: str, symbolsArray=None, params={}):
+    async def watch_multiple_wrapper(self, isPublic: bool, channelName: str, callerMethodName: str, symbolsArray: Any = None, params={}):
         # underlier method for all watch-multiple symbols
         await self.load_markets()
         callerMethodName, params = self.handle_param_string(params, 'callerMethodName', callerMethodName)
@@ -717,7 +717,7 @@ class blofin(ccxt.async_support.blofin):
             'positions': self.handle_positions,
             'funding-rate': self.handle_funding_rate,
         }
-        method = None
+        method: Any = None
         if message == 'pong':
             method = self.safe_value(methods, 'pong')
         else:
