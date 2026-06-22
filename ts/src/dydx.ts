@@ -1294,7 +1294,7 @@ export default class dydx extends Exchange {
         return account;
     }
 
-    pow (n: string, m: string) {
+    pow (n: string, m: Str) {
         let r = Precise.stringMul (n, '1');
         const c = this.parseToInt (m);
         // TODO: cap
