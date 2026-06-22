@@ -672,8 +672,8 @@ export default class onetrading extends Exchange {
         const firstSpotTier = this.safeDict (spotTiers, 0, {});
         const firstFuturesTier = this.safeDict (futuresTiers, 0, {});
         const result: Dict = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        for (let i = 0; i < (this.symbols as string[]).length; i++) {
+            const symbol = (this.symbols as string[])[i];
             const market = this.market (symbol);
             const tierObject = (market['spot']) ? firstSpotTier : firstFuturesTier;
             result[symbol] = {
@@ -737,8 +737,8 @@ export default class onetrading extends Exchange {
         futuresTakerFee = Precise.stringDiv (futuresTakerFee, '100');
         const result: Dict = {};
         // const tiers = this.parseFeeTiers (feeTiers);
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        for (let i = 0; i < (this.symbols as string[]).length; i++) {
+            const symbol = (this.symbols as string[])[i];
             const market = this.market (symbol);
             const makerFee = (market['spot']) ? spotMakerFee : futuresMakerFee;
             const takerFee = (market['spot']) ? spotTakerFee : futuresTakerFee;
@@ -901,7 +901,7 @@ export default class onetrading extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const ticker = this.parseTicker (response[i]);
             const symbol = ticker['symbol'];
-            result[symbol] = ticker;
+            result[symbol as string] = ticker;
         }
         return this.filterByArrayTickers (result, 'symbol', symbols);
     }
@@ -1016,12 +1016,12 @@ export default class onetrading extends Exchange {
             'WEEKS': 'w',
             'MONTHS': 'M',
         };
-        const lowercaseUnit = this.safeString (units, unit);
-        const timeframe = period + lowercaseUnit;
+        const lowercaseUnit = this.safeString (units, unit as string);
+        const timeframe = (period as string) + (lowercaseUnit as string);
         const durationInSeconds = this.parseTimeframe (timeframe);
         const duration = durationInSeconds * 1000;
         const timestamp = this.parse8601 (this.safeString (ohlcv, 'time'));
-        const alignedTimestamp = duration * this.parseToInt (timestamp / duration);
+        const alignedTimestamp = duration * this.parseToInt ((timestamp as number) / duration);
         const options = this.safeValue (this.options, 'fetchOHLCV', {});
         const volumeField = this.safeString (options, 'volume', 'total_amount');
         return [
@@ -1050,7 +1050,7 @@ export default class onetrading extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const periodUnit = this.safeString (this.timeframes, timeframe);
-        const [ period, unit ] = periodUnit.split ('/');
+        const [ period, unit ] = (periodUnit as string).split ('/');
         const durationInSeconds = this.parseTimeframe (timeframe);
         const duration = durationInSeconds * 1000;
         if (limit === undefined) {
@@ -1223,7 +1223,7 @@ export default class onetrading extends Exchange {
             'STOP_TRIGGERED': 'triggered',
             'DONE': 'closed',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -1338,7 +1338,7 @@ export default class onetrading extends Exchange {
         const types: Dict = {
             'booked': 'limit',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, type as string, type);
     }
 
     parseTimeInForce (timeInForce: Str) {
@@ -1348,7 +1348,7 @@ export default class onetrading extends Exchange {
             'IMMEDIATE_OR_CANCELLED': 'IOC',
             'FILL_OR_KILL': 'FOK',
         };
-        return this.safeString (timeInForces, timeInForce, timeInForce);
+        return this.safeString (timeInForces, timeInForce as string, timeInForce);
     }
 
     /**
@@ -1372,7 +1372,7 @@ export default class onetrading extends Exchange {
         const request: Dict = {
             'instrument_code': market['id'],
             'type': uppercaseType, // LIMIT, MARKET, STOP
-            'side': side.toUpperCase (), // or SELL
+            'side': (side as string).toUpperCase (), // or SELL
             'amount': this.amountToPrecision (symbol, amount),
             // "price": "1234.5678", // required for LIMIT and STOP orders
             // "client_id": "d75fb03b-b599-49e9-b926-3f0b6d103206", // optional

@@ -669,7 +669,7 @@ export default class bigone extends Exchange {
         //    ]
         //
         const markets = this.safeList (response, 'data', []);
-        const result = [];
+        const result: Market[] = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const baseAsset = this.safeDict (market, 'base_asset', {});
@@ -1020,7 +1020,7 @@ export default class bigone extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const timestamp = this.safeInteger (data, 'Timestamp');
-        return this.parseToInt (timestamp / 1000000);
+        return this.parseToInt ((timestamp as number) / 1000000);
     }
 
     /**
@@ -1099,7 +1099,7 @@ export default class bigone extends Exchange {
 
     parseContractBidsAsks (bidsAsks) {
         const bidsAsksKeys = Object.keys (bidsAsks);
-        const result = [];
+        const result: number[][] = [];
         for (let i = 0; i < bidsAsksKeys.length; i++) {
             const price = bidsAsksKeys[i];
             const amount = bidsAsks[price];
@@ -1499,7 +1499,7 @@ export default class bigone extends Exchange {
         if (immediateOrCancel) {
             timeInForce = 'IOC';
         }
-        const type = this.parseType (this.safeString (order, 'type'));
+        const type = this.parseType (this.safeString (order, 'type') as string);
         const price = this.safeString (order, 'price');
         let amount: Str = undefined;
         let filled: Str = undefined;
@@ -1585,7 +1585,7 @@ export default class bigone extends Exchange {
         const isLimit = uppercaseType === 'LIMIT';
         const exchangeSpecificParam = this.safeBool (params, 'post_only', false);
         let postOnly: Bool = undefined;
-        [ postOnly, params ] = this.handlePostOnly ((uppercaseType === 'MARKET'), exchangeSpecificParam, params);
+        [ postOnly, params ] = this.handlePostOnly ((uppercaseType === 'MARKET'), exchangeSpecificParam as boolean, params);
         const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
         const request: Dict = {
             'asset_pair_name': market['id'], // asset pair name BTC-USDT, required
@@ -1662,7 +1662,7 @@ export default class bigone extends Exchange {
         //    }
         //
         const order = this.safeDict (response, 'data');
-        return this.parseOrder (order, market);
+        return this.parseOrder (order as Dict, market);
     }
 
     /**
@@ -1692,7 +1692,7 @@ export default class bigone extends Exchange {
         //        "updated_at":"2019-01-29T06:05:56Z"
         //    }
         const order = this.safeDict (response, 'data');
-        return this.parseOrder (order);
+        return this.parseOrder (order as Dict);
     }
 
     /**
@@ -1706,7 +1706,7 @@ export default class bigone extends Exchange {
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const market = this.market (symbol as string);
         const request: Dict = {
             'asset_pair_name': market['id'],
         };
@@ -1726,7 +1726,7 @@ export default class bigone extends Exchange {
         const data = this.safeDict (response, 'data', {});
         const cancelled = this.safeList (data, 'cancelled', []);
         const failed = this.safeList (data, 'failed', []);
-        const result = [];
+        const result: Order[] = [];
         for (let i = 0; i < cancelled.length; i++) {
             const orderId = cancelled[i];
             result.push (this.safeOrder ({
@@ -1885,7 +1885,7 @@ export default class bigone extends Exchange {
             'FILLED': 'closed',
             'CANCELLED': 'canceled',
         };
-        return this.safeString (statuses, status);
+        return this.safeString (statuses, status as string);
     }
 
     /**
@@ -2003,7 +2003,7 @@ export default class bigone extends Exchange {
         }
         const chainsIndexedById = this.indexBy (data, 'chain');
         const selectedNetworkId = this.selectNetworkIdFromRawNetworks (code, networkCode, chainsIndexedById);
-        const addressObject = this.safeDict (chainsIndexedById, selectedNetworkId, {});
+        const addressObject = this.safeDict (chainsIndexedById, selectedNetworkId as string, {});
         const address = this.safeString (addressObject, 'value');
         const tag = this.safeString (addressObject, 'memo');
         this.checkAddress (address);
@@ -2025,7 +2025,7 @@ export default class bigone extends Exchange {
             'COMPLETED': 'ok',
             'PENDING': 'pending',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -2294,7 +2294,7 @@ export default class bigone extends Exchange {
         const statuses: Dict = {
             '0': 'ok',
         };
-        return this.safeString (statuses, status, 'failed');
+        return this.safeString (statuses, status as string, 'failed');
     }
 
     /**

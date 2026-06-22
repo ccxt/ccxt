@@ -470,10 +470,10 @@ export default class exmo extends Exchange {
         //     }
         //
         const result: Dict = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        for (let i = 0; i < (this.symbols as string[]).length; i++) {
+            const symbol = (this.symbols as string[])[i];
             const market = this.market (symbol);
-            const fee = this.safeValue (response, market['id'], {});
+            const fee = this.safeValue (response, market['id'] as string, {});
             const makerString = this.safeString (fee, 'commission_maker_percent');
             const takerString = this.safeString (fee, 'commission_taker_percent');
             const maker = this.parseNumber (Precise.stringDiv (makerString, '100'));
@@ -567,13 +567,13 @@ export default class exmo extends Exchange {
             };
             const currency = this.currency (code);
             const currencyId = this.safeString (currency, 'id');
-            const providers = this.safeValue (cryptoList, currencyId, []);
+            const providers = this.safeValue (cryptoList, currencyId as string, []);
             for (let j = 0; j < providers.length; j++) {
                 const provider = providers[j];
                 const typeInner = this.safeString (provider, 'type');
                 const commissionDesc = this.safeString (provider, 'commission_desc');
                 const fee = this.parseFixedFloatValue (commissionDesc);
-                result[code][typeInner] = fee;
+                result[code][typeInner as string] = fee;
             }
             result[code]['info'] = providers;
         }
@@ -666,7 +666,7 @@ export default class exmo extends Exchange {
                     },
                 };
             }
-            result['networks'][networkCode][type] = {
+            result['networks'][networkCode][type as string] = {
                 'fee': this.parseFixedFloatValue (this.safeString (splitCommissionDesc, 0)),
                 'percentage': percentage,
             };
@@ -727,7 +727,7 @@ export default class exmo extends Exchange {
         for (let i = 0; i < currencyList.length; i++) {
             const currency = currencyList[i];
             const currencyId = this.safeString (currency, 'name');
-            const providers = this.safeList (cryptoList, currencyId);
+            const providers = this.safeList (cryptoList, currencyId as string);
             newArray.push ({ 'currency': currency, 'providers': providers });
         }
         return this.parseCurrencies (newArray);
@@ -747,7 +747,7 @@ export default class exmo extends Exchange {
                 const provider = providers[j];
                 const name = this.safeString (provider, 'name');
                 // get network-id by removing extra things
-                let networkId = name.replace (currencyId + ' ', '');
+                let networkId = (name as string).replace (currencyId + ' ', '');
                 networkId = networkId.replace ('(', '');
                 const replaceChar = ')'; // transpiler trick
                 networkId = networkId.replace (replaceChar, '');
@@ -886,7 +886,7 @@ export default class exmo extends Exchange {
         if (fetchMargin) {
             const marginPairs = responses[1];
             const pairs = this.safeList (marginPairs, 'pairs');
-            marginPairsDict = this.indexBy (pairs, 'name');
+            marginPairsDict = this.indexBy (pairs as Dict, 'name');
         }
         const keys = Object.keys (spotResponse);
         const result: List = [];
@@ -1145,8 +1145,8 @@ export default class exmo extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.publicGetOrderBook (this.extend (request, params));
-        const result = this.safeDict (response, market['id']);
-        return this.parseOrderBook (result, market['symbol'], undefined, 'bid', 'ask');
+        const result = this.safeDict (response, market['id'] as string);
+        return this.parseOrderBook (result as Dict, market['symbol'], undefined, 'bid', 'ask');
     }
 
     /**
@@ -1287,7 +1287,7 @@ export default class exmo extends Exchange {
         await this.loadMarkets ();
         const response = await this.publicGetTicker (params);
         const market = this.market (symbol);
-        return this.parseTicker (response[market['id']], market);
+        return this.parseTicker (response[market['id'] as string], market);
     }
 
     parseTrade (trade: Dict, market: Market = undefined): Trade {
@@ -1421,7 +1421,7 @@ export default class exmo extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, market['id'], []);
+        const data = this.safeList (response, market['id'] as string, []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -1861,7 +1861,7 @@ export default class exmo extends Exchange {
             //
         }
         const trades = this.safeList (response, 'trades');
-        return this.parseTrades (trades, market, since, limit);
+        return this.parseTrades (trades as object[], market, since, limit);
     }
 
     /**
@@ -2322,7 +2322,7 @@ export default class exmo extends Exchange {
         }
         const networks = this.safeValue (this.options, 'networks', {});
         let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
+        network = this.safeString (networks, network as string, network); // handle ERC20>ETH alias
         if (network !== undefined) {
             request['transport'] = network;
             params = this.omit (params, 'network');
@@ -2339,7 +2339,7 @@ export default class exmo extends Exchange {
             'processing': 'pending',
             'verifying': 'pending',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -2422,11 +2422,11 @@ export default class exmo extends Exchange {
                 const numParts = parts.length;
                 if (numParts === 2) {
                     address = this.safeString (parts, 1);
-                    address = address.replace (' ', '');
+                    address = (address as string).replace (' ', '');
                 }
             }
         }
-        const fee = {
+        const fee: Dict = {
             'currency': undefined,
             'cost': undefined,
             'rate': undefined,
@@ -2810,7 +2810,7 @@ export default class exmo extends Exchange {
             if (!success) {
                 let code: Str = undefined;
                 const message = this.safeString2 (response, 'error', 'errmsg');
-                const errorParts = message.split (':');
+                const errorParts = (message as string).split (':');
                 const numParts = errorParts.length;
                 if (numParts > 1) {
                     const errorSubParts = errorParts[0].split (' ');
