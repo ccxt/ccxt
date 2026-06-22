@@ -131,6 +131,9 @@ export default class okx extends okxRest {
             symbols = this.symbols;
         }
         symbols = this.marketSymbols (symbols);
+        if (symbols === undefined) {
+            symbols = [];
+        }
         const url = this.getUrl (channel, access);
         const messageHashes: List = [];
         const args: List = [];
@@ -541,6 +544,9 @@ export default class okx extends okxRest {
     async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
+        if (symbols === undefined) {
+            symbols = [];
+        }
         let channel: Str = undefined;
         [ channel, params ] = this.handleOptionAndParams (params, 'watchTickers', 'channel', 'tickers');
         const topics: List = [];
@@ -618,6 +624,9 @@ export default class okx extends okxRest {
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
+        if (symbols === undefined) {
+            symbols = [];
+        }
         let channel: Str = undefined;
         [ channel, params ] = this.handleOptionAndParams (params, 'watchBidsAsks', 'channel', 'tickers');
         const url = this.getUrl (channel, 'public');

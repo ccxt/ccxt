@@ -544,6 +544,9 @@ export default class cryptocom extends cryptocomRest {
     async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
+        if (symbols === undefined) {
+            symbols = [];
+        }
         const messageHashes: string[] = [];
         const subMessageHashes: string[] = [];
         const marketIds = this.marketIds (symbols);
@@ -654,6 +657,9 @@ export default class cryptocom extends cryptocomRest {
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
+        if (symbols === undefined) {
+            symbols = [];
+        }
         const messageHashes: string[] = [];
         const topics: string[] = [];
         const marketIds = this.marketIds (symbols);
@@ -892,6 +898,9 @@ export default class cryptocom extends cryptocomRest {
         };
         let messageHash = 'positions';
         symbols = this.marketSymbols (symbols);
+        if (symbols === undefined) {
+            symbols = [];
+        }
         if (!this.isEmpty (symbols)) {
             messageHash = '::' + symbols.join (',');
         }

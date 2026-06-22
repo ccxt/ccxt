@@ -279,6 +279,9 @@ export default class whitebit extends whitebitRest {
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
+        if (symbols === undefined) {
+            symbols = [];
+        }
         const method = 'market_subscribe';
         const url = this.urls['api']['ws'];
         const id = this.nonce ();

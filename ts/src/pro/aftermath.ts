@@ -243,6 +243,9 @@ export default class aftermath extends aftermathRest {
         await this.loadMarkets ();
         const messageHashes = [];
         symbols = this.marketSymbols (symbols);
+        if (symbols === undefined) {
+            symbols = [];
+        }
         if (!this.isEmpty (symbols)) {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];

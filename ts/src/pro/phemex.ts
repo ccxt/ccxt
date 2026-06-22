@@ -555,6 +555,9 @@ export default class phemex extends phemexRest {
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
+        if (symbols === undefined) {
+            symbols = [];
+        }
         const first = symbols[0];
         const market = this.market (first);
         const isSwap = market['swap'];

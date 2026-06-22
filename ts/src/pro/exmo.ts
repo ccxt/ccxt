@@ -245,6 +245,9 @@ export default class exmo extends exmoRest {
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
+        if (symbols === undefined) {
+            symbols = [];
+        }
         const messageHashes: List = [];
         const args: List = [];
         for (let i = 0; i < symbols.length; i++) {
