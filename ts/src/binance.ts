@@ -1384,6 +1384,9 @@ export default class binance extends Exchange {
                     'OPTION': 'option',
                 },
                 'networks': {
+                    'BTC': 'BTC',
+                    'BTCSEGWIT': 'SEGWITBTC',
+                    'BTCLIGHTNING': 'LIGHTNING',
                     'ERC20': 'ETH',
                     'ETH': 'ETH',
                     'TRC20': 'TRX',

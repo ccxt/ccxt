@@ -166,11 +166,11 @@
     "withdraw": true,
     "fee": 2.8e-7,
     "fees": {
-      "BSC": 2.8e-7,
+      "BEP20": 2.8e-7,
       "BTC": 0.000015,
-      "SEGWITBTC": 0.001,
-      "ETH": 0.0000054,
-      "LIGHTNING": 0.000001
+      "BTCSEGWIT": 0.001,
+      "ERC20": 0.0000054,
+      "BTCLIGHTNING": 0.000001
     },
     "networks": {
       "BEP20": {
@@ -269,7 +269,7 @@
       },
       "BTCSEGWIT": {
         "info": {
-          "network": "SEGWITBTC",
+          "network": "BTCSEGWIT",
           "coin": "BTC",
           "withdrawIntegerMultiple": "0.00000001",
           "isDefault": false,
@@ -632,7 +632,7 @@
           "unLockConfirm": "0",
           "sameAddress": false,
           "withdrawTag": false,
-          "estimatedArrivalTime": "2",
+          "estimatedArrivalTime": "4",
           "busy": false,
           "contractAddressUrl": "https://celoscan.io/token/",
           "contractAddress": "0x48065fbbe25f71c9282ddf5e1cd6d6a887483d5e"
@@ -998,24 +998,24 @@
     "withdraw": true,
     "fee": 0.01,
     "fees": {
-      "BSC": 0.01,
+      "BEP20": 0.01,
       "NEAR": 0.2,
       "AVAXC": 0.04,
       "APT": 0.1,
-      "ARBITRUM": 0.1,
+      "ARBONE": 0.1,
       "STATEMINT": 0.1,
       "CELO": 0.05,
-      "ETH": 0.4,
+      "ERC20": 0.4,
       "KAVAEVM": 0.2,
       "KAIA": 0.02,
-      "OPTIMISM": 0.04,
+      "OP": 0.04,
       "PLASMA": 0.012,
       "MATIC": 0.07,
       "SCROLL": 0.1,
       "SOL": 0.3,
       "XTZ": 0.1,
       "TON": 0.3,
-      "TRX": 1.5,
+      "TRC20": 1.5,
       "OPBNB": 0.015
     },
     "networks": {
@@ -1331,7 +1331,7 @@
           "unLockConfirm": "0",
           "sameAddress": false,
           "withdrawTag": false,
-          "estimatedArrivalTime": "2",
+          "estimatedArrivalTime": "4",
           "busy": false,
           "contractAddressUrl": "https://celoscan.io/token/",
           "contractAddress": "0x48065fbbe25f71c9282ddf5e1cd6d6a887483d5e"
@@ -2126,7 +2126,7 @@
           "unLockConfirm": "15",
           "sameAddress": false,
           "withdrawTag": false,
-          "estimatedArrivalTime": "7",
+          "estimatedArrivalTime": "6",
           "busy": false
         }
       ]
@@ -2142,7 +2142,7 @@
     "withdraw": true,
     "fee": 0.0001,
     "fees": {
-      "BSC": 0.00039,
+      "BEP20": 0.00039,
       "LTC": 0.0001
     },
     "networks": {
@@ -2219,7 +2219,7 @@
           "unLockConfirm": "15",
           "sameAddress": false,
           "withdrawTag": false,
-          "estimatedArrivalTime": "7",
+          "estimatedArrivalTime": "6",
           "busy": false
         },
         "id": "LTC",
@@ -2490,7 +2490,7 @@
           "unLockConfirm": "0",
           "sameAddress": false,
           "withdrawTag": false,
-          "estimatedArrivalTime": "1",
+          "estimatedArrivalTime": "3",
           "busy": false,
           "contractAddressUrl": "https://voyager.online/token/",
           "contractAddress": "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"
@@ -2537,12 +2537,12 @@
     "withdraw": true,
     "fee": 0.00001,
     "fees": {
-      "BSC": 0.00001,
+      "BEP20": 0.00001,
       "ETH": 0.0001,
-      "ARBITRUM": 0.00002,
+      "ARBONE": 0.00002,
       "BASE": 0.00005,
       "MANTA": 0.00001,
-      "OPTIMISM": 0.000015,
+      "OP": 0.000015,
       "SCROLL": 0.00001,
       "STARKNET": 0.00001,
       "ZKSYNCERA": 0.00004
@@ -2903,7 +2903,7 @@
           "unLockConfirm": "0",
           "sameAddress": false,
           "withdrawTag": false,
-          "estimatedArrivalTime": "1",
+          "estimatedArrivalTime": "3",
           "busy": false,
           "contractAddressUrl": "https://voyager.online/token/",
           "contractAddress": "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"
@@ -3055,7 +3055,7 @@
           "unLockConfirm": "0",
           "sameAddress": false,
           "withdrawTag": false,
-          "estimatedArrivalTime": "9",
+          "estimatedArrivalTime": "11",
           "busy": false,
           "contractAddressUrl": "https://cardanoscan.io/token/"
         }
@@ -3072,7 +3072,7 @@
     "withdraw": true,
     "fee": 0.11,
     "fees": {
-      "BSC": 0.11,
+      "BEP20": 0.11,
       "ADA": 1.5
     },
     "networks": {
@@ -3148,7 +3148,7 @@
           "unLockConfirm": "0",
           "sameAddress": false,
           "withdrawTag": false,
-          "estimatedArrivalTime": "9",
+          "estimatedArrivalTime": "11",
           "busy": false,
           "contractAddressUrl": "https://cardanoscan.io/token/"
         },
@@ -3298,9 +3298,9 @@
     "withdraw": true,
     "fee": 0.015,
     "fees": {
-      "BSC": 0.015,
+      "BEP20": 0.015,
       "XRP": 0.2,
-      "ETH": 0.3
+      "ERC20": 0.3
     },
     "networks": {
       "BEP20": {
@@ -3700,7 +3700,7 @@
           "unLockConfirm": "0",
           "sameAddress": false,
           "withdrawTag": false,
-          "estimatedArrivalTime": "2",
+          "estimatedArrivalTime": "4",
           "busy": false,
           "contractAddressUrl": "https://celoscan.io/token/",
           "contractAddress": "0xceba9300f2b948710d2653dd7b07f33a8b32118c"
@@ -3872,7 +3872,7 @@
           "unLockConfirm": "0",
           "sameAddress": false,
           "withdrawTag": false,
-          "estimatedArrivalTime": "5",
+          "estimatedArrivalTime": "8",
           "busy": false,
           "contractAddressUrl": "https://explorer.roninchain.com/token/",
           "contractAddress": "0x0b7007c13325c48911f73a2dad5fa5dcbf808adc"
@@ -3988,7 +3988,7 @@
           "unLockConfirm": "0",
           "sameAddress": false,
           "withdrawTag": false,
-          "estimatedArrivalTime": "1",
+          "estimatedArrivalTime": "3",
           "busy": false,
           "contractAddressUrl": "https://voyager.online/token/",
           "contractAddress": "0x33068f6539f8e6e6b131e6b2b814e6c34a5224bc66947c47dab9dfee93b35fb"
@@ -4075,7 +4075,7 @@
           "unLockConfirm": "0",
           "sameAddress": false,
           "withdrawTag": false,
-          "estimatedArrivalTime": "3",
+          "estimatedArrivalTime": "2",
           "busy": false,
           "contractAddressUrl": "https://worldchain-mainnet.explorer.alchemy.com/address/",
           "contractAddress": "0x79a02482a880bce3f13e09da970dc34db4cd24d1"
@@ -4122,18 +4122,18 @@
     "withdraw": true,
     "fee": 0,
     "fees": {
-      "BSC": 0,
+      "BEP20": 0,
       "AVAXC": 0.056,
       "ALGO": 1,
       "APT": 0.04,
-      "ARBITRUM": 0.2,
+      "ARBONE": 0.2,
       "STATEMINT": 0.1,
       "BASE": 0.2,
       "CELO": 0.05,
-      "ETH": 0.6,
+      "ERC20": 0.6,
       "HBAR": 0.1,
       "NEAR": 0.2,
-      "OPTIMISM": 0.05,
+      "OP": 0.05,
       "MATIC": 0.12,
       "RON": 0.2,
       "SEIEVM": 0.1,
@@ -4505,7 +4505,7 @@
           "unLockConfirm": "0",
           "sameAddress": false,
           "withdrawTag": false,
-          "estimatedArrivalTime": "2",
+          "estimatedArrivalTime": "4",
           "busy": false,
           "contractAddressUrl": "https://celoscan.io/token/",
           "contractAddress": "0xceba9300f2b948710d2653dd7b07f33a8b32118c"
@@ -4791,7 +4791,7 @@
           "unLockConfirm": "0",
           "sameAddress": false,
           "withdrawTag": false,
-          "estimatedArrivalTime": "5",
+          "estimatedArrivalTime": "8",
           "busy": false,
           "contractAddressUrl": "https://explorer.roninchain.com/token/",
           "contractAddress": "0x0b7007c13325c48911f73a2dad5fa5dcbf808adc"
@@ -4983,7 +4983,7 @@
           "unLockConfirm": "0",
           "sameAddress": false,
           "withdrawTag": false,
-          "estimatedArrivalTime": "1",
+          "estimatedArrivalTime": "3",
           "busy": false,
           "contractAddressUrl": "https://voyager.online/token/",
           "contractAddress": "0x33068f6539f8e6e6b131e6b2b814e6c34a5224bc66947c47dab9dfee93b35fb"
@@ -5127,7 +5127,7 @@
           "unLockConfirm": "0",
           "sameAddress": false,
           "withdrawTag": false,
-          "estimatedArrivalTime": "3",
+          "estimatedArrivalTime": "2",
           "busy": false,
           "contractAddressUrl": "https://worldchain-mainnet.explorer.alchemy.com/address/",
           "contractAddress": "0x79a02482a880bce3f13e09da970dc34db4cd24d1"
@@ -5412,12 +5412,12 @@
     "withdraw": false,
     "fee": 0.018,
     "fees": {
-      "BSC": 0.018,
+      "BEP20": 0.018,
       "AVAXC": 0.025,
-      "ETH": 5,
-      "OPTIMISM": 0.026,
+      "ERC20": 5,
+      "OP": 0.026,
       "MATIC": 0.024,
-      "TRX": 1
+      "TRC20": 1
     },
     "networks": {
       "BEP20": {
@@ -5788,7 +5788,7 @@
           "unLockConfirm": "30",
           "sameAddress": false,
           "withdrawTag": false,
-          "estimatedArrivalTime": "1",
+          "estimatedArrivalTime": "2",
           "busy": false,
           "contractAddressUrl": "https://chiliscan.com/token/",
           "contractAddress": "0x0ac7bf9783ca1dcd86a39b5a2607160d29256eb0"
@@ -5806,7 +5806,7 @@
     "withdraw": true,
     "fee": 0,
     "fees": {
-      "BSC": 0.02,
+      "BEP20": 0.02,
       "CHZ2": 0
     },
     "networks": {
@@ -5883,7 +5883,7 @@
           "unLockConfirm": "30",
           "sameAddress": false,
           "withdrawTag": false,
-          "estimatedArrivalTime": "1",
+          "estimatedArrivalTime": "2",
           "busy": false,
           "contractAddressUrl": "https://chiliscan.com/token/",
           "contractAddress": "0x0ac7bf9783ca1dcd86a39b5a2607160d29256eb0"
