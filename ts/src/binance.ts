@@ -6,7 +6,7 @@ import { ed25519 } from '@noble/curves/ed25519.js';
 import Exchange from './abstract/binance.js';
 import { ExchangeError, ArgumentsRequired, OperationFailed, OperationRejected, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet, MarketClosed } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, MarketMarginModes, Leverage, Leverages, Num, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRates, IsolatedBorrowRate, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, Position, ADL, Bool, Fee, MarketType, List, NullableDict, NullableList } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, MarketMarginModes, Leverage, Leverages, Num, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRates, IsolatedBorrowRate, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, Position, ADL, Bool, Fee, MarketType, List, NullableDict, NullableList, SubType } from './base/types.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { rsa } from './base/functions/rsa.js';
 import { eddsa } from './base/functions/crypto.js';
@@ -2906,7 +2906,7 @@ export default class binance extends Exchange {
         const defaultType = this.safeString2 (this.options, 'fetchTime', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         const query = this.omit (params, 'type');
-        let subType = undefined;
+        let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchTime', undefined, params);
         let response = undefined;
         if (this.isLinear (type, subType)) {
@@ -3797,7 +3797,7 @@ export default class binance extends Exchange {
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
         let type = this.safeString (params, 'type', defaultType);
-        let subType = undefined;
+        let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', undefined, params);
         let isPortfolioMargin: Bool = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchBalance', 'papi', 'portfolioMargin', false);
@@ -4397,7 +4397,7 @@ export default class binance extends Exchange {
         const market = this.getMarketFromSymbols (symbols);
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBidsAsks', market, params);
-        let subType = undefined;
+        let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchBidsAsks', market, params);
         let response = undefined;
         if (this.isLinear (type, subType)) {
@@ -4434,7 +4434,7 @@ export default class binance extends Exchange {
         const market = this.getMarketFromSymbols (symbols);
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchLastPrices', market, params);
-        let subType = undefined;
+        let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchLastPrices', market, params);
         let response = undefined;
         if (this.isLinear (type, subType)) {
@@ -4539,7 +4539,7 @@ export default class binance extends Exchange {
         const market = this.getMarketFromSymbols (symbols);
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-        let subType = undefined;
+        let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params);
         let response = undefined;
         if (this.isLinear (type, subType)) {
@@ -4600,7 +4600,7 @@ export default class binance extends Exchange {
         const market = this.market (symbol);
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchMarkPrice', market, params, 'swap');
-        let subType = undefined;
+        let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchMarkPrice', market, params, 'linear');
         const request = {
             'symbol': market['id'],
@@ -4636,7 +4636,7 @@ export default class binance extends Exchange {
         const market = this.getMarketFromSymbols (symbols);
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchMarkPrices', market, params, 'swap');
-        let subType = undefined;
+        let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchMarkPrices', market, params, 'linear');
         let response = undefined;
         if (this.isLinear (type, subType)) {
@@ -7298,7 +7298,7 @@ export default class binance extends Exchange {
             const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', 'spot');
             type = this.safeString (params, 'type', defaultType);
         }
-        let subType = undefined;
+        let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, params);
         params = this.omit (params, [ 'type', 'stop', 'trigger', 'conditional' ]);
         let response = undefined;
@@ -9630,7 +9630,7 @@ export default class binance extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const type = market['type'];
-        let subType = undefined;
+        let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchTradingFee', market, params);
         let isPortfolioMargin: Bool = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchTradingFee', 'papi', 'portfolioMargin', false);
@@ -9697,7 +9697,7 @@ export default class binance extends Exchange {
         await this.loadMarkets ();
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTradingFees', undefined, params);
-        let subType = undefined;
+        let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchTradingFees', undefined, params, 'linear');
         const isSpotOrMargin = (type === 'spot') || (type === 'margin');
         const isLinear = this.isLinear (type, subType);
@@ -9964,7 +9964,7 @@ export default class binance extends Exchange {
             symbol = market['symbol'];
             request['symbol'] = market['id'];
         }
-        let subType = undefined;
+        let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchFundingRateHistory', market, params, 'linear');
         params = this.omit (params, 'type');
         if (since !== undefined) {
@@ -10031,7 +10031,7 @@ export default class binance extends Exchange {
         symbols = this.marketSymbols (symbols);
         const defaultType = this.safeString2 (this.options, 'fetchFundingRates', 'defaultType', 'future');
         const type = this.safeString (params, 'type', defaultType);
-        let subType = undefined;
+        let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchFundingRates', undefined, params, 'linear');
         const query = this.omit (params, 'type');
         let response = undefined;
@@ -10643,7 +10643,7 @@ export default class binance extends Exchange {
             const defaultType = this.safeString (this.options, 'defaultType', 'future');
             const type = this.safeString (params, 'type', defaultType);
             const query = this.omit (params, 'type');
-            let subType = undefined;
+            let subType: SubType = undefined;
             [ subType, params ] = this.handleSubTypeAndParams ('loadLeverageBrackets', undefined, params, 'linear');
             let isPortfolioMargin: Bool = undefined;
             [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'loadLeverageBrackets', 'papi', 'portfolioMargin', false);
@@ -10700,7 +10700,7 @@ export default class binance extends Exchange {
         await this.loadMarkets ();
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchLeverageTiers', undefined, params);
-        let subType = undefined;
+        let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchLeverageTiers', undefined, params, 'linear');
         let isPortfolioMargin: Bool = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchLeverageTiers', 'papi', 'portfolioMargin', false);
@@ -11033,7 +11033,7 @@ export default class binance extends Exchange {
         const defaultType = this.safeString (this.options, 'defaultType', 'future');
         const type = this.safeString (params, 'type', defaultType);
         params = this.omit (params, 'type');
-        let subType = undefined;
+        let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchAccountPositions', undefined, params, 'linear');
         let isPortfolioMargin: Bool = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchAccountPositions', 'papi', 'portfolioMargin', false);
@@ -11161,7 +11161,7 @@ export default class binance extends Exchange {
         let defaultType = 'future';
         defaultType = this.safeString (this.options, 'defaultType', defaultType);
         const type = this.safeString (params, 'type', defaultType);
-        let subType = undefined;
+        let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchPositionsRisk', undefined, params, 'linear');
         let isPortfolioMargin: Bool = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchPositionsRisk', 'papi', 'portfolioMargin', false);
@@ -11338,7 +11338,7 @@ export default class binance extends Exchange {
                 throw new NotSupported (this.id + ' fetchFundingHistory() supports swap contracts only');
             }
         }
-        let subType = undefined;
+        let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchFundingHistory', market, params, 'linear');
         let isPortfolioMargin: Bool = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchFundingHistory', 'papi', 'portfolioMargin', false);
@@ -11507,7 +11507,7 @@ export default class binance extends Exchange {
         }
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('setPositionMode', market, params);
-        let subType = undefined;
+        let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('setPositionMode', market, params);
         let isPortfolioMargin: Bool = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'setPositionMode', 'papi', 'portfolioMargin', false);
@@ -11564,7 +11564,7 @@ export default class binance extends Exchange {
         await this.loadLeverageBrackets (false, params);
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchLeverages', undefined, params);
-        let subType = undefined;
+        let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchLeverages', undefined, params, 'linear');
         let isPortfolioMargin: Bool = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchLeverages', 'papi', 'portfolioMargin', false);
@@ -11876,7 +11876,7 @@ export default class binance extends Exchange {
             return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, params, undefined, false) as LedgerEntry[];
         }
         let type: Str = undefined;
-        let subType = undefined;
+        let subType: SubType = undefined;
         let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -13248,7 +13248,7 @@ export default class binance extends Exchange {
         }
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchMyLiquidations', market, params);
-        let subType = undefined;
+        let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchMyLiquidations', market, params, 'linear');
         let isPortfolioMargin: Bool = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchMyLiquidations', 'papi', 'portfolioMargin', false);
@@ -13610,7 +13610,7 @@ export default class binance extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let subType = undefined;
+        let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchPositionMode', market, params);
         let response = undefined;
         if (subType === 'linear') {
@@ -13651,7 +13651,7 @@ export default class binance extends Exchange {
             symbols = this.marketSymbols (symbols);
             market = this.market (symbols[0]);
         }
-        let subType = undefined;
+        let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchMarginMode', market, params);
         let response = undefined;
         if (subType === 'linear') {
@@ -13741,7 +13741,7 @@ export default class binance extends Exchange {
     async fetchMarginMode (symbol: string, params = {}): Promise<MarginMode> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let subType = undefined;
+        let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchMarginMode', market, params);
         let response = undefined;
         if (subType === 'linear') {
@@ -14369,7 +14369,7 @@ export default class binance extends Exchange {
             market = this.market (symbols[0]);
         }
         const type = 'swap';
-        let subType = undefined;
+        let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchFundingIntervals', market, params, 'linear');
         let response = undefined;
         if (this.isLinear (type, subType)) {
@@ -14423,7 +14423,7 @@ export default class binance extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let subType = undefined;
+        let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchLongShortRatioHistory', market, params);
         let response = undefined;
         if (subType === 'linear') {
@@ -14509,7 +14509,7 @@ export default class binance extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        let subType = undefined;
+        let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchADLRank', market, params);
         let response = undefined;
         if (subType === 'linear') {
@@ -14544,7 +14544,7 @@ export default class binance extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true, true, true);
         const market = this.getMarketFromSymbols (symbols);
-        let subType = undefined;
+        let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchPositionsADLRank', market, params);
         let isPortfolioMargin: Bool = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchPositionsADLRank', 'papi', 'portfolioMargin', false);
