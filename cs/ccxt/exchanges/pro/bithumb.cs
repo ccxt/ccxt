@@ -370,7 +370,7 @@ public partial class bithumb : ccxt.bithumb
         object marketId = this.safeString(trade, "symbol");
         object datetime = this.safeString(trade, "contDtm");
         // that date is not UTC iso8601, but exchange's local time, -9hr difference
-        object timestamp = subtract(this.parse8601(datetime), 32400000);
+        object timestamp = subtract(this.parseToInt(this.parse8601(datetime)), 32400000);
         object sideId = this.safeString(trade, "buySellGb");
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", null },

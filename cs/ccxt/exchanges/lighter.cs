@@ -595,13 +595,13 @@ public partial class lighter : Exchange
         object cachedDeadline = this.safeInteger(cachedAuth, "deadline");
         if (isTrue(!isEqual(cachedDeadline, null)))
         {
-            object minimumDeadline = add(this.seconds(), this.safeInteger(this.options, "authDeadlineMinimumRemaining"));
+            object minimumDeadline = add(this.seconds(), this.safeInteger(this.options, "authDeadlineMinimumRemaining", 60));
             if (isTrue(isGreaterThanOrEqual(cachedDeadline, minimumDeadline)))
             {
                 return this.safeString(cachedAuth, "token");
             }
         }
-        object deadline = add(this.seconds(), this.safeInteger(this.options, "authDeadlineExpiry"));
+        object deadline = add(this.seconds(), this.safeInteger(this.options, "authDeadlineExpiry", 28800));
         object request = new Dictionary<string, object>() {
             { "deadline", deadline },
             { "api_key_index", this.parseToInt(apiKeyIndex) },

@@ -850,7 +850,7 @@ public partial class mexc : Exchange
         var marketTypequeryVariable = this.handleMarketTypeAndParams("fetchStatus", null, parameters);
         var marketType = ((IList<object>) marketTypequeryVariable)[0];
         var query = ((IList<object>) marketTypequeryVariable)[1];
-        object response = null;
+        object response = new Dictionary<string, object>() {};
         object status = null;
         object updated = null;
         if (isTrue(isEqual(marketType, "spot")))
@@ -1423,7 +1423,7 @@ public partial class mexc : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object trades = null;
+        object trades = new List<object>() {};
         if (isTrue(getValue(market, "spot")))
         {
             object until = this.safeIntegerN(parameters, new List<object>() {"endTime", "until"});
@@ -1677,7 +1677,7 @@ public partial class mexc : Exchange
             { "symbol", getValue(market, "id") },
             { "interval", timeframeValue },
         };
-        object candles = null;
+        object candles = new List<object>() {};
         object until = this.safeIntegerN(parameters, new List<object>() {"until", "endTime"});
         object start = since;
         if (isTrue(isTrue((!isEqual(until, null))) && isTrue((isEqual(since, null)))))
@@ -2555,7 +2555,7 @@ public partial class mexc : Exchange
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        object data = null;
+        object data = new Dictionary<string, object>() {};
         if (isTrue(getValue(market, "spot")))
         {
             object clientOrderId = this.safeString(parameters, "clientOrderId");
@@ -3305,7 +3305,7 @@ public partial class mexc : Exchange
             // the Planorder endpoints work not only for stop-market orders but also for stop-limit orders that are supposed to have separate endpoint
             object method = this.safeString(this.options, "cancelAllOrders", "contractPrivatePostOrderCancelAll");
             method = this.safeString(query, "method", method);
-            object response = null;
+            object response = new Dictionary<string, object>() {};
             if (isTrue(isEqual(method, "contractPrivatePostOrderCancelAll")))
             {
                 response = await this.contractPrivatePostOrderCancelAll(this.extend(request, query));
@@ -3897,7 +3897,11 @@ public partial class mexc : Exchange
                 object symbols = this.safeValue(parameters, "symbols");
                 if (isTrue(!isEqual(symbols, null)))
                 {
-                    parsedSymbols = String.Join(",", ((IList<object>)this.marketIds(symbols)).ToArray());
+                    object symbolIds = this.marketIds(symbols);
+                    if (isTrue(!isEqual(symbolIds, null)))
+                    {
+                        parsedSymbols = String.Join(",", ((IList<object>)symbolIds).ToArray());
+                    }
                 }
             } else
             {

@@ -12271,7 +12271,7 @@ public partial class binance : Exchange
         if (isTrue(!isEqual(symbol, null)))
         {
             symbol = this.safeString(market, "symbol");
-            ((IDictionary<string,object>)request)["underlying"] = add(this.safeString(market, "baseId"), this.safeString(market, "quoteId"));
+            ((IDictionary<string,object>)request)["underlying"] = add(this.safeString(market, "baseId", ""), this.safeString(market, "quoteId", ""));
         }
         if (isTrue(!isEqual(since, null)))
         {

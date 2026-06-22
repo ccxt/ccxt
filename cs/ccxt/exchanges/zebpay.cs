@@ -1501,7 +1501,7 @@ public partial class zebpay : Exchange
         await this.loadMarkets();
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
-            { "symbol", ((string)getValue(market, "id")).ToUpper() },
+            { "symbol", this.safeStringUpper(market, "id") },
         };
         object response = await this.privateSwapGetV1TradeUserLeverage(this.extend(request, parameters));
         //
