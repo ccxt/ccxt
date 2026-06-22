@@ -640,6 +640,14 @@ class Exchange(BaseExchange):
     async def load_dydx_protos(self):
         return
 
+    # async wrappers so transpiled `await self.rsa(...)` / `await self.jwt(...)`
+    # resolve, the underlying crypto in python is synchronous
+    async def rsa(self, request, secret, alg='sha256'):
+        return BaseExchange.rsa(request, secret, alg)
+
+    async def jwt(self, request, secret, algorithm='sha256', is_rsa=False, opts={}):
+        return BaseExchange.jwt(request, secret, algorithm, is_rsa, opts)
+
     # ########################################################################
     # ########################################################################
     # ########################################################################
@@ -678,6 +686,9 @@ class Exchange(BaseExchange):
     # ########################################################################
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
+
+    async def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+        return {}
 
     async def fetch_accounts(self, params={}):
         raise NotSupported(self.id + ' fetchAccounts() is not supported yet')
@@ -1010,7 +1021,7 @@ class Exchange(BaseExchange):
         for i in range(0, retries + 1):
             try:
                 self.lastRestRequestTimestamp = self.milliseconds()
-                request = self.sign(path, api, method, params, headers, body)
+                request = await self.sign(path, api, method, params, headers, body)
                 self.last_request_headers = request['headers']
                 self.last_request_body = request['body']
                 self.last_request_url = request['url']

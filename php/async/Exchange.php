@@ -262,6 +262,20 @@ class Exchange extends \ccxt\Exchange {
         })();
     }
 
+    // promise-returning wrappers so transpiled `Async\await($this->rsa(...))`
+    // / `Async\await($this->jwt(...))` resolve, the crypto itself is synchronous
+    public static function rsa($request, $secret, $alg = 'sha256') {
+        return React\Async\async(function () use ($request, $secret, $alg) {
+            return parent::rsa($request, $secret, $alg);
+        })();
+    }
+
+    public static function jwt($request, $secret, $algorithm = 'sha256', $is_rsa = false, $opts = array()) {
+        return React\Async\async(function () use ($request, $secret, $algorithm, $is_rsa, $opts) {
+            return parent::jwt($request, $secret, $algorithm, $is_rsa, $opts);
+        })();
+    }
+
     public function load_markets_helper($reload = false, $params = array()) {
         // copied from js
         return React\Async\async(function () use ($reload, $params) {
@@ -3957,7 +3971,7 @@ class Exchange extends \ccxt\Exchange {
             for ($i = 0; $i < $retries + 1; $i++) {
                 try {
                     $this->lastRestRequestTimestamp = $this->milliseconds();
-                    $request = $this->sign($path, $api, $method, $params, $headers, $body);
+                    $request = Async\await($this->sign($path, $api, $method, $params, $headers, $body));
                     $this->last_request_headers = $request['headers'];
                     $this->last_request_body = $request['body'];
                     $this->last_request_url = $request['url'];

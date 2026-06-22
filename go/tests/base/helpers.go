@@ -212,11 +212,11 @@ func Ecdsa(request2 any, secret2 any, algorithm2 func() string, digest func() st
 	return ccxt.Ecdsa(request2, secret2, algorithm2, digest)
 }
 
-func Rsa(request2 any, secret2 any, algorithm2 func() string) any {
+func Rsa(request2 any, secret2 any, algorithm2 func() string) <-chan any {
 	return ccxt.Rsa(request2, secret2, algorithm2)
 }
 
-func Jwt(request2 any, secret2 any, algorithm2 func() string, encode bool) any {
+func Jwt(request2 any, secret2 any, algorithm2 func() string, encode bool) <-chan any {
 	return ccxt.Jwt(request2, secret2, algorithm2, encode)
 }
 
