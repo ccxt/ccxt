@@ -138,7 +138,7 @@ export default class deepcoin extends deepcoinRest {
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash, subscription);
     }
 
-    async unWatchPublic (market: Market, messageHash: string, topicID: string, params: Dict = {}, subscription: Dict = {}, suffix: string = ''): Promise<any> {
+    async unWatchPublic (market: MarketInterface, messageHash: string, topicID: string, params: Dict = {}, subscription: Dict = {}, suffix: string = ''): Promise<any> {
         const url = this.urls['api']['ws']['public'][market['type']];
         const requestId = this.requestId ();
         const client = this.client (url);
@@ -147,7 +147,7 @@ export default class deepcoin extends deepcoinRest {
             throw new BadRequest (this.id + ' no subscription for ' + messageHash);
         }
         const subId = this.safeInteger (existingSubscription, 'id');
-        const request = this.createPublicRequest (market, subId, topicID, suffix, true); // unsubscribe message uses the same id as the original subscribe message
+        const request = this.createPublicRequest (market, (subId as number), topicID, suffix, true); // unsubscribe message uses the same id as the original subscribe message
         const unsubHash = 'unsubscribe::' + messageHash;
         subscription = this.extend (subscription, {
             'subHash': messageHash,
@@ -188,7 +188,7 @@ export default class deepcoin extends deepcoinRest {
         if (response !== undefined) {
             const data = this.safeDict (response, 'data', {});
             listenKey = this.safeString (data, 'listenkey');
-            listenKeyExpiryTimestamp = this.safeTimestamp (data, 'expire_time');
+            listenKeyExpiryTimestamp = this.safeTimestamp (data, 'expire_time') as number;
             this.options['listenKey'] = listenKey;
             this.options['listenKeyExpiryTimestamp'] = listenKeyExpiryTimestamp;
         }
@@ -452,7 +452,7 @@ export default class deepcoin extends deepcoinRest {
         const direction = this.safeString (trade, 'D');
         const timestamp = this.safeTimestamp2 (trade, 'TT', 'T');
         const matchRole = this.safeString (trade, 'm');
-        let fee = undefined;
+        let fee: Dict | undefined = undefined;
         const feeCost = this.safeString (trade, 'F');
         if (feeCost !== undefined) {
             fee = {
@@ -580,7 +580,7 @@ export default class deepcoin extends deepcoinRest {
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
-        if (!(timeframe in this.ohlcvs[symbol])) {
+        if (!((timeframe as string) in this.ohlcvs[symbol])) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             this.ohlcvs[symbol][(timeframe as string)] = new ArrayCacheByTimestamp (limit);
         }
@@ -725,7 +725,7 @@ export default class deepcoin extends deepcoinRest {
                 orderedEntries['asks'].push ([ price, volume ]);
             }
         }
-        const timestamp = this.safeInteger (message, 'mt');
+        const timestamp = this.safeInteger (message, 'mt', 0);
         const snapshot = this.parseOrderBook (orderedEntries, symbol, timestamp);
         orderbook.reset (snapshot);
         const cachedMessages = orderbook.cache;
@@ -754,7 +754,7 @@ export default class deepcoin extends deepcoinRest {
         //         "mt": 1760975816446
         //     }
         //
-        const timestamp = this.safeInteger (message, 'mt');
+        const timestamp = this.safeInteger (message, 'mt', 0);
         if (timestamp > orderbook['timestamp']) {
             const response = this.safeList (message, 'r', []);
             this.handleDeltas (orderbook, response);
@@ -1012,7 +1012,7 @@ export default class deepcoin extends deepcoinRest {
         const listenKey = await this.authenticate ();
         symbols = this.marketSymbols (symbols);
         const messageHash = 'positions';
-        const messageHashes = [];
+        const messageHashes: string[] = [];
         if (symbols !== undefined) {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
