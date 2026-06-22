@@ -179,6 +179,7 @@ from ccxt.paradex import paradex                                      # noqa: F4
 from ccxt.paymium import paymium                                      # noqa: F401
 from ccxt.phemex import phemex                                        # noqa: F401
 from ccxt.poloniex import poloniex                                    # noqa: F401
+from ccxt.rubin import rubin                                          # noqa: F401
 from ccxt.tokocrypto import tokocrypto                                # noqa: F401
 from ccxt.toobit import toobit                                        # noqa: F401
 from ccxt.upbit import upbit                                          # noqa: F401
@@ -286,6 +287,7 @@ exchanges = [
     'paymium',
     'phemex',
     'poloniex',
+    'rubin',
     'tokocrypto',
     'toobit',
     'upbit',

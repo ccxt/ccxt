@@ -20,6 +20,13 @@ export const registry = {
     '/dydxprotocol.sending.MsgWithdrawFromSubaccount': MsgWithdrawFromSubaccount,
     '/dydxprotocol.sending.MsgDepositToSubaccount': MsgDepositToSubaccount,
     '/dydxprotocol.accountplus.TxExtension': TxExtension,
+    '/ritbit.clob.MsgPlaceOrder': MsgPlaceOrder,
+    '/ritbit.clob.MsgCancelOrder': MsgCancelOrder,
+    '/ritbit.clob.MsgBatchCancel': MsgBatchCancel,
+    '/ritbit.sending.MsgCreateTransfer': MsgCreateTransfer,
+    '/ritbit.sending.MsgWithdrawFromSubaccount': MsgWithdrawFromSubaccount,
+    '/ritbit.sending.MsgDepositToSubaccount': MsgDepositToSubaccount,
+    '/ritbit.accountplus.TxExtension': TxExtension,
     '/cosmos.crypto.secp256k1.PubKey': PubKey,
 };
 export function encodeAsAny(encodeObject) {

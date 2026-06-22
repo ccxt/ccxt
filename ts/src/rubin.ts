@@ -3,7 +3,7 @@
 
 import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
-import Exchange from './abstract/dydx.js';
+import Exchange from './abstract/rubin.js';
 import { ArgumentsRequired, NotSupported, ExchangeError, InsufficientFunds, InvalidOrder, BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
@@ -13,14 +13,14 @@ import { ecdsa } from './base/functions/crypto.js';
 // ---------------------------------------------------------------------------
 
 /**
- * @class dydx
+ * @class rubin
  * @augments Exchange
  */
-export default class dydx extends Exchange {
+export default class rubin extends Exchange {
     describe (): any {
         return this.deepExtend (super.describe (), {
-            'id': 'dydx',
-            'name': 'dYdX',
+            'id': 'rubin',
+            'name': 'Rubin',
             'countries': [ 'US' ],
             'rateLimit': 100,
             'version': 'v4',
@@ -130,25 +130,25 @@ export default class dydx extends Exchange {
                 '1d': '1DAY',
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/617ea0c1-f05a-4d26-9fcb-a0d1d4091ae1',
+                'logo': 'https://storage.yandexcloud.net/ritbit-static/rubin/logo-xl.png',
                 'api': {
-                    'indexer': 'https://indexer.dydx.trade/v4',
-                    'nodeRpc': 'https://dydx-ops-rpc.kingnodes.com',
-                    'nodeRest': 'https://dydx-rest.publicnode.com',
+                    'indexer': 'https://indexer.mainnet.rubin.trade/v4',
+                    'nodeRpc': 'https://rpc.mainnet.rubin.trade',
+                    'nodeRest': 'https://rest.mainnet.rubin.trade',
                 },
                 'test': {
-                    'indexer': 'https://indexer.v4testnet.dydx.exchange/v4',
-                    'nodeRpc': 'https://test-dydx-rpc.kingnodes.com',
-                    'nodeRest': 'https://test-dydx-rest.kingnodes.com',
+                    'indexer': 'https://indexer.testnet.rubin.trade/v4',
+                    'nodeRpc': 'https://rpc.testnet.rubin.trade',
+                    'nodeRest': 'https://rest.testnet.rubin.trade',
                 },
-                'www': 'https://www.dydx.xyz',
+                'www': 'https://rubin.trade',
                 'doc': [
-                    'https://docs.dydx.xyz',
+                    'https://docs.rubin.trade',
                 ],
                 'fees': [
-                    'https://docs.dydx.exchange/introduction-trading_fees',
+                    'https://docs.rubin.trade',
                 ],
-                'referral': 'https://dydx.trade?ref=ccxt',
+                'referral': 'https://rubin.trade?ref=ccxt',
             },
             'api': {
                 'indexer': {
@@ -213,7 +213,7 @@ export default class dydx extends Exchange {
                 },
                 'nodeRest': {
                     'get': {
-                        'cosmos/auth/v1beta1/account_info/{dydxAddress}': 1,
+                        'cosmos/auth/v1beta1/account_info/{rubinAddress}': 1,
                     },
                     'post': {
                         'cosmos/tx/v1beta1/encode': 1,
@@ -236,17 +236,18 @@ export default class dydx extends Exchange {
             },
             'options': {
                 'mnemonic': undefined, // specify mnemonic, copy secret phrase from UI
-                'chainName': 'dydx-mainnet-1',
+                'chainName': 'ritbit-mainnet',
+                'txExtensionTypeUrl': '/ritbit.accountplus.TxExtension',
                 'chainId': 1,
                 'sandboxMode': false,
                 'defaultFeeDenom': 'uusdc',
                 'defaultFeeMultiplier': '1.6',
                 'feeDenom': {
-                    'USDC_DENOM': 'ibc/8E27BA2D5493AF5636760E354E46004562C46AB7EC0CC4C1CA14E9E20E2545B5',
+                    'USDC_DENOM': 'uusdc',
                     'USDC_GAS_DENOM': 'uusdc',
                     'USDC_DECIMALS': 6,
                     'USDC_GAS_PRICE': '0.025',
-                    'CHAINTOKEN_DENOM': 'adydx',
+                    'CHAINTOKEN_DENOM': 'urit',
                     'CHAINTOKEN_DECIMALS': 18,
                     'CHAINTOKEN_GAS_PRICE': '25000000000',
                 },
@@ -345,8 +346,8 @@ export default class dydx extends Exchange {
             'exceptions': {
                 'exact': {
                     // error collision for clob and sending modules from 2 - 8
-                    // https://github.com/dydxprotocol/v4-chain/blob/5f9f6c9b95cc87d732e23de764909703b81a6e8b/protocol/x/clob/types/errors.go#L320
-                    // https://github.com/dydxprotocol/v4-chain/blob/5f9f6c9b95cc87d732e23de764909703b81a6e8b/protocol/x/sending/types/errors.go
+                    // https://github.com/ritbit/v4-chain/blob/5f9f6c9b95cc87d732e23de764909703b81a6e8b/protocol/x/clob/types/errors.go#L320
+                    // https://github.com/ritbit/v4-chain/blob/5f9f6c9b95cc87d732e23de764909703b81a6e8b/protocol/x/sending/types/errors.go
                     '9': InvalidOrder, // A cancel already exists in the memclob for this order with a greater than or equal GoodTilBlock
                     '10': InvalidOrder, // The next block height is greater than the GoodTilBlock of the message
                     '11': InvalidOrder, // The GoodTilBlock of the message is further than ShortBlockWindow blocks into the future
@@ -459,10 +460,9 @@ export default class dydx extends Exchange {
 
     /**
      * @method
-     * @name dydx#fetchTime
+     * @name rubin#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see https://docs.dydx.xyz/indexer-client/http#get-time
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @see https://docs.rubin.trade     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
     async fetchTime (params = {}): Promise<Int> {
@@ -578,10 +578,9 @@ export default class dydx extends Exchange {
 
     /**
      * @method
-     * @name dydx#fetchMarkets
+     * @name rubin#fetchMarkets
      * @description retrieves data on all markets for hyperliquid
-     * @see https://docs.dydx.xyz/indexer-client/http#get-perpetual-markets
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @see https://docs.rubin.trade     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
@@ -661,7 +660,7 @@ export default class dydx extends Exchange {
 
     /**
      * @method
-     * @name dydx#fetchTrades
+     * @name rubin#fetchTrades
      * @description get the list of most recent trades for a particular symbol
      * @see https://developer.woox.io/api-reference/endpoint/public_data/marketTrades
      * @param {string} symbol unified symbol of the market to fetch trades for
@@ -729,9 +728,8 @@ export default class dydx extends Exchange {
 
     /**
      * @method
-     * @name dydx#fetchOHLCV
-     * @see https://docs.dydx.xyz/indexer-client/http#get-candles
-     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @name rubin#fetchOHLCV
+     * @see https://docs.rubin.trade     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -786,10 +784,9 @@ export default class dydx extends Exchange {
 
     /**
      * @method
-     * @name dydx#fetchFundingRateHistory
+     * @name rubin#fetchFundingRateHistory
      * @description fetches historical funding rate prices
-     * @see https://docs.dydx.xyz/indexer-client/http#get-historical-funding
-     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @see https://docs.rubin.trade     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
      * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -947,10 +944,9 @@ export default class dydx extends Exchange {
 
     /**
      * @method
-     * @name dydx#fetchOrder
+     * @name rubin#fetchOrder
      * @description fetches information on an order made by the user
-     * @see https://docs.dydx.xyz/indexer-client/http#get-order
-     * @param {string} id the order id
+     * @see https://docs.rubin.trade     * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -966,10 +962,9 @@ export default class dydx extends Exchange {
 
     /**
      * @method
-     * @name dydx#fetchOrders
+     * @name rubin#fetchOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://docs.dydx.xyz/indexer-client/http#list-orders
-     * @param {string} symbol unified market symbol of the market orders were made in
+     * @see https://docs.rubin.trade     * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1028,10 +1023,9 @@ export default class dydx extends Exchange {
 
     /**
      * @method
-     * @name dydx#fetchOpenOrders
+     * @name rubin#fetchOpenOrders
      * @description fetch all unfilled currently open orders
-     * @see https://docs.dydx.xyz/indexer-client/http#list-orders
-     * @param {string} symbol unified market symbol of the market orders were made in
+     * @see https://docs.rubin.trade     * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1048,10 +1042,9 @@ export default class dydx extends Exchange {
 
     /**
      * @method
-     * @name dydx#fetchClosedOrders
+     * @name rubin#fetchClosedOrders
      * @description fetches information on multiple closed orders made by the user
-     * @see https://docs.dydx.xyz/indexer-client/http#list-orders
-     * @param {string} symbol unified market symbol of the market orders were made in
+     * @see https://docs.rubin.trade     * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1125,10 +1118,9 @@ export default class dydx extends Exchange {
 
     /**
      * @method
-     * @name dydx#fetchPosition
+     * @name rubin#fetchPosition
      * @description fetch data on an open position
-     * @see https://docs.dydx.xyz/indexer-client/http#list-positions
-     * @param {string} symbol unified market symbol of the market the position is held in
+     * @see https://docs.rubin.trade     * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.address] wallet address that made trades
      * @param {string} [params.subAccountNumber] sub account number
@@ -1141,10 +1133,9 @@ export default class dydx extends Exchange {
 
     /**
      * @method
-     * @name dydx#fetchPositions
+     * @name rubin#fetchPositions
      * @description fetch all open positions
-     * @see https://docs.dydx.xyz/indexer-client/http#list-positions
-     * @param {string[]} [symbols] list of unified market symbols
+     * @see https://docs.rubin.trade     * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.address] wallet address that made trades
      * @param {string} [params.subAccountNumber] sub account number
@@ -1210,14 +1201,14 @@ export default class dydx extends Exchange {
     }
 
     signOnboardingAction (): object {
-        const message = { 'action': 'dYdX Chain Onboarding' };
+        const message = { 'action': 'Rubin Chain Onboarding' };
         const chainId = this.options['chainId'];
         const domain: Dict = {
             'chainId': chainId,
-            'name': 'dYdX Chain',
+            'name': 'Rubin Chain',
         };
         const messageTypes: Dict = {
-            'dYdX': [
+            'Rubin': [
                 { 'name': 'action', 'type': 'string' },
             ],
         };
@@ -1229,14 +1220,14 @@ export default class dydx extends Exchange {
         return signature;
     }
 
-    signDydxTx (privateKey: string, message: any, memo: string, chainId: string, account: any, authenticators: any, fee = undefined): string {
+    signRubinTx (privateKey: string, message: any, memo: string, chainId: string, account: any, authenticators: any, fee = undefined): string {
         const [ encodedTx, signDoc ] = this.encodeV4TxForSigning (message, memo, chainId, account, authenticators, fee);
         const signature = this.signHash (encodedTx, privateKey);
         return this.encodeV4TxRaw (signDoc, signature['r'] + signature['s']);
     }
 
     retrieveCredentials (): any {
-        let credentials = this.safeDict (this.options, 'dydxCredentials');
+        let credentials = this.safeDict (this.options, 'rubinCredentials');
         if (credentials !== undefined) {
             return credentials;
         }
@@ -1248,25 +1239,25 @@ export default class dydx extends Exchange {
         credentials = this.retrieveV4Credentials (entropy);
         credentials['privateKey'] = this.binaryToBase16 (credentials['privateKey']);
         credentials['publicKey'] = this.binaryToBase16 (credentials['publicKey']);
-        this.options['dydxCredentials'] = credentials;
+        this.options['rubinCredentials'] = credentials;
         return credentials;
     }
 
-    async fetchDydxAccount () {
+    async fetchRubinAccount () {
         // required in js
         await this.loadV4Protos ();
-        const dydxAccount = this.safeDict (this.options, 'dydxAccount');
-        if (dydxAccount !== undefined) {
-            return dydxAccount;
+        const rubinAccount = this.safeDict (this.options, 'rubinAccount');
+        if (rubinAccount !== undefined) {
+            return rubinAccount;
         }
         if (this.walletAddress === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchDydxAccount() requires the walletAddress to be set using the dydx chain address eg: dydx1cpb4tedmwq304c2kc9pwzjwq0sc6z2a4tasxrz');
+            throw new ArgumentsRequired (this.id + ' fetchRubinAccount() requires the walletAddress to be set using the rit chain address eg: rit1exampleaddressxxxxxxxxxxxxxxxxxxxxxxx');
         }
-        if (!this.walletAddress.startsWith ('dydx')) {
-            throw new ArgumentsRequired (this.id + ' fetchDydxAccount() requires a valid dydx chain address, starting with dydx, not the l1 address.');
+        if (!this.walletAddress.startsWith ('rit')) {
+            throw new ArgumentsRequired (this.id + ' fetchRubinAccount() requires a valid rit chain address, starting with rit, not the l1 address.');
         }
         const request = {
-            'dydxAddress': this.walletAddress,
+            'rubinAddress': this.walletAddress,
         };
         //
         // {
@@ -1281,13 +1272,13 @@ export default class dydx extends Exchange {
         //     }
         // }
         //
-        const response = await this.nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress (request);
+        const response = await this.nodeRestGetCosmosAuthV1beta1AccountInfoRubinAddress (request);
         const account = this.safeDict (response, 'info', {});
         account['pub_key'] = {
             // encode with binary key would fail in python
             'key': account['pub_key']['key'],
         };
-        this.options['dydxAccount'] = account;
+        this.options['rubinAccount'] = account;
         return account;
     }
 
@@ -1410,11 +1401,11 @@ export default class dydx extends Exchange {
                 'clientMetadata': clientMetadata,
                 'conditionType': conditionalType,
                 'conditionalOrderTriggerSubticks': this.toV4Long (conditionalOrderTriggerSubticks),
-                'orderRouterAddress': this.safeString (this.options, 'routerAddress', 'dydx165sfn2k3vucvq7gklauy2r3agyjw4c3m60ascn'),
+                'orderRouterAddress': this.safeString (this.options, 'routerAddress'),
             },
         };
         const signingPayload = {
-            'typeUrl': '/dydxprotocol.clob.MsgPlaceOrder',
+            'typeUrl': '/ritbit.clob.MsgPlaceOrder',
             'value': orderPayload,
         };
         params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'clientOrderId', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'latestBlockHeight', 'goodTillBlock', 'goodTillBlockTimeInSeconds', 'subaccountId' ]);
@@ -1438,7 +1429,7 @@ export default class dydx extends Exchange {
         //     "id": -1,
         //     "result": {
         //         "response": {
-        //             "data": "dydxprotocol",
+        //             "data": "ritbit",
         //             "version": "9.1.0-rc0",
         //             "last_block_height": "49157714",
         //             "last_block_app_hash": "9LHAcDDI5zmWiC6bGiiGtxuWPlKJV+/fTBZk/WQ/Y4U="
@@ -1453,9 +1444,8 @@ export default class dydx extends Exchange {
 
     /**
      * @method
-     * @name dydx#createOrder
-     * @see https://docs.dydx.xyz/interaction/trading#place-an-order
-     * @description create a trade order
+     * @name rubin#createOrder
+     * @see https://docs.rubin.trade     * @description create a trade order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -1476,7 +1466,7 @@ export default class dydx extends Exchange {
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
         const credentials = this.retrieveCredentials ();
-        const account = await this.fetchDydxAccount ();
+        const account = await this.fetchRubinAccount ();
         const lastBlockHeight = await this.fetchLatestBlockHeight ();
         // params['latestBlockHeight'] = lastBlockHeight;
         const newParams = this.extend (params, { 'latestBlockHeight': lastBlockHeight });
@@ -1484,7 +1474,7 @@ export default class dydx extends Exchange {
         const orderId = orderRequestRes[0];
         const orderRequest = orderRequestRes[1];
         const chainName = this.options['chainName'];
-        const signedTx = this.signDydxTx (credentials['privateKey'], orderRequest, '', chainName, account, undefined);
+        const signedTx = this.signRubinTx (credentials['privateKey'], orderRequest, '', chainName, account, undefined);
         const request = {
             'tx': signedTx,
         };
@@ -1513,10 +1503,9 @@ export default class dydx extends Exchange {
 
     /**
      * @method
-     * @name dydx#cancelOrder
+     * @name rubin#cancelOrder
      * @description cancels an open order
-     * @see https://docs.dydx.xyz/interaction/trading/#cancel-an-order
-     * @param {string} id it should be the clientOrderId in this case
+     * @see https://docs.rubin.trade     * @param {string} id it should be the clientOrderId in this case
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] client order id used when creating the order
@@ -1570,7 +1559,7 @@ export default class dydx extends Exchange {
             }
         }
         const credentials = this.retrieveCredentials ();
-        const account = await this.fetchDydxAccount ();
+        const account = await this.fetchRubinAccount ();
         const cancelPayload = {
             'orderId': {
                 'subaccountId': {
@@ -1585,11 +1574,11 @@ export default class dydx extends Exchange {
             'goodTilBlockTime': goodTillBlockTime,
         };
         const signingPayload = {
-            'typeUrl': '/dydxprotocol.clob.MsgCancelOrder',
+            'typeUrl': '/ritbit.clob.MsgCancelOrder',
             'value': cancelPayload,
         };
         const chainName = this.options['chainName'];
-        const signedTx = this.signDydxTx (credentials['privateKey'], signingPayload, '', chainName, account, undefined);
+        const signedTx = this.signRubinTx (credentials['privateKey'], signingPayload, '', chainName, account, undefined);
         const request = {
             'tx': signedTx,
         };
@@ -1616,7 +1605,7 @@ export default class dydx extends Exchange {
 
     /**
      * @method
-     * @name dydx#cancelOrders
+     * @name rubin#cancelOrders
      * @description cancel multiple orders
      * @param {string[]} ids order ids
      * @param {string} [symbol] unified market symbol
@@ -1641,7 +1630,7 @@ export default class dydx extends Exchange {
         }
         params = this.omit (params, [ 'clientOrderIds', 'goodTillBlock', 'subaccountId' ]);
         const credentials = this.retrieveCredentials ();
-        const account = await this.fetchDydxAccount ();
+        const account = await this.fetchRubinAccount ();
         const cancelOrders = {
             'clientIds': clientOrderIds,
             'clobPairId': market['info']['clobPairId'],
@@ -1655,11 +1644,11 @@ export default class dydx extends Exchange {
             'goodTilBlock': goodTillBlock,
         };
         const signingPayload = {
-            'typeUrl': '/dydxprotocol.clob.MsgBatchCancel',
+            'typeUrl': '/ritbit.clob.MsgBatchCancel',
             'value': cancelPayload,
         };
         const chainName = this.options['chainName'];
-        const signedTx = this.signDydxTx (credentials['privateKey'], signingPayload, '', chainName, account, undefined);
+        const signedTx = this.signRubinTx (credentials['privateKey'], signingPayload, '', chainName, account, undefined);
         const request = {
             'tx': signedTx,
         };
@@ -1686,10 +1675,9 @@ export default class dydx extends Exchange {
 
     /**
      * @method
-     * @name dydx#fetchOrderBook
+     * @name rubin#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.dydx.xyz/indexer-client/http#get-perpetual-market-orderbook
-     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @see https://docs.rubin.trade     * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
@@ -1725,11 +1713,11 @@ export default class dydx extends Exchange {
         // {
         //     "id": "6a6075bc-7183-5fd9-bc9d-894e238aa527",
         //     "sender": {
-        //         "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+        //         "address": "rit14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
         //         "subaccountNumber": 0
         //     },
         //     "recipient": {
-        //         "address": "dydx1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
+        //         "address": "rit1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
         //         "subaccountNumber": 1
         //     },
         //     "size": "0.000001",
@@ -1787,10 +1775,9 @@ export default class dydx extends Exchange {
 
     /**
      * @method
-     * @name dydx#fetchLedger
+     * @name rubin#fetchLedger
      * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-     * @see https://docs.dydx.xyz/indexer-client/http#get-transfers
-     * @param {string} [code] unified currency code, default is undefined
+     * @see https://docs.rubin.trade     * @param {string} [code] unified currency code, default is undefined
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1859,7 +1846,7 @@ export default class dydx extends Exchange {
 
     /**
      * @method
-     * @name dydx#transfer
+     * @name rubin#transfer
      * @description transfer currency internally between wallets on the same account
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
@@ -1887,7 +1874,7 @@ export default class dydx extends Exchange {
         }
         params = this.omit (params, [ 'fromSubaccountId', 'toSubaccountId' ]);
         const credentials = this.retrieveCredentials ();
-        const account = await this.fetchDydxAccount ();
+        const account = await this.fetchRubinAccount ();
         const usd = this.parseToInt (Precise.stringMul (this.numberToString (amount), '1000000'));
         let payload: NullableDict = undefined;
         let signingPayload: NullableDict = undefined;
@@ -1906,7 +1893,7 @@ export default class dydx extends Exchange {
                 'quantums': usd,
             };
             signingPayload = {
-                'typeUrl': '/dydxprotocol.sending.MsgDepositToSubaccount',
+                'typeUrl': '/ritbit.sending.MsgDepositToSubaccount',
                 'value': payload,
             };
         } else {
@@ -1925,13 +1912,13 @@ export default class dydx extends Exchange {
                 },
             };
             signingPayload = {
-                'typeUrl': '/dydxprotocol.sending.MsgCreateTransfer',
+                'typeUrl': '/ritbit.sending.MsgCreateTransfer',
                 'value': payload,
             };
         }
         const txFee = await this.estimateTxFee (signingPayload, '', account);
         const chainName = this.options['chainName'];
-        const signedTx = this.signDydxTx (credentials['privateKey'], signingPayload, '', chainName, account, undefined, txFee);
+        const signedTx = this.signRubinTx (credentials['privateKey'], signingPayload, '', chainName, account, undefined, txFee);
         const request = {
             'tx': signedTx,
         };
@@ -1958,11 +1945,11 @@ export default class dydx extends Exchange {
         // {
         //     "id": "6a6075bc-7183-5fd9-bc9d-894e238aa527",
         //     "sender": {
-        //         "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+        //         "address": "rit14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
         //         "subaccountNumber": 0
         //     },
         //     "recipient": {
-        //         "address": "dydx1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
+        //         "address": "rit1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
         //         "subaccountNumber": 1
         //     },
         //     "size": "0.000001",
@@ -1997,10 +1984,9 @@ export default class dydx extends Exchange {
 
     /**
      * @method
-     * @name dydx#fetchTransfers
+     * @name rubin#fetchTransfers
      * @description fetch a history of internal transfers made on an account
-     * @see https://docs.dydx.xyz/indexer-client/http#get-transfers
-     * @param {string} code unified currency code of the currency transferred
+     * @see https://docs.rubin.trade     * @param {string} code unified currency code of the currency transferred
      * @param {int} [since] the earliest time in ms to fetch transfers for
      * @param {int} [limit] the maximum number of transfers structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2026,11 +2012,11 @@ export default class dydx extends Exchange {
         // {
         //     "id": "6a6075bc-7183-5fd9-bc9d-894e238aa527",
         //     "sender": {
-        //         "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+        //         "address": "rit14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
         //         "subaccountNumber": 0
         //     },
         //     "recipient": {
-        //         "address": "dydx1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
+        //         "address": "rit1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
         //         "subaccountNumber": 1
         //     },
         //     "size": "0.000001",
@@ -2077,7 +2063,7 @@ export default class dydx extends Exchange {
 
     /**
      * @method
-     * @name dydx#withdraw
+     * @name rubin#withdraw
      * @description make a withdrawal
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
@@ -2099,7 +2085,7 @@ export default class dydx extends Exchange {
         params = this.omit (params, [ 'subaccountId' ]);
         const currency = this.currency (code);
         const credentials = this.retrieveCredentials ();
-        const account = await this.fetchDydxAccount ();
+        const account = await this.fetchRubinAccount ();
         const usd = this.parseToInt (Precise.stringMul (this.numberToString (amount), '1000000'));
         const payload = {
             'sender': {
@@ -2111,12 +2097,12 @@ export default class dydx extends Exchange {
             'quantums': usd,
         };
         const signingPayload = {
-            'typeUrl': '/dydxprotocol.sending.MsgWithdrawFromSubaccount',
+            'typeUrl': '/ritbit.sending.MsgWithdrawFromSubaccount',
             'value': payload,
         };
         const txFee = await this.estimateTxFee (signingPayload, tag, account);
         const chainName = this.options['chainName'];
-        const signedTx = this.signDydxTx (credentials['privateKey'], signingPayload, tag, chainName, account, undefined, txFee);
+        const signedTx = this.signRubinTx (credentials['privateKey'], signingPayload, tag, chainName, account, undefined, txFee);
         const request = {
             'tx': signedTx,
         };
@@ -2141,10 +2127,9 @@ export default class dydx extends Exchange {
 
     /**
      * @method
-     * @name dydx#fetchWithdrawals
+     * @name rubin#fetchWithdrawals
      * @description fetch all withdrawals made from an account
-     * @see https://docs.dydx.xyz/indexer-client/http#get-transfers
-     * @param {string} code unified currency code
+     * @see https://docs.rubin.trade     * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2165,10 +2150,9 @@ export default class dydx extends Exchange {
 
     /**
      * @method
-     * @name dydx#fetchDeposits
+     * @name rubin#fetchDeposits
      * @description fetch all deposits made to an account
-     * @see https://docs.dydx.xyz/indexer-client/http#get-transfers
-     * @param {string} code unified currency code
+     * @see https://docs.rubin.trade     * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2189,10 +2173,9 @@ export default class dydx extends Exchange {
 
     /**
      * @method
-     * @name dydx#fetchDepositsWithdrawals
+     * @name rubin#fetchDepositsWithdrawals
      * @description fetch history of deposits and withdrawals
-     * @see https://docs.dydx.xyz/indexer-client/http#get-transfers
-     * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+     * @see https://docs.rubin.trade     * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
      * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
      * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2231,11 +2214,11 @@ export default class dydx extends Exchange {
         //         {
         //             "id": "6a6075bc-7183-5fd9-bc9d-894e238aa527",
         //             "sender": {
-        //                 "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+        //                 "address": "rit14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
         //                 "subaccountNumber": 0
         //             },
         //             "recipient": {
-        //                 "address": "dydx1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
+        //                 "address": "rit1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
         //                 "subaccountNumber": 1
         //             },
         //             "size": "0.000001",
@@ -2253,10 +2236,9 @@ export default class dydx extends Exchange {
 
     /**
      * @method
-     * @name dydx#fetchAccounts
+     * @name rubin#fetchAccounts
      * @description fetch all the accounts associated with a profile
-     * @see https://docs.dydx.xyz/indexer-client/http#get-subaccounts
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @see https://docs.rubin.trade     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.address] wallet address that made trades
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
@@ -2271,7 +2253,7 @@ export default class dydx extends Exchange {
         // {
         //     "subaccounts": [
         //         {
-        //             "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+        //             "address": "rit14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
         //             "subaccountNumber": 0,
         //             "equity": "25346.73993597",
         //             "freeCollateral": "24207.8530595294",
@@ -2329,10 +2311,9 @@ export default class dydx extends Exchange {
 
     /**
      * @method
-     * @name dydx#fetchBalance
+     * @name rubin#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://docs.dydx.xyz/indexer-client/http#get-subaccount
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @see https://docs.rubin.trade     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
@@ -2349,7 +2330,7 @@ export default class dydx extends Exchange {
         //
         // {
         //     "subaccount": {
-        //         "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+        //         "address": "rit14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
         //         "subaccountNumber": 0,
         //         "equity": "161451.040416029",
         //         "freeCollateral": "152508.28819133578",
@@ -2428,15 +2409,15 @@ export default class dydx extends Exchange {
         if (this.walletAddress !== undefined && this.walletAddress !== '') {
             return this.walletAddress;
         }
-        const dydxAccount = this.safeDict (this.options, 'dydxAccount');
-        if (dydxAccount !== undefined) {
-            // return dydxAccount;
-            const wallet = this.safeString (dydxAccount, 'address');
+        const rubinAccount = this.safeDict (this.options, 'rubinAccount');
+        if (rubinAccount !== undefined) {
+            // return rubinAccount;
+            const wallet = this.safeString (rubinAccount, 'address');
             if (wallet !== undefined) {
                 return wallet;
             }
         }
-        throw new ArgumentsRequired (this.id + ' getWalletAddress() requires a wallet address. Set `walletAddress` or `dydxAccount` in exchange options.');
+        throw new ArgumentsRequired (this.id + ' getWalletAddress() requires a wallet address. Set `walletAddress` or `rubinAccount` in exchange options.');
     }
 
     sign (path, section = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
@@ -2489,7 +2470,7 @@ export default class dydx extends Exchange {
     setSandboxMode (enable: boolean) {
         super.setSandboxMode (enable);
         // rewrite testnet parameters
-        this.options['chainName'] = 'dydx-testnet-4';
+        this.options['chainName'] = 'ritbit-testnet';
         this.options['chainId'] = 11155111;
         this.options['feeDenom']['CHAINTOKEN_DENOM'] = 'adv4tnt';
     }

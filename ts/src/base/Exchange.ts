@@ -1775,7 +1775,7 @@ export default class Exchange {
         return zkSign;
     }
 
-    async loadDydxProtos () {
+    async loadV4Protos () {
         // load dydx protos
         const tasks = [
             import ('../static_dependencies/dydx-v4-client/registry.js') as Promise<any>,
@@ -1792,11 +1792,11 @@ export default class Exchange {
         SignMode = modules[2].SignMode;
     }
 
-    toDydxLong (numStr: string): object {
+    toV4Long (numStr: string): object {
         return Long.fromString (numStr);
     }
 
-    retrieveDydxCredentials (entropy: string): object {
+    retrieveV4Credentials (entropy: string): object {
         let credentials = undefined;
         if (entropy.indexOf (' ') > 0) {
             credentials = deriveHDKeyFromMnemonic (entropy);
@@ -1807,7 +1807,7 @@ export default class Exchange {
         return credentials;
     }
 
-    encodeDydxTxForSimulation (
+    encodeV4TxForSimulation (
         message,
         memo,
         sequence,
@@ -1844,7 +1844,7 @@ export default class Exchange {
         return this.binaryToBase64 (Tx.encode (tx).finish ());
     }
 
-    encodeDydxTxForSigning (
+    encodeV4TxForSigning (
         message,
         memo,
         chainId,
@@ -1869,7 +1869,7 @@ export default class Exchange {
         const encodedMessages = messages.map ((msg) => encodeAsAny (msg));
         const nonCriticalExtensionOptions = [
             encodeAsAny ({
-                'typeUrl': '/dydxprotocol.accountplus.TxExtension',
+                'typeUrl': this.safeString (this.options, 'txExtensionTypeUrl', '/dydxprotocol.accountplus.TxExtension'),
                 'value': {
                     'selectedAuthenticators': authenticators ?? [],
                 },
@@ -1904,7 +1904,7 @@ export default class Exchange {
         return [ signingHash, signDoc ];
     }
 
-    encodeDydxTxRaw (signDoc: Dict, signature: string): string {
+    encodeV4TxRaw (signDoc: Dict, signature: string): string {
         if (!encodeAsAny) {
             throw new NotSupported (this.id + ' requires protobuf to encode messages, please install it with `npm install protobufjs`');
         }
