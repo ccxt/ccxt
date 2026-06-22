@@ -179,7 +179,7 @@ export default class mexc extends mexcRest {
         //     }
         //
         this.handleBidAsk (client, message);
-        const rawTicker = this.safeDictN (message, [ 'd', 'data', 'publicAggreBookTicker' ]);
+        const rawTicker = this.safeDictN (message, [ 'd', 'data', 'publicAggreBookTicker' ], {});
         const marketId = this.safeString2 (message, 's', 'symbol');
         const timestamp = this.safeInteger2 (message, 't', 'sendTime');
         const market = this.safeMarket (marketId);
@@ -885,7 +885,7 @@ export default class mexc extends mexcRest {
         //      }
         // }
         //
-        const data = this.safeDictN (message, [ 'd', 'data', 'publicAggreDepths' ]);
+        const data = this.safeDictN (message, [ 'd', 'data', 'publicAggreDepths' ], {});
         const marketId = this.safeString2 (message, 's', 'symbol');
         const symbol = this.safeSymbol (marketId);
         const messageHash = 'orderbook:' + symbol;
@@ -1143,7 +1143,7 @@ export default class mexc extends mexcRest {
         // }
         //
         const messageHash = 'myTrades';
-        const data = this.safeDictN (message, [ 'd', 'data', 'privateDeals' ]);
+        const data = this.safeDictN (message, [ 'd', 'data', 'privateDeals' ], {});
         const futuresMarketId = this.safeString (data, 'symbol');
         const marketId = this.safeString2 (message, 's', 'symbol', futuresMarketId);
         const market = this.safeMarket (marketId);
@@ -1360,7 +1360,7 @@ export default class mexc extends mexcRest {
         //   }
         //
         const messageHash = 'orders';
-        const data = this.safeDictN (message, [ 'd', 'data', 'privateOrders' ]);
+        const data = this.safeDictN (message, [ 'd', 'data', 'privateOrders' ], {});
         const futuresMarketId = this.safeString (data, 'symbol');
         const marketId = this.safeString2 (message, 's', 'symbol', futuresMarketId);
         const market = this.safeMarket (marketId);

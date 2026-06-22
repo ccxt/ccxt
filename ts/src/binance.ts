@@ -5326,7 +5326,7 @@ export default class binance extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict (response, 'newOrderResponse');
+        const data = this.safeDict (response, 'newOrderResponse', {});
         return this.parseOrder (data, market);
     }
 
@@ -5370,7 +5370,7 @@ export default class binance extends Exchange {
             }
         }
         request['type'] = uppercaseType;
-        const validOrderTypes = this.safeList (market['info'], 'orderTypes');
+        const validOrderTypes = this.safeList (market['info'], 'orderTypes', []);
         if (!this.inArray (uppercaseType, validOrderTypes)) {
             if (initialUppercaseType !== uppercaseType) {
                 throw new InvalidOrder (this.id + ' triggerPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders');
@@ -13429,7 +13429,10 @@ export default class binance extends Exchange {
         //         },
         //     ]
         //
-        const liquidations = this.safeList (response, 'rows', response);
+        let liquidations = this.safeList (response, 'rows', response);
+        if (liquidations === undefined) {
+            liquidations = [];
+        }
         return this.parseLiquidations (liquidations, market, since, limit);
     }
 

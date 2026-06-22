@@ -1294,7 +1294,7 @@ export default class weex extends Exchange {
         if ((limit !== undefined) && (limit > 15)) {
             request['limit'] = 200; // default is 15, max is 200
         }
-        let response: NullableDict = undefined;
+        let response: Dict = {};
         if (market['spot']) {
             response = await this.publicGetApiV3MarketDepth (this.extend (request, params));
         } else {
@@ -2050,7 +2050,7 @@ export default class weex extends Exchange {
         const market = this.market (symbol);
         const request = this.createContractOrderRequest (symbol, type, side, amount, price, params);
         const triggerPrice = this.safeString (request, 'triggerPrice');
-        let response: NullableDict = undefined;
+        let response: Dict = {};
         if (triggerPrice !== undefined) {
             response = await this.contractPrivatePostCapiV3AlgoOrder (request);
         } else {
@@ -2217,7 +2217,7 @@ export default class weex extends Exchange {
         } else {
             request['orderId'] = id;
         }
-        let response: NullableDict = undefined;
+        let response: Dict = {};
         if (type === 'spot') {
             // by orderId
             //     {
@@ -2267,7 +2267,7 @@ export default class weex extends Exchange {
         [ marketType, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         const trigger = this.safeBool (params, 'trigger', false);
         params = this.omit (params, 'trigger');
-        let response: NullableDict = undefined;
+        let response: Dict = {};
         if (marketType === 'spot') {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument for spot markets');
@@ -2372,7 +2372,7 @@ export default class weex extends Exchange {
         } else {
             request['orderId'] = id;
         }
-        let response: NullableDict = undefined;
+        let response: Dict = {};
         if (isSpot) {
             //
             //     {
@@ -2436,7 +2436,7 @@ export default class weex extends Exchange {
         if (symbol !== undefined) {
             request['symbol'] = this.safeString (market, 'id');
         }
-        let response: NullableDict = undefined;
+        let response: Dict = {};
         if (isSpot) {
             //
             //     [

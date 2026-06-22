@@ -1423,7 +1423,7 @@ export default class bitstamp extends Exchange {
         //     ]
         //
         const tradingFeesByMarketId = this.indexBy (response, 'currency_pair');
-        const tradingFee = this.safeDict (tradingFeesByMarketId, this.safeString (market, 'id', ''));
+        const tradingFee = this.safeDict (tradingFeesByMarketId, this.safeString (market, 'id', ''), {});
         return this.parseTradingFee (tradingFee, market);
     }
 
@@ -1740,7 +1740,7 @@ export default class bitstamp extends Exchange {
         //        "success": true
         //    }
         //
-        const canceled = this.safeList (response, 'canceled');
+        const canceled = this.safeList (response, 'canceled', []);
         return this.parseOrders (canceled);
     }
 

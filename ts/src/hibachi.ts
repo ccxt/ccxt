@@ -1399,7 +1399,7 @@ export default class hibachi extends Exchange {
         //     ]
         // }
         //
-        const trades = this.safeList (response, 'trades');
+        const trades = this.safeList (response, 'trades', []);
         return this.parseTrades (trades, market, since, limit, params);
     }
 
@@ -1829,7 +1829,7 @@ export default class hibachi extends Exchange {
         //     ]
         // }
         //
-        const rowsCapitalHistory = this.safeList (responseCapitalHistory, 'transactions');
+        const rowsCapitalHistory = this.safeList (responseCapitalHistory, 'transactions', []);
         const responseTradingHistory = promises[1];
         //
         // {
@@ -1857,7 +1857,7 @@ export default class hibachi extends Exchange {
         //     ]
         // }
         //
-        const rowsTradingHistory = this.safeList (responseTradingHistory, 'tradingHistory');
+        const rowsTradingHistory = this.safeList (responseTradingHistory, 'tradingHistory', []);
         const rows = this.arrayConcat (rowsCapitalHistory, rowsTradingHistory);
         return this.parseLedger (rows, currency, since, limit, params);
     }
