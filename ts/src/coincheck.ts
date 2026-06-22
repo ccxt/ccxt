@@ -656,7 +656,10 @@ export default class coincheck extends Exchange {
         //
         const fees = this.safeValue (response, 'exchange_fees', {});
         const result: Dict = {};
-        const symbols = this.symbols as string[];
+        const symbols = this.symbols;
+        if (symbols === undefined) {
+            return result;
+        }
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);

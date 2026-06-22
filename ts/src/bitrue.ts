@@ -2038,7 +2038,7 @@ export default class bitrue extends Exchange {
         let data = undefined;
         const uppercaseType = type.toUpperCase ();
         const request: Dict = {
-            'side': side.toUpperCase (),
+            'side': (side as string).toUpperCase (),
             'type': uppercaseType,
             // 'timeInForce': '',
             // 'price': this.priceToPrecision (symbol, price),

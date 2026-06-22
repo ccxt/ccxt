@@ -1194,7 +1194,7 @@ export default class hyperliquid extends hyperliquidRest {
         params = this.safeDict (userAddressResult, 1, params);
         const topic = 'clearinghouseState';
         let messageHash = topic + '::positions';
-        if (!this.isEmpty (symbols)) {
+        if ((symbols !== undefined) && !this.isEmpty (symbols)) {
             symbols = this.marketSymbols (symbols);
             messageHash += '::' + symbols.join (',');
         }
@@ -1273,7 +1273,7 @@ export default class hyperliquid extends hyperliquidRest {
      */
     async unWatchPositions (symbols: Strings = undefined, params = {}): Promise<any> {
         await this.loadMarkets ();
-        if (!this.isEmpty (symbols)) {
+        if ((symbols !== undefined) && !this.isEmpty (symbols)) {
             throw new NotSupported (this.id + ' unWatchPositions() does not support a symbol parameter, you must unwatch all orders');
         }
         const messageHash = 'unsubscribe:clearinghouseState';

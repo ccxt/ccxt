@@ -2597,7 +2597,7 @@ export default class aster extends Exchange {
         const isLimitOrder = initialUppercaseType === 'LIMIT';
         const request: Dict = {
             'symbol': market['id'],
-            'side': side.toUpperCase (),
+            'side': (side as string).toUpperCase (),
         };
         const clientOrderId = this.safeString2 (params, 'newClientOrderId', 'clientOrderId');
         if (clientOrderId !== undefined) {

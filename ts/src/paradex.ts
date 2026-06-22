@@ -1557,7 +1557,7 @@ export default class paradex extends Exchange {
         const market = this.market (symbol);
         let reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
         const orderType = type.toUpperCase ();
-        const orderSide = side.toUpperCase ();
+        const orderSide = (side as string).toUpperCase ();
         const request: Dict = {
             'market': market['id'],
             'side': orderSide,

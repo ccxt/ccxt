@@ -1228,7 +1228,7 @@ export default class woo extends Exchange {
         const orderType = type.toUpperCase ();
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const orderSide = side.toUpperCase ();
+        const orderSide = (side as string).toUpperCase ();
         const request: Dict = {
             'symbol': market['id'],
             'side': orderSide,

@@ -827,12 +827,14 @@ export default class kraken extends krakenRest {
         if ((marketsByWsName === undefined) || reload) {
             marketsByWsName = {};
             const symbols = this.symbols; // do not cast `as string[]`: this.symbols is List<Object> in Java, and List<Object>->List<String> is an illegal cast
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
-                const market = this.markets[symbol];
-                const info = this.safeValue (market, 'info', {});
-                const wsName = this.safeString (info, 'wsname') as string;
-                marketsByWsName[wsName] = market;
+            if (symbols !== undefined) {
+                for (let i = 0; i < symbols.length; i++) {
+                    const symbol = symbols[i];
+                    const market = this.markets[symbol];
+                    const info = this.safeValue (market, 'info', {});
+                    const wsName = this.safeString (info, 'wsname') as string;
+                    marketsByWsName[wsName] = market;
+                }
             }
             this.options['marketsByWsName'] = marketsByWsName;
         }
@@ -1415,6 +1417,9 @@ export default class kraken extends krakenRest {
         await this.loadMarkets ();
         // symbols are required
         symbols = this.marketSymbols (symbols, undefined, false, true, false);
+        if (symbols === undefined) {
+            return undefined;
+        }
         const messageHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const eventTrigger = this.safeString (params, 'event_trigger');

@@ -3,7 +3,7 @@
 
 import deepcoinRest from '../deepcoin.js';
 import { BadRequest, ExchangeError } from '../base/errors.js';
-import type { Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
+import type { Dict, Int, Market, MarketInterface, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 
@@ -106,7 +106,7 @@ export default class deepcoin extends deepcoinRest {
         return newValue;
     }
 
-    createPublicRequest (market: Market, requestId: number, topicID: string, suffix: string = '', unWatch: boolean = false) {
+    createPublicRequest (market: MarketInterface, requestId: number, topicID: string, suffix: string = '', unWatch: boolean = false) {
         let marketId = market['symbol']; // spot markets use symbol with slash
         if (market['type'] === 'swap') {
             marketId = this.safeString (market, 'baseId', '') + this.safeString (market, 'quoteId', ''); // swap markets use symbol without slash
@@ -127,7 +127,7 @@ export default class deepcoin extends deepcoinRest {
         return request;
     }
 
-    async watchPublic (market: Market, messageHash: string, topicID: string, params: Dict = {}, suffix: string = ''): Promise<any> {
+    async watchPublic (market: MarketInterface, messageHash: string, topicID: string, params: Dict = {}, suffix: string = ''): Promise<any> {
         const url = this.urls['api']['ws']['public'][market['type']];
         const requestId = this.requestId ();
         const request = this.createPublicRequest (market, requestId, topicID, suffix);
@@ -305,13 +305,13 @@ export default class deepcoin extends deepcoinRest {
         const ask = this.safeNumber (ticker, 'AP1');
         let baseVolume = this.safeNumber (ticker, 'V');
         let quoteVolume = this.safeNumber (ticker, 'T');
-        if (market['inverse']) {
+        if (this.safeBool (market, 'inverse')) {
             const temp = baseVolume;
             baseVolume = quoteVolume;
             quoteVolume = temp;
         }
         return this.safeTicker ({
-            'symbol': market['symbol'],
+            'symbol': this.safeString (market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': high,
@@ -464,7 +464,7 @@ export default class deepcoin extends deepcoinRest {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': this.safeString (market, 'symbol'),
             'id': this.safeString2 (trade, 'TradeID', 'TI'),
             'order': this.safeString (trade, 'OS'),
             'type': undefined,
@@ -966,7 +966,7 @@ export default class deepcoin extends deepcoinRest {
             'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': this.safeTimestamp (order, 'U'),
             'status': this.parseWsOrderStatus (state),
-            'symbol': market['symbol'],
+            'symbol': this.safeString (market, 'symbol'),
             'type': undefined,
             'timeInForce': undefined,
             'side': this.parseTradeSide (direction),
@@ -1093,7 +1093,7 @@ export default class deepcoin extends deepcoinRest {
         const direction = this.safeString (position, 'p');
         const marginMode = this.safeString (position, 'i');
         return this.safePosition ({
-            'symbol': market['symbol'],
+            'symbol': this.safeString (market, 'symbol'),
             'id': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
