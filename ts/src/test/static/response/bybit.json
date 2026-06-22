@@ -1071,7 +1071,7 @@
                                     }
                                 }
                             },
-                            "ARBINOVA": {
+                            "ARBNOVA": {
                                 "info": {
                                     "chainType": "Arbitrum Nova",
                                     "confirmation": "100",
@@ -1087,7 +1087,7 @@
                                     "safeConfirmNumber": "120"
                                 },
                                 "id": "ARBINOVA",
-                                "network": "ARBINOVA",
+                                "network": "ARBNOVA",
                                 "active": null,
                                 "deposit": true,
                                 "withdraw": true,
@@ -1302,7 +1302,7 @@
                                     }
                                 }
                             },
-                            "ZKSYNC": {
+                            "ZKSYNCLITE": {
                                 "info": {
                                     "chainType": "zkSync Lite",
                                     "confirmation": "",
@@ -1318,7 +1318,7 @@
                                     "safeConfirmNumber": ""
                                 },
                                 "id": "ZKSYNC",
-                                "network": "ZKSYNC",
+                                "network": "ZKSYNCLITE",
                                 "active": null,
                                 "deposit": false,
                                 "withdraw": false,
@@ -1335,7 +1335,7 @@
                                     }
                                 }
                             },
-                            "ZKV2": {
+                            "ZKSYNCERA": {
                                 "info": {
                                     "chainType": "zkSync Era",
                                     "confirmation": "100",
@@ -1351,7 +1351,7 @@
                                     "safeConfirmNumber": "30000"
                                 },
                                 "id": "ZKV2",
-                                "network": "ZKV2",
+                                "network": "ZKSYNCERA",
                                 "active": null,
                                 "deposit": true,
                                 "withdraw": true,
@@ -1948,7 +1948,7 @@
                                     }
                                 }
                             },
-                            "HYPEREVM": {
+                            "HYPER": {
                                 "info": {
                                     "chainType": "HyperEVM",
                                     "confirmation": "30",
@@ -1964,7 +1964,7 @@
                                     "safeConfirmNumber": "30"
                                 },
                                 "id": "HYPEREVM",
-                                "network": "HYPEREVM",
+                                "network": "HYPER",
                                 "active": null,
                                 "deposit": true,
                                 "withdraw": true,
@@ -2311,7 +2311,7 @@
                                     }
                                 }
                             },
-                            "ZKSYNC": {
+                            "ZKSYNCLITE": {
                                 "info": {
                                     "chainType": "zkSync Lite",
                                     "confirmation": "",
@@ -2327,7 +2327,7 @@
                                     "safeConfirmNumber": ""
                                 },
                                 "id": "ZKSYNC",
-                                "network": "ZKSYNC",
+                                "network": "ZKSYNCLITE",
                                 "active": null,
                                 "deposit": false,
                                 "withdraw": false,

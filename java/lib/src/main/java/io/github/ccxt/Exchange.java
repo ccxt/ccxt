@@ -1917,6 +1917,20 @@ public class Exchange {
         loadOrderBook(client, messageHash, symbol, null, null);
     }
 
+    /** Hand-written (not transpiled): lastRestRequestTimestamp is a volatile long,
+     *  so a plain assignment is already safe against concurrent requests. */
+    public void setLastRestRequestTimestamp() {
+        this.lastRestRequestTimestamp = this.milliseconds();
+    }
+
+    /** Hand-written (not transpiled): the last_request_* fields are volatile,
+     *  so plain assignments are already safe against concurrent requests. */
+    public void setLastRequest(Object request) {
+        this.last_request_headers = Helpers.GetValue(request, "headers");
+        this.last_request_body = Helpers.GetValue(request, "body");
+        this.last_request_url = Helpers.GetValue(request, "url");
+    }
+
     /** Check if a message is binary (byte array). */
     public boolean isBinaryMessage(Object message) {
         return message instanceof byte[];
@@ -8602,11 +8616,9 @@ public Object describe()
             {
                 try
                 {
-                    this.lastRestRequestTimestamp = this.milliseconds();
+                    this.setLastRestRequestTimestamp();
                     Object request = this.sign(path, api, method, parameters, headers, body);
-                    this.last_request_headers = Helpers.GetValue(request, "headers");
-                    this.last_request_body = Helpers.GetValue(request, "body");
-                    this.last_request_url = Helpers.GetValue(request, "url");
+                    this.setLastRequest(request);
                     return (this.fetch(Helpers.GetValue(request, "url"), Helpers.GetValue(request, "method"), Helpers.GetValue(request, "headers"), Helpers.GetValue(request, "body"))).join();
                 } catch(Exception e)
                 {
