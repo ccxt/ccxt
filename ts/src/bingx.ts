@@ -5526,7 +5526,7 @@ export default class bingx extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: string) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             '0': 'pending',
             '1': 'ok',

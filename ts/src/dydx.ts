@@ -1329,7 +1329,7 @@ export default class dydx extends Exchange {
         const subticks = Precise.stringMul (priceStr, priceScale);
         let clientMetadata = 0;
         let conditionalType = 0;
-        let conditionalOrderTriggerSubticks = '0';
+        let conditionalOrderTriggerSubticks: Str = '0';
         let orderFlag: Int = undefined;
         let timeInForceNumber: Int = undefined;
         if (timeInForce === 'FOK') {
