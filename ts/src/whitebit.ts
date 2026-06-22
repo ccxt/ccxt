@@ -2570,7 +2570,7 @@ export default class whitebit extends Exchange {
             'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
         };
-        return this.safeStringLower (statuses, status, status);
+        return this.safeStringLower (statuses, (status as string), status);
     }
 
     /**

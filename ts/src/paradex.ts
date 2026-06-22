@@ -1523,7 +1523,7 @@ export default class paradex extends Exchange {
             'GTC': 'GTC',
             'POST_ONLY': 'PO',
         };
-        return this.safeString (timeInForces, timeInForce);
+        return this.safeString (timeInForces, (timeInForce as string));
     }
 
     parseOrderStatus (status: Str) {
@@ -1546,7 +1546,7 @@ export default class paradex extends Exchange {
             'STOP_LIMIT': 'limit',
             'STOP_MARKET': 'market',
         };
-        return this.safeStringLower (types, type, type);
+        return this.safeStringLower (types, (type as string), type);
     }
 
     scaleNumber (num: string) {
@@ -1828,7 +1828,7 @@ export default class paradex extends Exchange {
             const price = this.safeNumber (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
             const extendedParams = this.extend (params, orderParams);
-            let orderRequest = this.createOrderRequest (symbol, type, side, amount, price, extendedParams);
+            let orderRequest = this.createOrderRequest ((symbol as string), type, side, amount, price, extendedParams);
             orderRequest = await this.signOrderRequest (orderRequest);
             ordersRequests.push (orderRequest);
         }
@@ -2829,7 +2829,7 @@ export default class paradex extends Exchange {
         this.checkRequiredArgument ('setMarginMode', symbol, 'symbol');
         await this.authenticateRest ();
         await this.loadMarkets ();
-        const market: Market = this.market (symbol);
+        const market: Market = this.market ((symbol as string));
         let leverage: Str = undefined;
         [ leverage, params ] = this.handleOptionAndParams (params, 'setMarginMode', 'leverage', 1);
         const request: Dict = {
@@ -2909,7 +2909,7 @@ export default class paradex extends Exchange {
         this.checkRequiredArgument ('setLeverage', symbol, 'symbol');
         await this.authenticateRest ();
         await this.loadMarkets ();
-        const market: Market = this.market (symbol);
+        const market: Market = this.market ((symbol as string));
         let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params, 'cross');
         const request: Dict = {

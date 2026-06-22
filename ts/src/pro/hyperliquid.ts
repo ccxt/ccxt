@@ -81,7 +81,7 @@ export default class hyperliquid extends hyperliquidRest {
         const wrapped = this.wrapAsPostAction (ordersRequest);
         const request = this.safeDict (wrapped, 'request', {});
         const requestId = this.safeString (wrapped, 'requestId');
-        const response = await this.watch (url, requestId, request, requestId);
+        const response = await this.watch (url, (requestId as string), request, requestId);
         const responseOjb = this.safeDict (response, 'response', {});
         const data = this.safeDict (responseOjb, 'data', {});
         const statuses = this.safeList (data, 'statuses', []);
@@ -150,7 +150,7 @@ export default class hyperliquid extends hyperliquidRest {
         const wrapped = this.wrapAsPostAction (postRequest);
         const request = this.safeDict (wrapped, 'request', {});
         const requestId = this.safeString (wrapped, 'requestId');
-        const response = await this.watch (url, requestId, request, requestId);
+        const response = await this.watch (url, (requestId as string), request, requestId);
         // response is the same as in this.editOrder
         const responseObject = this.safeDict (response, 'response', {});
         const dataObject = this.safeDict (responseObject, 'data', {});
@@ -180,7 +180,7 @@ export default class hyperliquid extends hyperliquidRest {
         const wrapped = this.wrapAsPostAction (request);
         const wsRequest = this.safeDict (wrapped, 'request', {});
         const requestId = this.safeString (wrapped, 'requestId');
-        const response = await this.watch (url, requestId, wsRequest, requestId);
+        const response = await this.watch (url, (requestId as string), wsRequest, requestId);
         const responseObj = this.safeDict (response, 'response', {});
         const data = this.safeDict (responseObj, 'data', {});
         const statuses = this.safeList (data, 'statuses', []);
@@ -298,7 +298,7 @@ export default class hyperliquid extends hyperliquidRest {
         const entry = this.safeDict (message, 'data', {});
         const coin = this.safeString (entry, 'coin');
         const marketId = this.coinToMarketId (coin);
-        const market = this.market (marketId);
+        const market = this.market ((marketId as string));
         const symbol = market['symbol'];
         const rawData = this.safeList (entry, 'levels', []);
         const data: Dict = {
@@ -428,7 +428,9 @@ export default class hyperliquid extends hyperliquidRest {
      */
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         let userAddress: Str = undefined;
-        [ userAddress, params ] = this.handlePublicAddress ('watchMyTrades', params);
+        const userAddressResult = this.handlePublicAddress ('watchMyTrades', params);
+        userAddress = this.safeString (userAddressResult, 0);
+        params = this.safeDict (userAddressResult, 1, params);
         await this.loadMarkets ();
         let messageHash = 'myTrades';
         if (symbol !== undefined) {
@@ -467,7 +469,9 @@ export default class hyperliquid extends hyperliquidRest {
             throw new NotSupported (this.id + ' unWatchMyTrades does not support a symbol argument, unWatch from all markets only');
         }
         let userAddress: Str = undefined;
-        [ userAddress, params ] = this.handlePublicAddress ('unWatchMyTrades', params);
+        const userAddressResult = this.handlePublicAddress ('unWatchMyTrades', params);
+        userAddress = this.safeString (userAddressResult, 0);
+        params = this.safeDict (userAddressResult, 1, params);
         const messageHash = 'unsubscribe:myTrades';
         const url = this.urls['api']['ws']['public'];
         const request: Dict = {
@@ -749,7 +753,7 @@ export default class hyperliquid extends hyperliquidRest {
         const first = this.safeDict (entry, 0, {});
         const coin = this.safeString (first, 'coin');
         const marketId = this.coinToMarketId (coin);
-        const market = this.market (marketId);
+        const market = this.market ((marketId as string));
         const symbol = market['symbol'];
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -960,7 +964,9 @@ export default class hyperliquid extends hyperliquidRest {
     async watchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
         let userAddress: Str = undefined;
-        [ userAddress, params ] = this.handlePublicAddress ('watchBalance', params);
+        const userAddressResult = this.handlePublicAddress ('watchBalance', params);
+        userAddress = this.safeString (userAddressResult, 0);
+        params = this.safeDict (userAddressResult, 1, params);
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         let isUnifiedEnabled: Bool = undefined;
@@ -1003,7 +1009,9 @@ export default class hyperliquid extends hyperliquidRest {
         await this.loadMarkets ();
         const url = this.urls['api']['ws']['public'];
         let userAddress: Str = undefined;
-        [ userAddress, params ] = this.handlePublicAddress ('unWatchBalance', params);
+        const userAddressResult = this.handlePublicAddress ('unWatchBalance', params);
+        userAddress = this.safeString (userAddressResult, 0);
+        params = this.safeDict (userAddressResult, 1, params);
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('unWatchBalance', undefined, params);
         let isUnifiedEnabled: Bool = undefined;
@@ -1103,7 +1111,7 @@ export default class hyperliquid extends hyperliquidRest {
         for (let i = 0; i < rawBalances.length; i++) {
             this.parseWsBalance (rawBalances[i], account);
         }
-        if (this.safeValue (this.balance, account) === undefined) {
+        if (this.safeValue (this.balance, (account as string)) === undefined) {
             this.balance[account] = {};
         }
         this.balance[account]['info'] = info;
@@ -1181,7 +1189,9 @@ export default class hyperliquid extends hyperliquidRest {
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         let userAddress: Str = undefined;
-        [ userAddress, params ] = this.handlePublicAddress ('watchPositions', params);
+        const userAddressResult = this.handlePublicAddress ('watchPositions', params);
+        userAddress = this.safeString (userAddressResult, 0);
+        params = this.safeDict (userAddressResult, 1, params);
         const topic = 'clearinghouseState';
         let messageHash = topic + '::positions';
         if (!this.isEmpty (symbols)) {
@@ -1269,7 +1279,9 @@ export default class hyperliquid extends hyperliquidRest {
         const messageHash = 'unsubscribe:clearinghouseState';
         const url = this.urls['api']['ws']['public'];
         let userAddress: Str = undefined;
-        [ userAddress, params ] = this.handlePublicAddress ('unWatchPositions', params);
+        const userAddressResult = this.handlePublicAddress ('unWatchPositions', params);
+        userAddress = this.safeString (userAddressResult, 0);
+        params = this.safeDict (userAddressResult, 1, params);
         const request: Dict = {
             'method': 'unsubscribe',
             'subscription': {
@@ -1296,7 +1308,9 @@ export default class hyperliquid extends hyperliquidRest {
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         let userAddress: Str = undefined;
-        [ userAddress, params ] = this.handlePublicAddress ('watchOrders', params);
+        const userAddressResult = this.handlePublicAddress ('watchOrders', params);
+        userAddress = this.safeString (userAddressResult, 0);
+        params = this.safeDict (userAddressResult, 1, params);
         let market: Market = undefined;
         let messageHash = 'order';
         if (symbol !== undefined) {
@@ -1338,7 +1352,9 @@ export default class hyperliquid extends hyperliquidRest {
         const messageHash = 'unsubscribe:order';
         const url = this.urls['api']['ws']['public'];
         let userAddress: Str = undefined;
-        [ userAddress, params ] = this.handlePublicAddress ('unWatchOrders', params);
+        const userAddressResult = this.handlePublicAddress ('unWatchOrders', params);
+        userAddress = this.safeString (userAddressResult, 0);
+        params = this.safeDict (userAddressResult, 1, params);
         const request: Dict = {
             'method': 'unsubscribe',
             'subscription': {

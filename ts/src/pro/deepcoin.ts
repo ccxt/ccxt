@@ -1211,7 +1211,7 @@ export default class deepcoin extends deepcoinRest {
     handleUnSubscription (client: Client, subscription: Dict) {
         const subHash = this.safeString (subscription, 'subHash');
         const unsubHash = this.safeString (subscription, 'unsubHash');
-        this.cleanUnsubscription (client, subHash, unsubHash);
+        this.cleanUnsubscription (client, (subHash as string), unsubHash);
         this.cleanCache (subscription);
     }
 

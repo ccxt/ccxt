@@ -515,8 +515,8 @@ export default class coincheck extends Exchange {
                 takerOrMaker = 'maker';
             }
             const funds = this.safeValue (trade, 'funds', {});
-            amountString = this.safeString (funds, baseId);
-            costString = this.safeString (funds, quoteId);
+            amountString = this.safeString (funds, (baseId as string));
+            costString = this.safeString (funds, (quoteId as string));
             fee = {
                 'currency': this.safeString (trade, 'fee_currency'),
                 'cost': this.safeString (trade, 'fee'),
@@ -557,7 +557,7 @@ export default class coincheck extends Exchange {
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const market = this.market ((symbol as string));
         const request: Dict = {};
         if (limit !== undefined) {
             request['limit'] = limit;

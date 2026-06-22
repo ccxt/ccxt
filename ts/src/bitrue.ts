@@ -1581,7 +1581,7 @@ export default class bitrue extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
         const first = this.safeString (symbols, 0);
-        const market = this.market (first);
+        const market = this.market ((first as string));
         let response: NullableDict = undefined;
         if (market['swap']) {
             const request: Dict = {
@@ -1649,7 +1649,7 @@ export default class bitrue extends Exchange {
         let type: Str = undefined;
         if (symbols !== undefined) {
             const first = this.safeString (symbols, 0);
-            const market = this.market (first);
+            const market = this.market ((first as string));
             if (market['swap']) {
                 throw new NotSupported (this.id + ' fetchTickers does not support swap markets, please use fetchTicker instead');
             } else if (market['spot']) {
@@ -2461,7 +2461,7 @@ export default class bitrue extends Exchange {
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const market = this.market ((symbol as string));
         let response: NullableDict = undefined;
         let data = undefined;
         if (market['swap']) {

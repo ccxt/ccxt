@@ -2140,7 +2140,7 @@ export default class aster extends Exchange {
         const statusId = this.safeStringUpper (order, 'status');
         const rawType = this.safeStringUpper (order, 'type');
         const stopPriceString = this.safeString (order, 'stopPrice');
-        const triggerPrice = this.parseNumber (this.omitZero (stopPriceString));
+        const triggerPrice = this.parseNumber (this.omitZero ((stopPriceString as string)));
         return this.safeOrder ({
             'info': info,
             'id': this.safeString (order, 'orderId'),
@@ -2525,14 +2525,14 @@ export default class aster extends Exchange {
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const marketId = this.safeString (rawOrder, 'symbol');
-            const currentMarket = this.market (marketId);
+            const currentMarket = this.market ((marketId as string));
             orderSymbols.push (currentMarket['symbol']);
             const type = this.safeString (rawOrder, 'type');
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
-            const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
+            const orderRequest = this.createOrderRequest ((marketId as string), type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
         orderSymbols = this.marketSymbols (orderSymbols, undefined, false, true, true);
@@ -2673,7 +2673,7 @@ export default class aster extends Exchange {
                         const amountString = this.numberToString (amount);
                         const priceString = this.numberToString (price);
                         const quoteOrderQuantity = Precise.stringMul (amountString, priceString);
-                        request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQuantity, TRUNCATE, precision, this.precisionMode);
+                        request['quoteOrderQty'] = this.decimalToPrecision ((quoteOrderQuantity as string), TRUNCATE, precision, this.precisionMode);
                     } else {
                         quantityIsRequired = true;
                     }

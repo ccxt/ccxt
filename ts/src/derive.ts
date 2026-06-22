@@ -1040,7 +1040,7 @@ export default class derive extends Exchange {
      */
     async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const market = this.market ((symbol as string));
         const request: Dict = {
             'instrument_name': market['id'],
         };
@@ -1213,21 +1213,21 @@ export default class derive extends Exchange {
         const timeInForce = this.safeStringLower2 (params, 'timeInForce', 'time_in_force');
         const postOnly = this.safeBool (params, 'postOnly');
         const orderType = type.toLowerCase ();
-        const orderSide = side.toLowerCase ();
+        const orderSide = (side as string).toLowerCase ();
         const nonce = this.milliseconds ();
         // Order signature expiry must be between 2592000 and 7776000 sec from now
         const signatureExpiry = this.safeInteger (params, 'signature_expiry_sec', this.seconds () + 7776000);
         const ACTION_TYPEHASH = this.base16ToBinary ('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         const TRADE_MODULE_ADDRESS = (sandboxMode) ? '0x87F2863866D85E3192a35A73b388BD625D83f2be' : '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
-        const priceString = this.numberToString (price);
+        const priceString = this.numberToString (price) as string;
         let maxFee: Num = undefined;
         [ maxFee, params ] = this.handleOptionAndParams (params, 'createOrder', 'max_fee');
         if (maxFee === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a max_fee argument in params');
         }
-        const maxFeeString = this.numberToString (maxFee);
-        const amountString = this.numberToString (amount);
+        const maxFeeString = this.numberToString (maxFee) as string;
+        const amountString = this.numberToString (amount) as string;
         const tradeModuleDataHash = this.hash (this.ethAbiEncode ([
             'address', 'uint', 'int', 'int', 'uint', 'uint', 'bool',
         ], [
@@ -1402,16 +1402,16 @@ export default class derive extends Exchange {
         const timeInForce = this.safeStringLower2 (params, 'timeInForce', 'time_in_force');
         const postOnly = this.safeBool (params, 'postOnly');
         const orderType = type.toLowerCase ();
-        const orderSide = side.toLowerCase ();
+        const orderSide = (side as string).toLowerCase ();
         const nonce = this.milliseconds ();
         const signatureExpiry = this.safeNumber (params, 'signature_expiry_sec', this.seconds () + 7776000);
         // TODO: subaccount id / trade module address
         const ACTION_TYPEHASH = this.base16ToBinary ('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         const TRADE_MODULE_ADDRESS = (sandboxMode) ? '0x87F2863866D85E3192a35A73b388BD625D83f2be' : '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
-        const priceString = this.numberToString (price);
+        const priceString = this.numberToString (price) as string;
         const maxFeeString = this.safeString (params, 'max_fee', '0');
-        const amountString = this.numberToString (amount);
+        const amountString = this.numberToString (amount) as string;
         const tradeModuleDataHash = this.hash (this.ethAbiEncode ([
             'address', 'uint', 'int', 'int', 'uint', 'uint', 'bool',
         ], [
@@ -1775,7 +1775,7 @@ export default class derive extends Exchange {
         const page = this.safeInteger (params, 'page');
         if (page !== undefined) {
             const pagination = this.safeDict (data, 'pagination');
-            const currentPage = this.safeInteger (pagination, 'num_pages');
+            const currentPage = this.safeInteger (pagination, 'num_pages', 0);
             if (page > currentPage) {
                 return [];
             }
@@ -1845,7 +1845,7 @@ export default class derive extends Exchange {
             'gtc': 'GTC',
             'post_only': 'PO',
         };
-        return this.safeString (timeInForces, timeInForce);
+        return this.safeString (timeInForces, (timeInForce as string));
     }
 
     parseOrderStatus (status: Str) {
@@ -2138,7 +2138,7 @@ export default class derive extends Exchange {
         const page = this.safeInteger (params, 'page');
         if (page !== undefined) {
             const pagination = this.safeDict (result, 'pagination');
-            const currentPage = this.safeInteger (pagination, 'num_pages');
+            const currentPage = this.safeInteger (pagination, 'num_pages', 0);
             if (page > currentPage) {
                 return [];
             }
@@ -2357,7 +2357,7 @@ export default class derive extends Exchange {
         const page = this.safeInteger (params, 'page');
         if (page !== undefined) {
             const pagination = this.safeDict (result, 'pagination');
-            const currentPage = this.safeInteger (pagination, 'num_pages');
+            const currentPage = this.safeInteger (pagination, 'num_pages', 0);
             if (page > currentPage) {
                 return [];
             }
