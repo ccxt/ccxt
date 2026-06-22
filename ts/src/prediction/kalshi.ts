@@ -1290,15 +1290,23 @@ export default class kalshi extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const action = this.safeString (order, 'action');
         const side = (action === 'buy') ? 'buy' : 'sell';
-        const priceCents = this.safeNumber (order, 'no_price', this.safeNumber (order, 'yes_price'));
-        let price = undefined;
-        if (priceCents !== undefined) {
-            price = priceCents / 100;
+        // price in the outcome's own leg: V2 returns *_price_dollars (already dollars),
+        // legacy returned yes_price/no_price in cents
+        const labelIsNo = (this.safeStringUpper (mkt, 'label') === 'NO');
+        const dollarsKey = (labelIsNo) ? 'no_price_dollars' : 'yes_price_dollars';
+        const centsKey = (labelIsNo) ? 'no_price' : 'yes_price';
+        let price = this.safeNumber (order, dollarsKey);
+        if (price === undefined) {
+            const priceCents = this.safeNumber (order, centsKey);
+            if (priceCents !== undefined) {
+                price = priceCents / 100;
+            }
         }
-        const amount = this.safeNumber (order, 'count');
-        const filled = this.safeNumber (order, 'filled_count', 0);
-        let remaining = undefined;
-        if ((amount !== undefined) && (filled !== undefined)) {
+        // V2 counts are fixed-point (*_count_fp); legacy used count / filled_count
+        const amount = this.safeNumber2 (order, 'initial_count_fp', 'count');
+        const filled = this.safeNumber2 (order, 'fill_count_fp', 'filled_count', 0);
+        let remaining = this.safeNumber (order, 'remaining_count_fp');
+        if ((remaining === undefined) && (amount !== undefined) && (filled !== undefined)) {
             remaining = amount - filled;
         }
         const ts = this.parse8601 (this.safeString (order, 'created_time'));
