@@ -498,7 +498,7 @@ export default class bitso extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString (market, 'book');
-            const [ baseId, quoteId ] = id.split ('_');
+            const [ baseId, quoteId ] = (id as string).split ('_');
             let base = baseId.toUpperCase ();
             let quote = quoteId.toUpperCase ();
             base = this.safeCurrencyCode (base);
@@ -526,8 +526,8 @@ export default class bitso extends Exchange {
                 takerFees.push ([ volume, takerFee ]);
                 makerFees.push ([ volume, makerFee ]);
                 if (j === 0) {
-                    fee['taker'] = takerFee;
-                    fee['maker'] = makerFee;
+                    fee['taker'] = takerFee as number;
+                    fee['maker'] = makerFee as number;
                 }
             }
             const tiers: Dict = {
@@ -1455,8 +1455,8 @@ export default class bitso extends Exchange {
         const response = await this.privateGetFundingDestination (this.extend (request, params));
         let address = this.safeString (response['payload'], 'account_identifier');
         let tag: Str = undefined;
-        if (address.indexOf ('?dt=') >= 0) {
-            const parts = address.split ('?dt=');
+        if ((address as string).indexOf ('?dt=') >= 0) {
+            const parts = (address as string).split ('?dt=');
             address = this.safeString (parts, 0);
             tag = this.safeString (parts, 1);
         }
@@ -1759,7 +1759,7 @@ export default class bitso extends Exchange {
         //
         const payload = this.safeValue (response, 'payload', []);
         const first = this.safeDict (payload, 0);
-        return this.parseTransaction (first, currency);
+        return this.parseTransaction (first as Dict, currency);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {

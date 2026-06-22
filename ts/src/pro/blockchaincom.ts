@@ -269,7 +269,7 @@ export default class blockchaincom extends blockchaincomRest {
             ticker = this.parseWsUpdatedTicker (message, lastTicker, market);
         }
         const messageHash = 'ticker:' + symbol;
-        this.tickers[symbol] = ticker;
+        this.tickers[symbol] = ticker as Ticker;
         client.resolve (ticker, messageHash);
     }
 

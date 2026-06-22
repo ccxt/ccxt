@@ -5925,7 +5925,7 @@ export default class bitget extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let marginMode: Str = undefined;
-        let response = undefined;
+        let response: Dict = {};
         [ marginMode, params ] = this.handleMarginModeAndParams ('cancelOrder', params);
         const request: Dict = {};
         const trailing = this.safeValue (params, 'trailing');

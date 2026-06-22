@@ -458,7 +458,7 @@ export default class bitteam extends Exchange {
     parseMarket (market: Dict): Market {
         const id = this.safeString (market, 'name');
         const numericId = this.safeInteger (market, 'id');
-        const parts = id.split ('_');
+        const parts = (id as string).split ('_');
         const baseId = this.safeString (parts, 0);
         const quoteId = this.safeString (parts, 1);
         const base = this.safeCurrencyCode (baseId);

@@ -20,7 +20,7 @@ const max = 10000000000000; // biggest integer that can still fit 2^53 when mult
 
 export class Int10 {
     constructor(value?:string | number) {
-        this.buf = [+value || 0];
+        this.buf = [ value ? +value : 0 ];
     }
 
 

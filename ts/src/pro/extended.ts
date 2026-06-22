@@ -2,7 +2,7 @@
 
 import extendedRest from '../extended.js';
 import { ExchangeError, InvalidNonce } from '../base/errors.js';
-import type { Balances, Bool, Dict, FundingRate, Int, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
+import type { Balances, Bool, Dict, FundingRate, Int, Market, NullableDict, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 
@@ -139,7 +139,7 @@ export default class extended extends extendedRest {
         }
     }
 
-    async watchPrivate (messageHash: string, subscription = undefined) {
+    async watchPrivate (messageHash: string, subscription: NullableDict = undefined) {
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws'] + '/account';
         if ((this.clients === undefined) || !(url in this.clients)) {
@@ -487,8 +487,8 @@ export default class extended extends extendedRest {
         if (first === undefined) {
             return;
         }
-        for (let i = 0; i < rawOrders.length; i++) {
-            const order = this.parseOrder (rawOrders[i]);
+        for (let i = 0; i < (rawOrders as any[]).length; i++) {
+            const order = this.parseOrder ((rawOrders as any[])[i]);
             const symbol = this.safeString (order, 'symbol');
             symbols[symbol as string] = true;
             orders.append (order);
@@ -553,7 +553,7 @@ export default class extended extends extendedRest {
         client.resolve (fundingRate, messageHash);
     }
 
-    parseWsFundingRate (fundingRate, market = undefined, message = undefined): FundingRate {
+    parseWsFundingRate (fundingRate, market: Market = undefined, message = undefined): FundingRate {
         const marketId = this.safeString (fundingRate, 'm');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (message, 'ts');
@@ -798,7 +798,7 @@ export default class extended extends extendedRest {
             const defaultLimit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             const limit = this.safeInteger (subscription, 'limit', defaultLimit);
             stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol as string][cacheKey] = stored;
+            this.ohlcvs[symbol as string][cacheKey as string] = stored;
         }
         const previousNonce = this.safeInteger (subscription, 'nonce');
         const nonce = this.safeInteger (message, 'seq');

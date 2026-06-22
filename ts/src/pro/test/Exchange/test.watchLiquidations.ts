@@ -4,6 +4,7 @@ import { Exchange } from "../../../../ccxt.js";
 import testLiquidation from '../../../test/Exchange/base/test.liquidation.js';
 import { NetworkError } from '../../../base/errors.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
+import type { Liquidation } from '../../../base/types.js';
 
 
 async function testWatchLiquidations (exchange: Exchange, skippedProperties: object, symbol: string) {
@@ -27,7 +28,7 @@ async function testWatchLiquidations (exchange: Exchange, skippedProperties: obj
         return false;
     }
 
-    let response = undefined;
+    let response: Liquidation[] = [];
 
     let now = Date.now ();
     const ends = now + 10000;

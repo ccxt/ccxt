@@ -378,7 +378,7 @@ export default class bitrue extends bitrueRest {
         //     }
         //
         const channel = this.safeString (message, 'channel');
-        const parts = channel.split ('_');
+        const parts = (channel as string).split ('_');
         const channelKind = this.safeString (parts, 1);
         const isFutures = (channelKind === 'e');
         let market: Market = undefined;
@@ -389,7 +389,7 @@ export default class bitrue extends bitrueRest {
             const marketId = this.safeStringUpper (parts, 1);
             market = this.safeMarket (marketId);
         }
-        const symbol = market['symbol'];
+        const symbol = (market as Dict)['symbol'];
         const timestamp = this.safeInteger (message, 'ts');
         const tick = this.safeValue (message, 'tick', {});
         let parseable = tick;
@@ -420,7 +420,7 @@ export default class bitrue extends bitrueRest {
             }
             const baseId = this.safeStringLower (candidate, 'baseId', '');
             const quoteId = this.safeStringLower (candidate, 'quoteId', '');
-            if (baseId + quoteId === wsBaseQuote) {
+            if ((baseId as string) + (quoteId as string) === wsBaseQuote) {
                 return candidate;
             }
         }
@@ -448,7 +448,7 @@ export default class bitrue extends bitrueRest {
             return rawQuantity;
         }
         const contractSize = this.safeNumber (market, 'contractSize', 1);
-        return rawQuantity * contractSize;
+        return rawQuantity * (contractSize as number);
     }
 
     /**
@@ -512,7 +512,7 @@ export default class bitrue extends bitrueRest {
         //     }
         //
         const channel = this.safeString (message, 'channel');
-        const parts = channel.split ('_');
+        const parts = (channel as string).split ('_');
         const wsBaseQuote = this.safeStringLower (parts, 2);
         const market = this.findSwapMarketByWsBaseQuote (wsBaseQuote as string);
         if (market === undefined) {
@@ -539,8 +539,8 @@ export default class bitrue extends bitrueRest {
         }
     }
 
-    parseWsTrade (trade, market = undefined) {
-        const symbol = market['symbol'];
+    parseWsTrade (trade, market: Market = undefined) {
+        const symbol = (market as Dict)['symbol'];
         const timestamp = this.safeInteger (trade, 'ts');
         const sideLower = this.safeStringLower (trade, 'side');
         const priceString = this.safeString (trade, 'price');
@@ -628,7 +628,7 @@ export default class bitrue extends bitrueRest {
         //     }
         //
         const channel = this.safeString (message, 'channel');
-        const parts = channel.split ('_');
+        const parts = (channel as string).split ('_');
         const wsBaseQuote = this.safeStringLower (parts, 2);
         const market = this.findSwapMarketByWsBaseQuote (wsBaseQuote as string);
         if (market === undefined) {
@@ -646,7 +646,7 @@ export default class bitrue extends bitrueRest {
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
-        if (!(timeframe in this.ohlcvs[symbol])) {
+        if (!((timeframe as string) in this.ohlcvs[symbol])) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             this.ohlcvs[symbol][timeframe as string] = new ArrayCacheByTimestamp (limit);
         }
@@ -656,8 +656,8 @@ export default class bitrue extends bitrueRest {
         client.resolve (stored, messageHash);
     }
 
-    parseWsOHLCV (tick, market = undefined): OHLCV {
-        const symbol = market['symbol'];
+    parseWsOHLCV (tick, market: Market = undefined): OHLCV {
+        const symbol = (market as Dict)['symbol'];
         const idSeconds = this.safeInteger (tick, 'id');
         const timestamp = (idSeconds === undefined) ? undefined : idSeconds * 1000;
         const open = this.safeNumber (tick, 'open');
@@ -720,7 +720,7 @@ export default class bitrue extends bitrueRest {
         //     }
         //
         const channel = this.safeString (message, 'channel');
-        const parts = channel.split ('_');
+        const parts = (channel as string).split ('_');
         const wsBaseQuote = this.safeStringLower (parts, 2);
         const market = this.findSwapMarketByWsBaseQuote (wsBaseQuote as string);
         if (market === undefined) {
@@ -812,13 +812,13 @@ export default class bitrue extends bitrueRest {
     handleMessage (client: Client, message) {
         if ('channel' in message) {
             const channel = this.safeString (message, 'channel');
-            if (channel.indexOf ('_depth_step') > -1) {
+            if ((channel as string).indexOf ('_depth_step') > -1) {
                 this.handleOrderBook (client, message);
-            } else if (channel.indexOf ('_trade_ticker') > -1) {
+            } else if ((channel as string).indexOf ('_trade_ticker') > -1) {
                 this.handleTrades (client, message);
-            } else if (channel.indexOf ('_kline_') > -1) {
+            } else if ((channel as string).indexOf ('_kline_') > -1) {
                 this.handleOHLCV (client, message);
-            } else if (channel.indexOf ('_ticker') > -1) {
+            } else if ((channel as string).indexOf ('_ticker') > -1) {
                 this.handleTicker (client, message);
             }
         } else if ('ping' in message) {

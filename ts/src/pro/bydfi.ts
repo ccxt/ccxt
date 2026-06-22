@@ -4,7 +4,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import bydfiRest from '../bydfi.js';
 import { Precise } from '../base/Precise.js';
 import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
-import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, List } from '../base/types.js';
+import type { Balances, Dict, Int, Market, NullableDict, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, List } from '../base/types.js';
 import { ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 
@@ -420,7 +420,7 @@ export default class bydfi extends bydfiRest {
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
-        if (!(timeframe in this.ohlcvs[symbol])) {
+        if (!((timeframe as string) in this.ohlcvs[symbol])) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             const stored = new ArrayCacheByTimestamp (limit);
             this.ohlcvs[symbol][timeframe as string] = stored;
@@ -569,7 +569,7 @@ export default class bydfi extends bydfiRest {
         if (symbol !== undefined) {
             symbols = [ symbol ];
         }
-        return await this.watchOrdersForSymbols (symbols, since, limit, params);
+        return await this.watchOrdersForSymbols (symbols as string[], since, limit, params);
     }
 
     /**
@@ -680,7 +680,7 @@ export default class bydfi extends bydfiRest {
         market = this.safeMarket (marketId, market);
         const rawStatus = this.safeString (order, 'st');
         const rawType = this.safeString (order, 't');
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         const feeCost = this.safeString (order, 'fee');
         if (feeCost !== undefined) {
             fee = {
@@ -810,7 +810,7 @@ export default class bydfi extends bydfiRest {
         client.resolve ([ parsedPosition ], symbolMessageHash);
     }
 
-    parseWsPosition (position, market = undefined) {
+    parseWsPosition (position, market: Market = undefined) {
         //
         //     {
         //         "S": "1",

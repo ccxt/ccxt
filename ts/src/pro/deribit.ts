@@ -216,8 +216,8 @@ export default class deribit extends deribitRest {
             await this.authenticate ();
         }
         const channels: List = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const market = this.market (symbols[i]);
+        for (let i = 0; i < (symbols as string[]).length; i++) {
+            const market = this.market ((symbols as string[])[i]);
             channels.push ('ticker.' + market['id'] + '.' + interval);
         }
         const message: Dict = {
@@ -292,8 +292,8 @@ export default class deribit extends deribitRest {
         symbols = this.marketSymbols (symbols, undefined, false);
         const url = this.urls['api']['ws'];
         const channels: List = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const market = this.market (symbols[i]);
+        for (let i = 0; i < (symbols as string[]).length; i++) {
+            const market = this.market ((symbols as string[])[i]);
             channels.push ('quote.' + market['id']);
         }
         const message: Dict = {
@@ -575,7 +575,7 @@ export default class deribit extends deribitRest {
             [ group, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'group', 'none');
             descriptor = group + '.' + depth + '.' + interval;
         } else {
-            descriptor = interval;
+            descriptor = interval as string;
         }
         const orderbook = await this.watchMultipleWrapper ('book', descriptor, symbols, params);
         return orderbook.limit ();
@@ -630,7 +630,7 @@ export default class deribit extends deribitRest {
         const params = this.safeValue (message, 'params', {});
         const data = this.safeValue (params, 'data', {});
         const channel = this.safeString (params, 'channel');
-        const parts = channel.split ('.');
+        const parts = (channel as string).split ('.');
         let descriptor = '';
         const partsLength = parts.length;
         const isDetailed = partsLength === 5;
@@ -641,7 +641,7 @@ export default class deribit extends deribitRest {
             descriptor = group + '.' + depth + '.' + interval;
         } else {
             const interval = this.safeString (parts, 2);
-            descriptor = interval;
+            descriptor = interval as string;
         }
         const marketId = this.safeString (data, 'instrument_name');
         const symbol = this.safeSymbol (marketId);
@@ -776,12 +776,12 @@ export default class deribit extends deribitRest {
         const params = this.safeValue (message, 'params', {});
         const channel = this.safeString (params, 'channel', '');
         const data = this.safeValue (params, 'data', {});
-        let orders = [];
+        let orders: Order[] = [];
         if (Array.isArray (data)) {
-            orders = this.parseOrders (data);
+            orders = this.parseOrders (data) as Order[];
         } else {
             const order = this.parseOrder (data);
-            orders = [ order ];
+            orders = [ order ] as Order[];
         }
         const cachedOrders = this.orders;
         for (let i = 0; i < orders.length; i++) {
@@ -900,7 +900,7 @@ export default class deribit extends deribitRest {
         ];
     }
 
-    async watchMultipleWrapper (channelName: string, channelDescriptor: Str, symbolsArray = undefined, params = {}) {
+    async watchMultipleWrapper (channelName: string, channelDescriptor: Str, symbolsArray: List = [], params = {}) {
         await this.loadMarkets ();
         const url = this.urls['api']['ws'];
         const rawSubscriptions: List = [];

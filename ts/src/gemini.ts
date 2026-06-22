@@ -787,7 +787,7 @@ export default class gemini extends Exchange {
                 amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (response, 2))); // quantityTickDecimalPlaces
                 minSize = this.safeNumber (response, 3); // quantityMinimum
             }
-            const marketIdUpper = marketId.toUpperCase ();
+            const marketIdUpper = (marketId as string).toUpperCase ();
             const isPerp = (marketIdUpper.indexOf ('PERP') >= 0);
             const marketIdWithoutPerp = marketIdUpper.replace ('PERP', '');
             const conflictingMarkets = this.safeDict (this.options, 'conflictingMarkets', {});
@@ -1274,8 +1274,8 @@ export default class gemini extends Exchange {
         const maker = this.parseNumber (makerString);
         const taker = this.parseNumber (takerString);
         const result: Dict = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        for (let i = 0; i < (this.symbols as string[]).length; i++) {
+            const symbol = (this.symbols as string[])[i];
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,

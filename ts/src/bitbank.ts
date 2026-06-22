@@ -783,7 +783,7 @@ export default class bitbank extends Exchange {
         }
         const response = await this.privatePostUserSpotOrder (this.extend (request, params));
         const data = this.safeDict (response, 'data');
-        return this.parseOrder (data, market);
+        return this.parseOrder (data as Dict, market);
     }
 
     /**
@@ -872,7 +872,7 @@ export default class bitbank extends Exchange {
         //    }
         //
         const data = this.safeDict (response, 'data');
-        return this.parseOrder (data, market);
+        return this.parseOrder (data as Dict, market);
     }
 
     /**

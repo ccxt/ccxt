@@ -1612,7 +1612,7 @@ export default class bitvavo extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    editOrderRequest (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+    editOrderRequest (id: string, symbol, type, side, amount: Num = undefined, price: Num = undefined, params = {}) {
         let request: Dict = {};
         const market = this.market (symbol);
         const amountRemaining = this.safeNumber (params, 'amountRemaining');
@@ -2291,7 +2291,7 @@ export default class bitvavo extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    withdrawRequest (code: Str, amount, address, tag = undefined, params = {}) {
+    withdrawRequest (code: Str, amount, address, tag: Str = undefined, params = {}) {
         const currency = this.currency (code);
         const request: Dict = {
             'symbol': currency['id'],
