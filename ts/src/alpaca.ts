@@ -435,7 +435,7 @@ export default class alpaca extends Exchange {
         //         next_close: '2023-11-22T16:00:00-05:00'
         //     }
         //
-        const timestamp = this.safeString (response, 'timestamp');
+        const timestamp = this.safeString (response, 'timestamp') as string;
         const localTime = timestamp.slice (0, 23);
         const jetlagStrStart = timestamp.length - 6;
         const jetlagStrEnd = timestamp.length - 3;
@@ -504,7 +504,7 @@ export default class alpaca extends Exchange {
         //         "price_increment": "1"
         //     }
         //
-        const marketId = this.safeString (asset, 'symbol');
+        const marketId = this.safeString (asset, 'symbol') as string;
         const parts = marketId.split ('/');
         const assetClass = this.safeString (asset, 'class');
         const baseId = this.safeString (parts, 0);
@@ -598,7 +598,7 @@ export default class alpaca extends Exchange {
             'loc': loc,
         };
         params = this.omit (params, [ 'loc', 'method' ]);
-        let symbolTrades = undefined;
+        let symbolTrades: Dict[] = [];
         if (method === 'marketPublicGetV1beta3CryptoLocTrades') {
             if (since !== undefined) {
                 request['start'] = this.iso8601 (since);
@@ -624,7 +624,7 @@ export default class alpaca extends Exchange {
             //    }
             //
             const trades = this.safeDict (response, 'trades', {});
-            symbolTrades = this.safeList (trades, marketId, []);
+            symbolTrades = this.safeList (trades, marketId as string, []);
         } else if (method === 'marketPublicGetV1beta3CryptoLocLatestTrades') {
             const response = await this.marketPublicGetV1beta3CryptoLocLatestTrades (this.extend (request, params));
             //
@@ -641,8 +641,7 @@ export default class alpaca extends Exchange {
             //    }
             //
             const trades = this.safeDict (response, 'trades', {});
-            symbolTrades = this.safeDict (trades, marketId, {});
-            symbolTrades = [ symbolTrades ];
+            symbolTrades = [ this.safeDict (trades, marketId as string, {}) ];
         } else {
             throw new NotSupported (this.id + ' fetchTrades() does not support ' + method + ', marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported');
         }
@@ -708,7 +707,7 @@ export default class alpaca extends Exchange {
         //   }
         //
         const orderbooks = this.safeDict (response, 'orderbooks', {});
-        const rawOrderbook = this.safeDict (orderbooks, id, {});
+        const rawOrderbook = this.safeDict (orderbooks, id as string, {});
         const timestamp = this.parse8601 (this.safeString (rawOrderbook, 't'));
         return this.parseOrderBook (rawOrderbook as Dict, market['symbol'], timestamp, 'b', 'a', 'p', 's');
     }
@@ -739,7 +738,7 @@ export default class alpaca extends Exchange {
             'loc': loc,
         };
         params = this.omit (params, [ 'loc', 'method' ]);
-        let ohlcvs = undefined;
+        let ohlcvs: Dict[] = [];
         if (method === 'marketPublicGetV1beta3CryptoLocBars') {
             if (limit !== undefined) {
                 request['limit'] = limit;
@@ -779,7 +778,7 @@ export default class alpaca extends Exchange {
             //     }
             //
             const bars = this.safeDict (response, 'bars', {});
-            ohlcvs = this.safeList (bars, marketId, []);
+            ohlcvs = this.safeList (bars, marketId as string, []);
         } else if (method === 'marketPublicGetV1beta3CryptoLocLatestBars') {
             const response = await this.marketPublicGetV1beta3CryptoLocLatestBars (this.extend (request, params));
             //
@@ -799,8 +798,7 @@ export default class alpaca extends Exchange {
             //     }
             //
             const bars = this.safeDict (response, 'bars', {});
-            ohlcvs = this.safeDict (bars, marketId, {});
-            ohlcvs = [ ohlcvs ];
+            ohlcvs = [ this.safeDict (bars, marketId as string, {}) ];
         } else {
             throw new NotSupported (this.id + ' fetchOHLCV() does not support ' + method + ', marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported');
         }
@@ -925,7 +923,7 @@ export default class alpaca extends Exchange {
         //         }
         //     }
         //
-        const results = [];
+        const results: Ticker[] = [];
         const snapshots = this.safeDict (response, 'snapshots', {});
         const marketIds = Object.keys (snapshots);
         for (let i = 0; i < marketIds.length; i++) {
@@ -969,7 +967,7 @@ export default class alpaca extends Exchange {
         const uuid = this.uuid ();
         const parts = uuid.split ('-');
         const random_id = parts.join ('');
-        const defaultClientId = this.implodeParams (clientOrderIdprefix, { 'id': random_id });
+        const defaultClientId = this.implodeParams (clientOrderIdprefix as string, { 'id': random_id });
         const clientOrderId = this.safeString (params, 'clientOrderId', defaultClientId);
         return clientOrderId;
     }
@@ -1445,14 +1443,14 @@ export default class alpaca extends Exchange {
             'activated': 'open',
             'filled': 'closed',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     parseTimeInForce (timeInForce: Str) {
         const timeInForces: Dict = {
             'day': 'Day',
         };
-        return this.safeString (timeInForces, timeInForce, timeInForce);
+        return this.safeString (timeInForces, timeInForce as string, timeInForce);
     }
 
     /**
@@ -1690,7 +1688,7 @@ export default class alpaca extends Exchange {
         //         "fees": "0.1"
         //     }
         //
-        const results = [];
+        const results: Dict[] = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const direction = this.safeString (entry, 'direction');
@@ -1806,7 +1804,7 @@ export default class alpaca extends Exchange {
             'FAILED': 'failed',
             'COMPLETE': 'ok',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     parseTransactionType (type) {
