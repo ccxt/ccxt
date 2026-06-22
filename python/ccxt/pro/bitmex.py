@@ -1427,7 +1427,7 @@ class bitmex(ccxt.async_support.bitmex):
             symbol = market['symbol']
             messageHash = table + ':' + market['id']
             result = [
-                self.parse8601(self.safe_string(candle, 'timestamp')) - duration * 1000,
+                self.parse_to_int(self.parse8601(self.safe_string(candle, 'timestamp'))) - duration * 1000,
                 None,  # set open price to None, see: https://github.com/ccxt/ccxt/pull/21356#issuecomment-1969565862
                 self.safe_float(candle, 'high'),
                 self.safe_float(candle, 'low'),

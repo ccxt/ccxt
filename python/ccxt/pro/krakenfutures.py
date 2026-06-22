@@ -731,11 +731,11 @@ class krakenfutures(ccxt.async_support.krakenfutures):
                     previousOrder['fee'] = {
                         'rate': None,
                         'cost': '0',
-                        'currency': self.number_to_string(trade['fee']['currency']),
+                        'currency': self.number_to_string(self.safe_string(trade['fee'], 'currency')),
                     }
-                if (previousOrder['fee']['cost'] is not None) and (trade['fee']['cost'] is not None):
+                if (previousOrder['fee']['cost'] is not None) and (self.safe_number(trade['fee'], 'cost') is not None):
                     stringOrderCost = self.number_to_string(previousOrder['fee']['cost'])
-                    stringTradeCost = self.number_to_string(trade['fee']['cost'])
+                    stringTradeCost = self.number_to_string(self.safe_number(trade['fee'], 'cost'))
                     previousOrder['fee']['cost'] = Precise.string_add(stringOrderCost, stringTradeCost)
                 # update the newUpdates count
                 orders.append(self.safe_order(previousOrder))

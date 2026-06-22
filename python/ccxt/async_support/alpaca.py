@@ -447,7 +447,7 @@ class alpaca(Exchange, ImplicitAPI):
         jetlagStrStart = len(timestamp) - 6
         jetlagStrEnd = len(timestamp) - 3
         jetlag = timestamp[jetlagStrStart:jetlagStrEnd]
-        iso = self.parse8601(localTime) - self.parse_to_numeric(jetlag) * 3600 * 1000
+        iso = self.parse_to_int(self.parse8601(localTime)) - self.parse_to_numeric(jetlag) * 3600 * 1000
         return iso
 
     async def fetch_markets(self, params={}) -> List[Market]:

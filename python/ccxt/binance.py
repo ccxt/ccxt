@@ -11052,7 +11052,7 @@ class binance(Exchange, ImplicitAPI):
         request: dict = {}
         if symbol is not None:
             symbol = self.safe_string(market, 'symbol')
-            request['underlying'] = self.safe_string(market, 'baseId') + self.safe_string(market, 'quoteId')
+            request['underlying'] = self.safe_string(market, 'baseId', '') + self.safe_string(market, 'quoteId', '')
         if since is not None:
             request['startTime'] = since
         if limit is not None:

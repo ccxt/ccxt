@@ -313,7 +313,7 @@ class hibachi(Exchange, ImplicitAPI):
             'optionType': None,
             'precision': {
                 'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'underlyingDecimals'))),
-                'price': self.parse_number(self.safe_list(market, 'orderbookGranularities')[0]) / 10000.0,
+                'price': self.parse_number(self.safe_value(self.safe_list(market, 'orderbookGranularities', []), 0)) / 10000.0,
             },
             'limits': {
                 'leverage': {

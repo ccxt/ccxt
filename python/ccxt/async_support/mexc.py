@@ -1053,7 +1053,7 @@ class mexc(Exchange, ImplicitAPI):
         :returns dict: a `status structure <https://docs.ccxt.com/?id=exchange-status-structure>`
         """
         marketType, query = self.handle_market_type_and_params('fetchStatus', None, params)
-        response: dict
+        response: dict = {}
         status: Str = None
         updated: Int = None
         if marketType == 'spot':
@@ -1491,7 +1491,7 @@ class mexc(Exchange, ImplicitAPI):
         }
         if limit is not None:
             request['limit'] = limit
-        orderbook: OrderBook
+        orderbook: OrderBook | None = None
         if market['spot']:
             response = await self.spotPublicGetDepth(self.extend(request, params))
             #
@@ -1567,7 +1567,7 @@ class mexc(Exchange, ImplicitAPI):
         }
         if limit is not None:
             request['limit'] = limit
-        trades: List[Trade]
+        trades: List[Trade] = []
         if market['spot']:
             until = self.safe_integer_n(params, ['endTime', 'until'])
             if since is not None:
@@ -1809,7 +1809,7 @@ class mexc(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'interval': timeframeValue,
         }
-        candles: List[OHLCV]
+        candles: List[OHLCV] = []
         until = self.safe_integer_n(params, ['until', 'endTime'])
         start = since
         if (until is not None) and (since is None):
@@ -1990,7 +1990,7 @@ class mexc(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         marketType, query = self.handle_market_type_and_params('fetchTicker', market, params)
-        ticker: Ticker
+        ticker: Ticker | None = None
         request: dict = {
             'symbol': market['id'],
         }
@@ -2585,7 +2585,7 @@ class mexc(Exchange, ImplicitAPI):
         request: dict = {
             'symbol': market['id'],
         }
-        data: dict
+        data: dict = {}
         if market['spot']:
             clientOrderId = self.safe_string(params, 'clientOrderId')
             if clientOrderId is not None:
@@ -3262,7 +3262,7 @@ class mexc(Exchange, ImplicitAPI):
             # the Planorder endpoints work not only for stop-market orders but also for stop-limit orders that are supposed to have separate endpoint
             method = self.safe_string(self.options, 'cancelAllOrders', 'contractPrivatePostOrderCancelAll')
             method = self.safe_string(query, 'method', method)
-            response: dict
+            response: dict = {}
             if method == 'contractPrivatePostOrderCancelAll':
                 response = await self.contractPrivatePostOrderCancelAll(self.extend(request, query))
             elif method == 'contractPrivatePostPlanorderCancelAll':
@@ -3817,7 +3817,9 @@ class mexc(Exchange, ImplicitAPI):
             if symbol is None:
                 symbols = self.safe_value(params, 'symbols')
                 if symbols is not None:
-                    parsedSymbols = ','.join(self.market_ids(symbols))
+                    symbolIds = self.market_ids(symbols)
+                    if symbolIds is not None:
+                        parsedSymbols = ','.join(symbolIds)
             else:
                 market = self.market(symbol)
                 parsedSymbols = market['id']

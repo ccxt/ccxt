@@ -5461,7 +5461,7 @@ class Exchange(object):
         filteredMarkets = self.filter_by_array(filteredMarkets, 'active', activeStatuses, False)
         return self.get_list_from_object_values(filteredMarkets, 'symbol')
 
-    def filter_by_array(self, objects, key: IndexType, values=None, indexed=True):
+    def filter_by_array(self, objects, key: IndexType, values: Any = None, indexed=True):
         objects = self.to_array(objects)
         # return all of them if no values were passed
         if values is None or not values:
@@ -5826,7 +5826,7 @@ class Exchange(object):
             raise ExchangeError(self.id + ' fetchIsolatedBorrowRate() could not find the borrow rate for market symbol ' + symbol)
         return rate
 
-    def handle_option_and_params(self, params: object, methodName: str, optionName: str, defaultValue=None):
+    def handle_option_and_params(self, params: object, methodName: str, optionName: str, defaultValue: Any = None):
         # This method can be used to obtain method specific properties, i.e: self.handle_option_and_params(params, 'fetchPosition', 'marginMode', 'isolated')
         defaultOptionName = 'default' + self.capitalize(optionName)  # we also need to check the 'defaultXyzWhatever'
         # check if params contain the key
@@ -5864,7 +5864,7 @@ class Exchange(object):
         res = self.handle_option_and_params({}, methodName, optionName, defaultValue)
         return self.safe_value(res, 0)
 
-    def handle_market_type_and_params(self, methodName: str, market: Market = None, params={}, defaultValue=None):
+    def handle_market_type_and_params(self, methodName: str, market: Market = None, params={}, defaultValue: Any = None):
         """
  @ignore
  @param methodName the method calling handleMarketTypeAndParams
@@ -5897,7 +5897,7 @@ class Exchange(object):
         defaultType = self.safe_string_2(self.options, 'defaultType', 'type', 'spot')
         return [defaultType, params]
 
-    def handle_sub_type_and_params(self, methodName: str, market=None, params={}, defaultValue=None):
+    def handle_sub_type_and_params(self, methodName: str, market: Market = None, params={}, defaultValue: Any = None):
         subType = None
         # if set in params, it takes precedence
         subTypeInParams = self.safe_string_2(params, 'subType', 'defaultSubType')
@@ -5918,7 +5918,7 @@ class Exchange(object):
                 subType = values[0]
         return [subType, params]
 
-    def handle_margin_mode_and_params(self, methodName: str, params={}, defaultValue=None):
+    def handle_margin_mode_and_params(self, methodName: str, params={}, defaultValue: Any = None):
         """
  @ignore
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -7517,14 +7517,14 @@ class Exchange(object):
         else:
             raise NotSupported(self.id + ' fetchTransactions() is not supported yet')
 
-    def filter_by_array_positions(self, objects, key: IndexType, values=None, indexed=True):
+    def filter_by_array_positions(self, objects, key: IndexType, values: Any = None, indexed=True):
         """
  @ignore
         Typed wrapper for filterByArray that returns a list of positions
         """
         return self.filter_by_array(objects, key, values, indexed)
 
-    def filter_by_array_tickers(self, objects, key: IndexType, values=None, indexed=True):
+    def filter_by_array_tickers(self, objects, key: IndexType, values: Any = None, indexed=True):
         """
  @ignore
         Typed wrapper for filterByArray that returns a dictionary of tickers
@@ -7609,7 +7609,7 @@ class Exchange(object):
                     errors = 0
                     result = self.array_concat(result, response)
                     last = self.safe_value(response, responseLength - 1)
-                    paginationTimestamp = self.safe_integer(last, 'timestamp') + 1
+                    paginationTimestamp = self.safe_integer(last, 'timestamp', 0) + 1
                     if (until is not None) and (paginationTimestamp >= until):
                         break
             except Exception as e:
@@ -7641,7 +7641,7 @@ class Exchange(object):
                     raise e
         return []
 
-    def fetch_paginated_call_deterministic(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, timeframe: Str = None, params={}, maxEntriesPerRequest=None):
+    def fetch_paginated_call_deterministic(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, timeframe: Str = None, params={}, maxEntriesPerRequest: Int = None):
         maxCalls = None
         maxCalls, params = self.handle_option_and_params(params, method, 'paginationCalls', 10)
         maxEntriesPerRequest, params = self.handle_max_entries_per_request_and_params(method, maxEntriesPerRequest, params)
@@ -7674,7 +7674,7 @@ class Exchange(object):
         key = 0 if (method == 'fetchOHLCV') else 'timestamp'
         return self.filter_by_since_limit(uniqueResults, since, limit, key)
 
-    def fetch_paginated_call_cursor(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}, cursorReceived=None, cursorSent=None, cursorIncrement=None, maxEntriesPerRequest=None):
+    def fetch_paginated_call_cursor(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}, cursorReceived: Str = None, cursorSent: Str = None, cursorIncrement: Int = None, maxEntriesPerRequest: Int = None):
         maxCalls = None
         maxCalls, params = self.handle_option_and_params(params, method, 'paginationCalls', 10)
         maxRetries = None
@@ -7736,7 +7736,7 @@ class Exchange(object):
         key = 0 if (method == 'fetchOHLCV') else 'timestamp'
         return self.filter_by_since_limit(sorted, since, limit, key)
 
-    def fetch_paginated_call_incremental(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}, pageKey=None, maxEntriesPerRequest=None):
+    def fetch_paginated_call_incremental(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}, pageKey: Str = None, maxEntriesPerRequest: Int = None):
         maxCalls = None
         maxCalls, params = self.handle_option_and_params(params, method, 'paginationCalls', 10)
         maxRetries = None

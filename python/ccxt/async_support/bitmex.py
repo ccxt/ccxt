@@ -1711,7 +1711,7 @@ class bitmex(Exchange, ImplicitAPI):
             # we can emulate the open timestamp by shifting all the timestamps one place
             # so the previous close becomes the current open, and we drop the first candle
             for i in range(0, len(result)):
-                result[i][0] = result[i][0] - duration
+                result[i][0] = self.parse_to_int(result[i][0]) - duration
         return result
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:

@@ -919,7 +919,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             request['limit'] = limit  # default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
         response: dict
         if market['quote'] == 'USDT':
-            request['symbol'] = market['baseId'] + market['quoteId']
+            request['symbol'] = self.safe_string(market, 'baseId', '') + self.safe_string(market, 'quoteId', '')
             response = self.binanceGetDepth(self.extend(request, params))
         else:
             request['symbol'] = market['id']
@@ -1315,7 +1315,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         request: dict = {
-            'symbol': market['baseId'] + market['quoteId'],
+            'symbol': self.safe_string(market, 'baseId', '') + self.safe_string(market, 'quoteId', ''),
         }
         response = self.binanceGetTicker24hr(self.extend(request, params))
         if isinstance(response, list):
