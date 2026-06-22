@@ -1653,7 +1653,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
             Object market = this.safeMarket(marketId);
             Object symbol = Helpers.GetValue(market, "symbol");
             Object messageHash = Helpers.add(Helpers.add(table, ":"), Helpers.GetValue(market, "id"));
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.subtract(this.parse8601(this.safeString(candle, "timestamp")), Helpers.multiply(duration, 1000)), null, this.safeFloat(candle, "high"), this.safeFloat(candle, "low"), this.safeFloat(candle, "close"), this.safeFloat(candle, "volume")));
+            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.subtract(this.parseToInt(this.parse8601(this.safeString(candle, "timestamp"))), Helpers.multiply(duration, 1000)), null, this.safeFloat(candle, "high"), this.safeFloat(candle, "low"), this.safeFloat(candle, "close"), this.safeFloat(candle, "volume")));
             Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
             Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
             if (Helpers.isTrue(Helpers.isEqual(stored, null)))

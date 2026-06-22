@@ -646,6 +646,7 @@ class derive extends Exchange {
 
     public function parse_market(array $market): array {
         $type = $this->safe_string($market, 'instrument_type');
+        $marketType = null;
         $spot = false;
         $margin = true;
         $swap = false;

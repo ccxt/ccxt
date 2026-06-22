@@ -865,7 +865,7 @@ func  (this *HtxCore) HandleOrderBookMessage(client any, message any)  {
         orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
         ccxt.AddElementToObject(orderbook, "nonce", version)
     }
-    if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(prevSeqNum, nil))) && ccxt.IsTrue(ccxt.IsGreaterThan(prevSeqNum, ccxt.GetValue(orderbook, "nonce")))) {
+    if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(prevSeqNum, nil))) && ccxt.IsTrue(ccxt.IsGreaterThan(prevSeqNum, this.SafeInteger(orderbook, "nonce", 0)))) {
         var checksum any = this.HandleOption("watchOrderBook", "checksum", true)
         if ccxt.IsTrue(checksum) {
             panic(ccxt.ChecksumError(ccxt.Add(ccxt.Add(this.Id, " "), this.OrderbookChecksumMessage(symbol))))

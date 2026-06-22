@@ -543,10 +543,10 @@ class lighter(Exchange, ImplicitAPI):
         cachedAuth = self.safe_dict(accountAuths, apiKeyIndex)
         cachedDeadline = self.safe_integer(cachedAuth, 'deadline')
         if cachedDeadline is not None:
-            minimumDeadline = self.seconds() + self.safe_integer(self.options, 'authDeadlineMinimumRemaining')
+            minimumDeadline = self.seconds() + self.safe_integer(self.options, 'authDeadlineMinimumRemaining', 60)
             if cachedDeadline >= minimumDeadline:
                 return self.safe_string(cachedAuth, 'token')
-        deadline = self.seconds() + self.safe_integer(self.options, 'authDeadlineExpiry')
+        deadline = self.seconds() + self.safe_integer(self.options, 'authDeadlineExpiry', 28800)
         request = {
             'deadline': deadline,
             'api_key_index': self.parse_to_int(apiKeyIndex),

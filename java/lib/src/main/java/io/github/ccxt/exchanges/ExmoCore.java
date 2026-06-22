@@ -264,7 +264,7 @@ public class ExmoCore extends ExmoApi
                 put( "position_id", Helpers.GetValue(market, "id") );
                 put( "quantity", amount );
             }};
-            Object response = null;
+            Object response = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isEqual(type, "add")))
             {
                 response = (this.privatePostMarginUserPositionMarginAdd(this.extend(request, parameters))).join();

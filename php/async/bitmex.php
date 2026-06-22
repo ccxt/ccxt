@@ -1809,7 +1809,7 @@ class bitmex extends Exchange {
                 // we can emulate the open $timestamp by shifting all the timestamps one place
                 // so the previous close becomes the current open, and we drop the first candle
                 for ($i = 0; $i < count($result); $i++) {
-                    $result[$i][0] = $result[$i][0] - $duration;
+                    $result[$i][0] = $this->parse_to_int($result[$i][0]) - $duration;
                 }
             }
             return $result;

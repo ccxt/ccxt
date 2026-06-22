@@ -1048,6 +1048,7 @@ class mexc extends Exchange {
              * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-$status-structure $status structure~
              */
             list($marketType, $query) = $this->handle_market_type_and_params('fetchStatus', null, $params);
+            $response = array();
             $status = null;
             $updated = null;
             if ($marketType === 'spot') {
@@ -1512,6 +1513,7 @@ class mexc extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
+            $orderbook = null;
             if ($market['spot']) {
                 $response = Async\await($this->spotPublicGetDepth ($this->extend($request, $params)));
                 //
@@ -1594,6 +1596,7 @@ class mexc extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
+            $trades = array();
             if ($market['spot']) {
                 $until = $this->safe_integer_n($params, array( 'endTime', 'until' ));
                 if ($since !== null) {
@@ -1853,6 +1856,7 @@ class mexc extends Exchange {
                 'symbol' => $market['id'],
                 'interval' => $timeframeValue,
             );
+            $candles = array();
             $until = $this->safe_integer_n($params, array( 'until', 'endTime' ));
             $start = $since;
             if (($until !== null) && ($since === null)) {
@@ -2053,6 +2057,7 @@ class mexc extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             list($marketType, $query) = $this->handle_market_type_and_params('fetchTicker', $market, $params);
+            $ticker = null;
             $request = array(
                 'symbol' => $market['id'],
             );
@@ -2711,6 +2716,7 @@ class mexc extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
+            $data = array();
             if ($market['spot']) {
                 $clientOrderId = $this->safe_string($params, 'clientOrderId');
                 if ($clientOrderId !== null) {
@@ -3449,6 +3455,7 @@ class mexc extends Exchange {
                 // the Planorder endpoints work not only for stop-$market orders but also for stop-limit orders that are supposed to have separate endpoint
                 $method = $this->safe_string($this->options, 'cancelAllOrders', 'contractPrivatePostOrderCancelAll');
                 $method = $this->safe_string($query, 'method', $method);
+                $response = array();
                 if ($method === 'contractPrivatePostOrderCancelAll') {
                     $response = Async\await($this->contractPrivatePostOrderCancelAll ($this->extend($request, $query)));
                 } elseif ($method === 'contractPrivatePostPlanorderCancelAll') {
@@ -4036,7 +4043,10 @@ class mexc extends Exchange {
                 if ($symbol === null) {
                     $symbols = $this->safe_value($params, 'symbols');
                     if ($symbols !== null) {
-                        $parsedSymbols = implode(',', $this->market_ids($symbols));
+                        $symbolIds = $this->market_ids($symbols);
+                        if ($symbolIds !== null) {
+                            $parsedSymbols = implode(',', $symbolIds);
+                        }
                     }
                 } else {
                     $market = $this->market($symbol);

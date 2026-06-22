@@ -1201,8 +1201,8 @@ func (this *BitstampCore) ParseTrade(trade any, optionalArgs ...any) any {
 	amountString = this.SafeString(trade, this.SafeString(market, "baseId"), amountString)
 	costString = this.SafeString(trade, this.SafeString(market, "quoteId"), costString)
 	// this endpoint is not aligned with "markets" endpoint
-	var baseIdLower any = ToLower(this.SafeString(market, "baseId"))
-	var quoteIdLower any = ToLower(this.SafeString(market, "quoteId"))
+	var baseIdLower any = this.SafeStringLower(market, "baseId")
+	var quoteIdLower any = this.SafeStringLower(market, "quoteId")
 	var dashedIdLower any = Add(Add(baseIdLower, "_"), quoteIdLower)
 	if IsTrue(IsEqual(priceString, nil)) {
 		priceString = this.SafeString(trade, dashedIdLower)

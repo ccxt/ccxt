@@ -335,7 +335,7 @@ class bithumb(ccxt.async_support.bithumb):
         marketId = self.safe_string(trade, 'symbol')
         datetime = self.safe_string(trade, 'contDtm')
         # that date is not UTC iso8601, but exchange's local time, -9hr difference
-        timestamp = self.parse8601(datetime) - 32400000
+        timestamp = self.parse_to_int(self.parse8601(datetime)) - 32400000
         sideId = self.safe_string(trade, 'buySellGb')
         return self.safe_trade({
             'id': None,

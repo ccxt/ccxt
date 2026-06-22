@@ -681,7 +681,7 @@ class derive extends \ccxt\async\derive {
             $trade = $this->parse_trade($message);
             $myTrades->append ($trade);
             $client->resolve ($myTrades, $topic);
-            $messageHash = $topic . $trade['symbol'];
+            $messageHash = $topic . $this->safe_string($trade, 'symbol', '');
             $client->resolve ($myTrades, $messageHash);
         }
     }

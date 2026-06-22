@@ -1394,7 +1394,7 @@ export default class zebpay extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
-            'symbol': market['id'].toUpperCase (),
+            'symbol': this.safeStringUpper (market, 'id'),
         };
         const response = await this.privateSwapGetV1TradeUserLeverage (this.extend (request, params));
         //

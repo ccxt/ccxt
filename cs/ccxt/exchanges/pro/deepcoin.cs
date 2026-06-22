@@ -114,7 +114,7 @@ public partial class deepcoin : ccxt.deepcoin
         object marketId = getValue(market, "symbol"); // spot markets use symbol with slash
         if (isTrue(isEqual(getValue(market, "type"), "swap")))
         {
-            marketId = add(getValue(market, "baseId"), getValue(market, "quoteId")); // swap markets use symbol without slash
+            marketId = add(this.safeString(market, "baseId", ""), this.safeString(market, "quoteId", "")); // swap markets use symbol without slash
         }
         object action = "1"; // subscribe
         if (isTrue(unWatch))

@@ -1781,7 +1781,7 @@ func (this *ZebpayCore) FetchLeverage(symbol any, optionalArgs ...any) <-chan an
 		PanicOnError(retRes13938)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
-			"symbol": ToUpper(GetValue(market, "id")),
+			"symbol": this.SafeStringUpper(market, "id"),
 		}
 
 		response := (<-this.PrivateSwapGetV1TradeUserLeverage(this.Extend(request, params)))

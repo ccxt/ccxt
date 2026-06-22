@@ -530,8 +530,8 @@ class indodax(Exchange, ImplicitAPI):
         #
         symbol = self.safe_symbol(None, market)
         timestamp = self.safe_timestamp(ticker, 'server_time')
-        baseVolume = 'vol_' + self.safe_string(market, 'baseId').lower()
-        quoteVolume = 'vol_' + self.safe_string(market, 'quoteId').lower()
+        baseVolume = 'vol_' + self.safe_string_lower(market, 'baseId')
+        quoteVolume = 'vol_' + self.safe_string_lower(market, 'quoteId')
         last = self.safe_string(ticker, 'last')
         return self.safe_ticker({
             'symbol': symbol,
@@ -1071,9 +1071,9 @@ class indodax(Exchange, ImplicitAPI):
         await self.load_markets()
         request: dict = {}
         if since is not None:
-            startTime = self.iso8601(since)[0:10]
+            startTime = self.yyyymmdd(since)
             request['start'] = startTime
-            request['end'] = self.iso8601(self.milliseconds())[0:10]
+            request['end'] = self.yyyymmdd(self.milliseconds())
         response = await self.privatePostTransHistory(self.extend(request, params))
         #
         #     {

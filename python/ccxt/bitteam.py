@@ -1101,7 +1101,7 @@ class bitteam(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         request: dict = {
-            'pairId': str(market['numericId']),
+            'pairId': self.safe_string(market, 'numericId'),
             'type': type,
             'side': side,
             'amount': self.amount_to_precision(symbol, amount),
@@ -1180,7 +1180,7 @@ class bitteam(Exchange, ImplicitAPI):
         request: dict = {}
         if symbol is not None:
             market = self.market(symbol)
-            request['pairId'] = str(market['numericId'])
+            request['pairId'] = self.safe_string(market, 'numericId')
         else:
             request['pairId'] = '0'  # '0' for all markets
         response = self.privatePostTradeApiCcxtCancelAllOrder(self.extend(request, params))

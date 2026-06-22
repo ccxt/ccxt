@@ -1335,7 +1335,7 @@ class bitmart(ccxt.async_support.bitmart):
                 symbol = market['symbol']
                 rawOHLCV = self.safe_list(data[i], 'candle')
                 parsed = self.parse_ohlcv(rawOHLCV, market)
-                parsed[0] = self.parse_to_int(parsed[0] / durationInMs) * durationInMs
+                parsed[0] = self.parse_to_int(self.parse_to_int(parsed[0]) / durationInMs) * durationInMs
                 self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
                 stored = self.safe_value(self.ohlcvs[symbol], timeframe)
                 if stored is None:

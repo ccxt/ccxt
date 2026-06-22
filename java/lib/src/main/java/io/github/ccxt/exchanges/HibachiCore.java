@@ -317,7 +317,7 @@ public class HibachiCore extends HibachiApi
             put( "optionType", null );
             put( "precision", new java.util.HashMap<String, Object>() {{
                 put( "amount", HibachiCore.this.parseNumber(HibachiCore.this.parsePrecision(HibachiCore.this.safeString(market, "underlyingDecimals"))) );
-                put( "price", Helpers.divide(HibachiCore.this.parseNumber(Helpers.GetValue(HibachiCore.this.safeList(market, "orderbookGranularities"), 0)), 10000) );
+                put( "price", Helpers.divide(HibachiCore.this.parseNumber(HibachiCore.this.safeValue(HibachiCore.this.safeList(market, "orderbookGranularities", new java.util.ArrayList<Object>(java.util.Arrays.asList())), 0)), 10000) );
             }} );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "leverage", new java.util.HashMap<String, Object>() {{

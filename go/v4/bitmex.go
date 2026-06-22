@@ -2005,7 +2005,7 @@ func (this *BitmexCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 			// we can emulate the open timestamp by shifting all the timestamps one place
 			// so the previous close becomes the current open, and we drop the first candle
 			for i := 0; IsLessThan(i, GetArrayLength(result)); i++ {
-				AddElementToObject(GetValue(result, i), 0, Subtract(GetValue(GetValue(result, i), 0), duration))
+				AddElementToObject(GetValue(result, i), 0, Subtract(this.ParseToInt(GetValue(GetValue(result, i), 0)), duration))
 			}
 		}
 

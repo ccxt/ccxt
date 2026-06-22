@@ -321,7 +321,7 @@ class exmo(Exchange, ImplicitAPI):
             'position_id': market['id'],
             'quantity': amount,
         }
-        response: dict
+        response: dict = {}
         if type == 'add':
             response = self.privatePostMarginUserPositionMarginAdd(self.extend(request, params))
         elif type == 'reduce':

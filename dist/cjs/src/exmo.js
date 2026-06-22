@@ -311,7 +311,7 @@ class exmo extends exmo$1["default"] {
             'position_id': market['id'],
             'quantity': amount,
         };
-        let response;
+        let response = {};
         if (type === 'add') {
             response = await this.privatePostMarginUserPositionMarginAdd(this.extend(request, params));
         }

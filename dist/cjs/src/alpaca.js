@@ -440,7 +440,7 @@ class alpaca extends alpaca$1["default"] {
         const jetlagStrStart = timestamp.length - 6;
         const jetlagStrEnd = timestamp.length - 3;
         const jetlag = timestamp.slice(jetlagStrStart, jetlagStrEnd);
-        const iso = this.parse8601(localTime) - this.parseToNumeric(jetlag) * 3600 * 1000;
+        const iso = this.parseToInt(this.parse8601(localTime)) - this.parseToNumeric(jetlag) * 3600 * 1000;
         return iso;
     }
     /**

@@ -1301,24 +1301,28 @@ public partial class Exchange
         var res = await this.fetchPaginatedCallDynamic(method, symbol, since, limit, parameters, maxEntriesPerRequest, removeRepeated);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<Dictionary<string, object>> FetchPaginatedCallDeterministic(string method, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, string timeframe = null, Dictionary<string, object> parameters = null, object maxEntriesPerRequest = null)
+    public async Task<Dictionary<string, object>> FetchPaginatedCallDeterministic(string method, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, string timeframe = null, Dictionary<string, object> parameters = null, Int64? maxEntriesPerRequest2 = 0)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
+        var maxEntriesPerRequest = maxEntriesPerRequest2 == 0 ? null : (object)maxEntriesPerRequest2;
         var res = await this.fetchPaginatedCallDeterministic(method, symbol, since, limit, timeframe, parameters, maxEntriesPerRequest);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<Dictionary<string, object>> FetchPaginatedCallCursor(string method, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null, object cursorReceived = null, object cursorSent = null, object cursorIncrement = null, object maxEntriesPerRequest = null)
+    public async Task<Dictionary<string, object>> FetchPaginatedCallCursor(string method, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null, string cursorReceived = null, string cursorSent = null, Int64? cursorIncrement2 = 0, Int64? maxEntriesPerRequest2 = 0)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
+        var cursorIncrement = cursorIncrement2 == 0 ? null : (object)cursorIncrement2;
+        var maxEntriesPerRequest = maxEntriesPerRequest2 == 0 ? null : (object)maxEntriesPerRequest2;
         var res = await this.fetchPaginatedCallCursor(method, symbol, since, limit, parameters, cursorReceived, cursorSent, cursorIncrement, maxEntriesPerRequest);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<Dictionary<string, object>> FetchPaginatedCallIncremental(string method, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null, object pageKey = null, object maxEntriesPerRequest = null)
+    public async Task<Dictionary<string, object>> FetchPaginatedCallIncremental(string method, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null, string pageKey = null, Int64? maxEntriesPerRequest2 = 0)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
+        var maxEntriesPerRequest = maxEntriesPerRequest2 == 0 ? null : (object)maxEntriesPerRequest2;
         var res = await this.fetchPaginatedCallIncremental(method, symbol, since, limit, parameters, pageKey, maxEntriesPerRequest);
         return ((Dictionary<string, object>)res);
     }

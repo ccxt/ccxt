@@ -1201,6 +1201,8 @@ class bigone extends Exchange {
             'cost' => null,
             'info' => $trade,
         );
+        $makerCurrencyCode = null;
+        $takerCurrencyCode = null;
         if ($takerOrMaker !== null) {
             if ($side === 'buy') {
                 if ($takerOrMaker === 'maker') {

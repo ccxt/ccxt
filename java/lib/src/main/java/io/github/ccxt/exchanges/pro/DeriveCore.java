@@ -780,7 +780,7 @@ public class DeriveCore extends io.github.ccxt.exchanges.Derive
             Object trade = this.parseTrade(message);
             Helpers.callDynamically(myTrades, "append", new Object[]{trade});
             client.resolve(myTrades, topic);
-            Object messageHash = Helpers.add(topic, Helpers.GetValue(trade, "symbol"));
+            Object messageHash = Helpers.add(topic, this.safeString(trade, "symbol", ""));
             client.resolve(myTrades, messageHash);
         }
     }

@@ -1207,8 +1207,8 @@ class bigone extends bigone$1["default"] {
             'cost': undefined,
             'info': trade,
         };
-        let makerCurrencyCode;
-        let takerCurrencyCode;
+        let makerCurrencyCode = undefined;
+        let takerCurrencyCode = undefined;
         if (takerOrMaker !== undefined) {
             if (side === 'buy') {
                 if (takerOrMaker === 'maker') {

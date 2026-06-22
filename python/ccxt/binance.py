@@ -3084,7 +3084,7 @@ class binance(Exchange, ImplicitAPI):
             withdrawFee = self.safe_number(networkItem, 'withdrawFee')
             depositEnable = self.safe_bool(networkItem, 'depositEnable')
             withdrawEnable = self.safe_bool(networkItem, 'withdrawEnable')
-            fees[network] = withdrawFee
+            fees[networkCode] = withdrawFee
             isDefault = self.safe_bool(networkItem, 'isDefault')
             if isDefault or (fee is None):
                 fee = withdrawFee
@@ -11052,7 +11052,7 @@ class binance(Exchange, ImplicitAPI):
         request: dict = {}
         if symbol is not None:
             symbol = self.safe_string(market, 'symbol')
-            request['underlying'] = self.safe_string(market, 'baseId') + self.safe_string(market, 'quoteId')
+            request['underlying'] = self.safe_string(market, 'baseId', '') + self.safe_string(market, 'quoteId', '')
         if since is not None:
             request['startTime'] = since
         if limit is not None:

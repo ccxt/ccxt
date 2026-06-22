@@ -954,7 +954,7 @@ func (this *TokocryptoCore) FetchOrderBook(symbol any, optionalArgs ...any) <-ch
 		}
 		var response any = nil
 		if IsTrue(IsEqual(GetValue(market, "quote"), "USDT")) {
-			AddElementToObject(request, "symbol", Add(GetValue(market, "baseId"), GetValue(market, "quoteId")))
+			AddElementToObject(request, "symbol", Add(this.SafeString(market, "baseId", ""), this.SafeString(market, "quoteId", "")))
 
 			response = (<-this.BinanceGetDepth(this.Extend(request, params)))
 			PanicOnError(response)
@@ -1422,7 +1422,7 @@ func (this *TokocryptoCore) FetchTicker(symbol any, optionalArgs ...any) <-chan 
 		PanicOnError(retRes13228)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
-			"symbol": Add(GetValue(market, "baseId"), GetValue(market, "quoteId")),
+			"symbol": Add(this.SafeString(market, "baseId", ""), this.SafeString(market, "quoteId", "")),
 		}
 
 		response := (<-this.BinanceGetTicker24hr(this.Extend(request, params)))

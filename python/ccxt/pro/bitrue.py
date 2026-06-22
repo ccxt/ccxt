@@ -318,7 +318,7 @@ class bitrue(ccxt.async_support.bitrue):
             cbId = wsId
             url = self.urls['api']['ws']['futurePublic']
         else:
-            marketIdLowercase = market['id'].lower()
+            marketIdLowercase = self.safe_string_lower(market, 'id')
             channel = 'market_' + marketIdLowercase + '_simple_depth_step0'
             cbId = marketIdLowercase
             url = self.urls['api']['ws']['public']

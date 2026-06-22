@@ -3098,7 +3098,7 @@ class binance extends binance$1["default"] {
             const withdrawFee = this.safeNumber(networkItem, 'withdrawFee');
             const depositEnable = this.safeBool(networkItem, 'depositEnable');
             const withdrawEnable = this.safeBool(networkItem, 'withdrawEnable');
-            fees[network] = withdrawFee;
+            fees[networkCode] = withdrawFee;
             this.safeBool(networkItem, 'isDefault');
             // todo: default networks in "setMarkets" overload
             // if (isDefault) {
@@ -11843,7 +11843,7 @@ class binance extends binance$1["default"] {
         const request = {};
         if (symbol !== undefined) {
             symbol = this.safeString(market, 'symbol');
-            request['underlying'] = this.safeString(market, 'baseId') + this.safeString(market, 'quoteId');
+            request['underlying'] = this.safeString(market, 'baseId', '') + this.safeString(market, 'quoteId', '');
         }
         if (since !== undefined) {
             request['startTime'] = since;

@@ -722,7 +722,7 @@ class backpack(Exchange, ImplicitAPI):
         maxQuantity = self.safe_number(quantityFilter, 'maxQuantity')
         minQuantity = self.safe_number(quantityFilter, 'minQuantity')
         amountPrecision = self.safe_number(quantityFilter, 'stepSize')
-        type: MarketType
+        type: MarketType | None = None
         typeOfMarket = self.parse_market_type(self.safe_string(market, 'marketType'))
         linear: Bool = None
         inverse: Bool = None

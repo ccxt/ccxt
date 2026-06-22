@@ -2505,7 +2505,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         if not market['swap']:
             raise BadRequest(self.id + ' fetchFundingRateHistory() supports swap contracts only')
         request: dict = {
-            'symbol': market['id'].upper(),
+            'symbol': self.safe_string_upper(market, 'id'),
         }
         response = self.publicGetHistoricalfundingrates(self.extend(request, params))
         #

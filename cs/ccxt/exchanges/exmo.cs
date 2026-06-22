@@ -249,7 +249,7 @@ public partial class exmo : Exchange
             { "position_id", getValue(market, "id") },
             { "quantity", amount },
         };
-        object response = null;
+        object response = new Dictionary<string, object>() {};
         if (isTrue(isEqual(type, "add")))
         {
             response = await this.privatePostMarginUserPositionMarginAdd(this.extend(request, parameters));

@@ -112,7 +112,7 @@ class deepcoin extends \ccxt\async\deepcoin {
     public function create_public_request(array $market, float $requestId, string $topicID, string $suffix = '', bool $unWatch = false) {
         $marketId = $market['symbol']; // spot markets use symbol with slash
         if ($market['type'] === 'swap') {
-            $marketId = $market['baseId'] . $market['quoteId']; // swap markets use symbol without slash
+            $marketId = $this->safe_string($market, 'baseId', '') . $this->safe_string($market, 'quoteId', ''); // swap markets use symbol without slash
         }
         $action = '1'; // subscribe
         if ($unWatch) {

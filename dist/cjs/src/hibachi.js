@@ -311,7 +311,7 @@ class hibachi extends hibachi$1["default"] {
             'optionType': undefined,
             'precision': {
                 'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'underlyingDecimals'))),
-                'price': this.parseNumber(this.safeList(market, 'orderbookGranularities')[0]) / 10000.0,
+                'price': this.parseNumber(this.safeValue(this.safeList(market, 'orderbookGranularities', []), 0)) / 10000.0,
             },
             'limits': {
                 'leverage': {

@@ -702,6 +702,7 @@ class bit2c extends Exchange {
         // 0 = New
         // 1 = Open
         // 5 = Completed
+        $status = null;
         if ($isNewOrder) {
             $tempStatus = $this->safe_integer($orderUnified, 'status_type');
             if ($tempStatus === 0 || $tempStatus === 1) {

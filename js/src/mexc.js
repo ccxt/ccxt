@@ -1041,7 +1041,7 @@ export default class mexc extends Exchange {
      */
     async fetchStatus(params = {}) {
         const [marketType, query] = this.handleMarketTypeAndParams('fetchStatus', undefined, params);
-        let response;
+        let response = {};
         let status = undefined;
         let updated = undefined;
         if (marketType === 'spot') {
@@ -1490,7 +1490,7 @@ export default class mexc extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let orderbook;
+        let orderbook = undefined;
         if (market['spot']) {
             const response = await this.spotPublicGetDepth(this.extend(request, params));
             //
@@ -1570,7 +1570,7 @@ export default class mexc extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let trades;
+        let trades = [];
         if (market['spot']) {
             const until = this.safeIntegerN(params, ['endTime', 'until']);
             if (since !== undefined) {
@@ -1832,7 +1832,7 @@ export default class mexc extends Exchange {
             'symbol': market['id'],
             'interval': timeframeValue,
         };
-        let candles;
+        let candles = [];
         const until = this.safeIntegerN(params, ['until', 'endTime']);
         let start = since;
         if ((until !== undefined) && (since === undefined)) {
@@ -2032,7 +2032,7 @@ export default class mexc extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         const [marketType, query] = this.handleMarketTypeAndParams('fetchTicker', market, params);
-        let ticker;
+        let ticker = undefined;
         const request = {
             'symbol': market['id'],
         };
@@ -2686,7 +2686,7 @@ export default class mexc extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        let data;
+        let data = {};
         if (market['spot']) {
             const clientOrderId = this.safeString(params, 'clientOrderId');
             if (clientOrderId !== undefined) {
@@ -3424,7 +3424,7 @@ export default class mexc extends Exchange {
             // the Planorder endpoints work not only for stop-market orders but also for stop-limit orders that are supposed to have separate endpoint
             let method = this.safeString(this.options, 'cancelAllOrders', 'contractPrivatePostOrderCancelAll');
             method = this.safeString(query, 'method', method);
-            let response;
+            let response = {};
             if (method === 'contractPrivatePostOrderCancelAll') {
                 response = await this.contractPrivatePostOrderCancelAll(this.extend(request, query));
             }
@@ -4000,7 +4000,10 @@ export default class mexc extends Exchange {
             if (symbol === undefined) {
                 const symbols = this.safeValue(params, 'symbols');
                 if (symbols !== undefined) {
-                    parsedSymbols = this.marketIds(symbols).join(',');
+                    const symbolIds = this.marketIds(symbols);
+                    if (symbolIds !== undefined) {
+                        parsedSymbols = symbolIds.join(',');
+                    }
                 }
             }
             else {

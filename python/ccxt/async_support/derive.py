@@ -630,7 +630,7 @@ class derive(Exchange, ImplicitAPI):
 
     def parse_market(self, market: dict) -> Market:
         type = self.safe_string(market, 'instrument_type')
-        marketType: MarketType
+        marketType: MarketType | None = None
         spot = False
         margin = True
         swap = False

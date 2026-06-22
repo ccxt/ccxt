@@ -827,7 +827,7 @@ class backpack(ccxt.async_support.backpack):
         client.resolve(storedOrderBook, messageHash)
 
     def handle_delta(self, orderbook, delta):
-        timestamp = self.parse_to_int(self.safe_integer(delta, 'T') / 1000)
+        timestamp = self.parse_to_int(self.safe_integer(delta, 'T', 0) / 1000)
         orderbook['timestamp'] = timestamp
         orderbook['datetime'] = self.iso8601(timestamp)
         orderbook['nonce'] = self.safe_integer(delta, 'u')

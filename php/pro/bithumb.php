@@ -360,7 +360,7 @@ class bithumb extends \ccxt\async\bithumb {
         $marketId = $this->safe_string($trade, 'symbol');
         $datetime = $this->safe_string($trade, 'contDtm');
         // that date is not UTC iso8601, but exchange's local time, -9hr difference
-        $timestamp = $this->parse8601($datetime) - 32400000;
+        $timestamp = $this->parse_to_int($this->parse8601($datetime)) - 32400000;
         $sideId = $this->safe_string($trade, 'buySellGb');
         return $this->safe_trade(array(
             'id' => null,

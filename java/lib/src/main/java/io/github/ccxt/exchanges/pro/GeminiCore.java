@@ -334,7 +334,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
                 put( "type", "subscribe" );
                 put( "subscriptions", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
         put( "name", Helpers.add("candles_", timeframeId) );
-        put( "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList(((String)Helpers.GetValue(market, "id")).toUpperCase())) );
+        put( "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList(GeminiCore.this.safeStringUpper(market, "id"))) );
     }})) );
             }};
             Object messageHash = Helpers.add(Helpers.add(Helpers.add("ohlcv:", Helpers.GetValue(market, "symbol")), ":"), timeframeId);
