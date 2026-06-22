@@ -236,7 +236,11 @@ export class JSEncryptRSAKey extends RSAKey {
             return str;
         }
         const regex = "(.{1," + width + "})( +|$\n?)|(.{1," + width + "})";
-        return str.match(RegExp(regex, "g")).join("\n");
+        const matches = str.match(RegExp(regex, "g"));
+        if (matches === null) {
+            return str;
+        }
+        return matches.join("\n");
     }
 
     /**

@@ -504,7 +504,7 @@ export default class dydx extends Exchange {
         // }
         //
         const quoteId = 'USDC';
-        const marketId = this.safeString (market, 'ticker');
+        const marketId = this.safeString (market, 'ticker', '');
         const parts = marketId.split ('-');
         const baseName = this.safeString (parts, 0);
         const baseId = this.safeString (market, 'baseId', baseName); // idk where 'baseId' comes from, but leaving as is
@@ -844,7 +844,7 @@ export default class dydx extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
     }
 
-    handlePublicAddress (methodName: string, params: Dict) {
+    handlePublicAddress (methodName: string, params: Dict): [Str, Dict] {
         let userAux = undefined;
         [ userAux, params ] = this.handleOptionAndParams (params, methodName, 'user');
         let user = userAux;
@@ -1305,7 +1305,7 @@ export default class dydx extends Exchange {
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only', false);
         const orderType = type.toUpperCase ();
         const market = this.market (symbol);
-        const orderSide = side.toUpperCase ();
+        const orderSide = (side !== undefined) ? side.toUpperCase () : undefined;
         let subaccountId = 0;
         [ subaccountId, params ] = this.handleOptionAndParams (params, 'createOrder', 'subAccountId', subaccountId);
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
@@ -1376,7 +1376,7 @@ export default class dydx extends Exchange {
         let goodTillBlockTimeInSeconds = 2592000;
         [ goodTillBlockTimeInSeconds, params ] = this.handleOptionAndParams (params, 'createOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds); // default is 30 days
         if (orderFlag === 0) {
-            if (goodTillBlock === undefined) {
+            if ((goodTillBlock === undefined) && (latestBlockHeight !== undefined)) {
                 // short term order
                 goodTillBlock = latestBlockHeight + 20;
             }
@@ -1430,7 +1430,7 @@ export default class dydx extends Exchange {
         return this.uuid5 (nameSp, orderInfo);
     }
 
-    async fetchLatestBlockHeight (params = {}): Promise<int> {
+    async fetchLatestBlockHeight (params = {}): Promise<Int> {
         const response = await this.nodeRpcGetAbciInfo (params);
         //
         // {
@@ -1844,7 +1844,7 @@ export default class dydx extends Exchange {
         }
         const gasLimit = Math.ceil (this.parseToNumeric (Precise.stringMul (gasUsed, defaultFeeMultiplier)));
         let feeAmount = Precise.stringMul (this.numberToString (gasLimit), gasPrice);
-        if (feeAmount.indexOf ('.') >= 0) {
+        if ((feeAmount !== undefined) && (feeAmount.indexOf ('.') >= 0)) {
             feeAmount = this.numberToString (Math.ceil (this.parseToNumeric (feeAmount)));
         }
         const feeObj = {

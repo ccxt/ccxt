@@ -925,8 +925,7 @@ export default class backpack extends Exchange {
         //         "timestamp":1753102447307501
         //     }
         //
-        const microseconds = this.safeInteger (response, 'timestamp');
-        const timestamp = this.parseToInt (microseconds / 1000);
+        const timestamp = this.safeIntegerProduct (response, 'timestamp', 0.001);
         const orderbook = this.parseOrderBook (response, symbol, timestamp);
         orderbook['nonce'] = this.safeInteger (response, 'lastUpdateId');
         return orderbook;
@@ -1181,7 +1180,7 @@ export default class backpack extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000); // api maximum 1000
         }
-        let response = undefined;
+        let response: List = [];
         const offset = this.safeInteger (params, 'offset');
         if (offset !== undefined) {
             response = await this.publicGetApiV1TradesHistory (this.extend (request, params));
@@ -1275,7 +1274,7 @@ export default class backpack extends Exchange {
             side = isBuyerMaker ? 'sell' : 'buy';
         }
         const orderId = this.safeString (trade, 'orderId');
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         const feeAmount = this.safeString (trade, 'fee');
         let timestamp = this.safeInteger (trade, 'timestamp');
         if (feeAmount !== undefined) {
@@ -1324,7 +1323,7 @@ export default class backpack extends Exchange {
         //         "status":"Ok"
         //     }
         //
-        const status = this.safeString (response, 'status');
+        const status = this.safeString (response, 'status', '');
         return {
             'status': status.toLowerCase (),
             'updated': undefined,
@@ -1721,8 +1720,8 @@ export default class backpack extends Exchange {
         const ordersRequests: List = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
-            const marketId = this.safeString (rawOrder, 'symbol');
-            const type = this.safeString (rawOrder, 'type');
+             const marketId = this.safeString (rawOrder, 'symbol', '');
+             const type = this.safeString (rawOrder, 'type', '');
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeNumber (rawOrder, 'amount');
             const price = this.safeNumber (rawOrder, 'price');
@@ -1735,7 +1734,7 @@ export default class backpack extends Exchange {
         return this.parseOrders (response);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params = {}) {
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -2114,7 +2113,7 @@ export default class backpack extends Exchange {
         await this.loadMarkets ();
         const response = await this.privateGetApiV1Position (params);
         const positions = this.parsePositions (response);
-        if (this.isEmpty (symbols)) {
+        if ((symbols === undefined) || this.isEmpty (symbols)) {
             return positions;
         }
         symbols = this.marketSymbols (symbols);
@@ -2163,8 +2162,8 @@ export default class backpack extends Exchange {
         const entryPrice = this.safeString (position, 'entryPrice');
         const markPrice = this.safeString (position, 'markPrice');
         const netCost = this.safeString (position, 'netCost');
-        let hedged = false;
-        let side = 'long';
+        let hedged: Bool = false;
+        let side: Str = 'long';
         if (Precise.stringLt (netCost, '0')) {
             side = 'short';
         }

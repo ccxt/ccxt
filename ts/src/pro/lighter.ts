@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import Precise from '../base/Precise.js';
-import type { Balances, Dict, NullableDict, Int, Liquidation, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade, Market } from '../base/types.js';
+import type { Balances, Dict, NullableDict, Int, Liquidation, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade, Market, List } from '../base/types.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 import lighterRest from '../lighter.js';
@@ -351,7 +351,7 @@ export default class lighter extends lighterRest {
         const request: Dict = {
             'channel': 'market_stats/all',
         };
-        const messageHashes = [];
+        const messageHashes: List = [];
         let symbolsLength = 0;
         if (symbols !== undefined) {
             symbolsLength = symbols.length;
@@ -359,9 +359,11 @@ export default class lighter extends lighterRest {
         if (symbolsLength === 0) {
             messageHashes.push (this.getMessageHash ('ticker'));
         } else {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
-                messageHashes.push (this.getMessageHash ('ticker', symbol));
+            if (symbols !== undefined) {
+                for (let i = 0; i < symbols.length; i++) {
+                    const symbol = symbols[i];
+                    messageHashes.push (this.getMessageHash ('ticker', symbol));
+                }
             }
         }
         const newTicker = await this.subscribePublicMultiple (messageHashes, this.extend (request, params));
@@ -843,7 +845,7 @@ export default class lighter extends lighterRest {
         const quoteValue = Precise.stringMul (baseValue, price);
         return this.safeLiquidation ({
             'info': liquidation,
-            'symbol': market['symbol'],
+            'symbol': this.safeString (market, 'symbol'),
             'contracts': contracts,
             'contractSize': contractSize,
             'price': price,

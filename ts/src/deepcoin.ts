@@ -366,7 +366,7 @@ export default class deepcoin extends Exchange {
         });
     }
 
-    handleMarketTypeAndParams (methodName: string, market: Market = undefined, params = {}, defaultValue = undefined): any {
+    handleMarketTypeAndParams (methodName: string, market: Market = undefined, params = {}, defaultValue: Str = undefined): any {
         const instType = this.safeString (params, 'instType');
         params = this.omit (params, 'instType');
         const type = this.safeString (params, 'type');
@@ -512,7 +512,7 @@ export default class deepcoin extends Exchange {
             symbol = symbol + ':' + settle;
         }
         const fees = this.safeDict2 (this.fees, type as string, 'trading', {}) as Dict;
-        let maxLeverage = this.safeString (market, 'lever', '1');
+        let maxLeverage: Str = this.safeString (market, 'lever', '1');
         maxLeverage = Precise.stringMax (maxLeverage, '1');
         const maxMarketSize = this.safeString (market, 'maxMktSz');
         const maxLimitSize = this.safeString (market, 'maxLmtSz');
@@ -2675,7 +2675,7 @@ export default class deepcoin extends Exchange {
     async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, 'swap', true, true, true);
-        let subType = 'linear';
+        let subType: Str = 'linear';
         let firstMarket: Market = undefined;
         if (symbols !== undefined) {
             const firstSymbol = this.safeString (symbols, 0);

@@ -20,8 +20,8 @@ function testOHLCV (exchange: Exchange, skippedProperties: object, method: strin
     if (!('roundTimestamp' in skippedProperties)) {
         testSharedMethods.assertRoundMinuteTimestamp (exchange, skippedProperties, method, entry, 0);
     }
-    const high = exchange.safeString (entry, 2);
-    const low = exchange.safeString (entry, 3);
+    const high = exchange.safeString (entry, 2, '');
+    const low = exchange.safeString (entry, 3, '');
     if ('compareOHLCV' in skippedProperties) {
         return;
     }

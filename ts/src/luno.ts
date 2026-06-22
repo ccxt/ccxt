@@ -5,7 +5,7 @@ import Exchange from './abstract/luno.js';
 import { ExchangeError, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Currencies, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, OHLCV, Num, Account, TradingFeeInterface, Dict, int, LedgerEntry, DepositAddress, NullableDict } from './base/types.js';
+import type { Balances, Currency, Currencies, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, OHLCV, Num, Account, TradingFeeInterface, Dict, int, LedgerEntry, DepositAddress, NullableDict, List } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -420,7 +420,7 @@ export default class luno extends Exchange {
         //         ]
         //     }
         //
-        const result = [];
+        const result: List = [];
         const markets = this.safeValue (response, 'markets', []);
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -494,7 +494,7 @@ export default class luno extends Exchange {
     async fetchAccounts (params = {}): Promise<Account[]> {
         const response = await this.privateGetBalance (params);
         const wallets = this.safeValue (response, 'balance', []);
-        const result = [];
+        const result: List = [];
         for (let i = 0; i < wallets.length; i++) {
             const account = wallets[i];
             const accountId = this.safeString (account, 'account_id');
@@ -580,7 +580,7 @@ export default class luno extends Exchange {
         const request: Dict = {
             'pair': market['id'],
         };
-        let response: Dict = undefined;
+        let response: Dict = {};
         if (limit !== undefined && limit <= 100) {
             response = await this.publicGetOrderbookTop (this.extend (request, params));
         } else {
@@ -634,7 +634,7 @@ export default class luno extends Exchange {
         const baseFee = this.safeNumber (order, 'fee_base');
         const filled = this.safeString (order, 'base');
         const cost = this.safeString (order, 'counter');
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         if (quoteFee !== undefined) {
             fee = {
                 'cost': quoteFee,
@@ -1143,9 +1143,9 @@ export default class luno extends Exchange {
         const request: Dict = {
             'pair': market['id'],
         };
-        let response: Dict = undefined;
+        let response: Dict = {};
         if (type === 'market') {
-            request['type'] = side.toUpperCase ();
+            request['type'] = (side !== undefined) ? side.toUpperCase () : undefined;
             // todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
             if (side === 'buy') {
                 request['counter_volume'] = this.amountToPrecision (market['symbol'], amount);
@@ -1191,7 +1191,7 @@ export default class luno extends Exchange {
         });
     }
 
-    async fetchLedgerByEntries (code: Str = undefined, entry = undefined, limit = undefined, params = {}) {
+    async fetchLedgerByEntries (code: Str = undefined, entry: Int = undefined, limit: Int = undefined, params = {}) {
         // by default without entry number or limit number, return most recent entry
         if (entry === undefined) {
             entry = -1;
@@ -1308,7 +1308,7 @@ export default class luno extends Exchange {
         const after = this.safeString (entry, 'balance');
         const comment = this.safeString (entry, 'description');
         let before = after;
-        let amount = '0.0';
+        let amount: Str = '0.0';
         const result = this.parseLedgerComment (comment);
         const type = result['type'];
         const referenceId = result['referenceId'];

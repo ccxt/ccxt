@@ -431,9 +431,11 @@ export default class bittrade extends Exchange {
             symbols = this.symbols;
         }
         const result: Dict = {};
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
-            result[symbol] = await this.fetchTradingLimitsById (this.marketId (symbol), params);
+        if (symbols !== undefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                result[symbol] = await this.fetchTradingLimitsById (this.marketId (symbol), params);
+            }
         }
         return result;
     }
@@ -543,8 +545,8 @@ export default class bittrade extends Exchange {
         const result: List = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            const baseId = this.safeString (market, 'base-currency');
-            const quoteId = this.safeString (market, 'quote-currency');
+            const baseId = this.safeString (market, 'base-currency', '');
+            const quoteId = this.safeString (market, 'quote-currency', '');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const state = this.safeString (market, 'state');
@@ -1184,7 +1186,7 @@ export default class bittrade extends Exchange {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
-            let account: NullableDict = undefined;
+            let account: Dict = {};
             if (code in result) {
                 account = result[code];
             } else {
@@ -1266,7 +1268,7 @@ export default class bittrade extends Exchange {
             'id': id,
         };
         const response = await this.privateGetOrderOrdersId (this.extend (request, params));
-        const order = this.safeDict (response, 'data');
+        const order = this.safeDict (response, 'data', {});
         return this.parseOrder (order);
     }
 

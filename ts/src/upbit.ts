@@ -517,7 +517,7 @@ export default class upbit extends Exchange {
     }
 
     parseMarket (market: Dict): Market {
-        const id = this.safeString (market, 'market');
+        const id = this.safeString (market, 'market', '');
         const [ quoteId, baseId ] = id.split ('-');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
@@ -822,18 +822,20 @@ export default class upbit extends Exchange {
         return this.parseTickers (concated, symbols);
     }
 
-    idsQueryStrings (ids: string[], maxQueryLength: number) {
+    idsQueryStrings (ids: Strings, maxQueryLength: number) {
         let idsString = '';
         const queries: List = [];
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            if (idsString !== '') {
-                idsString = idsString + ',';
-            }
-            idsString = idsString + id;
-            if (idsString.length >= maxQueryLength) {
-                queries.push (idsString);
-                idsString = '';
+        if (ids !== undefined) {
+            for (let i = 0; i < ids.length; i++) {
+                const id = ids[i];
+                if (idsString !== '') {
+                    idsString = idsString + ',';
+                }
+                idsString = idsString + id;
+                if (idsString.length >= maxQueryLength) {
+                    queries.push (idsString);
+                    idsString = '';
+                }
             }
         }
         if (idsString !== '') {
@@ -1063,7 +1065,10 @@ export default class upbit extends Exchange {
             element['percentage'] = true;
             element['tierBased'] = false;
             element['info'] = fetchMarketResponse[i];
-            response[this.safeString (fetchMarketResponse[i], 'symbol')] = element;
+            const responseSymbol = this.safeString (fetchMarketResponse[i], 'symbol');
+            if (responseSymbol !== undefined) {
+                response[responseSymbol] = element;
+            }
         }
         return response;
     }
@@ -1165,7 +1170,7 @@ export default class upbit extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    calcOrderPrice (symbol: string, amount: number, price: Num = undefined, params = {}): string {
+    calcOrderPrice (symbol: string, amount: Num, price: Num = undefined, params = {}): Str {
         let quoteAmount: Str = undefined;
         const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice');
         const cost = this.safeString (params, 'cost');

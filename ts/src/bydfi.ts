@@ -616,7 +616,7 @@ export default class bydfi extends Exchange {
         const limits = [ 5, 10, 20, 50, 100, 500, 1000 ];
         let result = 1000;
         for (let i = 0; i < limits.length; i++) {
-            if (limit <= limits[i]) {
+            if ((limit !== undefined) && (limit <= limits[i])) {
                 result = limits[i];
                 break;
             }
@@ -850,9 +850,11 @@ export default class bydfi extends Exchange {
             startTime = now - timeDelta;
             until = now;
         } else if (until === undefined) {
-            until = startTime + timeDelta;
-            if (until > now) {
-                until = now;
+            if (startTime !== undefined) {
+                until = startTime + timeDelta;
+                if (until > now) {
+                    until = now;
+                }
             }
         } else if (startTime === undefined) {
             startTime = until - timeDelta;
@@ -1213,11 +1215,11 @@ export default class bydfi extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params = {}) {
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
-            'side': side.toUpperCase (),
+            'side': (side !== undefined) ? side.toUpperCase () : undefined,
             // 'positionSide': STRING Position direction, not required in single position mode, default and can only be BOTH; required in dual position mode, and can only choose LONG or SHORT
             // 'type': STRING Order type LIMIT / MARKET / STOP / TAKE_PROFIT / STOP_MARKET / TAKE_PROFIT_MARKET / TRAILING_STOP_MARKET
             // 'reduceOnly': BOOL true, false; defaults to false in non-dual mode; not accepted in dual mode; not supported when using closePosition.
@@ -1342,8 +1344,8 @@ export default class bydfi extends Exchange {
         const ordersRequests: List = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
-            const symbol = this.safeString (rawOrder, 'symbol');
-            const type = this.safeString (rawOrder, 'type');
+            const symbol = this.safeString (rawOrder, 'symbol', '');
+            const type = this.safeString (rawOrder, 'type', '');
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeNumber (rawOrder, 'amount');
             const price = this.safeNumber (rawOrder, 'price');
@@ -2373,7 +2375,7 @@ export default class bydfi extends Exchange {
         [ wallet, params ] = this.handleOptionAndParams (params, 'setPositionMode', 'wallet', wallet);
         let contractType = 'FUTURE';
         [ contractType, params ] = this.handleOptionAndParams (params, 'setPositionMode', 'contractType', contractType);
-        let settleCoin = 'USDT';
+        let settleCoin: Str = 'USDT';
         [ settleCoin, params ] = this.handleOptionAndParams (params, 'setPositionMode', 'settleCoin', settleCoin);
         const request: Dict = {
             'contractType': contractType,
@@ -2409,7 +2411,7 @@ export default class bydfi extends Exchange {
         [ wallet, params ] = this.handleOptionAndParams (params, 'fetchPositionMode', 'wallet', wallet);
         let contractType = 'FUTURE';
         [ contractType, params ] = this.handleOptionAndParams (params, 'fetchPositionMode', 'contractType', contractType);
-        let settleCoin = 'USDT';
+        let settleCoin: Str = 'USDT';
         if (symbol === undefined) {
             [ settleCoin, params ] = this.handleOptionAndParams (params, 'fetchPositionMode', 'settleCoin', settleCoin);
         } else {
