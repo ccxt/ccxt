@@ -1994,6 +1994,9 @@ export default class weex extends Exchange {
     }
 
     createSpotOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Dict {
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' createSpotOrderRequest() requires a side argument');
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -2057,6 +2060,9 @@ export default class weex extends Exchange {
     }
 
     createContractOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' createContractOrderRequest() requires a side argument');
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],

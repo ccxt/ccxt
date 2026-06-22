@@ -537,6 +537,9 @@ export default class bit2c extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
+        }
         await this.loadMarkets ();
         let method = 'privatePostOrderAddOrder';
         const market = this.market (symbol);

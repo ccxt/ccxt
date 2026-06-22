@@ -5331,6 +5331,9 @@ export default class binance extends Exchange {
     }
 
     editSpotOrderRequest (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' editSpotOrderRequest() requires a side argument');
+        }
         /**
          * @method
          * @ignore
@@ -5458,6 +5461,9 @@ export default class binance extends Exchange {
     }
 
     editContractOrderRequest (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' editContractOrderRequest() requires a side argument');
+        }
         const market = this.market (symbol);
         if (!market['contract']) {
             throw new NotSupported (this.id + ' editContractOrder() does not support ' + market['type'] + ' orders');
@@ -6517,6 +6523,9 @@ export default class binance extends Exchange {
     }
 
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrderRequest() requires a side argument');
+        }
         /**
          * @method
          * @ignore

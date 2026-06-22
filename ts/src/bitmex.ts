@@ -2120,6 +2120,9 @@ export default class bitmex extends Exchange {
      * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         let orderType = this.capitalize (type);
@@ -3607,6 +3610,9 @@ export default class bitmex extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' closePosition() requires a side argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {

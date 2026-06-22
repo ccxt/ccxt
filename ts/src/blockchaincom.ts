@@ -626,6 +626,9 @@ export default class blockchaincom extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const orderType = this.safeString (params, 'ordType', type);
