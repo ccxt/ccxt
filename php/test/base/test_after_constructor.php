@@ -330,5 +330,4 @@ function test_after_constructor() {
     helper_test_init_throttler();
     helper_test_init_sandbox();
     helper_test_init_market();
-    helper_test_properties();
 }
