@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import coinbaseexchangeRest from '../coinbaseexchange.js';
 import { AuthenticationError, ExchangeError, BadSymbol, BadRequest, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Tickers, Int, Ticker, Str, Strings, OrderBook, Trade, Order, Dict, Bool, Market } from '../base/types.js';
+import type { Tickers, Int, Ticker, Str, Strings, OrderBook, Trade, Order, Dict, Bool, Market, List } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import Precise from '../base/Precise.js';
 
@@ -89,7 +89,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
     async subscribeMultiple (name, symbols: Strings = [], messageHashStart: Str = undefined, params = {}) {
         await this.loadMarkets ();
         let market: Market = undefined;
-        symbols = this.marketSymbols (symbols) as string[];
+        symbols = this.marketSymbols (symbols) as List;
         const messageHashes: string[] = [];
         const productIds: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -138,7 +138,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        const symbolsLength = (symbols as string[]).length;
+        const symbolsLength = (symbols as List).length;
         if (symbolsLength === 0) {
             throw new BadSymbol (this.id + ' watchTickers requires a non-empty symbols array');
         }

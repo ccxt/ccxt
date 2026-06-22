@@ -1810,7 +1810,7 @@ export default class tokocrypto extends Exchange {
                 } else {
                     quoteAmount = amount;
                 }
-                request['quoteOrderQty'] = this.decimalToPrecision (quoteAmount as string, TRUNCATE, precision, this.precisionMode);
+                request['quoteOrderQty'] = this.decimalToPrecision (quoteAmount, TRUNCATE, precision, this.precisionMode);
             } else {
                 quantityIsRequired = true;
             }

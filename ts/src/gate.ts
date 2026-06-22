@@ -2430,8 +2430,8 @@ export default class gate extends Exchange {
 
     parseTradingFees (response) {
         const result: Dict = {};
-        for (let i = 0; i < (this.symbols as string[]).length; i++) {
-            const symbol = (this.symbols as string[])[i];
+        for (let i = 0; i < (this.symbols as List).length; i++) {
+            const symbol = (this.symbols as List)[i];
             const market = this.market (symbol);
             result[symbol] = this.parseTradingFee (response, market);
         }
@@ -3407,7 +3407,7 @@ export default class gate extends Exchange {
         } else {
             response = await this.publicSpotGetCandlesticks (this.extend (request, params));
         }
-        return this.parseOHLCVs (response as unknown as Dict[], market, timeframe, since, limit);
+        return this.parseOHLCVs (response as unknown as List, market, timeframe, since, limit);
     }
 
     async fetchOptionOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -4421,7 +4421,7 @@ export default class gate extends Exchange {
             const orderRequest = this.createOrderRequest (marketId as string, type as OrderType, side as OrderSide, amount, price, extendedParams);
             ordersRequests.push (orderRequest);
         }
-        const symbols = this.marketSymbols (orderSymbols as string[], undefined, false, true, true);
+        const symbols = this.marketSymbols (orderSymbols as List, undefined, false, true, true);
         const market = this.market (symbols[0]);
         if (market['future'] || market['option']) {
             throw new NotSupported (this.id + ' createOrders() does not support futures or options markets');
@@ -4451,7 +4451,7 @@ export default class gate extends Exchange {
         } else if (market['swap']) {
             response = await this.privateFuturesPostSettleBatchOrders (ordersRequests);
         }
-        return this.parseOrders (response as unknown as Dict);
+        return this.parseOrders (response as unknown as List);
     }
 
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -6398,7 +6398,7 @@ export default class gate extends Exchange {
         //         }
         //     ]
         //
-        return this.parsePositions (response as unknown as Dict[], symbols);
+        return this.parsePositions (response as unknown as List, symbols);
     }
 
     /**

@@ -1679,8 +1679,8 @@ export default class htx extends Exchange {
             symbols = this.symbols;
         }
         const result: Dict = {};
-        for (let i = 0; i < (symbols as string[]).length; i++) {
-            const symbol = (symbols as string[])[i];
+        for (let i = 0; i < (symbols as List).length; i++) {
+            const symbol = (symbols as List)[i];
             result[symbol] = await this.fetchTradingLimitsById (this.marketId (symbol), params);
         }
         return result;
@@ -5893,7 +5893,7 @@ export default class htx extends Exchange {
                 result = this.arrayConcat (success, errors);
             }
         }
-        return this.parseOrders (result as Dict, market);
+        return this.parseOrders (result as List, market);
     }
 
     /**
@@ -6979,8 +6979,8 @@ export default class htx extends Exchange {
         let toAccountId = this.convertTypeToAccount (toAccount);
         const toCross = toAccountId === 'cross';
         const fromCross = fromAccountId === 'cross';
-        const toIsolated = this.inArray (toAccountId, this.ids as string[]);
-        const fromIsolated = this.inArray (fromAccountId, this.ids as string[]);
+        const toIsolated = this.inArray (toAccountId, this.ids as List);
+        const fromIsolated = this.inArray (fromAccountId, this.ids as List);
         const fromSpot = fromAccountId === 'pro';
         const toSpot = toAccountId === 'pro';
         if (fromSpot && toSpot) {

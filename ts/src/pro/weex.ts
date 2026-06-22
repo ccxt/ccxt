@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import weexRest from '../weex.js';
 import { BadRequest, ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Balances, Dict, Int, Market, MarketInterface, NullableDict, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Dict, Int, List, Market, NullableDict, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -195,8 +195,8 @@ export default class weex extends weexRest {
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false, true) as string[];
-        const firstMarket = this.getMarketFromSymbols (symbols) as MarketInterface;
+        symbols = this.marketSymbols (symbols, undefined, false, true) as List;
+        const firstMarket = this.getMarketFromSymbols (symbols) as Dict;
         const isContract = firstMarket['contract'];
         const topic = 'ticker';
         const messageHashes: string[] = [];
@@ -244,8 +244,8 @@ export default class weex extends weexRest {
      */
     async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false, true) as string[];
-        const firstMarket = this.getMarketFromSymbols (symbols) as MarketInterface;
+        symbols = this.marketSymbols (symbols, undefined, false, true) as List;
+        const firstMarket = this.getMarketFromSymbols (symbols) as Dict;
         const isContract = firstMarket['contract'];
         const topic = 'ticker';
         const subHashes: string[] = [];
@@ -384,8 +384,8 @@ export default class weex extends weexRest {
      */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false, true) as string[];
-        const firstMarket = this.getMarketFromSymbols (symbols) as MarketInterface;
+        symbols = this.marketSymbols (symbols, undefined, false, true) as List;
+        const firstMarket = this.getMarketFromSymbols (symbols) as Dict;
         const isContract = firstMarket['contract'];
         const topic = 'trade';
         const messageHashes: string[] = [];
@@ -434,8 +434,8 @@ export default class weex extends weexRest {
      */
     async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false, true) as string[];
-        const firstMarket = this.getMarketFromSymbols (symbols) as MarketInterface;
+        symbols = this.marketSymbols (symbols, undefined, false, true) as List;
+        const firstMarket = this.getMarketFromSymbols (symbols) as Dict;
         const isContract = firstMarket['contract'];
         const topic = 'trade';
         const subHashes: string[] = [];
@@ -779,8 +779,8 @@ export default class weex extends weexRest {
      */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false, true) as string[];
-        const firstMarket = this.getMarketFromSymbols (symbols) as MarketInterface;
+        symbols = this.marketSymbols (symbols, undefined, false, true) as List;
+        const firstMarket = this.getMarketFromSymbols (symbols) as Dict;
         const isContract = firstMarket['contract'];
         const callerMethodName = this.safeString (params, 'callerMethodName', 'watchOrderBookForSymbols');
         params = this.omit (params, 'callerMethodName');
@@ -832,8 +832,8 @@ export default class weex extends weexRest {
      */
     async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false, true) as string[];
-        const firstMarket = this.getMarketFromSymbols (symbols) as MarketInterface;
+        symbols = this.marketSymbols (symbols, undefined, false, true) as List;
+        const firstMarket = this.getMarketFromSymbols (symbols) as Dict;
         const isContract = firstMarket['contract'];
         const callerMethodName = this.safeString (params, 'callerMethodName', 'unWatchOrderBookForSymbols');
         params = this.omit (params, 'callerMethodName');
@@ -924,8 +924,8 @@ export default class weex extends weexRest {
      */
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false, true) as string[];
-        const firstMarket = this.getMarketFromSymbols (symbols) as MarketInterface;
+        symbols = this.marketSymbols (symbols, undefined, false, true) as List;
+        const firstMarket = this.getMarketFromSymbols (symbols) as Dict;
         if (firstMarket['contract']) {
             throw new NotSupported (this.id + ' watchBidsAsks is supported for spot markets only');
         }
@@ -959,8 +959,8 @@ export default class weex extends weexRest {
      */
     async unWatchBidsAsks (symbols: Strings = undefined, params = {}): Promise<any> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false, true) as string[];
-        const firstMarket = this.getMarketFromSymbols (symbols) as MarketInterface;
+        symbols = this.marketSymbols (symbols, undefined, false, true) as List;
+        const firstMarket = this.getMarketFromSymbols (symbols) as Dict;
         if (firstMarket['contract']) {
             throw new NotSupported (this.id + ' unWatchBidsAsks is supported for spot markets only');
         }
@@ -1152,7 +1152,7 @@ export default class weex extends weexRest {
         }
         let messageHash = 'myTrades';
         const symbolKeys = Object.keys (symbols);
-        const market = this.getMarketFromSymbols (symbolKeys) as MarketInterface;
+        const market = this.getMarketFromSymbols (symbolKeys) as Dict;
         if (market['contract']) {
             messageHash = 'myContractTrades';
         }
@@ -1355,7 +1355,7 @@ export default class weex extends weexRest {
         }
         let messageHash = 'orders';
         const symbolKeys = Object.keys (symbols);
-        const market = this.getMarketFromSymbols (symbolKeys) as MarketInterface;
+        const market = this.getMarketFromSymbols (symbolKeys) as Dict;
         if (market['contract']) {
             messageHash = 'contractOrders';
         }
@@ -1682,7 +1682,7 @@ export default class weex extends weexRest {
         const url = this.urls['api']['ws']['contract'] + '/private';
         this.authenticate (url);
         const client = this.client (url);
-        symbols = this.marketSymbols (symbols, 'swap', true) as string[];
+        symbols = this.marketSymbols (symbols, 'swap', true) as List;
         let messageHash = 'positions';
         const subscriptionHash = messageHash;
         if (symbols !== undefined) {

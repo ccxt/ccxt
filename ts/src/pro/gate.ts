@@ -766,7 +766,7 @@ export default class gate extends gateRest {
     async subscribeWatchTickersAndBidsAsks (symbols: Strings = undefined, callerMethodName: Str = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         [ callerMethodName, params ] = this.handleParamString (params, 'callerMethodName', callerMethodName);
-        symbols = this.marketSymbols (symbols, undefined, false) as string[];
+        symbols = this.marketSymbols (symbols, undefined, false) as List;
         const market = this.market (symbols[0]);
         const messageType = this.getTypeByMarket (market);
         const marketIds = this.marketIds (symbols);
@@ -1281,7 +1281,7 @@ export default class gate extends gateRest {
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         let market: Market = undefined;
-        symbols = this.marketSymbols (symbols) as string[];
+        symbols = this.marketSymbols (symbols) as List;
         const payload = [ '!' + 'all' ];
         if (!this.isEmpty (symbols)) {
             market = this.getMarketFromSymbols (symbols);

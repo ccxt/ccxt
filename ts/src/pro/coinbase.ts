@@ -4,7 +4,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import coinbaseRest from '../coinbase.js';
 import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Strings, Tickers, Ticker, Int, Trade, OrderBook, Order, Str, Dict } from '../base/types.js';
+import { Strings, Tickers, Ticker, Int, Trade, OrderBook, Order, Str, Dict, List } from '../base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -75,7 +75,7 @@ export default class coinbase extends coinbaseRest {
             const symbols = this.marketSymbols (symbol);
             const marketIds = this.marketIds (symbols);
             productIds = marketIds;
-            messageHash = messageHash + '::' + (symbol as string[]).join (',');
+            messageHash = messageHash + '::' + (symbol as List).join (',');
         } else if (symbol !== undefined) {
             market = this.market (symbol);
             messageHash = name + '::' + symbol;
@@ -121,8 +121,8 @@ export default class coinbase extends coinbaseRest {
             const symbols = this.marketSymbols (symbol);
             const marketIds = this.marketIds (symbols);
             productIds = marketIds;
-            watchMessageHash = watchMessageHash + '::' + (symbol as string[]).join (',');
-            unWatchMessageHash = unWatchMessageHash + '::' + (symbol as string[]).join (',');
+            watchMessageHash = watchMessageHash + '::' + (symbol as List).join (',');
+            unWatchMessageHash = unWatchMessageHash + '::' + (symbol as List).join (',');
         } else if (symbol !== undefined) {
             market = this.market (symbol);
             watchMessageHash = name + '::' + symbol;
@@ -168,7 +168,7 @@ export default class coinbase extends coinbaseRest {
         await this.loadMarkets ();
         const productIds: string[] = [];
         const messageHashes: string[] = [];
-        symbols = this.marketSymbols (symbols, undefined, false) as string[];
+        symbols = this.marketSymbols (symbols, undefined, false) as List;
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
@@ -209,7 +209,7 @@ export default class coinbase extends coinbaseRest {
         const productIds: string[] = [];
         const watchMessageHashes: string[] = [];
         const unWatchMessageHashes: string[] = [];
-        symbols = this.marketSymbols (symbols, undefined, false) as string[];
+        symbols = this.marketSymbols (symbols, undefined, false) as List;
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);

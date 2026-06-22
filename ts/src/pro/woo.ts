@@ -1244,8 +1244,8 @@ export default class woo extends wooRest {
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         const messageHashes: string[] = [];
-        symbols = this.marketSymbols (symbols) as string[];
-        if (!this.isEmpty (symbols as string[])) {
+        symbols = this.marketSymbols (symbols) as List;
+        if (!this.isEmpty (symbols as List)) {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 messageHashes.push ('positions::' + symbol);

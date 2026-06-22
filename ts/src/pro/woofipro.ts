@@ -6,7 +6,7 @@ import { AuthenticationError, NotSupported } from '../base/errors.js';
 import { ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCache, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { eddsa } from '../base/functions/crypto.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Dict, NullableDict, Bool, Market } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Dict, NullableDict, Bool, Market, List } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 // ----------------------------------------------------------------------------
@@ -995,8 +995,8 @@ export default class woofipro extends woofiproRest {
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         const messageHashes: string[] = [];
-        symbols = this.marketSymbols (symbols) as string[];
-        if (!this.isEmpty (symbols as string[])) {
+        symbols = this.marketSymbols (symbols) as List;
+        if (!this.isEmpty (symbols as List)) {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 messageHashes.push ('positions::' + symbol);
