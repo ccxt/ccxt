@@ -1500,7 +1500,6 @@ export default class binance extends Exchange {
                     'ETH': 'ERC20',
                     'SOL': 'SOL', // temporary fix for SPL definition
                     'OPTIMISM': 'OP',
-                    'FET': 'FET',
                 },
                 'impliedNetworks': {
                     'ETH': { 'ERC20': 'ETH' },
