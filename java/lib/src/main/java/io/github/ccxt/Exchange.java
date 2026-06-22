@@ -13164,7 +13164,7 @@ public Object describe()
                         errors = 0;
                         result = this.arrayConcat(result, response);
                         Object last = this.safeValue(response, Helpers.subtract(responseLength, 1));
-                        paginationTimestamp = Helpers.add(this.safeInteger(last, "timestamp"), 1);
+                        paginationTimestamp = Helpers.add(this.safeInteger(last, "timestamp", 0), 1);
                         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(until, null))) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(paginationTimestamp, until)))))
                         {
                             break;

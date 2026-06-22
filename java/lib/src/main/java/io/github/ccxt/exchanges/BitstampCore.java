@@ -1201,8 +1201,8 @@ public class BitstampCore extends BitstampApi
         amountString = this.safeString(trade, this.safeString(market, "baseId"), amountString);
         costString = this.safeString(trade, this.safeString(market, "quoteId"), costString);
         // this endpoint is not aligned with "markets" endpoint
-        Object baseIdLower = ((String)this.safeString(market, "baseId")).toLowerCase();
-        Object quoteIdLower = ((String)this.safeString(market, "quoteId")).toLowerCase();
+        Object baseIdLower = this.safeStringLower(market, "baseId");
+        Object quoteIdLower = this.safeStringLower(market, "quoteId");
         Object dashedIdLower = Helpers.add(Helpers.add(baseIdLower, "_"), quoteIdLower);
         if (Helpers.isTrue(Helpers.isEqual(priceString, null)))
         {

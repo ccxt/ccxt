@@ -1988,7 +1988,7 @@ public class BitmexCore extends BitmexApi
                 // so the previous close becomes the current open, and we drop the first candle
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(result)); i++)
                 {
-                    Helpers.addElementToObject(Helpers.GetValue(result, i), 0, Helpers.subtract(Helpers.GetValue(Helpers.GetValue(result, i), 0), duration));
+                    Helpers.addElementToObject(Helpers.GetValue(result, i), 0, Helpers.subtract(this.parseToInt(Helpers.GetValue(Helpers.GetValue(result, i), 0)), duration));
                 }
             }
             return result;

@@ -12787,7 +12787,7 @@ final Object finalMarket = market;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 symbol = this.safeString(market, "symbol");
-                Helpers.addElementToObject(request, "underlying", Helpers.add(this.safeString(market, "baseId"), this.safeString(market, "quoteId")));
+                Helpers.addElementToObject(request, "underlying", Helpers.add(this.safeString(market, "baseId", ""), this.safeString(market, "quoteId", "")));
             }
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {

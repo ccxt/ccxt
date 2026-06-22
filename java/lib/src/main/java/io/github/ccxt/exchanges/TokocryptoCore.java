@@ -955,7 +955,7 @@ public class TokocryptoCore extends TokocryptoApi
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "quote"), "USDT")))
             {
-                Helpers.addElementToObject(request, "symbol", Helpers.add(Helpers.GetValue(market, "baseId"), Helpers.GetValue(market, "quoteId")));
+                Helpers.addElementToObject(request, "symbol", Helpers.add(this.safeString(market, "baseId", ""), this.safeString(market, "quoteId", "")));
                 response = (this.binanceGetDepth(this.extend(request, parameters))).join();
             } else
             {
@@ -1416,7 +1416,7 @@ public class TokocryptoCore extends TokocryptoApi
             (this.loadMarkets()).join();
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
-                put( "symbol", Helpers.add(Helpers.GetValue(market, "baseId"), Helpers.GetValue(market, "quoteId")) );
+                put( "symbol", Helpers.add(TokocryptoCore.this.safeString(market, "baseId", ""), TokocryptoCore.this.safeString(market, "quoteId", "")) );
             }};
             Object response = (this.binanceGetTicker24hr(this.extend(request, parameters))).join();
             if (Helpers.isTrue(Helpers.isArray(response)))
