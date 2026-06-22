@@ -109,7 +109,7 @@ export default class deepcoin extends deepcoinRest {
     createPublicRequest (market: Market, requestId: number, topicID: string, suffix: string = '', unWatch: boolean = false) {
         let marketId = market['symbol']; // spot markets use symbol with slash
         if (market['type'] === 'swap') {
-            marketId = market['baseId'] + market['quoteId']; // swap markets use symbol without slash
+            marketId = this.safeString (market, 'baseId', '') + this.safeString (market, 'quoteId', ''); // swap markets use symbol without slash
         }
         let action = '1'; // subscribe
         if (unWatch) {

@@ -1811,7 +1811,7 @@ public partial class kraken : Exchange
         object response = null;
         object request = new Dictionary<string, object>() {
             { "orders", ordersRequests },
-            { "pair", getValue(market, "id") },
+            { "pair", this.safeString(market, "id") },
         };
         request = this.extend(request, parameters);
         response = await this.privatePostAddOrderBatch(request);
@@ -2335,6 +2335,7 @@ public partial class kraken : Exchange
         if (isTrue(!isEqual(close, null)))
         {
             close = this.extend(new Dictionary<string, object>() {}, close);
+            close = ((bool) isTrue((isEqual(close, null)))) ? new Dictionary<string, object>() {} : close;
             object closePrice = this.safeValue(close, "price");
             if (isTrue(!isEqual(closePrice, null)))
             {

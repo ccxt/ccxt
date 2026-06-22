@@ -1690,7 +1690,7 @@ func (this *PoloniexCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 			AddElementToObject(request, "limit", limit)
 		}
 		if IsTrue(IsTrue(isContract) && IsTrue(!IsEqual(symbol, nil))) {
-			AddElementToObject(request, "symbol", GetValue(market, "id"))
+			AddElementToObject(request, "symbol", this.SafeString(market, "id"))
 		}
 		requestparamsVariable := this.HandleUntilOption(endKey, request, params)
 		request = GetValue(requestparamsVariable, 0)
@@ -3962,7 +3962,7 @@ func (this *PoloniexCore) ParseLeverage(leverage any, optionalArgs ...any) any {
 	var longLeverage any = nil
 	var marketId any = nil
 	var marginMode any = nil
-	var data any = this.SafeList(leverage, "data")
+	var data any = this.SafeList(leverage, "data", []any{})
 	for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
 		var entry any = GetValue(data, i)
 		marketId = this.SafeString(entry, "symbol")

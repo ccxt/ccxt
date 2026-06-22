@@ -2898,7 +2898,7 @@ export default class bitmart extends Exchange {
             ordersRequests.push (orderRequest);
         }
         const request: Dict = {
-            'symbol': market['id'],
+            'symbol': this.safeString (market, 'id'),
             'orderParams': ordersRequests,
         };
         const response = await this.privatePostSpotV4BatchOrders (request);
@@ -3764,7 +3764,7 @@ export default class bitmart extends Exchange {
             if (orderType !== undefined) {
                 request['type'] = orderType;
             }
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString (market, 'id');
             request['order_id'] = id;
             response = await this.privateGetContractPrivateOrder (this.extend (request, params));
         }
@@ -5061,7 +5061,7 @@ export default class bitmart extends Exchange {
         const request: Dict = {};
         if (symbolsLength === 1) {
             // only supports symbols as undefined or sending one symbol
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString (market, 'id');
         }
         const response = await this.privateGetContractPrivatePositionV2 (this.extend (request, params));
         //

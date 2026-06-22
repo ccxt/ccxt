@@ -7548,7 +7548,7 @@ class okx extends okx$1["default"] {
             tiers.push({
                 'tier': this.safeInteger(tier, 'tier'),
                 'symbol': this.safeSymbol(marketId, market),
-                'currency': market['quote'],
+                'currency': this.safeString(market, 'quote'),
                 'minNotional': this.safeNumber(tier, 'minSz'),
                 'maxNotional': this.safeNumber(tier, 'maxSz'),
                 'maintenanceMarginRate': this.safeNumber(tier, 'mmr'),

@@ -3,6 +3,7 @@ import path from 'path';
 import errors from "../js/src/base/errors.js";
 import { basename, resolve } from 'path';
 import { createFolderRecursively, overwriteFile, checkCreateFolder } from './fsLocal.js';
+import { writeOverloadStrippedFile, removeOverloadStrippedFile } from './stripOverloads.js';
 // import { writeFile } from 'fs/promises';
 import { platform } from 'process';
 import fs from 'fs';
@@ -1613,7 +1614,9 @@ ${constStatements.join('\n')}
         const baseMethods = VIRTUAL_BASE_METHODS;
         const allVirtual = Object.keys(baseMethods);
         this.transpiler.goTranspiler.wrapCallMethods = allVirtual;
-        const baseFile = this.transpiler.transpileGoByPath(baseExchangeFile);
+        const strippedBaseFile = writeOverloadStrippedFile (baseExchangeFile);
+        const baseFile = this.transpiler.transpileGoByPath(strippedBaseFile);
+        removeOverloadStrippedFile (strippedBaseFile, baseExchangeFile);
         this.transpiler.goTranspiler.wrapCallMethods = [];
         let baseClass = baseFile.content as any; // remove this later
 

@@ -1712,7 +1712,7 @@ class kraken(Exchange, ImplicitAPI):
         response: dict = None
         request: dict = {
             'orders': ordersRequests,
-            'pair': market['id'],
+            'pair': self.safe_string(market, 'id'),
         }
         request = self.extend(request, params)
         response = await self.privatePostAddOrderBatch(request)
@@ -2124,6 +2124,7 @@ class kraken(Exchange, ImplicitAPI):
         close = self.safe_dict(params, 'close')
         if close is not None:
             close = self.extend({}, close)
+            close = {} if (close is None) else close
             closePrice = self.safe_value(close, 'price')
             if closePrice is not None:
                 close['price'] = self.price_to_precision(symbol, closePrice)

@@ -455,7 +455,7 @@ class coinmetro extends Exchange {
         for ($i = 0; $i < count($response); $i++) {
             $market = $this->parse_market($response[$i]);
             // there are several broken (unavailable info) markets
-            if ($market['base'] === null || $market['quote'] === null) {
+            if ($this->safe_string($market, 'base') === null || $this->safe_string($market, 'quote') === null) {
                 continue;
             }
             $result[] = $market;

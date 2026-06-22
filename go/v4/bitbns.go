@@ -1478,6 +1478,7 @@ func (this *BitbnsCore) Sign(path any, optionalArgs ...any) any {
 		}
 		var payload any = this.StringToBase64(this.Json(auth))
 		var signature any = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha512)
+		headers = Ternary(IsTrue((IsEqual(headers, nil))), map[string]any{}, headers)
 		AddElementToObject(headers, "X-BITBNS-PAYLOAD", payload)
 		AddElementToObject(headers, "X-BITBNS-SIGNATURE", signature)
 		AddElementToObject(headers, "Content-Type", "application/x-www-form-urlencoded")

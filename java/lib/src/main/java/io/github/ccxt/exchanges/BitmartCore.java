@@ -3011,7 +3011,7 @@ public class BitmartCore extends BitmartApi
             }
             final Object finalMarket = market;
             Object request = new java.util.HashMap<String, Object>() {{
-                put( "symbol", Helpers.GetValue(finalMarket, "id") );
+                put( "symbol", BitmartCore.this.safeString(finalMarket, "id") );
                 put( "orderParams", ordersRequests );
             }};
             Object response = (this.privatePostSpotV4BatchOrders(request)).join();
@@ -4130,7 +4130,7 @@ public class BitmartCore extends BitmartApi
                 {
                     Helpers.addElementToObject(request, "type", orderType);
                 }
-                Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
+                Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
                 Helpers.addElementToObject(request, "order_id", id);
                 response = (this.privateGetContractPrivateOrder(this.extend(request, parameters))).join();
             }
@@ -5674,7 +5674,7 @@ public class BitmartCore extends BitmartApi
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 1)))
             {
                 // only supports symbols as undefined or sending one symbol
-                Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
+                Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
             }
             Object response = (this.privateGetContractPrivatePositionV2(this.extend(request, parameters))).join();
             //

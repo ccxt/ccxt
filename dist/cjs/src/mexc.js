@@ -1951,7 +1951,7 @@ class mexc extends mexc$1["default"] {
         const [marketType, query] = this.handleMarketTypeAndParams('fetchTickers', market, params);
         let tickers = undefined;
         if (isSingularMarket) {
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
         }
         if (marketType === 'spot') {
             tickers = await this.spotPublicGetTicker24hr(this.extend(request, query));
@@ -3067,7 +3067,7 @@ class mexc extends mexc$1["default"] {
         [marketType, params] = this.handleMarketTypeAndParams('fetchOpenOrders', market, params);
         if (marketType === 'spot') {
             if (symbol !== undefined) {
-                request['symbol'] = market['id'];
+                request['symbol'] = this.safeString(market, 'id');
             }
             const [marginMode, query] = this.handleMarginModeAndParams('fetchOpenOrders', params);
             let response;
@@ -3216,7 +3216,7 @@ class mexc extends mexc$1["default"] {
                 throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
             }
             const requestInner = {
-                'symbol': market['id'],
+                'symbol': this.safeString(market, 'id'),
             };
             const clientOrderId = this.safeString(params, 'clientOrderId');
             if (clientOrderId !== undefined) {
@@ -3365,7 +3365,7 @@ class mexc extends mexc$1["default"] {
             if (symbol === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' cancelAllOrders() requires a symbol argument on spot');
             }
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
             let response;
             if (marginMode !== undefined) {
                 if (marginMode !== 'isolated') {
@@ -3416,7 +3416,7 @@ class mexc extends mexc$1["default"] {
         }
         else {
             if (symbol !== undefined) {
-                request['symbol'] = market['id'];
+                request['symbol'] = this.safeString(market, 'id');
             }
             // method can be either: contractPrivatePostOrderCancelAll or contractPrivatePostPlanorderCancelAll
             // the Planorder endpoints work not only for stop-market orders but also for stop-limit orders that are supposed to have separate endpoint
@@ -4231,7 +4231,7 @@ class mexc extends mexc$1["default"] {
             if (symbol === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' fetchOrderTrades() requires a symbol argument');
             }
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
             request['orderId'] = id;
             trades = await this.spotPrivateGetMyTrades(this.extend(request, query));
             //
@@ -5996,7 +5996,7 @@ class mexc extends mexc$1["default"] {
         }
         return {
             'info': leverage,
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'marginMode': marginMode,
             'longLeverage': longLeverage,
             'shortLeverage': shortLeverage,
@@ -6181,6 +6181,7 @@ class mexc extends mexc$1["default"] {
                 };
             }
             if ((method === 'POST') || (method === 'PUT') || (method === 'DELETE')) {
+                headers = (headers === undefined) ? {} : headers;
                 headers['Content-Type'] = 'application/json';
             }
         }

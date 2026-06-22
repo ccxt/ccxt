@@ -528,7 +528,7 @@ export default class hyperliquid extends Exchange {
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
         const options = this.safeDict (this.options, 'fetchMarkets', {});
-        const types = this.safeList (options, 'types');
+        const types = this.safeList (options, 'types', []);
         const rawPromises = [];
         for (let i = 0; i < types.length; i++) {
             const marketType = types[i];
@@ -2442,7 +2442,7 @@ export default class hyperliquid extends Exchange {
         //
         const innerResponse = this.safeDict (response, 'response');
         const data = this.safeDict (innerResponse, 'data');
-        const statuses = this.safeList (data, 'statuses');
+        const statuses = this.safeList (data, 'statuses', []);
         const orders: List = [];
         for (let i = 0; i < statuses.length; i++) {
             const status = statuses[i];
@@ -4494,7 +4494,7 @@ export default class hyperliquid extends Exchange {
             for (let i = 0; i < records.length; i++) {
                 const record = records[i];
                 if (record['type'] === 'vaultDeposit') {
-                    const delta = this.safeDict (record, 'delta');
+                    const delta = this.safeDict (record, 'delta', {});
                     if (delta['vault'] === '0x' + vaultAddress) {
                         deposits.push (record);
                     }
@@ -4558,7 +4558,7 @@ export default class hyperliquid extends Exchange {
             for (let i = 0; i < records.length; i++) {
                 const record = records[i];
                 if (record['type'] === 'vaultWithdraw') {
-                    const delta = this.safeDict (record, 'delta');
+                    const delta = this.safeDict (record, 'delta', {});
                     if (delta['vault'] === '0x' + vaultAddress) {
                         withdrawals.push (record);
                     }

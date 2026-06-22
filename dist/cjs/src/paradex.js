@@ -2767,7 +2767,7 @@ class paradex extends paradex$1["default"] {
         const marginMode = this.safeStringLower(rawMarginMode, 'margin_type');
         return {
             'info': rawMarginMode,
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'marginMode': marginMode,
         };
     }

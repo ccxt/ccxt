@@ -3201,6 +3201,7 @@ public partial class bullish : Exchange
             }
             if (isTrue(isEqual(path, "v1/users/hmac/login")))
             {
+                headers = ((bool) isTrue((isEqual(headers, null)))) ? new Dictionary<string, object>() {} : headers;
                 ((IDictionary<string,object>)headers)["BX-PUBLIC-KEY"] = this.apiKey;
             } else
             {
@@ -3209,6 +3210,7 @@ public partial class bullish : Exchange
                 {
                     throw new AuthenticationError ((string)add(this.id, " requires a token, please call signIn() first")) ;
                 }
+                headers = ((bool) isTrue((isEqual(headers, null)))) ? new Dictionary<string, object>() {} : headers;
                 ((IDictionary<string,object>)headers)["Authorization"] = add("Bearer ", token);
             }
         }

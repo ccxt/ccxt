@@ -4,6 +4,7 @@ import path from 'path'
 import errors from "../js/src/base/errors.js"
 import { basename, join, resolve } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile, checkCreateFolder } from './fsLocal.js'
+import { writeOverloadStrippedFile, removeOverloadStrippedFile } from './stripOverloads.js'
 import { platform } from 'process'
 import fs from 'fs'
 import log from 'ololog'
@@ -758,7 +759,9 @@ class NewTranspiler {
         // to c#
         // const tsContent = fs.readFileSync (baseExchangeFile, 'utf8');
         // const delimited = tsContent.split (delimiter)
-        const baseFile: any = this.transpiler.transpileCSharpByPath(baseExchangeFile);
+        const strippedBaseFile = writeOverloadStrippedFile (baseExchangeFile);
+        const baseFile: any = this.transpiler.transpileCSharpByPath(strippedBaseFile);
+        removeOverloadStrippedFile (strippedBaseFile, baseExchangeFile);
         let baseClass = baseFile.content as any;// remove this later
 
         // create wrappers with specific types

@@ -836,8 +836,8 @@ export default class deepcoin extends Exchange {
 
     getProductGroupFromMarket (market: Market): string {
         let productGroup = 'Spot';
-        if (market['swap']) {
-            if (market['linear']) {
+        if (this.safeBool (market, 'swap')) {
+            if (this.safeBool (market, 'linear')) {
                 productGroup = 'SwapU';
             } else {
                 productGroup = 'Swap';

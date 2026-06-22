@@ -1525,7 +1525,7 @@ class woo extends Exchange {
             }
             $response = $this->v3PrivateDeleteTradeAlgoOrder ($this->extend($request, $params));
         } else {
-            $request['symbol'] = $market['id'];
+            $request['symbol'] = $this->safe_string($market, 'id');
             if ($isByClientOrder) {
                 $request['clientOrderId'] = $clientOrderIdExchangeSpecific;
             } else {
@@ -3717,16 +3717,16 @@ class woo extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        if (($symbol === null) || $market['spot']) {
+        if (($symbol === null) || $this->safe_bool($market, 'spot')) {
             return $this->v3PrivatePostSpotMarginLeverage ($this->extend($request, $params));
-        } elseif ($market['swap']) {
-            $request['symbol'] = $market['id'];
+        } elseif ($this->safe_bool($market, 'swap')) {
+            $request['symbol'] = $this->safe_string($market, 'id');
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchLeverage', $params, 'cross');
             $request['marginMode'] = $this->encode_margin_mode($marginMode);
             return $this->v3PrivatePutFuturesLeverage ($this->extend($request, $params));
         } else {
-            throw new NotSupported($this->id . ' fetchLeverage() is not supported for ' . $market['type'] . ' markets');
+            throw new NotSupported($this->id . ' fetchLeverage() is not supported for ' . $this->safe_string($market, 'type') . ' markets');
         }
     }
 

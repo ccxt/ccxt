@@ -634,7 +634,7 @@ export default class derive extends Exchange {
 
     parseMarket (market: Dict): Market {
         const type = this.safeString (market, 'instrument_type');
-        let marketType: MarketType;
+        let marketType: MarketType | undefined = undefined;
         let spot = false;
         let margin = true;
         let swap = false;
@@ -1924,7 +1924,7 @@ export default class derive extends Exchange {
         if (marketId !== undefined) {
             market = this.safeMarket (marketId, market);
         }
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol');
         const price = this.safeString (order, 'limit_price');
         const average = this.safeString (order, 'average_price');
         const amount = this.safeString (order, 'desired_amount');

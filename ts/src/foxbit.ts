@@ -1672,7 +1672,7 @@ export default class foxbit extends Exchange {
     parseTradingFee (entry: Dict, market: Market = undefined): TradingFeeInterface {
         return {
             'info': entry,
-            'symbol': market['symbol'],
+            'symbol': this.safeString (market, 'symbol'),
             'maker': this.safeNumber (entry, 'maker'),
             'taker': this.safeNumber (entry, 'taker'),
             'percentage': true,
@@ -1741,7 +1741,7 @@ export default class foxbit extends Exchange {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': this.safeString (market, 'symbol'),
             'order': undefined,
             'type': undefined,
             'side': side,

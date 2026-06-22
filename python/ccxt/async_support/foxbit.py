@@ -1591,7 +1591,7 @@ class foxbit(Exchange, ImplicitAPI):
     def parse_trading_fee(self, entry: dict, market: Market = None) -> TradingFeeInterface:
         return {
             'info': entry,
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'maker': self.safe_number(entry, 'maker'),
             'taker': self.safe_number(entry, 'taker'),
             'percentage': True,
@@ -1657,7 +1657,7 @@ class foxbit(Exchange, ImplicitAPI):
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'order': None,
             'type': None,
             'side': side,

@@ -8394,7 +8394,7 @@ public class OkxCore extends OkxApi
             ((java.util.List<Object>)tiers).add(new java.util.HashMap<String, Object>() {{
                 put( "tier", OkxCore.this.safeInteger(tier, "tier") );
                 put( "symbol", OkxCore.this.safeSymbol(marketId, market) );
-                put( "currency", Helpers.GetValue(market, "quote") );
+                put( "currency", OkxCore.this.safeString(market, "quote") );
                 put( "minNotional", OkxCore.this.safeNumber(tier, "minSz") );
                 put( "maxNotional", OkxCore.this.safeNumber(tier, "maxSz") );
                 put( "maintenanceMarginRate", OkxCore.this.safeNumber(tier, "mmr") );

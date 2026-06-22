@@ -3298,7 +3298,7 @@ class hitbtc(Exchange, ImplicitAPI):
         datetime = self.safe_string(data, 'updated_at')
         return {
             'info': data,
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'type': None,
             'marginMode': 'isolated',
             'amount': None,

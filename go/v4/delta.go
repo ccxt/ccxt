@@ -3688,7 +3688,7 @@ func (this *DeltaCore) FetchSettlementHistory(optionalArgs ...any) <-chan any {
 		var settlements any = this.ParseSettlements(result, market)
 		var sorted any = this.SortBy(settlements, "timestamp")
 
-		ch <- this.FilterBySymbolSinceLimit(sorted, GetValue(market, "symbol"), since, limit)
+		ch <- this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit)
 		return nil
 
 	}()

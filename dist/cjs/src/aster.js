@@ -1602,7 +1602,7 @@ class aster extends aster$1["default"] {
         //
         const timestamp = this.safeInteger(entry, 'time');
         return {
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'price': this.safeNumberOmitZero(entry, 'price'),
@@ -3066,7 +3066,7 @@ class aster extends aster$1["default"] {
         market = this.safeMarket(marketId, market, undefined, 'swap');
         return {
             'info': marginMode,
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'marginMode': this.safeStringLower(marginMode, 'marginType'),
         };
     }
@@ -3628,7 +3628,7 @@ class aster extends aster$1["default"] {
         }
     }
     parseAccountPositions(account, filterClosed = false) {
-        const positions = this.safeList(account, 'positions');
+        const positions = this.safeList(account, 'positions', []);
         const assets = this.safeList(account, 'assets', []);
         const balances = {};
         for (let i = 0; i < assets.length; i++) {

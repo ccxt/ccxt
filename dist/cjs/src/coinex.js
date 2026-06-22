@@ -4642,7 +4642,7 @@ class coinex extends coinex$1["default"] {
             'marginMode': 'isolated',
             'amount': this.parseNumber(Precise["default"].stringAbs(change)),
             'total': this.safeNumber(data, 'margin_avbl'),
-            'code': market['quote'],
+            'code': this.safeString(market, 'quote'),
             'status': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),

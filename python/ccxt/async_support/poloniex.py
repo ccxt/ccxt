@@ -1504,7 +1504,7 @@ class poloniex(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         if isContract and symbol is not None:
-            request['symbol'] = market['id']
+            request['symbol'] = self.safe_string(market, 'id')
         request, params = self.handle_until_option(endKey, request, params)
         if isContract:
             raw = await self.swapPrivateGetV3TradeOrderTrades(self.extend(request, params))
@@ -3174,7 +3174,7 @@ class poloniex(Exchange, ImplicitAPI):
         longLeverage: Int = None
         marketId: Str = None
         marginMode: Str = None
-        data = self.safe_list(leverage, 'data')
+        data = self.safe_list(leverage, 'data', [])
         for i in range(0, len(data)):
             entry = data[i]
             marketId = self.safe_string(entry, 'symbol')

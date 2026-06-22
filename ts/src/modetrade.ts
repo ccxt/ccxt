@@ -665,7 +665,7 @@ export default class modetrade extends Exchange {
 
     parseCurrency (rawCurrency: Dict): Currency {
         const currencyId = this.safeString (rawCurrency, 'token');
-        const networks = this.safeList (rawCurrency, 'chain_details');
+        const networks = this.safeList (rawCurrency, 'chain_details', []);
         const code = this.safeCurrencyCode (currencyId);
         let minPrecision: Str = undefined;
         const resultingNetworks: Dict = {};
@@ -1620,7 +1620,7 @@ export default class modetrade extends Exchange {
             // }
             //
         }
-        const data = this.safeDict (response, 'data');
+        const data = this.safeDict (response, 'data', {});
         data['timestamp'] = this.safeInteger (response, 'timestamp');
         const order = this.parseOrder (data, market);
         order['type'] = type;
@@ -1790,7 +1790,7 @@ export default class modetrade extends Exchange {
             market = this.market (symbol);
         }
         const request: Dict = {
-            'symbol': market['id'],
+            'symbol': this.safeString (market, 'id'),
         };
         const clientOrderIdUnified = this.safeString2 (params, 'clOrdID', 'clientOrderId');
         const clientOrderIdExchangeSpecific = this.safeString (params, 'client_order_id', clientOrderIdUnified);
@@ -2632,7 +2632,7 @@ export default class modetrade extends Exchange {
         const leverageValue = this.safeInteger (leverage, 'max_leverage');
         return {
             'info': leverage,
-            'symbol': market['symbol'],
+            'symbol': this.safeString (market, 'symbol'),
             'marginMode': undefined,
             'longLeverage': leverageValue,
             'shortLeverage': leverageValue,

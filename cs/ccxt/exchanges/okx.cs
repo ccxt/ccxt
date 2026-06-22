@@ -7900,7 +7900,7 @@ public partial class okx : Exchange
             ((IList<object>)tiers).Add(new Dictionary<string, object>() {
                 { "tier", this.safeInteger(tier, "tier") },
                 { "symbol", this.safeSymbol(marketId, market) },
-                { "currency", getValue(market, "quote") },
+                { "currency", this.safeString(market, "quote") },
                 { "minNotional", this.safeNumber(tier, "minSz") },
                 { "maxNotional", this.safeNumber(tier, "maxSz") },
                 { "maintenanceMarginRate", this.safeNumber(tier, "mmr") },

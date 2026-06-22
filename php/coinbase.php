@@ -620,7 +620,7 @@ class coinbase extends Exchange {
         $accounts = $this->safe_list($response, 'data', array());
         $length = count($accounts);
         $lastIndex = $length - 1;
-        $last = $this->safe_dict($accounts, $lastIndex);
+        $last = $this->safe_dict($accounts, $lastIndex, array());
         if (($cursor !== null) && ($cursor !== '')) {
             $last['next_starting_after'] = $cursor;
             $accounts[$lastIndex] = $last;
@@ -674,7 +674,7 @@ class coinbase extends Exchange {
         $cursor = $this->safe_string($response, 'cursor');
         if (($accountsLength > 0) && ($cursor !== null) && ($cursor !== '')) {
             $lastIndex = $accountsLength - 1;
-            $last = $this->safe_dict($accounts, $lastIndex);
+            $last = $this->safe_dict($accounts, $lastIndex, array());
             $last['cursor'] = $cursor;
             $accounts[$lastIndex] = $last;
         }
@@ -3643,7 +3643,7 @@ class coinbase extends Exchange {
         //     }
         //
         $orders = $this->safe_list($response, 'orders', array());
-        $first = $this->safe_dict($orders, 0);
+        $first = $this->safe_dict($orders, 0, array());
         $cursor = $this->safe_string($response, 'cursor');
         if (($cursor !== null) && ($cursor !== '')) {
             $first['cursor'] = $cursor;
@@ -3720,7 +3720,7 @@ class coinbase extends Exchange {
         //     }
         //
         $orders = $this->safe_list($response, 'orders', array());
-        $first = $this->safe_dict($orders, 0);
+        $first = $this->safe_dict($orders, 0, array());
         $cursor = $this->safe_string($response, 'cursor');
         if (($cursor !== null) && ($cursor !== '')) {
             $first['cursor'] = $cursor;
@@ -4011,7 +4011,7 @@ class coinbase extends Exchange {
         //     }
         //
         $trades = $this->safe_list($response, 'fills', array());
-        $first = $this->safe_dict($trades, 0);
+        $first = $this->safe_dict($trades, 0, array());
         $cursor = $this->safe_string($response, 'cursor');
         if (($cursor !== null) && ($cursor !== '')) {
             $first['cursor'] = $cursor;

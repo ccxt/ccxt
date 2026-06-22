@@ -3746,7 +3746,7 @@ export default class bitfinex extends Exchange {
         const marginStatus = (marginStatusRaw === 1) ? 'ok' : 'failed';
         return {
             'info': data,
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'type': undefined,
             'marginMode': 'isolated',
             'amount': undefined,

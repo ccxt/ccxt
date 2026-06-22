@@ -2969,12 +2969,14 @@ class bullish extends Exchange {
                 }
             }
             if ($path === 'v1/users/hmac/login') {
+                $headers = ($headers === null) ? array() : $headers;
                 $headers['BX-PUBLIC-KEY'] = $this->apiKey;
             } else {
                 $token = $this->token;
                 if (($token === null)) {
                     throw new AuthenticationError($this->id . ' requires a $token, please call signIn() first');
                 }
+                $headers = ($headers === null) ? array() : $headers;
                 $headers['Authorization'] = 'Bearer ' . $token;
                 // $headers['BX-NONCE-WINDOW-ENABLED'] = 'false'; // default is false
             }

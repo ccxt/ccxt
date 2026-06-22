@@ -1362,7 +1362,7 @@ public partial class hashkey : Exchange
             {
                 throw new ArgumentsRequired ((string)add(add(add(this.id, " "), methodName), "() requires a symbol argument for swap markets")) ;
             }
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
             if (isTrue(!isEqual(accountId, null)))
             {
                 ((IDictionary<string,object>)request)["subAccountId"] = accountId;
@@ -3347,7 +3347,7 @@ public partial class hashkey : Exchange
             {
                 throw new ArgumentsRequired ((string)add(add(add(this.id, " "), methodName), "() requires a symbol argument for swap markets")) ;
             }
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
             object isTrigger = false;
             var isTriggerparametersVariable = this.handleTriggerOptionAndParams(parameters, methodName, isTrigger);
             isTrigger = ((IList<object>)isTriggerparametersVariable)[0];
@@ -3947,7 +3947,7 @@ public partial class hashkey : Exchange
         object leverageValue = this.safeNumber(leverage, "leverage");
         return new Dictionary<string, object>() {
             { "info", leverage },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeString(market, "symbol") },
             { "marginMode", marginMode },
             { "longLeverage", leverageValue },
             { "shortLeverage", leverageValue },

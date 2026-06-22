@@ -3515,7 +3515,7 @@ public class GrvtCore extends GrvtApi
         Object price = null;
         Object filled = null;
         Object avgPrice = null;
-        Object legs = this.safeList(order, "legs");
+        Object legs = this.safeList(order, "legs", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object metadata = this.safeDict(order, "metadata", new java.util.HashMap<String, Object>() {{}});
         Object stateObj = this.safeDict(order, "state", new java.util.HashMap<String, Object>() {{}});
         Object filledAmounts = this.safeList(stateObj, "traded_size", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -3551,7 +3551,7 @@ public class GrvtCore extends GrvtApi
             put( "lastTradeTimeStamp", null );
             put( "lastUpdateTimestamp", GrvtCore.this.safeIntegerProduct(stateObj, "update_time", 0.000001) );
             put( "status", GrvtCore.this.parseOrderStatus(GrvtCore.this.safeString(stateObj, "status")) );
-            put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
+            put( "symbol", GrvtCore.this.safeString(finalMarket, "symbol") );
             put( "type", orderType );
             put( "timeInForce", timeInForce );
             put( "postOnly", isPostOnly );

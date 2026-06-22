@@ -1577,7 +1577,7 @@ class aster(Exchange, ImplicitAPI):
         #
         timestamp = self.safe_integer(entry, 'time')
         return {
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'price': self.safe_number_omit_zero(entry, 'price'),
@@ -2942,7 +2942,7 @@ class aster(Exchange, ImplicitAPI):
         market = self.safe_market(marketId, market, None, 'swap')
         return {
             'info': marginMode,
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'marginMode': self.safe_string_lower(marginMode, 'marginType'),
         }
 
@@ -3458,7 +3458,7 @@ class aster(Exchange, ImplicitAPI):
             raise NotSupported(self.id + '.options["fetchPositions"]["method"] or params["method"] = "' + defaultMethod + '" is invalid, please choose between "account" and "positionRisk"')
 
     def parse_account_positions(self, account, filterClosed=False):
-        positions = self.safe_list(account, 'positions')
+        positions = self.safe_list(account, 'positions', [])
         assets = self.safe_list(account, 'assets', [])
         balances: dict = {}
         for i in range(0, len(assets)):

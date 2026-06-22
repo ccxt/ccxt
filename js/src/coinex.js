@@ -4643,7 +4643,7 @@ export default class coinex extends Exchange {
             'marginMode': 'isolated',
             'amount': this.parseNumber(Precise.stringAbs(change)),
             'total': this.safeNumber(data, 'margin_avbl'),
-            'code': market['quote'],
+            'code': this.safeString(market, 'quote'),
             'status': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),

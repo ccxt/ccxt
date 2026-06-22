@@ -315,7 +315,7 @@ public partial class aftermath : Exchange
         //     }
         //
         object precision = this.safeDict(market, "precision");
-        object limits = this.safeDict(market, "limits");
+        object limits = this.safeDict(market, "limits", new Dictionary<string, object>() {});
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", this.safeString(market, "id") },
             { "symbol", this.safeString(market, "symbol") },

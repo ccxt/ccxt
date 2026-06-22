@@ -521,8 +521,8 @@ public partial class indodax : Exchange
         //
         object symbol = this.safeSymbol(null, market);
         object timestamp = this.safeTimestamp(ticker, "server_time");
-        object baseVolume = add("vol_", ((string)getValue(market, "baseId")).ToLower());
-        object quoteVolume = add("vol_", ((string)getValue(market, "quoteId")).ToLower());
+        object baseVolume = add("vol_", ((string)this.safeString(market, "baseId")).ToLower());
+        object quoteVolume = add("vol_", ((string)this.safeString(market, "quoteId")).ToLower());
         object last = this.safeString(ticker, "last");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },

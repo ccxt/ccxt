@@ -610,7 +610,7 @@ class cryptomus extends cryptomus$1["default"] {
             'id': this.safeString(trade, 'trade_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'side': this.safeString(trade, 'type'),
             'price': this.safeString(trade, 'price'),
             'amount': this.safeString(trade, 'quote_volume'), // quote_volume is amount

@@ -1389,7 +1389,7 @@ class hashkey(Exchange, ImplicitAPI):
         elif marketType == 'swap':
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a symbol argument for swap markets')
-            request['symbol'] = market['id']
+            request['symbol'] = self.safe_string(market, 'id')
             if accountId is not None:
                 request['subAccountId'] = accountId
                 response = self.privateGetApiV1FuturesSubAccountUserTrades(self.extend(request, params))
@@ -3338,7 +3338,7 @@ class hashkey(Exchange, ImplicitAPI):
         elif marketType == 'swap':
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a symbol argument for swap markets')
-            request['symbol'] = market['id']
+            request['symbol'] = self.safe_string(market, 'id')
             isTrigger = False
             isTrigger, params = self.handle_trigger_option_and_params(params, methodName, isTrigger)
             if isTrigger:
@@ -3870,7 +3870,7 @@ class hashkey(Exchange, ImplicitAPI):
         leverageValue = self.safe_number(leverage, 'leverage')
         return {
             'info': leverage,
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'marginMode': marginMode,
             'longLeverage': leverageValue,
             'shortLeverage': leverageValue,

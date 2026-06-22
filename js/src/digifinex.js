@@ -1510,7 +1510,7 @@ export default class digifinex extends Exchange {
         //         0.029927
         //     ]
         //
-        if (market['swap']) {
+        if (this.safeBool(market, 'swap')) {
             return [
                 this.safeInteger(ohlcv, 0),
                 this.safeNumber(ohlcv, 1), // open
@@ -1950,7 +1950,7 @@ export default class digifinex extends Exchange {
             if (symbol === undefined) {
                 throw new ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
             }
-            request['instrument_id'] = market['id'];
+            request['instrument_id'] = this.safeString(market, 'id');
         }
         else {
             request['market'] = marketType;
@@ -2008,8 +2008,8 @@ export default class digifinex extends Exchange {
         }
     }
     parseCancelOrders(response) {
-        const success = this.safeList(response, 'success');
-        const error = this.safeList(response, 'error');
+        const success = this.safeList(response, 'success', []);
+        const error = this.safeList(response, 'error', []);
         const result = [];
         for (let i = 0; i < success.length; i++) {
             const order = success[i];
@@ -2569,7 +2569,7 @@ export default class digifinex extends Exchange {
         }
         const marketIdRequest = (marketType === 'swap') ? 'instrument_id' : 'symbol';
         if (symbol !== undefined) {
-            request[marketIdRequest] = market['id'];
+            request[marketIdRequest] = this.safeString(market, 'id');
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -4275,7 +4275,7 @@ export default class digifinex extends Exchange {
             'marginMode': 'isolated',
             'amount': this.safeNumber(data, 'amount'),
             'total': undefined,
-            'code': market['settle'],
+            'code': this.safeString(market, 'settle'),
             'status': undefined,
             'timestamp': undefined,
             'datetime': undefined,

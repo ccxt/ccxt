@@ -719,7 +719,7 @@ export default class backpack extends Exchange {
         const maxQuantity = this.safeNumber (quantityFilter, 'maxQuantity');
         const minQuantity = this.safeNumber (quantityFilter, 'minQuantity');
         const amountPrecision = this.safeNumber (quantityFilter, 'stepSize');
-        let type: MarketType;
+        let type: MarketType | undefined = undefined;
         const typeOfMarket = this.parseMarketType (this.safeString (market, 'marketType'));
         let linear: Bool = undefined;
         let inverse: Bool = undefined;
@@ -1100,7 +1100,7 @@ export default class backpack extends Exchange {
         const timestamp = this.safeInteger (interest, 'timestamp');
         const openInterest = this.safeNumber (interest, 'openInterest');
         return this.safeOpenInterest ({
-            'symbol': market['symbol'],
+            'symbol': this.safeString (market, 'symbol'),
             'openInterestAmount': undefined,
             'openInterestValue': openInterest,
             'timestamp': timestamp,
