@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/hibachi.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type{ Balances, Currencies, Dict, Market, Str, Ticker, Trade, Int, Num, OrderSide, OrderType, OrderBook, TradingFees, Transaction, DepositAddress, OHLCV, Order, LedgerEntry, Currency, int, Position, Strings, FundingRate, FundingRateHistory, OrderRequest, Fee, NullableDict } from './base/types.js';
+import type{ Balances, Currencies, Dict, Market, Str, Ticker, Trade, Int, Num, OrderSide, OrderType, OrderBook, TradingFees, Transaction, DepositAddress, OHLCV, Order, LedgerEntry, Currency, int, Position, Strings, FundingRate, FundingRateHistory, OrderRequest, Fee, NullableDict, List } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { Precise } from './base/Precise.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, OrderNotFound } from './base/errors.js';
@@ -933,7 +933,7 @@ export default class hibachi extends Exchange {
     async createOrders (orders: OrderRequest[], params = {}) : Promise<Order[]> {
         await this.loadMarkets ();
         const nonce = this.nonce ();
-        const requestOrders = [];
+        const requestOrders: List = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const symbol = this.safeString (rawOrder, 'symbol');
@@ -1969,7 +1969,7 @@ export default class hibachi extends Exchange {
         //     ]
         // }
         const transactions = this.safeList (response, 'transactions', []);
-        const deposits = [];
+        const deposits: List = [];
         for (let i = 0; i < transactions.length; i++) {
             const transaction = transactions[i];
             if (this.safeString (transaction, 'transactionType') === 'deposit') {
@@ -2028,7 +2028,7 @@ export default class hibachi extends Exchange {
         //     ]
         // }
         const transactions = this.safeList (response, 'transactions', []);
-        const withdrawals = [];
+        const withdrawals: List = [];
         for (let i = 0; i < transactions.length; i++) {
             const transaction = transactions[i];
             if (this.safeString (transaction, 'transactionType') === 'withdrawal') {

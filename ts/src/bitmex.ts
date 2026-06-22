@@ -3108,7 +3108,7 @@ export default class bitmex extends Exchange {
     async fetchOpenInterests (symbols: Strings = undefined, params = {}) {
         await this.loadMarkets ();
         const request: Dict = {};
-        let response: Dict = undefined;
+        let response: Dict = {};
         response = await this.publicGetStats (this.extend (request, params));
         //
         //    [

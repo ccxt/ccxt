@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound, BadReque
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { eddsa } from './base/functions/crypto.js';
-import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, NullableDict, Num, Bool, int, Transaction, Currency, TradingFeeInterface, LedgerEntry, FundingRates, FundingRate, OpenInterests, Leverage, MarginMode, Tickers, Ticker, FundingHistory } from './base/types.js';
+import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, NullableDict, Num, Bool, int, Transaction, Currency, TradingFeeInterface, LedgerEntry, FundingRates, FundingRate, OpenInterests, Leverage, MarginMode, Tickers, Ticker, FundingHistory, List } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -476,7 +476,7 @@ export default class pacifica extends Exchange {
         //   "code": null
         // }
         const meta = this.safeList (response, 'data', []);
-        const results = [];
+        const results: List = [];
         for (let i = 0; i < meta.length; i++) {
             results.push (meta[i]);
         }
@@ -3259,7 +3259,7 @@ export default class pacifica extends Exchange {
             }
             return result;
         } else if (Array.isArray (value)) {
-            const result = [];
+            const result: List = [];
             for (let i = 0; i < value.length; i++) {
                 result.push (this.sortJsonKeys (value[i]));
             }

@@ -872,7 +872,7 @@ export default class bit2c extends Exchange {
         let price: Str = undefined;
         let amount: Str = undefined;
         let orderId: Str = undefined;
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         let side: string;
         let makerOrTaker: Str = undefined;
         const reference = this.safeString (trade, 'reference');
