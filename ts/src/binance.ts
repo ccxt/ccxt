@@ -3522,7 +3522,7 @@ export default class binance extends Exchange {
             const feesType = linear ? 'linear' : 'inverse';
             fees = this.safeDict (this.fees, feesType, {}) as any;
         }
-        let active = (status === 'TRADING');
+        let active: Bool = (status === 'TRADING');
         if (spot) {
             const permissions = this.safeList (market, 'permissions', []);
             for (let j = 0; j < permissions.length; j++) {
@@ -3547,7 +3547,7 @@ export default class binance extends Exchange {
                 'isolated': true,
             };
         }
-        let unifiedType: MarketType = undefined;
+        let unifiedType: Str = undefined;
         if (spot) {
             unifiedType = 'spot';
         } else if (swap) {
@@ -3562,7 +3562,7 @@ export default class binance extends Exchange {
         if (strike !== undefined) {
             parsedStrike = this.parseToNumeric (strike);
         }
-        const entry = {
+        const entry: Dict = {
             'id': id,
             'lowercaseId': lowercaseId,
             'symbol': symbol,
@@ -3649,7 +3649,7 @@ export default class binance extends Exchange {
             entry['limits']['cost']['min'] = this.safeNumber2 (filter, 'minNotional', 'notional');
             entry['limits']['cost']['max'] = this.safeNumber (filter, 'maxNotional');
         }
-        return entry;
+        return this.safeMarketStructure (entry);
     }
 
     parseBalanceHelper (entry) {

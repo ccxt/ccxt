@@ -805,7 +805,7 @@ export default class bitmex extends Exchange {
         // 'positionCurrency' may be empty ("", as Bitmex currently returns for ETHUSD)
         // so let's take the settlCurrency first and then adjust if needed
         const typ = this.safeString (market, 'typ'); // type definitions at: https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_get
-        let type: MarketType = undefined;
+        let type: Str = undefined;
         let swap = false;
         let spot = false;
         let future = false;
@@ -871,7 +871,7 @@ export default class bitmex extends Exchange {
             isQuanto = undefined;
             linear = undefined;
         }
-        return {
+        return this.safeMarketStructure ({
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -922,7 +922,7 @@ export default class bitmex extends Exchange {
             },
             'created': undefined, // 'listing' field is buggy, e.g. 2200-02-01T00:00:00.000Z
             'info': market,
-        };
+        });
     }
 
     parseBalance (response): Balances {
@@ -1866,7 +1866,7 @@ export default class bitmex extends Exchange {
         const order = this.safeString (trade, 'orderID');
         const side = this.safeStringLower (trade, 'side');
         // price * amount doesn't work for all symbols (e.g. XBT, ETH)
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         const feeCostString = this.numberToString (this.convertFromRawCost (symbol, this.safeString (trade, 'execComm')));
         if (feeCostString !== undefined) {
             const currencyId = this.safeString2 (trade, 'settlCurrency', 'currency');

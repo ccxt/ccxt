@@ -1203,7 +1203,7 @@ export default class bitstamp extends Exchange {
         if (costString !== undefined) {
             costString = Precise.stringAbs (costString);
         }
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         if (feeCostString !== undefined) {
             fee = {
                 'cost': feeCostString,

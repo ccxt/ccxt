@@ -454,7 +454,7 @@ export default class bit2c extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // max 100000
         }
-        let response: List = undefined;
+        let response: List = [];
         if (method === 'public_get_exchanges_pair_trades') {
             response = await this.publicGetExchangesPairTrades (this.extend (request, params));
         } else {
@@ -670,7 +670,7 @@ export default class bit2c extends Exchange {
         //          "initialAmount": 2.00000000
         //      }
         //
-        let orderUnified: Dict = undefined;
+        let orderUnified: NullableDict = undefined;
         let isNewOrder = false;
         if ('NewOrder' in order) {
             orderUnified = order['NewOrder'];

@@ -542,7 +542,7 @@ export default class hibachi extends Exchange {
         const timestamp = this.safeIntegerProduct (trade, 'timestamp', 1000);
         const cost = Precise.stringMul (price, amount);
         let side: Str = undefined;
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         let orderType: Str = undefined;
         let orderId: Str = undefined;
         let takerOrMaker: Str = undefined;
@@ -1428,7 +1428,7 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         let market: Market = undefined;
         if (symbol !== undefined) {
