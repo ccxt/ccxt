@@ -11468,7 +11468,7 @@ export default class binance extends Exchange {
         };
         let isPortfolioMargin: Bool = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'setLeverage', 'papi', 'portfolioMargin');
-        let response = undefined;
+        let response: Dict = {};
         if (market['linear']) {
             if (isPortfolioMargin) {
                 response = await this.papiPostUmLeverage (this.extend (request, params));
@@ -11522,7 +11522,7 @@ export default class binance extends Exchange {
             'symbol': market['id'],
             'marginType': marginMode,
         };
-        let response: NullableDict = undefined;
+        let response: Dict = {};
         try {
             if (market['linear']) {
                 response = await this.fapiPrivatePostMarginType (this.extend (request, params));
@@ -11586,7 +11586,7 @@ export default class binance extends Exchange {
         const request: Dict = {
             'dualSidePosition': dualSidePosition,
         };
-        let response = undefined;
+        let response: Dict = {};
         if (this.isInverse (type, subType)) {
             if (isPortfolioMargin) {
                 response = await this.papiPostCmPositionSideDual (this.extend (request, params));
