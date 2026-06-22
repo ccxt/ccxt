@@ -981,8 +981,8 @@ export default class bitvavo extends Exchange {
         const maker = this.safeNumber (feesValue, 'maker');
         const taker = this.safeNumber (feesValue, 'taker');
         const result: Dict = {};
-        for (let i = 0; i < (this.symbols as string[]).length; i++) {
-            const symbol = (this.symbols as string[])[i];
+        for (let i = 0; i < (this.symbols as any).length; i++) {
+            const symbol = (this.symbols as any)[i];
             result[symbol] = {
                 'info': fees,
                 'symbol': symbol,

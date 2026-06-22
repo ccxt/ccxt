@@ -2668,8 +2668,8 @@ export default class bitfinex extends Exchange {
         const takerFee = this.safeNumber (takerData, 0);
         const takerFeeFiat = this.safeNumber (takerData, 2);
         const takerFeeDeriv = this.safeNumber (takerData, 5);
-        for (let i = 0; i < (this.symbols as string[]).length; i++) {
-            const symbol = (this.symbols as string[])[i];
+        for (let i = 0; i < (this.symbols as any).length; i++) {
+            const symbol = (this.symbols as any)[i];
             const market = this.market (symbol);
             const fee = {
                 'info': response,

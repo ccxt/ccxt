@@ -5004,8 +5004,8 @@ export default class coinbase extends Exchange {
         const taker_fee = this.safeNumber (data, 'taker_fee_rate');
         const maker_fee = this.safeNumber (data, 'maker_fee_rate');
         const result: Dict = {};
-        for (let i = 0; i < (this.symbols as string[]).length; i++) {
-            const symbol = (this.symbols as string[])[i];
+        for (let i = 0; i < (this.symbols as any).length; i++) {
+            const symbol = (this.symbols as any)[i];
             const market = this.market (symbol);
             if ((isSpot && market['spot']) || (!isSpot && !market['spot'])) {
                 result[symbol] = {

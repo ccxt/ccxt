@@ -229,7 +229,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
     }
 
     getActiveSymbols () {
-        const symbols = this.symbols as string[];
+        const symbols = this.symbols as any;
         const output: any[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];

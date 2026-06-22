@@ -3482,8 +3482,8 @@ export default class cryptocom extends Exchange {
         //
         const result: Dict = {};
         result['info'] = response;
-        for (let i = 0; i < (this.symbols as string[]).length; i++) {
-            const symbol = (this.symbols as string[])[i];
+        for (let i = 0; i < (this.symbols as any).length; i++) {
+            const symbol = (this.symbols as any)[i];
             const market = this.market (symbol);
             const isSwap = market['swap'];
             const takerFeeKey = isSwap ? 'effective_deriv_taker_rate_bps' : 'effective_spot_taker_rate_bps';

@@ -614,7 +614,7 @@ export default class hollaex extends Exchange {
         //         // ...
         //     }
         //
-        const orderbook = this.safeValue (response, (market['id'] as string));
+        const orderbook = this.safeValue (response, market['id'] as string);
         const timestamp = this.parse8601 (this.safeString (orderbook, 'timestamp'));
         return this.parseOrderBook (orderbook, market['symbol'], timestamp);
     }
@@ -781,7 +781,7 @@ export default class hollaex extends Exchange {
         //         ]
         //     }
         //
-        const trades = this.safeList (response, (market['id'] as string), []) as List;
+        const trades = this.safeList (response, market['id'] as string, []) as List;
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -887,11 +887,11 @@ export default class hollaex extends Exchange {
         const makerFees = this.safeValue (fees, 'maker', {});
         const takerFees = this.safeValue (fees, 'taker', {});
         const result: Dict = {};
-        for (let i = 0; i < (this.symbols as string[]).length; i++) {
-            const symbol = (this.symbols as string[])[i];
+        for (let i = 0; i < (this.symbols as any).length; i++) {
+            const symbol = (this.symbols as any)[i];
             const market = this.market (symbol);
-            const makerString = this.safeString (makerFees, (market['id'] as string));
-            const takerString = this.safeString (takerFees, (market['id'] as string));
+            const makerString = this.safeString (makerFees, market['id'] as string);
+            const takerString = this.safeString (takerFees, market['id'] as string);
             result[symbol] = {
                 'info': fees,
                 'symbol': symbol,
