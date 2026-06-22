@@ -3029,22 +3029,22 @@ func (this *HtxCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 			requestparamsVariable := this.HandleUntilOption("end_time", request, params)
 			request = GetValue(requestparamsVariable, 0)
 			params = GetValue(requestparamsVariable, 1)
-			if IsTrue(GetValue(market, "linear")) {
-				AddElementToObject(request, "contract_code", GetValue(market, "id"))
+			if IsTrue(this.SafeBool(market, "linear")) {
+				AddElementToObject(request, "contract_code", this.SafeString(market, "id"))
 				if IsTrue(!IsEqual(limit, nil)) {
 					AddElementToObject(request, "limit", limit) // default 100, max 500
 				}
 
 				response = (<-this.ContractPrivateGetV5TradeOrderDetails(this.Extend(request, params)))
 				PanicOnError(response)
-			} else if IsTrue(GetValue(market, "inverse")) {
+			} else if IsTrue(this.SafeBool(market, "inverse")) {
 				if IsTrue(!IsEqual(limit, nil)) {
 					AddElementToObject(request, "page_size", limit) // default 100, max 500
 				}
-				AddElementToObject(request, "contract", GetValue(market, "id"))
+				AddElementToObject(request, "contract", this.SafeString(market, "id"))
 				AddElementToObject(request, "trade_type", 0) // 0 all, 1 open long, 2 open short, 3 close short, 4 close long, 5 liquidate long positions, 6 liquidate short positions
 				if IsTrue(IsEqual(marketType, "future")) {
-					AddElementToObject(request, "symbol", GetValue(market, "settleId"))
+					AddElementToObject(request, "symbol", this.SafeString(market, "settleId"))
 
 					response = (<-this.ContractPrivatePostApiV3ContractMatchresultsExact(this.Extend(request, params)))
 					PanicOnError(response)
@@ -4204,7 +4204,7 @@ func (this *HtxCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 				}
 				params = this.Omit(params, []any{"client_order_id", "clientOrderId", "algo_client_order_id"})
 			}
-			if IsTrue(GetValue(market, "linear")) {
+			if IsTrue(this.SafeBool(market, "linear")) {
 				if IsTrue(isAlgo) {
 					if IsTrue(trigger) {
 						AddElementToObject(request, "type", "trigger")
@@ -4224,7 +4224,7 @@ func (this *HtxCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 					if IsTrue(IsEqual(symbol, nil)) {
 						panic(ArgumentsRequired(Add(this.Id, " fetchOrder() requires a symbol argument")))
 					}
-					AddElementToObject(request, "contract_code", GetValue(market, "id"))
+					AddElementToObject(request, "contract_code", this.SafeString(market, "id"))
 					var marginMode any = nil
 					marginModeparamsVariable := this.HandleMarginModeAndParams("fetchOrder", params)
 					marginMode = GetValue(marginModeparamsVariable, 0)
@@ -4235,14 +4235,14 @@ func (this *HtxCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 					response = (<-this.ContractPrivateGetV5TradeOrder(this.Extend(request, params)))
 					PanicOnError(response)
 				}
-			} else if IsTrue(GetValue(market, "inverse")) {
+			} else if IsTrue(this.SafeBool(market, "inverse")) {
 				if IsTrue(IsEqual(marketType, "future")) {
-					AddElementToObject(request, "symbol", GetValue(market, "settleId"))
+					AddElementToObject(request, "symbol", this.SafeString(market, "settleId"))
 
 					response = (<-this.ContractPrivatePostApiV1ContractOrderInfo(this.Extend(request, params)))
 					PanicOnError(response)
 				} else if IsTrue(IsEqual(marketType, "swap")) {
-					AddElementToObject(request, "contract_code", GetValue(market, "id"))
+					AddElementToObject(request, "contract_code", this.SafeString(market, "id"))
 
 					response = (<-this.ContractPrivatePostSwapApiV1SwapOrderInfo(this.Extend(request, params)))
 					PanicOnError(response)
@@ -4803,7 +4803,7 @@ func (this *HtxCore) FetchCanceledOrders(optionalArgs ...any) <-chan any {
 				panic(ArgumentsRequired(Add(Add(Add(this.Id, " fetchCanceledOrders() requires a symbol argument for "), marketType), " orders")))
 			}
 			var request any = map[string]any{}
-			if IsTrue(GetValue(market, "linear")) {
+			if IsTrue(this.SafeBool(market, "linear")) {
 				var trigger any = this.SafeBool2(params, "stop", "trigger")
 				var stopLossTakeProfit any = this.SafeValue(params, "stopLossTakeProfit")
 				var stopLoss any = this.SafeBool(params, "stopLoss")
@@ -4951,7 +4951,7 @@ func (this *HtxCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		var response any = nil
 		if IsTrue(IsEqual(marketType, "spot")) {
 			if IsTrue(!IsEqual(symbol, nil)) {
-				AddElementToObject(request, "symbol", GetValue(market, "id"))
+				AddElementToObject(request, "symbol", this.SafeString(market, "id"))
 			}
 			// todo replace with fetchAccountIdByType
 			var accountId any = this.SafeString(params, "account-id")
@@ -4981,7 +4981,7 @@ func (this *HtxCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		} else {
 			if IsTrue(!IsEqual(symbol, nil)) {
 				// throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
-				AddElementToObject(request, "contract_code", GetValue(market, "id"))
+				AddElementToObject(request, "contract_code", this.SafeString(market, "id"))
 			}
 			if IsTrue(!IsEqual(limit, nil)) {
 				if IsTrue(isLinear) {
@@ -6383,22 +6383,22 @@ func (this *HtxCore) CreateOrders(orders any, optionalArgs ...any) <-chan any {
 		}
 		var request any = map[string]any{}
 		var response any = nil
-		if IsTrue(GetValue(market, "spot")) {
+		if IsTrue(this.SafeBool(market, "spot")) {
 
 			response = (<-this.PrivatePostOrderBatchOrders(ordersRequests))
 			PanicOnError(response)
 		} else {
-			if IsTrue(GetValue(market, "linear")) {
+			if IsTrue(this.SafeBool(market, "linear")) {
 
 				response = (<-this.ContractPrivatePostV5TradeBatchOrders(ordersRequests))
 				PanicOnError(response)
-			} else if IsTrue(GetValue(market, "inverse")) {
+			} else if IsTrue(this.SafeBool(market, "inverse")) {
 				AddElementToObject(request, "orders_data", ordersRequests)
-				if IsTrue(GetValue(market, "swap")) {
+				if IsTrue(this.SafeBool(market, "swap")) {
 
 					response = (<-this.ContractPrivatePostSwapApiV1SwapBatchorder(request))
 					PanicOnError(response)
-				} else if IsTrue(GetValue(market, "future")) {
+				} else if IsTrue(this.SafeBool(market, "future")) {
 
 					response = (<-this.ContractPrivatePostApiV1ContractBatchorder(request))
 					PanicOnError(response)
@@ -6470,7 +6470,7 @@ func (this *HtxCore) CreateOrders(orders any, optionalArgs ...any) <-chan any {
 		//
 		//
 		var result any = nil
-		if IsTrue(GetValue(market, "spot")) {
+		if IsTrue(this.SafeBool(market, "spot")) {
 			result = this.SafeValue(response, "data", []any{})
 		} else {
 			var data any = this.SafeValue(response, "data")
@@ -6565,15 +6565,15 @@ func (this *HtxCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 					params = this.Omit(params, []any{"client_order_id", "clientOrderId"})
 				}
 			}
-			if IsTrue(GetValue(market, "future")) {
-				AddElementToObject(request, "symbol", GetValue(market, "settleId"))
+			if IsTrue(this.SafeBool(market, "future")) {
+				AddElementToObject(request, "symbol", this.SafeString(market, "settleId"))
 			} else {
-				AddElementToObject(request, "contract_code", GetValue(market, "id"))
+				AddElementToObject(request, "contract_code", this.SafeString(market, "id"))
 			}
 			if IsTrue(isLinear) {
 				if IsTrue(IsTrue(IsTrue(trigger) || IsTrue(stopLossTakeProfit)) || IsTrue(trailing)) {
 					var requestItem any = map[string]any{
-						"contract_code": GetValue(market, "id"),
+						"contract_code": this.SafeString(market, "id"),
 					}
 					if IsTrue(IsEqual(clientOrderId, nil)) {
 						AddElementToObject(requestItem, "algo_id", id)
@@ -6591,8 +6591,8 @@ func (this *HtxCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 					response = (<-this.ContractPrivatePostV5TradeCancelOrder(this.Extend(request, params)))
 					PanicOnError(response)
 				}
-			} else if IsTrue(GetValue(market, "inverse")) {
-				if IsTrue(GetValue(market, "swap")) {
+			} else if IsTrue(this.SafeBool(market, "inverse")) {
+				if IsTrue(this.SafeBool(market, "swap")) {
 					if IsTrue(trigger) {
 
 						response = (<-this.ContractPrivatePostSwapApiV1SwapTriggerCancel(this.Extend(request, params)))
@@ -6610,7 +6610,7 @@ func (this *HtxCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 						response = (<-this.ContractPrivatePostSwapApiV1SwapCancel(this.Extend(request, params)))
 						PanicOnError(response)
 					}
-				} else if IsTrue(GetValue(market, "future")) {
+				} else if IsTrue(this.SafeBool(market, "future")) {
 					if IsTrue(trigger) {
 
 						response = (<-this.ContractPrivatePostApiV1ContractTriggerCancel(this.Extend(request, params)))
@@ -6766,19 +6766,19 @@ func (this *HtxCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
 			var clientOrderIds any = this.SafeValue2(params, "client_order_id", "clientOrderId")
 			clientOrderIds = this.SafeValue2(params, "client_order_ids", "clientOrderIds", clientOrderIds)
 			params = this.Omit(params, []any{"client_order_id", "client_order_ids", "clientOrderId", "clientOrderIds"})
-			if !IsTrue(GetValue(market, "linear")) {
+			if !IsTrue(this.SafeBool(market, "linear")) {
 				if IsTrue(IsEqual(clientOrderIds, nil)) {
 					AddElementToObject(request, "order_id", Join(ids, ","))
 				} else {
 					AddElementToObject(request, "client_order_id", clientOrderIds)
 				}
 			}
-			if IsTrue(GetValue(market, "future")) {
-				AddElementToObject(request, "symbol", GetValue(market, "settleId"))
+			if IsTrue(this.SafeBool(market, "future")) {
+				AddElementToObject(request, "symbol", this.SafeString(market, "settleId"))
 			} else {
-				AddElementToObject(request, "contract_code", GetValue(market, "id"))
+				AddElementToObject(request, "contract_code", this.SafeString(market, "id"))
 			}
-			if IsTrue(GetValue(market, "linear")) {
+			if IsTrue(this.SafeBool(market, "linear")) {
 				if IsTrue(IsEqual(clientOrderIds, nil)) {
 					AddElementToObject(request, "order_id", ids)
 				} else {
@@ -6791,8 +6791,8 @@ func (this *HtxCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
 
 				response = (<-this.ContractPrivatePostV5TradeCancelBatchOrders(this.Extend(request, params)))
 				PanicOnError(response)
-			} else if IsTrue(GetValue(market, "inverse")) {
-				if IsTrue(GetValue(market, "swap")) {
+			} else if IsTrue(this.SafeBool(market, "inverse")) {
+				if IsTrue(this.SafeBool(market, "swap")) {
 					if IsTrue(trigger) {
 
 						response = (<-this.ContractPrivatePostSwapApiV1SwapTriggerCancel(this.Extend(request, params)))
@@ -6806,7 +6806,7 @@ func (this *HtxCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
 						response = (<-this.ContractPrivatePostSwapApiV1SwapCancel(this.Extend(request, params)))
 						PanicOnError(response)
 					}
-				} else if IsTrue(GetValue(market, "future")) {
+				} else if IsTrue(this.SafeBool(market, "future")) {
 					if IsTrue(trigger) {
 
 						response = (<-this.ContractPrivatePostApiV1ContractTriggerCancel(this.Extend(request, params)))
@@ -6898,7 +6898,7 @@ func (this *HtxCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
 		//         "ts": 1780822053167
 		//     }
 		//
-		if IsTrue(IsTrue(IsTrue(GetValue(market, "linear")) && !IsTrue(trigger)) && !IsTrue(stopLossTakeProfit)) {
+		if IsTrue(IsTrue(IsTrue(this.SafeBool(market, "linear")) && !IsTrue(trigger)) && !IsTrue(stopLossTakeProfit)) {
 
 			ch <- this.ParseCancelOrders(response)
 			return nil
@@ -7037,7 +7037,7 @@ func (this *HtxCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		var response any = nil
 		if IsTrue(IsEqual(marketType, "spot")) {
 			if IsTrue(!IsEqual(symbol, nil)) {
-				AddElementToObject(request, "symbol", GetValue(market, "id"))
+				AddElementToObject(request, "symbol", this.SafeString(market, "id"))
 			}
 
 			response = (<-this.SpotPrivatePostV1OrderOrdersBatchCancelOpenOrders(this.Extend(request, params)))
@@ -7062,20 +7062,20 @@ func (this *HtxCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 			if IsTrue(IsEqual(symbol, nil)) {
 				panic(ArgumentsRequired(Add(this.Id, " cancelAllOrders() requires a symbol argument")))
 			}
-			if IsTrue(GetValue(market, "future")) {
-				AddElementToObject(request, "symbol", GetValue(market, "settleId"))
+			if IsTrue(this.SafeBool(market, "future")) {
+				AddElementToObject(request, "symbol", this.SafeString(market, "settleId"))
 			}
-			AddElementToObject(request, "contract_code", GetValue(market, "id"))
+			AddElementToObject(request, "contract_code", this.SafeString(market, "id"))
 			var trigger any = this.SafeBool2(params, "stop", "trigger")
 			var stopLossTakeProfit any = this.SafeValue(params, "stopLossTakeProfit")
 			var trailing any = this.SafeBool(params, "trailing", false)
 			params = this.Omit(params, []any{"stop", "stopLossTakeProfit", "trailing", "trigger"})
-			if IsTrue(GetValue(market, "linear")) {
+			if IsTrue(this.SafeBool(market, "linear")) {
 
 				response = (<-this.ContractPrivatePostV5TradeCancelAllOrders(this.Extend(request, params)))
 				PanicOnError(response)
-			} else if IsTrue(GetValue(market, "inverse")) {
-				if IsTrue(GetValue(market, "swap")) {
+			} else if IsTrue(this.SafeBool(market, "inverse")) {
+				if IsTrue(this.SafeBool(market, "swap")) {
 					if IsTrue(trigger) {
 
 						response = (<-this.ContractPrivatePostSwapApiV1SwapTriggerCancelall(this.Extend(request, params)))
@@ -7093,7 +7093,7 @@ func (this *HtxCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 						response = (<-this.ContractPrivatePostSwapApiV1SwapCancelall(this.Extend(request, params)))
 						PanicOnError(response)
 					}
-				} else if IsTrue(GetValue(market, "future")) {
+				} else if IsTrue(this.SafeBool(market, "future")) {
 					if IsTrue(trigger) {
 
 						response = (<-this.ContractPrivatePostApiV1ContractTriggerCancelall(this.Extend(request, params)))
@@ -7125,7 +7125,7 @@ func (this *HtxCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 			//         "ts": "1683435723755"
 			//     }
 			//
-			if IsTrue(IsTrue(GetValue(market, "linear")) && IsTrue((IsTrue(!IsTrue(trigger) && !IsTrue(trailing)) && !IsTrue(stopLossTakeProfit)))) {
+			if IsTrue(IsTrue(this.SafeBool(market, "linear")) && IsTrue((IsTrue(!IsTrue(trigger) && !IsTrue(trailing)) && !IsTrue(stopLossTakeProfit)))) {
 
 				ch <- this.ParseCancelOrders(response)
 				return nil

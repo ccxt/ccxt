@@ -3029,7 +3029,7 @@ func (this *BitmartCore) CreateOrders(orders any, optionalArgs ...any) <-chan an
 			AppendToArray(&ordersRequests, orderRequest)
 		}
 		var request any = map[string]any{
-			"symbol":      GetValue(market, "id"),
+			"symbol":      this.SafeString(market, "id"),
 			"orderParams": ordersRequests,
 		}
 
@@ -4122,7 +4122,7 @@ func (this *BitmartCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 			if IsTrue(!IsEqual(orderType, nil)) {
 				AddElementToObject(request, "type", orderType)
 			}
-			AddElementToObject(request, "symbol", GetValue(market, "id"))
+			AddElementToObject(request, "symbol", this.SafeString(market, "id"))
 			AddElementToObject(request, "order_id", id)
 
 			response = (<-this.PrivateGetContractPrivateOrder(this.Extend(request, params)))
@@ -5776,7 +5776,7 @@ func (this *BitmartCore) FetchPositions(optionalArgs ...any) <-chan any {
 		var request any = map[string]any{}
 		if IsTrue(IsEqual(symbolsLength, 1)) {
 			// only supports symbols as undefined or sending one symbol
-			AddElementToObject(request, "symbol", GetValue(market, "id"))
+			AddElementToObject(request, "symbol", this.SafeString(market, "id"))
 		}
 
 		response := (<-this.PrivateGetContractPrivatePositionV2(this.Extend(request, params)))

@@ -1214,7 +1214,7 @@ func (this *BackpackCore) ParseOpenInterest(interest any, optionalArgs ...any) a
 	var timestamp any = this.SafeInteger(interest, "timestamp")
 	var openInterest any = this.SafeNumber(interest, "openInterest")
 	return this.SafeOpenInterest(map[string]any{
-		"symbol":             GetValue(market, "symbol"),
+		"symbol":             this.SafeString(market, "symbol"),
 		"openInterestAmount": nil,
 		"openInterestValue":  openInterest,
 		"timestamp":          timestamp,

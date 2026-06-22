@@ -664,7 +664,7 @@ public partial class modetrade : Exchange
     public override object parseCurrency(object rawCurrency)
     {
         object currencyId = this.safeString(rawCurrency, "token");
-        object networks = this.safeList(rawCurrency, "chain_details");
+        object networks = this.safeList(rawCurrency, "chain_details", new List<object>() {});
         object code = this.safeCurrencyCode(currencyId);
         object minPrecision = null;
         object resultingNetworks = new Dictionary<string, object>() {};
@@ -1661,7 +1661,7 @@ public partial class modetrade : Exchange
         {
             response = await this.v1PrivatePostOrder(request);
         }
-        object data = this.safeDict(response, "data");
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         ((IDictionary<string,object>)data)["timestamp"] = this.safeInteger(response, "timestamp");
         object order = this.parseOrder(data, market);
         ((IDictionary<string,object>)order)["type"] = type;
@@ -1851,7 +1851,7 @@ public partial class modetrade : Exchange
             market = this.market(symbol);
         }
         object request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", this.safeString(market, "id") },
         };
         object clientOrderIdUnified = this.safeString2(parameters, "clOrdID", "clientOrderId");
         object clientOrderIdExchangeSpecific = this.safeString(parameters, "client_order_id", clientOrderIdUnified);
@@ -2803,7 +2803,7 @@ public partial class modetrade : Exchange
         object leverageValue = this.safeInteger(leverage, "max_leverage");
         return new Dictionary<string, object>() {
             { "info", leverage },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeString(market, "symbol") },
             { "marginMode", null },
             { "longLeverage", leverageValue },
             { "shortLeverage", leverageValue },

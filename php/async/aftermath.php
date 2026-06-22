@@ -322,7 +322,7 @@ class aftermath extends Exchange {
         //     }
         //
         $precision = $this->safe_dict($market, 'precision');
-        $limits = $this->safe_dict($market, 'limits');
+        $limits = $this->safe_dict($market, 'limits', array());
         return $this->safe_market_structure(array(
             'id' => $this->safe_string($market, 'id'),
             'symbol' => $this->safe_string($market, 'symbol'),

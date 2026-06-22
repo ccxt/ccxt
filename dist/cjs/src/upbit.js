@@ -629,11 +629,14 @@ class upbit extends upbit$1["default"] {
         await this.loadMarkets();
         let ids = undefined;
         if (symbols === undefined) {
-            ids = this.ids.join(',');
+            const allIds = this.ids;
+            if (allIds !== undefined) {
+                ids = allIds.join(',');
+            }
         }
         else {
-            ids = this.marketIds(symbols);
-            ids = ids.join(',');
+            const marketIds = this.marketIds(symbols);
+            ids = marketIds.join(',');
         }
         const request = {
             'markets': ids,

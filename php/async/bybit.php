@@ -2650,7 +2650,8 @@ class bybit extends Exchange {
         //         "2.4343353100000003"
         //     )
         //
-        $volumeIndex = ($market['inverse']) ? 6 : 5;
+        $isInverse = $this->safe_bool($market, 'inverse');
+        $volumeIndex = ($isInverse) ? 6 : 5;
         return array(
             $this->safe_integer($ohlcv, 0),
             $this->safe_number($ohlcv, 1),
@@ -2998,7 +2999,7 @@ class bybit extends Exchange {
             //
             $rates = array();
             $result = $this->safe_dict($response, 'result');
-            $resultList = $this->safe_list($result, 'list');
+            $resultList = $this->safe_list($result, 'list', array());
             for ($i = 0; $i < count($resultList); $i++) {
                 $entry = $resultList[$i];
                 $timestamp = $this->safe_integer($entry, 'fundingRateTimestamp');
@@ -3507,7 +3508,7 @@ class bybit extends Exchange {
                 $entry = $currencyList[$i];
                 $accountType = $this->safe_string($entry, 'accountType');
                 if ($accountType === 'UNIFIED' || $accountType === 'CONTRACT' || $accountType === 'SPOT') {
-                    $coins = $this->safe_list($entry, 'coin');
+                    $coins = $this->safe_list($entry, 'coin', array());
                     for ($j = 0; $j < count($coins); $j++) {
                         $account = $this->account();
                         $coinEntry = $coins[$j];
@@ -7150,10 +7151,10 @@ class bybit extends Exchange {
             if ($symbol === null) {
                 $request['coin'] = 'USDT';
             } else {
-                $request['symbol'] = $market['id'];
+                $request['symbol'] = $this->safe_string($market, 'id');
             }
             if ($symbol !== null) {
-                $request['category'] = $market['linear'] ? 'linear' : 'inverse';
+                $request['category'] = $this->safe_bool($market, 'linear') ? 'linear' : 'inverse';
             } else {
                 $type = null;
                 list($type, $params) = $this->get_bybit_type('setPositionMode', $market, $params);
@@ -7345,10 +7346,10 @@ class bybit extends Exchange {
         $timestamp = $this->safe_integer($interest, 'timestamp');
         $openInterest = $this->safe_number_2($interest, 'open_interest', 'openInterest');
         // the $openInterest is in the base asset for linear and quote asset for inverse
-        $amount = $market['linear'] ? $openInterest : null;
-        $value = $market['inverse'] ? $openInterest : null;
+        $amount = $this->safe_bool($market, 'linear') ? $openInterest : null;
+        $value = $this->safe_bool($market, 'inverse') ? $openInterest : null;
         return $this->safe_open_interest(array(
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'openInterestAmount' => $amount,
             'openInterestValue' => $value,
             'timestamp' => $timestamp,
@@ -8158,7 +8159,7 @@ class bybit extends Exchange {
             $data = $this->safe_list($result, 'list', array());
             $settlements = $this->parse_settlements($data, $market);
             $sorted = $this->sort_by($settlements, 'timestamp');
-            return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
+            return $this->filter_by_symbol_since_limit($sorted, $this->safe_string($market, 'symbol'), $since, $limit);
         }) ();
     }
 
@@ -8222,7 +8223,7 @@ class bybit extends Exchange {
             $data = $this->safe_list($result, 'list', array());
             $settlements = $this->parse_settlements($data, $market);
             $sorted = $this->sort_by($settlements, 'timestamp');
-            return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
+            return $this->filter_by_symbol_since_limit($sorted, $this->safe_string($market, 'symbol'), $since, $limit);
         }) ();
     }
 
@@ -8709,7 +8710,7 @@ class bybit extends Exchange {
             $first = $this->safe_dict($result, 0);
             $total = count($result);
             $lastIndex = $total - 1;
-            $last = $this->safe_dict($result, $lastIndex);
+            $last = $this->safe_dict($result, $lastIndex, array());
             $cursorValue = $this->safe_string($first, 'nextPageCursor');
             $last['info'] = array(
                 'nextPageCursor' => $cursorValue,
@@ -8850,7 +8851,7 @@ class bybit extends Exchange {
             list($type, $params) = $this->get_bybit_type('fetchFundingHistory', $market, $params);
             $request['category'] = $type;
             if ($symbol !== null) {
-                $request['symbol'] = $market['id'];
+                $request['symbol'] = $this->safe_string($market, 'id');
             }
             if ($since !== null) {
                 $request['startTime'] = $since;
@@ -9135,7 +9136,7 @@ class bybit extends Exchange {
                 'category' => $subType,
             );
             if (($symbols !== null) && ($symbolsLength === 1)) {
-                $request['symbol'] = $market['id'];
+                $request['symbol'] = $this->safe_string($market, 'id');
             }
             if ($since !== null) {
                 $request['startTime'] = $since;
@@ -9922,6 +9923,7 @@ class bybit extends Exchange {
         if ($method === 'POST') {
             $brokerId = $this->safe_string($this->options, 'brokerId');
             if ($brokerId !== null) {
+                $headers = ($headers === null) ? array() : $headers;
                 $headers['Referer'] = $brokerId;
             }
         }

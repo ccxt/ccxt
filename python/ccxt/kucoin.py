@@ -5523,7 +5523,7 @@ class kucoin(Exchange, ImplicitAPI):
             if not trigger:
                 if symbol is None:
                     raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol parameter for hf and margin orders')
-                request['symbol'] = market['id']
+                request['symbol'] = self.safe_string(market, 'id')
         params = self.omit(params, ['stop', 'clientOid', 'clientOrderId', 'trigger'])
         response: NullableDict = None
         if clientOrderId is not None:
@@ -5533,7 +5533,7 @@ class kucoin(Exchange, ImplicitAPI):
                     response = self.privateGetHfMarginStopOrderClientOid(self.extend(request, params))
                 else:
                     if symbol is not None:
-                        request['symbol'] = market['id']
+                        request['symbol'] = self.safe_string(market, 'id')
                     response = self.privateGetStopOrderQueryOrderByClientOid(self.extend(request, params))
             elif isMarginOrder:
                 response = self.privateGetHfMarginOrdersClientOrderClientOid(self.extend(request, params))
@@ -9120,7 +9120,7 @@ class kucoin(Exchange, ImplicitAPI):
             if marginMode == 'isolated' and symbol is None:
                 raise ArgumentsRequired(self.id + ' setLeverage requires a symbol parameter for isolated margin')
             if symbol is not None:
-                request['symbol'] = market['id']
+                request['symbol'] = self.safe_string(market, 'id')
             request['isIsolated'] = (marginMode == 'isolated')
             response = self.privatePostPositionUpdateUserLeverage(self.extend(request, params))
         return response
@@ -9996,7 +9996,7 @@ class kucoin(Exchange, ImplicitAPI):
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument when cancelling by clientOrderIds')
             ordersRequests.append({
-                'symbol': market['id'],
+                'symbol': self.safe_string(market, 'id'),
                 'clientOid': self.safe_string(clientOrderIds, i),
             })
         for i in range(0, len(ids)):
@@ -10004,7 +10004,7 @@ class kucoin(Exchange, ImplicitAPI):
             if uta:
                 ordersRequests.append({
                     'orderId': orderId,
-                    'symbol': market['id'],
+                    'symbol': self.safe_string(market, 'id'),
                 })
             else:
                 ordersRequests.append(ids[i])
@@ -10226,7 +10226,7 @@ class kucoin(Exchange, ImplicitAPI):
         marginType = 'isolated' if (marginType == 'ISOLATED') else 'cross'
         return {
             'info': marginMode,
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'marginMode': marginType,
         }
 
@@ -10673,6 +10673,7 @@ class kucoin(Exchange, ImplicitAPI):
                 'KC-API-KEY': self.apiKey,
                 'KC-API-TIMESTAMP': timestamp,
             }, headers)
+            headers = {} if (headers is None) else headers
             apiKeyVersion = self.safe_string(headers, 'KC-API-KEY-VERSION')
             if apiKeyVersion == '2':
                 passphrase = self.hmac(self.encode(self.password), self.encode(self.secret), hashlib.sha256, 'base64')

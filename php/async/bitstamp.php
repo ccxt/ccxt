@@ -1162,14 +1162,14 @@ class bitstamp extends Exchange {
             $market = $this->get_market_from_trade($trade);
         }
         $feeCostString = $this->safe_string($trade, 'fee');
-        $feeCurrency = $market['quote'];
-        $priceId = ($rawMarketId !== null) ? $rawMarketId : $market['id'];
+        $feeCurrency = $this->safe_string($market, 'quote');
+        $priceId = ($rawMarketId !== null) ? $rawMarketId : $this->safe_string($market, 'id');
         $priceString = $this->safe_string($trade, $priceId, $priceString);
-        $amountString = $this->safe_string($trade, $market['baseId'], $amountString);
-        $costString = $this->safe_string($trade, $market['quoteId'], $costString);
+        $amountString = $this->safe_string($trade, $this->safe_string($market, 'baseId'), $amountString);
+        $costString = $this->safe_string($trade, $this->safe_string($market, 'quoteId'), $costString);
         // this endpoint is not aligned with "markets" endpoint
-        $baseIdLower = strtolower($market['baseId']);
-        $quoteIdLower = strtolower($market['quoteId']);
+        $baseIdLower = strtolower($this->safe_string($market, 'baseId'));
+        $quoteIdLower = strtolower($this->safe_string($market, 'quoteId'));
         $dashedIdLower = $baseIdLower . '_' . $quoteIdLower;
         if ($priceString === null) {
             $priceString = $this->safe_string($trade, $dashedIdLower);
@@ -1180,7 +1180,7 @@ class bitstamp extends Exchange {
         if ($costString === null) {
             $costString = $this->safe_string($trade, $quoteIdLower);
         }
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol');
         $datetimeString = $this->safe_string_2($trade, 'date', 'datetime');
         $timestamp = null;
         if ($datetimeString !== null) {
@@ -2345,7 +2345,7 @@ class bitstamp extends Exchange {
                 'referenceId' => $parsedTrade['order'],
                 'referenceAccount' => null,
                 'type' => $type,
-                'currency' => $market['base'],
+                'currency' => $this->safe_string($market, 'base'),
                 'amount' => $parsedTrade['amount'],
                 'before' => null,
                 'after' => null,

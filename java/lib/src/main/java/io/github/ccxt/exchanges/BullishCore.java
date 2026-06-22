@@ -3465,6 +3465,7 @@ public class BullishCore extends BullishApi
             }
             if (Helpers.isTrue(Helpers.isEqual(path, "v1/users/hmac/login")))
             {
+                headers = ((Helpers.isTrue((Helpers.isEqual(headers, null))))) ? new java.util.HashMap<String, Object>() {{}} : headers;
                 Helpers.addElementToObject(headers, "BX-PUBLIC-KEY", this.apiKey);
             } else
             {
@@ -3473,6 +3474,7 @@ public class BullishCore extends BullishApi
                 {
                     throw new AuthenticationError((String)Helpers.add(this.id, " requires a token, please call signIn() first")) ;
                 }
+                headers = ((Helpers.isTrue((Helpers.isEqual(headers, null))))) ? new java.util.HashMap<String, Object>() {{}} : headers;
                 Helpers.addElementToObject(headers, "Authorization", Helpers.add("Bearer ", token));
             }
         }

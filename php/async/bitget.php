@@ -2797,7 +2797,7 @@ class bitget extends Exchange {
             }
             $maxNotional = $this->safe_number_n($item, array( 'endUnit', 'maxBorrowableAmount', 'baseMaxBorrowableAmount', 'maxTierValue' ));
             $marginCurrency = $this->safe_string_2($item, 'coin', 'baseCoin');
-            $currencyId = ($marginCurrency !== null) ? $marginCurrency : $market['base'];
+            $currencyId = ($marginCurrency !== null) ? $marginCurrency : $this->safe_string($market, 'base');
             $marketId = $this->safe_string($item, 'symbol');
             $tiers[] = array(
                 'tier' => $this->safe_integer_2($item, 'level', 'tier'),
@@ -3619,7 +3619,7 @@ class bitget extends Exchange {
                 if ($symbols !== null) {
                     $symbolsLength = count($symbols);
                     if ($symbolsLength === 1) {
-                        $request['symbol'] = $market['id'];
+                        $request['symbol'] = $this->safe_string($market, 'id');
                     }
                 }
                 $request['category'] = $productType;
@@ -7509,7 +7509,7 @@ class bitget extends Exchange {
                 $response = Async\await($this->privateSpotGetV2SpotAccountBills ($this->extend($request, $params)));
             } else {
                 if ($symbol !== null) {
-                    $request['symbol'] = $market['id'];
+                    $request['symbol'] = $this->safe_string($market, 'id');
                 }
                 $productType = null;
                 list($productType, $params) = $this->handle_product_type_and_params($market, $params);
@@ -9032,12 +9032,12 @@ class bitget extends Exchange {
         $status = ($errorCode === '00000') ? 'ok' : 'failed';
         return array(
             'info' => $data,
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'type' => null,
             'marginMode' => 'isolated',
             'amount' => null,
             'total' => null,
-            'code' => $market['settle'],
+            'code' => $this->safe_string($market, 'settle'),
             'status' => $status,
             'timestamp' => null,
             'datetime' => null,
@@ -9147,7 +9147,7 @@ class bitget extends Exchange {
         $shortLevKey = $isCrossMarginMode ? 'crossedMarginLeverage' : 'isolatedShortLever';
         return array(
             'info' => $leverage,
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'marginMode' => $isCrossMarginMode ? 'cross' : 'isolated',
             'longLeverage' => $this->safe_integer($leverage, $longLevKey),
             'shortLeverage' => $this->safe_integer($leverage, $shortLevKey),
@@ -9971,7 +9971,7 @@ class bitget extends Exchange {
                 if ($symbol === null) {
                     throw new ArgumentsRequired($this->id . ' fetchMyLiquidations() requires a $symbol argument');
                 }
-                $request['symbol'] = $market['id'];
+                $request['symbol'] = $this->safe_string($market, 'id');
                 $response = Async\await($this->privateMarginGetV2MarginIsolatedLiquidationHistory ($this->extend($request, $params)));
             } elseif ($marginMode === 'cross') {
                 $response = Async\await($this->privateMarginGetV2MarginCrossedLiquidationHistory ($this->extend($request, $params)));
@@ -10365,7 +10365,7 @@ class bitget extends Exchange {
                 if ($symbol === null) {
                     throw new ArgumentsRequired($this->id . ' fetchBorrowInterest() requires a $symbol argument');
                 }
-                $request['symbol'] = $market['id'];
+                $request['symbol'] = $this->safe_string($market, 'id');
                 $response = Async\await($this->privateMarginGetV2MarginIsolatedInterestHistory ($this->extend($request, $params)));
             } elseif ($marginMode === 'cross') {
                 $response = Async\await($this->privateMarginGetV2MarginCrossedInterestHistory ($this->extend($request, $params)));
@@ -10672,7 +10672,7 @@ class bitget extends Exchange {
         $marginType = ($marginType === 'crossed') ? 'cross' : $marginType;
         return array(
             'info' => $marginMode,
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'marginMode' => $marginType,
         );
     }

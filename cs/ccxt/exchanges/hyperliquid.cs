@@ -533,7 +533,7 @@ public partial class hyperliquid : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object options = this.safeDict(this.options, "fetchMarkets", new Dictionary<string, object>() {});
-        object types = this.safeList(options, "types");
+        object types = this.safeList(options, "types", new List<object>() {});
         object rawPromises = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(types)); postFixIncrement(ref i))
         {
@@ -2667,7 +2667,7 @@ public partial class hyperliquid : Exchange
         //
         object innerResponse = this.safeDict(response, "response");
         object data = this.safeDict(innerResponse, "data");
-        object statuses = this.safeList(data, "statuses");
+        object statuses = this.safeList(data, "statuses", new List<object>() {});
         object orders = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(statuses)); postFixIncrement(ref i))
         {
@@ -4937,7 +4937,7 @@ public partial class hyperliquid : Exchange
                 object record = getValue(records, i);
                 if (isTrue(isEqual(getValue(record, "type"), "vaultDeposit")))
                 {
-                    object delta = this.safeDict(record, "delta");
+                    object delta = this.safeDict(record, "delta", new Dictionary<string, object>() {});
                     if (isTrue(isEqual(getValue(delta, "vault"), add("0x", vaultAddress))))
                     {
                         ((IList<object>)deposits).Add(record);
@@ -5014,7 +5014,7 @@ public partial class hyperliquid : Exchange
                 object record = getValue(records, i);
                 if (isTrue(isEqual(getValue(record, "type"), "vaultWithdraw")))
                 {
-                    object delta = this.safeDict(record, "delta");
+                    object delta = this.safeDict(record, "delta", new Dictionary<string, object>() {});
                     if (isTrue(isEqual(getValue(delta, "vault"), add("0x", vaultAddress))))
                     {
                         ((IList<object>)withdrawals).Add(record);

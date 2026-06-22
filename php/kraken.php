@@ -1757,7 +1757,7 @@ class kraken extends Exchange {
         $response = null;
         $request = array(
             'orders' => $ordersRequests,
-            'pair' => $market['id'],
+            'pair' => $this->safe_string($market, 'id'),
         );
         $request = $this->extend($request, $params);
         $response = $this->privatePostAddOrderBatch ($request);
@@ -2211,6 +2211,7 @@ class kraken extends Exchange {
         $close = $this->safe_dict($params, 'close');
         if ($close !== null) {
             $close = $this->extend(array(), $close);
+            $close = ($close === null) ? array() : $close;
             $closePrice = $this->safe_value($close, 'price');
             if ($closePrice !== null) {
                 $close['price'] = $this->price_to_precision($symbol, $closePrice);

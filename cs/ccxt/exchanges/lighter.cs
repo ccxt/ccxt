@@ -874,7 +874,7 @@ public partial class lighter : Exchange
                 }
             }
         }
-        object marketInfo = this.safeDict(market, "info");
+        object marketInfo = this.safeDict(market, "info", new Dictionary<string, object>() {});
         object amountStr = null;
         object priceStr = this.priceToPrecision(symbol, price);
         object amountScale = this.pow("10", getValue(marketInfo, "size_decimals"));
@@ -1125,7 +1125,7 @@ public partial class lighter : Exchange
         object strApiKeyIndex = ((string)this.numberToString(apiKeyIndex));
         object signer = await this.loadAccount(getValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters);
         object market = this.market(symbol);
-        object marketInfo = this.safeDict(market, "info");
+        object marketInfo = this.safeDict(market, "info", new Dictionary<string, object>() {});
         object amountScale = this.pow("10", getValue(marketInfo, "size_decimals"));
         object priceScale = this.pow("10", getValue(marketInfo, "price_decimals"));
         object triggerPrice = this.safeStringN(parameters, new List<object>() {"stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"});

@@ -1514,7 +1514,7 @@ class poloniex extends poloniex$1["default"] {
             request['limit'] = limit;
         }
         if (isContract && symbol !== undefined) {
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
         }
         [request, params] = this.handleUntilOption(endKey, request, params);
         if (isContract) {
@@ -3277,7 +3277,7 @@ class poloniex extends poloniex$1["default"] {
         let longLeverage = undefined;
         let marketId = undefined;
         let marginMode = undefined;
-        const data = this.safeList(leverage, 'data');
+        const data = this.safeList(leverage, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             marketId = this.safeString(entry, 'symbol');

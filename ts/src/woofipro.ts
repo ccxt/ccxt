@@ -704,7 +704,7 @@ export default class woofipro extends Exchange {
     parseCurrency (rawCurrency: Dict): Currency {
         const token = this.safeDict (rawCurrency, '_token', {});
         const currencyId = this.safeString (token, 'token');
-        const networks = this.safeList (token, 'chain_details');
+        const networks = this.safeList (token, 'chain_details', []);
         const code = this.safeCurrencyCode (currencyId);
         const indexedChains = this.safeDict (rawCurrency, '_indexedChains', {});
         const resultingNetworks: Dict = {};
@@ -1657,7 +1657,7 @@ export default class woofipro extends Exchange {
             // }
             //
         }
-        const data = this.safeDict (response, 'data');
+        const data = this.safeDict (response, 'data', {});
         data['timestamp'] = this.safeInteger (response, 'timestamp');
         const order = this.parseOrder (data, market);
         order['type'] = type;
@@ -1827,7 +1827,7 @@ export default class woofipro extends Exchange {
             market = this.market (symbol);
         }
         const request: Dict = {
-            'symbol': market['id'],
+            'symbol': this.safeString (market, 'id'),
         };
         const clientOrderIdUnified = this.safeString2 (params, 'clOrdID', 'clientOrderId');
         const clientOrderIdExchangeSpecific = this.safeString (params, 'client_order_id', clientOrderIdUnified);
@@ -2669,7 +2669,7 @@ export default class woofipro extends Exchange {
         const leverageValue = this.safeInteger (leverage, 'max_leverage');
         return {
             'info': leverage,
-            'symbol': market['symbol'],
+            'symbol': this.safeString (market, 'symbol'),
             'marginMode': undefined,
             'longLeverage': leverageValue,
             'shortLeverage': leverageValue,

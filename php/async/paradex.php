@@ -2875,7 +2875,7 @@ class paradex extends Exchange {
         $marginMode = $this->safe_string_lower($rawMarginMode, 'margin_type');
         return array(
             'info' => $rawMarginMode,
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'marginMode' => $marginMode,
         );
     }

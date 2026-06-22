@@ -2566,7 +2566,8 @@ class bybit(Exchange, ImplicitAPI):
         #         "2.4343353100000003"
         #     ]
         #
-        volumeIndex = 6 if (market['inverse']) else 5
+        isInverse = self.safe_bool(market, 'inverse')
+        volumeIndex = 6 if (isInverse) else 5
         return [
             self.safe_integer(ohlcv, 0),
             self.safe_number(ohlcv, 1),
@@ -2885,7 +2886,7 @@ class bybit(Exchange, ImplicitAPI):
         #
         rates: List = []
         result = self.safe_dict(response, 'result')
-        resultList = self.safe_list(result, 'list')
+        resultList = self.safe_list(result, 'list', [])
         for i in range(0, len(resultList)):
             entry = resultList[i]
             timestamp = self.safe_integer(entry, 'fundingRateTimestamp')
@@ -3365,7 +3366,7 @@ class bybit(Exchange, ImplicitAPI):
                 entry = currencyList[i]
                 accountType = self.safe_string(entry, 'accountType')
                 if accountType == 'UNIFIED' or accountType == 'CONTRACT' or accountType == 'SPOT':
-                    coins = self.safe_list(entry, 'coin')
+                    coins = self.safe_list(entry, 'coin', [])
                     for j in range(0, len(coins)):
                         account = self.account()
                         coinEntry = coins[j]
@@ -6687,9 +6688,9 @@ classic accounts only/ spot not supported*  fetches information on an order made
         if symbol is None:
             request['coin'] = 'USDT'
         else:
-            request['symbol'] = market['id']
+            request['symbol'] = self.safe_string(market, 'id')
         if symbol is not None:
-            request['category'] = 'linear' if market['linear'] else 'inverse'
+            request['category'] = 'linear' if self.safe_bool(market, 'linear') else 'inverse'
         else:
             type: Str = None
             type, params = self.get_bybit_type('setPositionMode', market, params)
@@ -6859,10 +6860,10 @@ classic accounts only/ spot not supported*  fetches information on an order made
         timestamp = self.safe_integer(interest, 'timestamp')
         openInterest = self.safe_number_2(interest, 'open_interest', 'openInterest')
         # the openInterest is in the base asset for linear and quote asset for inverse
-        amount = openInterest if market['linear'] else None
-        value = openInterest if market['inverse'] else None
+        amount = openInterest if self.safe_bool(market, 'linear') else None
+        value = openInterest if self.safe_bool(market, 'inverse') else None
         return self.safe_open_interest({
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'openInterestAmount': amount,
             'openInterestValue': value,
             'timestamp': timestamp,
@@ -7611,7 +7612,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         data = self.safe_list(result, 'list', [])
         settlements = self.parse_settlements(data, market)
         sorted = self.sort_by(settlements, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
+        return self.filter_by_symbol_since_limit(sorted, self.safe_string(market, 'symbol'), since, limit)
 
     def fetch_my_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
@@ -7669,7 +7670,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         data = self.safe_list(result, 'list', [])
         settlements = self.parse_settlements(data, market)
         sorted = self.sort_by(settlements, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
+        return self.filter_by_symbol_since_limit(sorted, self.safe_string(market, 'symbol'), since, limit)
 
     def parse_settlement(self, settlement, market):
         #
@@ -8126,7 +8127,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         first = self.safe_dict(result, 0)
         total = len(result)
         lastIndex = total - 1
-        last = self.safe_dict(result, lastIndex)
+        last = self.safe_dict(result, lastIndex, {})
         cursorValue = self.safe_string(first, 'nextPageCursor')
         last['info'] = {
             'nextPageCursor': cursorValue,
@@ -8251,7 +8252,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         type, params = self.get_bybit_type('fetchFundingHistory', market, params)
         request['category'] = type
         if symbol is not None:
-            request['symbol'] = market['id']
+            request['symbol'] = self.safe_string(market, 'id')
         if since is not None:
             request['startTime'] = since
         if limit is not None:
@@ -8519,7 +8520,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'category': subType,
         }
         if (symbols is not None) and (symbolsLength == 1):
-            request['symbol'] = market['id']
+            request['symbol'] = self.safe_string(market, 'id')
         if since is not None:
             request['startTime'] = since
         if limit is not None:
@@ -9252,6 +9253,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         if method == 'POST':
             brokerId = self.safe_string(self.options, 'brokerId')
             if brokerId is not None:
+                headers = {} if (headers is None) else headers
                 headers['Referer'] = brokerId
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 

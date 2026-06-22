@@ -2892,7 +2892,7 @@ class bitmart extends Exchange {
             $ordersRequests[] = $orderRequest;
         }
         $request = array(
-            'symbol' => $market['id'],
+            'symbol' => $this->safe_string($market, 'id'),
             'orderParams' => $ordersRequests,
         );
         $response = $this->privatePostSpotV4BatchOrders ($request);
@@ -3752,7 +3752,7 @@ class bitmart extends Exchange {
             if ($orderType !== null) {
                 $request['type'] = $orderType;
             }
-            $request['symbol'] = $market['id'];
+            $request['symbol'] = $this->safe_string($market, 'id');
             $request['order_id'] = $id;
             $response = $this->privateGetContractPrivateOrder ($this->extend($request, $params));
         }
@@ -5049,7 +5049,7 @@ class bitmart extends Exchange {
         $request = array();
         if ($symbolsLength === 1) {
             // only supports $symbols or sending one symbol
-            $request['symbol'] = $market['id'];
+            $request['symbol'] = $this->safe_string($market, 'id');
         }
         $response = $this->privateGetContractPrivatePositionV2 ($this->extend($request, $params));
         //

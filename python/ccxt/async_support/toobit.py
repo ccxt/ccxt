@@ -616,7 +616,7 @@ class toobit(Exchange, ImplicitAPI):
         id = self.safe_string(rawCurrency, 'coinId')
         code = self.safe_currency_code(id)
         networks: dict = {}
-        rawNetworks = self.safe_list(rawCurrency, 'chainTypes')
+        rawNetworks = self.safe_list(rawCurrency, 'chainTypes', [])
         for j in range(0, len(rawNetworks)):
             rawNetwork = rawNetworks[j]
             networkId = self.safe_string(rawNetwork, 'chainType')

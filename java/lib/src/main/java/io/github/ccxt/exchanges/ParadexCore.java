@@ -3280,7 +3280,7 @@ public class ParadexCore extends ParadexApi
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
             put( "info", rawMarginMode );
-            put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
+            put( "symbol", ParadexCore.this.safeString(finalMarket, "symbol") );
             put( "marginMode", marginMode );
         }};
     }

@@ -3114,7 +3114,7 @@ public partial class gate : Exchange
         } else if (isTrue(isEqual(type, "option")))
         {
             this.checkRequiredArgument("fetchTickers", symbols, "symbols");
-            object marketId = getValue(market, "id");
+            object marketId = this.safeString(market, "id");
             object optionParts = ((string)((string)marketId)).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
             ((IDictionary<string,object>)request)["underlying"] = this.safeString(optionParts, 0);
             response = await this.publicOptionsGetTickers(this.extend(request, requestParams));
@@ -6845,7 +6845,7 @@ public partial class gate : Exchange
         {
             if (isTrue(!isEqual(symbols, null)))
             {
-                object marketId = getValue(market, "id");
+                object marketId = this.safeString(market, "id");
                 object optionParts = ((string)((string)marketId)).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
                 ((IDictionary<string,object>)request)["underlying"] = this.safeString(optionParts, 0);
             }
@@ -7163,8 +7163,8 @@ public partial class gate : Exchange
             object maxNotional = this.safeNumber(item, "risk_limit");
             ((IList<object>)tiers).Add(new Dictionary<string, object>() {
                 { "tier", this.sum(i, 1) },
-                { "symbol", getValue(market, "symbol") },
-                { "currency", getValue(market, "base") },
+                { "symbol", this.safeString(market, "symbol") },
+                { "currency", this.safeString(market, "base") },
                 { "minNotional", minNotional },
                 { "maxNotional", maxNotional },
                 { "maintenanceMarginRate", this.safeNumber(item, "maintenance_rate") },
@@ -8782,9 +8782,9 @@ public partial class gate : Exchange
         object response = null;
         object isUnified = this.safeBool(parameters, "unified");
         parameters = this.omit(parameters, "unified");
-        if (isTrue(getValue(market, "spot")))
+        if (isTrue(this.safeBool(market, "spot")))
         {
-            ((IDictionary<string,object>)request)["currency_pair"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["currency_pair"] = this.safeString(market, "id");
             if (isTrue(isUnified))
             {
                 response = await this.publicMarginGetUniCurrencyPairsCurrencyPair(this.extend(request, parameters));
@@ -8797,7 +8797,7 @@ public partial class gate : Exchange
             response = await this.privateUnifiedGetAccounts(this.extend(request, parameters));
         } else
         {
-            throw new NotSupported ((string)add(add(add(this.id, " fetchLeverage() does not support "), getValue(market, "type")), " markets")) ;
+            throw new NotSupported ((string)add(add(add(this.id, " fetchLeverage() does not support "), this.safeString(market, "type")), " markets")) ;
         }
         return this.parseLeverage(response, market);
     }

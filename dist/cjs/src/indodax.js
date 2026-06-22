@@ -525,8 +525,8 @@ class indodax extends indodax$1["default"] {
         //
         const symbol = this.safeSymbol(undefined, market);
         const timestamp = this.safeTimestamp(ticker, 'server_time');
-        const baseVolume = 'vol_' + market['baseId'].toLowerCase();
-        const quoteVolume = 'vol_' + market['quoteId'].toLowerCase();
+        const baseVolume = 'vol_' + this.safeString(market, 'baseId').toLowerCase();
+        const quoteVolume = 'vol_' + this.safeString(market, 'quoteId').toLowerCase();
         const last = this.safeString(ticker, 'last');
         return this.safeTicker({
             'symbol': symbol,

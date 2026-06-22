@@ -294,7 +294,7 @@ func (this *BithumbCore) FetchMarkets(optionalArgs ...any) <-chan any {
 			var quote any = GetValue(quotes, i)
 			var quoteId any = quote
 			var response any = GetValue(results, i)
-			var data any = this.SafeDict(response, "data")
+			var data any = this.SafeDict(response, "data", map[string]any{})
 			var extension any = this.SafeDict(quoteCurrencies, quote, map[string]any{})
 			var currencyIds any = ObjectKeys(data)
 			for j := 0; IsLessThan(j, GetArrayLength(currencyIds)); j++ {

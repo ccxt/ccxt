@@ -279,7 +279,7 @@ public partial class bithumb : Exchange
             object quote = getValue(quotes, i);
             object quoteId = quote;
             object response = getValue(results, i);
-            object data = this.safeDict(response, "data");
+            object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
             object extension = this.safeDict(quoteCurrencies, quote, new Dictionary<string, object>() {});
             object currencyIds = new List<object>(((IDictionary<string,object>)data).Keys);
             for (object j = 0; isLessThan(j, getArrayLength(currencyIds)); postFixIncrement(ref j))

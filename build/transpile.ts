@@ -1548,10 +1548,13 @@ class Transpiler {
             // parse the method signature
             let part = this.moveJsDocInside(methods[i].trim());
             // let part = methods[i].trim ()
-            // strip declaration-only TS overload signatures (lines ending in `;`
-            // with no body) — only the implementation signature+body is transpiled
-            part = stripOverloadSignatures (part)
             let lines = part.split ("\n")
+            // strip TypeScript overload signature lines (body-less declarations ending with ';')
+            // they carry no runtime code and the implementation signature below handles all cases
+            while (lines.length > 1 && /^\s*(?:async\s+)?[a-zA-Z0-9_$]+\s*\([^{]*\)\s*:\s*[^{};]+;\s*$/.test (lines[0])) {
+                lines.shift ()
+            }
+            part = lines.join ("\n")
             let signature = lines[0].trim ()
             signature = signature.replace('function ', '')
 
@@ -1617,12 +1620,14 @@ class Transpiler {
                 'string': 'str',
                 'number': 'float',
                 'any': 'Any',
+                'unknown': 'Any',
                 'boolean': 'bool',
                 'Int': 'Int',
                 'OHLCV': 'list',
                 'Dictionary<any>': 'dict',
                 'Dict': 'dict',
-                'NullableDict': 'dict'
+                'NullableDict': 'dict',
+                'NullableList': 'List[Any]'
             }
             const unwrapLists = (type: string) => {
                 let count = 0
@@ -1637,6 +1642,7 @@ class Transpiler {
                 // add $ to each argument name in PHP method signature
                 const phpTypes: dict = {
                     'any': 'mixed',
+                    'unknown': 'mixed',
                     'string': 'string',
                     'MarketType': 'string',
                     'SubType': 'string',
@@ -1653,6 +1659,7 @@ class Transpiler {
                     'Dictionary<any>': 'array',
                     'Dict': 'array',
                     'NullableDict': '?array',
+                    'NullableList': '?array',
                 }
                 const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|ADL|Order|OrderBooks?|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRates?|IsolatedBorrowRates?|FundingRates|FundingRate|FundingRateHistory|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|LongShortRatio|Position|BorrowInterest|OpenInterests?|Options?|OptionChain|Liquidations?)( \| undefined)?$|\w+\[\]/
 
@@ -3182,48 +3189,8 @@ if (isMainEntry(metaFileUrl)) {
 
 // ============================================================================
 
-// ============================================================================
-
-// TypeScript function/method overload signatures are declaration-only (no body)
-// and are not understood by the regex transpiler nor the AST transpiler
-// (ast-transpiler). Strip them from a source string, keeping only the
-// implementation signature + body, so transpilation is unaffected. An overload
-// line is `name (...): ReturnType;` immediately followed (after any further
-// overload lines) by the implementation `name (...) ... {` of the same method.
-function stripOverloadSignatures (content: string): string {
-    const overloadRegex = /^\s*(?:async\s+)?([$A-Za-z_][\w$]*)\s*\(.*\)\s*:\s*[^{;]+;\s*$/
-    const lines = content.split ('\n')
-    const kept: string[] = []
-    for (let i = 0; i < lines.length; i++) {
-        const match = overloadRegex.exec (lines[i])
-        if (match) {
-            const name = match[1].replace (/[.*+?^${}()|[\]\\]/g, '\\$&')
-            const implRegex = new RegExp ('^\\s*(?:async\\s+)?' + name + '\\s*\\(.*\\)\\s*(?::\\s*.+?)?\\s*{\\s*$')
-            let isOverload = false
-            for (let j = i + 1; j < lines.length; j++) {
-                if (lines[j].trim () === '') {
-                    continue
-                }
-                if (overloadRegex.test (lines[j])) {
-                    continue
-                }
-                isOverload = implRegex.test (lines[j])
-                break
-            }
-            if (isOverload) {
-                continue
-            }
-        }
-        kept.push (lines[i])
-    }
-    return kept.join ('\n')
-}
-
-// ============================================================================
-
 export {
     Transpiler,
     parallelizeTranspiling,
-    isMainEntry,
-    stripOverloadSignatures
+    isMainEntry
 }
