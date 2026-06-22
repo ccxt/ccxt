@@ -3301,7 +3301,7 @@ class Exchange {
         return $result;
     }
 
-    public function find_timeframe($timeframe, $timeframes = null) {
+    public function find_timeframe($timeframe, ?array $timeframes = null) {
         if ($timeframes === null) {
             $timeframes = $this->timeframes;
         }
@@ -6524,7 +6524,7 @@ class Exchange {
         if (($currencyId === null) && ($currency !== null)) {
             return $currency;
         }
-        if (($this->currencies_by_id !== null) && (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) && ($this->currencies_by_id[$currencyId] !== null)) {
+        if (($currencyId !== null) && ($this->currencies_by_id !== null) && (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) && ($this->currencies_by_id[$currencyId] !== null)) {
             return $this->currencies_by_id[$currencyId];
         }
         $code = $currencyId;
