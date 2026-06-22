@@ -326,7 +326,7 @@ export default class mexc extends mexcRest {
         //         "s": "BTCUSDT"
         //     }
         //
-        const data = this.safeList2 (message, 'data', 'd');
+        const data = this.safeList2 (message, 'data', 'd', []);
         const channel = this.safeString (message, 'c', '');
         const marketId = this.safeString (message, 's');
         const market = this.safeMarket (marketId);
@@ -433,7 +433,7 @@ export default class mexc extends mexcRest {
             throw new ArgumentsRequired (this.id + ' watchBidsAsks required symbols argument');
         }
         const markets = this.marketsForSymbols (symbols);
-        [ marketType, params ] = this.handleMarketTypeAndParams ('watchBidsAsks', markets[0], params);
+        [ marketType, params ] = this.handleMarketTypeAndParams ('watchBidsAsks', (markets !== undefined) ? markets[0] : undefined, params);
         const isSpot = marketType === 'spot';
         if (!isSpot) {
             throw new NotSupported (this.id + ' watchBidsAsks only support spot market');
@@ -793,7 +793,7 @@ export default class mexc extends mexcRest {
         // spot
         //     { id: 0, code: 0, msg: "spot@public.increase.depth.v3.api@BTCUSDT" }
         //
-        const msg = this.safeString (message, 'msg');
+        const msg = this.safeString (message, 'msg', '');
         const parts = msg.split ('@');
         const marketId = this.safeString (parts, 2);
         const symbol = this.safeSymbol (marketId);
@@ -802,15 +802,15 @@ export default class mexc extends mexcRest {
 
     getCacheIndex (orderbook, cache) {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
-        const nonce = this.safeInteger (orderbook, 'nonce');
+        const nonce = this.safeInteger (orderbook, 'nonce', 0);
         const firstDelta = this.safeValue (cache, 0);
-        const firstDeltaNonce = this.safeIntegerN (firstDelta, [ 'r', 'version', 'fromVersion' ]);
+        const firstDeltaNonce = this.safeIntegerN (firstDelta, [ 'r', 'version', 'fromVersion' ], 0);
         if (nonce < firstDeltaNonce - 1) {
             return -1;
         }
         for (let i = 0; i < cache.length; i++) {
             const delta = cache[i];
-            const deltaNonce = this.safeIntegerN (delta, [ 'r', 'version', 'fromVersion' ]);
+            const deltaNonce = this.safeIntegerN (delta, [ 'r', 'version', 'fromVersion' ], 0);
             if (deltaNonce >= nonce) {
                 return i;
             }
@@ -943,8 +943,8 @@ export default class mexc extends mexcRest {
     }
 
     handleDelta (orderbook, delta) {
-        const existingNonce = this.safeInteger (orderbook, 'nonce');
-        const deltaNonce = this.safeIntegerN (delta, [ 'r', 'version', 'fromVersion' ]);
+        const existingNonce = this.safeInteger (orderbook, 'nonce', 0);
+        const deltaNonce = this.safeIntegerN (delta, [ 'r', 'version', 'fromVersion' ], 0);
         if (deltaNonce < existingNonce) {
             // even when doing < comparison, this happens: https://app.travis-ci.com/github/ccxt/ccxt/builds/269234741#L1809
             // so, we just skip old updates
@@ -1793,7 +1793,7 @@ export default class mexc extends mexcRest {
             throw new ArgumentsRequired (this.id + ' watchBidsAsks required symbols argument');
         }
         const markets = this.marketsForSymbols (symbols);
-        [ marketType, params ] = this.handleMarketTypeAndParams ('watchBidsAsks', markets[0], params);
+        [ marketType, params ] = this.handleMarketTypeAndParams ('watchBidsAsks', (markets !== undefined) ? markets[0] : undefined, params);
         const isSpot = marketType === 'spot';
         if (!isSpot) {
             throw new NotSupported (this.id + ' watchBidsAsks only support spot market');
@@ -2071,7 +2071,7 @@ export default class mexc extends mexcRest {
         //       "windowEnd":"1754737980"
         //    }
         // }
-        const channel = this.safeString (message, 'channel');
+        const channel = this.safeString (message, 'channel', '');
         const channelParts = channel.split ('@');
         const channelId = this.safeString (channelParts, 1);
         if (channelId === 'public.kline.v3.api.pb') {
