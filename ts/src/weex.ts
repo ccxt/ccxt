@@ -1002,14 +1002,14 @@ export default class weex extends Exchange {
         //         "marketOpenLimitSize": "2300"
         //     }
         //
-        const id = this.safeString (market, 'symbol');
+        const id = this.safeString (market, 'symbol', '');
         const baseId = this.safeString (market, 'baseAsset');
         const quoteId = this.safeString (market, 'quoteAsset');
         const settleId = this.safeString (market, 'marginAsset');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const settle = this.safeCurrencyCode (settleId);
-        let active = true;
+        let active: Bool = true;
         let symbol = base + '/' + quote;
         let isSpot = true;
         let isLinear: Bool = undefined;
@@ -1120,7 +1120,7 @@ export default class weex extends Exchange {
         if (symbolsLength === 1) {
             request['symbol'] = this.safeString (market, 'id');
         }
-        let response = undefined;
+        let response: List = [];
         if (marketType === 'spot') {
             //
             //     [
@@ -1431,7 +1431,7 @@ export default class weex extends Exchange {
                 if ((since === undefined) && (until === undefined)) {
                     endTime = now;
                     startTime = now - timeDelta;
-                } else if (since === undefined) {
+                } else if ((since === undefined) && (until !== undefined)) {
                     startTime = until - timeDelta;
                 } else {
                     endTime = since + timeDelta;
@@ -1925,7 +1925,7 @@ export default class weex extends Exchange {
         };
     }
 
-    parseTransferStatus (status: Str): string {
+    parseTransferStatus (status: Str): Str {
         if (status === undefined) {
             return undefined;
         }
@@ -3083,7 +3083,7 @@ export default class weex extends Exchange {
             currency = this.currency (code);
         }
         if (accountType === 'contract') {
-            if (code !== undefined) {
+            if (currency !== undefined) {
                 request['currency'] = currency['id'];
             }
             if (since !== undefined) {
@@ -3165,7 +3165,7 @@ export default class weex extends Exchange {
         const code = this.safeCurrencyCode (currencyId, currency);
         currency = this.safeCurrency (currencyId, currency);
         const timestamp = this.safeInteger2 (item, 'cTime', 'time');
-        const amountRaw = this.safeString2 (item, 'deltaAmount', 'income');
+        const amountRaw = this.safeString2 (item, 'deltaAmount', 'income', '');
         const after = this.safeString2 (item, 'afterAmount', 'balance');
         const before = Precise.stringSub (after, amountRaw);
         const amount = this.parseNumber (Precise.stringAbs (amountRaw));

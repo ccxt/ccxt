@@ -514,7 +514,7 @@ export default class pacifica extends Exchange {
         //     },
         const quoteId = 'usdc';
         const settleId = 'usdc';
-        const id = this.safeString (market, 'symbol');
+        const id = this.safeString (market, 'symbol', '');
         const baseId = id.toLowerCase ();
         const baseName = id.toUpperCase ();
         const base = this.safeCurrencyCode (baseName);
@@ -1488,7 +1488,7 @@ export default class pacifica extends Exchange {
     }
 
     createOrdersRequest (orders: OrderRequest[], params = {}) {
-        const actions = [];
+        const actions: List = [];
         const timestamp = this.milliseconds (); // unified sequence
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
@@ -1627,7 +1627,7 @@ export default class pacifica extends Exchange {
     }
 
     cancelOrdersRequest (ids: Str[], symbol: Str = undefined, params = {}) {
-        const actions = [];
+        const actions: List = [];
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const request = this.cancelOrderRequest (id, symbol, params);
@@ -1805,7 +1805,7 @@ export default class pacifica extends Exchange {
         return this.safeOrder ({ 'id': orderId, 'info': response, 'symbol': symbol });
     }
 
-    editOrderRequest (id: string, symbol: string, type: string, side: string, amount: Num, price: Num, market: Market, params = {}) {
+    editOrderRequest (id: string, symbol: string, type: string, side: OrderSide, amount: Num, price: Num, market: Market, params = {}) {
         if (amount === undefined) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires an amount!');
         }
@@ -1884,7 +1884,7 @@ export default class pacifica extends Exchange {
         // }
         //
         const data = this.addPaginationCursorToResult (response);
-        const result = [];
+        const result: List = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const timestamp = this.safeInteger (entry, 'created_at');
@@ -2487,7 +2487,7 @@ export default class pacifica extends Exchange {
         //   "last_order_id": 1557431179
         // }
         const data = this.safeList (response, 'data', []);
-        const result = [];
+        const result: List = [];
         for (let i = 0; i < data.length; i++) {
             result.push (this.parsePosition (data[i], undefined));
         }
