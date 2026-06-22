@@ -1184,7 +1184,7 @@ export default class hibachi extends Exchange {
         ];
     }
 
-    encodeWithdrawMessage (amount: Num, maxFees: number, address: string) {
+    encodeWithdrawMessage (amount: Num, maxFees: Num, address: string) {
         // Converting them to internal representation:
         // - Quantity: Internal = External * (10^6)
         // - maxFees: Internal = External * (10^6)

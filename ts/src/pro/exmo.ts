@@ -558,7 +558,7 @@ export default class exmo extends exmoRest {
         //         }
         //     }
         //
-        const topic = this.safeString (message, 'topic');
+        const topic = this.safeString (message, 'topic', '');
         const parts = topic.split (':');
         const marketId = this.safeString (parts, 1);
         const symbol = this.safeSymbol (marketId);
@@ -688,7 +688,7 @@ export default class exmo extends exmoRest {
         //     ]
         // }
         //
-        const topic = this.safeString (message, 'topic');
+        const topic = this.safeString (message, 'topic', '');
         const parts = topic.split ('/');
         const type = this.safeString (parts, 0);
         const messageHash = 'orders:' + type;
