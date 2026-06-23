@@ -472,7 +472,6 @@ query for balance and get the amount of funds available for trading or funds loc
 
 - https://huobiapi.github.io/docs/spot/v1/en/#get-account-balance-of-a-specific-account
 - https://www.htx.com/en-us/opend/newApiPages/?id=7ec4b429-7773-11ed-9966-0242ac110003
-- https://www.htx.com/en-us/opend/newApiPages/?id=10000074-77b7-11ed-9966-0242ac110003
 - https://huobiapi.github.io/docs/dm/v1/en/#query-asset-valuation
 - https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-account-information
 - https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19588469969
@@ -481,8 +480,8 @@ query for balance and get the amount of funds available for trading or funds loc
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.subType | <code>string</code> | No | linear or future |
-| params.uta | <code>bool</code> | No | provide this parameter if you have a recent account with unified cross+isolated margin account |
+| params.type | <code>string</code> | No | spot, margin, future or swap |
+| params.subType | <code>string</code> | No | linear or inverse |
 | params.multiAssetMode | <code>bool</code> | No | set to true if you are using multi-asset mode for USDT-margined contracts |
 
 
@@ -1175,9 +1174,9 @@ fetch the history of funding payments paid and received on this account
 
 **See**
 
-- https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-account-financial-records-via-multiple-fields-new   // linear swaps
-- https://huobiapi.github.io/docs/dm/v1/en/#query-financial-records-via-multiple-fields-new                          // coin-m futures
-- https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-financial-records-via-multiple-fields-new          // coin-m swaps
+- https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b930b8bee                         // linear swaps
+- https://huobiapi.github.io/docs/dm/v1/en/#query-financial-records-via-multiple-fields-new                   // coin-m futures
+- https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-financial-records-via-multiple-fields-new   // coin-m swaps
 
 
 | Param | Type | Required | Description |
@@ -1186,6 +1185,7 @@ fetch the history of funding payments paid and received on this account
 | since | <code>int</code> | No | the earliest time in ms to fetch funding history for |
 | limit | <code>int</code> | No | the maximum number of funding history structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | the latest time in ms to fetch entries for |
 
 
 ```javascript
@@ -1513,7 +1513,7 @@ Fetches historical settlement records
 
 - https://huobiapi.github.io/docs/dm/v1/en/#query-historical-settlement-records-of-the-platform-interface
 - https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-historical-settlement-records-of-the-platform-interface
-- https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-historical-settlement-records-of-the-platform-interface
+- https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b931869f0
 
 
 | Param | Type | Required | Description |
@@ -1563,7 +1563,7 @@ retrieves the public liquidations of a trading pair
 
 **See**
 
-- https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-liquidation-orders-new
+- https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b975edf5a
 - https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-liquidation-orders-new
 - https://huobiapi.github.io/docs/dm/v1/en/#query-liquidation-order-information-new
 
@@ -1575,7 +1575,7 @@ retrieves the public liquidations of a trading pair
 | limit | <code>int</code> | No | the maximum number of liquidation structures to retrieve |
 | params | <code>object</code> | No | exchange specific parameters for the huobi api endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest liquidation |
-| params.tradeType | <code>int</code> | No | default 0, linear swap 0: all liquidated orders, 5: liquidated longs; 6: liquidated shorts, inverse swap and future 0: filled liquidated orders, 5: liquidated close orders, 6: liquidated open orders |
+| params.tradeType | <code>int</code> | No | *not supported for linear swap* default 0: filled liquidated orders, 5: liquidated close orders, 6: liquidated open orders |
 
 
 ```javascript
