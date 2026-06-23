@@ -1886,9 +1886,9 @@ export default class nado extends Exchange {
         const marketId = this.safeString (trade, 'product_id');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeTimestamp (trade, 'timestamp');
-        const rawOrder = this.safeValue (trade, 'order');
+        const rawOrder = this.safeDict (trade, 'order');
         const isArchiveMatch = rawOrder !== undefined;
-        const order = this.safeDict (trade, 'order', {});
+        const order = (rawOrder === undefined) ? {} : rawOrder;
         const amountString = this.safeString (trade, 'base_filled');
         const costString = this.safeString (trade, 'quote_filled');
         const rawOrderAmount = this.safeString (order, 'amount');
@@ -1900,9 +1900,10 @@ export default class nado extends Exchange {
                 side = 'buy';
             }
         }
-        let price = this.safeValue (trade, 'price');
+        let price: any = this.safeString (trade, 'price');
         if (price === undefined) {
-            price = this.parseX18 (this.safeString (order, 'priceX18'));
+            const parsedPrice = this.parseX18 (this.safeString (order, 'priceX18'));
+            price = (parsedPrice === undefined) ? undefined : this.numberToString (parsedPrice);
         }
         let takerOrMaker = undefined;
         const isTaker = this.safeBool (trade, 'is_taker');

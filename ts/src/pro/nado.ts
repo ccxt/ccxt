@@ -22,6 +22,7 @@ export default class nado extends nadoRest {
                 'watchMyTrades': false,
                 'unWatchBidsAsks': true,
                 'unWatchOHLCV': true,
+                'unWatchOHLCVForSymbols': true,
                 'unWatchOrderBook': true,
                 'unWatchOrderBookForSymbols': true,
                 'unWatchTicker': true,
@@ -29,7 +30,7 @@ export default class nado extends nadoRest {
                 'unWatchTrades': true,
                 'unWatchTradesForSymbols': true,
                 'watchOHLCV': true,
-                'watchOHLCVForSymbols': false,
+                'watchOHLCVForSymbols': true,
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': true,
                 'watchOrders': false,
@@ -126,7 +127,7 @@ export default class nado extends nadoRest {
         }
         const trades = await this.watchPublicMultiple ('trade', markets, messageHashes, params);
         if (this.newUpdates) {
-            const first = this.safeValue (trades, 0);
+            const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
             limit = trades.getLimit (tradeSymbol, limit);
         }
@@ -274,11 +275,51 @@ export default class nado extends nadoRest {
         const request = {
             'granularity': this.safeInteger (this.timeframes, timeframe, this.parseTimeframe (timeframe)),
         };
-        const ohlcv = await this.watchPublic ('latest_candlestick', market, messageHash, this.extend (request, params));
+        const result = await this.watchPublic ('latest_candlestick', market, messageHash, this.extend (request, params));
+        const stored = result[2];
         if (this.newUpdates) {
-            limit = ohlcv.getLimit (market['symbol'], limit);
+            limit = stored.getLimit (market['symbol'], limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit (stored, since, limit, 0, true);
+    }
+
+    /**
+     * @method
+     * @name nado#watchOHLCVForSymbols
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of multiple markets
+     * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to watch OHLCV data for, example [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of {@link https://docs.ccxt.com/#/?id=ohlcv-structure OHLCV} structures indexed by market symbols
+     */
+    async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
+        const symbolsLength = symbolsAndTimeframes.length;
+        if (symbolsLength === 0 || !Array.isArray (symbolsAndTimeframes[0])) {
+            throw new ArgumentsRequired (this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]");
+        }
+        await this.loadMarkets ();
+        const markets = [];
+        const messageHashes = [];
+        const subscriptionParams = [];
+        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+            const symbolAndTimeframe = symbolsAndTimeframes[i];
+            const marketSymbol = this.safeString (symbolAndTimeframe, 0);
+            const timeframe = this.safeString (symbolAndTimeframe, 1, '1m');
+            const market = this.market (marketSymbol);
+            markets.push (market);
+            messageHashes.push ('ohlcv:' + timeframe + ':' + market['symbol']);
+            subscriptionParams.push (this.extend ({
+                'granularity': this.safeInteger (this.timeframes, timeframe, this.parseTimeframe (timeframe)),
+            }, params));
+        }
+        const [ resultSymbol, resultTimeframe, stored ] = await this.watchPublicMultiple ('latest_candlestick', markets, messageHashes, params, subscriptionParams);
+        if (this.newUpdates) {
+            limit = stored.getLimit (resultSymbol, limit);
+        }
+        const filtered = this.filterBySinceLimit (stored, since, limit, 0, true);
+        return this.createOHLCVObject (resultSymbol, resultTimeframe, filtered);
     }
 
     /**
@@ -293,12 +334,39 @@ export default class nado extends nadoRest {
      */
     async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<any> {
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const messageHash = 'ohlcv:' + timeframe + ':' + market['symbol'];
-        const request = {
-            'granularity': this.safeInteger (this.timeframes, timeframe, this.parseTimeframe (timeframe)),
-        };
-        return await this.unWatchPublic ('latest_candlestick', market, messageHash, this.extend (request, params));
+        return await this.unWatchOHLCVForSymbols ([ [ symbol, timeframe ] ], params);
+    }
+
+    /**
+     * @method
+     * @name nado#unWatchOHLCVForSymbols
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of multiple markets
+     * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to unwatch OHLCV data for, example [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the exchange response
+     */
+    async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params = {}): Promise<any> {
+        const symbolsLength = symbolsAndTimeframes.length;
+        if (symbolsLength === 0 || !Array.isArray (symbolsAndTimeframes[0])) {
+            throw new ArgumentsRequired (this.id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]");
+        }
+        await this.loadMarkets ();
+        const markets = [];
+        const messageHashes = [];
+        const subscriptionParams = [];
+        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+            const symbolAndTimeframe = symbolsAndTimeframes[i];
+            const marketSymbol = this.safeString (symbolAndTimeframe, 0);
+            const timeframe = this.safeString (symbolAndTimeframe, 1, '1m');
+            const market = this.market (marketSymbol);
+            markets.push (market);
+            messageHashes.push ('ohlcv:' + timeframe + ':' + market['symbol']);
+            subscriptionParams.push (this.extend ({
+                'granularity': this.safeInteger (this.timeframes, timeframe, this.parseTimeframe (timeframe)),
+            }, params));
+        }
+        return await this.unWatchPublicMultiple ('latest_candlestick', markets, messageHashes, params, subscriptionParams);
     }
 
     /**
@@ -487,27 +555,28 @@ export default class nado extends nadoRest {
         };
     }
 
-    async watchPublicMultiple (streamType, markets, messageHashes: string[], params = {}) {
+    async watchPublicMultiple (streamType, markets, messageHashes: string[], params = {}, subscriptionParams = undefined) {
         const url = this.urls['api']['ws']['subscriptions'];
         const client = this.client (url);
-        const messages = [];
-        const missingSubscriptions = [];
         for (let i = 0; i < messageHashes.length; i++) {
             const messageHash = messageHashes[i];
             if (!(messageHash in client.subscriptions)) {
                 const market = markets[i];
                 const id = this.nonce ();
-                messages.push (this.createPublicSubscriptionRequest ('subscribe', streamType, market, id, params));
-                missingSubscriptions.push (messageHash);
+                const subscribeHash = 'subscribe:' + messageHash;
+                const requestParams = (subscriptionParams === undefined) ? params : subscriptionParams[i];
+                const request = this.createPublicSubscriptionRequest ('subscribe', streamType, market, id, requestParams);
+                const subscription = {
+                    'streamType': streamType,
+                    'symbol': this.safeString (market, 'symbol'),
+                };
+                client.subscriptions['subscription:' + this.numberToString (id)] = {
+                    'subscribeHash': subscribeHash,
+                };
+                this.watchMultiple (url, [ subscribeHash ], request, [ messageHash ], subscription);
             }
         }
-        const subscription = {
-            'streamType': streamType,
-        };
-        const future = this.watchMultiple (url, messageHashes, undefined, messageHashes, subscription);
-        if (messages.length > 0) {
-            this.spawn (this.sendPublicMessages, client, messages, missingSubscriptions);
-        }
+        const future = this.watchMultiple (url, messageHashes, undefined);
         return await future;
     }
 
@@ -528,18 +597,17 @@ export default class nado extends nadoRest {
         return await this.watch (url, unsubscribeHash, request, unsubscribeHash, subscription);
     }
 
-    async unWatchPublicMultiple (streamType, markets, messageHashes: string[], params = {}) {
+    async unWatchPublicMultiple (streamType, markets, messageHashes: string[], params = {}, subscriptionParams = undefined) {
         const url = this.urls['api']['ws']['subscriptions'];
         const client = this.client (url);
-        const unsubscribeHashes = [];
-        const messages = [];
+        const results = [];
         for (let i = 0; i < messageHashes.length; i++) {
             const messageHash = messageHashes[i];
             const id = this.nonce ();
             const unsubscribeHash = 'unsubscribe:' + messageHash;
-            unsubscribeHashes.push (unsubscribeHash);
-            messages.push (this.createPublicSubscriptionRequest ('unsubscribe', streamType, markets[i], id, params));
-            client.subscriptions[unsubscribeHash] = {
+            const requestParams = (subscriptionParams === undefined) ? params : subscriptionParams[i];
+            const request = this.createPublicSubscriptionRequest ('unsubscribe', streamType, markets[i], id, requestParams);
+            const subscription = {
                 'id': id,
                 'messageHash': messageHash,
             };
@@ -547,26 +615,9 @@ export default class nado extends nadoRest {
                 'messageHash': messageHash,
                 'unsubscribeHash': unsubscribeHash,
             };
+            results.push (await this.watchMultiple (url, [ unsubscribeHash ], request, [ unsubscribeHash ], subscription));
         }
-        const future = this.watchMultiple (url, unsubscribeHashes, undefined);
-        this.spawn (this.sendPublicMessages, client, messages);
-        return await future;
-    }
-
-    async sendPublicMessages (client: Client, messages, missingSubscriptions = undefined) {
-        try {
-            for (let i = 0; i < messages.length; i++) {
-                const message = messages[i];
-                await client.send (message);
-            }
-        } catch (error) {
-            if (missingSubscriptions !== undefined) {
-                for (let i = 0; i < missingSubscriptions.length; i++) {
-                    delete client.subscriptions[missingSubscriptions[i]];
-                }
-            }
-            client.reject (error);
-        }
+        return results;
     }
 
     parseWsTimestamp (message: Dict, key: string): Int {
@@ -623,7 +674,7 @@ export default class nado extends nadoRest {
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const messageHash = 'trade:' + symbol;
-        let trades = this.safeValue (this.trades, symbol);
+        let trades = this.trades[symbol];
         if (trades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             trades = new ArrayCache (limit);
@@ -656,7 +707,7 @@ export default class nado extends nadoRest {
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
-        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        let stored = this.ohlcvs[symbol][timeframe];
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
@@ -665,7 +716,7 @@ export default class nado extends nadoRest {
         const parsed = this.parseOHLCV (message, market);
         stored.append (parsed);
         const messageHash = 'ohlcv:' + timeframe + ':' + symbol;
-        client.resolve (stored, messageHash);
+        client.resolve ([ symbol, timeframe, stored ], messageHash);
     }
 
     parseWsBidAsk (bidask: Dict, market = undefined): Ticker {
@@ -804,6 +855,16 @@ export default class nado extends nadoRest {
         client.resolve (orderbook, messageHash);
     }
 
+    handleSubscription (client: Client, message) {
+        const id = this.safeString (message, 'id');
+        const subscription = this.safeDict (client.subscriptions, 'subscription:' + id);
+        if (subscription !== undefined) {
+            const subscribeHash = this.safeString (subscription, 'subscribeHash');
+            delete client.subscriptions['subscription:' + id];
+            client.resolve (message, subscribeHash);
+        }
+    }
+
     handleUnsubscription (client: Client, message) {
         const id = this.safeString (message, 'id');
         const unsubscription = this.safeDict (client.subscriptions, 'unsubscription:' + id);
@@ -912,8 +973,16 @@ export default class nado extends nadoRest {
         const id = this.safeString (message, 'id');
         const hasResult = ('result' in message);
         const result = message['result'];
-        if ((id !== undefined) && hasResult && (result === null)) {
-            this.handleUnsubscription (client, message);
+        if ((id !== undefined) && hasResult) {
+            if (('subscription:' + id) in client.subscriptions) {
+                this.handleSubscription (client, message);
+                return;
+            }
+            if (result === null) {
+                this.handleUnsubscription (client, message);
+                return;
+            }
+            this.handleSubscription (client, message);
             return;
         }
         const method = this.safeString (result, 'method');
