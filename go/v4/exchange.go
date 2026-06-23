@@ -2131,7 +2131,7 @@ func (this *Exchange) Close(cleanInstanceData ...any) []error {
 		}
 	}
 	firstArg := GetArg(cleanInstanceData, 0, nil)
-	shouldClean := firstArg != nil && firstArg.(bool)
+	shouldClean, _ := firstArg.(bool)
 	if shouldClean {
 		this.CleanWsData()
 	}
