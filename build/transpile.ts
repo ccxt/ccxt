@@ -41,6 +41,16 @@ const exchangesWsIds = exchanges.ws;
 
 let shouldTranspileTests = true
 
+// Methods that are async ONLY in TypeScript/JavaScript (because crypto.subtle is
+// async). In every transpiled language rsa/jwt are synchronous, so `sign` and its
+// crypto helpers stay synchronous there: they are emitted as plain sync methods and
+// their awaited call-sites have the `await` stripped. Listed in both camelCase (as
+// they appear in method bodies, pre-snake-casing) and snake_case (method names).
+const JS_ONLY_ASYNC_METHODS_CAMEL = [ 'sign', 'signParams', 'createWSAuth', 'createAuthToken', 'rsa', 'jwt' ];
+const JS_ONLY_ASYNC_METHODS_SNAKE = [ 'sign', 'sign_params', 'create_ws_auth', 'create_auth_token' ];
+// regex fragment matching a call to one of the JS-only-async methods (camelCase body form)
+const JS_ONLY_ASYNC_CALL_RE = '(?:' + JS_ONLY_ASYNC_METHODS_CAMEL.join ('|') + ')';
+
 // let buildPython = true;
 // let buildPHP = true;
 
@@ -113,6 +123,10 @@ class Transpiler {
 
         return [
             [ /(?<!assert|equals|verify)(\s\(?)(rsa|ecdsa|eddsa|jwt|totp|inflate)\s/g, '$1this.$2' ],
+            // sign + its crypto helpers are async only in JS (crypto.subtle). Everywhere
+            // else rsa/jwt are synchronous, so strip `await` from calls to these methods
+            // so they transpile to plain synchronous calls (and the methods stay sync).
+            [ new RegExp ('\\bawait (this\\.' + JS_ONLY_ASYNC_CALL_RE + '\\s*\\()', 'g'), '$1' ],
             [ /errorHierarchy/g, 'error_hierarchy'],
             [ /\.featuresGenerator/g, '.features_generator'],
             [ /\.featuresMapper/g, '.features_mapper'],
@@ -1160,11 +1174,11 @@ class Transpiler {
         const phpRegexes = this.getPHPRegexes ()
         let phpBody = this.regexAll (js, phpRegexes.concat (phpVariablesRegexes).concat (variablePropertiesRegexes))
         // indent async php
-        // `sign` is async (for crypto.subtle) but its body usually has no `await`
-        // (pure hmac/url building). Without the wrapper it returns a plain array,
-        // and the base fetch2's `Async\await($this->sign(...))` then throws on a
-        // non-promise. Force-wrap `sign` so it always returns a promise.
-        if (async && (js.indexOf (' await ') > -1 || methodName === 'sign')) {
+        // `sign` (and its crypto helpers) are async ONLY in JS because crypto.subtle
+        // is async. In every transpiled language rsa/jwt are synchronous, so these
+        // methods are emitted as plain sync functions (never promise-wrapped), and
+        // their awaited call-sites are stripped in getCommonRegexes / getPHPRegexes.
+        if (async && js.indexOf (' await ') > -1 && JS_ONLY_ASYNC_METHODS_SNAKE.indexOf (methodName) === -1) {
             const closure = variables && variables.length ? 'use (' + variables.map ((x: any) => '$' + x).join (', ') + ')': '';
             phpBody = '        return Async\\async(function () ' + closure + ' {\n    ' +  phpBody.replace (/\n/g, '\n    ') + '\n        }) ();'
         }
@@ -1768,7 +1782,10 @@ class Transpiler {
 
                 // compile signature + body for Python async
                 python3.push ('');
-                python3.push ('    ' + keyword + pythonString);
+                // sign + crypto helpers stay synchronous outside JS, so emit `def`
+                // (not `async def`) even though the TS method is async.
+                const python3Keyword = (JS_ONLY_ASYNC_METHODS_SNAKE.indexOf (method) !== -1) ? '' : keyword;
+                python3.push ('    ' + python3Keyword + pythonString);
                 python3.push (python3Body);
             }
 
@@ -2026,13 +2043,13 @@ class Transpiler {
         ])
 
         phpBody = this.regexAll (phpBody, [
-            // rsa/jwt are synchronous in php, so drop the await/$this-> artifacts and
-            // call the bare module-level rsa/jwt wrappers instead.
-            [ /await \$this->(rsa|jwt) ?\(/g, '$1(' ],
+            // rsa/jwt are synchronous in php; revert the `this.`-mapped calls back to
+            // the bare module-level rsa/jwt wrappers defined in the php header.
+            [ /\$this->(rsa|jwt) ?\(/g, '$1(' ],
             // php has no `async` keyword, but the awaiting base init runs
             // `Async\await(test_cryptography())`, so the function must return a promise.
             // wrap the body in a React async closure (matches the other base tests).
-            [ /async function (test_cryptography) \(\) \{([\s\S]*)\}\s*$/, 'function $1 () {\n    return \\React\\Async\\async(function () {$2}) ();\n}\n' ],
+            [ /(?:async )?function (test_cryptography) \(\) \{([\s\S]*)\}\s*$/, 'function $1 () {\n    return \\React\\Async\\async(function () {$2}) ();\n}\n' ],
         ])
 
         const pythonHeader = [

@@ -640,14 +640,6 @@ class Exchange(BaseExchange):
     async def load_dydx_protos(self):
         return
 
-    # async wrappers so transpiled `await self.rsa(...)` / `await self.jwt(...)`
-    # resolve, the underlying crypto in python is synchronous
-    async def rsa(self, request, secret, alg='sha256'):
-        return BaseExchange.rsa(request, secret, alg)
-
-    async def jwt(self, request, secret, algorithm='sha256', is_rsa=False, opts={}):
-        return BaseExchange.jwt(request, secret, algorithm, is_rsa, opts)
-
     # ########################################################################
     # ########################################################################
     # ########################################################################
