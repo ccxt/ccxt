@@ -1,9 +1,9 @@
 //  ---------------------------------------------------------------------------
 
 import nadoRest from '../nado.js';
-import { ArgumentsRequired, BadResponse } from '../base/errors.js';
-import { ArrayCache } from '../base/ws/Cache.js';
-import type { Bool, Dict, Int, OrderBook, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import { ArgumentsRequired } from '../base/errors.js';
+import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import type { Bool, Dict, Int, OHLCV, OrderBook, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -20,7 +20,15 @@ export default class nado extends nadoRest {
                 'watchLiquidations': false,
                 'watchLiquidationsForSymbols': false,
                 'watchMyTrades': false,
-                'watchOHLCV': false,
+                'unWatchBidsAsks': true,
+                'unWatchOHLCV': true,
+                'unWatchOrderBook': true,
+                'unWatchOrderBookForSymbols': true,
+                'unWatchTicker': true,
+                'unWatchTickers': true,
+                'unWatchTrades': true,
+                'unWatchTradesForSymbols': true,
+                'watchOHLCV': true,
                 'watchOHLCVForSymbols': false,
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': true,
@@ -79,6 +87,20 @@ export default class nado extends nadoRest {
 
     /**
      * @method
+     * @name nado#unWatchTrades
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @description unWatches information on multiple trades made in a market
+     * @param {string} symbol unified symbol of the market to unwatch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the exchange response
+     */
+    async unWatchTrades (symbol: string, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        return await this.unWatchTradesForSymbols ([ symbol ], params);
+    }
+
+    /**
+     * @method
      * @name nado#watchTradesForSymbols
      * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
      * @description get the list of most recent trades for a list of symbols
@@ -95,19 +117,46 @@ export default class nado extends nadoRest {
             throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
         }
         symbols = this.marketSymbols (symbols, undefined, false, true, true);
-        const promises = [];
+        const markets = [];
+        const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market (symbols[i]);
-            const messageHash = 'trade:' + market['symbol'];
-            promises.push (this.watchPublic ('trade', market, messageHash, params));
+            markets.push (market);
+            messageHashes.push ('trade:' + market['symbol']);
         }
-        const trades = await Promise.race (promises);
+        const trades = await this.watchPublicMultiple ('trade', markets, messageHashes, params);
         if (this.newUpdates) {
             const first = this.safeValue (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
             limit = trades.getLimit (tradeSymbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    /**
+     * @method
+     * @name nado#unWatchTradesForSymbols
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @description unWatches information on multiple trades made in a list of markets
+     * @param {string[]} symbols unified symbols of the markets to unwatch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the exchange response
+     */
+    async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
+        await this.loadMarkets ();
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
+            throw new ArgumentsRequired (this.id + ' unWatchTradesForSymbols() requires a non-empty array of symbols');
+        }
+        symbols = this.marketSymbols (symbols, undefined, false, true, true);
+        const markets = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const market = this.market (symbols[i]);
+            markets.push (market);
+            messageHashes.push ('trade:' + market['symbol']);
+        }
+        return await this.unWatchPublicMultiple ('trade', markets, messageHashes, params);
     }
 
     /**
@@ -134,6 +183,20 @@ export default class nado extends nadoRest {
 
     /**
      * @method
+     * @name nado#unWatchOrderBook
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified symbol of the market to unwatch the order book for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the exchange response
+     */
+    async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        return await this.unWatchOrderBookForSymbols ([ symbol ], params);
+    }
+
+    /**
+     * @method
      * @name nado#watchOrderBookForSymbols
      * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for a list of symbols
@@ -149,19 +212,93 @@ export default class nado extends nadoRest {
             throw new ArgumentsRequired (this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
         }
         symbols = this.marketSymbols (symbols, undefined, false, true, true);
-        const promises = [];
+        const markets = [];
+        const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
             const messageHash = 'orderbook:' + market['symbol'];
+            markets.push (market);
+            messageHashes.push (messageHash);
             if (!(market['symbol'] in this.orderbooks)) {
                 const snapshot = await this.fetchOrderBook (symbol, limit);
                 this.orderbooks[market['symbol']] = this.orderBook (snapshot, limit);
             }
-            promises.push (this.watchPublic ('book_depth', market, messageHash, params));
         }
-        const orderbook = await Promise.race (promises);
+        const orderbook = await this.watchPublicMultiple ('book_depth', markets, messageHashes, params);
         return orderbook.limit ();
+    }
+
+    /**
+     * @method
+     * @name nado#unWatchOrderBookForSymbols
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for a list of symbols
+     * @param {string[]} symbols unified symbols of the markets to unwatch the order book for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the exchange response
+     */
+    async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
+        await this.loadMarkets ();
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
+            throw new ArgumentsRequired (this.id + ' unWatchOrderBookForSymbols() requires a non-empty array of symbols');
+        }
+        symbols = this.marketSymbols (symbols, undefined, false, true, true);
+        const markets = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const market = this.market (symbols[i]);
+            markets.push (market);
+            messageHashes.push ('orderbook:' + market['symbol']);
+        }
+        return await this.unWatchPublicMultiple ('book_depth', markets, messageHashes, params);
+    }
+
+    /**
+     * @method
+     * @name nado#watchOHLCV
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const messageHash = 'ohlcv:' + timeframe + ':' + market['symbol'];
+        const request = {
+            'granularity': this.safeInteger (this.timeframes, timeframe, this.parseTimeframe (timeframe)),
+        };
+        const ohlcv = await this.watchPublic ('latest_candlestick', market, messageHash, this.extend (request, params));
+        if (this.newUpdates) {
+            limit = ohlcv.getLimit (market['symbol'], limit);
+        }
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+    }
+
+    /**
+     * @method
+     * @name nado#unWatchOHLCV
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to unwatch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the exchange response
+     */
+    async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<any> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const messageHash = 'ohlcv:' + timeframe + ':' + market['symbol'];
+        const request = {
+            'granularity': this.safeInteger (this.timeframes, timeframe, this.parseTimeframe (timeframe)),
+        };
+        return await this.unWatchPublic ('latest_candlestick', market, messageHash, this.extend (request, params));
     }
 
     /**
@@ -178,6 +315,20 @@ export default class nado extends nadoRest {
         symbol = this.symbol (symbol);
         const tickers = await this.watchTickers ([ symbol ], params);
         return tickers[symbol];
+    }
+
+    /**
+     * @method
+     * @name nado#unWatchTicker
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @description unWatches a price ticker with the best bid and ask for a specific market
+     * @param {string} symbol unified symbol of the market to unwatch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the exchange response
+     */
+    async unWatchTicker (symbol: string, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        return await this.unWatchTickers ([ symbol ], params);
     }
 
     /**
@@ -217,6 +368,32 @@ export default class nado extends nadoRest {
 
     /**
      * @method
+     * @name nado#unWatchTickers
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @description unWatches price tickers with the best bid and ask for all markets of a specific list
+     * @param {string[]} [symbols] unified symbols of the markets to unwatch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the exchange response
+     */
+    async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, true, true, true);
+        let market = undefined;
+        let messageHash = 'ticker';
+        let streamType = 'all_bbo';
+        if (symbols !== undefined) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength === 1) {
+                market = this.market (symbols[0]);
+                messageHash = 'ticker:' + market['symbol'];
+                streamType = 'best_bid_offer';
+            }
+        }
+        return await this.unWatchPublic (streamType, market, messageHash, params);
+    }
+
+    /**
+     * @method
      * @name nado#watchBidsAsks
      * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
      * @description watches best bid & ask for symbols
@@ -250,6 +427,32 @@ export default class nado extends nadoRest {
         return this.filterByArray (this.bidsasks, 'symbol', symbols);
     }
 
+    /**
+     * @method
+     * @name nado#unWatchBidsAsks
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @description unWatches best bid & ask for symbols
+     * @param {string[]} symbols unified symbols of the markets to unwatch the bids and asks for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the exchange response
+     */
+    async unWatchBidsAsks (symbols: Strings = undefined, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, true, true, true);
+        let market = undefined;
+        let messageHash = 'bidask';
+        let streamType = 'all_bbo';
+        if (symbols !== undefined) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength === 1) {
+                market = this.market (symbols[0]);
+                messageHash = 'bidask:' + market['symbol'];
+                streamType = 'best_bid_offer';
+            }
+        }
+        return await this.unWatchPublic (streamType, market, messageHash, params);
+    }
+
     async watchPublic (streamType, market, messageHash: string, params = {}) {
         const url = this.urls['api']['ws']['subscriptions'];
         const stream: Dict = {
@@ -260,14 +463,110 @@ export default class nado extends nadoRest {
         }
         const request: Dict = {
             'method': 'subscribe',
-            'stream': stream,
+            'stream': this.deepExtend (stream, params),
             'id': this.nonce (),
         };
         const subscription = {
             'streamType': streamType,
             'symbol': this.safeString (market, 'symbol'),
         };
-        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash, subscription);
+        return await this.watch (url, messageHash, request, messageHash, subscription);
+    }
+
+    createPublicSubscriptionRequest (method: string, streamType, market = undefined, id: Int = undefined, params = {}) {
+        const stream: Dict = {
+            'type': streamType,
+        };
+        if (market !== undefined) {
+            stream['product_id'] = this.parseToInt (market['id']);
+        }
+        return {
+            'method': method,
+            'stream': this.deepExtend (stream, params),
+            'id': id,
+        };
+    }
+
+    async watchPublicMultiple (streamType, markets, messageHashes: string[], params = {}) {
+        const url = this.urls['api']['ws']['subscriptions'];
+        const client = this.client (url);
+        const messages = [];
+        const missingSubscriptions = [];
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            if (!(messageHash in client.subscriptions)) {
+                const market = markets[i];
+                const id = this.nonce ();
+                messages.push (this.createPublicSubscriptionRequest ('subscribe', streamType, market, id, params));
+                missingSubscriptions.push (messageHash);
+            }
+        }
+        const subscription = {
+            'streamType': streamType,
+        };
+        const future = this.watchMultiple (url, messageHashes, undefined, messageHashes, subscription);
+        if (messages.length > 0) {
+            this.spawn (this.sendPublicMessages, client, messages, missingSubscriptions);
+        }
+        return await future;
+    }
+
+    async unWatchPublic (streamType, market, messageHash: string, params = {}) {
+        const url = this.urls['api']['ws']['subscriptions'];
+        const id = this.nonce ();
+        const request = this.createPublicSubscriptionRequest ('unsubscribe', streamType, market, id, params);
+        const subscription = {
+            'id': id,
+            'messageHash': messageHash,
+        };
+        const unsubscribeHash = 'unsubscribe:' + messageHash;
+        const client = this.client (url);
+        client.subscriptions['unsubscription:' + this.numberToString (id)] = {
+            'messageHash': messageHash,
+            'unsubscribeHash': unsubscribeHash,
+        };
+        return await this.watch (url, unsubscribeHash, request, unsubscribeHash, subscription);
+    }
+
+    async unWatchPublicMultiple (streamType, markets, messageHashes: string[], params = {}) {
+        const url = this.urls['api']['ws']['subscriptions'];
+        const client = this.client (url);
+        const unsubscribeHashes = [];
+        const messages = [];
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const id = this.nonce ();
+            const unsubscribeHash = 'unsubscribe:' + messageHash;
+            unsubscribeHashes.push (unsubscribeHash);
+            messages.push (this.createPublicSubscriptionRequest ('unsubscribe', streamType, markets[i], id, params));
+            client.subscriptions[unsubscribeHash] = {
+                'id': id,
+                'messageHash': messageHash,
+            };
+            client.subscriptions['unsubscription:' + this.numberToString (id)] = {
+                'messageHash': messageHash,
+                'unsubscribeHash': unsubscribeHash,
+            };
+        }
+        const future = this.watchMultiple (url, unsubscribeHashes, undefined);
+        this.spawn (this.sendPublicMessages, client, messages);
+        return await future;
+    }
+
+    async sendPublicMessages (client: Client, messages, missingSubscriptions = undefined) {
+        try {
+            for (let i = 0; i < messages.length; i++) {
+                const message = messages[i];
+                await client.send (message);
+            }
+        } catch (error) {
+            if (missingSubscriptions !== undefined) {
+                for (let i = 0; i < missingSubscriptions.length; i++) {
+                    delete client.subscriptions[missingSubscriptions[i]];
+                }
+            }
+            client.reject (error);
+        }
     }
 
     parseWsTimestamp (message: Dict, key: string): Int {
@@ -333,6 +632,40 @@ export default class nado extends nadoRest {
         const trade = this.parseWsTrade (message, market);
         trades.append (trade);
         client.resolve (trades, messageHash);
+    }
+
+    handleOHLCV (client: Client, message) {
+        //
+        //     {
+        //         "type": "latest_candlestick",
+        //         "timestamp": "1782179760",
+        //         "product_id": 2,
+        //         "granularity": 60,
+        //         "open_x18": "64148000000000000000000",
+        //         "high_x18": "64148000000000000000000",
+        //         "low_x18": "64148000000000000000000",
+        //         "close_x18": "64148000000000000000000",
+        //         "volume": "24250000000000000"
+        //     }
+        //
+        const marketId = this.safeString (message, 'product_id');
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const granularity = this.safeInteger (message, 'granularity');
+        const timeframe = this.findTimeframe (granularity);
+        if (!(symbol in this.ohlcvs)) {
+            this.ohlcvs[symbol] = {};
+        }
+        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        if (stored === undefined) {
+            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+            stored = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][timeframe] = stored;
+        }
+        const parsed = this.parseOHLCV (message, market);
+        stored.append (parsed);
+        const messageHash = 'ohlcv:' + timeframe + ':' + symbol;
+        client.resolve (stored, messageHash);
     }
 
     parseWsBidAsk (bidask: Dict, market = undefined): Ticker {
@@ -471,6 +804,67 @@ export default class nado extends nadoRest {
         client.resolve (orderbook, messageHash);
     }
 
+    handleUnsubscription (client: Client, message) {
+        const id = this.safeString (message, 'id');
+        const unsubscription = this.safeDict (client.subscriptions, 'unsubscription:' + id);
+        if (unsubscription !== undefined) {
+            const messageHash = this.safeString (unsubscription, 'messageHash');
+            const unsubscribeHash = this.safeString (unsubscription, 'unsubscribeHash');
+            delete client.subscriptions['unsubscription:' + id];
+            this.cleanUnsubscription (client, messageHash, unsubscribeHash);
+            this.handleUnsubscriptionCache (messageHash);
+            client.resolve (message, unsubscribeHash);
+            return;
+        }
+        const subscriptions = Object.keys (client.subscriptions);
+        for (let i = 0; i < subscriptions.length; i++) {
+            const unsubscribeHash = subscriptions[i];
+            const subscription = client.subscriptions[unsubscribeHash];
+            const subscriptionId = this.safeString (subscription, 'id');
+            if (subscriptionId !== id) {
+                continue;
+            }
+            const messageHash = this.safeString (subscription, 'messageHash');
+            this.cleanUnsubscription (client, messageHash, unsubscribeHash);
+            this.handleUnsubscriptionCache (messageHash);
+            client.resolve (message, unsubscribeHash);
+            return;
+        }
+    }
+
+    handleUnsubscriptionCache (messageHash: string) {
+        if (messageHash.indexOf ('trade:') === 0) {
+            const symbol = messageHash.replace ('trade:', '');
+            delete this.trades[symbol];
+        } else if (messageHash.indexOf ('orderbook:') === 0) {
+            const symbol = messageHash.replace ('orderbook:', '');
+            delete this.orderbooks[symbol];
+        } else if (messageHash.indexOf ('ohlcv:') === 0) {
+            const parts = messageHash.split (':');
+            const timeframe = this.safeString (parts, 1);
+            const symbol = this.safeString (parts, 2);
+            if ((symbol in this.ohlcvs) && (timeframe in this.ohlcvs[symbol])) {
+                delete this.ohlcvs[symbol][timeframe];
+            }
+        } else if (messageHash.indexOf ('ticker:') === 0) {
+            const symbol = messageHash.replace ('ticker:', '');
+            delete this.tickers[symbol];
+        } else if (messageHash === 'ticker') {
+            const symbols = Object.keys (this.tickers);
+            for (let i = 0; i < symbols.length; i++) {
+                delete this.tickers[symbols[i]];
+            }
+        } else if (messageHash.indexOf ('bidask:') === 0) {
+            const symbol = messageHash.replace ('bidask:', '');
+            delete this.bidsasks[symbol];
+        } else if (messageHash === 'bidask') {
+            const symbols = Object.keys (this.bidsasks);
+            for (let i = 0; i < symbols.length; i++) {
+                delete this.bidsasks[symbols[i]];
+            }
+        }
+    }
+
     ping (client: Client) {
         return {
             'method': 'ping',
@@ -502,12 +896,11 @@ export default class nado extends nadoRest {
             return false;
         }
         const feedback = this.id + ' ' + this.json (message);
-        const exception = new BadResponse (feedback);
         const id = this.safeString (message, 'id');
         if ((id !== undefined) && (id in client.futures)) {
-            client.reject (exception, id);
+            client.reject (feedback, id);
         } else {
-            client.reject (exception);
+            client.reject (feedback);
         }
         return true;
     }
@@ -516,7 +909,13 @@ export default class nado extends nadoRest {
         if (this.handleErrorMessage (client, message)) {
             return;
         }
-        const result = this.safeDict (message, 'result');
+        const id = this.safeString (message, 'id');
+        const hasResult = ('result' in message);
+        const result = message['result'];
+        if ((id !== undefined) && hasResult && (result === null)) {
+            this.handleUnsubscription (client, message);
+            return;
+        }
         const method = this.safeString (result, 'method');
         if (method === 'pong') {
             this.handlePong (client, message);
@@ -528,6 +927,7 @@ export default class nado extends nadoRest {
             'all_bbo': this.handleAllBidsAsks,
             'best_bid_offer': this.handleBidAsk,
             'book_depth': this.handleOrderBook,
+            'latest_candlestick': this.handleOHLCV,
         };
         const handler = this.safeValue (methods, type);
         if (handler !== undefined) {
