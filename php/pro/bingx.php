@@ -281,7 +281,7 @@ class bingx extends \ccxt\async\bingx {
         }
     }
 
-    public function parse_ws_ticker($message, $market = null) {
+    public function parse_ws_ticker($message, ?array $market = null) {
         //
         //     {
         //         "e" => "24hTicker",
@@ -522,7 +522,7 @@ class bingx extends \ccxt\async\bingx {
         //     }
         //
         $data = $this->safe_value($message, 'data', array());
-        $rawHash = $this->safe_string($message, 'dataType');
+        $rawHash = $this->safe_string($message, 'dataType', '');
         $marketId = explode('@', $rawHash)[0];
         $isSwap = mb_strpos($client->url, 'swap') !== false;
         $marketType = $isSwap ? 'swap' : 'spot';
@@ -705,7 +705,7 @@ class bingx extends \ccxt\async\bingx {
         //     }
         //
         $data = $this->safe_dict($message, 'data', array());
-        $dataType = $this->safe_string($message, 'dataType');
+        $dataType = $this->safe_string($message, 'dataType', '');
         $parts = explode('@', $dataType);
         $firstPart = $parts[0];
         $isAllEndpoint = ($firstPart === 'all');
@@ -744,7 +744,7 @@ class bingx extends \ccxt\async\bingx {
         }
     }
 
-    public function parse_ws_ohlcv($ohlcv, $market = null): array {
+    public function parse_ws_ohlcv($ohlcv, ?array $market = null): array {
         //
         //    {
         //        "c" => "28909.0",
@@ -758,9 +758,9 @@ class bingx extends \ccxt\async\bingx {
         //
         // for spot, opening-time (t) is used instead of closing-time (T), to be compatible with fetchOHLCV
         // for linear swap, (T) is the opening time
-        $timestamp = ($market['spot']) ? 't' : 'T';
-        if ($market['swap']) {
-            $timestamp = ($market['inverse']) ? 't' : 'T';
+        $timestamp = ($this->safe_bool($market, 'spot')) ? 't' : 'T';
+        if ($this->safe_bool($market, 'swap')) {
+            $timestamp = ($this->safe_bool($market, 'inverse')) ? 't' : 'T';
         }
         return array(
             $this->safe_integer($ohlcv, $timestamp),
@@ -838,7 +838,7 @@ class bingx extends \ccxt\async\bingx {
         //     }
         //
         $isSwap = mb_strpos($client->url, 'swap') !== false;
-        $dataType = $this->safe_string($message, 'dataType');
+        $dataType = $this->safe_string($message, 'dataType', '');
         $parts = explode('@', $dataType);
         $firstPart = $parts[0];
         $isAllEndpoint = ($firstPart === 'all');
@@ -1013,7 +1013,7 @@ class bingx extends \ccxt\async\bingx {
             }
             $uuid = $this->uuid();
             $baseUrl = null;
-            $request = null;
+            $request = array();
             if ($type === 'swap') {
                 if ($subType === 'inverse') {
                     throw new NotSupported($this->id . ' watchOrders is not supported for inverse swap markets yet');
@@ -1078,7 +1078,7 @@ class bingx extends \ccxt\async\bingx {
             }
             $uuid = $this->uuid();
             $baseUrl = null;
-            $request = null;
+            $request = array();
             if ($type === 'swap') {
                 if ($subType === 'inverse') {
                     throw new NotSupported($this->id . ' watchMyTrades is not supported for inverse swap markets yet');
@@ -1130,7 +1130,7 @@ class bingx extends \ccxt\async\bingx {
             $swapMessageHash = 'swap:balance';
             $messageHash = $isSpot ? $spotMessageHash : $swapMessageHash;
             $subscriptionHash = $isSpot ? $spotSubHash : $swapSubHash;
-            $request = null;
+            $request = array();
             $baseUrl = null;
             $uuid = $this->uuid();
             if ($type === 'swap') {
@@ -1210,7 +1210,7 @@ class bingx extends \ccxt\async\bingx {
             $market = null;
             $messageHash = '';
             $symbols = $this->market_symbols($symbols);
-            if (!$this->is_empty($symbols)) {
+            if (($symbols !== null) && !$this->is_empty($symbols)) {
                 $market = $this->get_market_from_symbols($symbols);
                 $messageHash = '::' . implode(',', $symbols);
             }

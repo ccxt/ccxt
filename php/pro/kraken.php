@@ -859,12 +859,14 @@ class kraken extends \ccxt\async\kraken {
             if (($marketsByWsName === null) || $reload) {
                 $marketsByWsName = array();
                 $symbols = $this->symbols; // do not cast `as stringarray()` => $this->symbols is List<Object> in Java, and List<Object>->List<'strval'> is an illegal cast
-                for ($i = 0; $i < count($symbols); $i++) {
-                    $symbol = $symbols[$i];
-                    $market = $this->markets[$symbol];
-                    $info = $this->safe_value($market, 'info', array());
-                    $wsName = $this->safe_string($info, 'wsname');
-                    $marketsByWsName[$wsName] = $market;
+                if ($symbols !== null) {
+                    for ($i = 0; $i < count($symbols); $i++) {
+                        $symbol = $symbols[$i];
+                        $market = $this->markets[$symbol];
+                        $info = $this->safe_value($market, 'info', array());
+                        $wsName = $this->safe_string($info, 'wsname');
+                        $marketsByWsName[$wsName] = $market;
+                    }
                 }
                 $this->options['marketsByWsName'] = $marketsByWsName;
             }
@@ -1459,6 +1461,9 @@ class kraken extends \ccxt\async\kraken {
             Async\await($this->load_markets());
             // $symbols are required
             $symbols = $this->market_symbols($symbols, null, false, true, false);
+            if ($symbols === null) {
+                return null;
+            }
             $messageHashes = array();
             for ($i = 0; $i < count($symbols); $i++) {
                 $eventTrigger = $this->safe_string($params, 'event_trigger');

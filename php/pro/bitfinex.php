@@ -235,7 +235,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         //   )
         //
         $data = $this->safe_value($message, 1, array());
-        $ohlcvs = null;
+        $ohlcvs = array();
         $first = $this->safe_value($data, 0);
         if ((gettype($first) === 'array' && array_keys($first) === array_keys(array_keys($first)))) {
             // snapshot
@@ -245,7 +245,7 @@ class bitfinex extends \ccxt\async\bitfinex {
             $ohlcvs = array( $data );
         }
         $channel = $this->safe_value($subscription, 'channel');
-        $key = $this->safe_string($subscription, 'key');
+        $key = $this->safe_string($subscription, 'key', '');
         $keyParts = explode(':', $key);
         $interval = $this->safe_string($keyParts, 1);
         $marketId = $key;
@@ -722,6 +722,9 @@ class bitfinex extends \ccxt\async\bitfinex {
                 for ($i = 0; $i < count($deltas); $i++) {
                     $delta = $deltas[$i];
                     $amount = $this->safe_number($delta, 2);
+                    if ($amount === null) {
+                        continue;
+                    }
                     $counter = $this->safe_number($delta, 1);
                     $price = $this->safe_number($delta, 0);
                     $size = ($amount < 0) ? -$amount : $amount;
@@ -886,7 +889,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         //   )
         //
         $updateType = $this->safe_value($message, 1);
-        $data = null;
+        $data = array();
         if ($updateType === 'ws') {
             $data = $this->safe_value($message, 2);
         } else {
@@ -1000,7 +1003,7 @@ class bitfinex extends \ccxt\async\bitfinex {
             'ticker' => 'ticker',
             'trades' => 'trades',
         );
-        $unifiedChannel = $this->safe_string($mappings, $this->safe_string($message, 'channel'));
+        $unifiedChannel = $this->safe_string($mappings, ($this->safe_string($message, 'channel')));
         if (is_array($message) && array_key_exists('key', $message)) {
             // handle ohlcv differently because the $message is different
             $key = $this->safe_string($message, 'key');
@@ -1221,20 +1224,20 @@ class bitfinex extends \ccxt\async\bitfinex {
             $side = 'sell';
         }
         $remaining = Precise::string_abs($this->safe_string($order, 6));
-        $type = $this->safe_string($order, 8);
+        $type = $this->safe_string($order, 8, '');
         if (mb_strpos($type, 'LIMIT') > -1) {
             $type = 'limit';
         } elseif (mb_strpos($type, 'MARKET') > -1) {
             $type = 'market';
         }
-        $rawState = $this->safe_string($order, 13);
+        $rawState = $this->safe_string($order, 13, '');
         $stateParts = explode(' ', $rawState);
         $trimmedStatus = $this->safe_string($stateParts, 0);
         $status = $this->parse_ws_order_status($trimmedStatus);
         $price = $this->safe_string($order, 16);
         $timestamp = $this->safe_integer_2($order, 5, 4);
         $average = $this->safe_string($order, 17);
-        $stopPrice = $this->omit_zero($this->safe_string($order, 18));
+        $stopPrice = $this->omit_zero(($this->safe_string($order, 18)));
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,

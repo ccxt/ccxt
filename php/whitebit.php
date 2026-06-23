@@ -951,7 +951,7 @@ class whitebit extends Exchange {
         for ($i = 0; $i < count($this->symbols); $i++) {
             $symbol = $this->symbols[$i];
             $market = $this->market($symbol);
-            $fee = $this->safe_value($response, $market['baseId'], array());
+            $fee = $this->safe_value($response, ($market['baseId']), array());
             $makerFee = $this->safe_string($fee, 'maker_fee');
             $takerFee = $this->safe_string($fee, 'taker_fee');
             $makerFee = Precise::string_div($makerFee, '100');

@@ -1152,7 +1152,7 @@ class derive extends Exchange {
         $binaryMessageLength = $this->binary_length($binaryMessage);
         $x19 = $this->base16_to_binary('19');
         $newline = $this->base16_to_binary('0a');
-        $prefix = $this->binary_concat($x19, $this->encode('Ethereum Signed Message:'), $newline, $this->encode($this->number_to_string($binaryMessageLength)));
+        $prefix = $this->binary_concat($x19, $this->encode('Ethereum Signed Message:'), $newline, $this->encode(($this->number_to_string($binaryMessageLength))));
         return '0x' . $this->hash($this->binary_concat($prefix, $binaryMessage), 'keccak', 'hex');
     }
 
@@ -1226,9 +1226,9 @@ class derive extends Exchange {
         ), [
             $market['info']['base_asset_address'],
             $this->parse_to_numeric($market['info']['base_asset_sub_id']),
-            $this->convert_to_big_int($this->parse_units($priceString)),
-            $this->convert_to_big_int($this->parse_units($this->amount_to_precision($symbol, $amountString))),
-            $this->convert_to_big_int($this->parse_units($maxFeeString)),
+            $this->convert_to_big_int(($this->parse_units($priceString))),
+            $this->convert_to_big_int(($this->parse_units(($this->amount_to_precision($symbol, $amountString))))),
+            $this->convert_to_big_int(($this->parse_units($maxFeeString))),
             $subaccountId,
             $orderSide === 'buy',
         ]), 'keccak', 'binary');
@@ -1363,7 +1363,7 @@ class derive extends Exchange {
         $result = $this->safe_dict($response, 'result');
         $rawOrder = $this->safe_dict($result, 'raw_data');
         if ($rawOrder === null) {
-            $rawOrder = $this->safe_dict($result, 'order');
+            $rawOrder = $this->safe_dict($result, 'order', array());
         }
         $order = $this->parse_order($rawOrder, $market);
         $order['type'] = $type;
@@ -1409,9 +1409,9 @@ class derive extends Exchange {
         ), [
             $market['info']['base_asset_address'],
             $this->parse_to_numeric($market['info']['base_asset_sub_id']),
-            $this->convert_to_big_int($this->parse_units($priceString)),
-            $this->convert_to_big_int($this->parse_units($this->amount_to_precision($symbol, $amountString))),
-            $this->convert_to_big_int($this->parse_units($maxFeeString)),
+            $this->convert_to_big_int(($this->parse_units($priceString))),
+            $this->convert_to_big_int(($this->parse_units(($this->amount_to_precision($symbol, $amountString))))),
+            $this->convert_to_big_int(($this->parse_units($maxFeeString))),
             $subaccountId,
             $orderSide === 'buy',
         ]), 'keccak', 'binary');
@@ -1533,7 +1533,7 @@ class derive extends Exchange {
         //   }
         //
         $result = $this->safe_dict($response, 'result');
-        $rawOrder = $this->safe_dict($result, 'order');
+        $rawOrder = $this->safe_dict($result, 'order', array());
         $order = $this->parse_order($rawOrder, $market);
         return $order;
     }
@@ -1623,7 +1623,7 @@ class derive extends Exchange {
         // }
         //
         $extendParams = array( 'symbol' => $symbol );
-        $order = $this->safe_dict($response, 'result');
+        $order = $this->safe_dict($response, 'result', array());
         if ($isByClientOrder) {
             $extendParams['client_order_id'] = $clientOrderIdExchangeSpecific;
         }
@@ -1765,12 +1765,12 @@ class derive extends Exchange {
         $page = $this->safe_integer($params, 'page');
         if ($page !== null) {
             $pagination = $this->safe_dict($data, 'pagination');
-            $currentPage = $this->safe_integer($pagination, 'num_pages');
+            $currentPage = $this->safe_integer($pagination, 'num_pages', 0);
             if ($page > $currentPage) {
                 return array();
             }
         }
-        $orders = $this->safe_list($data, 'orders');
+        $orders = $this->safe_list($data, 'orders', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
@@ -2128,7 +2128,7 @@ class derive extends Exchange {
         $page = $this->safe_integer($params, 'page');
         if ($page !== null) {
             $pagination = $this->safe_dict($result, 'pagination');
-            $currentPage = $this->safe_integer($pagination, 'num_pages');
+            $currentPage = $this->safe_integer($pagination, 'num_pages', 0);
             if ($page > $currentPage) {
                 return array();
             }
@@ -2347,7 +2347,7 @@ class derive extends Exchange {
         $page = $this->safe_integer($params, 'page');
         if ($page !== null) {
             $pagination = $this->safe_dict($result, 'pagination');
-            $currentPage = $this->safe_integer($pagination, 'num_pages');
+            $currentPage = $this->safe_integer($pagination, 'num_pages', 0);
             if ($page > $currentPage) {
                 return array();
             }
@@ -2517,7 +2517,7 @@ class derive extends Exchange {
         //
         $currency = $this->safe_currency($code);
         $result = $this->safe_dict($response, 'result', array());
-        $events = $this->safe_list($result, 'events');
+        $events = $this->safe_list($result, 'events', array());
         return $this->parse_transactions($events, $currency, $since, $limit, $params);
     }
 
@@ -2564,7 +2564,7 @@ class derive extends Exchange {
         //
         $currency = $this->safe_currency($code);
         $result = $this->safe_dict($response, 'result', array());
-        $events = $this->safe_list($result, 'events');
+        $events = $this->safe_list($result, 'events', array());
         return $this->parse_transactions($events, $currency, $since, $limit, $params);
     }
 
