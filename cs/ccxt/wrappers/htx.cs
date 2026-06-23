@@ -483,7 +483,6 @@ public partial class htx
     /// <remarks>
     /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#get-account-balance-of-a-specific-account"/>  <br/>
     /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=7ec4b429-7773-11ed-9966-0242ac110003"/>  <br/>
-    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=10000074-77b7-11ed-9966-0242ac110003"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#query-asset-valuation"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-account-information"/>  <br/>
     /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19588469969"/>  <br/>
@@ -495,15 +494,15 @@ public partial class htx
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.subType</term>
+    /// <term>params.type</term>
     /// <description>
-    /// string : linear or future
+    /// string : spot, margin, future or swap
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.uta</term>
+    /// <term>params.subType</term>
     /// <description>
-    /// bool : provide this parameter if you have a recent account with unified cross+isolated margin account
+    /// string : linear or inverse
     /// </description>
     /// </item>
     /// <item>
@@ -1614,7 +1613,7 @@ public partial class htx
     /// fetch the history of funding payments paid and received on this account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-account-financial-records-via-multiple-fields-new"/>  <br/>
+    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b930b8bee"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#query-financial-records-via-multiple-fields-new"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-financial-records-via-multiple-fields-new"/>  <br/>
     /// <list type="table">
@@ -1634,6 +1633,12 @@ public partial class htx
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : the latest time in ms to fetch entries for
     /// </description>
     /// </item>
     /// </list>
@@ -1904,7 +1909,7 @@ public partial class htx
     /// <remarks>
     /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#query-historical-settlement-records-of-the-platform-interface"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-historical-settlement-records-of-the-platform-interface"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-historical-settlement-records-of-the-platform-interface"/>  <br/>
+    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b931869f0"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1976,7 +1981,7 @@ public partial class htx
     /// retrieves the public liquidations of a trading pair
     /// </summary>
     /// <remarks>
-    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-liquidation-orders-new"/>  <br/>
+    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b975edf5a"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-liquidation-orders-new"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#query-liquidation-order-information-new"/>  <br/>
     /// <list type="table">
@@ -2007,7 +2012,7 @@ public partial class htx
     /// <item>
     /// <term>params.tradeType</term>
     /// <description>
-    /// int : default 0, linear swap 0: all liquidated orders, 5: liquidated longs; 6: liquidated shorts, inverse swap and future 0: filled liquidated orders, 5: liquidated close orders, 6: liquidated open orders
+    /// int : *not supported for linear swap* default 0: filled liquidated orders, 5: liquidated close orders, 6: liquidated open orders
     /// </description>
     /// </item>
     /// </list>
