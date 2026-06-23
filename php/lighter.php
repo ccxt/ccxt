@@ -929,7 +929,6 @@ class lighter extends Exchange {
             $order['nonce'] = $this->fetch_nonce($accountIndex, $apiKeyIndex);
         }
         $txType = null;
-        $txInfo = null;
         if ($totalOrderRequests < 2) {
             list($txType, $txInfo) = $this->lighter_sign_create_order($signer, $order);
         } else {
@@ -2290,7 +2289,7 @@ class lighter extends Exchange {
             $typeAsInteger = $this->safe_integer($order, 'order_type');
             $type = $this->parse_order_type_integer($typeAsInteger);
         }
-        $triggerPrice = $this->parse_number($this->omit_zero($this->safe_string($order, 'trigger_price')));
+        $triggerPrice = $this->parse_number($this->omit_zero(($this->safe_string($order, 'trigger_price'))));
         $stopLossPrice = null;
         $takeProfitPrice = null;
         if ($type !== null) {
@@ -2320,7 +2319,7 @@ class lighter extends Exchange {
         return $this->safe_order(array(
             'info' => $order,
             'id' => $this->safe_string($order, 'order_id'),
-            'clientOrderId' => $this->omit_zero($this->safe_string_2($order, 'client_order_id', 'client_order_index')),
+            'clientOrderId' => $this->omit_zero(($this->safe_string_2($order, 'client_order_id', 'client_order_index'))),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,

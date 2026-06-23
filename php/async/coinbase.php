@@ -5118,8 +5118,8 @@ class coinbase extends Exchange {
             $taker_fee = $this->safe_number($data, 'taker_fee_rate');
             $maker_fee = $this->safe_number($data, 'maker_fee_rate');
             $result = array();
-            for ($i = 0; $i < count($this->symbols); $i++) {
-                $symbol = $this->symbols[$i];
+            for ($i = 0; $i < count(($this->symbols)); $i++) {
+                $symbol = ($this->symbols)[$i];
                 $market = $this->market($symbol);
                 if (($isSpot && $market['spot']) || (!$isSpot && !$market['spot'])) {
                     $result[$symbol] = array(
