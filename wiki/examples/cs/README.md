@@ -24,6 +24,8 @@
 
 - [MarketAndCurrency](examples/cs/MarketAndCurrency.md)
 
+- [PredictionMarkets](examples/cs/PredictionMarkets.md)
+
 - [Program](examples/cs/Program.md)
 
 - [SetMarketsFromExchange](examples/cs/SetMarketsFromExchange.md)

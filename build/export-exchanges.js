@@ -450,7 +450,7 @@ function createMarkdownTable (array, markdownMethod, centeredColumns) {
 
 // ----------------------------------------------------------------------------
 
-function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, certifiedExchangesPaths, exchangesByCountriesPaths, proExchangesPaths }) {
+function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, certifiedExchangesPaths, exchangesByCountriesPaths, proExchangesPaths, predictionExchanges }) {
 
     // const aliases = [ 'hitbtc2', 'huobipro' ] // aliases are not shown tables for deduplication
 
@@ -540,7 +540,11 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
     }
 
     if (exchangesByCountriesPaths) {
-        const exchangesByCountriesMarkdownTable = createMarkdownTable (arrayOfExchanges, createMarkdownListOfExchangesByCountries, [ 4 ])
+        // include prediction-market exchanges in the by-country listing too (those that
+        // declare countries; country-less ones — like other DEXs — simply don't group)
+        const predictionArrayOfExchanges = predictionExchanges ? values (predictionExchanges).filter (exchange => !exchange.alias) : []
+        const byCountryExchanges = arrayOfExchanges.concat (predictionArrayOfExchanges)
+        const exchangesByCountriesMarkdownTable = createMarkdownTable (byCountryExchanges, createMarkdownListOfExchangesByCountries, [ 4 ])
         const result = "# Exchanges By Country\n\nThe ccxt library currently supports the following cryptocurrency exchange markets and trading APIs:\n\n" + exchangesByCountriesMarkdownTable + "\n\n"
         for (const exchangePath of exchangesByCountriesPaths) {
             fs.truncateSync (exchangePath)
@@ -899,6 +903,8 @@ async function exportEverything () {
 
     cloneGitHubWiki (gitWikiPath, unlimitedLog)
 
+    const predictionExchanges = await createExchanges (predictionIds, './ts/src/prediction/')
+
     exportSupportedAndCertifiedExchanges (exchanges, {
         allExchangesPaths: [
             'README.md',
@@ -914,10 +920,10 @@ async function exportEverything () {
         proExchangesPaths: [
             wikiPath + '/ccxt.pro.manual.md',
         ],
+        predictionExchanges,
     }, unlimitedLog)
 
-    const predictionExchanges = await createExchanges (predictionIds, './ts/src/prediction/')
-    exportPredictionExchanges ([ 'README.md' ], predictionExchanges)
+    exportPredictionExchanges ([ 'README.md', wikiPath + '/Exchange-Markets.md' ], predictionExchanges)
 
     exportExchangeIdsToExchangesJson (keys(exchanges), wsIds, predictionIds, predictionWsIds)
     exportWikiToGitHub (wikiPath, gitWikiPath)
