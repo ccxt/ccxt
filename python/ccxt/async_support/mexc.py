@@ -1278,7 +1278,7 @@ class mexc(Exchange, ImplicitAPI):
         # - 'quoteAssetPrecision' & 'baseAssetPrecision' are not currency's real blockchain precision(to view currency's actual individual precision, refer to fetchCurrencies() method).
         #
         data = self.safe_value(response, 'symbols', [])
-        result = []
+        result: List[Any] = []
         for i in range(0, len(data)):
             market = data[i]
             id = self.safe_string(market, 'symbol')
@@ -1407,7 +1407,7 @@ class mexc(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        result = []
+        result: List[Any] = []
         for i in range(0, len(data)):
             market = data[i]
             id = self.safe_string(market, 'symbol')
@@ -1912,7 +1912,7 @@ class mexc(Exchange, ImplicitAPI):
             firstSymbol = self.safe_string(symbols, 0)
             market = self.market(firstSymbol)
         marketType, query = self.handle_market_type_and_params('fetchTickers', market, params)
-        tickers = None
+        tickers: Any = None
         if isSingularMarket:
             request['symbol'] = self.safe_string(market, 'id')
         if marketType == 'spot':
@@ -2180,7 +2180,7 @@ class mexc(Exchange, ImplicitAPI):
             isSingularMarket = length == 1
             market = self.market(symbols[0])
         marketType, query = self.handle_market_type_and_params('fetchBidsAsks', market, params)
-        tickers = None
+        tickers: Any = None
         if marketType == 'spot':
             tickers = await self.spotPublicGetTickerBookTicker(query)
             #
@@ -2517,7 +2517,7 @@ class mexc(Exchange, ImplicitAPI):
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        ordersRequests = []
+        ordersRequests: List[Any] = []
         symbol: Str = None
         for i in range(0, len(orders)):
             rawOrder = orders[i]
@@ -3625,7 +3625,7 @@ class mexc(Exchange, ImplicitAPI):
         await self.load_markets()
         response = await self.fetch_account_helper(marketType, query)
         data = self.safe_value(response, 'balances', [])
-        result = []
+        result: List[Any] = []
         for i in range(0, len(data)):
             account = data[i]
             currencyId = self.safe_string_2(account, 'asset', 'currency')
@@ -3738,7 +3738,7 @@ class mexc(Exchange, ImplicitAPI):
         #         "tradeEnabled": True
         #     }
         #
-        wallet = None
+        wallet: Any = None
         if marketType == 'margin':
             wallet = self.safe_value(response, 'assets', [])
         elif marketType == 'swap':
@@ -4221,7 +4221,7 @@ class mexc(Exchange, ImplicitAPI):
         #
         data = self.safe_value(response, 'data', {})
         resultList = self.safe_value(data, 'resultList', [])
-        result = []
+        result: List[Any] = []
         for i in range(0, len(resultList)):
             entry = resultList[i]
             timestamp = self.safe_integer(entry, 'settleTime')
@@ -4382,7 +4382,7 @@ class mexc(Exchange, ImplicitAPI):
         #
         data = self.safe_value(response, 'data')
         result = self.safe_value(data, 'resultList', [])
-        rates = []
+        rates: List[Any] = []
         for i in range(0, len(result)):
             entry = result[i]
             marketId = self.safe_string(entry, 'symbol')
@@ -4506,7 +4506,7 @@ class mexc(Exchange, ImplicitAPI):
         riskIncrMmr = self.safe_string(info, 'riskIncrMmr')
         riskIncrImr = self.safe_string(info, 'riskIncrImr')
         floor = '0'
-        tiers = []
+        tiers: List[Any] = []
         quoteId = self.safe_string(info, 'quoteCoin')
         if riskIncrVol == '0':
             return [
@@ -4661,7 +4661,7 @@ class mexc(Exchange, ImplicitAPI):
         """
         network = self.safe_string(params, 'network')
         addressStructures = await self.fetch_deposit_addresses_by_network(code, params)
-        result: dict
+        result: NullableDict
         if network is not None:
             result = self.safe_dict(addressStructures, self.network_id_to_code(network, code))
         else:
@@ -5167,7 +5167,7 @@ class mexc(Exchange, ImplicitAPI):
             request['toAccountType'] = self.safe_string(accountTypes, toAccountType, toAccountType)
         else:
             raise ArgumentsRequired(self.id + ' fetchTransfers() requires a toAccountType parameter, one of "SPOT", "FUTURES"')
-        resultList = []
+        resultList: List[Any] = []
         if marketType == 'spot':
             if since is not None:
                 request['startTime'] = since
@@ -5742,7 +5742,7 @@ class mexc(Exchange, ImplicitAPI):
         """
         defaultType = self.safe_string(self.options, 'defaultType')
         isMargin = self.safe_bool(params, 'margin', False)
-        marginMode = None
+        marginMode: Str = None
         marginMode, params = super(mexc, self).handle_margin_mode_and_params(methodName, params, defaultValue)
         if (defaultType == 'margin') or (isMargin is True):
             marginMode = 'isolated'
@@ -5815,7 +5815,7 @@ class mexc(Exchange, ImplicitAPI):
         #    }
         #
         data = self.safe_list(response, 'data')
-        positions = self.parse_positions(data, symbols, params)
+        positions = self.parse_positions((data), symbols, params)
         return self.filter_by_since_limit(positions, since, limit)
 
     async def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
