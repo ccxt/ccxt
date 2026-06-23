@@ -1175,10 +1175,6 @@ func (this *HtxCore) ContractPublicGetLinearSwapExMarketHistoryTrade(args ...any
 	return this.callEndpointAsync("contractPublicGetLinearSwapExMarketHistoryTrade", args...)
 }
 
-func (this *HtxCore) ContractPublicGetLinearSwapApiV1SwapRiskInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapRiskInfo", args...)
-}
-
 func (this *HtxCore) ContractPublicGetSwapApiV1LinearSwapApiV1SwapInsuranceFund(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetSwapApiV1LinearSwapApiV1SwapInsuranceFund", args...)
 }
@@ -1207,24 +1203,12 @@ func (this *HtxCore) ContractPublicGetLinearSwapApiV1SwapApiState(args ...any) <
 	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapApiState", args...)
 }
 
-func (this *HtxCore) ContractPublicGetLinearSwapApiV1SwapCrossTransferState(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapCrossTransferState", args...)
-}
-
-func (this *HtxCore) ContractPublicGetLinearSwapApiV1SwapCrossTradeState(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapCrossTradeState", args...)
-}
-
 func (this *HtxCore) ContractPublicGetLinearSwapApiV1SwapEliteAccountRatio(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapEliteAccountRatio", args...)
 }
 
 func (this *HtxCore) ContractPublicGetLinearSwapApiV1SwapElitePositionRatio(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapElitePositionRatio", args...)
-}
-
-func (this *HtxCore) ContractPublicGetLinearSwapApiV1SwapLiquidationOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapLiquidationOrders", args...)
 }
 
 func (this *HtxCore) ContractPublicGetLinearSwapApiV1SwapSettlementRecords(args ...any) <-chan any {
@@ -1301,38 +1285,6 @@ func (this *HtxCore) ContractPrivateGetSwapApiV1SwapSubAuthList(args ...any) <-c
 
 func (this *HtxCore) ContractPrivateGetSwapApiV1SwapApiTradingStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivateGetSwapApiV1SwapApiTradingStatus", args...)
-}
-
-func (this *HtxCore) ContractPrivateGetLinearSwapApiV1SwapSubAuthList(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivateGetLinearSwapApiV1SwapSubAuthList", args...)
-}
-
-func (this *HtxCore) ContractPrivateGetLinearSwapApiV1SwapApiTradingStatus(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivateGetLinearSwapApiV1SwapApiTradingStatus", args...)
-}
-
-func (this *HtxCore) ContractPrivateGetLinearSwapApiV1SwapCrossPositionSide(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivateGetLinearSwapApiV1SwapCrossPositionSide", args...)
-}
-
-func (this *HtxCore) ContractPrivateGetLinearSwapApiV1SwapPositionSide(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivateGetLinearSwapApiV1SwapPositionSide", args...)
-}
-
-func (this *HtxCore) ContractPrivateGetLinearSwapApiV3UnifiedAccountInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivateGetLinearSwapApiV3UnifiedAccountInfo", args...)
-}
-
-func (this *HtxCore) ContractPrivateGetLinearSwapApiV3FixPositionMarginChangeRecord(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivateGetLinearSwapApiV3FixPositionMarginChangeRecord", args...)
-}
-
-func (this *HtxCore) ContractPrivateGetLinearSwapApiV3SwapUnifiedAccountType(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivateGetLinearSwapApiV3SwapUnifiedAccountType", args...)
-}
-
-func (this *HtxCore) ContractPrivateGetLinearSwapApiV3LinearSwapOverviewAccountInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivateGetLinearSwapApiV3LinearSwapOverviewAccountInfo", args...)
 }
 
 func (this *HtxCore) ContractPrivateGetV5AccountAssetMode(args ...any) <-chan any {
@@ -1849,162 +1801,6 @@ func (this *HtxCore) ContractPrivatePostSwapApiV1SwapTrackOpenorders(args ...any
 
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapTrackHisorders(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTrackHisorders", args...)
-}
-
-func (this *HtxCore) ContractPrivatePostLinearSwapApiV1SwapLeverPositionLimit(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapLeverPositionLimit", args...)
-}
-
-func (this *HtxCore) ContractPrivatePostLinearSwapApiV1SwapCrossLeverPositionLimit(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossLeverPositionLimit", args...)
-}
-
-func (this *HtxCore) ContractPrivatePostLinearSwapApiV1SwapBalanceValuation(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapBalanceValuation", args...)
-}
-
-func (this *HtxCore) ContractPrivatePostLinearSwapApiV1SwapSubAuth(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapSubAuth", args...)
-}
-
-func (this *HtxCore) ContractPrivatePostLinearSwapApiV1SwapSubAccountList(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapSubAccountList", args...)
-}
-
-func (this *HtxCore) ContractPrivatePostLinearSwapApiV1SwapCrossSubAccountList(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossSubAccountList", args...)
-}
-
-func (this *HtxCore) ContractPrivatePostLinearSwapApiV1SwapSubAccountInfoList(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapSubAccountInfoList", args...)
-}
-
-func (this *HtxCore) ContractPrivatePostLinearSwapApiV1SwapCrossSubAccountInfoList(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossSubAccountInfoList", args...)
-}
-
-func (this *HtxCore) ContractPrivatePostLinearSwapApiV1SwapSubAccountInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapSubAccountInfo", args...)
-}
-
-func (this *HtxCore) ContractPrivatePostLinearSwapApiV1SwapCrossSubAccountInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossSubAccountInfo", args...)
-}
-
-func (this *HtxCore) ContractPrivatePostLinearSwapApiV1SwapSubPositionInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapSubPositionInfo", args...)
-}
-
-func (this *HtxCore) ContractPrivatePostLinearSwapApiV1SwapCrossSubPositionInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossSubPositionInfo", args...)
-}
-
-func (this *HtxCore) ContractPrivatePostLinearSwapApiV1SwapFinancialRecord(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapFinancialRecord", args...)
-}
-
-func (this *HtxCore) ContractPrivatePostLinearSwapApiV1SwapFinancialRecordExact(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapFinancialRecordExact", args...)
-}
-
-func (this *HtxCore) ContractPrivatePostLinearSwapApiV1SwapUserSettlementRecords(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapUserSettlementRecords", args...)
-}
-
-func (this *HtxCore) ContractPrivatePostLinearSwapApiV1SwapCrossUserSettlementRecords(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossUserSettlementRecords", args...)
-}
-
-func (this *HtxCore) ContractPrivatePostLinearSwapApiV1SwapAvailableLevelRate(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapAvailableLevelRate", args...)
-}
-
-func (this *HtxCore) ContractPrivatePostLinearSwapApiV1SwapCrossAvailableLevelRate(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossAvailableLevelRate", args...)
-}
-
-func (this *HtxCore) ContractPrivatePostLinearSwapApiV1SwapOrderLimit(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapOrderLimit", args...)
-}
-
-func (this *HtxCore) ContractPrivatePostLinearSwapApiV1SwapFee(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapFee", args...)
-}
-
-func (this *HtxCore) ContractPrivatePostLinearSwapApiV1SwapTransferLimit(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapTransferLimit", args...)
-}
-
-func (this *HtxCore) ContractPrivatePostLinearSwapApiV1SwapCrossTransferLimit(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossTransferLimit", args...)
-}
-
-func (this *HtxCore) ContractPrivatePostLinearSwapApiV1SwapPositionLimit(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapPositionLimit", args...)
-}
-
-func (this *HtxCore) ContractPrivatePostLinearSwapApiV1SwapCrossPositionLimit(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossPositionLimit", args...)
-}
-
-func (this *HtxCore) ContractPrivatePostLinearSwapApiV1SwapMasterSubTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapMasterSubTransfer", args...)
-}
-
-func (this *HtxCore) ContractPrivatePostLinearSwapApiV1SwapMasterSubTransferRecord(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapMasterSubTransferRecord", args...)
-}
-
-func (this *HtxCore) ContractPrivatePostLinearSwapApiV1SwapTransferInner(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapTransferInner", args...)
-}
-
-func (this *HtxCore) ContractPrivatePostLinearSwapApiV3SwapFinancialRecord(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV3SwapFinancialRecord", args...)
-}
-
-func (this *HtxCore) ContractPrivatePostLinearSwapApiV3SwapFinancialRecordExact(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV3SwapFinancialRecordExact", args...)
-}
-
-func (this *HtxCore) ContractPrivatePostLinearSwapApiV1SwapCrossMatchresults(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossMatchresults", args...)
-}
-
-func (this *HtxCore) ContractPrivatePostLinearSwapApiV1SwapCrossMatchresultsExact(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossMatchresultsExact", args...)
-}
-
-func (this *HtxCore) ContractPrivatePostLinearSwapApiV1LinearCancelAfter(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1LinearCancelAfter", args...)
-}
-
-func (this *HtxCore) ContractPrivatePostLinearSwapApiV3SwapCrossMatchresults(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV3SwapCrossMatchresults", args...)
-}
-
-func (this *HtxCore) ContractPrivatePostLinearSwapApiV3SwapCrossMatchresultsExact(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV3SwapCrossMatchresultsExact", args...)
-}
-
-func (this *HtxCore) ContractPrivatePostLinearSwapApiV3FixPositionMarginChange(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV3FixPositionMarginChange", args...)
-}
-
-func (this *HtxCore) ContractPrivatePostLinearSwapApiV3SwapSwitchAccountType(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV3SwapSwitchAccountType", args...)
-}
-
-func (this *HtxCore) ContractPrivatePostLinearSwapApiV3LinearSwapFeeSwitch(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV3LinearSwapFeeSwitch", args...)
-}
-
-func (this *HtxCore) ContractPrivatePostLinearSwapApiV1SwapRelationTpslOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapRelationTpslOrder", args...)
-}
-
-func (this *HtxCore) ContractPrivatePostLinearSwapApiV1SwapCrossRelationTpslOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossRelationTpslOrder", args...)
 }
 
 func (this *HtxCore) ContractPrivatePostV5AccountAssetMode(args ...any) <-chan any {

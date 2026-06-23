@@ -338,7 +338,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.channel]: 'webData2' or 'allMids', default is 'webData2'
-        :param str [params.dex]: for for hip3 tokens subscription, eg: 'xyz' or 'flx`, if symbols are provided we will infer it from the first symbol's market
+        :param str [params.dex]: for hip3 tokens subscription, eg: 'xyz' or 'flx`, if symbols are provided we will infer it from the first symbol's market
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
@@ -905,7 +905,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.dex]: for for hip3 tokens subscription, eg: 'xyz' or 'flx'
+        :param str [params.dex]: for hip3 tokens subscription, eg: 'xyz' or 'flx'
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.load_markets()
@@ -1112,6 +1112,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         :param int [since]: the earliest time in ms to fetch positions for
         :param int [limit]: the maximum number of positions to retrieve
         :param dict params: extra parameters specific to the exchange API endpoint
+        :param str [params.dex]: for hip3 tokens subscription, eg: 'xyz' or 'flx`, if symbols are provided we will infer it from the first symbol's market
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         await self.load_markets()
