@@ -736,9 +736,9 @@ class bingx extends bingx$1["default"] {
         //
         // for spot, opening-time (t) is used instead of closing-time (T), to be compatible with fetchOHLCV
         // for linear swap, (T) is the opening time
-        let timestamp = (this.safeBool(market, 'spot')) ? 't' : 'T';
+        let timestamp = this.safeBool(market, 'spot') ? 't' : 'T';
         if (this.safeBool(market, 'swap')) {
-            timestamp = (this.safeBool(market, 'inverse')) ? 't' : 'T';
+            timestamp = this.safeBool(market, 'inverse') ? 't' : 'T';
         }
         return [
             this.safeInteger(ohlcv, timestamp),
