@@ -1077,7 +1077,7 @@ func  (this *BybitCore) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any  {
     //
     market := ccxt.GetArg(optionalArgs, 0, nil)
     _ = market
-    var volumeIndex any = ccxt.Ternary(ccxt.IsTrue((this.SafeBool(market, "inverse"))), "turnover", "volume")
+    var volumeIndex any = ccxt.Ternary(ccxt.IsTrue(this.SafeBool(market, "inverse")), "turnover", "volume")
     return []any{this.SafeInteger(ohlcv, "start"), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, volumeIndex)}
 }
 /**

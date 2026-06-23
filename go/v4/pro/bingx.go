@@ -870,9 +870,9 @@ func  (this *BingxCore) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any  {
     // for linear swap, (T) is the opening time
     market := ccxt.GetArg(optionalArgs, 0, nil)
     _ = market
-    var timestamp any = ccxt.Ternary(ccxt.IsTrue((this.SafeBool(market, "spot"))), "t", "T")
+    var timestamp any = ccxt.Ternary(ccxt.IsTrue(this.SafeBool(market, "spot")), "t", "T")
     if ccxt.IsTrue(this.SafeBool(market, "swap")) {
-        timestamp = ccxt.Ternary(ccxt.IsTrue((this.SafeBool(market, "inverse"))), "t", "T")
+        timestamp = ccxt.Ternary(ccxt.IsTrue(this.SafeBool(market, "inverse")), "t", "T")
     }
     return []any{this.SafeInteger(ohlcv, timestamp), this.SafeNumber(ohlcv, "o"), this.SafeNumber(ohlcv, "h"), this.SafeNumber(ohlcv, "l"), this.SafeNumber(ohlcv, "c"), this.SafeNumber(ohlcv, "v")}
 }
