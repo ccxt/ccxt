@@ -299,6 +299,11 @@ public class KalshiApi extends PredictionExchange
         return this.callAsync ("kalshiPrivatePostPortfolioOrders", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  kalshiPrivatePostPortfolioEventsOrders (Object... optionalArgs)
+    {
+        return this.callAsync ("kalshiPrivatePostPortfolioEventsOrders", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  kalshiPrivatePostPortfolioOrdersBatched (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivatePostPortfolioOrdersBatched", optionalArgs);
@@ -362,11 +367,6 @@ public class KalshiApi extends PredictionExchange
     public java.util.concurrent.CompletableFuture<Object>  kalshiPrivateDeletePortfolioOrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivateDeletePortfolioOrdersOrderId", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPrivateDeletePortfolioOrders (Object... optionalArgs)
-    {
-        return this.callAsync ("kalshiPrivateDeletePortfolioOrders", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  kalshiPrivateDeletePortfolioOrdersBatched (Object... optionalArgs)

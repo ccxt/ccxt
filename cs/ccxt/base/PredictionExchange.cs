@@ -19,18 +19,7 @@ public partial class PredictionExchange : Exchange
         return this.safeBool(this.has, "prediction", false);
     }
 
-    public async virtual Task<object> loadMarketsAndEvents(object reload = null, object parameters = null)
-    {
-        reload ??= false;
-        parameters ??= new Dictionary<string, object>();
-        object res = await promiseAll(new List<object> {this.loadMarkets(reload, parameters), this.loadEvents(reload, parameters)});
-        return new Dictionary<string, object>() {
-            { "markets", getValue(res, 0) },
-            { "events", getValue(res, 1) },
-        };
-    }
-
-    public virtual void checkEventsAndMarkets(object outcome = null)
+    public virtual void checkEvents(object outcome = null)
     {
         // pure synchronous guard (no I/O) — callers invoke it without await, so leaving it
         // async would make the coroutine never run in Python/PHP and silently skip validation.
@@ -65,6 +54,121 @@ public partial class PredictionExchange : Exchange
             return new List<object>() {singleQuery};
         }
         return this.safeList(parameters, "queries", new List<object>() {});
+    }
+
+    public virtual object applyEventFetchParams(object events, object parameters = null, object queries = null)
+    {
+        // applies the unified fetchEvents options client-side (eventId/slug/status/searchIn/sort/limit)
+        // so exchanges whose API can't filter natively still support them consistently
+        parameters ??= new Dictionary<string, object>();
+        object result = events;
+        object eventId = this.safeString(parameters, "eventId");
+        object slug = this.safeString(parameters, "slug");
+        if (isTrue(isTrue((!isEqual(eventId, null))) || isTrue((!isEqual(slug, null)))))
+        {
+            object filtered = new List<object>() {};
+            for (object i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
+            {
+                object eventVar = getValue(result, i);
+                object idMatch = isTrue((!isEqual(eventId, null))) && isTrue((isEqual(this.safeString(eventVar, "id"), eventId)));
+                object slugMatch = isTrue((!isEqual(slug, null))) && isTrue((isEqual(this.safeString(eventVar, "slug"), slug)));
+                if (isTrue(isTrue(idMatch) || isTrue(slugMatch)))
+                {
+                    ((IList<object>)filtered).Add(eventVar);
+                }
+            }
+            result = filtered;
+        }
+        result = this.filterEventsByStatus(result, this.safeString(parameters, "status"));
+        if (isTrue(isTrue((!isEqual(queries, null))) && isTrue((isGreaterThan(getArrayLength(queries), 0)))))
+        {
+            result = this.filterEventsBySearchIn(result, queries, this.safeString(parameters, "searchIn"));
+        }
+        object sort = this.safeString(parameters, "sort");
+        if (isTrue(!isEqual(sort, null)))
+        {
+            object sortKey = null;
+            if (isTrue(isEqual(sort, "volume")))
+            {
+                sortKey = "volume";
+            } else if (isTrue(isEqual(sort, "liquidity")))
+            {
+                sortKey = "liquidity";
+            } else if (isTrue(isEqual(sort, "newest")))
+            {
+                sortKey = "created";
+            }
+            if (isTrue(!isEqual(sortKey, null)))
+            {
+                result = this.sortBy(result, sortKey, true, 0);
+            }
+        }
+        object limit = this.safeInteger(parameters, "limit");
+        if (isTrue(!isEqual(limit, null)))
+        {
+            result = this.arraySlice(result, 0, limit);
+        }
+        return result;
+    }
+
+    public virtual object filterEventsByStatus(object events, object status = null)
+    {
+        // 'active' | 'inactive' | 'closed' | 'all' — 'inactive' and 'closed' are interchangeable
+        if (isTrue(isTrue((isEqual(status, null))) || isTrue((isEqual(status, "all")))))
+        {
+            return events;
+        }
+        object wantActive = (isEqual(status, "active"));
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(events)); postFixIncrement(ref i))
+        {
+            object eventVar = getValue(events, i);
+            object isActive = this.safeBool(eventVar, "active");
+            // keep events whose status is unknown (already filtered server-side, no `active` field)
+            if (isTrue(isTrue((isEqual(isActive, null))) || isTrue((isEqual(isActive, wantActive)))))
+            {
+                ((IList<object>)result).Add(eventVar);
+            }
+        }
+        return result;
+    }
+
+    public virtual object filterEventsBySearchIn(object events, object queries, object searchIn = null)
+    {
+        // keep events whose title and/or description contains one of the queries (searchIn defaults to 'both')
+        if (isTrue(isTrue(isTrue((isEqual(searchIn, null))) || isTrue((isEqual(queries, null)))) || isTrue((isEqual(getArrayLength(queries), 0)))))
+        {
+            return events;
+        }
+        object checkTitle = isTrue((isEqual(searchIn, "title"))) || isTrue((isEqual(searchIn, "both")));
+        object checkDescription = isTrue((isEqual(searchIn, "description"))) || isTrue((isEqual(searchIn, "both")));
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(events)); postFixIncrement(ref i))
+        {
+            object eventVar = getValue(events, i);
+            object title = this.safeStringLower(eventVar, "title", "");
+            object description = this.safeStringLower(eventVar, "description", "");
+            object matched = false;
+            for (object qi = 0; isLessThan(qi, getArrayLength(queries)); postFixIncrement(ref qi))
+            {
+                object q = ((string)getValue(queries, qi)).ToLower();
+                if (isTrue(isTrue(checkTitle) && isTrue((isGreaterThanOrEqual(getIndexOf(title, q), 0)))))
+                {
+                    matched = true;
+                    break;
+                }
+                if (isTrue(isTrue(checkDescription) && isTrue((isGreaterThanOrEqual(getIndexOf(description, q), 0)))))
+                {
+                    matched = true;
+                    break;
+                }
+            }
+            if (isTrue(matched))
+            {
+                ((IList<object>)result).Add(eventVar);
+            }
+        }
+        return result;
     }
 
     public async virtual Task<object> fetchEvents(object parameters = null)
@@ -353,19 +457,21 @@ public partial class PredictionExchange : Exchange
 
     public virtual object safePredictionOrder(object order, object market = null)
     {
-        object parsed = base.safeOrder(order, market);
+        // the prediction identity is the `outcome` handle carried on the raw dict (read by
+        // toPredictionStructure), not a ccxt `symbol`, so don't pass an outcome object as a market
+        object parsed = base.safeOrder(order);
         return this.toPredictionStructure(parsed, order);
     }
 
     public virtual object safePredictionTrade(object trade, object market = null)
     {
-        object parsed = base.safeTrade(trade, market);
+        object parsed = base.safeTrade(trade);
         return this.toPredictionStructure(parsed, trade);
     }
 
     public virtual object safePredictionTicker(object ticker, object market = null)
     {
-        object parsed = base.safeTicker(ticker, market);
+        object parsed = base.safeTicker(ticker);
         return this.toPredictionStructure(parsed, ticker);
     }
 
@@ -375,18 +481,35 @@ public partial class PredictionExchange : Exchange
         return this.toPredictionStructure(parsed, position);
     }
 
+    public virtual object safePredictionOrderBook(object orderbook, object outcomeObj = null)
+    {
+        // normalize a parsed order book to the prediction shape: replace the unified
+        // `symbol` with the `outcome` handle and attach the outcome identity fields
+        // (outcomeId / market) so books match the PredictionOrderBook structure.
+        object fallback = this.safeString2(orderbook, "outcome", "symbol");
+        ((IDictionary<string,object>)orderbook)["outcome"] = ((bool) isTrue((isEqual(outcomeObj, null)))) ? fallback : this.safeString(outcomeObj, "outcome", fallback);
+        ((IDictionary<string,object>)orderbook)["outcomeId"] = ((bool) isTrue((isEqual(outcomeObj, null)))) ? this.safeString(orderbook, "outcomeId") : this.safeString(outcomeObj, "outcomeId");
+        ((IDictionary<string,object>)orderbook)["market"] = ((bool) isTrue((isEqual(outcomeObj, null)))) ? this.safeString(orderbook, "market") : this.safeString(outcomeObj, "market");
+        // omit (not delete) — `del dict['symbol']` raises KeyError in python/php when absent
+        return this.omit(orderbook, "symbol");
+    }
+
     public virtual object toPredictionStructure(object parsed, object raw)
     {
-        // rename the unified `symbol` to the prediction `outcome` handle and attach the
-        // prediction identity fields (raw exchange id, label, parent market/event) that the
+        // the prediction identity is the `outcome` handle (never the base `symbol`); attach it
+        // and the other prediction fields (raw exchange id, label, parent market/event) that the
         // base safe* helpers drop. the exchange parser passes them on the raw input dict.
-        object outcomeSymbol = this.safeString2(raw, "outcome", "symbol");
-        ((IDictionary<string,object>)parsed)["outcome"] = outcomeSymbol;
+        ((IDictionary<string,object>)parsed)["outcome"] = this.safeString(raw, "outcome");
         ((IDictionary<string,object>)parsed)["outcomeId"] = this.safeString(raw, "outcomeId");
         ((IDictionary<string,object>)parsed)["label"] = this.safeString(raw, "label");
         ((IDictionary<string,object>)parsed)["market"] = this.safeString(raw, "market");
         ((IDictionary<string,object>)parsed)["event"] = this.safeString(raw, "event");
-        ((IDictionary<string,object>)parsed).Remove((string)"symbol");
+        // guard the delete: a bare `delete` is a no-op on a missing key in JS, but transpiles to
+        // `del`/`unset` which raises in Python when the inherited `symbol` was never set
+        if (isTrue(inOp(parsed, "symbol")))
+        {
+            ((IDictionary<string,object>)parsed).Remove((string)"symbol");
+        }
         return parsed;
     }
 

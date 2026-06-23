@@ -140,6 +140,7 @@ public class KalshiCore extends KalshiApi
                         }} );
                         put( "post", new java.util.HashMap<String, Object>() {{
                             put( "portfolio/orders", 1 );
+                            put( "portfolio/events/orders", 1 );
                             put( "portfolio/orders/batched", 1 );
                             put( "portfolio/orders/{order_id}/amend", 1 );
                             put( "portfolio/orders/{order_id}/decrease", 1 );
@@ -157,7 +158,6 @@ public class KalshiCore extends KalshiApi
                         }} );
                         put( "delete", new java.util.HashMap<String, Object>() {{
                             put( "portfolio/orders/{order_id}", 1 );
-                            put( "portfolio/orders", 1 );
                             put( "portfolio/orders/batched", 1 );
                             put( "portfolio/order_groups/{order_group_id}", 1 );
                         }} );
@@ -166,6 +166,7 @@ public class KalshiCore extends KalshiApi
             }} );
             put( "requiredCredentials", new java.util.HashMap<String, Object>() {{
                 put( "apiKey", true );
+                put( "secret", false );
                 put( "privateKey", true );
             }} );
             put( "fees", new java.util.HashMap<String, Object>() {{
@@ -216,10 +217,15 @@ public class KalshiCore extends KalshiApi
             Object eventsDict = new java.util.HashMap<String, Object>() {{}};
             Object cursor = null;
             Object limit = this.safeInteger(this.options, "maxFetchMarketsLimit", 1000);
+            // default to tradeable (open) markets; kalshi has thousands of closed/settled markets and
+            // an unfiltered cursor pages through those, so loadMarkets would otherwise return mostly
+            // closed markets. Pass params.status (e.g. 'closed', 'settled', 'unopened') to override
+            Object status = this.safeString(rest, "status", "open");
             while (true)
             {
                 Object request = new java.util.HashMap<String, Object>() {{
                     put( "limit", limit );
+                    put( "status", status );
                 }};
                 if (Helpers.isTrue(!Helpers.isEqual(cursor, null)))
                 {
@@ -265,7 +271,7 @@ public class KalshiCore extends KalshiApi
                                 Helpers.addElementToObject(eventsDict, eventKey, new java.util.HashMap<String, Object>() {{
         put( "id", eventTicker );
         put( "slug", eventTicker );
-        put( "symbol", finalEventKey );
+        put( "event", finalEventKey );
         put( "title", eventTitle );
         put( "markets", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
     }});
@@ -276,15 +282,17 @@ public class KalshiCore extends KalshiApi
                     }
                 }
                 cursor = this.safeString(response, "cursor");
-                if (Helpers.isTrue(Helpers.isTrue(!Helpers.isTrue(cursor) || Helpers.isTrue(Helpers.isLessThan(rawMarketsLength, limit))) || Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getArrayLength(flatMarkets), maxMarkets))))
+                Object collectedLength = Helpers.getArrayLength(flatMarkets);
+                if (Helpers.isTrue(Helpers.isTrue(!Helpers.isTrue(cursor) || Helpers.isTrue(Helpers.isLessThan(rawMarketsLength, limit))) || Helpers.isTrue(Helpers.isGreaterThanOrEqual(collectedLength, maxMarkets))))
                 {
                     break;
                 }
             }
             this.events = eventsDict;
-            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(flatMarkets), maxMarkets)))
+            Object flatMarketsLength = Helpers.getArrayLength(flatMarkets);
+            if (Helpers.isTrue(Helpers.isGreaterThan(flatMarketsLength, maxMarkets)))
             {
-                return Helpers.slice(flatMarkets, 0, maxMarkets);
+                return this.arraySlice(flatMarkets, 0, maxMarkets);
             }
             return flatMarkets;
         });
@@ -371,15 +379,24 @@ public class KalshiCore extends KalshiApi
             Object seriesParts = this.arraySlice(eventParts, 0, Helpers.subtract(eventPartsLength, 1));
             seriesTicker = String.join((String)"-", (java.util.List<String>)seriesParts);
         }
-        // Market symbol (no outcome suffix)
+        // market symbol (no outcome suffix)
         Object subtitleOrTicker = ((Helpers.isTrue((!Helpers.isEqual(subtitle, null))))) ? subtitle : ticker;
         Object marketSymbol = this.slugToMarketSymbol(eventTicker, subtitleOrTicker);
-        // kalshi quotes in cents and exposes the price tick per market via tick_size (in cents);
-        // convert it to a dollar price precision (defaults to 1 cent). amount is a whole number of contracts
-        Object tickSizeCents = this.safeString(raw, "tick_size", "1");
+        // kalshi exposes the per-market price tick via price_ranges[].step (a dollar value,
+        // e.g. "0.0010" for deci-cent markets, "0.0100" for cent markets); older responses
+        // used tick_size (in cents). amount is a whole number of contracts
+        Object priceRanges = this.safeList(raw, "price_ranges", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object firstRange = this.safeDict(priceRanges, 0, new java.util.HashMap<String, Object>() {{}});
+        Object stepDollars = this.safeString(firstRange, "step");
+        Object pricePrecision = this.parseNumber(Precise.stringDiv(this.safeString(raw, "tick_size", "1"), "100"));
+        if (Helpers.isTrue(!Helpers.isEqual(stepDollars, null)))
+        {
+            pricePrecision = this.parseNumber(stepDollars);
+        }
+        final Object finalPricePrecision = pricePrecision;
         Object precision = new java.util.HashMap<String, Object>() {{
             put( "amount", 1 );
-            put( "price", KalshiCore.this.parseNumber(Precise.stringDiv(tickSizeCents, "100")) );
+            put( "price", finalPricePrecision );
         }};
         // Build outcomes
         Object outcomeLabels = new java.util.ArrayList<Object>(java.util.Arrays.asList("YES", "NO"));
@@ -397,9 +414,7 @@ final Object finalOi = oi;
                         ((java.util.List<Object>)outcomes).add(new java.util.HashMap<String, Object>() {{
                 put( "id", Helpers.GetValue(outcomeIds, finalOi) );
                 put( "outcomeId", Helpers.GetValue(outcomeIds, finalOi) );
-                put( "symbol", outcomeHandle );
                 put( "outcome", outcomeHandle );
-                put( "marketSymbol", finalMarketSymbol );
                 put( "market", finalMarketSymbol );
                 put( "label", label );
                 put( "active", active );
@@ -490,19 +505,17 @@ final Object finalOi = oi;
      * @name kalshi#fetchTicker
      * @description fetches the current market price and bid/ask for a single kalshi outcome
      * @see https://docs.kalshi.com/api-reference/market/get-market
-     * @param {string} symbol the unified symbol like TRUMP_BRING_BACK_MANUFACTURING:YES or outcomeId like KXGDPSHAREMANU-29
+     * @param {string} outcome the unified outcome like TRUMP_BRING_BACK_MANUFACTURING:YES or outcomeId like KXGDPSHAREMANU-29
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object outcome, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object outcome = symbol;
-            (this.loadMarkets()).join();
-            this.checkEventsAndMarkets(outcome);
+            this.checkEvents(outcome);
             Object outcomeObj = this.outcome(outcome);
             Object ticker = this.safeString(Helpers.GetValue(outcomeObj, "info"), "ticker");
             Object request = new java.util.HashMap<String, Object>() {{
@@ -605,19 +618,17 @@ final Object finalOi = oi;
      * @name kalshi#fetchOpenInterest
      * @description fetches the open interest of a prediction market outcome
      * @see https://docs.kalshi.com/api-reference/market/get-market
-     * @param {string} symbol unified outcome symbol or outcome id
+     * @param {string} outcome unified outcome or outcome id
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterest(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterest(Object outcome, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object outcome = symbol;
-            (this.loadMarkets()).join();
-            this.checkEventsAndMarkets(outcome);
+            this.checkEvents(outcome);
             Object outcomeObj = this.outcome(outcome);
             Object ticker = this.safeString(Helpers.GetValue(outcomeObj, "info"), "ticker");
             Object request = new java.util.HashMap<String, Object>() {{
@@ -637,7 +648,7 @@ final Object finalOi = oi;
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.milliseconds();
-        return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
+        Object openInterest = this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
             put( "symbol", KalshiCore.this.safeSymbol(null, market) );
             put( "openInterestAmount", KalshiCore.this.safeNumber2(interest, "open_interest_fp", "open_interest") );
             put( "openInterestValue", null );
@@ -647,6 +658,10 @@ final Object finalOi = oi;
             put( "datetime", KalshiCore.this.iso8601(timestamp) );
             put( "info", interest );
         }}, market);
+        Helpers.addElementToObject(openInterest, "outcome", this.safeOutcomeSymbol(null, market));
+        Helpers.addElementToObject(openInterest, "outcomeId", this.safeString(market, "outcomeId"));
+        ((java.util.Map<String,Object>)openInterest).remove((String)"symbol");
+        return openInterest;
     }
 
     /**
@@ -717,11 +732,11 @@ final Object finalOi = oi;
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object marketAny = ((Object)market);
-        Object outcomeObj = this.safeOutcome(this.safeString(marketAny, "symbol"), marketAny);
+        Object outcomeObj = this.safeOutcome(this.safeString(marketAny, "outcome"), marketAny);
         Object outcomeLabel = ((Helpers.isTrue(market))) ? this.safeString(market, "label", this.safeString(Helpers.GetValue(market, "info"), "outcomeLabel", "YES")) : "YES";
         Object isNo = Helpers.isEqual(((String)outcomeLabel).toUpperCase(), "NO");
         Object now = this.milliseconds();
-        Object symbol = this.safeString(outcomeObj, "symbol");
+        Object outcome = this.safeString(outcomeObj, "outcome");
         Object yesAsk = this.safeNumber(raw, "yes_ask_dollars");
         Object yesBid = this.safeNumber(raw, "yes_bid_dollars");
         Object noAsk = this.safeNumber(raw, "no_ask_dollars");
@@ -754,10 +769,10 @@ final Object finalOi = oi;
         final Object finalClose = close;
         final Object finalAverage = average;
         return this.safePredictionTicker(new java.util.HashMap<String, Object>() {{
-            put( "symbol", symbol );
+            put( "outcome", outcome );
             put( "outcomeId", KalshiCore.this.safeString2(outcomeObj, "outcomeId", "id") );
             put( "label", KalshiCore.this.safeString(outcomeObj, "label") );
-            put( "market", KalshiCore.this.safeString2(outcomeObj, "market", "marketSymbol") );
+            put( "market", KalshiCore.this.safeString2(outcomeObj, "market", "outcome") );
             put( "timestamp", now );
             put( "datetime", KalshiCore.this.iso8601(now) );
             put( "high", null );
@@ -785,29 +800,28 @@ final Object finalOi = oi;
      * @name kalshi#fetchTickers
      * @description fetches tickers for multiple outcomes at once, batching their market tickers through the markets endpoint
      * @see https://docs.kalshi.com/api-reference/market/get-markets
-     * @param {string[]} [symbols] unified outcome symbols, fetches tickers for all loaded outcomes when omitted
+     * @param {string[]} [outcomes] unified outcomes, fetches tickers for all loaded outcomes when omitted
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome symbol
+     * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
      */
     public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
+            Object outcomes = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
             Object targets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
+            if (Helpers.isTrue(!Helpers.isEqual(outcomes, null)))
             {
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
+                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(outcomes)); i++)
                 {
-                    this.checkEventsAndMarkets(Helpers.GetValue(symbols, i));
-                    ((java.util.List<Object>)targets).add(Helpers.GetValue(symbols, i));
+                    this.checkEvents(Helpers.GetValue(outcomes, i));
+                    ((java.util.List<Object>)targets).add(Helpers.GetValue(outcomes, i));
                 }
             } else
             {
-                this.checkEventsAndMarkets();
+                this.checkEvents();
                 Object allKeys = Helpers.objectKeys(this.outcomes);
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(allKeys)); i++)
                 {
@@ -888,21 +902,19 @@ final Object finalOi = oi;
      * @name kalshi#fetchOrderBook
      * @description fetches the order book for a single kalshi outcome
      * @see https://docs.kalshi.com/api-reference/market/get-market-orderbook
-     * @param {string} symbol unified outcome symbol or outcome id
+     * @param {string} outcome unified outcome or outcome id
      * @param {int} [limit] the maximum number of bids/asks to return (not enforced by kalshis API, reserved for future client-side trimming)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object outcome, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object outcome = symbol;
-            (this.loadMarkets()).join();
-            this.checkEventsAndMarkets(outcome);
+            this.checkEvents(outcome);
             Object outcomeObj = this.outcome(outcome);
             Object ticker = this.safeString(Helpers.GetValue(outcomeObj, "info"), "ticker");
             Object isNo = Helpers.isEqual(Helpers.GetValue(outcomeObj, "label"), "NO");
@@ -959,7 +971,7 @@ final Object finalOi = oi;
                     ((java.util.List<Object>)asks).add(new java.util.ArrayList<Object>(java.util.Arrays.asList(price, this.safeNumber(Helpers.GetValue(rawNo, ai), 1))));
                 }
             }
-            return this.sortedOrders(this.safeString(outcomeObj, "symbol", outcome), timestamp, bids, asks);
+            return this.safePredictionOrderBook(this.sortedOrders(this.safeString(outcomeObj, "outcome", outcome), timestamp, bids, asks), outcomeObj);
         });
 
     }
@@ -969,13 +981,13 @@ final Object finalOi = oi;
      * @method
      * @name kalshi#sortedOrders
      * @description sorts bids descending and asks ascending, then returns a CCXT-shaped order book object
-     * @param {string} symbol unified outcome symbol
+     * @param {string} outcome unified outcome
      * @param {int} timestamp timestamp in ms
      * @param {object[]} bids array of [price, size] bid levels
      * @param {object[]} asks array of [price, size] ask levels
      * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
-    public Object sortedOrders(Object symbol, Object timestamp, Object bids, Object asks)
+    public Object sortedOrders(Object outcome, Object timestamp, Object bids, Object asks)
     {
         // Sort bids descending, asks ascending, match CCXT OrderBook shape
         bids = this.sortBy(bids, 0, true);
@@ -983,7 +995,7 @@ final Object finalOi = oi;
         final Object finalBids = bids;
         final Object finalAsks = asks;
         return new java.util.HashMap<String, Object>() {{
-            put( "symbol", symbol );
+            put( "outcome", outcome );
             put( "bids", finalBids );
             put( "asks", finalAsks );
             put( "timestamp", timestamp );
@@ -997,14 +1009,14 @@ final Object finalOi = oi;
      * @name kalshi#fetchOHLCV
      * @description fetches OHLCV candlesticks for a single kalshi outcome from the candlesticks endpoint
      * @see https://docs.kalshi.com/api-reference/market/get-market-candlesticks
-     * @param {string} symbol unified outcome symbol
+     * @param {string} outcome unified outcome
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum number of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOHLCV(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOHLCV(Object outcome, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1013,9 +1025,7 @@ final Object finalOi = oi;
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            Object outcome = symbol;
-            (this.loadMarkets()).join();
-            this.checkEventsAndMarkets(outcome);
+            this.checkEvents(outcome);
             Object outcomeObj = this.outcome(outcome);
             Object ticker = this.safeString(Helpers.GetValue(outcomeObj, "info"), "ticker");
             Object seriesTicker = this.safeString(Helpers.GetValue(outcomeObj, "info"), "seriesTicker", ticker);
@@ -1148,13 +1158,13 @@ final Object finalOi = oi;
      * @name kalshi#fetchTrades
      * @description fetches public trade history for a single kalshi market ticker
      * @see https://docs.kalshi.com/api-reference/market/get-trades
-     * @param {string} symbol unified outcome symbol
+     * @param {string} outcome unified outcome
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum number of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object outcome, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1162,9 +1172,7 @@ final Object finalOi = oi;
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            Object outcome = symbol;
-            (this.loadMarkets()).join();
-            this.checkEventsAndMarkets(outcome);
+            this.checkEvents(outcome);
             Object outcomeObj = this.outcome(outcome);
             Object ticker = this.safeString(Helpers.GetValue(outcomeObj, "info"), "ticker");
             Object request = new java.util.HashMap<String, Object>() {{
@@ -1219,10 +1227,10 @@ final Object finalOi = oi;
         Object amount = this.safeNumber(trade, "count", amountFp);
         Object rawSide = this.safeStringLower(trade, "taker_side");
         Object marketAny = ((Object)market);
-        Object outcomeObj = this.safeOutcome(this.safeString(marketAny, "symbol"), marketAny);
+        Object outcomeObj = this.safeOutcome(this.safeString(marketAny, "outcome"), marketAny);
         Object marketInfo = this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}});
         Object requestedOutcomeLabel = this.safeStringLower(outcomeObj, "label", this.safeStringLower(marketInfo, "outcomeLabel"));
-        Object outcomeSymbol = this.safeString(outcomeObj, "symbol");
+        Object outcomeSymbol = this.safeString(outcomeObj, "outcome");
         Object outcomeId = this.safeString2(outcomeObj, "outcomeId", "id");
         Object side = null;
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(rawSide, "yes")) || Helpers.isTrue(Helpers.isEqual(rawSide, "no"))))
@@ -1249,11 +1257,10 @@ final Object finalOi = oi;
             put( "info", trade );
             put( "timestamp", ts );
             put( "datetime", KalshiCore.this.iso8601(ts) );
-            put( "symbol", outcomeSymbol );
             put( "outcome", outcomeSymbol );
             put( "outcomeId", outcomeId );
             put( "label", KalshiCore.this.safeString(outcomeObj, "label") );
-            put( "market", KalshiCore.this.safeString2(outcomeObj, "market", "marketSymbol") );
+            put( "market", KalshiCore.this.safeString2(outcomeObj, "market", "outcome") );
             put( "order", null );
             put( "type", null );
             put( "side", finalSide );
@@ -1279,7 +1286,7 @@ final Object finalOi = oi;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            this.checkEventsAndMarkets();
+            this.checkEvents();
             Object response = (this.kalshiPrivateGetPortfolioBalance(parameters)).join();
             return this.parseBalance(response);
         });
@@ -1312,7 +1319,7 @@ final Object finalOi = oi;
     put( "used", 0 );
     put( "total", finalTotal );
 }});
-        return result;
+        return this.safeBalance(result);
     }
 
     /**
@@ -1320,7 +1327,7 @@ final Object finalOi = oi;
      * @name kalshi#fetchPositions
      * @description fetches open market positions for the authenticated kalshi user
      * @see https://trading-api.readme.io/reference/getportfoliopositions
-     * @param {string[]} [symbols] filter by outcome ids or symbols
+     * @param {string[]} [outcomes] filter by outcome ids or outcomes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
@@ -1329,9 +1336,8 @@ final Object finalOi = oi;
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
+            Object outcomes = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object outcomes = symbols;
             Object outcomesLength = 0;
             if (Helpers.isTrue(!Helpers.isEqual(outcomes, null)))
             {
@@ -1341,11 +1347,11 @@ final Object finalOi = oi;
             {
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(outcomes)); i++)
                 {
-                    this.checkEventsAndMarkets(Helpers.GetValue(outcomes, i));
+                    this.checkEvents(Helpers.GetValue(outcomes, i));
                 }
             } else
             {
-                this.checkEventsAndMarkets();
+                this.checkEvents();
             }
             Object response = (this.kalshiPrivateGetPortfolioPositions(parameters)).join();
             Object positions = (java.util.List<Object>)(this.safeList(response, "market_positions", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
@@ -1380,10 +1386,10 @@ final Object finalOi = oi;
         final Object finalPositionSide = positionSide;
         return this.safePredictionPosition(new java.util.HashMap<String, Object>() {{
             put( "id", null );
-            put( "symbol", KalshiCore.this.safeString(outcomeObj, "symbol", ticker) );
+            put( "outcome", KalshiCore.this.safeString(outcomeObj, "outcome", ticker) );
             put( "outcomeId", KalshiCore.this.safeString2(outcomeObj, "outcomeId", "id") );
             put( "label", KalshiCore.this.safeString(outcomeObj, "label") );
-            put( "market", KalshiCore.this.safeString2(outcomeObj, "market", "marketSymbol") );
+            put( "market", KalshiCore.this.safeString2(outcomeObj, "market", "outcome") );
             put( "timestamp", null );
             put( "datetime", null );
             put( "contracts", finalContractsValue );
@@ -1415,7 +1421,7 @@ final Object finalOi = oi;
      * @name kalshi#fetchOpenOrders
      * @description fetches resting (open) orders for the authenticated kalshi user, optionally filtered by ticker
      * @see https://trading-api.readme.io/reference/getorders
-     * @param {string} [symbol] filter by unified outcome symbol
+     * @param {string} [outcome] filter by unified outcome
      * @param {int} [since] timestamp in ms of the earliest order to fetch
      * @param {int} [limit] the maximum number of orders to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1426,17 +1432,16 @@ final Object finalOi = oi;
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            Object outcome = symbol;
             if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
             {
-                this.checkEventsAndMarkets(outcome);
+                this.checkEvents(outcome);
             } else
             {
-                this.checkEventsAndMarkets();
+                this.checkEvents();
             }
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "status", "resting" );
@@ -1460,7 +1465,7 @@ final Object finalOi = oi;
      * @description fetches a single order by id from the kalshi portfolio endpoint
      * @see https://trading-api.readme.io/reference/getorder
      * @param {string} id order id
-     * @param {string} [symbol] unified outcome symbol
+     * @param {string} [outcome] unified outcome
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
@@ -1469,14 +1474,14 @@ final Object finalOi = oi;
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
             {
-                this.checkEventsAndMarkets(symbol);
+                this.checkEvents(outcome);
             } else
             {
-                this.checkEventsAndMarkets();
+                this.checkEvents();
             }
             Object response = (this.kalshiPrivateGetPortfolioOrdersOrderId(this.extend(new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
@@ -1504,16 +1509,25 @@ final Object finalOi = oi;
         Object status = this.parseOrderStatus(this.safeString(order, "status"));
         Object action = this.safeString(order, "action");
         Object side = ((Helpers.isTrue((Helpers.isEqual(action, "buy"))))) ? "buy" : "sell";
-        Object priceCents = this.safeNumber(order, "no_price", this.safeNumber(order, "yes_price"));
-        Object price = null;
-        if (Helpers.isTrue(!Helpers.isEqual(priceCents, null)))
+        // price in the outcome's own leg: V2 returns *_price_dollars (already dollars),
+        // legacy returned yes_price/no_price in cents
+        Object labelIsNo = (Helpers.isEqual(this.safeStringUpper(mkt, "label"), "NO"));
+        Object dollarsKey = ((Helpers.isTrue((labelIsNo)))) ? "no_price_dollars" : "yes_price_dollars";
+        Object centsKey = ((Helpers.isTrue((labelIsNo)))) ? "no_price" : "yes_price";
+        Object price = this.safeNumber(order, dollarsKey);
+        if (Helpers.isTrue(Helpers.isEqual(price, null)))
         {
-            price = Helpers.divide(priceCents, 100);
+            Object priceCents = this.safeNumber(order, centsKey);
+            if (Helpers.isTrue(!Helpers.isEqual(priceCents, null)))
+            {
+                price = Helpers.divide(priceCents, 100);
+            }
         }
-        Object amount = this.safeNumber(order, "count");
-        Object filled = this.safeNumber(order, "filled_count", 0);
-        Object remaining = null;
-        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(amount, null))) && Helpers.isTrue((!Helpers.isEqual(filled, null)))))
+        // V2 counts are fixed-point (*_count_fp); legacy used count / filled_count
+        Object amount = this.safeNumber2(order, "initial_count_fp", "count");
+        Object filled = this.safeNumber2(order, "fill_count_fp", "filled_count", 0);
+        Object remaining = this.safeNumber(order, "remaining_count_fp");
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(remaining, null))) && Helpers.isTrue((!Helpers.isEqual(amount, null)))) && Helpers.isTrue((!Helpers.isEqual(filled, null)))))
         {
             remaining = Helpers.subtract(amount, filled);
         }
@@ -1530,10 +1544,10 @@ final Object finalOi = oi;
             put( "datetime", KalshiCore.this.iso8601(ts) );
             put( "lastTradeTimestamp", null );
             put( "status", status );
-            put( "symbol", KalshiCore.this.safeString(mkt, "symbol") );
+            put( "outcome", KalshiCore.this.safeString(mkt, "outcome") );
             put( "outcomeId", KalshiCore.this.safeString2(mkt, "outcomeId", "id") );
             put( "label", KalshiCore.this.safeString(mkt, "label") );
-            put( "market", KalshiCore.this.safeString2(mkt, "market", "marketSymbol") );
+            put( "market", KalshiCore.this.safeString2(mkt, "market", "outcome") );
             put( "type", KalshiCore.this.safeStringLower(order, "type", "limit") );
             put( "timeInForce", "GTC" );
             put( "postOnly", null );
@@ -1575,7 +1589,7 @@ final Object finalOi = oi;
      * @name kalshi#createOrder
      * @description places a limit or market order on kalshi for the given outcome token
      * @see https://trading-api.readme.io/reference/createorder
-     * @param {string} symbol unified outcome symbol
+     * @param {string} outcome unified outcome
      * @param {string} type 'limit' or 'market'
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount number of contracts
@@ -1583,40 +1597,75 @@ final Object finalOi = oi;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createOrder(Object outcome, Object type2, Object side2, Object amount, Object... optionalArgs)
     {
-
+        final Object type3 = type2;
+        final Object side3 = side2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
+            Object type = type3;
+            Object side = side3;
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object outcome = symbol;
-            (this.loadMarkets()).join();
-            this.checkEventsAndMarkets(outcome);
+            this.checkEvents(outcome);
             Object outcomeObj = this.outcome(outcome);
             Object ticker = this.safeString(Helpers.GetValue(outcomeObj, "info"), "ticker");
-            Object outcomeLabel = Helpers.GetValue(outcomeObj, "label");
-            Object priceCents = null;
-            if (Helpers.isTrue(!Helpers.isEqual(price, null)))
+            Object isNo = (Helpers.isEqual(Helpers.GetValue(outcomeObj, "label"), "NO"));
+            Object isBuy = (Helpers.isEqual(side, "buy"));
+            // kalshi V2 (/portfolio/events/orders) quotes the YES leg only: side 'bid' = buy YES,
+            // 'ask' = sell YES, price in dollars. a NO order maps to the complementary YES order
+            // (buy NO @ q == sell YES @ 1-q), so flip the book side and the price
+            Object bookSide = ((Helpers.isTrue((isBuy)))) ? "bid" : "ask";
+            Object yesPrice = price;
+            if (Helpers.isTrue(isNo))
             {
-                priceCents = this.parseToInt(Helpers.add(Helpers.multiply(price, 100), 0.5));
+                bookSide = ((Helpers.isTrue((isBuy)))) ? "ask" : "bid";
+                if (Helpers.isTrue(!Helpers.isEqual(price, null)))
+                {
+                    yesPrice = this.parseNumber(Precise.stringSub("1", this.numberToString(price)));
+                }
             }
-            final Object finalSide = side;
-            final Object finalOutcomeLabel = outcomeLabel;
+            Object isMarket = (Helpers.isEqual(type, "market"));
+            Object defaultTif = ((Helpers.isTrue((isMarket)))) ? "immediate_or_cancel" : "good_till_canceled";
+            Object timeInForce = null;
+            var timeInForceparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "time_in_force", defaultTif);
+            timeInForce = ((java.util.List<Object>) timeInForceparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) timeInForceparametersVariable).get(1);
+            Object stp = null;
+            var stpparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "self_trade_prevention_type", "taker_at_cross");
+            stp = ((java.util.List<Object>) stpparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) stpparametersVariable).get(1);
+            final Object finalBookSide = bookSide;
+            final Object finalTimeInForce = timeInForce;
+            final Object finalStp = stp;
             Object request = new java.util.HashMap<String, Object>() {{
-                put( "action", ((Helpers.isTrue((Helpers.isEqual(finalSide, "buy"))))) ? "buy" : "sell" );
-                put( "count", amount );
-                put( "side", ((Helpers.isTrue((Helpers.isEqual(finalOutcomeLabel, "NO"))))) ? "no" : "yes" );
                 put( "ticker", ticker );
-                put( "type", type );
+                put( "side", finalBookSide );
+                put( "count", KalshiCore.this.numberToString(amount) );
+                put( "time_in_force", finalTimeInForce );
+                put( "self_trade_prevention_type", finalStp );
             }};
-            if (Helpers.isTrue(!Helpers.isEqual(priceCents, null)))
+            if (Helpers.isTrue(!Helpers.isEqual(yesPrice, null)))
             {
-                Object priceKey = ((Helpers.isTrue((Helpers.isEqual(outcomeLabel, "NO"))))) ? "no_price" : "yes_price";
-                Helpers.addElementToObject(request, priceKey, priceCents);
+                Helpers.addElementToObject(request, "price", this.numberToString(yesPrice));
             }
-            Object response = (this.kalshiPrivatePostPortfolioOrders(this.extend(request, parameters))).join();
-            return this.parseOrder(this.safeValue(response, "order", response), ((Object)outcomeObj));
+            Object response = (this.kalshiPrivatePostPortfolioEventsOrders(this.extend(request, parameters))).join();
+            // the V2 create response is minimal (order_id, fill_count, remaining_count), so backfill
+            // the known order details and resolve the status from the remaining count
+            Object order = this.parseOrder(response, ((Object)outcomeObj));
+            Helpers.addElementToObject(order, "side", side);
+            Helpers.addElementToObject(order, "amount", amount);
+            Helpers.addElementToObject(order, "price", price);
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(order, "status"), null)))
+            {
+                Object remaining = this.safeNumber(response, "remaining_count");
+                Object resolvedStatus = "open";
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(remaining, null))) && Helpers.isTrue((Helpers.isEqual(remaining, 0)))))
+                {
+                    resolvedStatus = "closed";
+                }
+                Helpers.addElementToObject(order, "status", resolvedStatus);
+            }
+            return order;
         });
 
     }
@@ -1627,7 +1676,7 @@ final Object finalOi = oi;
      * @description cancels a single open order by id on kalshi
      * @see https://trading-api.readme.io/reference/cancelorder
      * @param {string} id order id
-     * @param {string} [symbol] unified outcome symbol
+     * @param {string} [outcome] unified outcome
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
@@ -1636,14 +1685,14 @@ final Object finalOi = oi;
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
             {
-                this.checkEventsAndMarkets(symbol);
+                this.checkEvents(outcome);
             } else
             {
-                this.checkEventsAndMarkets();
+                this.checkEvents();
             }
             Object response = (this.kalshiPrivateDeletePortfolioOrdersOrderId(this.extend(new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
@@ -1658,7 +1707,7 @@ final Object finalOi = oi;
      * @name kalshi#cancelAllOrders
      * @description cancels all open orders on kalshi, optionally scoped to one outcome ticker
      * @see https://trading-api.readme.io/reference/cancelorders
-     * @param {string} [symbol] unified outcome symbol to scope the cancellation to
+     * @param {string} [outcome] unified outcome to scope the cancellation to
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
@@ -1667,25 +1716,62 @@ final Object finalOi = oi;
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object outcome = symbol;
             if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
             {
-                this.checkEventsAndMarkets(outcome);
+                this.checkEvents(outcome);
             } else
             {
-                this.checkEventsAndMarkets();
+                this.checkEvents();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            // kalshi has no "cancel all" endpoint — fetch the resting orders and
+            // batch-cancel them by id (DELETE /portfolio/orders/batched, max 20 ids/call)
+            Object request = new java.util.HashMap<String, Object>() {{
+                put( "status", "resting" );
+            }};
             if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
             {
-                (this.loadMarkets()).join();
                 Object outcomeObj = this.outcome(outcome);
                 Helpers.addElementToObject(request, "ticker", this.safeString(Helpers.GetValue(outcomeObj, "info"), "ticker"));
             }
-            Object response = (this.kalshiPrivateDeletePortfolioOrders(this.extend(request, parameters))).join();
-            return this.parseOrders((java.util.List<Object>)(this.safeList(response, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()))));
+            Object restingResponse = (this.kalshiPrivateGetPortfolioOrders(request)).join();
+            Object restingOrders = this.safeList(restingResponse, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object restingOrdersLength = Helpers.getArrayLength(restingOrders);
+            Object ids = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            for (var i = 0; Helpers.isLessThan(i, restingOrdersLength); i++)
+            {
+                Object orderId = this.safeString(Helpers.GetValue(restingOrders, i), "order_id");
+                if (Helpers.isTrue(!Helpers.isEqual(orderId, null)))
+                {
+                    ((java.util.List<Object>)ids).add(orderId);
+                }
+            }
+            Object idsLength = Helpers.getArrayLength(ids);
+            if (Helpers.isTrue(Helpers.isEqual(idsLength, 0)))
+            {
+                return new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            }
+            Object canceledOrders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object batchLimit = 20; // kalshi caps the batched-cancel endpoint at 20 ids per call
+            Object remaining = ids;
+            Object remainingLength = Helpers.getArrayLength(remaining);
+            while (Helpers.isGreaterThan(remainingLength, 0))
+            {
+                Object batchIds = this.arraySlice(remaining, 0, batchLimit);
+                remaining = this.arraySlice(remaining, batchLimit);
+                Object response = (this.kalshiPrivateDeletePortfolioOrdersBatched(this.extend(new java.util.HashMap<String, Object>() {{
+                    put( "ids", batchIds );
+                }}, parameters))).join();
+                Object batchResult = this.safeList(response, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Object batchResultLength = Helpers.getArrayLength(batchResult);
+                for (var j = 0; Helpers.isLessThan(j, batchResultLength); j++)
+                {
+                    ((java.util.List<Object>)canceledOrders).add(Helpers.GetValue(batchResult, j));
+                }
+                remainingLength = Helpers.getArrayLength(remaining);
+            }
+            return this.parseOrders(canceledOrders);
         });
 
     }
@@ -1711,10 +1797,16 @@ final Object finalOi = oi;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object queries = this.parseSearchQueries(parameters);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("query", "queries")));
-            Object status = this.safeString(parameters, "status", this.safeString(this.options, "defaultEventStatus", "open"));
+            // map the unified status onto the kalshi event status (open / closed) so it is pushed server-side
+            Object requestedStatus = this.safeString(parameters, "status", this.safeString(this.options, "defaultEventStatus", "active"));
+            Object status = "open";
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(requestedStatus, "closed"))) || Helpers.isTrue((Helpers.isEqual(requestedStatus, "inactive")))))
+            {
+                status = "closed";
+            }
             Object pageLimit = this.safeInteger(parameters, "limit", 200);
             Object maxPages = this.safeInteger(parameters, "maxPages", 50);
-            Object rest = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("status", "limit", "maxPages")));
+            Object rest = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("status", "limit", "maxPages", "sort", "searchIn", "eventId", "slug")));
             if (!Helpers.isTrue(this.events))
             {
                 this.events = new java.util.HashMap<String, Object>() {{}};
@@ -1735,8 +1827,9 @@ final Object finalOi = oi;
             Object page = 0;
             while (Helpers.isLessThan(page, maxPages))
             {
+                final Object finalStatus = status;
                 Object request = new java.util.HashMap<String, Object>() {{
-                    put( "status", status );
+                    put( "status", finalStatus );
                     put( "limit", pageLimit );
                     put( "with_nested_markets", true );
                 }};
@@ -1842,19 +1935,19 @@ final Object finalOi = oi;
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(outcomesList)); j++)
                 {
                     Object oc = Helpers.GetValue(outcomesList, j);
-                    Object ocSymbol = this.safeString(oc, "symbol");
+                    Object ocSymbol = this.safeString(oc, "outcome");
                     if (Helpers.isTrue(!Helpers.isEqual(ocSymbol, null)))
                     {
                         Helpers.addElementToObject(this.outcomes, ocSymbol, oc);
                     }
-                    Object ocId = this.safeString(oc, "id");
+                    Object ocId = this.safeString(oc, "outcomeId");
                     if (Helpers.isTrue(!Helpers.isEqual(ocId, null)))
                     {
                         Helpers.addElementToObject(this.outcomes_by_id, ocId, oc);
                     }
                 }
             }
-            return result;
+            return this.applyEventFetchParams(result, parameters, queries);
         });
 
     }
@@ -1967,23 +2060,44 @@ final Object finalOi = oi;
         // }
         Object rawMarkets = (java.util.List<Object>)(this.safeList(rawEvent, "markets", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
         Object marketsList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        // aggregate volume/liquidity from the markets and derive the creation time so sort works
+        Object totalVolume = 0;
+        Object totalLiquidity = 0;
+        Object earliestCreated = null;
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawMarkets)); i++)
         {
             Object rawMarket = Helpers.GetValue(rawMarkets, i);
             Object parsed = this.parseMarket(rawMarket);
             ((java.util.List<Object>)marketsList).add(parsed);
+            totalVolume = this.sum(totalVolume, this.safeNumber2(rawMarket, "volume_fp", "volume", 0));
+            totalLiquidity = this.sum(totalLiquidity, this.safeNumber2(rawMarket, "liquidity_dollars", "liquidity", 0));
+            Object marketCreated = this.parse8601(this.safeString(rawMarket, "open_time"));
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marketCreated, null))) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(earliestCreated, null))) || Helpers.isTrue((Helpers.isLessThan(marketCreated, earliestCreated)))))))
+            {
+                earliestCreated = marketCreated;
+            }
         }
         Object ticker = this.safeString(rawEvent, "event_ticker");
         Object title = this.safeString(rawEvent, "title");
+        Object created = this.parse8601(this.safeString(rawEvent, "created_date_iso"));
+        if (Helpers.isTrue(Helpers.isEqual(created, null)))
+        {
+            created = earliestCreated;
+        }
+        final Object finalTotalVolume = totalVolume;
+        final Object finalTotalLiquidity = totalLiquidity;
+        final Object finalCreated = created;
         return this.extend(new java.util.HashMap<String, Object>() {{
             put( "id", ticker );
             put( "slug", ticker );
-            put( "symbol", ((Helpers.isTrue(title))) ? KalshiCore.this.shortenSlug(title) : null );
+            put( "event", ((Helpers.isTrue(title))) ? KalshiCore.this.shortenSlug(title) : null );
             put( "title", title );
             put( "markets", marketsList );
+            put( "volume", finalTotalVolume );
+            put( "liquidity", finalTotalLiquidity );
             put( "url", KalshiCore.this.safeString(rawEvent, "url") );
             put( "image", KalshiCore.this.safeString(rawEvent, "image_url") );
-            put( "created", KalshiCore.this.parse8601(KalshiCore.this.safeString(rawEvent, "created_date_iso")) );
+            put( "created", finalCreated );
             put( "createdDatetime", KalshiCore.this.safeString(rawEvent, "created_date_iso") );
             put( "end", KalshiCore.this.parse8601(KalshiCore.this.safeString(rawEvent, "end_date_iso")) );
             put( "endDatetime", KalshiCore.this.safeString(rawEvent, "end_date_iso") );
@@ -2020,7 +2134,8 @@ final Object finalOi = oi;
         Object access = ((Helpers.isTrue((api instanceof String)))) ? "public" : Helpers.GetValue(api, 1);
         Object baseUrls = Helpers.GetValue(this.urls, "api");
         Object baseUrl = this.safeString(baseUrls, apiGroup, ((String)Helpers.GetValue(baseUrls, "kalshi")));
-        Object url = Helpers.add(Helpers.add(baseUrl, "/"), this.implodeParams(path, parameters));
+        Object implodedPath = this.implodeParams(path, parameters);
+        Object url = Helpers.add(Helpers.add(baseUrl, "/"), implodedPath);
         Object query = this.omit(parameters, this.extractParams(path));
         Object querystring = this.urlencode(query);
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(method, "GET")) && Helpers.isTrue(querystring)))
@@ -2036,13 +2151,17 @@ final Object finalOi = oi;
         {
             this.checkRequiredCredentials();
             Object timestamp = String.valueOf(this.milliseconds());
-            // Signing payload: {timestamp}{METHOD}/{path_without_base}
-            Object pathForSigning = Helpers.add("/", path);
+            // Signing payload: {timestamp}{METHOD}{path}, where path is the full request path
+            // INCLUDING the /trade-api/v2 prefix and any path params substituted in, but NOT
+            // the query string (e.g. /trade-api/v2/portfolio/orders/{order_id})
+            Object tradeApiIndex = Helpers.getIndexOf(baseUrl, "/trade-api");
+            Object versionPrefix = Helpers.slice(baseUrl, tradeApiIndex, null);
+            Object pathForSigning = Helpers.add(Helpers.add(versionPrefix, "/"), implodedPath);
             Object payload = Helpers.add(Helpers.add(timestamp, method), pathForSigning);
             // RSA-PSS SHA-256 signature with the private key PEM
             Object keyParts = Helpers.split(this.privateKey, "\n");
             Object cleanPrivateKey = String.join((String)"\n", (java.util.List<String>)keyParts);
-            Object signature = rsa(payload, cleanPrivateKey, sha256());
+            Object signature = rsa(payload, cleanPrivateKey, sha256(), "pss");
             final Object finalTimestamp = timestamp;
             headers = this.extend(headers, new java.util.HashMap<String, Object>() {{
                 put( "KALSHI-ACCESS-KEY", KalshiCore.this.apiKey );
@@ -2051,7 +2170,8 @@ final Object finalOi = oi;
             }});
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(method, "GET")) && Helpers.isTrue(querystring)))
             {
-                body = ((Object)query);
+                // kalshi expects a JSON body; the signature covers only timestamp+method+path
+                body = this.json(query);
             }
         }
         final Object finalUrl = url;

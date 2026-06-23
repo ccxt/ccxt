@@ -41,9 +41,9 @@ public partial class hyperliquid
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure).</returns>
-    public async Task<PredictionTicker> FetchTicker(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<PredictionTicker> FetchTicker(string outcome, Dictionary<string, object> parameters = null)
     {
-        var res = await this.fetchTicker(symbol, parameters);
+        var res = await this.fetchTicker(outcome, parameters);
         return new PredictionTicker(res);
     }
     /// <summary>
@@ -61,9 +61,9 @@ public partial class hyperliquid
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure).</returns>
-    public async Task<PredictionTickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<PredictionTickers> FetchTickers(List<String> outcomes = null, Dictionary<string, object> parameters = null)
     {
-        var res = await this.fetchTickers(symbols, parameters);
+        var res = await this.fetchTickers(outcomes, parameters);
         return new PredictionTickers(res);
     }
     /// <summary>
@@ -87,11 +87,11 @@ public partial class hyperliquid
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure).</returns>
-    public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<PredictionOrderBook> FetchOrderBook(string outcome, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
-        var res = await this.fetchOrderBook(symbol, limit, parameters);
-        return new OrderBook(res);
+        var res = await this.fetchOrderBook(outcome, limit, parameters);
+        return new PredictionOrderBook(res);
     }
     /// <summary>
     /// fetches candlestick OHLCV data for an outcome market
@@ -126,11 +126,11 @@ public partial class hyperliquid
     /// </list>
     /// </remarks>
     /// <returns> <term>int[][]</term> a list of candles ordered as timestamp, open, high, low, close, volume.</returns>
-    public async Task<List<OHLCV>> FetchOHLCV(string symbol, string timeframe = "1m", Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<OHLCV>> FetchOHLCV(string outcome, string timeframe = "1m", Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
-        var res = await this.fetchOHLCV(symbol, timeframe, since, limit, parameters);
+        var res = await this.fetchOHLCV(outcome, timeframe, since, limit, parameters);
         return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
     }
     /// <summary>
@@ -179,9 +179,9 @@ public partial class hyperliquid
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [position structures](https://docs.ccxt.com/#/?id=position-structure).</returns>
-    public async Task<List<PredictionPosition>> FetchPositions(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<List<PredictionPosition>> FetchPositions(List<String> outcomes = null, Dictionary<string, object> parameters = null)
     {
-        var res = await this.fetchPositions(symbols, parameters);
+        var res = await this.fetchPositions(outcomes, parameters);
         return ((IList<object>)res).Select(item => new PredictionPosition(item)).ToList<PredictionPosition>();
     }
     /// <summary>
@@ -241,10 +241,10 @@ public partial class hyperliquid
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure](https://docs.ccxt.com/#/?id=order-structure).</returns>
-    public async Task<PredictionOrder> CreateOrder(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<PredictionOrder> CreateOrder(string outcome, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
-        var res = await this.createOrder(symbol, type, side, amount, price, parameters);
+        var res = await this.createOrder(outcome, type, side, amount, price, parameters);
         return new PredictionOrder(res);
     }
     /// <summary>
@@ -254,9 +254,9 @@ public partial class hyperliquid
     /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s"/>  <br/>
     /// <list type="table">
     /// <item>
-    /// <term>symbol</term>
+    /// <term>outcome</term>
     /// <description>
-    /// string : unified outcome symbol
+    /// string : unified outcome
     /// </description>
     /// </item>
     /// <item>
@@ -280,9 +280,9 @@ public partial class hyperliquid
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure](https://docs.ccxt.com/#/?id=order-structure).</returns>
-    public async Task<PredictionOrder> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<PredictionOrder> CancelOrder(string id, string outcome = null, Dictionary<string, object> parameters = null)
     {
-        var res = await this.cancelOrder(id, symbol, parameters);
+        var res = await this.cancelOrder(id, outcome, parameters);
         return new PredictionOrder(res);
     }
     /// <summary>
@@ -292,9 +292,9 @@ public partial class hyperliquid
     /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s"/>  <br/>
     /// <list type="table">
     /// <item>
-    /// <term>symbol</term>
+    /// <term>outcome</term>
     /// <description>
-    /// string : unified outcome symbol (required)
+    /// string : unified outcome (required)
     /// </description>
     /// </item>
     /// <item>
@@ -306,9 +306,9 @@ public partial class hyperliquid
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [order structures](https://docs.ccxt.com/#/?id=order-structure).</returns>
-    public async Task<List<PredictionOrder>> CancelOrders(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<List<PredictionOrder>> CancelOrders(List<string> ids, string outcome = null, Dictionary<string, object> parameters = null)
     {
-        var res = await this.cancelOrders(ids, symbol, parameters);
+        var res = await this.cancelOrders(ids, outcome, parameters);
         return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
     }
     /// <summary>
@@ -318,9 +318,9 @@ public partial class hyperliquid
     /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-open-orders"/>  <br/>
     /// <list type="table">
     /// <item>
-    /// <term>symbol</term>
+    /// <term>outcome</term>
     /// <description>
-    /// string : filter by outcome symbol
+    /// string : filter by outcome
     /// </description>
     /// </item>
     /// <item>
@@ -356,11 +356,11 @@ public partial class hyperliquid
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [order structures](https://docs.ccxt.com/#/?id=order-structure).</returns>
-    public async Task<List<PredictionOrder>> FetchOpenOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<PredictionOrder>> FetchOpenOrders(string outcome = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
-        var res = await this.fetchOpenOrders(symbol, since, limit, parameters);
+        var res = await this.fetchOpenOrders(outcome, since, limit, parameters);
         return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
     }
     /// <summary>
@@ -370,9 +370,9 @@ public partial class hyperliquid
     /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-historical-orders"/>  <br/>
     /// <list type="table">
     /// <item>
-    /// <term>symbol</term>
+    /// <term>outcome</term>
     /// <description>
-    /// string : filter by outcome symbol
+    /// string : filter by outcome
     /// </description>
     /// </item>
     /// <item>
@@ -402,11 +402,11 @@ public partial class hyperliquid
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [order structures](https://docs.ccxt.com/#/?id=order-structure).</returns>
-    public async Task<List<PredictionOrder>> FetchOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<PredictionOrder>> FetchOrders(string outcome = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
-        var res = await this.fetchOrders(symbol, since, limit, parameters);
+        var res = await this.fetchOrders(outcome, since, limit, parameters);
         return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
     }
     /// <summary>
@@ -416,9 +416,9 @@ public partial class hyperliquid
     /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-order-status-by-oid-or-cloid"/>  <br/>
     /// <list type="table">
     /// <item>
-    /// <term>symbol</term>
+    /// <term>outcome</term>
     /// <description>
-    /// string : outcome symbol
+    /// string : outcome
     /// </description>
     /// </item>
     /// <item>
@@ -442,9 +442,9 @@ public partial class hyperliquid
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure](https://docs.ccxt.com/#/?id=order-structure).</returns>
-    public async Task<PredictionOrder> FetchOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<PredictionOrder> FetchOrder(string id, string outcome = null, Dictionary<string, object> parameters = null)
     {
-        var res = await this.fetchOrder(id, symbol, parameters);
+        var res = await this.fetchOrder(id, outcome, parameters);
         return new PredictionOrder(res);
     }
     /// <summary>
@@ -454,9 +454,9 @@ public partial class hyperliquid
     /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills"/>  <br/>
     /// <list type="table">
     /// <item>
-    /// <term>symbol</term>
+    /// <term>outcome</term>
     /// <description>
-    /// string : filter by outcome symbol
+    /// string : filter by outcome
     /// </description>
     /// </item>
     /// <item>
@@ -492,11 +492,11 @@ public partial class hyperliquid
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure).</returns>
-    public async Task<List<PredictionTrade>> FetchMyTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<PredictionTrade>> FetchMyTrades(string outcome = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
-        var res = await this.fetchMyTrades(symbol, since, limit, parameters);
+        var res = await this.fetchMyTrades(outcome, since, limit, parameters);
         return ((IList<object>)res).Select(item => new PredictionTrade(item)).ToList<PredictionTrade>();
     }
     /// <summary>
@@ -513,13 +513,13 @@ public partial class hyperliquid
     /// <item>
     /// <term>params.query</term>
     /// <description>
-    /// string : a single query string to filter by (matches description/symbol)
+    /// string : a single query string to filter by (matches description/outcome)
     /// </description>
     /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>PredictionEvent[]</term> array of event structures.</returns>
-    public async Task<List<Dictionary<string, object>>> FetchEvents(Dictionary<string, object> parameters = null)
+    public async Task<List<Dictionary<string, object>>> FetchEvents(Dictionary<string, object> parameters)
     {
         var res = await this.fetchEvents(parameters);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();

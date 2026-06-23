@@ -30,17 +30,7 @@ class PredictionExchange extends \ccxt\async\Exchange {
         return $this->safe_bool($this->has, 'prediction', false);
     }
 
-    public function load_markets_and_events($reload = false, $params = array ()) {
-        return Async\async(function () use ($reload, $params) {
-            $res = Async\await(Promise\all(array( $this->load_markets($reload, $params), $this->load_events($reload, $params) )));
-            return array(
-                'markets' => $res[0],
-                'events' => $res[1],
-            );
-        }) ();
-    }
-
-    public function check_events_and_markets(?string $outcome = null) {
+    public function check_events(?string $outcome = null) {
         // pure synchronous guard (no I/O) — callers invoke it without await, so leaving it
         // async would make the coroutine never run in Python/PHP and silently skip validation.
         // outcomes are the real dependency for resolving a symbol; they are populated by
@@ -69,7 +59,99 @@ class PredictionExchange extends \ccxt\async\Exchange {
         return $this->safe_list($params, 'queries', array());
     }
 
-    public function fetch_events($params = array ()) {
+    public function apply_event_fetch_params(array $events, $params = array (), ?array $queries = null) {
+        // applies the unified fetchEvents options client-side (eventId/slug/status/searchIn/sort/limit)
+        // so exchanges whose API can't filter natively still support them consistently
+        $result = $events;
+        $eventId = $this->safe_string($params, 'eventId');
+        $slug = $this->safe_string($params, 'slug');
+        if (($eventId !== null) || ($slug !== null)) {
+            $filtered = array();
+            for ($i = 0; $i < count($result); $i++) {
+                $event = $result[$i];
+                $idMatch = ($eventId !== null) && ($this->safe_string($event, 'id') === $eventId);
+                $slugMatch = ($slug !== null) && ($this->safe_string($event, 'slug') === $slug);
+                if ($idMatch || $slugMatch) {
+                    $filtered[] = $event;
+                }
+            }
+            $result = $filtered;
+        }
+        $result = $this->filter_events_by_status($result, $this->safe_string($params, 'status'));
+        if (($queries !== null) && (strlen($queries) > 0)) {
+            $result = $this->filter_events_by_search_in($result, $queries, $this->safe_string($params, 'searchIn'));
+        }
+        $sort = $this->safe_string($params, 'sort');
+        if ($sort !== null) {
+            $sortKey = null;
+            if ($sort === 'volume') {
+                $sortKey = 'volume';
+            } elseif ($sort === 'liquidity') {
+                $sortKey = 'liquidity';
+            } elseif ($sort === 'newest') {
+                $sortKey = 'created';
+            }
+            if ($sortKey !== null) {
+                $result = $this->sort_by($result, $sortKey, true, 0);
+            }
+        }
+        $limit = $this->safe_integer($params, 'limit');
+        if ($limit !== null) {
+            $result = $this->array_slice($result, 0, $limit);
+        }
+        return $result;
+    }
+
+    public function filter_events_by_status(array $events, ?string $status = null) {
+        // 'active' | 'inactive' | 'closed' | 'all' — 'inactive' and 'closed' are interchangeable
+        if (($status === null) || ($status === 'all')) {
+            return $events;
+        }
+        $wantActive = ($status === 'active');
+        $result = array();
+        for ($i = 0; $i < count($events); $i++) {
+            $event = $events[$i];
+            $isActive = $this->safe_bool($event, 'active');
+            // keep $events whose $status is unknown (already filtered server-side, no `active` field)
+            if (($isActive === null) || ($isActive === $wantActive)) {
+                $result[] = $event;
+            }
+        }
+        return $result;
+    }
+
+    public function filter_events_by_search_in(array $events, array $queries, ?string $searchIn = null) {
+        // keep $events whose $title and/or $description contains one of the $queries ($searchIn defaults to 'both')
+        if (($searchIn === null) || ($queries === null) || (strlen($queries) === 0)) {
+            return $events;
+        }
+        $checkTitle = ($searchIn === 'title') || ($searchIn === 'both');
+        $checkDescription = ($searchIn === 'description') || ($searchIn === 'both');
+        $result = array();
+        for ($i = 0; $i < count($events); $i++) {
+            $event = $events[$i];
+            $title = $this->safe_string_lower($event, 'title', '');
+            $description = $this->safe_string_lower($event, 'description', '');
+            $matched = false;
+            for ($qi = 0; $qi < count($queries); $qi++) {
+                $q = strtolower($queries[$qi]);
+                if ($checkTitle && (mb_strpos($title, $q) !== false)) {
+                    $matched = true;
+                    break;
+                }
+                if ($checkDescription && (mb_strpos($description, $q) !== false)) {
+                    $matched = true;
+                    break;
+                }
+            }
+            if ($matched) {
+                $result[] = $event;
+            }
+        }
+        return $result;
+    }
+
+    public function fetch_events(array $params = array ()) {
         throw new NotSupported($this->id . ' fetchEvents() is not supported yet');
     }
 
@@ -314,17 +396,19 @@ class PredictionExchange extends \ccxt\async\Exchange {
     }
 
     public function safe_prediction_order(array $order, $market = null) {
-        $parsed = parent::safe_order($order, $market);
+        // the prediction identity is the `outcome` handle carried on the raw dict (read by
+        // toPredictionStructure), not a ccxt `symbol`, so don't pass an outcome object $market
+        $parsed = parent::safe_order($order);
         return $this->to_prediction_structure($parsed, $order);
     }
 
     public function safe_prediction_trade(array $trade, $market = null) {
-        $parsed = parent::safe_trade($trade, $market);
+        $parsed = parent::safe_trade($trade);
         return $this->to_prediction_structure($parsed, $trade);
     }
 
     public function safe_prediction_ticker(array $ticker, $market = null) {
-        $parsed = parent::safe_ticker($ticker, $market);
+        $parsed = parent::safe_ticker($ticker);
         return $this->to_prediction_structure($parsed, $ticker);
     }
 
@@ -333,17 +417,32 @@ class PredictionExchange extends \ccxt\async\Exchange {
         return $this->to_prediction_structure($parsed, $position);
     }
 
+    public function safe_prediction_order_book(array $orderbook, ?array $outcomeObj = null) {
+        // normalize a parsed order book to the prediction shape => replace the unified
+        // `symbol` with the `outcome` handle and attach the outcome identity fields
+        // (outcomeId / market) so books match the PredictionOrderBook structure.
+        $fallback = $this->safe_string_2($orderbook, 'outcome', 'symbol');
+        $orderbook['outcome'] = ($outcomeObj === null) ? $fallback : $this->safe_string($outcomeObj, 'outcome', $fallback);
+        $orderbook['outcomeId'] = ($outcomeObj === null) ? $this->safe_string($orderbook, 'outcomeId') : $this->safe_string($outcomeObj, 'outcomeId');
+        $orderbook['market'] = ($outcomeObj === null) ? $this->safe_string($orderbook, 'market') : $this->safe_string($outcomeObj, 'market');
+        // omit (not delete) — `del dict['symbol']` raises KeyError in python/php when absent
+        return $this->omit($orderbook, 'symbol');
+    }
+
     public function to_prediction_structure(array $parsed, array $raw) {
-        // rename the unified `symbol` to the prediction `outcome` handle and attach the
-        // prediction identity fields ($raw exchange id, label, parent market/event) that the
+        // the prediction identity is the `outcome` handle (never the base `symbol`); attach it
+        // and the other prediction fields ($raw exchange id, label, parent market/event) that the
         // base safe* helpers drop. the exchange parser passes them on the $raw input dict.
-        $outcomeSymbol = $this->safe_string_2($raw, 'outcome', 'symbol');
-        $parsed['outcome'] = $outcomeSymbol;
+        $parsed['outcome'] = $this->safe_string($raw, 'outcome');
         $parsed['outcomeId'] = $this->safe_string($raw, 'outcomeId');
         $parsed['label'] = $this->safe_string($raw, 'label');
         $parsed['market'] = $this->safe_string($raw, 'market');
         $parsed['event'] = $this->safe_string($raw, 'event');
-        unset($parsed['symbol']);
+        // guard the delete => a bare `delete` is a no-op on a missing key in JS, but transpiles to
+        // `del`/`unset` which raises in Python when the inherited `symbol` was never set
+        if (is_array($parsed) && array_key_exists('symbol', $parsed)) {
+            unset($parsed['symbol']);
+        }
         return $parsed;
     }
 

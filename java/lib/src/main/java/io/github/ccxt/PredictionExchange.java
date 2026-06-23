@@ -35,23 +35,7 @@ public Object isPrediction()
         return this.safeBool(this.has, "prediction", false);
     }
 
-    public java.util.concurrent.CompletableFuture<Object> loadMarketsAndEvents(Object... optionalArgs)
-    {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Object reload = Helpers.getArg(optionalArgs, 0, false);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object res = (Helpers.promiseAll(new java.util.ArrayList<Object>(java.util.Arrays.asList(this.loadMarkets(reload, parameters), this.loadEvents(reload, parameters))))).join();
-            return new java.util.HashMap<String, Object>() {{
-                put( "markets", Helpers.GetValue(res, 0) );
-                put( "events", Helpers.GetValue(res, 1) );
-            }};
-        });
-
-    }
-
-    public void checkEventsAndMarkets(Object... optionalArgs)
+    public void checkEvents(Object... optionalArgs)
     {
         // pure synchronous guard (no I/O) — callers invoke it without await, so leaving it
         // async would make the coroutine never run in Python/PHP and silently skip validation.
@@ -87,6 +71,124 @@ public Object isPrediction()
             return new java.util.ArrayList<Object>(java.util.Arrays.asList(singleQuery));
         }
         return this.safeList(parameters, "queries", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+    }
+
+    public Object applyEventFetchParams(Object events, Object... optionalArgs)
+    {
+        // applies the unified fetchEvents options client-side (eventId/slug/status/searchIn/sort/limit)
+        // so exchanges whose API can't filter natively still support them consistently
+        Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+        Object queries = Helpers.getArg(optionalArgs, 1, null);
+        Object result = events;
+        Object eventId = this.safeString(parameters, "eventId");
+        Object slug = this.safeString(parameters, "slug");
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(eventId, null))) || Helpers.isTrue((!Helpers.isEqual(slug, null)))))
+        {
+            Object filtered = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(result)); i++)
+            {
+                Object eventVar = Helpers.GetValue(result, i);
+                Object idMatch = Helpers.isTrue((!Helpers.isEqual(eventId, null))) && Helpers.isTrue((Helpers.isEqual(this.safeString(eventVar, "id"), eventId)));
+                Object slugMatch = Helpers.isTrue((!Helpers.isEqual(slug, null))) && Helpers.isTrue((Helpers.isEqual(this.safeString(eventVar, "slug"), slug)));
+                if (Helpers.isTrue(Helpers.isTrue(idMatch) || Helpers.isTrue(slugMatch)))
+                {
+                    ((java.util.List<Object>)filtered).add(eventVar);
+                }
+            }
+            result = filtered;
+        }
+        result = this.filterEventsByStatus(result, this.safeString(parameters, "status"));
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(queries, null))) && Helpers.isTrue((Helpers.isGreaterThan(Helpers.getArrayLength(queries), 0)))))
+        {
+            result = this.filterEventsBySearchIn(result, queries, this.safeString(parameters, "searchIn"));
+        }
+        Object sort = this.safeString(parameters, "sort");
+        if (Helpers.isTrue(!Helpers.isEqual(sort, null)))
+        {
+            Object sortKey = null;
+            if (Helpers.isTrue(Helpers.isEqual(sort, "volume")))
+            {
+                sortKey = "volume";
+            } else if (Helpers.isTrue(Helpers.isEqual(sort, "liquidity")))
+            {
+                sortKey = "liquidity";
+            } else if (Helpers.isTrue(Helpers.isEqual(sort, "newest")))
+            {
+                sortKey = "created";
+            }
+            if (Helpers.isTrue(!Helpers.isEqual(sortKey, null)))
+            {
+                result = this.sortBy(result, sortKey, true, 0);
+            }
+        }
+        Object limit = this.safeInteger(parameters, "limit");
+        if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+        {
+            result = this.arraySlice(result, 0, limit);
+        }
+        return result;
+    }
+
+    public Object filterEventsByStatus(Object events, Object... optionalArgs)
+    {
+        // 'active' | 'inactive' | 'closed' | 'all' — 'inactive' and 'closed' are interchangeable
+        Object status = Helpers.getArg(optionalArgs, 0, null);
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(status, null))) || Helpers.isTrue((Helpers.isEqual(status, "all")))))
+        {
+            return events;
+        }
+        Object wantActive = (Helpers.isEqual(status, "active"));
+        Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(events)); i++)
+        {
+            Object eventVar = Helpers.GetValue(events, i);
+            Object isActive = this.safeBool(eventVar, "active");
+            // keep events whose status is unknown (already filtered server-side, no `active` field)
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(isActive, null))) || Helpers.isTrue((Helpers.isEqual(isActive, wantActive)))))
+            {
+                ((java.util.List<Object>)result).add(eventVar);
+            }
+        }
+        return result;
+    }
+
+    public Object filterEventsBySearchIn(Object events, Object queries, Object... optionalArgs)
+    {
+        // keep events whose title and/or description contains one of the queries (searchIn defaults to 'both')
+        Object searchIn = Helpers.getArg(optionalArgs, 0, null);
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(searchIn, null))) || Helpers.isTrue((Helpers.isEqual(queries, null)))) || Helpers.isTrue((Helpers.isEqual(Helpers.getArrayLength(queries), 0)))))
+        {
+            return events;
+        }
+        Object checkTitle = Helpers.isTrue((Helpers.isEqual(searchIn, "title"))) || Helpers.isTrue((Helpers.isEqual(searchIn, "both")));
+        Object checkDescription = Helpers.isTrue((Helpers.isEqual(searchIn, "description"))) || Helpers.isTrue((Helpers.isEqual(searchIn, "both")));
+        Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(events)); i++)
+        {
+            Object eventVar = Helpers.GetValue(events, i);
+            Object title = this.safeStringLower(eventVar, "title", "");
+            Object description = this.safeStringLower(eventVar, "description", "");
+            Object matched = false;
+            for (var qi = 0; Helpers.isLessThan(qi, Helpers.getArrayLength(queries)); qi++)
+            {
+                Object q = ((String)Helpers.GetValue(queries, qi)).toLowerCase();
+                if (Helpers.isTrue(Helpers.isTrue(checkTitle) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(title, q), 0)))))
+                {
+                    matched = true;
+                    break;
+                }
+                if (Helpers.isTrue(Helpers.isTrue(checkDescription) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(description, q), 0)))))
+                {
+                    matched = true;
+                    break;
+                }
+            }
+            if (Helpers.isTrue(matched))
+            {
+                ((java.util.List<Object>)result).add(eventVar);
+            }
+        }
+        return result;
     }
 
     public java.util.concurrent.CompletableFuture<Object> fetchEvents(Object... optionalArgs)
@@ -454,22 +556,24 @@ public Object isPrediction()
 
     public Object safePredictionOrder(Object order, Object... optionalArgs)
     {
+        // the prediction identity is the `outcome` handle carried on the raw dict (read by
+        // toPredictionStructure), not a ccxt `symbol`, so don't pass an outcome object as a market
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object parsed = super.safeOrder(order, market);
+        Object parsed = super.safeOrder(order);
         return this.toPredictionStructure(parsed, order);
     }
 
     public Object safePredictionTrade(Object trade, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object parsed = super.safeTrade(trade, market);
+        Object parsed = super.safeTrade(trade);
         return this.toPredictionStructure(parsed, trade);
     }
 
     public Object safePredictionTicker(Object ticker, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object parsed = super.safeTicker(ticker, market);
+        Object parsed = super.safeTicker(ticker);
         return this.toPredictionStructure(parsed, ticker);
     }
 
@@ -479,18 +583,36 @@ public Object isPrediction()
         return this.toPredictionStructure(parsed, position);
     }
 
+    public Object safePredictionOrderBook(Object orderbook, Object... optionalArgs)
+    {
+        // normalize a parsed order book to the prediction shape: replace the unified
+        // `symbol` with the `outcome` handle and attach the outcome identity fields
+        // (outcomeId / market) so books match the PredictionOrderBook structure.
+        Object outcomeObj = Helpers.getArg(optionalArgs, 0, null);
+        Object fallback = this.safeString2(orderbook, "outcome", "symbol");
+        Helpers.addElementToObject(orderbook, "outcome", ((Helpers.isTrue((Helpers.isEqual(outcomeObj, null))))) ? fallback : this.safeString(outcomeObj, "outcome", fallback));
+        Helpers.addElementToObject(orderbook, "outcomeId", ((Helpers.isTrue((Helpers.isEqual(outcomeObj, null))))) ? this.safeString(orderbook, "outcomeId") : this.safeString(outcomeObj, "outcomeId"));
+        Helpers.addElementToObject(orderbook, "market", ((Helpers.isTrue((Helpers.isEqual(outcomeObj, null))))) ? this.safeString(orderbook, "market") : this.safeString(outcomeObj, "market"));
+        // omit (not delete) — `del dict['symbol']` raises KeyError in python/php when absent
+        return this.omit(orderbook, "symbol");
+    }
+
     public Object toPredictionStructure(Object parsed, Object raw)
     {
-        // rename the unified `symbol` to the prediction `outcome` handle and attach the
-        // prediction identity fields (raw exchange id, label, parent market/event) that the
+        // the prediction identity is the `outcome` handle (never the base `symbol`); attach it
+        // and the other prediction fields (raw exchange id, label, parent market/event) that the
         // base safe* helpers drop. the exchange parser passes them on the raw input dict.
-        Object outcomeSymbol = this.safeString2(raw, "outcome", "symbol");
-        Helpers.addElementToObject(parsed, "outcome", outcomeSymbol);
+        Helpers.addElementToObject(parsed, "outcome", this.safeString(raw, "outcome"));
         Helpers.addElementToObject(parsed, "outcomeId", this.safeString(raw, "outcomeId"));
         Helpers.addElementToObject(parsed, "label", this.safeString(raw, "label"));
         Helpers.addElementToObject(parsed, "market", this.safeString(raw, "market"));
         Helpers.addElementToObject(parsed, "event", this.safeString(raw, "event"));
-        ((java.util.Map<String,Object>)parsed).remove((String)"symbol");
+        // guard the delete: a bare `delete` is a no-op on a missing key in JS, but transpiles to
+        // `del`/`unset` which raises in Python when the inherited `symbol` was never set
+        if (Helpers.isTrue(Helpers.inOp(parsed, "symbol")))
+        {
+            ((java.util.Map<String,Object>)parsed).remove((String)"symbol");
+        }
         return parsed;
     }
 

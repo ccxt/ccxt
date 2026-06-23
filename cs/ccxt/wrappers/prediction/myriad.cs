@@ -143,9 +143,9 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [position structures](https://docs.ccxt.com/#/?id=position-structure).</returns>
-    public async Task<List<PredictionPosition>> FetchPositions(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<List<PredictionPosition>> FetchPositions(List<String> outcomes = null, Dictionary<string, object> parameters = null)
     {
-        var res = await this.fetchPositions(symbols, parameters);
+        var res = await this.fetchPositions(outcomes, parameters);
         return ((IList<object>)res).Select(item => new PredictionPosition(item)).ToList<PredictionPosition>();
     }
     /// <summary>
@@ -169,9 +169,9 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a quote object with price, shares, fees and the on-chain calldata.</returns>
-    public async Task<Dictionary<string, object>> FetchTradeQuote(string symbol, string side, double amount, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, object>> FetchTradeQuote(string outcome, string side, double amount, Dictionary<string, object> parameters = null)
     {
-        var res = await this.fetchTradeQuote(symbol, side, amount, parameters);
+        var res = await this.fetchTradeQuote(outcome, side, amount, parameters);
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
@@ -213,10 +213,10 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure](https://docs.ccxt.com/#/?id=order-structure).</returns>
-    public async Task<PredictionOrder> CreateOrder(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<PredictionOrder> CreateOrder(string outcome, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
-        var res = await this.createOrder(symbol, type, side, amount, price, parameters);
+        var res = await this.createOrder(outcome, type, side, amount, price, parameters);
         return new PredictionOrder(res);
     }
     /// <summary>
@@ -227,10 +227,10 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure](https://docs.ccxt.com/#/?id=order-structure).</returns>
-    public async Task<PredictionOrder> CreateOrderbookOrder(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<PredictionOrder> CreateOrderbookOrder(string outcome, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
-        var res = await this.createOrderbookOrder(symbol, type, side, amount, price, parameters);
+        var res = await this.createOrderbookOrder(outcome, type, side, amount, price, parameters);
         return new PredictionOrder(res);
     }
     /// <summary>
@@ -274,11 +274,11 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure](https://docs.ccxt.com/#/?id=order-structure).</returns>
-    public async Task<PredictionOrder> EditOrder(string id, string symbol, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<PredictionOrder> EditOrder(string id, string outcome, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var amount = amount2 == 0 ? null : (object)amount2;
         var price = price2 == 0 ? null : (object)price2;
-        var res = await this.editOrder(id, symbol, type, side, amount, price, parameters);
+        var res = await this.editOrder(id, outcome, type, side, amount, price, parameters);
         return new PredictionOrder(res);
     }
     /// <summary>
@@ -289,10 +289,10 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure](https://docs.ccxt.com/#/?id=order-structure).</returns>
-    public async Task<PredictionOrder> CreateAmmOrder(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<PredictionOrder> CreateAmmOrder(string outcome, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
-        var res = await this.createAmmOrder(symbol, type, side, amount, price, parameters);
+        var res = await this.createAmmOrder(outcome, type, side, amount, price, parameters);
         return new PredictionOrder(res);
     }
     /// <summary>
@@ -302,9 +302,9 @@ public partial class myriad
     /// See <see href="https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da8281b58c5adb2f5998eec8"/>  <br/>
     /// <list type="table">
     /// <item>
-    /// <term>symbol</term>
+    /// <term>outcome</term>
     /// <description>
-    /// string : unified outcome symbol the order belongs to
+    /// string : unified outcome the order belongs to
     /// </description>
     /// </item>
     /// <item>
@@ -316,9 +316,9 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure](https://docs.ccxt.com/#/?id=order-structure).</returns>
-    public async Task<PredictionOrder> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<PredictionOrder> CancelOrder(string id, string outcome = null, Dictionary<string, object> parameters = null)
     {
-        var res = await this.cancelOrder(id, symbol, parameters);
+        var res = await this.cancelOrder(id, outcome, parameters);
         return new PredictionOrder(res);
     }
     /// <summary>
@@ -328,9 +328,9 @@ public partial class myriad
     /// See <see href="https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da8281e7a14cd34e6a716761"/>  <br/>
     /// <list type="table">
     /// <item>
-    /// <term>symbol</term>
+    /// <term>outcome</term>
     /// <description>
-    /// string : unified outcome symbol; when omitted cancels across all markets
+    /// string : unified outcome; when omitted cancels across all markets
     /// </description>
     /// </item>
     /// <item>
@@ -342,9 +342,9 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> the raw response with the count of cancelled orders.</returns>
-    public async Task<Dictionary<string, object>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, object>> CancelAllOrders(string outcome = null, Dictionary<string, object> parameters = null)
     {
-        var res = await this.cancelAllOrders(symbol, parameters);
+        var res = await this.cancelAllOrders(outcome, parameters);
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
@@ -354,7 +354,7 @@ public partial class myriad
     /// See <see href="https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828177961fd94a6055966f"/>  <br/>
     /// <list type="table">
     /// <item>
-    /// <term>symbol</term>
+    /// <term>outcome</term>
     /// <description>
     /// string : not used by myriad cancelOrders
     /// </description>
@@ -368,9 +368,9 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [order structures](https://docs.ccxt.com/#/?id=order-structure).</returns>
-    public async Task<List<PredictionOrder>> CancelOrders(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<List<PredictionOrder>> CancelOrders(List<string> ids, string outcome = null, Dictionary<string, object> parameters = null)
     {
-        var res = await this.cancelOrders(ids, symbol, parameters);
+        var res = await this.cancelOrders(ids, outcome, parameters);
         return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
     }
     /// <summary>
@@ -380,9 +380,9 @@ public partial class myriad
     /// See <see href="https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828116b8a0d976baea1df0"/>  <br/>
     /// <list type="table">
     /// <item>
-    /// <term>symbol</term>
+    /// <term>outcome</term>
     /// <description>
-    /// string : unified outcome symbol the order belongs to
+    /// string : unified outcome the order belongs to
     /// </description>
     /// </item>
     /// <item>
@@ -394,9 +394,9 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure](https://docs.ccxt.com/#/?id=order-structure).</returns>
-    public async Task<PredictionOrder> FetchOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<PredictionOrder> FetchOrder(string id, string outcome = null, Dictionary<string, object> parameters = null)
     {
-        var res = await this.fetchOrder(id, symbol, parameters);
+        var res = await this.fetchOrder(id, outcome, parameters);
         return new PredictionOrder(res);
     }
     /// <summary>
@@ -406,9 +406,9 @@ public partial class myriad
     /// See <see href="https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828171a003cf996487d008"/>  <br/>
     /// <list type="table">
     /// <item>
-    /// <term>symbol</term>
+    /// <term>outcome</term>
     /// <description>
-    /// string : unified outcome symbol to filter by
+    /// string : unified outcome to filter by
     /// </description>
     /// </item>
     /// <item>
@@ -444,11 +444,11 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [order structures](https://docs.ccxt.com/#/?id=order-structure).</returns>
-    public async Task<List<PredictionOrder>> FetchOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<PredictionOrder>> FetchOrders(string outcome = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
-        var res = await this.fetchOrders(symbol, since, limit, parameters);
+        var res = await this.fetchOrders(outcome, since, limit, parameters);
         return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
     }
     /// <summary>
@@ -458,9 +458,9 @@ public partial class myriad
     /// See <see href="https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828171a003cf996487d008"/>  <br/>
     /// <list type="table">
     /// <item>
-    /// <term>symbol</term>
+    /// <term>outcome</term>
     /// <description>
-    /// string : unified outcome symbol to filter by
+    /// string : unified outcome to filter by
     /// </description>
     /// </item>
     /// <item>
@@ -484,11 +484,11 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [order structures](https://docs.ccxt.com/#/?id=order-structure).</returns>
-    public async Task<List<PredictionOrder>> FetchOpenOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<PredictionOrder>> FetchOpenOrders(string outcome = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
-        var res = await this.fetchOpenOrders(symbol, since, limit, parameters);
+        var res = await this.fetchOpenOrders(outcome, since, limit, parameters);
         return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
     }
     /// <summary>
@@ -498,9 +498,9 @@ public partial class myriad
     /// See <see href="https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828171a003cf996487d008"/>  <br/>
     /// <list type="table">
     /// <item>
-    /// <term>symbol</term>
+    /// <term>outcome</term>
     /// <description>
-    /// string : unified outcome symbol to filter by
+    /// string : unified outcome to filter by
     /// </description>
     /// </item>
     /// <item>
@@ -524,11 +524,11 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [order structures](https://docs.ccxt.com/#/?id=order-structure).</returns>
-    public async Task<List<PredictionOrder>> FetchClosedOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<PredictionOrder>> FetchClosedOrders(string outcome = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
-        var res = await this.fetchClosedOrders(symbol, since, limit, parameters);
+        var res = await this.fetchClosedOrders(outcome, since, limit, parameters);
         return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
     }
     /// <summary>
@@ -538,9 +538,9 @@ public partial class myriad
     /// See <see href="https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828171a003cf996487d008"/>  <br/>
     /// <list type="table">
     /// <item>
-    /// <term>symbol</term>
+    /// <term>outcome</term>
     /// <description>
-    /// string : unified outcome symbol to filter by
+    /// string : unified outcome to filter by
     /// </description>
     /// </item>
     /// <item>
@@ -564,11 +564,11 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [order structures](https://docs.ccxt.com/#/?id=order-structure).</returns>
-    public async Task<List<PredictionOrder>> FetchCanceledOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<PredictionOrder>> FetchCanceledOrders(string outcome = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
-        var res = await this.fetchCanceledOrders(symbol, since, limit, parameters);
+        var res = await this.fetchCanceledOrders(outcome, since, limit, parameters);
         return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
     }
     /// <summary>
@@ -578,9 +578,9 @@ public partial class myriad
     /// See <see href="https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828171a003cf996487d008"/>  <br/>
     /// <list type="table">
     /// <item>
-    /// <term>symbol</term>
+    /// <term>outcome</term>
     /// <description>
-    /// string : unified outcome symbol to filter by
+    /// string : unified outcome to filter by
     /// </description>
     /// </item>
     /// <item>
@@ -604,11 +604,11 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure).</returns>
-    public async Task<List<PredictionTrade>> FetchMyTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<PredictionTrade>> FetchMyTrades(string outcome = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
-        var res = await this.fetchMyTrades(symbol, since, limit, parameters);
+        var res = await this.fetchMyTrades(outcome, since, limit, parameters);
         return ((IList<object>)res).Select(item => new PredictionTrade(item)).ToList<PredictionTrade>();
     }
     /// <summary>
@@ -652,9 +652,9 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure).</returns>
-    public async Task<PredictionTicker> FetchTicker(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<PredictionTicker> FetchTicker(string outcome, Dictionary<string, object> parameters = null)
     {
-        var res = await this.fetchTicker(symbol, parameters);
+        var res = await this.fetchTicker(outcome, parameters);
         return new PredictionTicker(res);
     }
     /// <summary>
@@ -672,10 +672,10 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [fee structure](https://docs.ccxt.com/#/?id=fee-structure).</returns>
-    public async Task<TradingFeeInterface> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<PredictionTradingFee> FetchTradingFee(string outcome, Dictionary<string, object> parameters = null)
     {
-        var res = await this.fetchTradingFee(symbol, parameters);
-        return new TradingFeeInterface(res);
+        var res = await this.fetchTradingFee(outcome, parameters);
+        return new PredictionTradingFee(res);
     }
     /// <summary>
     /// fetches the real order book for order-book markets, or synthesizes a one-level book from the AMM price otherwise
@@ -698,11 +698,11 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure).</returns>
-    public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<PredictionOrderBook> FetchOrderBook(string outcome, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
-        var res = await this.fetchOrderBook(symbol, limit, parameters);
-        return new OrderBook(res);
+        var res = await this.fetchOrderBook(outcome, limit, parameters);
+        return new PredictionOrderBook(res);
     }
     /// <summary>
     /// fetches price history for an outcome from the price_charts bucket embedded in the market response
@@ -731,11 +731,11 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>int[][]</term> a list of candles ordered as timestamp, open, high, low, close, volume.</returns>
-    public async Task<List<OHLCV>> FetchOHLCV(string symbol, string timeframe = "1d", Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<OHLCV>> FetchOHLCV(string outcome, string timeframe = "1d", Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
-        var res = await this.fetchOHLCV(symbol, timeframe, since, limit, parameters);
+        var res = await this.fetchOHLCV(outcome, timeframe, since, limit, parameters);
         return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
     }
     /// <summary>
@@ -752,10 +752,10 @@ public partial class myriad
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome symbol.</returns>
-    public async Task<PredictionTickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome.</returns>
+    public async Task<PredictionTickers> FetchTickers(List<String> outcomes = null, Dictionary<string, object> parameters = null)
     {
-        var res = await this.fetchTickers(symbols, parameters);
+        var res = await this.fetchTickers(outcomes, parameters);
         return new PredictionTickers(res);
     }
     /// <summary>
@@ -785,11 +785,11 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades).</returns>
-    public async Task<List<PredictionTrade>> FetchTrades(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<PredictionTrade>> FetchTrades(string outcome, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
-        var res = await this.fetchTrades(symbol, since, limit, parameters);
+        var res = await this.fetchTrades(outcome, since, limit, parameters);
         return ((IList<object>)res).Select(item => new PredictionTrade(item)).ToList<PredictionTrade>();
     }
     /// <summary>
@@ -825,7 +825,7 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> an array of event structures.</returns>
-    public async Task<List<Dictionary<string, object>>> FetchEvents(Dictionary<string, object> parameters = null)
+    public async Task<List<Dictionary<string, object>>> FetchEvents(Dictionary<string, object> parameters)
     {
         var res = await this.fetchEvents(parameters);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
@@ -851,10 +851,10 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure).</returns>
-    public async Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.pro.IOrderBook> WatchOrderBook(string outcome, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
-        var res = await this.watchOrderBook(symbol, limit, parameters);
+        var res = await this.watchOrderBook(outcome, limit, parameters);
         return ((ccxt.pro.IOrderBook) res).Copy();
     }
     /// <summary>
@@ -884,11 +884,11 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades).</returns>
-    public async Task<List<PredictionTrade>> WatchTrades(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<PredictionTrade>> WatchTrades(string outcome, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
-        var res = await this.watchTrades(symbol, since, limit, parameters);
+        var res = await this.watchTrades(outcome, since, limit, parameters);
         return ((IList<object>)res).Select(item => new PredictionTrade(item)).ToList<PredictionTrade>();
     }
     /// <summary>
@@ -918,11 +918,11 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure).</returns>
-    public async Task<List<PredictionTrade>> WatchMyTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<PredictionTrade>> WatchMyTrades(string outcome = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
-        var res = await this.watchMyTrades(symbol, since, limit, parameters);
+        var res = await this.watchMyTrades(outcome, since, limit, parameters);
         return ((IList<object>)res).Select(item => new PredictionTrade(item)).ToList<PredictionTrade>();
     }
     /// <summary>
@@ -940,9 +940,9 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure).</returns>
-    public async Task<PredictionTicker> WatchTicker(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<PredictionTicker> WatchTicker(string outcome, Dictionary<string, object> parameters = null)
     {
-        var res = await this.watchTicker(symbol, parameters);
+        var res = await this.watchTicker(outcome, parameters);
         return new PredictionTicker(res);
     }
     /// <summary>
@@ -959,10 +959,10 @@ public partial class myriad
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a dict of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by symbol.</returns>
-    public async Task<PredictionTickers> WatchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> a dict of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome.</returns>
+    public async Task<PredictionTickers> WatchTickers(List<String> outcomes = null, Dictionary<string, object> parameters = null)
     {
-        var res = await this.watchTickers(symbols, parameters);
+        var res = await this.watchTickers(outcomes, parameters);
         return new PredictionTickers(res);
     }
     /// <summary>
@@ -992,11 +992,11 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>int[][]</term> a list of [timestamp, open, high, low, close, volume] candles.</returns>
-    public async Task<List<OHLCV>> WatchOHLCV(string symbol, string timeframe = "1m", Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<OHLCV>> WatchOHLCV(string outcome, string timeframe = "1m", Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
-        var res = await this.watchOHLCV(symbol, timeframe, since, limit, parameters);
+        var res = await this.watchOHLCV(outcome, timeframe, since, limit, parameters);
         return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
     }
     /// <summary>
@@ -1006,9 +1006,9 @@ public partial class myriad
     /// See <see href="https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa"/>  <br/>
     /// <list type="table">
     /// <item>
-    /// <term>symbol</term>
+    /// <term>outcome</term>
     /// <description>
-    /// string : unified outcome symbol to filter by
+    /// string : unified outcome to filter by
     /// </description>
     /// </item>
     /// <item>
@@ -1032,11 +1032,11 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [order structures](https://docs.ccxt.com/#/?id=order-structure).</returns>
-    public async Task<List<PredictionOrder>> WatchOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<PredictionOrder>> WatchOrders(string outcome = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
-        var res = await this.watchOrders(symbol, since, limit, parameters);
+        var res = await this.watchOrders(outcome, since, limit, parameters);
         return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
     }
     /// <summary>
@@ -1066,11 +1066,11 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [position structures](https://docs.ccxt.com/#/?id=position-structure).</returns>
-    public async Task<List<PredictionPosition>> WatchPositions(List<String> symbols = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<PredictionPosition>> WatchPositions(List<String> outcomes = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
-        var res = await this.watchPositions(symbols, since, limit, parameters);
+        var res = await this.watchPositions(outcomes, since, limit, parameters);
         return ((IList<object>)res).Select(item => new PredictionPosition(item)).ToList<PredictionPosition>();
     }
 }

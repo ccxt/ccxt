@@ -151,6 +151,10 @@ public partial class limitless : PredictionExchange
                 { "usdcDecimals", 6 },
                 { "warnOnCancelAllOrdersWithOutcome", true },
                 { "zeroAddress", "0x0000000000000000000000000000000000000000" },
+                { "chainId", 8453 },
+                { "rpcUrl", "https://mainnet.base.org" },
+                { "collateralAddress", "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913" },
+                { "exchangeAddress", "0x05c748E2f4DcDe0ec9Fa8DDc40DE6b867f923fa5" },
                 { "createMarketBuyOrderRequiresPrice", true },
             } },
             { "exceptions", new Dictionary<string, object>() {
@@ -748,6 +752,8 @@ public partial class limitless : PredictionExchange
         object title = this.safeString(eventVar, "title", groupId);
         object markets = new List<object>() {};
         object rawMarkets = this.safeList(eventVar, "markets", new List<object>() {});
+        // aggregate 24h volume across the markets so sort by volume works
+        object totalVolume = 0;
         for (object i = 0; isLessThan(i, getArrayLength(rawMarkets)); postFixIncrement(ref i))
         {
             object rawMarket = getValue(rawMarkets, i);
@@ -760,14 +766,18 @@ public partial class limitless : PredictionExchange
             {
                 ((IList<object>)markets).Add(this.parseMarket(rawMarket));
             }
+            object marketInfo = this.safeDict(rawMarket, "info", rawMarket);
+            totalVolume = this.sum(totalVolume, this.safeNumber2(marketInfo, "volume24h", "volume", 0));
         }
         return ((object)this.extend(new Dictionary<string, object>() {
             { "id", groupId },
             { "slug", groupId },
-            { "symbol", ((bool) isTrue(groupId)) ? this.shortenSlug(groupId) : null },
+            { "event", ((bool) isTrue(groupId)) ? this.shortenSlug(groupId) : null },
             { "title", title },
             { "description", this.safeString(eventVar, "description") },
             { "markets", markets },
+            { "volume", totalVolume },
+            { "liquidity", this.safeNumber(eventVar, "liquidity") },
             { "url", this.safeString(eventVar, "url") },
             { "image", this.safeString(eventVar, "imageUrl", this.safeString(eventVar, "image")) },
             { "active", this.safeBool(eventVar, "active", true) },
@@ -790,16 +800,14 @@ public partial class limitless : PredictionExchange
      * @description fetches the current price and best bid/ask for a single outcome token, combining the market detail and order book endpoints
      * @see https://docs.limitless.exchange/api-reference/markets/get-market
      * @see https://docs.limitless.exchange/api-reference/trading/orderbook
-     * @param {string} symbol unified outcome symbol like TRUMP_OUT_PRESIDENT_2027:YES or an outcome token id
+     * @param {string} outcome unified outcome like TRUMP_OUT_PRESIDENT_2027:YES or an outcome token id
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    public async override Task<object> fetchTicker(object symbol, object parameters = null)
+    public async override Task<object> fetchTicker(object outcome, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object outcome = symbol;
-        await this.loadMarkets();
-        this.checkEventsAndMarkets(outcome);
+        this.checkEvents(outcome);
         object outcomeObj = this.outcome(outcome);
         object slug = this.safeString(getValue(outcomeObj, "info"), "slug");
         object request = new Dictionary<string, object>() {
@@ -1039,7 +1047,7 @@ public partial class limitless : PredictionExchange
         object now = this.milliseconds();
         object outcomeSymbol = this.safeOutcomeSymbol(null, market);
         return this.safePredictionTicker(new Dictionary<string, object>() {
-            { "symbol", outcomeSymbol },
+            { "outcome", outcomeSymbol },
             { "outcomeId", this.safeString(market, "outcomeId") },
             { "label", this.safeString(market, "label") },
             { "market", this.safeString(market, "market") },
@@ -1068,19 +1076,18 @@ public partial class limitless : PredictionExchange
     /**
      * @method
      * @name limitless#fetchTickers
-     * @description fetches tickers for multiple outcome tokens, grouping requested outcomes by their parent market, fetches all active markets when symbols is omitted
+     * @description fetches tickers for multiple outcome tokens, grouping requested outcomes by their parent market, fetches all active markets when outcomes is omitted
      * @see https://docs.limitless.exchange/api-reference/markets/get-market
      * @see https://docs.limitless.exchange/api-reference/trading/orderbook
-     * @param {string[]} [symbols] unified outcome symbols or outcome token ids
+     * @param {string[]} [outcomes] unified outcomes or outcome token ids
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome symbol
+     * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<object> fetchTickers(object outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
         object result = new Dictionary<string, object>() {};
-        if (isTrue(isEqual(symbols, null)))
+        if (isTrue(isEqual(outcomes, null)))
         {
             // parse tickers for every loaded outcome from the cached listing data, without the per-market order books
             object allMarkets = await this.fetchMarkets(parameters);
@@ -1104,10 +1111,10 @@ public partial class limitless : PredictionExchange
         // group target outcomes by their parent market to fetch each market and book only once
         object outcomesBySlug = new Dictionary<string, object>() {};
         object slugs = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(outcomes)); postFixIncrement(ref i))
         {
-            this.checkEventsAndMarkets(getValue(symbols, i));
-            object outcomeObj = this.outcome(getValue(symbols, i));
+            this.checkEvents(getValue(outcomes, i));
+            object outcomeObj = this.outcome(getValue(outcomes, i));
             object slug = this.safeString(getValue(outcomeObj, "info"), "slug");
             if (!isTrue((inOp(outcomesBySlug, slug))))
             {
@@ -1160,18 +1167,17 @@ public partial class limitless : PredictionExchange
      * @name limitless#fetchTrades
      * @description fetches recent public trades for a single outcome token from the market events feed
      * @see https://docs.limitless.exchange/api-reference/trading/market-events
-     * @param {string} symbol unified outcome symbol like TRUMP_OUT_PRESIDENT_2027:YES or an outcome token id
+     * @param {string} outcome unified outcome like TRUMP_OUT_PRESIDENT_2027:YES or an outcome token id
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum number of trades to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
      */
-    public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTrades(object outcome, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
-        this.checkEventsAndMarkets(symbol);
-        object outcomeObj = this.outcome(symbol);
+        this.checkEvents(outcome);
+        object outcomeObj = this.outcome(outcome);
         object slug = this.safeString(getValue(outcomeObj, "info"), "slug");
         object tokenId = this.safeString(outcomeObj, "outcomeId");
         object request = new Dictionary<string, object>() {
@@ -1218,7 +1224,7 @@ public partial class limitless : PredictionExchange
         }
         // parse without a market (parsed trades carry `outcome`, not `symbol`) then filter by outcome
         object parsedTrades = this.parseTrades(filtered, null);
-        return this.filterByOutcomeSinceLimit(parsedTrades, symbol, since, limit);
+        return this.filterByOutcomeSinceLimit(parsedTrades, outcome, since, limit);
     }
 
     /**
@@ -1226,17 +1232,15 @@ public partial class limitless : PredictionExchange
      * @name limitless#fetchOrderBook
      * @description fetches the order book for a single outcome token, converting 6-decimal USDC sizes to whole units, no outcomes are quoted at 1 - price with the sides swapped
      * @see https://docs.limitless.exchange/api-reference/trading/orderbook
-     * @param {string} symbol unified outcome symbol like TRUMP_OUT_PRESIDENT_2027:YES or an outcome token id
+     * @param {string} outcome unified outcome like TRUMP_OUT_PRESIDENT_2027:YES or an outcome token id
      * @param {int} [limit] not used by limitless fetchOrderBook
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
-    public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrderBook(object outcome, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object outcome = symbol;
-        await this.loadMarkets();
-        this.checkEventsAndMarkets(outcome);
+        this.checkEvents(outcome);
         object outcomeObj = this.outcome(outcome);
         object slug = this.safeString(getValue(outcomeObj, "info"), "slug");
         object request = new Dictionary<string, object>() {
@@ -1304,14 +1308,15 @@ public partial class limitless : PredictionExchange
             }
             ((IList<object>)asks).Add(new List<object> {this.parseNumber(priceStr), this.parseNumber(sizeStr)});
         }
-        return new Dictionary<string, object>() {
-            { "symbol", this.safeOutcomeSymbol(outcome, outcomeObj) },
+        object orderbook = new Dictionary<string, object>() {
+            { "outcome", this.safeOutcomeSymbol(outcome, outcomeObj) },
             { "bids", this.sortBy(bids, 0, true) },
             { "asks", this.sortBy(asks, 0) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "nonce", null },
         };
+        return this.safePredictionOrderBook(orderbook, outcomeObj);
     }
 
     /**
@@ -1319,20 +1324,19 @@ public partial class limitless : PredictionExchange
      * @name limitless#fetchOHLCV
      * @description fetches historical prices for a single limitless market outcome and maps them to OHLCV format, uses the `interval` query parameter and selects the YES/NO series that matches the requested outcome
      * @see https://docs.limitless.exchange/api-reference/trading/historical-price
-     * @param {string} symbol outcome symbol, e.g. "TRUMP_OUT:YES"
+     * @param {string} outcome outcome, e.g. "TRUMP_OUT:YES"
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum number of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOHLCV(object outcome, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
         timeframe ??= "1d";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
-        this.checkEventsAndMarkets(symbol);
-        object outcomeObj = this.outcome(symbol);
+        this.checkEvents(outcome);
+        object outcomeObj = this.outcome(outcome);
         object slug = this.safeString(getValue(outcomeObj, "info"), "slug");
         object outcomeLabel = this.safeStringUpper(getValue(outcomeObj, "info"), "outcomeLabel");
         object interval = this.safeString(this.timeframes, timeframe, "1d");
@@ -1452,22 +1456,20 @@ public partial class limitless : PredictionExchange
      * @name limitless#fetchOrders
      * @description fetches orders for the authenticated user for a single outcome
      * @see https://docs.limitless.exchange/api-reference/orders/get-user-orders
-     * @param {string} [symbol] outcome symbol, e.g. "TRUMP_OUT:YES"
+     * @param {string} [outcome] outcome, e.g. "TRUMP_OUT:YES"
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object outcome = symbol;
         if (isTrue(isEqual(outcome, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchOrders requires an outcome argument")) ;
         }
-        await this.loadMarkets();
-        this.checkEventsAndMarkets(outcome);
+        this.checkEvents(outcome);
         object outcomeObj = this.outcome(outcome);
         object info = this.safeDict(outcomeObj, "info");
         object request = new Dictionary<string, object>() {
@@ -1498,8 +1500,8 @@ public partial class limitless : PredictionExchange
         //         }
         //     ]
         //
-        // pass undefined as market: parseOrder sets symbol to the market symbol while the outcome
-        // lives under 'outcome', so the base symbol filter would drop every order; the per-slug
+        // pass undefined as market: parseOrder sets outcome to the market outcome while the outcome
+        // lives under 'outcome', so the base outcome filter would drop every order; the per-slug
         // endpoint already scopes results and parseOrder resolves the outcome via outcomes_by_id
         return this.parseOrders(response, null, since, limit);
     }
@@ -1509,22 +1511,20 @@ public partial class limitless : PredictionExchange
      * @name limitless#fetchOpenOrders
      * @description fetches open orders for the authenticated user for a single outcome
      * @see https://docs.limitless.exchange/api-reference/orders/get-user-orders
-     * @param {string} [symbol] outcome symbol, e.g. "TRUMP_OUT:YES"
+     * @param {string} [outcome] outcome, e.g. "TRUMP_OUT:YES"
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOpenOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object outcome = symbol;
         if (isTrue(isEqual(outcome, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchOpenOrders requires an outcome argument")) ;
         }
-        await this.loadMarkets();
-        this.checkEventsAndMarkets(outcome);
+        this.checkEvents(outcome);
         parameters = this.extend(parameters, new Dictionary<string, object>() {
             { "statuses", new List<object>() {"LIVE"} },
         });
@@ -1536,22 +1536,20 @@ public partial class limitless : PredictionExchange
      * @name limitless#fetchClosedOrders
      * @description fetches closed orders for the authenticated user for a single outcome
      * @see https://docs.limitless.exchange/api-reference/orders/get-user-orders
-     * @param {string} [symbol] outcome symbol, e.g. "TRUMP_OUT:YES"
+     * @param {string} [outcome] outcome, e.g. "TRUMP_OUT:YES"
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchClosedOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object outcome = symbol;
         if (isTrue(isEqual(outcome, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchClosedOrders requires an outcome argument")) ;
         }
-        await this.loadMarkets();
-        this.checkEventsAndMarkets(outcome);
+        this.checkEvents(outcome);
         parameters = this.extend(parameters, new Dictionary<string, object>() {
             { "statuses", new List<object>() {"MATCHED"} },
         });
@@ -1564,16 +1562,14 @@ public partial class limitless : PredictionExchange
      * @description fetch orders by the list of order id
      * @see https://docs.limitless.exchange/api-reference/trading/order-status-batch
      * @param {string[]} ids list of order id
-     * @param {string} [symbol] market outcome symbol, e.g. "TRUMP_OUT:YES"
+     * @param {string} [outcome] market outcome, e.g. "TRUMP_OUT:YES"
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async virtual Task<object> fetchOrdersByIds(object ids, object symbol = null, object parameters = null)
+    public async virtual Task<object> fetchOrdersByIds(object ids, object outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object outcome = symbol;
-        await this.loadMarkets();
-        this.checkEventsAndMarkets(outcome);
+        this.checkEvents(outcome);
         object length = getArrayLength(ids);
         if (isTrue(isGreaterThan(length, 50)))
         {
@@ -1708,16 +1704,14 @@ public partial class limitless : PredictionExchange
      * @description fetches information on an order made by the user
      * @see https://docs.limitless.exchange/api-reference/trading/order-status-batch
      * @param {string} id the order id
-     * @param {string} [symbol] market outcome symbol, e.g. "TRUMP_OUT:YES"
+     * @param {string} [outcome] market outcome, e.g. "TRUMP_OUT:YES"
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<object> fetchOrder(object id, object outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object outcome = symbol;
-        await this.loadMarkets();
-        this.checkEventsAndMarkets(outcome);
+        this.checkEvents(outcome);
         object orders = await this.fetchOrdersByIds(new List<object>() {id}, outcome, parameters);
         object order = this.safeDict(orders, 0);
         if (isTrue(isEqual(order, null)))
@@ -1907,7 +1901,6 @@ public partial class limitless : PredictionExchange
             { "datetime", datetime },
             { "lastTradeTimestamp", null },
             { "status", this.parseOrderStatus(rawStatus) },
-            { "symbol", outcomeSymbol },
             { "outcome", outcomeSymbol },
             { "outcomeId", this.safeString(mkt, "outcomeId") },
             { "label", this.safeString(mkt, "label") },
@@ -2021,7 +2014,6 @@ public partial class limitless : PredictionExchange
     public async override Task<object> fetchAccounts(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
         object response = await this.limitlessPrivateGetProfilesMe(parameters);
         object responseList = new List<object>() {response};
         return this.parseAccounts(responseList);
@@ -2032,7 +2024,7 @@ public partial class limitless : PredictionExchange
      * @name limitless#createOrder
      * @description places a limit or market order on limitless for the given outcome token
      * @see https://docs.limitless.exchange/api-reference/orders/create-order
-     * @param {string} symbol outcome symbol, e.g. "TRUMP_OUT:YES"
+     * @param {string} outcome outcome, e.g. "TRUMP_OUT:YES"
      * @param {string} type 'limit' or 'market'
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount amount of outcome tokens
@@ -2040,17 +2032,20 @@ public partial class limitless : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<object> createOrder(object outcome, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object outcome = symbol;
-        await this.loadMarkets();
         object accounts = await this.loadAccounts();
-        this.checkEventsAndMarkets(outcome);
+        this.checkEvents(outcome);
         object outcomeObj = this.outcome(outcome);
         object account = this.safeDict(accounts, 0);
         object accountInfo = this.safeDict(account, "info");
-        object walletFromAccount = this.safeString(accountInfo, "smartWallet");
+        // the trade wallet is chosen by `tradeWalletOption`: 'smartWallet' profiles trade through
+        // the `smartWallet` address, plain 'eoa' profiles trade directly from `account`. the
+        // smartWallet field can stay populated after switching to eoa, so key off the option here
+        object tradeWalletOption = this.safeString(accountInfo, "tradeWalletOption");
+        object usesSmartWallet = (isEqual(tradeWalletOption, "smartWallet"));
+        object walletFromAccount = ((bool) isTrue((usesSmartWallet))) ? this.safeString(accountInfo, "smartWallet") : this.safeString(accountInfo, "account");
         object maker = ((bool) isTrue(this.walletAddress)) ? this.walletAddress : walletFromAccount;
         var makerparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "maker", maker);
         maker = ((IList<object>)makerparametersVariable)[0];
@@ -2066,8 +2061,7 @@ public partial class limitless : PredictionExchange
         // linked embedded (owner) wallet, not by the smart wallet itself
         object embeddedAddress = this.safeString(accountInfo, "embeddedAccount");
         object hasEmbedded = (!isEqual(embeddedAddress, null));
-        object tradeWalletOption = this.safeString(accountInfo, "tradeWalletOption");
-        object isSmartWallet = isTrue((isEqual(tradeWalletOption, "smartWallet"))) && isTrue(hasEmbedded);
+        object isSmartWallet = isTrue(usesSmartWallet) && isTrue(hasEmbedded);
         object signer = maker;
         if (isTrue(isSmartWallet))
         {
@@ -2291,27 +2285,260 @@ public partial class limitless : PredictionExchange
         return this.signHash(this.hashMessage(message), slice(privateKey, -64, null));
     }
 
+    public virtual object rlpEncodeBytes(object hex)
+    {
+        // RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
+        object byteLength = this.parseToInt(divide(((string)hex).Length, 2));
+        if (isTrue(isEqual(byteLength, 0)))
+        {
+            return "80";
+        }
+        if (isTrue(isTrue((isEqual(byteLength, 1))) && isTrue((isLessThan(hex, "80")))))
+        {
+            return hex;
+        }
+        if (isTrue(isLessThan(byteLength, 56)))
+        {
+            return add(this.intToBase16(add(128, byteLength)), hex);
+        }
+        object lengthHex = this.intToBase16(byteLength);
+        if (isTrue(!isEqual((mod(((string)lengthHex).Length, 2)), 0)))
+        {
+            lengthHex = add("0", lengthHex);
+        }
+        object lengthOfLength = this.parseToInt(divide(((string)lengthHex).Length, 2));
+        return add(add(this.intToBase16(add(183, lengthOfLength)), lengthHex), hex);
+    }
+
+    public virtual object rlpEncodeList(object items)
+    {
+        object concatenated = "";
+        for (object i = 0; isLessThan(i, getArrayLength(items)); postFixIncrement(ref i))
+        {
+            concatenated = add(concatenated, getValue(items, i));
+        }
+        object byteLength = this.parseToInt(divide(((string)concatenated).Length, 2));
+        if (isTrue(isLessThan(byteLength, 56)))
+        {
+            return add(this.intToBase16(add(192, byteLength)), concatenated);
+        }
+        object lengthHex = this.intToBase16(byteLength);
+        if (isTrue(!isEqual((mod(((string)lengthHex).Length, 2)), 0)))
+        {
+            lengthHex = add("0", lengthHex);
+        }
+        object lengthOfLength = this.parseToInt(divide(((string)lengthHex).Length, 2));
+        return add(add(this.intToBase16(add(247, lengthOfLength)), lengthHex), concatenated);
+    }
+
+    public virtual object intToRlpHex(object value)
+    {
+        // an integer as its minimal big-endian byte hex; 0 is the empty byte string
+        if (isTrue(isEqual(value, 0)))
+        {
+            return "";
+        }
+        object hex = this.intToBase16(value);
+        if (isTrue(!isEqual((mod(((string)hex).Length, 2)), 0)))
+        {
+            hex = add("0", hex);
+        }
+        return hex;
+    }
+
+    public virtual object hexToRlpBytes(object hexValue)
+    {
+        // a hex value (e.g. an RPC result) as minimal big-endian byte hex; leading zero bytes
+        // are stripped and 0 becomes the empty byte string (RLP integer encoding)
+        object h = this.remove0xPrefix(hexValue);
+        object start = 0;
+        object total = getArrayLength(h);
+        while (isTrue((isLessThan(start, total))) && isTrue((isEqual(slice(h, start, add(start, 1)), "0"))))
+        {
+            start = add(start, 1);
+        }
+        h = slice(h, start, null);
+        if (isTrue(isEqual(h, "")))
+        {
+            return "";
+        }
+        if (isTrue(!isEqual((mod(getArrayLength(h), 2)), 0)))
+        {
+            h = add("0", h);
+        }
+        return h;
+    }
+
+    public virtual object padHexAddress(object address)
+    {
+        // left-pads a 20-byte address to a 32-byte ABI word (24 leading zero bytes)
+        object stripped = this.remove0xPrefix(address);
+        return add("000000000000000000000000", stripped);
+    }
+
+    public virtual object signEvmTransaction(object tx, object privateKey)
+    {
+        // builds and signs an EIP-1559 (type 0x02) transaction, returning the signed raw tx hex
+        object accessList = this.rlpEncodeList(new List<object>() {});
+        object fields = new List<object> {this.rlpEncodeBytes(this.intToRlpHex(this.safeInteger(tx, "chainId"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "nonce"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "maxPriorityFeePerGas"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "maxFeePerGas"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "gasLimit"))), this.rlpEncodeBytes(this.remove0xPrefix(this.safeString(tx, "to"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "value", "0x0"))), this.rlpEncodeBytes(this.remove0xPrefix(this.safeString(tx, "data", "0x"))), accessList};
+        object payload = add("02", this.rlpEncodeList(fields));
+        object hashHex = this.hash(this.base16ToBinary(payload), keccak, "hex");
+        object signature = ecdsa(hashHex, this.remove0xPrefix(privateKey), secp256k1, null);
+        object rHex = this.safeString(signature, "r");
+        object sHex = this.safeString(signature, "s");
+        if (isTrue(!isEqual((mod(((string)rHex).Length, 2)), 0)))
+        {
+            rHex = add("0", rHex);
+        }
+        if (isTrue(!isEqual((mod(((string)sHex).Length, 2)), 0)))
+        {
+            sHex = add("0", sHex);
+        }
+        object yParity = this.safeInteger(signature, "v");
+        object signedFields = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(fields)); postFixIncrement(ref i))
+        {
+            ((IList<object>)signedFields).Add(getValue(fields, i));
+        }
+        ((IList<object>)signedFields).Add(this.rlpEncodeBytes(this.intToRlpHex(yParity)));
+        ((IList<object>)signedFields).Add(this.rlpEncodeBytes(rHex));
+        ((IList<object>)signedFields).Add(this.rlpEncodeBytes(sHex));
+        return add("0x02", this.rlpEncodeList(signedFields));
+    }
+
+    public async virtual Task<object> ethRpc(object rpcUrl, object method, object rpcParams)
+    {
+        object payload = new Dictionary<string, object>() {
+            { "jsonrpc", "2.0" },
+            { "id", 1 },
+            { "method", method },
+            { "params", rpcParams },
+        };
+        object headers = new Dictionary<string, object>() {
+            { "Content-Type", "application/json" },
+        };
+        object response = await this.fetch(rpcUrl, "POST", headers, this.json(payload));
+        object rpcError = this.safeValue(response, "error");
+        if (isTrue(!isEqual(rpcError, null)))
+        {
+            throw new ExchangeError ((string)add(add(add(add(this.id, " rpc "), method), " error: "), this.json(rpcError))) ;
+        }
+        // the result is either a hex string (nonce/gasPrice/txhash) or an object (receipt)
+        return this.safeValue(response, "result");
+    }
+
+    public async virtual Task<object> sendEvmTransaction(object rpcUrl, object chainId, object fromAddress, object to, object value, object data, object gasLimit)
+    {
+        object nonce = await this.ethRpc(rpcUrl, "eth_getTransactionCount", new List<object>() {fromAddress, "pending"});
+        object gasPrice = await this.ethRpc(rpcUrl, "eth_gasPrice", new List<object>() {});
+        object tx = new Dictionary<string, object>() {
+            { "chainId", chainId },
+            { "nonce", nonce },
+            { "maxPriorityFeePerGas", gasPrice },
+            { "maxFeePerGas", gasPrice },
+            { "gasLimit", gasLimit },
+            { "to", to },
+            { "value", value },
+            { "data", data },
+        };
+        object signed = this.signEvmTransaction(tx, this.privateKey);
+        return await this.ethRpc(rpcUrl, "eth_sendRawTransaction", new List<object>() {signed});
+    }
+
+    public async virtual Task<object> waitForTransactionReceipt(object rpcUrl, object txHash, object timeout = null)
+    {
+        timeout ??= 60000;
+        object start = this.milliseconds();
+        while (isLessThan((subtract(this.milliseconds(), start)), timeout))
+        {
+            object receipt = await this.ethRpc(rpcUrl, "eth_getTransactionReceipt", new List<object>() {txHash});
+            if (isTrue(isTrue((!isEqual(receipt, null))) && isTrue((!isEqual(receipt, null)))))
+            {
+                return receipt;
+            }
+            await this.sleep(2000);
+        }
+        throw new ExchangeError ((string)add(add(add(this.id, " transaction "), txHash), " not mined within timeout")) ;
+    }
+
+    /**
+     * @method
+     * @name limitless#approve
+     * @description sets the on-chain ERC20 collateral (USDC) allowance for the limitless exchange contract on Base, which is required before an EOA maker can place orders ("Insufficient collateral allowance" otherwise). Sends a real on-chain transaction signed with the privateKey and waits for the receipt
+     * @param {object} [params] extra parameters
+     * @param {string} [params.token] the collateral token address (default USDC on Base)
+     * @param {string} [params.spender] the exchange contract to approve (default the limitless CTF exchange); read from a market's venue when omitted
+     * @param {string} [params.owner] the token holder address (default this.walletAddress or the address derived from the privateKey)
+     * @param {float} [params.amount] the allowance in USDC (default: unlimited / maxUint256)
+     * @param {string} [params.rpcUrl] the Base RPC url to broadcast through
+     * @param {string} [params.gasLimit] gas limit hex for the approve tx (default '0x186a0')
+     * @returns {object} the transaction receipt
+     */
+    public async virtual Task<object> approve(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        this.checkRequiredCredentials();
+        if (isTrue(isEqual(this.privateKey, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " approve() requires a privateKey to sign the on-chain transaction")) ;
+        }
+        object rpcUrl = this.safeString(parameters, "rpcUrl", this.safeString(this.options, "rpcUrl"));
+        object chainId = this.safeInteger(this.options, "chainId", 8453);
+        object token = this.safeString(parameters, "token", this.safeString(this.options, "collateralAddress"));
+        object spender = this.safeString(parameters, "spender", this.safeString(this.options, "exchangeAddress"));
+        object owner = this.safeString(parameters, "owner", this.walletAddress);
+        if (isTrue(isEqual(owner, null)))
+        {
+            owner = this.ethGetAddressFromPrivateKey(this.privateKey);
+        }
+        object gasLimit = this.safeString(parameters, "gasLimit", "0x186a0");
+        object maxUint = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
+        object amountHex = maxUint;
+        object amount = this.safeString(parameters, "amount");
+        if (isTrue(!isEqual(amount, null)))
+        {
+            object decimals = this.safeInteger(this.options, "usdcDecimals", 6);
+            // scale the human USDC amount to base units (amount / 10^-decimals = amount * 10^decimals)
+            object scaled = Precise.stringDiv(amount, this.parsePrecision(this.numberToString(decimals)));
+            object amountInt = this.parseToInt(scaled);
+            object amountBase16 = this.intToBase16(amountInt);
+            amountHex = (amountBase16 as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
+        }
+        // approve(spender, amount) -> selector 0x095ea7b3
+        object approveData = add(add("0x095ea7b3", this.padHexAddress(spender)), amountHex);
+        object txHash = await this.sendEvmTransaction(rpcUrl, chainId, owner, token, "0x0", approveData, gasLimit);
+        return await this.waitForTransactionReceipt(rpcUrl, txHash);
+    }
+
     /**
      * @method
      * @name limitless#cancelOrder
      * @description cancels a single open order by id
      * @see https://docs.limitless.exchange/api-reference/orders/cancel-order
      * @param {string} id order id
-     * @param {string} [symbol] outcome symbol, e.g. "TRUMP_OUT:YES"
+     * @param {string} [outcome] outcome, e.g. "TRUMP_OUT:YES"
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<object> cancelOrder(object id, object outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object outcome = symbol;
-        await this.loadMarkets();
-        this.checkEventsAndMarkets(outcome);
+        this.checkEvents(outcome);
         object request = new Dictionary<string, object>() {
             { "order_id", id },
         };
         object response = await this.limitlessPrivateDeleteOrdersOrderId(this.extend(request, parameters));
-        return this.parseOrder(response);
+        // the delete response carries no order body, so backfill the id and the resulting status
+        object order = this.parseOrder(response);
+        if (isTrue(isEqual(getValue(order, "id"), null)))
+        {
+            ((IDictionary<string,object>)order)["id"] = id;
+        }
+        if (isTrue(isEqual(getValue(order, "status"), null)))
+        {
+            ((IDictionary<string,object>)order)["status"] = "canceled";
+        }
+        return order;
     }
 
     /**
@@ -2320,16 +2547,14 @@ public partial class limitless : PredictionExchange
      * @description cancel multiple orders at the same time
      * @see https://docs.limitless.exchange/api-reference/trading/cancel-batch
      * @param {string[]} ids order ids
-     * @param {string} [symbol] unified market symbol, default is undefined
+     * @param {string} [outcome] unified market outcome, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    public async override Task<object> cancelOrders(object ids, object outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object outcome = symbol;
-        await this.loadMarkets();
-        this.checkEventsAndMarkets(outcome);
+        this.checkEvents(outcome);
         object request = new Dictionary<string, object>() {
             { "orderIds", ids },
         };
@@ -2351,17 +2576,15 @@ public partial class limitless : PredictionExchange
      * @name limitless#cancelAllOrders
      * @description cancels all open orders for one market slug
      * @see https://docs.limitless.exchange/api-reference/orders/cancel-all-orders
-     * @param {string} [symbol] outcome symbol, e.g. "TRUMP_OUT:YES"
+     * @param {string} [outcome] outcome, e.g. "TRUMP_OUT:YES"
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.slug] the market slug to cancel all orders for
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
+    public async override Task<object> cancelAllOrders(object outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object outcome = symbol;
-        await this.loadMarkets();
-        this.checkEventsAndMarkets(outcome);
+        this.checkEvents(outcome);
         if (isTrue(!isEqual(outcome, null)))
         {
             object warn = true;
@@ -2399,18 +2622,16 @@ public partial class limitless : PredictionExchange
      * @name limitless#fetchMyTrades
      * @description fetch all trades made by the user
      * @see https://docs.limitless.exchange/api-reference/trades/get-trades
-     * @param {string} [symbol] outcome symbol, e.g. "TRUMP_OUT:YES"
+     * @param {string} [outcome] outcome, e.g. "TRUMP_OUT:YES"
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
      */
-    public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchMyTrades(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object outcome = symbol;
-        await this.loadMarkets();
-        this.checkEventsAndMarkets(outcome);
+        this.checkEvents(outcome);
         object paginate = false;
         object maxLimit = 100;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate", paginate);
@@ -2549,7 +2770,6 @@ public partial class limitless : PredictionExchange
                 { "info", trade },
                 { "timestamp", ts },
                 { "datetime", this.iso8601(ts) },
-                { "symbol", feedOutcome },
                 { "outcome", feedOutcome },
                 { "outcomeId", this.safeString(market, "outcomeId") },
                 { "label", this.safeString(market, "label") },
@@ -2625,7 +2845,6 @@ public partial class limitless : PredictionExchange
             { "info", trade },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", tradeOutcome },
             { "outcome", tradeOutcome },
             { "outcomeId", this.safeString(trade, "asset") },
             { "label", this.safeString(outcome, "label") },
@@ -2662,27 +2881,27 @@ public partial class limitless : PredictionExchange
      * @name limitless#fetchPositions
      * @description fetches open positions for the authenticated limitless user from the portfolio endpoint
      * @see https://docs.limitless.exchange/api-reference/portfolio/get-positions
-     * @param {string[]} [symbols] filter by outcome ids or symbols
+     * @param {string[]} [outcomes] filter by outcome ids or outcomes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
+    public async override Task<object> fetchPositions(object outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object symbolsLength = 0;
-        if (isTrue(!isEqual(symbols, null)))
+        if (isTrue(!isEqual(outcomes, null)))
         {
-            symbolsLength = getArrayLength(symbols);
+            symbolsLength = getArrayLength(outcomes);
         }
         if (isTrue(isGreaterThan(symbolsLength, 0)))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            for (object i = 0; isLessThan(i, getArrayLength(outcomes)); postFixIncrement(ref i))
             {
-                this.checkEventsAndMarkets(getValue(symbols, i));
+                this.checkEvents(getValue(outcomes, i));
             }
         } else
         {
-            this.checkEventsAndMarkets();
+            this.checkEvents();
         }
         object response = await this.limitlessPrivateGetPortfolioPositions(parameters);
         //
@@ -2842,7 +3061,6 @@ public partial class limitless : PredictionExchange
         object entryPrice = this.applyScale(this.safeString(position, "fillPrice"));
         return new Dictionary<string, object>() {
             { "id", null },
-            { "symbol", outcomeSymbol },
             { "outcome", outcomeSymbol },
             { "outcomeId", this.safeString(market, "outcomeId") },
             { "label", this.safeString(market, "label") },
@@ -2892,12 +3110,11 @@ public partial class limitless : PredictionExchange
         object queriesLength = getArrayLength(queries);
         if (isTrue(!isTrue(queries) || isTrue(isEqual(queriesLength, 0))))
         {
-            await this.loadMarkets();
             result = (IList<object>)(new List<object>(((IDictionary<string,object>)this.events).Values));
         } else
         {
             object limit = this.safeInteger(parameters, "limit", 50);
-            object rest = this.omit(parameters, new List<object>() {"query", "queries", "limit"});
+            object rest = this.omit(parameters, new List<object>() {"query", "queries", "limit", "sort", "searchIn", "eventId", "slug", "status"});
             object seen = new Dictionary<string, object>() {};
             object rawMarkets = new List<object>() {};
             for (object i = 0; isLessThan(i, getArrayLength(queries)); postFixIncrement(ref i))
@@ -2962,7 +3179,7 @@ public partial class limitless : PredictionExchange
             }
         }
         this.rebuildOutcomes();
-        return result;
+        return this.applyEventFetchParams(result, parameters, queries);
     }
 
     /**
@@ -2985,12 +3202,12 @@ public partial class limitless : PredictionExchange
             for (object j = 0; isLessThan(j, getArrayLength(outcomesList)); postFixIncrement(ref j))
             {
                 object oc = getValue(outcomesList, j);
-                object ocSymbol = this.safeString(oc, "symbol");
+                object ocSymbol = this.safeString(oc, "outcome");
                 if (isTrue(!isEqual(ocSymbol, null)))
                 {
                     ((IDictionary<string,object>)this.outcomes)[(string)ocSymbol] = oc;
                 }
-                object ocId = this.safeString(oc, "id");
+                object ocId = this.safeString(oc, "outcomeId");
                 if (isTrue(!isEqual(ocId, null)))
                 {
                     ((IDictionary<string,object>)this.outcomes_by_id)[(string)ocId] = oc;

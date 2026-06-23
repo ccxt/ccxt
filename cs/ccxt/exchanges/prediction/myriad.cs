@@ -229,7 +229,7 @@ public partial class myriad : PredictionExchange
             object m = this.parseMyriadMarket(raw);
             ((IList<object>)flatMarkets).Add(m);
             object ev = this.parseMarketToEvent(raw, m);
-            object evKey = this.safeString(ev, "symbol");
+            object evKey = this.safeString(ev, "event");
             if (isTrue(!isEqual(evKey, null)))
             {
                 ((IDictionary<string,object>)eventsDict)[(string)evKey] = ev;
@@ -378,12 +378,12 @@ public partial class myriad : PredictionExchange
      * @name myriad#fetchPositions
      * @description fetch the open outcome-token positions held by a wallet (myriad settles trades on-chain, so only read-only portfolio data is exposed by the API)
      * @see https://docs.myriad.markets/builders/myriad-api-reference
-     * @param {string[]} [symbols] unified outcome symbols to filter by
+     * @param {string[]} [outcomes] unified outcomes to filter by
      * @param {object} [params] extra exchange-specific parameters
      * @param {string} [params.address] the wallet address to query, defaults to this.walletAddress
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
+    public async override Task<object> fetchPositions(object outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object address = this.safeString2(parameters, "address", "user", this.walletAddress);
@@ -401,7 +401,7 @@ public partial class myriad : PredictionExchange
         {
             ((IList<object>)result).Add(this.parsePosition(getValue(data, i)));
         }
-        return this.filterByArrayPositions(result, "outcome", symbols, false);
+        return this.filterByArrayPositions(result, "outcome", outcomes, false);
     }
 
     /**
@@ -417,7 +417,7 @@ public partial class myriad : PredictionExchange
     {
         object marketSlug = this.safeString(position, "marketSlug", "");
         object outcomeTitle = this.safeString(position, "outcomeTitle", "");
-        object symbol = this.slugToOutcomeSymbol(marketSlug, marketSlug, outcomeTitle);
+        object outcome = this.slugToOutcomeSymbol(marketSlug, marketSlug, outcomeTitle);
         object marketSymbol = this.slugToMarketSymbol(marketSlug, marketSlug);
         object networkId = this.safeString(position, "networkId");
         object marketId = this.safeString(position, "marketId");
@@ -435,7 +435,7 @@ public partial class myriad : PredictionExchange
         return this.safePredictionPosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", id },
-            { "symbol", symbol },
+            { "outcome", outcome },
             { "outcomeId", outcomeId },
             { "label", outcomeTitle },
             { "market", marketSymbol },
@@ -455,18 +455,18 @@ public partial class myriad : PredictionExchange
      * @name myriad#fetchTradeQuote
      * @description fetches a trade quote — price, shares, fees and the on-chain calldata — for buying or selling an outcome. Myriad settles trades on-chain, so this returns the calldata to submit to the prediction-market contract rather than placing an off-chain order
      * @see https://docs.myriad.markets/builders/myriad-api-reference
-     * @param {string} symbol unified outcome symbol or outcome id
+     * @param {string} outcome unified outcome or outcome id
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount for 'buy' the collateral value to spend; for 'sell' the number of shares to sell
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.slippage] maximum slippage tolerance (default 0.005)
      * @returns {object} a quote object with price, shares, fees and the on-chain calldata
      */
-    public async virtual Task<object> fetchTradeQuote(object symbol, object side, object amount, object parameters = null)
+    public async virtual Task<object> fetchTradeQuote(object outcome, object side, object amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        this.checkEventsAndMarkets(symbol);
-        object outcomeObj = this.outcome(symbol);
+        this.checkEvents(outcome);
+        object outcomeObj = this.outcome(outcome);
         object info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         object networkId = this.safeString(info, "networkId");
         object marketId = this.safeString(info, "marketId");
@@ -503,7 +503,7 @@ public partial class myriad : PredictionExchange
     public virtual object parseTradeQuote(object quote, object market = null)
     {
         return new Dictionary<string, object>() {
-            { "symbol", this.safeString(market, "symbol") },
+            { "outcome", this.safeString(market, "outcome") },
             { "side", this.safeStringLower(quote, "action") },
             { "value", this.safeNumber(quote, "value") },
             { "shares", this.safeNumber(quote, "shares") },
@@ -722,7 +722,7 @@ public partial class myriad : PredictionExchange
      * @name myriad#createOrder
      * @description create a trade order. Myriad has two trading models: a gasless order book (CLOB) where an EIP-712 signed order is posted off-chain and settled by the operator, and an on-chain AMM. Order-book markets are used by default; the model can be forced via params.tradingModel
      * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da8281e2bc49cf4914b07528
-     * @param {string} symbol unified outcome symbol or outcome id
+     * @param {string} outcome unified outcome or outcome id
      * @param {string} type 'limit' or 'market' (order book); ignored by the AMM path
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount number of outcome shares to trade (AMM 'buy' spends this as collateral value instead)
@@ -733,19 +733,18 @@ public partial class myriad : PredictionExchange
      * @param {string} [params.expiration] unix-seconds expiration for a GTD order
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<object> createOrder(object outcome, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
         this.ensureOutcomesLoaded();
-        object outcomeObj = this.outcome(symbol);
+        object outcomeObj = this.outcome(outcome);
         object info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         object defaultModel = this.safeString(info, "tradingModel", "amm");
         object tradingModel = this.safeStringLower(parameters, "tradingModel", defaultModel);
         object rest = this.omit(parameters, new List<object>() {"tradingModel"});
         if (isTrue(isEqual(tradingModel, "ob")))
         {
-            return await this.createOrderbookOrder(symbol, type, side, amount, price, rest);
+            return await this.createOrderbookOrder(outcome, type, side, amount, price, rest);
         }
         // the on-chain AMM path requires native gas and has not been verified end to end; keep it behind
         // an explicit opt-in so callers do not silently hit an untested signing/broadcast path
@@ -754,7 +753,7 @@ public partial class myriad : PredictionExchange
         {
             throw new NotSupported ((string)add(this.id, " createOrder() only supports the gasless order book; this market uses the on-chain AMM (needs native gas and is unverified) — pass params.enableAmm=true to opt in")) ;
         }
-        return await this.createAmmOrder(symbol, type, side, amount, price, this.omit(rest, new List<object>() {"enableAmm", "enableAmmOrders"}));
+        return await this.createAmmOrder(outcome, type, side, amount, price, this.omit(rest, new List<object>() {"enableAmm", "enableAmmOrders"}));
     }
 
     /**
@@ -764,10 +763,10 @@ public partial class myriad : PredictionExchange
      * @description signs an EIP-712 order and posts it to the gasless order book; the operator settles the match on-chain
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async virtual Task<object> createOrderbookOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async virtual Task<object> createOrderbookOrder(object outcome, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object built = this.buildOrderbookOrder(symbol, type, side, amount, price, parameters);
+        object built = this.buildOrderbookOrder(outcome, type, side, amount, price, parameters);
         object order = this.safeDict(built, "order");
         object networkId = this.safeString(built, "networkId");
         object timeInForce = this.safeString(built, "timeInForce");
@@ -783,7 +782,7 @@ public partial class myriad : PredictionExchange
             { "networkId", networkId },
             { "timeInForce", timeInForce },
         });
-        object outcomeObj = this.outcome(symbol);
+        object outcomeObj = this.outcome(outcome);
         object parsed = this.parseOrder(wrapper, ((object)outcomeObj));
         // the POST /orders response is minimal (hash + status), so backfill the known request values
         // (side/type/price/amount/timeInForce and a creation timestamp) when parseOrder left them empty
@@ -829,14 +828,14 @@ public partial class myriad : PredictionExchange
      * @description builds and EIP-712 signs a single order-book order; shared by createOrder and createOrders
      * @returns {object} a dict with the signed order, signature, timeInForce and networkId
      */
-    public virtual object buildOrderbookOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual object buildOrderbookOrder(object outcome, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.privateKey, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a privateKey to sign the order")) ;
         }
-        object outcomeObj = this.outcome(symbol);
+        object outcomeObj = this.outcome(outcome);
         object info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         object networkId = this.safeString(info, "networkId", this.safeString(this.options, "defaultNetworkId", "56"));
         object marketId = this.safeString(info, "marketId");
@@ -904,27 +903,26 @@ public partial class myriad : PredictionExchange
      * @description places multiple order book orders. Myriad's batch endpoint is not reliable, so the
      * orders are signed and submitted sequentially (not atomically)
      * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da8281e2bc49cf4914b07528
-     * @param {object[]} orders a list of order requests, each with symbol, type, side, amount, price and params
+     * @param {object[]} orders a list of order requests, each with outcome, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
     public async override Task<object> createOrders(object orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
         this.ensureOutcomesLoaded();
         object ordersLength = getArrayLength(orders);
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, ordersLength); postFixIncrement(ref i))
         {
             object o = getValue(orders, i);
-            object symbol = this.safeString(o, "symbol");
+            object outcome = this.safeString(o, "symbol");
             object type = this.safeString(o, "type");
             object side = this.safeString(o, "side");
             object amount = this.safeNumber(o, "amount");
             object price = this.safeNumber(o, "price");
             object orderParams = this.safeDict(o, "params", new Dictionary<string, object>() {});
-            object placed = await this.createOrderbookOrder(symbol, type, side, amount, price, this.extend(orderParams, parameters));
+            object placed = await this.createOrderbookOrder(outcome, type, side, amount, price, this.extend(orderParams, parameters));
             ((IList<object>)result).Add(placed);
         }
         return result;
@@ -937,7 +935,7 @@ public partial class myriad : PredictionExchange
      * batch-modify endpoint is not reliable, so the cancel and replace are submitted sequentially
      * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da8281b58c5adb2f5998eec8
      * @param {string} id the hash of the order to replace
-     * @param {string} symbol unified outcome symbol of the new order
+     * @param {string} outcome unified outcome of the new order
      * @param {string} type 'limit' or 'market'
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount number of outcome shares for the new order
@@ -945,13 +943,12 @@ public partial class myriad : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    public async override Task<object> editOrder(object id, object outcome, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
         this.ensureOutcomesLoaded();
-        await this.cancelOrder(id, symbol);
-        return await this.createOrderbookOrder(symbol, type, side, amount, price, parameters);
+        await this.cancelOrder(id, outcome);
+        return await this.createOrderbookOrder(outcome, type, side, amount, price, parameters);
     }
 
     /**
@@ -961,15 +958,15 @@ public partial class myriad : PredictionExchange
      * @description buys or sells outcome shares by submitting the quote's calldata as an on-chain AMM transaction. Requires a privateKey with gas + collateral on the market's network
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async virtual Task<object> createAmmOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async virtual Task<object> createAmmOrder(object outcome, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.privateKey, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a privateKey to sign the on-chain transaction")) ;
         }
-        this.checkEventsAndMarkets(symbol);
-        object outcomeObj = this.outcome(symbol);
+        this.checkEvents(outcome);
+        object outcomeObj = this.outcome(outcome);
         object info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         object networkId = this.safeString(info, "networkId");
         object chains = this.safeDict(this.options, "chains", new Dictionary<string, object>() {});
@@ -984,7 +981,7 @@ public partial class myriad : PredictionExchange
         object gasLimit = this.safeString(parameters, "gasLimit", "0xaae60");
         object sideStr = ((string)((string)side)).ToLower();
         object quoteParams = this.omit(parameters, new List<object>() {"rpcUrl", "rpc", "token", "tokenAddress", "gasLimit"});
-        object quote = await this.fetchTradeQuote(symbol, sideStr, amount, quoteParams);
+        object quote = await this.fetchTradeQuote(outcome, sideStr, amount, quoteParams);
         object calldata = this.safeString(this.safeDict(quote, "info", new Dictionary<string, object>() {}), "calldata");
         object fromAddress = this.ethGetAddressFromPrivateKey(this.privateKey);
         // a buy spends the collateral token, so the prediction-market contract must be approved first
@@ -1172,10 +1169,10 @@ public partial class myriad : PredictionExchange
         object timestamp = this.parse8601(this.safeString(order, "createdAt"));
         object tif = this.safeStringUpper(order, "timeInForce");
         object isMarketTif = isTrue((isEqual(tif, "FOK"))) || isTrue((isEqual(tif, "FAK")));
-        // resolve the outcome symbol from market/outcome ids when no market was passed (e.g. fetchOrders without a symbol)
-        object symbol = ((bool) isTrue((isEqual(market, null)))) ? null : this.safeString(market, "symbol");
+        // resolve the outcome from market/outcome ids when no market was passed (e.g. fetchOrders without a outcome)
+        object outcome = ((bool) isTrue((isEqual(market, null)))) ? null : this.safeString(market, "outcome");
         object outcomeObj = market;
-        if (isTrue(isEqual(symbol, null)))
+        if (isTrue(isEqual(outcome, null)))
         {
             // the REST order has no top-level networkId; order book lives on the default network
             object networkId = this.safeString2(order, "networkId", "network_id", this.safeString(this.options, "defaultNetworkId", "56"));
@@ -1187,7 +1184,7 @@ public partial class myriad : PredictionExchange
                 composite = add(add(add(add(networkId, ":"), marketId), "/"), outcomeId);
             }
             outcomeObj = this.safeOutcome(composite, ((object)market));
-            symbol = this.safeString(outcomeObj, "symbol");
+            outcome = this.safeString(outcomeObj, "outcome");
         }
         return this.safePredictionOrder(new Dictionary<string, object>() {
             { "id", orderHash },
@@ -1196,10 +1193,10 @@ public partial class myriad : PredictionExchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", null },
-            { "symbol", symbol },
+            { "outcome", outcome },
             { "outcomeId", this.safeString(outcomeObj, "id") },
             { "label", this.safeString(outcomeObj, "label") },
-            { "market", this.safeString(outcomeObj, "marketSymbol") },
+            { "market", this.safeString(outcomeObj, "outcome") },
             { "type", ((bool) isTrue(isMarketTif)) ? "market" : "limit" },
             { "timeInForce", tif },
             { "postOnly", (isEqual(tif, "PO")) },
@@ -1223,18 +1220,17 @@ public partial class myriad : PredictionExchange
      * @description cancels an open order book order by its hash (re-signs the original order to prove ownership; gasless)
      * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da8281b58c5adb2f5998eec8
      * @param {string} id the order hash returned by createOrder
-     * @param {string} [symbol] unified outcome symbol the order belongs to
+     * @param {string} [outcome] unified outcome the order belongs to
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<object> cancelOrder(object id, object outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.privateKey, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a privateKey to sign the cancellation")) ;
         }
-        await this.loadMarkets();
         object fetched = await this.myriadPublicGetOrdersHash(this.extend(new Dictionary<string, object>() {
             { "hash", id },
         }, parameters));
@@ -1255,10 +1251,10 @@ public partial class myriad : PredictionExchange
             { "networkId", networkId },
         });
         object market = null;
-        if (isTrue(!isEqual(symbol, null)))
+        if (isTrue(!isEqual(outcome, null)))
         {
             this.ensureOutcomesLoaded();
-            market = this.outcome(symbol);
+            market = this.outcome(outcome);
         }
         return this.parseOrder(wrapper, ((object)market));
     }
@@ -1268,25 +1264,24 @@ public partial class myriad : PredictionExchange
      * @name myriad#cancelAllOrders
      * @description cancels all open order book orders for the wallet, optionally scoped to one market (gasless)
      * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da8281e7a14cd34e6a716761
-     * @param {string} [symbol] unified outcome symbol; when omitted cancels across all markets
+     * @param {string} [outcome] unified outcome; when omitted cancels across all markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the raw response with the count of cancelled orders
      */
-    public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
+    public async override Task<object> cancelAllOrders(object outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.privateKey, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " cancelAllOrders() requires a privateKey to sign the cancellation")) ;
         }
-        await this.loadMarkets();
         object trader = this.ethGetAddressFromPrivateKey(this.privateKey);
         object marketId = this.safeString(parameters, "market_id", "0");
         object networkId = this.safeString(parameters, "network_id", this.safeString(this.options, "defaultNetworkId", "56"));
-        if (isTrue(!isEqual(symbol, null)))
+        if (isTrue(!isEqual(outcome, null)))
         {
             this.ensureOutcomesLoaded();
-            object outcomeObj = this.outcome(symbol);
+            object outcomeObj = this.outcome(outcome);
             object info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
             marketId = this.safeString(info, "marketId", marketId);
             networkId = this.safeString(info, "networkId", networkId);
@@ -1315,18 +1310,17 @@ public partial class myriad : PredictionExchange
      * @description cancels multiple open order book orders by hash in one request (gasless)
      * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828177961fd94a6055966f
      * @param {string[]} ids the order hashes to cancel
-     * @param {string} [symbol] not used by myriad cancelOrders
+     * @param {string} [outcome] not used by myriad cancelOrders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    public async override Task<object> cancelOrders(object ids, object outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.privateKey, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " cancelOrders() requires a privateKey to sign the cancellations")) ;
         }
-        await this.loadMarkets();
         object idsLength = getArrayLength(ids);
         object signedOrders = new List<object>() {};
         object wrappers = new List<object>() {};
@@ -1364,22 +1358,21 @@ public partial class myriad : PredictionExchange
      * @description fetches a single order book order by its hash
      * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828116b8a0d976baea1df0
      * @param {string} id the order hash
-     * @param {string} [symbol] unified outcome symbol the order belongs to
+     * @param {string} [outcome] unified outcome the order belongs to
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<object> fetchOrder(object id, object outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
         object response = await this.myriadPublicGetOrdersHash(this.extend(new Dictionary<string, object>() {
             { "hash", id },
         }, parameters));
         object market = null;
-        if (isTrue(!isEqual(symbol, null)))
+        if (isTrue(!isEqual(outcome, null)))
         {
             this.ensureOutcomesLoaded();
-            market = this.outcome(symbol);
+            market = this.outcome(outcome);
         }
         return this.parseOrder(response, ((object)market));
     }
@@ -1389,7 +1382,7 @@ public partial class myriad : PredictionExchange
      * @name myriad#fetchOrders
      * @description fetches order book orders for the wallet (or any trader passed via params.trader)
      * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828171a003cf996487d008
-     * @param {string} [symbol] unified outcome symbol to filter by
+     * @param {string} [outcome] unified outcome to filter by
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of orders to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1397,10 +1390,9 @@ public partial class myriad : PredictionExchange
      * @param {string} [params.status] 'open', 'filled', 'cancelled' or 'expired'
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
         object trader = this.safeString(parameters, "trader");
         if (isTrue(isEqual(trader, null)))
@@ -1414,11 +1406,11 @@ public partial class myriad : PredictionExchange
             }
         }
         object outcomeSymbol = null;
-        if (isTrue(!isEqual(symbol, null)))
+        if (isTrue(!isEqual(outcome, null)))
         {
             this.ensureOutcomesLoaded();
-            object outcomeObj = this.outcome(symbol);
-            outcomeSymbol = this.safeString2(outcomeObj, "outcome", "symbol", symbol);
+            object outcomeObj = this.outcome(outcome);
+            outcomeSymbol = this.safeString(outcomeObj, "outcome", outcome);
         }
         object response = await this.myriadPublicGetOrders(this.extend(request, parameters));
         object data = this.safeList(response, "data", new List<object>() {});
@@ -1434,19 +1426,19 @@ public partial class myriad : PredictionExchange
      * @name myriad#fetchOpenOrders
      * @description fetches open order book orders for the wallet
      * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828171a003cf996487d008
-     * @param {string} [symbol] unified outcome symbol to filter by
+     * @param {string} [outcome] unified outcome to filter by
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of orders to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOpenOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
             { "status", "open" },
         };
-        return await this.fetchOrders(symbol, since, limit, this.extend(request, parameters));
+        return await this.fetchOrders(outcome, since, limit, this.extend(request, parameters));
     }
 
     /**
@@ -1454,19 +1446,19 @@ public partial class myriad : PredictionExchange
      * @name myriad#fetchClosedOrders
      * @description fetches the wallet's filled order book orders
      * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828171a003cf996487d008
-     * @param {string} [symbol] unified outcome symbol to filter by
+     * @param {string} [outcome] unified outcome to filter by
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of orders to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchClosedOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
             { "status", "filled" },
         };
-        return await this.fetchOrders(symbol, since, limit, this.extend(request, parameters));
+        return await this.fetchOrders(outcome, since, limit, this.extend(request, parameters));
     }
 
     /**
@@ -1474,19 +1466,19 @@ public partial class myriad : PredictionExchange
      * @name myriad#fetchCanceledOrders
      * @description fetches the wallet's cancelled order book orders
      * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828171a003cf996487d008
-     * @param {string} [symbol] unified outcome symbol to filter by
+     * @param {string} [outcome] unified outcome to filter by
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of orders to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchCanceledOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
             { "status", "cancelled" },
         };
-        return await this.fetchOrders(symbol, since, limit, this.extend(request, parameters));
+        return await this.fetchOrders(outcome, since, limit, this.extend(request, parameters));
     }
 
     /**
@@ -1496,19 +1488,19 @@ public partial class myriad : PredictionExchange
      * limit price, not the per-fill execution price, so the price reflects the order's limit (exact for resting/limit
      * fills, an upper/lower bound for market orders) — use watchTrades for live execution prices
      * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828171a003cf996487d008
-     * @param {string} [symbol] unified outcome symbol to filter by
+     * @param {string} [outcome] unified outcome to filter by
      * @param {int} [since] timestamp in ms of the earliest trade
      * @param {int} [limit] the maximum number of trades to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
      */
-    public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchMyTrades(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
             { "status", "filled" },
         };
-        object orders = await this.fetchOrders(symbol, since, limit, this.extend(request, parameters));
+        object orders = await this.fetchOrders(outcome, since, limit, this.extend(request, parameters));
         object trades = new List<object>() {};
         object ordersLength = getArrayLength(orders);
         for (object i = 0; isLessThan(i, ordersLength); postFixIncrement(ref i))
@@ -1516,7 +1508,7 @@ public partial class myriad : PredictionExchange
             object order = getValue(orders, i);
             ((IList<object>)trades).Add(this.orderToTrade(order));
         }
-        return this.filterByValueSinceLimit(trades, "outcome", symbol, since, limit, "timestamp", true);
+        return this.filterByValueSinceLimit(trades, "outcome", outcome, since, limit, "timestamp", true);
     }
 
     public virtual object orderToTrade(object order)
@@ -1536,7 +1528,7 @@ public partial class myriad : PredictionExchange
             { "info", this.safeDict(order, "info", new Dictionary<string, object>() {}) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", this.safeString(order, "outcome") },
+            { "outcome", this.safeString(order, "outcome") },
             { "outcomeId", this.safeString(order, "outcomeId") },
             { "label", this.safeString(order, "label") },
             { "market", this.safeString(order, "market") },
@@ -1642,10 +1634,10 @@ public partial class myriad : PredictionExchange
             { "info", this.extend(new Dictionary<string, object>() {
                 { "transactionHash", txHash },
             }, this.safeDict(quote, "info", new Dictionary<string, object>() {})) },
-            { "symbol", this.safeString(market, "symbol") },
+            { "outcome", this.safeString(market, "outcome") },
             { "outcomeId", this.safeString(market, "id") },
             { "label", this.safeString(market, "label") },
-            { "market", this.safeString(market, "marketSymbol") },
+            { "market", this.safeString(market, "outcome") },
             { "type", "market" },
             { "side", side },
             { "price", this.safeNumber(quote, "priceAverage") },
@@ -1673,10 +1665,12 @@ public partial class myriad : PredictionExchange
         return new Dictionary<string, object>() {
             { "id", getValue(market, "id") },
             { "slug", slug },
-            { "symbol", getValue(market, "symbol") },
+            { "event", getValue(market, "symbol") },
             { "title", this.safeString2(raw, "title", "shortName") },
             { "description", this.safeString(raw, "description") },
             { "markets", new List<object>() {market} },
+            { "volume", this.safeNumber2(raw, "volumeNotional24h", "volume24h") },
+            { "liquidity", this.safeNumber(raw, "liquidity") },
             { "url", null },
             { "image", this.safeString(raw, "imageUrl") },
             { "active", (isEqual(state, "open")) },
@@ -1714,7 +1708,7 @@ public partial class myriad : PredictionExchange
         object volume24h = this.safeNumber(raw, "volume24h");
         object slugBase = ((bool) isTrue((!isEqual(eventSlug, null)))) ? eventSlug : networkId;
         object marketSymbol = this.slugToMarketSymbol(slugBase, slug);
-        // the collateral token (symbol + address + decimals) is per-market; carry it for on-chain trading
+        // the collateral token (outcome + address + decimals) is per-market; carry it for on-chain trading
         object tokenObj = this.safeDict(raw, "token", new Dictionary<string, object>() {});
         object tokenAddress = this.safeString(tokenObj, "address");
         object tokenDecimals = this.safeInteger(tokenObj, "decimals", 18);
@@ -1737,9 +1731,7 @@ public partial class myriad : PredictionExchange
             ((IList<object>)outcomes).Add(new Dictionary<string, object>() {
                 { "id", outcomeCompositeId },
                 { "outcomeId", outcomeCompositeId },
-                { "symbol", outcomeHandle },
                 { "outcome", outcomeHandle },
-                { "marketSymbol", marketSymbol },
                 { "market", marketSymbol },
                 { "label", outcomeLabel },
                 { "active", active },
@@ -1836,15 +1828,13 @@ public partial class myriad : PredictionExchange
      * @name myriad#fetchTicker
      * @description fetches the current price for a single outcome by loading the parent market
      * @see https://docs.myriad.markets/builders/myriad-api-reference
-     * @param {string} symbol unified outcome symbol like TRUMP_WIN:YES or an outcome id like 2741:756/0
+     * @param {string} outcome unified outcome like TRUMP_WIN:YES or an outcome id like 2741:756/0
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    public async override Task<object> fetchTicker(object symbol, object parameters = null)
+    public async override Task<object> fetchTicker(object outcome, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object outcome = symbol;
-        await this.loadMarkets();
         this.ensureOutcomesLoaded();
         object outcomeObj = this.outcome(outcome);
         object networkId = this.safeString(getValue(outcomeObj, "info"), "networkId");
@@ -1935,15 +1925,13 @@ public partial class myriad : PredictionExchange
      * @name myriad#fetchTradingFee
      * @description fetches the buy/sell fee rates for a market outcome
      * @see https://docs.myriad.markets/builders/myriad-api-reference
-     * @param {string} symbol unified outcome symbol or outcome id
+     * @param {string} outcome unified outcome or outcome id
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
      */
-    public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
+    public async override Task<object> fetchTradingFee(object outcome, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object outcome = symbol;
-        await this.loadMarkets();
         this.ensureOutcomesLoaded();
         object outcomeObj = this.outcome(outcome);
         object info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
@@ -1963,14 +1951,15 @@ public partial class myriad : PredictionExchange
         object fees = this.safeDict(response, "fees", new Dictionary<string, object>() {});
         object buy = this.safeDict(fees, "buy", new Dictionary<string, object>() {});
         object sell = this.safeDict(fees, "sell", new Dictionary<string, object>() {});
-        return new Dictionary<string, object>() {
+        return ((object)new Dictionary<string, object>() {
             { "info", response },
-            { "symbol", this.safeSymbol(null, ((object)outcomeObj)) },
+            { "outcome", this.safeOutcomeSymbol(null, ((object)outcomeObj)) },
+            { "outcomeId", this.safeString(outcomeObj, "outcomeId") },
             { "maker", this.safeNumber(sell, "fee") },
             { "taker", this.safeNumber(buy, "fee") },
             { "percentage", true },
             { "tierBased", false },
-        };
+        });
     }
 
     /**
@@ -2073,10 +2062,10 @@ public partial class myriad : PredictionExchange
         }
         object now = this.milliseconds();
         return this.safePredictionTicker(new Dictionary<string, object>() {
-            { "symbol", this.safeString(market, "symbol") },
+            { "outcome", this.safeString(market, "outcome") },
             { "outcomeId", this.safeString(market, "id") },
             { "label", this.safeString(market, "label") },
-            { "market", this.safeString(market, "marketSymbol") },
+            { "market", this.safeString(market, "outcome") },
             { "timestamp", now },
             { "datetime", this.iso8601(now) },
             { "high", null },
@@ -2104,16 +2093,14 @@ public partial class myriad : PredictionExchange
      * @name myriad#fetchOrderBook
      * @description fetches the real order book for order-book markets, or synthesizes a one-level book from the AMM price otherwise
      * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da8281bba6aaf24dd61f2bb1
-     * @param {string} symbol unified outcome symbol like TRUMP_WIN:YES or an outcome id
+     * @param {string} outcome unified outcome like TRUMP_WIN:YES or an outcome id
      * @param {int} [limit] not used by myriad fetchOrderBook
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
-    public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrderBook(object outcome, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object outcome = symbol;
-        await this.loadMarkets();
         this.ensureOutcomesLoaded();
         object outcomeObj = this.outcome(outcome);
         object networkId = this.safeString(getValue(outcomeObj, "info"), "networkId");
@@ -2134,7 +2121,7 @@ public partial class myriad : PredictionExchange
             //         "asks": [ [ "990000000000000000", "151975683890577539072" ] ]
             //     }
             //
-            return this.parseWeiOrderBook(obResponse, this.safeOutcomeSymbol(outcome, outcomeObj));
+            return this.safePredictionOrderBook(this.parseWeiOrderBook(obResponse, this.safeOutcomeSymbol(outcome, outcomeObj)), outcomeObj);
         }
         object request = new Dictionary<string, object>() {
             { "id", marketId },
@@ -2252,14 +2239,15 @@ public partial class myriad : PredictionExchange
         {
             ((IList<object>)asks).Add(new List<object>() {ask, synthSize});
         }
-        return new Dictionary<string, object>() {
-            { "symbol", this.safeOutcomeSymbol(outcome, outcomeObj) },
+        object orderbook = new Dictionary<string, object>() {
+            { "outcome", this.safeOutcomeSymbol(outcome, outcomeObj) },
             { "bids", bids },
             { "asks", asks },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "nonce", null },
         };
+        return this.safePredictionOrderBook(orderbook, outcomeObj);
     }
 
     /**
@@ -2268,10 +2256,10 @@ public partial class myriad : PredictionExchange
      * @name myriad#parseWeiOrderBook
      * @description parses an order book whose price and amount levels are 1e18-scaled integer strings
      * @param {object} response the raw orderbook response with bids and asks arrays
-     * @param {string} symbol the unified outcome symbol of the order book
+     * @param {string} outcome the unified outcome of the order book
      * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
-    public virtual object parseWeiOrderBook(object response, object symbol)
+    public virtual object parseWeiOrderBook(object response, object outcome)
     {
         object rawBids = (IList<object>)(this.safeList(response, "bids", new List<object>() {}));
         object rawAsks = (IList<object>)(this.safeList(response, "asks", new List<object>() {}));
@@ -2293,7 +2281,7 @@ public partial class myriad : PredictionExchange
         }
         object timestamp = this.milliseconds();
         return new Dictionary<string, object>() {
-            { "symbol", symbol },
+            { "outcome", outcome },
             { "bids", this.sortBy(bids, 0, true) },
             { "asks", this.sortBy(asks, 0) },
             { "timestamp", timestamp },
@@ -2307,20 +2295,19 @@ public partial class myriad : PredictionExchange
      * @name myriad#fetchOHLCV
      * @description fetches price history for an outcome from the price_charts bucket embedded in the market response
      * @see https://docs.myriad.markets/builders/myriad-api-reference
-     * @param {string} symbol unified outcome symbol like TRUMP_WIN:YES or an outcome id
+     * @param {string} outcome unified outcome like TRUMP_WIN:YES or an outcome id
      * @param {string} timeframe mapped to the closest available chart bucket (24h, 7d or 30d)
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum number of candles to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOHLCV(object outcome, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
         timeframe ??= "1d";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
         this.ensureOutcomesLoaded();
-        object outcomeObj = this.outcome(symbol);
+        object outcomeObj = this.outcome(outcome);
         object outcomeInfo = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         object networkId = this.safeString(getValue(outcomeObj, "info"), "networkId");
         object marketId = this.safeString(getValue(outcomeObj, "info"), "marketId");
@@ -2372,17 +2359,17 @@ public partial class myriad : PredictionExchange
         object selectedOutcome = null;
         for (object i = 0; isLessThan(i, getArrayLength(outcomes)); postFixIncrement(ref i))
         {
-            object outcome = getValue(outcomes, i);
-            object currentId = this.safeString(outcome, "id", this.safeString(outcome, "outcomeId"));
-            object currentTitle = this.safeString(outcome, "title", this.safeString(outcome, "label"));
+            object oc = getValue(outcomes, i);
+            object currentId = this.safeString(oc, "id", this.safeString(oc, "outcomeId"));
+            object currentTitle = this.safeString(oc, "title", this.safeString(oc, "label"));
             if (isTrue(isTrue((!isEqual(outcomeId, null))) && isTrue((isEqual(currentId, outcomeId)))))
             {
-                selectedOutcome = outcome;
+                selectedOutcome = oc;
                 break;
             }
             if (isTrue(isTrue(isTrue((isEqual(selectedOutcome, null))) && isTrue((!isEqual(outcomeTitle, null)))) && isTrue((isEqual(currentTitle, outcomeTitle)))))
             {
-                selectedOutcome = outcome;
+                selectedOutcome = oc;
             }
         }
         // price_charts is a list of { timeframe, prices } buckets, with a dict variant on some deployments
@@ -2463,17 +2450,16 @@ public partial class myriad : PredictionExchange
      * @name myriad#fetchTickers
      * @description fetches tickers for multiple outcomes, grouping requested outcomes by their parent market to fetch each market only once
      * @see https://docs.myriad.markets/builders/myriad-api-reference
-     * @param {string[]} [symbols] unified outcome symbols, refreshes the markets listing and returns tickers for all outcomes when omitted
+     * @param {string[]} [outcomes] unified outcomes, refreshes the markets listing and returns tickers for all outcomes when omitted
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome symbol
+     * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<object> fetchTickers(object outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
         this.ensureOutcomesLoaded();
         object result = new Dictionary<string, object>() {};
-        if (isTrue(isEqual(symbols, null)))
+        if (isTrue(isEqual(outcomes, null)))
         {
             object rawMarkets = await this.fetchRawMarketsList(parameters);
             for (object i = 0; isLessThan(i, getArrayLength(rawMarkets)); postFixIncrement(ref i))
@@ -2496,9 +2482,9 @@ public partial class myriad : PredictionExchange
         // group target outcomes by their parent market to fetch each market only once
         object outcomesByMarket = new Dictionary<string, object>() {};
         object marketKeys = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(outcomes)); postFixIncrement(ref i))
         {
-            object outcomeObj = this.outcome(getValue(symbols, i));
+            object outcomeObj = this.outcome(getValue(outcomes, i));
             object info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
             object networkId = this.safeString(info, "networkId");
             object marketId = this.safeString(info, "marketId");
@@ -2550,18 +2536,17 @@ public partial class myriad : PredictionExchange
      * @name myriad#fetchTrades
      * @description fetches recent public trades for a single outcome from the market action feed
      * @see https://docs.myriad.markets/builders/myriad-api-reference
-     * @param {string} symbol unified outcome symbol like TRUMP_WIN:YES or an outcome id
+     * @param {string} outcome unified outcome like TRUMP_WIN:YES or an outcome id
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum number of trades to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
      */
-    public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTrades(object outcome, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
         this.ensureOutcomesLoaded();
-        object outcomeObj = this.outcome(symbol);
+        object outcomeObj = this.outcome(outcome);
         object info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         object networkId = this.safeString(info, "networkId");
         object marketId = this.safeString(info, "marketId");
@@ -2642,10 +2627,10 @@ public partial class myriad : PredictionExchange
             { "info", trade },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", this.safeString(market, "symbol") },
+            { "outcome", this.safeString(market, "outcome") },
             { "outcomeId", this.safeString(market, "id") },
             { "label", this.safeString(market, "label") },
-            { "market", this.safeString(market, "marketSymbol") },
+            { "market", this.safeString(market, "outcome") },
             { "order", null },
             { "type", null },
             { "side", this.safeString(trade, "action") },
@@ -2673,13 +2658,14 @@ public partial class myriad : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         object queries = this.parseSearchQueries(parameters);
-        object rest = this.omit(parameters, new List<object>() {"query", "queries"});
+        object rest = this.omit(parameters, new List<object>() {"query", "queries", "sort", "searchIn", "eventId", "slug", "status"});
         object queriesLength = getArrayLength(queries);
         if (isTrue(isEqual(queriesLength, 0)))
         {
-            await this.loadMarkets();
             this.populateOutcomes();
-            return (IList<object>)(new List<object>(((IDictionary<string,object>)this.events).Values));
+            // hoist Object.values to a local — inline as a call argument breaks the php regex transpiler
+            object existingEvents = (IList<object>)(new List<object>(((IDictionary<string,object>)this.events).Values));
+            return this.applyEventFetchParams(existingEvents, parameters, queries);
         }
         object rawMarkets = await this.fetchRawMarketsBySearch(queries, rest);
         if (!isTrue(this.events))
@@ -2697,7 +2683,7 @@ public partial class myriad : PredictionExchange
             object m = this.parseMyriadMarket(raw);
             ((IDictionary<string,object>)this.markets)[(string)((string)getValue(m, "symbol"))] = m;
             object ev = this.parseMarketToEvent(raw, m);
-            object evKey = this.safeString(ev, "symbol");
+            object evKey = this.safeString(ev, "event");
             if (isTrue(!isEqual(evKey, null)))
             {
                 ((IDictionary<string,object>)this.events)[(string)evKey] = ev;
@@ -2705,7 +2691,7 @@ public partial class myriad : PredictionExchange
             }
         }
         this.populateOutcomes();
-        return result;
+        return this.applyEventFetchParams(result, parameters, queries);
     }
 
     /**
@@ -2742,12 +2728,17 @@ public partial class myriad : PredictionExchange
             for (object j = 0; isLessThan(j, getArrayLength(outcomesList)); postFixIncrement(ref j))
             {
                 object oc = getValue(outcomesList, j);
-                object ocSymbol = this.safeString(oc, "symbol");
+                // accept the legacy outcome/id keys too: in Go/C#/Java the prediction
+                // setMarkets override is not dispatched, so oc is not pre-normalized
+                object ocSymbol = this.safeString2(oc, "outcome", "symbol");
+                object ocId = this.safeString2(oc, "outcomeId", "id");
+                ((IDictionary<string,object>)oc)["outcome"] = ocSymbol;
+                ((IDictionary<string,object>)oc)["outcomeId"] = ocId;
+                ((IDictionary<string,object>)oc)["market"] = this.safeString2(oc, "market", "marketSymbol");
                 if (isTrue(!isEqual(ocSymbol, null)))
                 {
                     ((IDictionary<string,object>)this.outcomes)[(string)ocSymbol] = oc;
                 }
-                object ocId = this.safeString(oc, "id");
                 if (isTrue(!isEqual(ocId, null)))
                 {
                     ((IDictionary<string,object>)this.outcomes_by_id)[(string)ocId] = oc;
@@ -2778,10 +2769,12 @@ public partial class myriad : PredictionExchange
         return ((object)this.extend(rawEvent, new Dictionary<string, object>() {
             { "id", this.safeString(rawEvent, "id") },
             { "slug", questionSlug },
-            { "symbol", ((bool) isTrue(questionSlug)) ? this.shortenSlug(questionSlug) : null },
+            { "event", ((bool) isTrue(questionSlug)) ? this.shortenSlug(questionSlug) : null },
             { "title", this.safeString(rawEvent, "title") },
             { "description", this.safeString(rawEvent, "description") },
             { "markets", marketsList },
+            { "volume", this.safeNumber2(rawEvent, "volumeNotional24h", "volume24h") },
+            { "liquidity", this.safeNumber(rawEvent, "liquidity") },
             { "url", this.safeString(rawEvent, "url") },
             { "image", this.safeString(rawEvent, "imageUrl", this.safeString(rawEvent, "image")) },
             { "active", this.safeBool(rawEvent, "active") },
@@ -2830,7 +2823,7 @@ public partial class myriad : PredictionExchange
         }
         object ocId = add(add(add(add(networkId, ":"), marketId), "/"), outcomeId);
         object outcomeObj = this.safeDict(this.outcomes_by_id, ocId);
-        return this.safeString(outcomeObj, "symbol");
+        return this.safeString(outcomeObj, "outcome");
     }
 
     public async virtual Task<object> connectCentrifugo(object url)
@@ -2961,21 +2954,20 @@ public partial class myriad : PredictionExchange
      * @name myriad#watchOrderBook
      * @description streams the order book for an outcome over the Centrifugo websocket; the channel is delta-only so the book is seeded from the REST snapshot
      * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
-     * @param {string} symbol unified outcome symbol
+     * @param {string} outcome unified outcome
      * @param {int} [limit] the maximum number of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
-    public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<object> watchOrderBook(object outcome, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
         this.ensureOutcomesLoaded();
-        object outcomeObj = this.outcome(symbol);
+        object outcomeObj = this.outcome(outcome);
         object info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         object networkId = this.safeString(info, "networkId");
         object marketId = this.safeString(info, "marketId");
-        object sym = this.safeOutcomeSymbol(symbol, outcomeObj);
+        object sym = this.safeOutcomeSymbol(outcome, outcomeObj);
         object channel = add(add(add("orderbook:", networkId), ":"), marketId);
         object messageHash = add("orderbook::", sym);
         object url = this.safeString(getValue(this.urls, "api"), "ws");
@@ -2987,7 +2979,7 @@ public partial class myriad : PredictionExchange
         {
             // the channel only streams deltas, so (re)seed the live book from the REST snapshot on a
             // fresh subscription (first call or after a reconnect that cleared ((WebSocketClient)client).subscriptions)
-            await this.seedOrderBook(symbol, sym, limit);
+            await this.seedOrderBook(outcome, sym, limit);
         }
         object requestId = this.requestId(url);
         object subscribeMsg = new Dictionary<string, object>() {
@@ -3006,10 +2998,10 @@ public partial class myriad : PredictionExchange
         return (orderbook as IOrderBook).limit();
     }
 
-    public async virtual Task seedOrderBook(object symbol, object sym, object limit = null)
+    public async virtual Task seedOrderBook(object outcome, object sym, object limit = null)
     {
         // the order book channel streams deltas only, so seed the live book from the REST snapshot
-        object snapshot = await this.fetchOrderBook(symbol, limit);
+        object snapshot = await this.fetchOrderBook(outcome, limit);
         object orderbook = this.orderBook(new Dictionary<string, object>() {});
         (orderbook as IOrderBook).reset(snapshot);
         ((IDictionary<string,object>)this.orderbooks)[(string)sym] = orderbook;
@@ -3060,22 +3052,21 @@ public partial class myriad : PredictionExchange
      * @name myriad#watchTrades
      * @description streams public trades for an outcome over the Centrifugo websocket
      * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
-     * @param {string} symbol unified outcome symbol
+     * @param {string} outcome unified outcome
      * @param {int} [since] timestamp in ms of the earliest trade
      * @param {int} [limit] the maximum number of trades to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
      */
-    public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> watchTrades(object outcome, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
         this.ensureOutcomesLoaded();
-        object outcomeObj = this.outcome(symbol);
+        object outcomeObj = this.outcome(outcome);
         object info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         object networkId = this.safeString(info, "networkId");
         object marketId = this.safeString(info, "marketId");
-        object sym = this.safeOutcomeSymbol(symbol, outcomeObj);
+        object sym = this.safeOutcomeSymbol(outcome, outcomeObj);
         object channel = add(add(add("trades:", networkId), ":"), marketId);
         object messageHash = add("trades::", sym);
         object trades = await this.subscribeMyriadChannel(messageHash, channel, parameters);
@@ -3086,28 +3077,27 @@ public partial class myriad : PredictionExchange
      * @method
      * @name myriad#watchMyTrades
      * @description streams the wallet's own fills for a market over the Centrifugo trades channel (real
-     * execution prices, unlike the REST fetchMyTrades); requires a market symbol since the channel is per-market
+     * execution prices, unlike the REST fetchMyTrades); requires a market outcome since the channel is per-market
      * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
-     * @param {string} symbol unified outcome symbol whose market to watch
+     * @param {string} outcome unified outcome whose market to watch
      * @param {int} [since] timestamp in ms of the earliest trade
      * @param {int} [limit] the maximum number of trades to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
      */
-    public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> watchMyTrades(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(symbol, null)))
+        if (isTrue(isEqual(outcome, null)))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " watchMyTrades() requires a symbol (the trades channel is per-market)")) ;
+            throw new ArgumentsRequired ((string)add(this.id, " watchMyTrades() requires a outcome (the trades channel is per-market)")) ;
         }
-        await this.loadMarkets();
         this.ensureOutcomesLoaded();
-        object outcomeObj = this.outcome(symbol);
+        object outcomeObj = this.outcome(outcome);
         object info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         object networkId = this.safeString(info, "networkId");
         object marketId = this.safeString(info, "marketId");
-        object sym = this.safeOutcomeSymbol(symbol, outcomeObj);
+        object sym = this.safeOutcomeSymbol(outcome, outcomeObj);
         object channel = add(add(add("trades:", networkId), ":"), marketId);
         object messageHash = "myTrades";
         object trades = await this.subscribeMyriadChannel(messageHash, channel, parameters);
@@ -3151,10 +3141,10 @@ public partial class myriad : PredictionExchange
             { "info", data },
             { "timestamp", ts },
             { "datetime", this.iso8601(ts) },
-            { "symbol", sym },
+            { "outcome", sym },
             { "outcomeId", this.safeString(outcomeObj, "id") },
             { "label", this.safeString(outcomeObj, "label") },
-            { "market", this.safeString(outcomeObj, "marketSymbol") },
+            { "market", this.safeString(outcomeObj, "outcome") },
             { "order", this.safeString(taker, "orderHash") },
             { "type", null },
             { "side", this.safeStringLower(taker, "side") },
@@ -3206,10 +3196,10 @@ public partial class myriad : PredictionExchange
                         { "info", maker },
                         { "timestamp", ts },
                         { "datetime", this.iso8601(ts) },
-                        { "symbol", makerSym },
+                        { "outcome", makerSym },
                         { "outcomeId", this.safeString(makerOutcomeObj, "id") },
                         { "label", this.safeString(makerOutcomeObj, "label") },
-                        { "market", this.safeString(makerOutcomeObj, "marketSymbol") },
+                        { "market", this.safeString(makerOutcomeObj, "outcome") },
                         { "order", this.safeString(maker, "orderHash") },
                         { "type", null },
                         { "side", this.safeStringLower(maker, "side") },
@@ -3248,20 +3238,19 @@ public partial class myriad : PredictionExchange
      * @name myriad#watchTicker
      * @description streams best bid/ask/last for an outcome over the Centrifugo prices channel
      * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
-     * @param {string} symbol unified outcome symbol
+     * @param {string} outcome unified outcome
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    public async override Task<object> watchTicker(object symbol, object parameters = null)
+    public async override Task<object> watchTicker(object outcome, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
         this.ensureOutcomesLoaded();
-        object outcomeObj = this.outcome(symbol);
+        object outcomeObj = this.outcome(outcome);
         object info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         object networkId = this.safeString(info, "networkId");
         object marketId = this.safeString(info, "marketId");
-        object sym = this.safeOutcomeSymbol(symbol, outcomeObj);
+        object sym = this.safeOutcomeSymbol(outcome, outcomeObj);
         object channel = add(add(add("prices:", networkId), ":"), marketId);
         object messageHash = add("ticker::", sym);
         return await this.subscribeMyriadChannel(messageHash, channel, parameters);
@@ -3272,20 +3261,19 @@ public partial class myriad : PredictionExchange
      * @name myriad#watchTickers
      * @description streams best bid/ask/last for several outcomes over the Centrifugo prices channels
      * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
-     * @param {string[]} symbols unified outcome symbols to watch
+     * @param {string[]} outcomes unified outcomes to watch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dict of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by symbol
+     * @returns {object} a dict of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
      */
-    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
+    public async override Task<object> watchTickers(object outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
         this.ensureOutcomesLoaded();
-        if (isTrue(isEqual(symbols, null)))
+        if (isTrue(isEqual(outcomes, null)))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " watchTickers() requires a list of symbols (the prices channel is per-market)")) ;
+            throw new ArgumentsRequired ((string)add(this.id, " watchTickers() requires a list of outcomes (the prices channel is per-market)")) ;
         }
-        object symbolsLength = getArrayLength(symbols);
+        object symbolsLength = getArrayLength(outcomes);
         object url = this.safeString(getValue(this.urls, "api"), "ws");
         await this.connectCentrifugo(url);
         var client = this.client(url);
@@ -3293,12 +3281,12 @@ public partial class myriad : PredictionExchange
         object resolvedSymbols = new List<object>() {};
         for (object i = 0; isLessThan(i, symbolsLength); postFixIncrement(ref i))
         {
-            object outcomeObj = this.outcome(getValue(symbols, i));
+            object outcomeObj = this.outcome(getValue(outcomes, i));
             object info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
             object networkId = this.safeString(info, "networkId");
             object marketId = this.safeString(info, "marketId");
             object channel = add(add(add("prices:", networkId), ":"), marketId);
-            ((IList<object>)resolvedSymbols).Add(this.safeOutcomeSymbol(getValue(symbols, i), outcomeObj));
+            ((IList<object>)resolvedSymbols).Add(this.safeOutcomeSymbol(getValue(outcomes, i), outcomeObj));
             if (isTrue(isEqual(this.safeValue(seenChannels, channel), null)))
             {
                 ((IDictionary<string,object>)seenChannels)[(string)channel] = true;
@@ -3321,19 +3309,19 @@ public partial class myriad : PredictionExchange
      * @name myriad#watchOHLCV
      * @description streams OHLCV candles for an outcome, synthesised from the live trades channel
      * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
-     * @param {string} symbol unified outcome symbol
+     * @param {string} outcome unified outcome
      * @param {string} timeframe the length of each candle (e.g. '1m', '1h', '1d')
      * @param {int} [since] timestamp in ms of the earliest candle
      * @param {int} [limit] the maximum number of candles to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} a list of [timestamp, open, high, low, close, volume] candles
      */
-    public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> watchOHLCV(object outcome, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
         // Myriad has no OHLCV websocket channel, so build candles from the live trade stream
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        object trades = await this.watchTrades(symbol, since, limit, parameters);
+        object trades = await this.watchTrades(outcome, since, limit, parameters);
         object ohlcvc = this.buildOHLCVC(trades, timeframe, 0, 2147483647);
         object result = new List<object>() {};
         object ohlcvcLength = getArrayLength(ohlcvc);
@@ -3369,10 +3357,10 @@ public partial class myriad : PredictionExchange
             object outcomeObj = this.safeOutcome(sym);
             object last = this.fromWei(this.safeString(oc, "last"));
             object ticker = this.safePredictionTicker(new Dictionary<string, object>() {
-                { "symbol", sym },
+                { "outcome", sym },
                 { "outcomeId", this.safeString(outcomeObj, "id") },
                 { "label", this.safeString(outcomeObj, "label") },
-                { "market", this.safeString(outcomeObj, "marketSymbol") },
+                { "market", this.safeString(outcomeObj, "outcome") },
                 { "timestamp", ts },
                 { "datetime", this.iso8601(ts) },
                 { "high", null },
@@ -3404,30 +3392,29 @@ public partial class myriad : PredictionExchange
      * @name myriad#watchOrders
      * @description streams the wallet's order lifecycle updates over the Centrifugo orders channel
      * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
-     * @param {string} [symbol] unified outcome symbol to filter by
+     * @param {string} [outcome] unified outcome to filter by
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of orders to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> watchOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
         this.ensureOutcomesLoaded();
         object trader = this.walletAddressFromKeys();
         object networkId = this.safeString(this.options, "defaultNetworkId", "56");
-        if (isTrue(!isEqual(symbol, null)))
+        if (isTrue(!isEqual(outcome, null)))
         {
-            object outcomeObj = this.outcome(symbol);
+            object outcomeObj = this.outcome(outcome);
             object info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
             networkId = this.safeString(info, "networkId", networkId);
-            symbol = this.safeOutcomeSymbol(symbol, outcomeObj);
+            outcome = this.safeOutcomeSymbol(outcome, outcomeObj);
         }
         object channel = add(add(add("orders:", networkId), ":"), trader);
         object messageHash = "orders";
         object orders = await this.subscribeMyriadChannel(messageHash, channel, parameters);
-        return this.filterByValueSinceLimit(orders, "outcome", symbol, since, limit, "timestamp", true);
+        return this.filterByValueSinceLimit(orders, "outcome", outcome, since, limit, "timestamp", true);
     }
 
     public virtual void handleOrder(WebSocketClient client, object data)
@@ -3455,10 +3442,10 @@ public partial class myriad : PredictionExchange
             { "info", data },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", sym },
+            { "outcome", sym },
             { "outcomeId", this.safeString(outcomeObj, "id") },
             { "label", this.safeString(outcomeObj, "label") },
-            { "market", this.safeString(outcomeObj, "marketSymbol") },
+            { "market", this.safeString(outcomeObj, "outcome") },
             { "type", ((bool) isTrue(isMarketTif)) ? "market" : "limit" },
             { "timeInForce", tif },
             { "side", this.safeStringLower(data, "side") },
@@ -3486,16 +3473,15 @@ public partial class myriad : PredictionExchange
      * @name myriad#watchPositions
      * @description streams the wallet's share-balance changes over the Centrifugo positions channel
      * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
-     * @param {string[]} [symbols] unified outcome symbols to filter by
+     * @param {string[]} [outcomes] unified outcomes to filter by
      * @param {int} [since] timestamp in ms of the earliest position update
      * @param {int} [limit] the maximum number of position updates to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public async override Task<object> watchPositions(object symbols = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> watchPositions(object outcomes = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
         this.ensureOutcomesLoaded();
         object trader = this.walletAddressFromKeys();
         object networkId = this.safeString(this.options, "defaultNetworkId", "56");
@@ -3523,7 +3509,7 @@ public partial class myriad : PredictionExchange
         {
             return positions;
         }
-        return this.filterByOutcomesSinceLimit(positions, symbols, since, limit, true);
+        return this.filterByOutcomesSinceLimit(positions, outcomes, since, limit, true);
     }
 
     public async virtual Task seedPositionBalances(object trader)
@@ -3582,10 +3568,10 @@ public partial class myriad : PredictionExchange
         object parsed = this.safePredictionPosition(new Dictionary<string, object>() {
             { "info", data },
             { "id", posId },
-            { "symbol", sym },
+            { "outcome", sym },
             { "outcomeId", posId },
             { "label", this.safeString(outcomeObj, "label") },
-            { "market", this.safeString(outcomeObj, "marketSymbol") },
+            { "market", this.safeString(outcomeObj, "outcome") },
             { "timestamp", ts },
             { "datetime", this.iso8601(ts) },
             { "side", "long" },

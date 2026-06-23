@@ -291,6 +291,11 @@ public partial class kalshi : PredictionExchange
         return await this.callAsync ("kalshiPrivatePostPortfolioOrders",parameters);
     }
 
+    public async Task<object> kalshiPrivatePostPortfolioEventsOrders (object parameters = null)
+    {
+        return await this.callAsync ("kalshiPrivatePostPortfolioEventsOrders",parameters);
+    }
+
     public async Task<object> kalshiPrivatePostPortfolioOrdersBatched (object parameters = null)
     {
         return await this.callAsync ("kalshiPrivatePostPortfolioOrdersBatched",parameters);
@@ -354,11 +359,6 @@ public partial class kalshi : PredictionExchange
     public async Task<object> kalshiPrivateDeletePortfolioOrdersOrderId (object parameters = null)
     {
         return await this.callAsync ("kalshiPrivateDeletePortfolioOrdersOrderId",parameters);
-    }
-
-    public async Task<object> kalshiPrivateDeletePortfolioOrders (object parameters = null)
-    {
-        return await this.callAsync ("kalshiPrivateDeletePortfolioOrders",parameters);
     }
 
     public async Task<object> kalshiPrivateDeletePortfolioOrdersBatched (object parameters = null)
