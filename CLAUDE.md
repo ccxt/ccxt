@@ -367,9 +367,7 @@ Seven parallel workflows (`.github/workflows/`), each on `ubuntu-latest` + Node 
 | Java | `java.yml` | `pre-transpile-java` | `transpileJava` | `buildJava` | `./run-tests-simul.sh --java` |
 | Rust | `rust.yml` | — | early-stage, no transpile/test steps wired up yet | — | — |
 
-**CI scoping:** `important_modified=true` → full transpile + all offline tests. `important_modified=false` → only changed exchanges transpiled and tested (via `rest_files`/`ws_files` from `check_modified_files.sh`).
-
-**Reproduce locally:** `npm run pre-transpile-<lang>` → transpile → build → `npm run request-<lang> && npm run response-<lang>` → `./run-tests-simul.sh --<lang> "<ex>" "<ex>"` for live. For Go: `npm run export-exchanges && npm run emitAPI` first.
+**Reproduce locally:** `npm run export-exchanges && npm run emitAPI` first → `npm run pre-transpile-<lang>` → transpile → build → `npm run request-<lang> && npm run response-<lang>` → `./run-tests-simul.sh --<lang> "<ex>" "<ex>"` for live.
 
 ---
 
