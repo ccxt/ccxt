@@ -37,7 +37,7 @@ export class Stream {
         } else {
             // enc should be an array or a binary string
             this.enc = enc;
-            this.pos = (pos === undefined) ? 0 : pos;
+            this.pos = pos;
         }
     }
 
@@ -127,7 +127,7 @@ export class Stream {
 
     public parseTime(start:number, end:number, shortYear:boolean) {
         let s = this.parseStringISO(start, end);
-        const m:Array<number|string> | null = (shortYear ? reTimeS : reTimeL).exec(s);
+        const m:Array<number|string> = (shortYear ? reTimeS : reTimeL).exec(s);
         if (!m) {
             return "Unrecognized time: " + s;
         }
@@ -352,7 +352,7 @@ export class ASN1 {
         }
     }
 
-    public content(maxLength?:number) { // a preview of the content (intended for humans)
+    public content(maxLength:number) { // a preview of the content (intended for humans)
         if (this.tag === undefined) {
             return null;
         }
@@ -458,7 +458,7 @@ export class ASN1 {
         return this.stream.hexDump(this.posStart(), this.posEnd(), true);
     }
 
-    public static decodeLength(stream:Stream):number | null {
+    public static decodeLength(stream:Stream):number {
         let buf = stream.get();
         const len = buf & 0x7F;
         if (len == buf) {
@@ -505,9 +505,9 @@ export class ASN1 {
         let len = ASN1.decodeLength(stream);
         const start = stream.pos;
         const header = start - streamStart.pos;
-        let sub: ASN1[] | null = null;
+        let sub = null;
         const getSub:() => ASN1[] = function () {
-            const ret: ASN1[] = [];
+            const ret = [];
             if (len !== null) {
                 // definite length
                 const end = start + len;
@@ -563,7 +563,7 @@ export class ASN1 {
             }
             stream.pos = start + Math.abs(len);
         }
-        return new ASN1(streamStart, header, (len === null) ? 0 : len, tag, sub as ASN1[]);
+        return new ASN1(streamStart, header, len, tag, sub);
     }
 }
 

@@ -34,8 +34,8 @@ export class JSEncrypt {
     private default_key_size: number;
     private default_public_exponent: string;
     private log: boolean;
-    private key: JSEncryptRSAKey | null;
-    public static version: string | undefined = version;
+    private key: JSEncryptRSAKey;
+    public static version: string = version;
 
     /**
      * Method to set the rsa key parameter (one method is enough to set both the public
@@ -99,11 +99,7 @@ export class JSEncrypt {
     public encrypt(str: string) {
         // Return the encrypted string.
         try {
-            const encrypted = this.getKey().encrypt(str);
-            if (encrypted === null) {
-                return false;
-            }
-            return hex2b64(encrypted);
+            return hex2b64(this.getKey().encrypt(str));
         } catch (ex) {
             return false;
         }
@@ -159,7 +155,7 @@ export class JSEncrypt {
      * @returns {JSEncryptRSAKey} the JSEncryptRSAKey object
      * @public
      */
-    public getKey(cb?: () => void): JSEncryptRSAKey {
+    public getKey(cb?: () => void) {
         // Only create new if it does not exist.
         if (!this.key) {
             // Get a new private key.
@@ -170,7 +166,7 @@ export class JSEncrypt {
                     this.default_public_exponent,
                     cb,
                 );
-                return this.key;
+                return;
             }
             // Generate the key.
             this.key.generate(this.default_key_size, this.default_public_exponent);
