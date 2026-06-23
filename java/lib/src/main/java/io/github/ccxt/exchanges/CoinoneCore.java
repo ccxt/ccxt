@@ -550,7 +550,7 @@ public class CoinoneCore extends CoinoneApi
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 Object first = this.safeString(symbols, 0);
-                market = this.market(first);
+                market = this.market(((String)first));
                 Helpers.addElementToObject(request, "quote_currency", Helpers.GetValue(market, "quote"));
                 Helpers.addElementToObject(request, "target_currency", Helpers.GetValue(market, "base"));
                 response = (this.v2PublicGetTickerNewQuoteCurrencyTargetCurrency(this.extend(request, parameters))).join();
@@ -880,7 +880,7 @@ public class CoinoneCore extends CoinoneApi
                 put( "currency", Helpers.GetValue(market, "id") );
                 put( "qty", amount );
             }};
-            Object method = Helpers.add(Helpers.add("privatePostOrder", this.capitalize(type)), this.capitalize(side));
+            Object method = Helpers.add(Helpers.add("privatePostOrder", this.capitalize(type)), this.capitalize(((String)side)));
             Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { this.extend(request, parameters) })).join();
             //
             //     {
@@ -956,7 +956,7 @@ public class CoinoneCore extends CoinoneApi
             put( "filled", "closed" );
             put( "canceled", "canceled" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     public Object parseOrder(Object order, Object... optionalArgs)
