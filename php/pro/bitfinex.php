@@ -1003,7 +1003,7 @@ class bitfinex extends \ccxt\async\bitfinex {
             'ticker' => 'ticker',
             'trades' => 'trades',
         );
-        $unifiedChannel = $this->safe_string($mappings, ($this->safe_string($message, 'channel')));
+        $unifiedChannel = $this->safe_string($mappings, $this->safe_string($message, 'channel'));
         if (is_array($message) && array_key_exists('key', $message)) {
             // handle ohlcv differently because the $message is different
             $key = $this->safe_string($message, 'key');

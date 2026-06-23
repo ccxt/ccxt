@@ -879,7 +879,7 @@ class bybit extends \ccxt\async\bybit {
         //         "timestamp" => 1670363219614
         //     }
         //
-        $volumeIndex = ($this->safe_bool($market, 'inverse')) ? 'turnover' : 'volume';
+        $volumeIndex = $this->safe_bool($market, 'inverse') ? 'turnover' : 'volume';
         return array(
             $this->safe_integer($ohlcv, 'start'),
             $this->safe_number($ohlcv, 'open'),
