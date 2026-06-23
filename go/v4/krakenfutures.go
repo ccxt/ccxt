@@ -844,7 +844,7 @@ func (this *KrakenfuturesCore) FetchTrades(symbol any, optionalArgs ...any) <-ch
 		methodparamsVariable := this.HandleOptionAndParams(params, "fetchTrades", "method", "historyGetMarketSymbolExecutions")
 		method = GetValue(methodparamsVariable, 0)
 		params = GetValue(methodparamsVariable, 1)
-		var rawTrades any = nil
+		var rawTrades any = []any{}
 		var isFullHistoryEndpoint any = (IsEqual(method, "historyGetMarketSymbolExecutions"))
 		if IsTrue(isFullHistoryEndpoint) {
 			requestparamsVariable := this.HandleUntilOption("before", request, params)
