@@ -4713,16 +4713,14 @@ const exchange = new ccxt.prediction.polymarket ()
 ```
 
 ```python
-# Python (sync / async)
+# Python (async-only — ccxt.prediction.<id> IS the async class)
 import ccxt.prediction
-import ccxt.prediction.async_support
 exchange = ccxt.prediction.polymarket()
 ```
 
 ```php
-// PHP (sync / async)
+// PHP (async-only, ReactPHP — \ccxt\prediction\<id> IS the async class)
 $exchange = new \ccxt\prediction\polymarket();
-$exchange = new \ccxt\prediction\async\polymarket();
 ```
 
 ```csharp
@@ -4740,9 +4738,9 @@ Prediction exchanges are flagged with `exchange.has['prediction']`. Their data m
 
 - **events** — a question or grouping, like *"Will X happen by July?"*
 - **markets** — each event contains one or more markets, returned by `fetchMarkets()` / `loadMarkets()` with `market['type'] === 'prediction'`
-- **outcomes** — each market carries an `outcomes` list (for example YES and NO tokens); each outcome has its own `symbol` like `TRUMP_OUT_PRESIDENT_2027:YES` and exchange-specific `id`
+- **outcomes** — each market carries an `outcomes` list (for example YES and NO tokens); each outcome has its own `outcome` handle like `TRUMP_OUT_PRESIDENT_2027:YES`, an exchange-specific `outcomeId`, the parent `market`, and a `label` (e.g. `YES`/`NO`)
 
-All price-related unified methods (`fetchTicker`, `fetchTickers`, `fetchOrderBook`, `fetchOHLCV`, `fetchTrades`, `createOrder`, ...) accept an **outcome symbol or outcome id** instead of a regular market symbol.
+All price-related unified methods (`fetchTicker`, `fetchTickers`, `fetchOrderBook`, `fetchOHLCV`, `fetchTrades`, `createOrder`, ...) take an **outcome handle or outcome id** (the `outcome` / `outcomes` parameter) instead of a regular market symbol.
 
 ### fetchEvents
 
@@ -4775,9 +4773,11 @@ A typical workflow:
 const exchange = new ccxt.prediction.polymarket ()
 const events = await exchange.fetchEvents ([ 'Trump' ])
 const outcome = events[0]['markets'][0]['outcomes'][0]
-const ticker = await exchange.fetchTicker (outcome['symbol'])
-const orderbook = await exchange.fetchOrderBook (outcome['symbol'])
-const candles = await exchange.fetchOHLCV (outcome['symbol'], '1h')
+const ticker = await exchange.fetchTicker (outcome['outcome'])
+const orderbook = await exchange.fetchOrderBook (outcome['outcome'])
+const candles = await exchange.fetchOHLCV (outcome['outcome'], '1h')
+// place a limit buy of 5 YES shares at 0.40 USDC; prices are 0..1 per share
+const order = await exchange.createOrder (outcome['outcome'], 'limit', 'buy', 5, 0.40)
 ```
 
 Calling a price method for an outcome that has not been loaded yet throws `ArgumentsRequired` — fetch the events (or `loadMarkets()`) first.

@@ -108,3 +108,9 @@
 	- [xt](exchanges/xt.md)
 	- [zaif](exchanges/zaif.md)
 	- [fetchStatus](exchanges/fetchStatus.md)
+- API Spec by Prediction Exchange
+	- [hyperliquid](exchanges/prediction/hyperliquid.md)
+	- [kalshi](exchanges/prediction/kalshi.md)
+	- [limitless](exchanges/prediction/limitless.md)
+	- [myriad](exchanges/prediction/myriad.md)
+	- [polymarket](exchanges/prediction/polymarket.md)

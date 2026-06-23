@@ -422,9 +422,32 @@ function main () {
         write(path.join(OUT, 'exchanges', `${ex}.md`), frontmatter(title, desc) + transform(md));
         count++;
     }
+    // 2b) prediction-market exchanges — separate namespace (ts/src/prediction), own sidebar group
+    const predDir = path.join(WIKI, 'exchanges', 'prediction');
+    let predOrder: string[] = [];
+    if (fs.existsSync(predDir)) {
+        predOrder = fs.readdirSync(predDir)
+            .filter((f) => f.endsWith('.md') && fs.statSync(path.join(predDir, f)).size > 0)
+            .map((f) => f.replace(/\.md$/, ''))
+            .sort();
+    }
+    if (predOrder.length) {
+        ensure(path.join(OUT, 'exchanges', 'prediction'));
+        for (const ex of predOrder) {
+            const md = readWiki(path.join('exchanges', 'prediction', `${ex}.md`));
+            const h = md.match(/^#{1,6}\s+(.*)$/m);
+            const title = h ? stripInline(h[1]) || ex : ex;
+            const desc = `${title} prediction-market exchange — CCXT unified API: methods, parameters and endpoints.`;
+            write(path.join(OUT, 'exchanges', 'prediction', `${ex}.md`), frontmatter(title, desc) + transform(md));
+            count++;
+        }
+        write(path.join(OUT, 'exchanges', 'prediction', 'meta.json'),
+            JSON.stringify({ title: 'Prediction Markets', description: 'Prediction-market exchanges (Polymarket, Kalshi, Limitless, Myriad, Hyperliquid)', pages: predOrder }, null, 2));
+    }
     // root:true -> renders as a sidebar tab (keeps /docs/exchanges/* URLs unchanged)
+    const exPages = predOrder.length ? [...exOrder, 'prediction'] : exOrder;
     write(path.join(OUT, 'exchanges', 'meta.json'),
-        JSON.stringify({ title: 'Exchanges', icon: 'ArrowLeftRight', description: 'Per-exchange API support', root: true, pages: exOrder }, null, 2));
+        JSON.stringify({ title: 'Exchanges', icon: 'ArrowLeftRight', description: 'Per-exchange API support', root: true, pages: exPages }, null, 2));
 
     // 3) examples (js, py, ts, php)
     const LANGS: Record<string, string> = { js: 'JavaScript', py: 'Python', ts: 'TypeScript', php: 'PHP', cs: 'C#', go: 'Go', java: 'Java' };
