@@ -11,7 +11,9 @@ func TestFetchOrderBooks(exchange ccxt.ICoreExchange, skippedProperties any) <-c
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		var method any = "fetchOrderBooks"
-		var symbol any = GetValue(exchange.GetSymbols(), 0)
+		var symbols any = exchange.GetSymbols()
+		Assert(!IsEqual(symbols, nil), Add(Add(Add(exchange.GetId(), " "), method), " requires exchange.Getsymbols() to be loaded"))
+		var symbol any = GetValue(symbols, 0)
 
 		orderBooks := (<-exchange.FetchOrderBooks([]any{symbol}))
 		PanicOnError(orderBooks)
