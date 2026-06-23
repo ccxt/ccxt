@@ -866,10 +866,10 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         // for spot, opening-time (t) is used instead of closing-time (T), to be compatible with fetchOHLCV
         // for linear swap, (T) is the opening time
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = ((Helpers.isTrue((this.safeBool(market, "spot"))))) ? "t" : "T";
+        Object timestamp = ((Helpers.isTrue(this.safeBool(market, "spot")))) ? "t" : "T";
         if (Helpers.isTrue(this.safeBool(market, "swap")))
         {
-            timestamp = ((Helpers.isTrue((this.safeBool(market, "inverse"))))) ? "t" : "T";
+            timestamp = ((Helpers.isTrue(this.safeBool(market, "inverse")))) ? "t" : "T";
         }
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeInteger(ohlcv, timestamp), this.safeNumber(ohlcv, "o"), this.safeNumber(ohlcv, "h"), this.safeNumber(ohlcv, "l"), this.safeNumber(ohlcv, "c"), this.safeNumber(ohlcv, "v")));
     }

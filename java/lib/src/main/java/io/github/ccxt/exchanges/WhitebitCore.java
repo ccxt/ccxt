@@ -907,7 +907,7 @@ public class WhitebitCore extends WhitebitApi
             {
                 Object symbol = Helpers.GetValue(this.symbols, i);
                 Object market = this.market(symbol);
-                Object fee = this.safeValue(response, ((String)Helpers.GetValue(market, "baseId")), new java.util.HashMap<String, Object>() {{}});
+                Object fee = this.safeValue(response, Helpers.GetValue(market, "baseId"), new java.util.HashMap<String, Object>() {{}});
                 Object makerFee = this.safeString(fee, "maker_fee");
                 Object takerFee = this.safeString(fee, "taker_fee");
                 makerFee = Precise.stringDiv(makerFee, "100");

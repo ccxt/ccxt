@@ -1169,7 +1169,7 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
             put( "ticker", "ticker" );
             put( "trades", "trades" );
         }};
-        Object unifiedChannel = this.safeString(mappings, ((String)this.safeString(message, "channel")));
+        Object unifiedChannel = this.safeString(mappings, this.safeString(message, "channel"));
         if (Helpers.isTrue(Helpers.inOp(message, "key")))
         {
             // handle ohlcv differently because the message is different

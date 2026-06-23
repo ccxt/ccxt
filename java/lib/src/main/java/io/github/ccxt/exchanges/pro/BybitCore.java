@@ -998,7 +998,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object volumeIndex = ((Helpers.isTrue((this.safeBool(market, "inverse"))))) ? "turnover" : "volume";
+        Object volumeIndex = ((Helpers.isTrue(this.safeBool(market, "inverse")))) ? "turnover" : "volume";
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeInteger(ohlcv, "start"), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, volumeIndex)));
     }
 
