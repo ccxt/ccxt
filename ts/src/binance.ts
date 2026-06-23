@@ -6484,7 +6484,7 @@ export default class binance extends Exchange {
                 }
             } else {
                 if (isConditional) {
-                    request['algoType'] = 'CONDITIONAL'; // todo check
+                    request['algoType'] = 'CONDITIONAL';
                     response = await this.dapiPrivatePostAlgoOrder (request);
                 } else {
                     response = await this.dapiPrivatePostOrder (request);
