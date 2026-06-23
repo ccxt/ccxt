@@ -1801,7 +1801,7 @@ public partial class mexc : Exchange
             object length = getArrayLength(symbols);
             isSingularMarket = isEqual(length, 1);
             object firstSymbol = this.safeString(symbols, 0);
-            market = this.market(firstSymbol);
+            market = this.market(((string)firstSymbol));
         }
         var marketTypequeryVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
         var marketType = ((IList<object>) marketTypequeryVariable)[0];
@@ -2380,7 +2380,7 @@ public partial class mexc : Exchange
         }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
-            { "vol", parseFloat(this.amountToPrecision(symbol, amount)) },
+            { "vol", parseFloat(((string)this.amountToPrecision(((string)symbol), amount))) },
             { "type", type },
             { "openType", openType },
         };
@@ -2477,7 +2477,7 @@ public partial class mexc : Exchange
         {
             object rawOrder = getValue(orders, i);
             object marketId = this.safeString(rawOrder, "symbol");
-            object market = this.market(marketId);
+            object market = this.market(((string)marketId));
             if (!isTrue(getValue(market, "spot")))
             {
                 throw new NotSupported ((string)add(this.id, " createOrders() is only supported for spot markets")) ;
@@ -3518,7 +3518,7 @@ public partial class mexc : Exchange
         object typeRaw = this.safeString(order, "type");
         if (isTrue(isEqual(timeInForce, null)))
         {
-            timeInForce = this.getTifFromRawOrderType(typeRaw);
+            timeInForce = ((string)this.getTifFromRawOrderType(typeRaw));
         }
         object marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
@@ -3595,7 +3595,7 @@ public partial class mexc : Exchange
             { "3", "closed" },
             { "4", "canceled" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     public virtual object parseOrderTimeInForce(object status)
@@ -3617,7 +3617,7 @@ public partial class mexc : Exchange
             { "FILL_OR_KILL", "FOK" },
             { "MARKET", "IOC" },
         };
-        return this.safeString(statuses, orderType, orderType);
+        return this.safeString(statuses, ((string)orderType), orderType);
     }
 
     public async virtual Task<object> fetchAccountHelper(object type, object parameters)
@@ -4666,7 +4666,7 @@ public partial class mexc : Exchange
             });
             initialMarginRate = Precise.stringAdd(initialMarginRate, riskIncrImr);
             maintenanceMarginRate = Precise.stringAdd(maintenanceMarginRate, riskIncrMmr);
-            floor = cap;
+            floor = ((string)cap);
         }
         return tiers;
     }
@@ -4830,7 +4830,7 @@ public partial class mexc : Exchange
             {
                 object keys = new List<object>(((IDictionary<string,object>)addressStructures).Keys);
                 object key = this.safeString(keys, 0);
-                result = this.safeDict(addressStructures, key);
+                result = this.safeDict(addressStructures, ((string)key));
             }
         }
         if (isTrue(isEqual(result, null)))
@@ -5105,7 +5105,7 @@ public partial class mexc : Exchange
                 { "10", "pending" },
             } },
         };
-        object statuses = this.safeValue(statusesByType, type, new Dictionary<string, object>() {});
+        object statuses = this.safeValue(statusesByType, ((string)type), new Dictionary<string, object>() {});
         return this.safeString(statuses, status, status);
     }
 
@@ -5597,7 +5597,7 @@ public partial class mexc : Exchange
             { "FAILED", "failed" },
             { "WAIT", "pending" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     /**
@@ -5647,8 +5647,8 @@ public partial class mexc : Exchange
         }
         object networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
         object network = this.safeString2(parameters, "network", "netWork"); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString(networks, network, network); // handle ETH > ERC-20 alias
-        network = this.networkCodeToId(network, getValue(currency, "code"));
+        network = this.safeString(networks, ((string)network), network); // handle ETH > ERC-20 alias
+        network = this.networkCodeToId(((string)network), getValue(currency, "code"));
         this.checkAddress(address);
         object request = new Dictionary<string, object>() {
             { "coin", getValue(currency, "id") },
@@ -5783,7 +5783,7 @@ public partial class mexc : Exchange
             object code = this.safeString(currency, "code");
             if (isTrue(isTrue((isEqual(codes, null))) || isTrue((this.inArray(code, codes)))))
             {
-                ((IDictionary<string,object>)withdrawFees)[(string)code] = this.parseTransactionFee(entry, currency);
+                ((IDictionary<string,object>)withdrawFees)[(string)((string)code)] = this.parseTransactionFee(entry, currency);
             }
         }
         return new Dictionary<string, object>() {
@@ -5827,9 +5827,9 @@ public partial class mexc : Exchange
         {
             object networkEntry = getValue(networkList, j);
             object networkId = this.safeString(networkEntry, "network");
-            object networkCode = this.safeString(getValue(this.options, "networks"), networkId, networkId);
+            object networkCode = this.safeString(getValue(this.options, "networks"), ((string)networkId), networkId);
             object fee = this.safeNumber(networkEntry, "withdrawFee");
-            ((IDictionary<string,object>)result)[(string)networkCode] = fee;
+            ((IDictionary<string,object>)result)[(string)((string)networkCode)] = fee;
         }
         return result;
     }
@@ -6108,7 +6108,7 @@ public partial class mexc : Exchange
         //    }
         //
         object data = this.safeList(response, "data");
-        object positions = this.parsePositions(data, symbols, parameters);
+        object positions = this.parsePositions((IList<object>)(data), symbols, parameters);
         return this.filterBySinceLimit(positions, since, limit);
     }
 
@@ -6128,7 +6128,7 @@ public partial class mexc : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object market = this.market(symbol);
+        object market = this.market(((string)symbol));
         if (isTrue(getValue(market, "spot")))
         {
             throw new BadSymbol ((string)add(this.id, " setMarginMode() supports contract markets only")) ;

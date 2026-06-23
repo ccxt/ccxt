@@ -611,8 +611,8 @@ public partial class bitfinex : Exchange
             object quote = this.safeCurrencyCode(quoteId);
             object splitBase = ((string)((string)bs)).Split(new [] {((string)"F0")}, StringSplitOptions.None).ToList<object>();
             object splitQuote = ((string)((string)quote)).Split(new [] {((string)"F0")}, StringSplitOptions.None).ToList<object>();
-            bs = this.safeString(splitBase, 0);
-            quote = this.safeString(splitQuote, 0);
+            bs = ((string)this.safeString(splitBase, 0));
+            quote = ((string)this.safeString(splitQuote, 0));
             object symbol = add(add(bs, "/"), quote);
             // baseId = 'f' + baseId;
             // quoteId = 'f' + quoteId;
@@ -802,7 +802,7 @@ public partial class bitfinex : Exchange
             // for GOlang transpiler, do with "safe" method
             object networksList = this.safeList(indexedNetworks, networkName, new List<object>() {});
             ((IList<object>)networksList).Add(networkId);
-            ((IDictionary<string,object>)indexedNetworks)[(string)networkName] = networksList;
+            ((IDictionary<string,object>)indexedNetworks)[(string)((string)networkName)] = networksList;
         }
         object ids = this.safeList(response, 0, new List<object>() {});
         return this.parseCurrenciesCustom(ids, indexed, indexedNetworks);
@@ -1401,7 +1401,7 @@ public partial class bitfinex : Exchange
         object amountString = this.safeString(tradeList, amountIndex);
         object priceIndex = ((bool) isTrue(isPrivate)) ? 5 : 3;
         object priceString = this.safeString(tradeList, priceIndex);
-        if (isTrue(isEqual(getValue(amountString, 0), "-")))
+        if (isTrue(isEqual(getValue(((string)amountString), 0), "-")))
         {
             side = "sell";
             amountString = Precise.stringAbs(((string)amountString));
@@ -1737,7 +1737,7 @@ public partial class bitfinex : Exchange
         parameters ??= new Dictionary<string, object>();
         object market = this.market(symbol);
         object amountString = this.amountToPrecision(symbol, amount);
-        amountString = ((bool) isTrue((isEqual(side, "buy")))) ? amountString : Precise.stringNeg(amountString);
+        amountString = ((bool) isTrue((isEqual(side, "buy")))) ? amountString : ((string)Precise.stringNeg(amountString));
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "amount", amountString },
@@ -1934,7 +1934,7 @@ public partial class bitfinex : Exchange
             object amount = this.safeNumber(rawOrder, "amount");
             object price = this.safeNumber(rawOrder, "price");
             object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
-            object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
+            object orderRequest = this.createOrderRequest(((string)symbol), type, side, amount, price, orderParams);
             ((IList<object>)ordersRequests).Add(new List<object>() {"on", orderRequest});
         }
         object request = new Dictionary<string, object>() {
@@ -2799,9 +2799,9 @@ public partial class bitfinex : Exchange
         object takerFee = this.safeNumber(takerData, 0);
         object takerFeeFiat = this.safeNumber(takerData, 2);
         object takerFeeDeriv = this.safeNumber(takerData, 5);
-        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(((object)this.symbols))); postFixIncrement(ref i))
         {
-            object symbol = getValue(this.symbols, i);
+            object symbol = getValue(((object)this.symbols), i);
             object market = this.market(symbol);
             object fee = new Dictionary<string, object>() {
                 { "info", response },
@@ -4141,7 +4141,7 @@ public partial class bitfinex : Exchange
         if (isTrue(!isEqual(amount, null)))
         {
             object amountString = this.amountToPrecision(symbol, amount);
-            amountString = ((bool) isTrue((isEqual(side, "buy")))) ? amountString : Precise.stringNeg(amountString);
+            amountString = ((bool) isTrue((isEqual(side, "buy")))) ? amountString : ((string)Precise.stringNeg(amountString));
             ((IDictionary<string,object>)request)["amount"] = amountString;
         }
         object triggerPrice = this.safeString2(parameters, "stopPrice", "triggerPrice");

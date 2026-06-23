@@ -991,9 +991,9 @@ public partial class bitvavo : Exchange
         object maker = this.safeNumber(feesValue, "maker");
         object taker = this.safeNumber(feesValue, "taker");
         object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(((object)this.symbols))); postFixIncrement(ref i))
         {
-            object symbol = getValue(this.symbols, i);
+            object symbol = getValue(((object)this.symbols), i);
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", fees },
                 { "symbol", symbol },
@@ -1110,7 +1110,7 @@ public partial class bitvavo : Exchange
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        object market = this.market(symbol);
+        object market = this.market(((string)symbol));
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
             { "interval", this.safeString(this.timeframes, timeframe, timeframe) },
@@ -1158,7 +1158,7 @@ public partial class bitvavo : Exchange
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object market = this.market(symbol);
+        object market = this.market(((string)symbol));
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -1444,7 +1444,7 @@ public partial class bitvavo : Exchange
             { "pending", "pending" },
             { "failed", "failed" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     public override object parseTransfer(object transfer, object currency = null)
@@ -1521,7 +1521,7 @@ public partial class bitvavo : Exchange
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object market = this.market(symbol);
+        object market = this.market(((string)symbol));
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
             { "side", side },
@@ -1554,13 +1554,13 @@ public partial class bitvavo : Exchange
                 ((IDictionary<string,object>)request)["amountQuote"] = this.decimalToPrecision(cost, TRUNCATE, precision, this.precisionMode);
             } else
             {
-                ((IDictionary<string,object>)request)["amount"] = this.amountToPrecision(symbol, amount);
+                ((IDictionary<string,object>)request)["amount"] = this.amountToPrecision(((string)symbol), amount);
             }
             parameters = this.omit(parameters, new List<object>() {"cost"});
         } else if (isTrue(isLimitOrder))
         {
-            ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
-            ((IDictionary<string,object>)request)["amount"] = this.amountToPrecision(symbol, amount);
+            ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(((string)symbol), price);
+            ((IDictionary<string,object>)request)["amount"] = this.amountToPrecision(((string)symbol), amount);
         }
         object isTakeProfit = isTrue(isTrue((!isEqual(takeProfitPrice, null))) || isTrue((isEqual(type, "takeProfit")))) || isTrue((isEqual(type, "takeProfitLimit")));
         object isStopLoss = isTrue(isTrue(isTrue((!isEqual(stopLossPrice, null))) || isTrue(isTrue((!isEqual(triggerPrice, null))) && isTrue((!isTrue(isTakeProfit))))) || isTrue((isEqual(type, "stopLoss")))) || isTrue((isEqual(type, "stopLossLimit")));
@@ -1581,7 +1581,7 @@ public partial class bitvavo : Exchange
         }
         if (isTrue(!isEqual(triggerPrice, null)))
         {
-            ((IDictionary<string,object>)request)["triggerAmount"] = this.priceToPrecision(symbol, triggerPrice);
+            ((IDictionary<string,object>)request)["triggerAmount"] = this.priceToPrecision(((string)symbol), triggerPrice);
             ((IDictionary<string,object>)request)["triggerType"] = "price";
             ((IDictionary<string,object>)request)["triggerReference"] = "lastTrade"; // 'bestBid', 'bestAsk', 'midPrice'
         }
@@ -1649,7 +1649,7 @@ public partial class bitvavo : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object market = this.market(symbol);
+        object market = this.market(((string)symbol));
         object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         object response = await this.privatePostOrder(request);
         //
@@ -1812,7 +1812,7 @@ public partial class bitvavo : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object market = this.market(symbol);
+        object market = this.market(((string)symbol));
         object request = this.cancelOrderRequest(id, symbol, parameters);
         object response = await this.privateDeleteOrder(request);
         //
@@ -1973,7 +1973,7 @@ public partial class bitvavo : Exchange
     public virtual object fetchOrdersRequest(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object market = this.market(symbol);
+        object market = this.market(((string)symbol));
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
         };
@@ -2141,7 +2141,7 @@ public partial class bitvavo : Exchange
             { "rejected", "canceled" },
             { "awaitingTrigger", "open" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     public override object parseOrder(object order, object market = null)
@@ -2253,7 +2253,7 @@ public partial class bitvavo : Exchange
     public virtual object fetchMyTradesRequest(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object market = this.market(symbol);
+        object market = this.market(((string)symbol));
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
         };
@@ -2396,7 +2396,7 @@ public partial class bitvavo : Exchange
             { "internal_transfer", "transaction" },
             { "external_transferred_funds", "transaction" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     public override object parseLedgerEntry(object item, object currency = null)
@@ -2448,10 +2448,10 @@ public partial class bitvavo : Exchange
     public virtual object withdrawRequest(object code, object amount, object address, object tag = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object currency = this.currency(code);
+        object currency = this.currency(((string)code));
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(currency, "id") },
-            { "amount", this.currencyToPrecision(code, amount) },
+            { "amount", this.currencyToPrecision(((string)code), amount) },
             { "address", address },
         };
         if (isTrue(!isEqual(tag, null)))
@@ -2629,7 +2629,7 @@ public partial class bitvavo : Exchange
             { "completed", "ok" },
             { "canceled", "canceled" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     public override object parseTransaction(object transaction, object currency = null)

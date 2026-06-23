@@ -158,11 +158,11 @@ public partial class paradex : ccxt.paradex
         object parsedTrade = this.parseTrade(data);
         object symbol = getValue(parsedTrade, "symbol");
         object messageHash = this.safeString(parameters, "channel");
-        object stored = this.safeValue(this.trades, symbol);
+        object stored = this.safeValue(this.trades, ((string)symbol));
         if (isTrue(isEqual(stored, null)))
         {
             stored = new ArrayCache(this.safeInteger(this.options, "tradesLimit", 1000));
-            ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+            ((IDictionary<string,object>)this.trades)[(string)((string)symbol)] = stored;
         }
         callDynamically(stored, "append", new object[] {parsedTrade});
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
@@ -243,7 +243,7 @@ public partial class paradex : ccxt.paradex
             { "asks", new List<object>() {} },
         };
         object inserts = this.safeList(data, "inserts");
-        for (object i = 0; isLessThan(i, getArrayLength(inserts)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength((IList<object>)(inserts))); postFixIncrement(ref i))
         {
             object insert = this.safeDict(inserts, i);
             object side = this.safeString(insert, "side");
@@ -572,7 +572,7 @@ public partial class paradex : ccxt.paradex
         object data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
         object fundingRate = this.parseFundingRateWs(data);
         object symbol = getValue(fundingRate, "symbol");
-        ((IDictionary<string,object>)this.fundingRates)[(string)symbol] = fundingRate;
+        ((IDictionary<string,object>)this.fundingRates)[(string)((string)symbol)] = fundingRate;
         object channel = this.safeString(parameters, "channel");
         object messageHash = add(add(channel, "."), symbol);
         callDynamically(client as WebSocketClient, "resolve", new object[] {fundingRate, messageHash});
@@ -698,7 +698,7 @@ public partial class paradex : ccxt.paradex
         if (isTrue(!isEqual(data, null)))
         {
             object channel = this.safeString(data, "channel");
-            object parts = ((string)channel).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+            object parts = ((string)((string)channel)).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
             object name = this.safeString(parts, 0);
             object methods = new Dictionary<string, object>() {
                 { "trades", this.handleTrade },
@@ -707,7 +707,7 @@ public partial class paradex : ccxt.paradex
                 { "orders", this.handleOrder },
                 { "funding_data", this.handleFundingRate },
             };
-            object method = this.safeValue(methods, name);
+            object method = this.safeValue(methods, ((string)name));
             if (isTrue(!isEqual(method, null)))
             {
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});

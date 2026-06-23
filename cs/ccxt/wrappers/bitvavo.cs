@@ -515,8 +515,10 @@ public partial class bitvavo
         var res = await this.createOrder(symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
-    public Dictionary<string, object> EditOrderRequest(string id, object symbol, object type, object side, object amount = null, object price = null, Dictionary<string, object> parameters = null)
+    public Dictionary<string, object> EditOrderRequest(string id, object symbol, object type, object side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
+        var amount = amount2 == 0 ? null : (object)amount2;
+        var price = price2 == 0 ? null : (object)price2;
         var res = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
         return ((Dictionary<string, object>)res);
     }
@@ -837,7 +839,7 @@ public partial class bitvavo
         var res = await this.fetchLedger(code, since, limit, parameters);
         return ((IList<object>)res).Select(item => new LedgerEntry(item)).ToList<LedgerEntry>();
     }
-    public Dictionary<string, object> WithdrawRequest(string code, object amount, object address, object tag = null, Dictionary<string, object> parameters = null)
+    public Dictionary<string, object> WithdrawRequest(string code, object amount, object address, string tag = null, Dictionary<string, object> parameters = null)
     {
         var res = this.withdrawRequest(code, amount, address, tag, parameters);
         return ((Dictionary<string, object>)res);

@@ -729,7 +729,7 @@ public partial class bithumb : Exchange
         if (isTrue(!isEqual(feeCostString, null)))
         {
             object feeCurrencyId = this.safeString(trade, "fee_currency");
-            object feeCurrencyCode = this.commonCurrencyCode(feeCurrencyId);
+            object feeCurrencyCode = this.commonCurrencyCode(((string)feeCurrencyId));
             fee = new Dictionary<string, object>() {
                 { "cost", feeCostString },
                 { "currency", feeCurrencyCode },
@@ -827,7 +827,7 @@ public partial class bithumb : Exchange
             ((IDictionary<string,object>)request)["type"] = ((bool) isTrue((isEqual(side, "buy")))) ? "bid" : "ask";
         } else
         {
-            method = add("privatePostTradeMarket", this.capitalize(side));
+            method = add("privatePostTradeMarket", this.capitalize(((string)side)));
         }
         object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
         object id = this.safeString(response, "order_id");
@@ -910,7 +910,7 @@ public partial class bithumb : Exchange
             { "Completed", "closed" },
             { "Cancel", "canceled" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     public override object parseOrder(object order, object market = null)
@@ -1122,7 +1122,7 @@ public partial class bithumb : Exchange
         object request = new Dictionary<string, object>() {
             { "side", getValue(order, "side") },
         };
-        return await this.cancelOrder(getValue(order, "id"), getValue(order, "symbol"), this.extend(request, parameters));
+        return await this.cancelOrder(((string)getValue(order, "id")), getValue(order, "symbol"), this.extend(request, parameters));
     }
 
     /**

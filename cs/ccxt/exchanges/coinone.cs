@@ -511,7 +511,7 @@ public partial class coinone : Exchange
         if (isTrue(!isEqual(symbols, null)))
         {
             object first = this.safeString(symbols, 0);
-            market = this.market(first);
+            market = this.market(((string)first));
             ((IDictionary<string,object>)request)["quote_currency"] = getValue(market, "quote");
             ((IDictionary<string,object>)request)["target_currency"] = getValue(market, "base");
             response = await this.v2PublicGetTickerNewQuoteCurrencyTargetCurrency(this.extend(request, parameters));
@@ -815,7 +815,7 @@ public partial class coinone : Exchange
             { "currency", getValue(market, "id") },
             { "qty", amount },
         };
-        object method = add(add("privatePostOrder", this.capitalize(type)), this.capitalize(side));
+        object method = add(add("privatePostOrder", this.capitalize(type)), this.capitalize(((string)side)));
         object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
         //
         //     {
@@ -883,7 +883,7 @@ public partial class coinone : Exchange
             { "filled", "closed" },
             { "canceled", "canceled" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     public override object parseOrder(object order, object market = null)
