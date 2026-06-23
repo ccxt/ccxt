@@ -1274,8 +1274,8 @@ export default class gemini extends Exchange {
         const maker = this.parseNumber (makerString);
         const taker = this.parseNumber (takerString);
         const result: Dict = {};
-        for (let i = 0; i < (this.symbols as string[]).length; i++) {
-            const symbol = (this.symbols as string[])[i];
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,

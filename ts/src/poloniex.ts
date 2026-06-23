@@ -2546,8 +2546,8 @@ export default class poloniex extends Exchange {
         //     }
         //
         const result: Dict = {};
-        for (let i = 0; i < (this.symbols as string[]).length; i++) {
-            const symbol = (this.symbols as string[])[i];
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
