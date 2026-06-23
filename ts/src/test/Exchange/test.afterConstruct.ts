@@ -27,7 +27,7 @@ function testOptionsNetworks (exchange: Exchange, skippedProperties: object) {
         //
         const networkCodes = Object.keys (exchange.options['networks']);
         // 3) ensure that the same network-id is not assigned to multiple networkCodes
-        const collectedNetworkIds = [];
+        const collectedNetworkIds: string[] = [];
         for (let i = 0; i < networkCodes.length; i++) {
             const networkCode = networkCodes[i];
             const networkId = exchange.options['networks'][networkCode];
@@ -37,7 +37,7 @@ function testOptionsNetworks (exchange: Exchange, skippedProperties: object) {
             collectedNetworkIds.push (networkId);
         }
         // 4) ensure that there are no same networkCode with different case (uppercase/lowercase)
-        const collectedNetworkCodes = [];
+        const collectedNetworkCodes: string[] = [];
         for (let i = 0; i < networkCodes.length; i++) {
             const networkCodeLower = (networkCodes[i]).toLowerCase ();
             assert (!exchange.inArray (networkCodeLower, collectedNetworkCodes), 'exchange.options["networks"] contains multiple networkCodes with the same networkCode "' + networkCodes[i] + '" in different uppercase/lowercase format');

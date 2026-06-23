@@ -635,11 +635,11 @@ export default class coinbaseexchange extends Exchange {
         //         }
         //     ]
         //
-        const result = [];
+        const result: any[] = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
             const id = this.safeString (market, 'id');
-            const [ baseId, quoteId ] = id.split ('-');
+            const [ baseId, quoteId ] = (id as string).split ('-');
             // BTCAUCTION-USD vs BTC-USD conflict workaround, see the output sample above
             // const baseId = this.safeString (market, 'base_currency');
             // const quoteId = this.safeString (market, 'quote_currency');
@@ -1166,8 +1166,8 @@ export default class coinbaseexchange extends Exchange {
         const maker = this.safeNumber (response, 'maker_fee_rate');
         const taker = this.safeNumber (response, 'taker_fee_rate');
         const result: Dict = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        for (let i = 0; i < (this.symbols as any).length; i++) {
+            const symbol = (this.symbols as any)[i];
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
@@ -1243,7 +1243,7 @@ export default class coinbaseexchange extends Exchange {
                 limit = Math.min (300, limit);
             }
             if (until === undefined) {
-                const parsedTimeframeMilliseconds = parsedTimeframe * 1000;
+                const parsedTimeframeMilliseconds = (parsedTimeframe as number) * 1000;
                 if (this.isRoundNumber (since % parsedTimeframeMilliseconds)) {
                     request['end'] = this.iso8601 (this.sum ((limit - 1) * parsedTimeframeMilliseconds, since));
                 } else {
@@ -1291,7 +1291,7 @@ export default class coinbaseexchange extends Exchange {
             'canceled': 'canceled',
             'canceling': 'open',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -1329,7 +1329,7 @@ export default class coinbaseexchange extends Exchange {
         const amount = this.safeString (order, 'size', filled);
         const cost = this.safeString (order, 'executed_value');
         const feeCost = this.safeNumber (order, 'fill_fees');
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
@@ -1865,7 +1865,7 @@ export default class coinbaseexchange extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response: List = undefined;
+        let response: List;
         if (id === undefined) {
             response = await this.privateGetTransfers (this.extend (request, params));
             //
@@ -1898,7 +1898,7 @@ export default class coinbaseexchange extends Exchange {
             //
             for (let i = 0; i < response.length; i++) {
                 const account_id = this.safeString (response[i], 'account_id');
-                const account = this.safeValue (this.accountsById, account_id);
+                const account = this.safeValue (this.accountsById, (account_id as string));
                 const codeInner = this.safeString (account, 'code');
                 response[i]['currency'] = codeInner;
             }
@@ -2024,7 +2024,7 @@ export default class coinbaseexchange extends Exchange {
         let type = this.safeString (transaction, 'type');
         let address = this.safeString (details, 'crypto_address');
         address = this.safeString (transaction, 'crypto_address', address);
-        const fee = {
+        const fee: Dict = {
             'currency': undefined,
             'cost': undefined,
             'rate': undefined,
@@ -2125,7 +2125,7 @@ export default class coinbaseexchange extends Exchange {
                 }
             }
             const what = nonce + method + request + payload;
-            let secret = undefined;
+            let secret: any = undefined;
             try {
                 secret = this.base64ToBinary (this.secret);
             } catch (e) {

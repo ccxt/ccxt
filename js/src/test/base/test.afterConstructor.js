@@ -298,8 +298,6 @@ function testAfterConstructor() {
     helperTestInitThrottler();
     helperTestInitSandbox();
     helperTestInitMarket();
-    // temporarily disabled — unrelated pre-existing failure where several market
-    // props (symbols/ids/...) are defined right after construction; see PR notes
-    // helperTestProperties ();
+    helperTestProperties();
 }
 export default testAfterConstructor;

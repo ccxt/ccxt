@@ -777,7 +777,7 @@ class cryptocom(Exchange, ImplicitAPI):
         #
         resultResponse = self.safe_dict(response, 'result', {})
         data = self.safe_list(resultResponse, 'data', [])
-        result = []
+        result: List[Any] = []
         for i in range(0, len(data)):
             market = data[i]
             inst_type = self.safe_string(market, 'inst_type')
@@ -795,7 +795,7 @@ class cryptocom(Exchange, ImplicitAPI):
             strike = self.safe_string(market, 'strike')
             marginBuyEnabled = self.safe_bool(market, 'margin_buy_enabled')
             marginSellEnabled = self.safe_bool(market, 'margin_sell_enabled')
-            expiryString = self.omit_zero(self.safe_string(market, 'expiry_timestamp_ms'))
+            expiryString = self.omit_zero((self.safe_string(market, 'expiry_timestamp_ms')))
             expiry = int(expiryString) if (expiryString is not None) else None
             symbol = base + '/' + quote
             type: Str = None
@@ -1437,7 +1437,7 @@ class cryptocom(Exchange, ImplicitAPI):
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
-        ordersRequests = []
+        ordersRequests: List[Any] = []
         for i in range(0, len(orders)):
             rawOrder = orders[i]
             marketId = self.safe_string(rawOrder, 'symbol')
@@ -1705,7 +1705,7 @@ class cryptocom(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        orderRequests = []
+        orderRequests: List[Any] = []
         for i in range(0, len(ids)):
             id = ids[i]
             order: dict = {
@@ -1732,7 +1732,7 @@ class cryptocom(Exchange, ImplicitAPI):
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
-        orderRequests = []
+        orderRequests: List[Any] = []
         for i in range(0, len(orders)):
             order = orders[i]
             id = self.safe_string(order, 'id')
@@ -2484,7 +2484,7 @@ class cryptocom(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def custom_handle_margin_mode_and_params(self, methodName, params={}):
+    def custom_handle_margin_mode_and_params(self, methodName, params={}) -> list:
         """
  @ignore
         marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'
@@ -2494,7 +2494,7 @@ class cryptocom(Exchange, ImplicitAPI):
         defaultType = self.safe_string(self.options, 'defaultType')
         isMargin = self.safe_bool(params, 'margin', False)
         params = self.omit(params, 'margin')
-        marginMode = None
+        marginMode: Str = None
         marginMode, params = self.handle_margin_mode_and_params(methodName, params)
         if marginMode is not None:
             if marginMode != 'cross':
@@ -2865,7 +2865,7 @@ class cryptocom(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        result = []
+        result: List[Any] = []
         for i in range(0, len(settlements)):
             result.append(self.parse_settlement(settlements[i], market))
         return result
@@ -2999,7 +2999,7 @@ class cryptocom(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         data = self.safe_list(result, 'data', [])
         marketId = self.safe_string(result, 'instrument_name')
-        rates = []
+        rates: List[Any] = []
         for i in range(0, len(data)):
             entry = data[i]
             timestamp = self.safe_integer(entry, 't')
@@ -3105,7 +3105,7 @@ class cryptocom(Exchange, ImplicitAPI):
         #
         responseResult = self.safe_dict(response, 'result', {})
         positions = self.safe_list(responseResult, 'data', [])
-        result = []
+        result: List[Any] = []
         for i in range(0, len(positions)):
             entry = positions[i]
             marketId = self.safe_string(entry, 'instrument_name')
@@ -3176,8 +3176,8 @@ class cryptocom(Exchange, ImplicitAPI):
         else:
             objectKeys = list(object.keys())
             paramsKeys = self.sort(objectKeys)
-        for i in range(0, len(paramsKeys)):
-            key = paramsKeys[i]
+        for i in range(0, len((paramsKeys))):
+            key = (paramsKeys)[i]
             returnString += key
             value = object[key]
             if value == 'None':
@@ -3307,8 +3307,8 @@ class cryptocom(Exchange, ImplicitAPI):
         #
         result: dict = {}
         result['info'] = response
-        for i in range(0, len(self.symbols)):
-            symbol = self.symbols[i]
+        for i in range(0, len((self.symbols))):
+            symbol = (self.symbols)[i]
             market = self.market(symbol)
             isSwap = market['swap']
             takerFeeKey = 'effective_deriv_taker_rate_bps' if isSwap else 'effective_spot_taker_rate_bps'
