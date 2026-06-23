@@ -2627,14 +2627,14 @@ export default class Exchange {
 
     cleanWsData () {
         this.balance = this.createSafeDictionary (true);
-        this.orderbooks = this.createSafeDictionary ();
-        this.tickers = this.createSafeDictionary ();
+        this.orderbooks = this.createSafeDictionary (true);
+        this.tickers = this.createSafeDictionary (true);
         this.liquidations = undefined;
         this.myLiquidations = undefined;
         this.orders = undefined;
-        this.trades = this.createSafeDictionary ();
+        this.trades = this.createSafeDictionary (true);
         this.transactions = this.createSafeDictionary ();
-        this.ohlcvs = this.createSafeDictionary ();
+        this.ohlcvs = this.createSafeDictionary (true);
         this.myTrades = undefined;
         this.positions = undefined;
     }

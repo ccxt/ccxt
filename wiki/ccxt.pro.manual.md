@@ -1845,7 +1845,7 @@ asyncio.run(example())
 
 When your script finishes its work with any exchange, you are advised to clean-up the resources:
 ```python
-poloniex = ccxt.poloniex()
+poloniex = ccxtpro.poloniex()
 while(condition):
     print(await poloniex.watch_ticker('ETH/USDT'))
     # ... your codes
