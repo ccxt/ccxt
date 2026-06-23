@@ -761,11 +761,13 @@
         ],
         "fetchSettlementHistory": [
             {
-                "description": "fetch Settlement History - swap linear",
+                "description": "Linear swap fetchSettlementHistory",
                 "method": "fetchSettlementHistory",
-                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_settlement_records?contract_code=LTC-USDT",
+                "url": "https://api.hbdm.vn/v5/market/settlement_history?contract_code=BTC-USDT&limit=1",
                 "input": [
-                    "LTC/USDT:USDT"
+                    "BTC/USDT:USDT",
+                    null,
+                    1
                 ]
             },
             {
@@ -1469,13 +1471,12 @@
         ],
         "fetchFundingHistory": [
             {
-                "description": "fetch Funding History - swap linear",
+                "description": "Linear swap fetch funding history",
                 "method": "fetchFundingHistory",
-                "url": "https://api.hbdm.com/linear-swap-api/v3/swap_financial_record_exact",
+                "url": "https://api.hbdm.vn/v5/account/bills?AccessKeyId=9e973c1c-10b310b3-ntmuw4rrsr-c313b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2026-06-18T08%3A47%3A28&contract_code=BTC-USDT&margin_mode=cross&type=30%2C31&Signature=68ThPR8lf0R4XXyGG%2BPv0B8ykZ%2BVsHhKqRICJ2uzfuk%3D",
                 "input": [
-                    "LTC/USDT:USDT"
-                ],
-                "output": "{\"type\":\"30,31\",\"contract\":\"LTC-USDT\",\"mar_acct\":\"usdt\"}"
+                    "BTC/USDT:USDT"
+                ]
             },
             {
                 "description": "fetch Funding History - swap inverse",
@@ -1561,12 +1562,13 @@
         ],
         "fetchBalance": [
             {
-                "description": "fetchBalance multi asset mode",
+                "description": "Linear swap fetchBalance",
                 "method": "fetchBalance",
                 "url": "https://api.hbdm.vn/v5/account/balance?AccessKeyId=9e973c1c-10b310b3-ntmuw4rrsr-c313b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2026-02-05T12%3A12%3A36&Signature=b6wRf3vfL74%2BqrNQHfBFK%2FwY0Dn1DfxtKVsA5vIyf6c%3D",
                 "input": [
                     {
-                        "multiAssetMode": true
+                        "subType": "linear",
+                        "type": "swap"
                     }
                 ]
             }
@@ -1643,6 +1645,18 @@
                     {
                         "takeProfit": true
                     }
+                ]
+            }
+        ],
+        "fetchLiquidations": [
+            {
+                "description": "Linear swap fetchLiquidations",
+                "method": "fetchLiquidations",
+                "url": "https://api.hbdm.vn/v5/market/liquidation_orders?contract_code=BTC-USDT&limit=1",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    1
                 ]
             }
         ]
