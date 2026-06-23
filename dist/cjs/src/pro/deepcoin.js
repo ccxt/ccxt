@@ -294,13 +294,13 @@ class deepcoin extends deepcoin$1["default"] {
         const ask = this.safeNumber(ticker, 'AP1');
         let baseVolume = this.safeNumber(ticker, 'V');
         let quoteVolume = this.safeNumber(ticker, 'T');
-        if (market['inverse']) {
+        if (this.safeBool(market, 'inverse')) {
             const temp = baseVolume;
             baseVolume = quoteVolume;
             quoteVolume = temp;
         }
         return this.safeTicker({
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'high': high,
@@ -449,7 +449,7 @@ class deepcoin extends deepcoin$1["default"] {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'id': this.safeString2(trade, 'TradeID', 'TI'),
             'order': this.safeString(trade, 'OS'),
             'type': undefined,
@@ -703,7 +703,7 @@ class deepcoin extends deepcoin$1["default"] {
                 orderedEntries['asks'].push([price, volume]);
             }
         }
-        const timestamp = this.safeInteger(message, 'mt');
+        const timestamp = this.safeInteger(message, 'mt', 0);
         const snapshot = this.parseOrderBook(orderedEntries, symbol, timestamp);
         orderbook.reset(snapshot);
         const cachedMessages = orderbook.cache;
@@ -731,7 +731,7 @@ class deepcoin extends deepcoin$1["default"] {
         //         "mt": 1760975816446
         //     }
         //
-        const timestamp = this.safeInteger(message, 'mt');
+        const timestamp = this.safeInteger(message, 'mt', 0);
         if (timestamp > orderbook['timestamp']) {
             const response = this.safeList(message, 'r', []);
             this.handleDeltas(orderbook, response);
@@ -938,7 +938,7 @@ class deepcoin extends deepcoin$1["default"] {
             'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': this.safeTimestamp(order, 'U'),
             'status': this.parseWsOrderStatus(state),
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'type': undefined,
             'timeInForce': undefined,
             'side': this.parseTradeSide(direction),
@@ -1062,7 +1062,7 @@ class deepcoin extends deepcoin$1["default"] {
         const direction = this.safeString(position, 'p');
         const marginMode = this.safeString(position, 'i');
         return this.safePosition({
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'id': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),

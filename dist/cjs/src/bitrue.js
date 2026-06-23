@@ -928,10 +928,10 @@ class bitrue extends bitrue$1["default"] {
         return this.parseMarkets(markets);
     }
     parseMarket(market) {
-        const id = this.safeString(market, 'symbol');
+        const id = this.safeString(market, 'symbol', '');
         const lowercaseId = this.safeStringLower(market, 'symbol');
         const side = this.safeInteger(market, 'side'); // 1 linear, 0 inverse, undefined spot
-        let type = undefined;
+        let type = 'spot';
         let isLinear = undefined;
         let isInverse = undefined;
         if (side === undefined) {
@@ -1228,7 +1228,7 @@ class bitrue extends bitrue$1["default"] {
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        let response = undefined;
+        let response = {};
         if (market['swap']) {
             const request = {
                 'contractName': market['id'],
@@ -1375,7 +1375,7 @@ class bitrue extends bitrue$1["default"] {
         await this.loadMarkets();
         const market = this.market(symbol);
         let response = undefined;
-        let data = undefined;
+        let data = {};
         if (market['swap']) {
             const request = {
                 'contractName': market['id'],
@@ -1457,7 +1457,7 @@ class bitrue extends bitrue$1["default"] {
         const market = this.market(symbol);
         const timeframes = this.safeDict(this.options, 'timeframes', {});
         let response = undefined;
-        let data = undefined;
+        let data = [];
         if (market['swap']) {
             const timeframesFuture = this.safeDict(timeframes, 'future', {});
             const request = {
@@ -1649,7 +1649,7 @@ class bitrue extends bitrue$1["default"] {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
         let response = undefined;
-        let data = undefined;
+        let data = [];
         const request = {};
         let type = undefined;
         if (symbols !== undefined) {
@@ -1830,7 +1830,7 @@ class bitrue extends bitrue$1["default"] {
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        let response = undefined;
+        let response = [];
         if (market['spot']) {
             const request = {
                 'symbol': market['id'],
@@ -2041,7 +2041,7 @@ class bitrue extends bitrue$1["default"] {
         await this.loadMarkets();
         const market = this.market(symbol);
         let response = undefined;
-        let data = undefined;
+        let data = {};
         const uppercaseType = type.toUpperCase();
         const request = {
             'side': side.toUpperCase(),
@@ -2173,7 +2173,7 @@ class bitrue extends bitrue$1["default"] {
         const origClientOrderId = this.safeValue2(params, 'origClientOrderId', 'clientOrderId');
         params = this.omit(params, ['origClientOrderId', 'clientOrderId']);
         let response = undefined;
-        let data = undefined;
+        let data = {};
         const request = {};
         if (origClientOrderId === undefined) {
             request['orderId'] = id;
@@ -2327,7 +2327,7 @@ class bitrue extends bitrue$1["default"] {
         await this.loadMarkets();
         const market = this.market(symbol);
         let response = undefined;
-        let data = undefined;
+        let data = [];
         const request = {};
         if (market['swap']) {
             request['contractName'] = market['id'];
@@ -2416,7 +2416,7 @@ class bitrue extends bitrue$1["default"] {
         const origClientOrderId = this.safeValue2(params, 'origClientOrderId', 'clientOrderId');
         params = this.omit(params, ['origClientOrderId', 'clientOrderId']);
         let response = undefined;
-        let data = undefined;
+        let data = {};
         const request = {};
         if (origClientOrderId === undefined) {
             request['orderId'] = id;
@@ -2484,7 +2484,7 @@ class bitrue extends bitrue$1["default"] {
         await this.loadMarkets();
         const market = this.market(symbol);
         let response = undefined;
-        let data = undefined;
+        let data = [];
         if (market['swap']) {
             const request = {
                 'contractName': market['id'],
@@ -2530,7 +2530,7 @@ class bitrue extends bitrue$1["default"] {
         }
         const market = this.market(symbol);
         let response = undefined;
-        let data = undefined;
+        let data = [];
         const request = {};
         if (since !== undefined) {
             request['startTime'] = since;
@@ -3135,7 +3135,7 @@ class bitrue extends bitrue$1["default"] {
         }
         await this.loadMarkets();
         const market = this.market(symbol);
-        let response = undefined;
+        let response = {};
         const request = {
             'contractName': market['id'],
             'leverage': leverage,

@@ -234,7 +234,7 @@ export default class hyperliquid extends hyperliquidRest {
      */
     unWatchBalance(params?: {}): Promise<any>;
     handleBalance(client: Client, message: any): void;
-    parseWsBalance(balance: any, accountType?: any): void;
+    parseWsBalance(balance: any, accountType?: Str): void;
     /**
      * @method
      * @name hyperliquid#watchPositions
