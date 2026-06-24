@@ -2142,7 +2142,7 @@ import ccxt.async_support as ccxt
 async def print_poloniex_ethbtc_ticker():
     poloniex = ccxt.poloniex()
     print(await poloniex.fetch_ticker('ETH/BTC'))
-    await poloniex.close()  # close the exchange instance when you don't need it anymore
+    await poloniex.close(True)  # close the instance connection when you don't need it anymore, and an extra "True" argument also cleans-up the cached instance data
 
 asyncio.run(print_poloniex_ethbtc_ticker())
 ```
@@ -8472,10 +8472,10 @@ ex.Number = "String" // "String" | "Number"
 
 When your script finishes its work with any exchange, you are advised to clean-up the resources:
 ```python
-poloniex = ccxt.poloniex()
+poloniex = ccxtpro.poloniex()
 print(await poloniex.fetch_ticker('ETH/USDT'))
 # ... your codes
-await poloniex.close()  # close the exchange instance when you don't need it anymore, as it also cleans-up the cached instance data
+await poloniex.close(True)  # close the instance connection when you don't need it anymore, and an extra "True" argument also cleans-up the cached instance data
 ```
 Especially it is needed for all programming languages if you use Websockets.
 
