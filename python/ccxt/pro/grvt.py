@@ -89,7 +89,7 @@ class grvt(ccxt.async_support.grvt):
         #
         if self.handle_error_message(client, message):
             return
-        methods: dict = {
+        methods = {
             'v1.ticker.s': self.handle_ticker,
             'v1.ticker.d': self.handle_ticker,
             'v1.mini.d': self.handle_ticker,
@@ -112,7 +112,7 @@ class grvt(ccxt.async_support.grvt):
             method(client, message)
 
     async def subscribe_multiple(self, messageHashes: List[str], request: dict, rawHashes: List[str], publicOrPrivate=True) -> Any:
-        payload: dict = {
+        payload = {
             'jsonrpc': '2.0',
             'method': 'subscribe',
             'params': request,
@@ -155,14 +155,14 @@ class grvt(ccxt.async_support.grvt):
         """
         if symbols is None:
             raise ArgumentsRequired(self.id + ' watchTickers requires a symbols argument')
-        channel: Str = None
+        channel = None
         channel, params = self.handle_option_and_params(params, 'watchTickers', 'channel', 'v1.ticker.s')
-        interval: Str = None
+        interval = None
         interval, params = self.handle_option_and_params(params, 'watchTickers', 'interval', 500)
         await self.load_markets()
         symbols = self.market_symbols(symbols)
-        rawHashes: List[str] = []
-        messageHashes: List[str] = []
+        rawHashes = []
+        messageHashes = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
@@ -175,7 +175,7 @@ class grvt(ccxt.async_support.grvt):
         }
         ticker = await self.subscribe_multiple(messageHashes, self.extend(params, request), rawHashes)
         if self.newUpdates:
-            tickers: dict = {}
+            tickers = {}
             tickers[ticker['symbol']] = ticker
             return tickers
         return self.filter_by_array(self.tickers, 'symbol', symbols)
@@ -258,7 +258,7 @@ class grvt(ccxt.async_support.grvt):
         #    }
         #
         data = self.safe_dict(message, 'feed', {})
-        selector = self.safe_string(message, 'selector')
+        selector = self.safe_string(message, 'selector', '')
         parts = selector.split('@')
         marketId = self.safe_string(parts, 0)
         market = self.safe_market(marketId, None)
@@ -300,8 +300,8 @@ class grvt(ccxt.async_support.grvt):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
-        rawHashes: List[str] = []
-        messageHashes: List[str] = []
+        rawHashes = []
+        messageHashes = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
@@ -344,7 +344,7 @@ class grvt(ccxt.async_support.grvt):
         #    }
         #
         data = self.safe_dict(message, 'feed', {})
-        selector = self.safe_string(message, 'selector')
+        selector = self.safe_string(message, 'selector', '')
         parts = selector.split('@')
         marketId = self.safe_string(parts, 0)
         market = self.safe_market(marketId, None)
@@ -393,8 +393,8 @@ class grvt(ccxt.async_support.grvt):
         :returns dict: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
-        rawHashes: List[str] = []
-        messageHashes: List[str] = []
+        rawHashes = []
+        messageHashes = []
         for i in range(0, len(symbolsAndTimeframes)):
             data = symbolsAndTimeframes[i]
             symbolString = self.safe_string(data, 0)
@@ -436,12 +436,12 @@ class grvt(ccxt.async_support.grvt):
         #    }
         #
         data = self.safe_dict(message, 'feed', {})
-        selector = self.safe_string(message, 'selector')
+        selector = self.safe_string(message, 'selector', '')
         parts = selector.split('@')
         marketId = self.safe_string(parts, 0)
         market = self.safe_market(marketId, None)
         symbol = market['symbol']
-        secondPart = self.safe_string(parts, 1)
+        secondPart = self.safe_string(parts, 1, '')
         timeframeId = secondPart.replace('-TRADE', '')
         timeframe = self.find_timeframe(timeframeId)
         messageHash = 'ohlcv::' + symbol + '::' + timeframe
@@ -488,7 +488,7 @@ class grvt(ccxt.async_support.grvt):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
-        channel: Str = None
+        channel = None
         channel, params = self.handle_option_and_params(params, 'watchOrderBook', 'channel', 'v1.book.d')
         isSnapshot = channel == 'v1.book.s'
         symbolsLength = len(symbols)
@@ -496,12 +496,12 @@ class grvt(ccxt.async_support.grvt):
             raise ArgumentsRequired(self.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols')
         if limit is None:
             limit, params = self.handle_option_and_params(params, 'watchOrderBook', 'limit', 100)
-        interval: Str = None
+        interval = None
         interval, params = self.handle_option_and_params(params, 'watchOrderBook', 'interval', 500)
         symbols = self.market_symbols(symbols)
         extraPart = str((interval) + '-' + str(limit)) if isSnapshot else str(interval)
-        rawHashes: List[str] = []
-        messageHashes: List[str] = []
+        rawHashes = []
+        messageHashes = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
@@ -543,7 +543,7 @@ class grvt(ccxt.async_support.grvt):
         #    }
         #
         data = self.safe_dict(message, 'feed', {})
-        selector = self.safe_string(message, 'selector')
+        selector = self.safe_string(message, 'selector', '')
         parts = selector.split('@')
         marketId = self.safe_string(parts, 0)
         market = self.safe_market(marketId, None)
@@ -552,7 +552,7 @@ class grvt(ccxt.async_support.grvt):
         if not (symbol in self.orderbooks):
             self.orderbooks[symbol] = self.order_book()
         orderbook = self.orderbooks[symbol]
-        sequenceNumber = self.safe_integer(message, 'sequence_number')
+        sequenceNumber = self.safe_integer(message, 'sequence_number', 0)
         stream = self.safe_string(message, 'stream')
         isSnapshotChannel = stream == 'v1.book.s'
         isSnapshotMessage = sequenceNumber <= 0
@@ -582,14 +582,14 @@ class grvt(ccxt.async_support.grvt):
     async def authenticate(self, params={}):
         self.check_required_credentials()
         await self.sign_in()
-        wsOptions: dict = self.safe_dict(self.options, 'ws', {})
+        wsOptions = self.safe_dict(self.options, 'ws', {})
         authenticated = self.safe_string(wsOptions, 'token')
         if authenticated is None:
             accountId = self.safe_string(self.options, 'AuthAccountId')
             cookieValue = self.safe_string(self.options, 'AuthCookieValue')
             if cookieValue is None or accountId is None:
                 raise AuthenticationError(self.id + ' : at first, you need to authenticate with exchange using signIn() method.')
-            defaultOptions: dict = {
+            defaultOptions = {
                 'ws': {
                     'options': {
                         'headers': {
@@ -618,8 +618,8 @@ class grvt(ccxt.async_support.grvt):
         await self.load_markets()
         await self.authenticate()
         subAccountId = self.getSubAccountId(params)
-        messageHashes: List[str] = []
-        rawHashes: List[str] = []
+        messageHashes = []
+        rawHashes = []
         if symbol is not None:
             market = self.market(symbol)
             rawHashes.append(subAccountId + '-' + market['id'])
@@ -700,8 +700,8 @@ class grvt(ccxt.async_support.grvt):
         await self.load_markets()
         subAccountId = self.getSubAccountId(params)
         symbols = self.market_symbols(symbols)
-        rawHashes: List[str] = []
-        messageHashes: List[str] = []
+        rawHashes = []
+        messageHashes = []
         if symbols is not None:
             for i in range(0, len(symbols)):
                 symbol = symbols[i]
@@ -755,7 +755,7 @@ class grvt(ccxt.async_support.grvt):
         position = self.parse_ws_position(data)
         symbol = self.safe_string(position, 'symbol')
         self.positions.append(position)
-        newPositions: List = []
+        newPositions = []
         newPositions.append(position)
         client.resolve(newPositions, 'positions::' + symbol)
         client.resolve(newPositions, 'positions')
@@ -779,8 +779,8 @@ class grvt(ccxt.async_support.grvt):
         await self.load_markets()
         await self.authenticate()
         subAccountId = self.getSubAccountId(params)
-        messageHashes: List[str] = []
-        rawHashes: List[str] = []
+        messageHashes = []
+        rawHashes = []
         if symbol is None:
             messageHashes.append('orders')
             rawHashes.append(subAccountId)

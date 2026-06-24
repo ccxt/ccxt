@@ -161,7 +161,7 @@ class xt(ccxt.async_support.xt):
         :returns dict: data from the websocket stream
         """
         privateAccess = access == 'private'
-        type: Str = None
+        type = None
         type, params = self.handle_market_type_and_params(methodName, market, params)
         isContract = (type != 'spot')
         id = self.number_to_string(self.milliseconds()) + name  # call back ID
@@ -187,7 +187,7 @@ class xt(ccxt.async_support.xt):
         tail = access
         if isContract:
             tail = 'user' if privateAccess else 'market'
-        subscription: dict = {
+        subscription = {
             'id': id,
         }
         url = self.urls['api']['ws'][tradeType] + '/' + tail
@@ -213,7 +213,7 @@ class xt(ccxt.async_support.xt):
         :returns dict: data from the websocket stream
         """
         privateAccess = access == 'private'
-        type: Str = None
+        type = None
         type, params = self.handle_market_type_and_params(methodName, market, params)
         isContract = (type != 'spot')
         id = self.number_to_string(self.milliseconds()) + name  # call back ID
@@ -238,7 +238,7 @@ class xt(ccxt.async_support.xt):
         if isContract:
             tail = 'user' if privateAccess else 'market'
         url = self.urls['api']['ws'][tradeType] + '/' + tail
-        subscription: dict = {
+        subscription = {
             'unsubscribe': True,
             'id': id,
             'subMessageHashes': [subMessageHash],
@@ -312,7 +312,7 @@ class xt(ccxt.async_support.xt):
         options = self.safe_dict(self.options, 'watchTickers')
         defaultMethod = self.safe_string(options, 'method', 'tickers')
         name = self.safe_string(params, 'method', defaultMethod)
-        market: Market = None
+        market = None
         if symbols is not None:
             market = self.market(symbols[0])
         tickers = await self.subscribe(name, 'public', 'watchTickers', market, symbols, params)
@@ -488,7 +488,7 @@ class xt(ccxt.async_support.xt):
         """
         await self.load_markets()
         name = 'order'
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
         orders = await self.subscribe(name, 'private', 'watchOrders', market, None, params)
@@ -511,7 +511,7 @@ class xt(ccxt.async_support.xt):
         """
         await self.load_markets()
         name = 'trade'
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
         trades = await self.subscribe(name, 'private', 'watchMyTrades', market, None, params)

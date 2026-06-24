@@ -929,10 +929,10 @@ export default class bitrue extends Exchange {
         return this.parseMarkets(markets);
     }
     parseMarket(market) {
-        const id = this.safeString(market, 'symbol');
+        const id = this.safeString(market, 'symbol', '');
         const lowercaseId = this.safeStringLower(market, 'symbol');
         const side = this.safeInteger(market, 'side'); // 1 linear, 0 inverse, undefined spot
-        let type = undefined;
+        let type = 'spot';
         let isLinear = undefined;
         let isInverse = undefined;
         if (side === undefined) {
@@ -1229,7 +1229,7 @@ export default class bitrue extends Exchange {
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        let response = undefined;
+        let response = {};
         if (market['swap']) {
             const request = {
                 'contractName': market['id'],
@@ -1376,7 +1376,7 @@ export default class bitrue extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         let response = undefined;
-        let data = undefined;
+        let data = {};
         if (market['swap']) {
             const request = {
                 'contractName': market['id'],
@@ -1458,7 +1458,7 @@ export default class bitrue extends Exchange {
         const market = this.market(symbol);
         const timeframes = this.safeDict(this.options, 'timeframes', {});
         let response = undefined;
-        let data = undefined;
+        let data = [];
         if (market['swap']) {
             const timeframesFuture = this.safeDict(timeframes, 'future', {});
             const request = {
@@ -1650,7 +1650,7 @@ export default class bitrue extends Exchange {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
         let response = undefined;
-        let data = undefined;
+        let data = [];
         const request = {};
         let type = undefined;
         if (symbols !== undefined) {
@@ -1831,7 +1831,7 @@ export default class bitrue extends Exchange {
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        let response = undefined;
+        let response = [];
         if (market['spot']) {
             const request = {
                 'symbol': market['id'],
@@ -2042,7 +2042,7 @@ export default class bitrue extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         let response = undefined;
-        let data = undefined;
+        let data = {};
         const uppercaseType = type.toUpperCase();
         const request = {
             'side': side.toUpperCase(),
@@ -2174,7 +2174,7 @@ export default class bitrue extends Exchange {
         const origClientOrderId = this.safeValue2(params, 'origClientOrderId', 'clientOrderId');
         params = this.omit(params, ['origClientOrderId', 'clientOrderId']);
         let response = undefined;
-        let data = undefined;
+        let data = {};
         const request = {};
         if (origClientOrderId === undefined) {
             request['orderId'] = id;
@@ -2328,7 +2328,7 @@ export default class bitrue extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         let response = undefined;
-        let data = undefined;
+        let data = [];
         const request = {};
         if (market['swap']) {
             request['contractName'] = market['id'];
@@ -2417,7 +2417,7 @@ export default class bitrue extends Exchange {
         const origClientOrderId = this.safeValue2(params, 'origClientOrderId', 'clientOrderId');
         params = this.omit(params, ['origClientOrderId', 'clientOrderId']);
         let response = undefined;
-        let data = undefined;
+        let data = {};
         const request = {};
         if (origClientOrderId === undefined) {
             request['orderId'] = id;
@@ -2485,7 +2485,7 @@ export default class bitrue extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         let response = undefined;
-        let data = undefined;
+        let data = [];
         if (market['swap']) {
             const request = {
                 'contractName': market['id'],
@@ -2531,7 +2531,7 @@ export default class bitrue extends Exchange {
         }
         const market = this.market(symbol);
         let response = undefined;
-        let data = undefined;
+        let data = [];
         const request = {};
         if (since !== undefined) {
             request['startTime'] = since;
@@ -3136,7 +3136,7 @@ export default class bitrue extends Exchange {
         }
         await this.loadMarkets();
         const market = this.market(symbol);
-        let response = undefined;
+        let response = {};
         const request = {
             'contractName': market['id'],
             'leverage': leverage,

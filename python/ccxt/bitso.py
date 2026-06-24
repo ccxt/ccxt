@@ -307,7 +307,7 @@ class bitso(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
-        request: dict = {}
+        request = {}
         if limit is not None:
             request['limit'] = limit
         response = self.privateGetLedger(self.extend(request, params))
@@ -339,7 +339,7 @@ class bitso(Exchange, ImplicitAPI):
         return self.parse_ledger(payload, currency, since, limit)
 
     def parse_ledger_entry_type(self, type):
-        types: dict = {
+        types = {
             'funding': 'transaction',
             'withdrawal': 'transaction',
             'trade': 'trade',
@@ -406,8 +406,8 @@ class bitso(Exchange, ImplicitAPI):
         type = self.parse_ledger_entry_type(operation)
         balanceUpdates = self.safe_value(item, 'balance_updates', [])
         firstBalance = self.safe_value(balanceUpdates, 0, {})
-        direction: Str = None
-        fee: NullableDict = None
+        direction = None
+        fee = None
         amount = self.safe_string(firstBalance, 'amount')
         currencyId = self.safe_string(firstBalance, 'currency')
         code = self.safe_currency_code(currencyId, currency)
@@ -491,7 +491,7 @@ class bitso(Exchange, ImplicitAPI):
         #         ]
         #     }
         markets = self.safe_value(response, 'payload', [])
-        result: List[Market] = []
+        result = []
         for i in range(0, len(markets)):
             market = markets[i]
             id = self.safe_string(market, 'book')
@@ -525,7 +525,7 @@ class bitso(Exchange, ImplicitAPI):
                 if j == 0:
                     fee['taker'] = takerFee
                     fee['maker'] = makerFee
-            tiers: dict = {
+            tiers = {
                 'taker': takerFees,
                 'maker': makerFees,
             }
@@ -588,7 +588,7 @@ class bitso(Exchange, ImplicitAPI):
     def parse_balance(self, response) -> Balances:
         payload = self.safe_value(response, 'payload', {})
         balances = self.safe_value(payload, 'balances', [])
-        result: dict = {
+        result = {
             'info': response,
             'timestamp': None,
             'datetime': None,
@@ -655,7 +655,7 @@ class bitso(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'book': market['id'],
         }
         response = self.publicGetOrderBook(self.extend(request, params))
@@ -719,7 +719,7 @@ class bitso(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'book': market['id'],
         }
         response = self.publicGetTicker(self.extend(request, params))
@@ -755,7 +755,7 @@ class bitso(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'book': market['id'],
             'time_bucket': self.safe_string(self.timeframes, timeframe, timeframe),
         }
@@ -869,7 +869,7 @@ class bitso(Exchange, ImplicitAPI):
         symbol = self.safe_symbol(marketId, market, '_')
         side = self.safe_string(trade, 'side')
         makerSide = self.safe_string(trade, 'maker_side')
-        takerOrMaker: Str = None
+        takerOrMaker = None
         if side is not None:
             if side == makerSide:
                 takerOrMaker = 'maker'
@@ -883,7 +883,7 @@ class bitso(Exchange, ImplicitAPI):
         amount = self.safe_string_2(trade, 'amount', 'major')
         if amount is not None:
             amount = Precise.string_abs(amount)
-        fee: NullableDict = None
+        fee = None
         feeCost = self.safe_string(trade, 'fees_amount')
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'fees_currency')
@@ -928,7 +928,7 @@ class bitso(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'book': market['id'],
         }
         response = self.publicGetTrades(self.extend(request, params))
@@ -990,7 +990,7 @@ class bitso(Exchange, ImplicitAPI):
         #
         payload = self.safe_value(response, 'payload', {})
         fees = self.safe_value(payload, 'fees', [])
-        result: dict = {}
+        result = {}
         for i in range(0, len(fees)):
             fee = fees[i]
             marketId = self.safe_string(fee, 'book')
@@ -1033,7 +1033,7 @@ class bitso(Exchange, ImplicitAPI):
             params = self.extend(params, {
                 'marker': marker,
             })
-        request: dict = {
+        request = {
             'book': market['id'],
             'limit': limit,  # default = 25, max = 100
             # 'sort': 'desc',  # default = desc
@@ -1058,7 +1058,7 @@ class bitso(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'book': market['id'],
             'side': side,
             'type': type,
@@ -1085,7 +1085,7 @@ class bitso(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
-        request: dict = {
+        request = {
             'oid': id,
         }
         response = self.privateDeleteOrdersOid(self.extend(request, params))
@@ -1115,11 +1115,11 @@ class bitso(Exchange, ImplicitAPI):
         """
         if not isinstance(ids, list):
             raise ArgumentsRequired(self.id + ' cancelOrders() ids argument should be an array')
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
         oids = ','.join(ids)
-        request: dict = {
+        request = {
             'oids': oids,
         }
         response = self.privateDeleteOrders(self.extend(request, params))
@@ -1130,7 +1130,7 @@ class bitso(Exchange, ImplicitAPI):
         #     }
         #
         payload = self.safe_value(response, 'payload', [])
-        orders: List[Order] = []
+        orders = []
         for i in range(0, len(payload)):
             id = payload[i]
             orders.append(self.parse_order(id, market))
@@ -1156,14 +1156,14 @@ class bitso(Exchange, ImplicitAPI):
         #     }
         #
         payload = self.safe_value(response, 'payload', [])
-        canceledOrders: List[Order] = []
+        canceledOrders = []
         for i in range(0, len(payload)):
             order = self.parse_order(payload[i])
             canceledOrders.append(order)
         return canceledOrders
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'partial-fill': 'open',  # self is a common substitution in ccxt
             'partially filled': 'open',
             'queued': 'open',
@@ -1177,7 +1177,7 @@ class bitso(Exchange, ImplicitAPI):
         # canceledOrder
         # yWTQGxDMZ0VimZgZ
         #
-        id: Str = None
+        id = None
         if isinstance(order, str):
             id = order
         else:
@@ -1244,7 +1244,7 @@ class bitso(Exchange, ImplicitAPI):
             params = self.extend(params, {
                 'marker': marker,
             })
-        request: dict = {
+        request = {
             'book': market['id'],
             'limit': limit,  # default = 25, max = 100
             # 'sort': 'desc',  # default = desc
@@ -1291,7 +1291,7 @@ class bitso(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'oid': id,
         }
         response = self.privateGetOrderTradesOid(self.extend(request, params))
@@ -1309,7 +1309,7 @@ class bitso(Exchange, ImplicitAPI):
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         self.load_markets()
-        request: dict = {
+        request = {
             'fid': id,
         }
         response = self.privateGetFundingsFid(self.extend(request, params))
@@ -1353,7 +1353,7 @@ class bitso(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         self.load_markets()
-        currency: Currency = None
+        currency = None
         if code is not None:
             currency = self.currency(code)
         response = self.privateGetFundings(params)
@@ -1392,12 +1392,12 @@ class bitso(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'fund_currency': currency['id'],
         }
         response = self.privateGetFundingDestination(self.extend(request, params))
         address = self.safe_string(response['payload'], 'account_identifier')
-        tag: Str = None
+        tag = None
         if address.find('?dt=') >= 0:
             parts = address.split('?dt=')
             address = self.safe_string(parts, 0)
@@ -1467,7 +1467,7 @@ class bitso(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        result: dict = {}
+        result = {}
         payload = self.safe_value(response, 'payload', {})
         depositFees = self.safe_value(payload, 'deposit_fees', [])
         for i in range(0, len(depositFees)):
@@ -1600,7 +1600,7 @@ class bitso(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        result: dict = {}
+        result = {}
         depositResponse = self.safe_value(response, 'deposit_fees', [])
         withdrawalResponse = self.safe_value(response, 'withdrawal_fees', [])
         for i in range(0, len(depositResponse)):
@@ -1646,7 +1646,7 @@ class bitso(Exchange, ImplicitAPI):
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         self.load_markets()
-        methods: dict = {
+        methods = {
             'BTC': 'Bitcoin',
             'ETH': 'Ether',
             'XRP': 'Ripple',
@@ -1657,7 +1657,7 @@ class bitso(Exchange, ImplicitAPI):
         method = methods[code] if (code in methods) else None
         if method is None:
             raise ExchangeError(self.id + ' not valid withdraw coin: ' + code)
-        request: dict = {
+        request = {
             'amount': amount,
             'address': address,
             'destination_tag': tag,
@@ -1759,7 +1759,7 @@ class bitso(Exchange, ImplicitAPI):
         }
 
     def parse_transaction_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'pending': 'pending',
             'in_progress': 'pending',
             'complete': 'ok',

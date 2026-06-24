@@ -275,7 +275,7 @@ class grvt extends \ccxt\async\grvt {
         //    }
         //
         $data = $this->safe_dict($message, 'feed', array());
-        $selector = $this->safe_string($message, 'selector');
+        $selector = $this->safe_string($message, 'selector', '');
         $parts = explode('@', $selector);
         $marketId = $this->safe_string($parts, 0);
         $market = $this->safe_market($marketId, null);
@@ -371,7 +371,7 @@ class grvt extends \ccxt\async\grvt {
         //    }
         //
         $data = $this->safe_dict($message, 'feed', array());
-        $selector = $this->safe_string($message, 'selector');
+        $selector = $this->safe_string($message, 'selector', '');
         $parts = explode('@', $selector);
         $marketId = $this->safe_string($parts, 0);
         $market = $this->safe_market($marketId, null);
@@ -474,12 +474,12 @@ class grvt extends \ccxt\async\grvt {
         //    }
         //
         $data = $this->safe_dict($message, 'feed', array());
-        $selector = $this->safe_string($message, 'selector');
+        $selector = $this->safe_string($message, 'selector', '');
         $parts = explode('@', $selector);
         $marketId = $this->safe_string($parts, 0);
         $market = $this->safe_market($marketId, null);
         $symbol = $market['symbol'];
-        $secondPart = $this->safe_string($parts, 1);
+        $secondPart = $this->safe_string($parts, 1, '');
         $timeframeId = str_replace('-TRADE', '', $secondPart);
         $timeframe = $this->find_timeframe($timeframeId);
         $messageHash = 'ohlcv::' . $symbol . '::' . $timeframe;
@@ -593,7 +593,7 @@ class grvt extends \ccxt\async\grvt {
         //    }
         //
         $data = $this->safe_dict($message, 'feed', array());
-        $selector = $this->safe_string($message, 'selector');
+        $selector = $this->safe_string($message, 'selector', '');
         $parts = explode('@', $selector);
         $marketId = $this->safe_string($parts, 0);
         $market = $this->safe_market($marketId, null);
@@ -603,7 +603,7 @@ class grvt extends \ccxt\async\grvt {
             $this->orderbooks[$symbol] = $this->order_book();
         }
         $orderbook = $this->orderbooks[$symbol];
-        $sequenceNumber = $this->safe_integer($message, 'sequence_number');
+        $sequenceNumber = $this->safe_integer($message, 'sequence_number', 0);
         $stream = $this->safe_string($message, 'stream');
         $isSnapshotChannel = $stream === 'v1.book.s';
         $isSnapshotMessage = $sequenceNumber <= 0;

@@ -504,7 +504,7 @@ export default class bingx extends bingxRest {
         //     }
         //
         const data = this.safeValue(message, 'data', []);
-        const rawHash = this.safeString(message, 'dataType');
+        const rawHash = this.safeString(message, 'dataType', '');
         const marketId = rawHash.split('@')[0];
         const isSwap = client.url.indexOf('swap') >= 0;
         const marketType = isSwap ? 'swap' : 'spot';
@@ -683,7 +683,7 @@ export default class bingx extends bingxRest {
         //     }
         //
         const data = this.safeDict(message, 'data', {});
-        const dataType = this.safeString(message, 'dataType');
+        const dataType = this.safeString(message, 'dataType', '');
         const parts = dataType.split('@');
         const firstPart = parts[0];
         const isAllEndpoint = (firstPart === 'all');
@@ -737,9 +737,9 @@ export default class bingx extends bingxRest {
         //
         // for spot, opening-time (t) is used instead of closing-time (T), to be compatible with fetchOHLCV
         // for linear swap, (T) is the opening time
-        let timestamp = (market['spot']) ? 't' : 'T';
-        if (market['swap']) {
-            timestamp = (market['inverse']) ? 't' : 'T';
+        let timestamp = this.safeBool(market, 'spot') ? 't' : 'T';
+        if (this.safeBool(market, 'swap')) {
+            timestamp = this.safeBool(market, 'inverse') ? 't' : 'T';
         }
         return [
             this.safeInteger(ohlcv, timestamp),
@@ -816,7 +816,7 @@ export default class bingx extends bingxRest {
         //     }
         //
         const isSwap = client.url.indexOf('swap') >= 0;
-        const dataType = this.safeString(message, 'dataType');
+        const dataType = this.safeString(message, 'dataType', '');
         const parts = dataType.split('@');
         const firstPart = parts[0];
         const isAllEndpoint = (firstPart === 'all');
@@ -986,7 +986,7 @@ export default class bingx extends bingxRest {
         }
         const uuid = this.uuid();
         let baseUrl = undefined;
-        let request = undefined;
+        let request = {};
         if (type === 'swap') {
             if (subType === 'inverse') {
                 throw new NotSupported(this.id + ' watchOrders is not supported for inverse swap markets yet');
@@ -1049,7 +1049,7 @@ export default class bingx extends bingxRest {
         }
         const uuid = this.uuid();
         let baseUrl = undefined;
-        let request = undefined;
+        let request = {};
         if (type === 'swap') {
             if (subType === 'inverse') {
                 throw new NotSupported(this.id + ' watchMyTrades is not supported for inverse swap markets yet');
@@ -1099,7 +1099,7 @@ export default class bingx extends bingxRest {
         const swapMessageHash = 'swap:balance';
         const messageHash = isSpot ? spotMessageHash : swapMessageHash;
         const subscriptionHash = isSpot ? spotSubHash : swapSubHash;
-        let request = undefined;
+        let request = {};
         let baseUrl = undefined;
         const uuid = this.uuid();
         if (type === 'swap') {
@@ -1174,7 +1174,7 @@ export default class bingx extends bingxRest {
         let market = undefined;
         let messageHash = '';
         symbols = this.marketSymbols(symbols);
-        if (!this.isEmpty(symbols)) {
+        if ((symbols !== undefined) && !this.isEmpty(symbols)) {
             market = this.getMarketFromSymbols(symbols);
             messageHash = '::' + symbols.join(',');
         }

@@ -647,8 +647,12 @@ class coincheck extends coincheck$1["default"] {
         //
         const fees = this.safeValue(response, 'exchange_fees', {});
         const result = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        if (symbols === undefined) {
+            return result;
+        }
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             const market = this.market(symbol);
             const fee = this.safeValue(fees, market['id'], {});
             result[symbol] = {

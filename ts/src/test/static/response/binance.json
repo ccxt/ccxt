@@ -3629,9 +3629,9 @@
                         "fees": {
                             "BEP20": 2.8e-7,
                             "BTC": 0.000015,
-                            "SEGWITBTC": 0.001,
+                            "BTCSEGWIT": 0.001,
                             "ERC20": 0.0000061,
-                            "LIGHTNING": 0.000001
+                            "BTCLIGHTNING": 0.000001
                         },
                         "networks": {
                             "BEP20": {
@@ -3728,7 +3728,7 @@
                                     }
                                 }
                             },
-                            "SEGWITBTC": {
+                            "BTCSEGWIT": {
                                 "info": {
                                     "network": "SEGWITBTC",
                                     "coin": "BTC",
@@ -3757,7 +3757,7 @@
                                     "busy": false
                                 },
                                 "id": "SEGWITBTC",
-                                "network": "SEGWITBTC",
+                                "network": "BTCSEGWIT",
                                 "active": null,
                                 "deposit": true,
                                 "withdraw": false,
@@ -3822,7 +3822,7 @@
                                     }
                                 }
                             },
-                            "LIGHTNING": {
+                            "BTCLIGHTNING": {
                                 "info": {
                                     "network": "LIGHTNING",
                                     "coin": "BTC",
@@ -3850,7 +3850,7 @@
                                     "busy": false
                                 },
                                 "id": "LIGHTNING",
-                                "network": "LIGHTNING",
+                                "network": "BTCLIGHTNING",
                                 "active": null,
                                 "deposit": true,
                                 "withdraw": true,
