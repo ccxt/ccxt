@@ -14,7 +14,6 @@ import asyncio
 import ccxt.pro as ccxt  # noqa: E402
 
 
-# AUTO-TRANSPILE #
 'use strict'
 
 

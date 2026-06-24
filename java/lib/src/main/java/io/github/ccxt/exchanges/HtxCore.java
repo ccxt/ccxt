@@ -546,7 +546,6 @@ public class HtxCore extends HtxApi
                             put( "v2/linear-swap-ex/market/detail/batch_merged", 1 );
                             put( "linear-swap-ex/market/trade", 1 );
                             put( "linear-swap-ex/market/history/trade", 1 );
-                            put( "linear-swap-api/v1/swap_risk_info", 1 );
                             put( "swap-api/v1/linear-swap-api/v1/swap_insurance_fund", 1 );
                             put( "linear-swap-api/v1/swap_adjustfactor", 1 );
                             put( "linear-swap-api/v1/swap_cross_adjustfactor", 1 );
@@ -554,11 +553,8 @@ public class HtxCore extends HtxApi
                             put( "linear-swap-api/v1/swap_ladder_margin", 1 );
                             put( "linear-swap-api/v1/swap_cross_ladder_margin", 1 );
                             put( "linear-swap-api/v1/swap_api_state", 1 );
-                            put( "linear-swap-api/v1/swap_cross_transfer_state", 1 );
-                            put( "linear-swap-api/v1/swap_cross_trade_state", 1 );
                             put( "linear-swap-api/v1/swap_elite_account_ratio", 1 );
                             put( "linear-swap-api/v1/swap_elite_position_ratio", 1 );
-                            put( "linear-swap-api/v1/swap_liquidation_orders", 1 );
                             put( "linear-swap-api/v1/swap_settlement_records", 1 );
                             put( "linear-swap-api/v3/swap_liquidation_orders", 1 );
                             put( "index/market/history/linear_swap_premium_index_kline", 1 );
@@ -582,14 +578,6 @@ public class HtxCore extends HtxApi
                             put( "api/v1/contract_api_trading_status", 1 );
                             put( "swap-api/v1/swap_sub_auth_list", 1 );
                             put( "swap-api/v1/swap_api_trading_status", 1 );
-                            put( "linear-swap-api/v1/swap_sub_auth_list", 1 );
-                            put( "linear-swap-api/v1/swap_api_trading_status", 1 );
-                            put( "linear-swap-api/v1/swap_cross_position_side", 1 );
-                            put( "linear-swap-api/v1/swap_position_side", 1 );
-                            put( "linear-swap-api/v3/unified_account_info", 1 );
-                            put( "linear-swap-api/v3/fix_position_margin_change_record", 1 );
-                            put( "linear-swap-api/v3/swap_unified_account_type", 1 );
-                            put( "linear-swap-api/v3/linear_swap_overview_account_info", 1 );
                             put( "v5/account/asset_mode", 0.20834 );
                             put( "v5/account/balance", 0.20834 );
                             put( "v5/account/bills", 0.20834 );
@@ -721,45 +709,6 @@ public class HtxCore extends HtxApi
                             put( "swap-api/v1/swap_track_cancelall", 1 );
                             put( "swap-api/v1/swap_track_openorders", 1 );
                             put( "swap-api/v1/swap_track_hisorders", 1 );
-                            put( "linear-swap-api/v1/swap_lever_position_limit", 1 );
-                            put( "linear-swap-api/v1/swap_cross_lever_position_limit", 1 );
-                            put( "linear-swap-api/v1/swap_balance_valuation", 1 );
-                            put( "linear-swap-api/v1/swap_sub_auth", 1 );
-                            put( "linear-swap-api/v1/swap_sub_account_list", 1 );
-                            put( "linear-swap-api/v1/swap_cross_sub_account_list", 1 );
-                            put( "linear-swap-api/v1/swap_sub_account_info_list", 1 );
-                            put( "linear-swap-api/v1/swap_cross_sub_account_info_list", 1 );
-                            put( "linear-swap-api/v1/swap_sub_account_info", 1 );
-                            put( "linear-swap-api/v1/swap_cross_sub_account_info", 1 );
-                            put( "linear-swap-api/v1/swap_sub_position_info", 1 );
-                            put( "linear-swap-api/v1/swap_cross_sub_position_info", 1 );
-                            put( "linear-swap-api/v1/swap_financial_record", 1 );
-                            put( "linear-swap-api/v1/swap_financial_record_exact", 1 );
-                            put( "linear-swap-api/v1/swap_user_settlement_records", 1 );
-                            put( "linear-swap-api/v1/swap_cross_user_settlement_records", 1 );
-                            put( "linear-swap-api/v1/swap_available_level_rate", 1 );
-                            put( "linear-swap-api/v1/swap_cross_available_level_rate", 1 );
-                            put( "linear-swap-api/v1/swap_order_limit", 1 );
-                            put( "linear-swap-api/v1/swap_fee", 1 );
-                            put( "linear-swap-api/v1/swap_transfer_limit", 1 );
-                            put( "linear-swap-api/v1/swap_cross_transfer_limit", 1 );
-                            put( "linear-swap-api/v1/swap_position_limit", 1 );
-                            put( "linear-swap-api/v1/swap_cross_position_limit", 1 );
-                            put( "linear-swap-api/v1/swap_master_sub_transfer", 1 );
-                            put( "linear-swap-api/v1/swap_master_sub_transfer_record", 1 );
-                            put( "linear-swap-api/v1/swap_transfer_inner", 1 );
-                            put( "linear-swap-api/v3/swap_financial_record", 1 );
-                            put( "linear-swap-api/v3/swap_financial_record_exact", 1 );
-                            put( "linear-swap-api/v1/swap_cross_matchresults", 1 );
-                            put( "linear-swap-api/v1/swap_cross_matchresults_exact", 1 );
-                            put( "linear-swap-api/v1/linear-cancel-after", 1 );
-                            put( "linear-swap-api/v3/swap_cross_matchresults", 1 );
-                            put( "linear-swap-api/v3/swap_cross_matchresults_exact", 1 );
-                            put( "linear-swap-api/v3/fix_position_margin_change", 1 );
-                            put( "linear-swap-api/v3/swap_switch_account_type", 1 );
-                            put( "linear-swap-api/v3/linear_swap_fee_switch", 1 );
-                            put( "linear-swap-api/v1/swap_relation_tpsl_order", 1 );
-                            put( "linear-swap-api/v1/swap_cross_relation_tpsl_order", 1 );
                             put( "v5/account/asset_mode", 100 );
                             put( "v5/trade/order", 0.41679 );
                             put( "v5/trade/batch_orders", 0.41679 );
@@ -3782,13 +3731,12 @@ public class HtxCore extends HtxApi
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://huobiapi.github.io/docs/spot/v1/en/#get-account-balance-of-a-specific-account
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec4b429-7773-11ed-9966-0242ac110003
-     * @see https://www.htx.com/en-us/opend/newApiPages/?id=10000074-77b7-11ed-9966-0242ac110003
      * @see https://huobiapi.github.io/docs/dm/v1/en/#query-asset-valuation
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-account-information
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19588469969
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.subType] linear or future
-     * @param {bool} [params.uta] provide this parameter if you have a recent account with unified cross+isolated margin account
+     * @param {string} [params.type] spot, margin, future or swap
+     * @param {string} [params.subType] linear or inverse
      * @param {bool} [params.multiAssetMode] set to true if you are using multi-asset mode for USDT-margined contracts
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
@@ -3799,25 +3747,30 @@ public class HtxCore extends HtxApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
+            Object isUnifiedAccount = null;
+            var isUnifiedAccountparametersVariable = this.handleOptionAndParams2(parameters, "fetchBalance", "unified", "uta", false);
+            isUnifiedAccount = ((java.util.List<Object>) isUnifiedAccountparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) isUnifiedAccountparametersVariable).get(1);
+            if (Helpers.isTrue(isUnifiedAccount))
+            {
+                throw new NotSupported((String)Helpers.add(this.id, " fetchBalance() unified account has been deprecated on htx")) ;
+            }
             Object type = null;
             var typeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object subType = null;
-            Object isUnifiedAccount = null;
             Object isMultiAssetMode = null;
             var subTypeparametersVariable = this.handleOptionAndParams2(parameters, "fetchBalance", "defaultSubType", "subType", "linear");
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            var isUnifiedAccountparametersVariable = this.handleOptionAndParams2(parameters, "fetchBalance", "unified", "uta", false);
-            isUnifiedAccount = ((java.util.List<Object>) isUnifiedAccountparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) isUnifiedAccountparametersVariable).get(1);
             var isMultiAssetModeparametersVariable = this.handleOptionAndParams(parameters, "fetchBalance", "multiAssetMode", false);
             isMultiAssetMode = ((java.util.List<Object>) isMultiAssetModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) isMultiAssetModeparametersVariable).get(1);
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object spot = (Helpers.isEqual(type, "spot"));
             Object future = (Helpers.isEqual(type, "future"));
+            Object swap = (Helpers.isEqual(type, "swap"));
             Object inverse = (Helpers.isEqual(subType, "inverse"));
             Object linear = (Helpers.isEqual(subType, "linear"));
             Object marginMode = null;
@@ -3828,7 +3781,7 @@ public class HtxCore extends HtxApi
             Object cross = (Helpers.isEqual(marginMode, "cross"));
             Object margin = Helpers.isTrue((Helpers.isEqual(type, "margin"))) || Helpers.isTrue((Helpers.isTrue(spot) && Helpers.isTrue((Helpers.isTrue(cross) || Helpers.isTrue(isolated)))));
             Object response = null;
-            if (Helpers.isTrue(isMultiAssetMode))
+            if (Helpers.isTrue(Helpers.isTrue(isMultiAssetMode) || Helpers.isTrue((Helpers.isTrue(linear) && Helpers.isTrue((Helpers.isTrue(swap) || Helpers.isTrue(future)))))))
             {
                 response = (this.contractPrivateGetV5AccountBalance(this.extend(request, parameters))).join();
             } else if (Helpers.isTrue(Helpers.isTrue(spot) || Helpers.isTrue(margin)))
@@ -3849,12 +3802,6 @@ public class HtxCore extends HtxApi
                     Helpers.addElementToObject(request, "account-id", accountId);
                     response = (this.spotPrivateGetV1AccountAccountsAccountIdBalance(this.extend(request, parameters))).join();
                 }
-            } else if (Helpers.isTrue(linear))
-            {
-                response = (this.contractPrivateGetV5AccountBalance(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(isUnifiedAccount))
-            {
-                response = (this.contractPrivateGetLinearSwapApiV3UnifiedAccountInfo(this.extend(request, parameters))).join();
             } else if (Helpers.isTrue(inverse))
             {
                 if (Helpers.isTrue(future))
@@ -4011,7 +3958,7 @@ public class HtxCore extends HtxApi
                 put( "info", finalResponse );
             }});
             Object data = this.safeValue(response, "data");
-            if (Helpers.isTrue(isMultiAssetMode))
+            if (Helpers.isTrue(Helpers.isTrue(isMultiAssetMode) || Helpers.isTrue((Helpers.isTrue(linear) && Helpers.isTrue((Helpers.isTrue(swap) || Helpers.isTrue(future)))))))
             {
                 Object details = this.safeList(data, "details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(details)); i++)
@@ -4020,7 +3967,8 @@ public class HtxCore extends HtxApi
                     Object currencyId = this.safeString(balance, "currency");
                     Object code = this.safeCurrencyCode(currencyId);
                     Object account = this.account();
-                    Helpers.addElementToObject(account, "free", this.safeString(balance, "withdraw_available"));
+                    Helpers.addElementToObject(account, "free", this.safeString(balance, "available_margin"));
+                    Helpers.addElementToObject(account, "total", this.safeString(balance, "equity"));
                     Helpers.addElementToObject(result, code, account);
                 }
                 result = this.safeBalance(result);
@@ -4054,50 +4002,6 @@ public class HtxCore extends HtxApi
                         Helpers.addElementToObject(result, code, this.parseMarginBalanceHelper(balance, code, result));
                     }
                     result = this.safeBalance(result);
-                }
-            } else if (Helpers.isTrue(linear))
-            {
-                Object details = this.safeList(data, "details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(details)); i++)
-                {
-                    Object balance = Helpers.GetValue(details, i);
-                    Object currencyId = this.safeString(balance, "currency");
-                    Object code = this.safeCurrencyCode(currencyId);
-                    Object account = this.account();
-                    Helpers.addElementToObject(account, "free", this.safeString(balance, "withdraw_available"));
-                    Helpers.addElementToObject(result, code, account);
-                }
-                result = this.safeBalance(result);
-            } else if (Helpers.isTrue(isUnifiedAccount))
-            {
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
-                {
-                    Object entry = Helpers.GetValue(data, i);
-                    Object marginAsset = this.safeString(entry, "margin_asset");
-                    Object currencyCode = this.safeCurrencyCode(marginAsset);
-                    if (Helpers.isTrue(isolated))
-                    {
-                        Object isolated_swap = this.safeValue(entry, "isolated_swap", new java.util.HashMap<String, Object>() {{}});
-                        for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(isolated_swap)); j++)
-                        {
-                            Object balance = Helpers.GetValue(isolated_swap, j);
-                            Object marketId = this.safeString(balance, "contract_code");
-                            Object subBalance = new java.util.HashMap<String, Object>() {{
-                                put( "code", currencyCode );
-                                put( "free", HtxCore.this.safeNumber(balance, "margin_available") );
-                            }};
-                            Object symbol = this.safeSymbol(marketId);
-                            Helpers.addElementToObject(result, symbol, subBalance);
-                            result = this.safeBalance(result);
-                        }
-                    } else
-                    {
-                        Object account = this.account();
-                        Helpers.addElementToObject(account, "free", this.safeString(entry, "margin_static"));
-                        Helpers.addElementToObject(account, "used", this.safeString(entry, "margin_frozen"));
-                        Helpers.addElementToObject(result, currencyCode, account);
-                        result = this.safeBalance(result);
-                    }
                 }
             } else if (Helpers.isTrue(inverse))
             {
@@ -8614,13 +8518,14 @@ public class HtxCore extends HtxApi
      * @method
      * @name htx#fetchFundingHistory
      * @description fetch the history of funding payments paid and received on this account
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-account-financial-records-via-multiple-fields-new   // linear swaps
-     * @see https://huobiapi.github.io/docs/dm/v1/en/#query-financial-records-via-multiple-fields-new                          // coin-m futures
-     * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-financial-records-via-multiple-fields-new          // coin-m swaps
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b930b8bee                         // linear swaps
+     * @see https://huobiapi.github.io/docs/dm/v1/en/#query-financial-records-via-multiple-fields-new                   // coin-m futures
+     * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-financial-records-via-multiple-fields-new   // coin-m swaps
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch funding history for
      * @param {int} [limit] the maximum number of funding history structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchFundingHistory(Object... optionalArgs)
@@ -8634,59 +8539,46 @@ public class HtxCore extends HtxApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             Object market = this.market(symbol);
-            var marketTypequeryVariable = this.handleMarketTypeAndParams("fetchFundingHistory", market, parameters);
-            var marketType = ((java.util.List<Object>) marketTypequeryVariable).get(0);
-            var query = ((java.util.List<Object>) marketTypequeryVariable).get(1);
+            Object marketType = null;
+            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchFundingHistory", market, parameters);
+            marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "type", "30,31" );
             }};
+            var requestparametersVariable = this.handleUntilOption("end_time", request, parameters);
+            request = ((java.util.List<Object>) requestparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
-                Helpers.addElementToObject(request, "start_date", since);
+                if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+                {
+                    Helpers.addElementToObject(request, "start_time", since);
+                } else
+                {
+                    Helpers.addElementToObject(request, "start_date", since);
+                }
             }
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(marketType, "swap")))
             {
-                Helpers.addElementToObject(request, "contract", Helpers.GetValue(market, "id"));
                 if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
                 {
-                    //
-                    //    {
-                    //        "status": "ok",
-                    //        "data": {
-                    //           "financial_record": [
-                    //               {
-                    //                   "id": "1320088022",
-                    //                   "type": "30",
-                    //                   "amount": "0.004732510000000000",
-                    //                   "ts": "1641168019321",
-                    //                   "contract_code": "BTC-USDT",
-                    //                   "asset": "USDT",
-                    //                   "margin_account": "BTC-USDT",
-                    //                   "face_margin_account": ''
-                    //               },
-                    //           ],
-                    //           "remain_size": "0",
-                    //           "next_id": null
-                    //        },
-                    //        "ts": "1641189898425"
-                    //    }
-                    //
                     Object marginMode = null;
                     var marginModeparametersVariable = this.handleMarginModeAndParams("fetchFundingHistory", parameters);
                     marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
                     parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
                     marginMode = ((Helpers.isTrue((Helpers.isEqual(marginMode, null))))) ? "cross" : marginMode;
-                    if (Helpers.isTrue(Helpers.isEqual(marginMode, "isolated")))
+                    Helpers.addElementToObject(request, "margin_mode", marginMode);
+                    Helpers.addElementToObject(request, "contract_code", Helpers.GetValue(market, "id"));
+                    if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
                     {
-                        Helpers.addElementToObject(request, "mar_acct", Helpers.GetValue(market, "id"));
-                    } else
-                    {
-                        Helpers.addElementToObject(request, "mar_acct", Helpers.GetValue(market, "quoteId"));
+                        Helpers.addElementToObject(request, "limit", limit);
                     }
-                    response = (this.contractPrivatePostLinearSwapApiV3SwapFinancialRecordExact(this.extend(request, query))).join();
+                    response = (this.contractPrivateGetV5AccountBills(this.extend(request, parameters))).join();
                 } else
                 {
+                    Helpers.addElementToObject(request, "contract", Helpers.GetValue(market, "id"));
                     //
                     //     {
                     //         "code": 200,
@@ -8707,12 +8599,12 @@ public class HtxCore extends HtxApi
                     //         "ts": 1604312615051
                     //     }
                     //
-                    response = (this.contractPrivatePostSwapApiV3SwapFinancialRecordExact(this.extend(request, query))).join();
+                    response = (this.contractPrivatePostSwapApiV3SwapFinancialRecordExact(this.extend(request, parameters))).join();
                 }
             } else
             {
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
-                response = (this.contractPrivatePostApiV3ContractFinancialRecordExact(this.extend(request, query))).join();
+                response = (this.contractPrivatePostApiV3ContractFinancialRecordExact(this.extend(request, parameters))).join();
             }
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseIncomes(data, market, since, limit);
@@ -8799,13 +8691,25 @@ public class HtxCore extends HtxApi
         //       "contract_code": "BTC-USD"
         //     }
         //
+        // linear swap
+        //
+        //     {
+        //         "id": "2194774775",
+        //         "type": "30",
+        //         "currency": "USDT",
+        //         "amount": "0.000433432461821856",
+        //         "contract_code": "BTC-USDT",
+        //         "margin_mode": "cross",
+        //         "created_time": "1780963213165"
+        //     }
+        //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object marketId = this.safeString(income, "contract_code");
         Object symbol = this.safeSymbol(marketId, market);
         Object amount = this.safeNumber(income, "amount");
-        Object timestamp = this.safeInteger(income, "ts");
+        Object timestamp = this.safeInteger2(income, "ts", "created_time");
         Object id = this.safeString(income, "id");
-        Object currencyId = this.safeString2(income, "symbol", "asset");
+        Object currencyId = this.safeStringN(income, new java.util.ArrayList<Object>(java.util.Arrays.asList("symbol", "asset", "currency")));
         Object code = this.safeCurrencyCode(currencyId);
         return new java.util.HashMap<String, Object>() {{
             put( "info", income );
@@ -9972,7 +9876,7 @@ public class HtxCore extends HtxApi
      * @description Fetches historical settlement records
      * @see https://huobiapi.github.io/docs/dm/v1/en/#query-historical-settlement-records-of-the-platform-interface
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-historical-settlement-records-of-the-platform-interface
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-historical-settlement-records-of-the-platform-interface
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b931869f0
      * @param {string} symbol unified symbol of the market to fetch the settlement history for
      * @param {int} [since] timestamp in ms, value range = current time - 90 days，default = current time - 90 days
      * @param {int} [limit] page items, default 20, shall not exceed 50
@@ -9995,8 +9899,6 @@ public class HtxCore extends HtxApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchSettlementHistory() requires a symbol argument")) ;
             }
-            Object until = this.safeInteger(parameters, "until");
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.GetValue(market, "future")))
@@ -10006,24 +9908,29 @@ public class HtxCore extends HtxApi
             {
                 Helpers.addElementToObject(request, "contract_code", Helpers.GetValue(market, "id"));
             }
-            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
-            {
-                Helpers.addElementToObject(request, "start_at", since);
-            }
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
-                Helpers.addElementToObject(request, "page_size", limit);
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "linear")) && Helpers.isTrue(Helpers.GetValue(market, "swap"))))
+                {
+                    Helpers.addElementToObject(request, "limit", limit);
+                } else
+                {
+                    Helpers.addElementToObject(request, "page_size", limit);
+                }
             }
-            if (Helpers.isTrue(!Helpers.isEqual(until, null)))
+            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
-                Helpers.addElementToObject(request, "end_at", until);
+                Helpers.addElementToObject(request, "start_time", since);
             }
+            var requestparametersVariable = this.handleUntilOption("end_time", request, parameters);
+            request = ((java.util.List<Object>) requestparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = null;
             if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
             {
                 if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
                 {
-                    response = (this.contractPublicGetLinearSwapApiV1SwapSettlementRecords(this.extend(request, parameters))).join();
+                    response = (this.contractPublicGetV5MarketSettlementHistory(this.extend(request, parameters))).join();
                 } else
                 {
                     response = (this.contractPublicGetSwapApiV1SwapSettlementRecords(this.extend(request, parameters))).join();
@@ -10033,7 +9940,7 @@ public class HtxCore extends HtxApi
                 response = (this.contractPublicGetApiV1ContractSettlementRecords(this.extend(request, parameters))).join();
             }
             //
-            // linear swap, coin-m swap
+            // coin-m swap
             //
             //    {
             //        "status": "ok",
@@ -10084,6 +9991,29 @@ public class HtxCore extends HtxApi
             //        }
             //    }
             //
+            // linear swap
+            //
+            //     {
+            //         "code": 200,
+            //         "message": "Success",
+            //         "data": [
+            //             {
+            //                 "id": "14900",
+            //                 "contract_code": "BTC-USDT",
+            //                 "settlement_time": "1781827200000",
+            //                 "clawback_ratio": "0",
+            //                 "settlement_price": "62933.747161774209291325"
+            //             },
+            //         ],
+            //         "ts": 1781853150623
+            //     }
+            //
+            if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+            {
+                Object dataLinear = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Object settlementsLinear = this.parseSettlements(dataLinear, market);
+                return this.sortBy(settlementsLinear, "timestamp");
+            }
             Object data = this.safeValue(response, "data");
             Object settlementRecord = this.safeValue(data, "settlement_record");
             Object settlements = this.parseSettlements(settlementRecord, market);
@@ -10230,7 +10160,7 @@ public class HtxCore extends HtxApi
     public Object parseSettlements(Object settlements, Object market)
     {
         //
-        // linear swap, coin-m swap, fetchSettlementHistory
+        // coin-m swap, fetchSettlementHistory
         //
         //    [
         //        {
@@ -10265,12 +10195,28 @@ public class HtxCore extends HtxApi
         //        },
         //    ]
         //
+        // linear swap fetchSettlementHistory
+        //
+        //     [
+        //         {
+        //             "id": "14900",
+        //             "contract_code": "BTC-USDT",
+        //             "settlement_time": "1781827200000",
+        //             "clawback_ratio": "0",
+        //             "settlement_price": "62933.747161774209291325"
+        //         }
+        //     ]
+        //
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(settlements)); i++)
         {
             Object settlement = Helpers.GetValue(settlements, i);
             Object list = this.safeValue(settlement, "list");
-            if (Helpers.isTrue(!Helpers.isEqual(list, null)))
+            if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+            {
+                Object parsedSettlement = this.parseSettlement(settlement, market);
+                ((java.util.List<Object>)result).add(parsedSettlement);
+            } else if (Helpers.isTrue(!Helpers.isEqual(list, null)))
             {
                 Object timestamp = this.safeInteger(settlement, "settlement_time");
                 Object timestampDetails = new java.util.HashMap<String, Object>() {{
@@ -10294,7 +10240,7 @@ public class HtxCore extends HtxApi
     public Object parseSettlement(Object settlement, Object market)
     {
         //
-        // linear swap, coin-m swap, fetchSettlementHistory
+        // coin-m swap, fetchSettlementHistory
         //
         //    {
         //        "symbol": "ADA",
@@ -10316,6 +10262,16 @@ public class HtxCore extends HtxApi
         //        "settlement_type": "settlement"
         //    }
         //
+        // linear swap fetchSettlementHistory
+        //
+        //     {
+        //         "id": "14900",
+        //         "contract_code": "BTC-USDT",
+        //         "settlement_time": "1781827200000",
+        //         "clawback_ratio": "0",
+        //         "settlement_price": "62933.747161774209291325"
+        //     }
+        //
         Object timestamp = this.safeInteger(settlement, "settlement_time");
         Object marketId = this.safeString(settlement, "contract_code");
         return new java.util.HashMap<String, Object>() {{
@@ -10331,7 +10287,7 @@ public class HtxCore extends HtxApi
      * @method
      * @name htx#fetchLiquidations
      * @description retrieves the public liquidations of a trading pair
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-liquidation-orders-new
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b975edf5a
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-liquidation-orders-new
      * @see https://huobiapi.github.io/docs/dm/v1/en/#query-liquidation-order-information-new
      * @param {string} symbol unified CCXT market symbol
@@ -10339,7 +10295,7 @@ public class HtxCore extends HtxApi
      * @param {int} [limit] the maximum number of liquidation structures to retrieve
      * @param {object} [params] exchange specific parameters for the huobi api endpoint
      * @param {int} [params.until] timestamp in ms of the latest liquidation
-     * @param {int} [params.tradeType] default 0, linear swap 0: all liquidated orders, 5: liquidated longs; 6: liquidated shorts, inverse swap and future 0: filled liquidated orders, 5: liquidated close orders, 6: liquidated open orders
+     * @param {int} [params.tradeType] *not supported for linear swap* default 0: filled liquidated orders, 5: liquidated close orders, 6: liquidated open orders
      * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchLiquidations(Object symbol, Object... optionalArgs)
@@ -10352,10 +10308,13 @@ public class HtxCore extends HtxApi
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             Object market = this.market(symbol);
-            Object tradeType = this.safeInteger(parameters, "trade_type", 0);
-            Object request = new java.util.HashMap<String, Object>() {{
-                put( "trade_type", tradeType );
-            }};
+            Object tradeType = this.safeInteger2(parameters, "trade_type", "tradeType", 0);
+            Object request = new java.util.HashMap<String, Object>() {{}};
+            if (!Helpers.isTrue(Helpers.GetValue(market, "linear")))
+            {
+                Helpers.addElementToObject(request, "trade_type", tradeType);
+            }
+            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trade_type", "tradeType")));
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
                 Helpers.addElementToObject(request, "start_time", since);
@@ -10366,12 +10325,17 @@ public class HtxCore extends HtxApi
             Object response = null;
             if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
             {
-                Helpers.addElementToObject(request, "contract", Helpers.GetValue(market, "id"));
                 if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
                 {
-                    response = (this.contractPublicGetLinearSwapApiV3SwapLiquidationOrders(this.extend(request, parameters))).join();
+                    Helpers.addElementToObject(request, "contract_code", Helpers.GetValue(market, "id"));
+                    if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+                    {
+                        Helpers.addElementToObject(request, "limit", limit);
+                    }
+                    response = (this.contractPublicGetV5MarketLiquidationOrders(this.extend(request, parameters))).join();
                 } else
                 {
+                    Helpers.addElementToObject(request, "contract", Helpers.GetValue(market, "id"));
                     response = (this.contractPublicGetSwapApiV3SwapLiquidationOrders(this.extend(request, parameters))).join();
                 }
             } else if (Helpers.isTrue(Helpers.GetValue(market, "future")))
@@ -10429,16 +10393,30 @@ public class HtxCore extends HtxApi
         //         "pair": "BTC-USDT"
         //     }
         //
+        // linear swap
+        //
+        //     {
+        //         "id": "150153038758",
+        //         "contract_code": "BTC-USDT",
+        //         "liquidation_time": "1781849094165",
+        //         "side": "buy",
+        //         "position_side": "short",
+        //         "volume": "2",
+        //         "amount": "2",
+        //         "bankrupt_price": "62978.5",
+        //         "trade_turnover": "125.957"
+        //     }
+        //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object marketId = this.safeString(liquidation, "contract_code");
-        Object timestamp = this.safeInteger(liquidation, "created_at");
+        Object timestamp = this.safeInteger2(liquidation, "created_at", "liquidation_time");
         return this.safeLiquidation(new java.util.HashMap<String, Object>() {{
             put( "info", liquidation );
             put( "symbol", HtxCore.this.safeSymbol(marketId, market) );
             put( "contracts", HtxCore.this.safeNumber(liquidation, "volume") );
             put( "contractSize", HtxCore.this.safeNumber(market, "contractSize") );
-            put( "price", HtxCore.this.safeNumber(liquidation, "price") );
-            put( "side", HtxCore.this.safeStringLower(liquidation, "direction") );
+            put( "price", HtxCore.this.safeNumber2(liquidation, "price", "bankrupt_price") );
+            put( "side", HtxCore.this.safeStringLower2(liquidation, "direction", "side") );
             put( "baseValue", HtxCore.this.safeNumber(liquidation, "amount") );
             put( "quoteValue", HtxCore.this.safeNumber(liquidation, "trade_turnover") );
             put( "timestamp", timestamp );

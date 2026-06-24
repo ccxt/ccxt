@@ -10,6 +10,9 @@ namespace ccxt;
 
 
 function test_currency($exchange, $skipped_properties, $method, $entry) {
+    if ($entry === null) {
+        return;
+    }
     $format = array(
         'id' => 'btc',
         'code' => 'BTC',

@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.krakenfutures import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Bool, Currency, Int, Leverage, Leverages, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TransferEntry
+from ccxt.base.types import Any, Balances, Currency, Int, Leverage, Leverages, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -431,16 +431,16 @@ class krakenfutures(Exchange, ImplicitAPI):
         #    }
         #
         instruments = self.safe_value(response, 'instruments', [])
-        result: List[Any] = []
+        result = []
         for i in range(0, len(instruments)):
             market = instruments[i]
             id = self.safe_string(market, 'symbol')
             marketType = self.safe_string(market, 'type')
-            type: Str = None
+            type = None
             index = (marketType.find(' index') >= 0)
-            linear: Bool = None
-            inverse: Bool = None
-            expiry: Int = None
+            linear = None
+            inverse = None
+            expiry = None
             if not index:
                 linear = (marketType.find('_vanilla') >= 0)
                 inverse = not linear
@@ -459,8 +459,8 @@ class krakenfutures(Exchange, ImplicitAPI):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             # swap == perpetual
-            settle: Str = None
-            settleId: Str = None
+            settle = None
+            settleId = None
             cvtp = self.safe_string(market, 'contractValueTradePrecision')
             amountPrecision = self.parse_number(self.integer_precision_to_amount(cvtp))
             pricePrecision = self.safe_number(market, 'tickSize')
@@ -532,7 +532,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'info': market,
             })
         settlementCurrencies = self.options['settlementCurrencies']['flex']
-        currencies: List[Any] = []
+        currencies = []
         for i in range(0, len(settlementCurrencies)):
             code = settlementCurrencies[i]
             currencies.append({
@@ -557,7 +557,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = await self.publicGetOrderbook(self.extend(request, params))
@@ -678,8 +678,8 @@ class krakenfutures(Exchange, ImplicitAPI):
         percentage = Precise.string_mul(Precise.string_div(change, open), '100')
         average = Precise.string_div(Precise.string_add(open, last), '2')
         volume = self.safe_string(ticker, 'vol24h')
-        baseVolume: Str = None
-        quoteVolume: Str = None
+        baseVolume = None
+        quoteVolume = None
         isIndex = self.safe_bool(market, 'index', False)
         if not isIndex:
             if market['linear']:
@@ -731,7 +731,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
         if paginate:
             return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 2000)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'price_type': self.safe_string(params, 'price', 'trade'),
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
@@ -812,12 +812,12 @@ class krakenfutures(Exchange, ImplicitAPI):
         if paginate:
             return await self.fetch_paginated_call_dynamic('fetchTrades', symbol, since, limit, params)
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
-        method: Str = None
+        method = None
         method, params = self.handle_option_and_params(params, 'fetchTrades', 'method', 'historyGetMarketSymbolExecutions')
-        rawTrades: List[Any] = []
+        rawTrades = []
         isFullHistoryEndpoint = (method == 'historyGetMarketSymbolExecutions')
         if isFullHistoryEndpoint:
             request, params = self.handle_until_option('before', request, params)
@@ -986,7 +986,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         order = self.safe_string(trade, 'order_id')
         marketId = self.safe_string(trade, 'symbol')
         side = self.safe_string(trade, 'side')
-        type: Str = None
+        type = None
         priorEdit = self.safe_value(trade, 'orderPriorEdit')
         priorExecution = self.safe_value(trade, 'orderPriorExecution')
         if priorExecution is not None:
@@ -1002,7 +1002,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         if type is not None:
             type = self.parse_order_type(type)
         market = self.safe_market(marketId, market)
-        cost: Str = None
+        cost = None
         linear = self.safe_bool(market, 'linear')
         if (amount is not None) and (price is not None) and (market is not None):
             if linear:
@@ -1011,7 +1011,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 cost = Precise.string_div(amount, price)  # in base
             contractSize = self.safe_string(market, 'contractSize')
             cost = Precise.string_mul(cost, contractSize)
-        takerOrMaker: Str = None
+        takerOrMaker = None
         fillType = self.safe_string(trade, 'fillType')
         if fillType is not None:
             if fillType.find('taker') >= 0:
@@ -1025,7 +1025,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             if taker is not None:
                 side = self.safe_string_lower(taker, 'direction')
                 takerOrMaker = 'taker'
-        fee: NullableDict = None
+        fee = None
         if (takerOrMaker is not None) and (cost is not None):
             feeRate = self.safe_string(market, takerOrMaker)
             fee = {
@@ -1064,7 +1064,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             type = 'lmt'
         elif type == 'market':
             type = 'mkt'
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'side': side,
             'size': self.amount_to_precision(symbol, amount),
@@ -1208,7 +1208,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        ordersRequests: List[Any] = []
+        ordersRequests = []
         for i in range(0, len(orders)):
             rawOrder = orders[i]
             marketId = self.safe_string(rawOrder, 'symbol')
@@ -1224,7 +1224,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             extendedParams['order'] = 'send'
             orderRequest = self.create_order_request(marketId, type, side, amount, price, extendedParams)
             ordersRequests.append(orderRequest)
-        request: dict = {
+        request = {
             'batchOrder': ordersRequests,
         }
         response = await self.privatePostBatchorder(self.extend(request, params))
@@ -1263,7 +1263,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         :returns: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        request: dict = {
+        request = {
             'orderId': id,
         }
         if amount is not None:
@@ -1292,7 +1292,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         response = await self.privatePostCancelorder(self.extend({'order_id': id}, params))
         status = self.safe_string(self.safe_value(response, 'cancelStatus', {}), 'status')
         self.verify_order_action_success(status, 'cancelOrder')
-        order: dict = {}
+        order = {}
         if 'cancelStatus' in response:
             order = self.parse_order(response['cancelStatus'])
         return self.extend({'info': response}, order)
@@ -1312,7 +1312,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        orders: List[Any] = []
+        orders = []
         clientOrderIds = self.safe_value(params, 'clientOrderIds', [])
         clientOrderIdsLength = len(clientOrderIds)
         if clientOrderIdsLength > 0:
@@ -1321,7 +1321,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         else:
             for i in range(0, len(ids)):
                 orders.append({'order': 'cancel', 'order_id': ids[i]})
-        request: dict = {
+        request = {
             'batchOrder': orders,
         }
         response = await self.privatePostBatchorder(self.extend(request, params))
@@ -1367,7 +1367,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         :param dict [params]: Exchange specific params
         :returns: Response from exchange api
         """
-        request: dict = {}
+        request = {}
         if symbol is not None:
             request['symbol'] = self.market_id(symbol)
         response = await self.privatePostCancelallorders(self.extend(request, params))
@@ -1404,7 +1404,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         #
         cancelStatus = self.safe_dict(response, 'cancelStatus')
         orderEvents = self.safe_list(cancelStatus, 'orderEvents', [])
-        orders: List[Any] = []
+        orders = []
         for i in range(0, len(orderEvents)):
             orderEvent = self.safe_dict(orderEvents, 0)
             order = self.safe_dict(orderEvent, 'order', {})
@@ -1422,7 +1422,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         :returns dict: the api result
         """
         await self.load_markets()
-        request: dict = {
+        request = {
             'timeout': (self.parse_to_int(timeout / 1000)) if (timeout > 0) else 0,
         }
         response = await self.privatePostCancelallordersafter(self.extend(request, params))
@@ -1451,7 +1451,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         :returns: An array of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
         response = await self.privateGetOpenorders(params)
@@ -1471,7 +1471,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         :returns: An array of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
         response = await self.privateGetOrdersStatus(params)
@@ -1490,7 +1490,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        request: dict = {
+        request = {
             'orderIds': [id],
         }
         orders = await self.fetch_orders(None, None, None, self.extend(request, params))
@@ -1513,10 +1513,10 @@ class krakenfutures(Exchange, ImplicitAPI):
         :returns: An array of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
-        request: dict = {}
+        request = {}
         if limit is not None:
             request['count'] = limit
         if since is not None:
@@ -1529,7 +1529,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         else:
             response = await self.historyGetOrders(self.extend(request, params))
         allOrders = self.safe_list(response, 'elements', [])
-        closedOrders: List[Any] = []
+        closedOrders = []
         for i in range(0, len(allOrders)):
             order = allOrders[i]
             event = self.safe_dict(order, 'event', {})
@@ -1563,10 +1563,10 @@ class krakenfutures(Exchange, ImplicitAPI):
         :returns: An array of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
-        request: dict = {}
+        request = {}
         if limit is not None:
             request['count'] = limit
         if since is not None:
@@ -1579,7 +1579,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         else:
             response = await self.historyGetOrders(self.extend(request, params))
         allOrders = self.safe_list(response, 'elements', [])
-        canceledAndRejected: List[Any] = []
+        canceledAndRejected = []
         for i in range(0, len(allOrders)):
             order = allOrders[i]
             event = self.safe_dict(order, 'event', {})
@@ -1604,7 +1604,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         return self.parse_orders(canceledAndRejected, market, since, limit)
 
     def parse_order_type(self, orderType):
-        typesMap: dict = {
+        typesMap = {
             'lmt': 'limit',
             'mkt': 'market',
             'post': 'limit',
@@ -1613,7 +1613,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         return self.safe_string(typesMap, orderType, orderType)
 
     def verify_order_action_success(self, status, method, omit: List[str] = []):
-        errors: dict = {
+        errors = {
             'invalidOrderType': InvalidOrder,
             'invalidSide': InvalidOrder,
             'invalidSize': InvalidOrder,
@@ -1639,7 +1639,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             raise errors[status](self.id + ': ' + method + ' failed due to ' + status)
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'placed': 'open',  # the order was placed successfully
             'cancelled': 'canceled',  # the order was cancelled successfully
             'invalidOrderType': 'rejected',  # the order was not placed because orderType is invalid
@@ -2016,14 +2016,14 @@ class krakenfutures(Exchange, ImplicitAPI):
         if ('orderEvents' in order) and (errorStatus is not None) and (orderEventsLength == 0):
             # creteOrders error response
             return self.safe_order({'info': order, 'status': 'rejected'})
-        details: NullableDict = None
+        details = None
         isPrior = False
         fixed = False
-        statusId: Str = None
-        price: Str = None
-        trades: List[Any] = []
+        statusId = None
+        price = None
+        trades = []
         if orderEventsLength:
-            executions: List[Any] = []
+            executions = []
             for i in range(0, len(orderEvents)):
                 item = orderEvents[i]
                 if self.safe_string(item, 'type') == 'EXECUTION':
@@ -2063,7 +2063,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         amount = self.safe_string(details, 'quantity')
         filled = self.safe_string_2(details, 'filledSize', 'filled', '0.0')
         remaining = self.safe_string(details, 'unfilledSize')
-        average: Str = None
+        average = None
         filled2 = '0.0'
         tradesLength = len(trades)
         if tradesLength > 0:
@@ -2092,7 +2092,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         # if fetchOpenOrders are parsed
         if (amount is None) and (not isPrior) and (remaining is not None):
             amount = Precise.string_add(filled, remaining)
-        cost: Str = None
+        cost = None
         if (filled is not None) and (market is not None):
             whichPrice = average if (average is not None) else price
             if whichPrice is not None:
@@ -2154,7 +2154,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
         # todo: lastFillTime: self.iso8601(end)
@@ -2371,7 +2371,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         isFlex = (accountType == 'multiCollateralMarginAccount')
         isCash = (accountType == 'cashAccount')
         balances = self.safe_value_2(response, 'balances', 'currencies', {})
-        result: dict = {}
+        result = {}
         currencyIds = list(balances.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
@@ -2409,7 +2409,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         marketIds = self.market_ids(symbols)
         response = await self.publicGetTickers(params)
         tickers = self.safe_list(response, 'tickers', [])
-        fundingRates: List[Any] = []
+        fundingRates = []
         for i in range(0, len(tickers)):
             entry = tickers[i]
             entry_symbol = self.safe_value(entry, 'symbol')
@@ -2504,7 +2504,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['swap']:
             raise BadRequest(self.id + ' fetchFundingRateHistory() supports swap contracts only')
-        request: dict = {
+        request = {
             'symbol': self.safe_string_upper(market, 'id'),
         }
         response = await self.publicGetHistoricalfundingrates(self.extend(request, params))
@@ -2521,7 +2521,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         #    }
         #
         rates = self.safe_value(response, 'rates')
-        result: List[Any] = []
+        result = []
         for i in range(0, len(rates)):
             item = rates[i]
             datetime = self.safe_string(item, 'timestamp')
@@ -2546,7 +2546,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         :returns: Parsed exchange response for positions
         """
         await self.load_markets()
-        request: dict = {}
+        request = {}
         response = await self.privateGetOpenpositions(request)
         #
         #    {
@@ -2568,7 +2568,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
     def parse_positions(self, response, symbols: Strings = None, params={}):
-        result: List[Any] = []
+        result = []
         positions = self.safe_value(response, 'openPositions')
         for i in range(0, len(positions)):
             position = self.parse_position(positions[i])
@@ -2730,7 +2730,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         marginLevels = self.safe_value(info, 'marginLevels')
         marketId = self.safe_string(info, 'symbol')
         market = self.safe_market(marketId, market)
-        tiers: List[Any] = []
+        tiers = []
         if marginLevels is None:
             return tiers
         for i in range(0, len(marginLevels)):
@@ -2776,7 +2776,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         }
 
     def parse_account(self, account):
-        accountByType: dict = {
+        accountByType = {
             'main': 'cash',
             'funding': 'cash',
             'future': 'cash',
@@ -2827,7 +2827,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         currency = self.currency(code)
         if fromAccount == 'spot':
             raise BadRequest(self.id + ' transfer does not yet support transfers from spot')
-        request: dict = {
+        request = {
             'amount': amount,
         }
         response: dict
@@ -2868,7 +2868,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
         await self.load_markets()
-        request: dict = {
+        request = {
             'maxLeverage': leverage,
             'symbol': self.market_id(symbol).upper(),
         }
@@ -2918,7 +2918,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchLeverage() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': self.market_id(symbol).upper(),
         }
         response = await self.privateGetLeveragepreferences(self.extend(request, params))

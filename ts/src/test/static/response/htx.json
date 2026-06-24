@@ -3157,103 +3157,104 @@
         ],
         "fetchBalance": [
             {
-              "description": "fetch balance multi asset mode",
-              "method": "fetchBalance",
-              "input": [
-                {
-                  "multiAssetMode": true
-                }
-              ],
-              "httpResponse": {
-                "code": "200",
-                "message": "Success",
-                "data": {
-                  "state": "normal",
-                  "equity": "174.216697577770536136",
-                  "details": [
+                "description": "Linear swap fetch balance",
+                "method": "fetchBalance",
+                "input": [
                     {
-                      "currency": "USDT",
-                      "equity": "174.216697577770536136",
-                      "available": "174.216697577770536136",
-                      "profit_unreal": "0",
-                      "initial_margin": "0",
-                      "maintenance_margin": "0",
-                      "maintenance_margin_rate": "0",
-                      "initial_margin_rate": "0",
-                      "available_margin": "174.216697577770536136",
-                      "voucher": "0",
-                      "voucher_value": "0",
-                      "withdraw_available": "174.216697577770536136",
-                      "created_time": "1770293270932",
-                      "updated_time": "1770293270932",
-                      "isolated_equity": "0",
-                      "isolated_profit_unreal": "0"
+                        "type": "swap",
+                        "subType": "linear"
                     }
-                  ],
-                  "initial_margin": "0",
-                  "maintenance_margin": "0",
-                  "maintenance_margin_rate": "0",
-                  "profit_unreal": "0",
-                  "available_margin": "174.216697577770536136",
-                  "voucher_value": "0",
-                  "created_time": "1770293268881",
-                  "updated_time": "1770293270932"
-                },
-                "ts": "1770293556917"
-              },
-              "parsedResponse": {
-                "info": {
-                  "code": "200",
-                  "message": "Success",
-                  "data": {
-                    "state": "normal",
-                    "equity": "174.216697577770536136",
-                    "details": [
-                      {
-                        "currency": "USDT",
-                        "equity": "174.216697577770536136",
-                        "available": "174.216697577770536136",
-                        "profit_unreal": "0",
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "Success",
+                    "data": {
+                        "state": "normal",
+                        "equity": "0",
+                        "details": [
+                            {
+                                "currency": "USDT",
+                                "equity": "162.523160998562004875",
+                                "available": "162.523160998562004875",
+                                "profit_unreal": "0",
+                                "initial_margin": "4.024",
+                                "maintenance_margin": "0.21621246",
+                                "maintenance_margin_rate": "0.001330348601833513",
+                                "initial_margin_rate": "0.024759547963970526",
+                                "available_margin": "158.499160998562004875",
+                                "voucher": "0",
+                                "voucher_value": "0",
+                                "withdraw_available": "158.499160998562004875",
+                                "created_time": "1770293270932",
+                                "updated_time": "1781939212041",
+                                "isolated_equity": "0",
+                                "isolated_profit_unreal": "0"
+                            }
+                        ],
                         "initial_margin": "0",
                         "maintenance_margin": "0",
                         "maintenance_margin_rate": "0",
-                        "initial_margin_rate": "0",
-                        "available_margin": "174.216697577770536136",
-                        "voucher": "0",
+                        "profit_unreal": "0",
+                        "available_margin": "0",
                         "voucher_value": "0",
-                        "withdraw_available": "174.216697577770536136",
-                        "created_time": "1770293270932",
-                        "updated_time": "1770293270932",
-                        "isolated_equity": "0",
-                        "isolated_profit_unreal": "0"
-                      }
-                    ],
-                    "initial_margin": "0",
-                    "maintenance_margin": "0",
-                    "maintenance_margin_rate": "0",
-                    "profit_unreal": "0",
-                    "available_margin": "174.216697577770536136",
-                    "voucher_value": "0",
-                    "created_time": "1770293268881",
-                    "updated_time": "1770293270932"
-                  },
-                  "ts": "1770293556917"
+                        "created_time": "1770293268881",
+                        "updated_time": "1780329743956"
+                    },
+                    "ts": "1781939212050"
                 },
-                "USDT": {
-                  "free": 174.21669757777053,
-                  "used": null,
-                  "total": null
-                },
-                "free": {
-                  "USDT": 174.21669757777053
-                },
-                "used": {
-                  "USDT": null
-                },
-                "total": {
-                  "USDT": null
+                "parsedResponse": {
+                    "info": {
+                        "code": "200",
+                        "message": "Success",
+                        "data": {
+                            "state": "normal",
+                            "equity": "0",
+                            "details": [
+                                {
+                                    "currency": "USDT",
+                                    "equity": "162.523160998562004875",
+                                    "available": "162.523160998562004875",
+                                    "profit_unreal": "0",
+                                    "initial_margin": "4.024",
+                                    "maintenance_margin": "0.21621246",
+                                    "maintenance_margin_rate": "0.001330348601833513",
+                                    "initial_margin_rate": "0.024759547963970526",
+                                    "available_margin": "158.499160998562004875",
+                                    "voucher": "0",
+                                    "voucher_value": "0",
+                                    "withdraw_available": "158.499160998562004875",
+                                    "created_time": "1770293270932",
+                                    "updated_time": "1781939212041",
+                                    "isolated_equity": "0",
+                                    "isolated_profit_unreal": "0"
+                                }
+                            ],
+                            "initial_margin": "0",
+                            "maintenance_margin": "0",
+                            "maintenance_margin_rate": "0",
+                            "profit_unreal": "0",
+                            "available_margin": "0",
+                            "voucher_value": "0",
+                            "created_time": "1770293268881",
+                            "updated_time": "1780329743956"
+                        },
+                        "ts": "1781939212050"
+                    },
+                    "USDT": {
+                        "free": 158.49916099856202,
+                        "used": 4.024,
+                        "total": 162.523160998562
+                    },
+                    "free": {
+                        "USDT": 158.49916099856202
+                    },
+                    "used": {
+                        "USDT": 4.024
+                    },
+                    "total": {
+                        "USDT": 162.523160998562
+                    }
                 }
-              }
             }
         ],
         "fetchPositionADLRank": [
@@ -4839,6 +4840,195 @@
                         "fundingRate": 0.0001,
                         "timestamp": 1781251200000,
                         "datetime": "2026-06-12T08:00:00.000Z"
+                    }
+                ]
+            }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "Linear swap fetch funding history",
+                "method": "fetchFundingHistory",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "Success",
+                    "data": [
+                        {
+                            "id": "2194774775",
+                            "type": "30",
+                            "currency": "USDT",
+                            "amount": "0.000433432461821856",
+                            "contract_code": "BTC-USDT",
+                            "margin_mode": "cross",
+                            "created_time": "1780963213165"
+                        },
+                        {
+                            "id": "2194672211",
+                            "type": "30",
+                            "currency": "USDT",
+                            "amount": "0.003552384039005036",
+                            "contract_code": "BTC-USDT",
+                            "margin_mode": "cross",
+                            "created_time": "1780934413527"
+                        },
+                        {
+                            "id": "2194540518",
+                            "type": "30",
+                            "currency": "USDT",
+                            "amount": "0.003736324290641847",
+                            "contract_code": "BTC-USDT",
+                            "margin_mode": "cross",
+                            "created_time": "1780905620461"
+                        }
+                    ],
+                    "ts": "1781772448836"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "2194540518",
+                            "type": "30",
+                            "currency": "USDT",
+                            "amount": "0.003736324290641847",
+                            "contract_code": "BTC-USDT",
+                            "margin_mode": "cross",
+                            "created_time": "1780905620461"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "code": "USDT",
+                        "timestamp": 1780905620461,
+                        "datetime": "2026-06-08T08:00:20.461Z",
+                        "id": "2194540518",
+                        "amount": 0.003736324290641847
+                    },
+                    {
+                        "info": {
+                            "id": "2194672211",
+                            "type": "30",
+                            "currency": "USDT",
+                            "amount": "0.003552384039005036",
+                            "contract_code": "BTC-USDT",
+                            "margin_mode": "cross",
+                            "created_time": "1780934413527"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "code": "USDT",
+                        "timestamp": 1780934413527,
+                        "datetime": "2026-06-08T16:00:13.527Z",
+                        "id": "2194672211",
+                        "amount": 0.003552384039005036
+                    },
+                    {
+                        "info": {
+                            "id": "2194774775",
+                            "type": "30",
+                            "currency": "USDT",
+                            "amount": "0.000433432461821856",
+                            "contract_code": "BTC-USDT",
+                            "margin_mode": "cross",
+                            "created_time": "1780963213165"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "code": "USDT",
+                        "timestamp": 1780963213165,
+                        "datetime": "2026-06-09T00:00:13.165Z",
+                        "id": "2194774775",
+                        "amount": 0.000433432461821856
+                    }
+                ]
+            }
+        ],
+        "fetchSettlementHistory": [
+            {
+                "description": "Linear swap fetch settlement history",
+                "method": "fetchSettlementHistory",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "Success",
+                    "data": [
+                        {
+                            "id": "14890",
+                            "contract_code": "BTC-USDT",
+                            "settlement_time": "1781683200000",
+                            "clawback_ratio": "0",
+                            "settlement_price": "65516.0425978568703878"
+                        }
+                    ],
+                    "ts": "1781853535612"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "14890",
+                            "contract_code": "BTC-USDT",
+                            "settlement_time": "1781683200000",
+                            "clawback_ratio": "0",
+                            "settlement_price": "65516.0425978568703878"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "price": 65516.04259785687,
+                        "timestamp": 1781683200000,
+                        "datetime": "2026-06-17T08:00:00.000Z"
+                    }
+                ]
+            }
+        ],
+        "fetchLiquidations": [
+            {
+                "description": "Linear swap fetch liquidations",
+                "method": "fetchLiquidations",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "Success",
+                    "data": [
+                        {
+                            "id": "150153038758",
+                            "contract_code": "BTC-USDT",
+                            "liquidation_time": "1781849094165",
+                            "side": "buy",
+                            "position_side": "short",
+                            "volume": "2",
+                            "amount": "2",
+                            "bankrupt_price": "62978.5",
+                            "trade_turnover": "125.957"
+                        }
+                    ],
+                    "ts": "1781854869221"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "150153038758",
+                            "contract_code": "BTC-USDT",
+                            "liquidation_time": "1781849094165",
+                            "side": "buy",
+                            "position_side": "short",
+                            "volume": "2",
+                            "amount": "2",
+                            "bankrupt_price": "62978.5",
+                            "trade_turnover": "125.957"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "contracts": 2,
+                        "contractSize": null,
+                        "price": 62978.5,
+                        "side": "buy",
+                        "baseValue": 2,
+                        "quoteValue": 125.957,
+                        "timestamp": 1781849094165,
+                        "datetime": "2026-06-19T06:04:54.165Z"
                     }
                 ]
             }

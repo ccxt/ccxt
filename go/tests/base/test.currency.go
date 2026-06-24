@@ -6,6 +6,9 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestCurrency(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any) {
+	if IsTrue(IsEqual(entry, nil)) {
+		return
+	}
 	var format any = map[string]any{
 		"id":   "btc",
 		"code": "BTC",

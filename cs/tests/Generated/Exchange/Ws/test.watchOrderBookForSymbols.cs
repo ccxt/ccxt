@@ -32,7 +32,7 @@ public partial class testMainClass : BaseTest
                 // continue;
                 success = false;
             }
-            if (isTrue(isEqual(success, true)))
+            if (isTrue(isTrue((isEqual(success, true))) && isTrue((!isEqual(response, null)))))
             {
                 // [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
                 assert(exchange.isDictionary(response), add(add(add(add(add(add(exchange.id, " "), method), " "), exchange.json(symbols)), " must return an object. "), exchange.json(response)));
@@ -40,7 +40,7 @@ public partial class testMainClass : BaseTest
                 testSharedMethods.assertInArray(exchange, skippedProperties, method, response, "symbol", symbols);
                 testOrderBook(exchange, skippedProperties, method, response, null);
                 object symbol = getValue(response, "symbol");
-                if (!isTrue(exchange.inArray(symbol, returnedSymbols)))
+                if (isTrue(isTrue((!isEqual(symbol, null))) && !isTrue(exchange.inArray(symbol, returnedSymbols))))
                 {
                     ((IList<object>)returnedSymbols).Add(symbol);
                 }

@@ -119,20 +119,20 @@ class cryptocom(ccxt.async_support.cryptocom):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
-        topics: List[str] = []
-        messageHashes: List[str] = []
+        topics = []
+        messageHashes = []
         if not limit:
             limit = 50
         topicParams = self.safe_value(params, 'params')
         if topicParams is None:
             params['params'] = {}
-        bookSubscriptionType: Str = None
-        bookSubscriptionType2: Str = None
+        bookSubscriptionType = None
+        bookSubscriptionType2 = None
         bookSubscriptionType, params = self.handle_option_and_params(params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE')
         bookSubscriptionType2, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'bookSubscriptionType', bookSubscriptionType)
         params['params']['bookSubscriptionType'] = bookSubscriptionType2
-        bookUpdateFrequency: Str = None
-        bookUpdateFrequency2: Str = None
+        bookUpdateFrequency = None
+        bookUpdateFrequency2 = None
         bookUpdateFrequency, params = self.handle_option_and_params(params, 'watchOrderBook', 'bookUpdateFrequency')
         bookUpdateFrequency2, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency)
         if bookUpdateFrequency2 is not None:
@@ -162,20 +162,20 @@ class cryptocom(ccxt.async_support.cryptocom):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
-        topics: List[str] = []
-        subMessageHashes: List[str] = []
-        messageHashes: List[str] = []
+        topics = []
+        subMessageHashes = []
+        messageHashes = []
         limit = self.safe_integer(params, 'limit', 50)
         topicParams = self.safe_value(params, 'params')
         if topicParams is None:
             params['params'] = {}
-        bookSubscriptionType: Str = None
-        bookSubscriptionType2: Str = None
+        bookSubscriptionType = None
+        bookSubscriptionType2 = None
         bookSubscriptionType, params = self.handle_option_and_params(params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE')
         bookSubscriptionType2, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'bookSubscriptionType', bookSubscriptionType)
         params['params']['bookSubscriptionType'] = bookSubscriptionType2
-        bookUpdateFrequency: Str = None
-        bookUpdateFrequency2: Str = None
+        bookUpdateFrequency = None
+        bookUpdateFrequency2 = None
         bookUpdateFrequency, params = self.handle_option_and_params(params, 'watchOrderBook', 'bookUpdateFrequency')
         bookUpdateFrequency2, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency)
         if bookUpdateFrequency2 is not None:
@@ -330,7 +330,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
-        topics: List[str] = []
+        topics = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
@@ -355,8 +355,8 @@ class cryptocom(ccxt.async_support.cryptocom):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
-        topics: List[str] = []
-        messageHashes: List[str] = []
+        topics = []
+        messageHashes = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
@@ -422,7 +422,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
@@ -476,14 +476,14 @@ class cryptocom(ccxt.async_support.cryptocom):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
-        messageHashes: List[str] = []
+        messageHashes = []
         marketIds = self.market_ids(symbols)
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             messageHashes.append('ticker.' + marketId)
         url = self.urls['api']['ws']['public']
         id = self.nonce()
-        request: dict = {
+        request = {
             'method': 'subscribe',
             'params': {
                 'channels': messageHashes,
@@ -492,7 +492,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         }
         ticker = await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
         if self.newUpdates:
-            result: dict = {}
+            result = {}
             result[ticker['symbol']] = ticker
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
@@ -509,8 +509,8 @@ class cryptocom(ccxt.async_support.cryptocom):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
-        messageHashes: List[str] = []
-        subMessageHashes: List[str] = []
+        messageHashes = []
+        subMessageHashes = []
         marketIds = self.market_ids(symbols)
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
@@ -614,8 +614,8 @@ class cryptocom(ccxt.async_support.cryptocom):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
-        messageHashes: List[str] = []
-        topics: List[str] = []
+        messageHashes = []
+        topics = []
         marketIds = self.market_ids(symbols)
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
@@ -623,7 +623,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             topics.append('ticker.' + marketId)
         url = self.urls['api']['ws']['public']
         id = self.nonce()
-        request: dict = {
+        request = {
             'method': 'subscribe',
             'params': {
                 'channels': topics,
@@ -632,7 +632,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         }
         newTickers = await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
         if self.newUpdates:
-            tickers: dict = {}
+            tickers = {}
             tickers[newTickers['symbol']] = newTickers
             return tickers
         return self.filter_by_array(self.bidsasks, 'symbol', symbols)
@@ -750,7 +750,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
@@ -825,7 +825,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         await self.authenticate()
         url = self.urls['api']['ws']['private']
         id = self.nonce()
-        request: dict = {
+        request = {
             'method': 'subscribe',
             'params': {
                 'channels': ['user.position_balance'],
@@ -906,7 +906,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         if self.positions is None:
             self.positions = ArrayCacheBySymbolBySide()
         cache = self.positions
-        newPositions: List[Position] = []
+        newPositions = []
         for i in range(0, len(rawPositions)):
             rawPosition = rawPositions[i]
             position = self.parse_position(rawPosition)
@@ -1015,7 +1015,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         """
         await self.load_markets()
         params = self.create_order_request(symbol, type, side, amount, price, params)
-        request: dict = {
+        request = {
             'method': 'private/create-order',
             'params': params,
         }
@@ -1040,7 +1040,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         """
         await self.load_markets()
         params = self.edit_order_request(id, symbol, amount, price, params)
-        request: dict = {
+        request = {
             'method': 'private/amend-order',
             'params': params,
         }
@@ -1079,7 +1079,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         params = self.extend({
             'order_id': id,
         }, params)
-        request: dict = {
+        request = {
             'method': 'private/cancel-order',
             'params': params,
         }
@@ -1097,8 +1097,8 @@ class cryptocom(ccxt.async_support.cryptocom):
         :returns dict} Returns exchange raw message {@link https://docs.ccxt.com/?id=order-structure:
         """
         await self.load_markets()
-        market: Market = None
-        request: dict = {
+        market = None
+        request = {
             'method': 'private/cancel-all-orders',
             'params': self.extend({}, params),
         }
@@ -1122,7 +1122,7 @@ class cryptocom(ccxt.async_support.cryptocom):
     async def watch_public(self, messageHash, params={}):
         url = self.urls['api']['ws']['public']
         id = self.nonce()
-        request: dict = {
+        request = {
             'method': 'subscribe',
             'params': {
                 'channels': [messageHash],
@@ -1135,7 +1135,7 @@ class cryptocom(ccxt.async_support.cryptocom):
     async def watch_public_multiple(self, messageHashes, topics, params={}):
         url = self.urls['api']['ws']['public']
         id = self.nonce()
-        request: dict = {
+        request = {
             'method': 'subscribe',
             'params': {
                 'channels': topics,
@@ -1148,7 +1148,7 @@ class cryptocom(ccxt.async_support.cryptocom):
     async def un_watch_public_multiple(self, topic: str, symbols: List[str], messageHashes: List[str], subMessageHashes: List[str], topics: List[str], params={}, subExtend={}):
         url = self.urls['api']['ws']['public']
         id = self.nonce()
-        request: dict = {
+        request = {
             'method': 'unsubscribe',
             'params': {
                 'channels': topics,
@@ -1169,7 +1169,7 @@ class cryptocom(ccxt.async_support.cryptocom):
     async def watch_private_request(self, nonce, params={}):
         await self.authenticate()
         url = self.urls['api']['ws']['private']
-        request: dict = {
+        request = {
             'id': nonce,
             'nonce': nonce,
         }
@@ -1180,7 +1180,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         await self.authenticate()
         url = self.urls['api']['ws']['private']
         id = self.nonce()
-        request: dict = {
+        request = {
             'method': 'subscribe',
             'params': {
                 'channels': [messageHash],
@@ -1221,7 +1221,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             return True
 
     def handle_subscribe(self, client: Client, message):
-        methods: dict = {
+        methods = {
             'candlestick': self.handle_ohlcv,
             'ticker': self.handle_ticker,
             'trade': self.handle_trades,
@@ -1281,7 +1281,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         if self.handle_error_message(client, message):
             return
         method = self.safe_string(message, 'method')
-        methods: dict = {
+        methods = {
             '': self.handle_ping,
             'public/heartbeat': self.handle_ping,
             'public/auth': self.handle_authenticate,
@@ -1309,7 +1309,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             nonce = str(self.nonce())
             auth = method + nonce + self.apiKey + nonce
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
-            request: dict = {
+            request = {
                 'id': nonce,
                 'nonce': nonce,
                 'method': method,

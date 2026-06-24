@@ -132,7 +132,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
         Helpers.addElementToObject(ticker, "timestamp", timestamp);
         Helpers.addElementToObject(ticker, "datetime", this.iso8601(timestamp));
         Object symbol = Helpers.GetValue(ticker, "symbol");
-        Helpers.addElementToObject(this.tickers, symbol, ticker);
+        Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
         client.resolve(ticker, ch);
         return message;
     }
@@ -311,12 +311,12 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
         Object interval = this.safeString(parts, 3);
         Object timeframe = this.findTimeframe(interval);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
-        Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
+        Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe));
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
             Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-            Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), timeframe, stored);
+            Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe), stored);
         }
         Object tick = this.safeValue(message, "tick");
         Object parsed = this.parseOHLCV(tick, market);
@@ -402,9 +402,9 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
         Object symbol = this.safeString(subscription, "symbol");
         Object messageHash = this.safeString(subscription, "messageHash");
         Object timestamp = this.safeInteger(message, "ts");
-        Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
+        Object orderbook = Helpers.GetValue(this.orderbooks, ((String)symbol));
         Object data = this.safeValue(message, "data");
-        Object snapshot = this.parseOrderBook(data, symbol);
+        Object snapshot = this.parseOrderBook(data, ((String)symbol));
         Helpers.addElementToObject(snapshot, "nonce", this.safeInteger(data, "seqNum"));
         Helpers.addElementToObject(snapshot, "timestamp", timestamp);
         Helpers.addElementToObject(snapshot, "datetime", this.iso8601(timestamp));
@@ -415,7 +415,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
         {
             this.handleOrderBookMessage(client, Helpers.GetValue(messages, i), orderbook);
         }
-        Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
+        Helpers.addElementToObject(this.orderbooks, ((String)symbol), orderbook);
         client.resolve(orderbook, messageHash);
     }
 
@@ -454,7 +454,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
                 return Helpers.callDynamically(orderbook, "limit", new Object[]{});
             } catch(Exception e)
             {
-                ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
+                ((java.util.Map<String,Object>)client.subscriptions).remove((String)((String)messageHash));
                 client.reject(e, messageHash);
             }
             return null;
@@ -562,9 +562,9 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
         Object limit = this.safeInteger(subscription, "limit");
         if (Helpers.isTrue(Helpers.inOp(this.orderbooks, symbol)))
         {
-            ((java.util.Map<String,Object>)this.orderbooks).remove((String)symbol);
+            ((java.util.Map<String,Object>)this.orderbooks).remove((String)((String)symbol));
         }
-        Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}, limit));
+        Helpers.addElementToObject(this.orderbooks, ((String)symbol), this.orderBook(new java.util.HashMap<String, Object>() {{}}, limit));
         // watch the snapshot in a separate async call
         this.spawn(() -> { try { this.watchOrderBookSnapshot(client, message, subscription); } catch(Exception _e) { throw new RuntimeException(_e); } });
     }
@@ -581,7 +581,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
         //
         Object id = this.safeString(message, "id");
         Object subscriptionsById = this.indexBy(client.subscriptions, "id");
-        Object subscription = this.safeValue(subscriptionsById, id);
+        Object subscription = this.safeValue(subscriptionsById, ((String)id));
         if (Helpers.isTrue(!Helpers.isEqual(subscription, null)))
         {
             Object method = this.safeValue(subscription, "method");
@@ -592,7 +592,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
             // clean up
             if (Helpers.isTrue(Helpers.inOp(client.subscriptions, id)))
             {
-                ((java.util.Map<String,Object>)client.subscriptions).remove((String)id);
+                ((java.util.Map<String,Object>)client.subscriptions).remove((String)((String)id));
             }
         }
         return message;
@@ -647,7 +647,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
                 put( "trade", "handleTrades");
                 put( "kline", "handleOHLCV");
             }};
-            Object method = this.safeValue(methods, methodName);
+            Object method = this.safeValue(methods, ((String)methodName));
             if (Helpers.isTrue(!Helpers.isEqual(method, null)))
             {
                 Helpers.callDynamically(this, method, new Object[] {client, message});
@@ -692,7 +692,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
         {
             Object id = this.safeString(message, "id");
             Object subscriptionsById = this.indexBy(client.subscriptions, "id");
-            Object subscription = this.safeValue(subscriptionsById, id);
+            Object subscription = this.safeValue(subscriptionsById, ((String)id));
             if (Helpers.isTrue(!Helpers.isEqual(subscription, null)))
             {
                 Object errorCode = this.safeString(message, "err-code");
@@ -706,7 +706,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
                     client.reject(e, id);
                     if (Helpers.isTrue(Helpers.inOp(client.subscriptions, id)))
                     {
-                        ((java.util.Map<String,Object>)client.subscriptions).remove((String)id);
+                        ((java.util.Map<String,Object>)client.subscriptions).remove((String)((String)id));
                     }
                 }
             }

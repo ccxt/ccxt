@@ -603,7 +603,7 @@ func  (this *BingxCore) HandleTrades(client any, message any)  {
     //     }
     //
     var data any = this.SafeValue(message, "data", []any{})
-    var rawHash any = this.SafeString(message, "dataType")
+    var rawHash any = this.SafeString(message, "dataType", "")
     var marketId any = ccxt.GetValue(ccxt.Split(rawHash, "@"), 0)
     var isSwap any = ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "swap"), 0)
     var marketType any = ccxt.Ternary(ccxt.IsTrue(isSwap), "swap", "spot")
@@ -815,7 +815,7 @@ func  (this *BingxCore) HandleOrderBook(client any, message any)  {
     //     }
     //
     var data any = this.SafeDict(message, "data", map[string]any {})
-    var dataType any = this.SafeString(message, "dataType")
+    var dataType any = this.SafeString(message, "dataType", "")
     var parts any = ccxt.Split(dataType, "@")
     var firstPart any = ccxt.GetValue(parts, 0)
     var isAllEndpoint any =     (ccxt.IsEqual(firstPart, "all"))
@@ -870,9 +870,9 @@ func  (this *BingxCore) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any  {
     // for linear swap, (T) is the opening time
     market := ccxt.GetArg(optionalArgs, 0, nil)
     _ = market
-    var timestamp any = ccxt.Ternary(ccxt.IsTrue((ccxt.GetValue(market, "spot"))), "t", "T")
-    if ccxt.IsTrue(ccxt.GetValue(market, "swap")) {
-        timestamp = ccxt.Ternary(ccxt.IsTrue((ccxt.GetValue(market, "inverse"))), "t", "T")
+    var timestamp any = ccxt.Ternary(ccxt.IsTrue(this.SafeBool(market, "spot")), "t", "T")
+    if ccxt.IsTrue(this.SafeBool(market, "swap")) {
+        timestamp = ccxt.Ternary(ccxt.IsTrue(this.SafeBool(market, "inverse")), "t", "T")
     }
     return []any{this.SafeInteger(ohlcv, timestamp), this.SafeNumber(ohlcv, "o"), this.SafeNumber(ohlcv, "h"), this.SafeNumber(ohlcv, "l"), this.SafeNumber(ohlcv, "c"), this.SafeNumber(ohlcv, "v")}
 }
@@ -942,7 +942,7 @@ func  (this *BingxCore) HandleOHLCV(client any, message any)  {
     //     }
     //
     var isSwap any = ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "swap"), 0)
-    var dataType any = this.SafeString(message, "dataType")
+    var dataType any = this.SafeString(message, "dataType", "")
     var parts any = ccxt.Split(dataType, "@")
     var firstPart any = ccxt.GetValue(parts, 0)
     var isAllEndpoint any =     (ccxt.IsEqual(firstPart, "all"))
@@ -1171,7 +1171,7 @@ func  (this *BingxCore) WatchOrders(optionalArgs ...any) <- chan any {
             }
             var uuid any = this.Uuid()
             var baseUrl any = nil
-            var request any = nil
+            var request any = map[string]any {}
             if ccxt.IsTrue(ccxt.IsEqual(typeVar, "swap")) {
                 if ccxt.IsTrue(ccxt.IsEqual(subType, "inverse")) {
                     panic(ccxt.NotSupported(ccxt.Add(this.Id, " watchOrders is not supported for inverse swap markets yet")))
@@ -1260,7 +1260,7 @@ func  (this *BingxCore) WatchMyTrades(optionalArgs ...any) <- chan any {
             }
             var uuid any = this.Uuid()
             var baseUrl any = nil
-            var request any = nil
+            var request any = map[string]any {}
             if ccxt.IsTrue(ccxt.IsEqual(typeVar, "swap")) {
                 if ccxt.IsTrue(ccxt.IsEqual(subType, "inverse")) {
                     panic(ccxt.NotSupported(ccxt.Add(this.Id, " watchMyTrades is not supported for inverse swap markets yet")))
@@ -1330,7 +1330,7 @@ func  (this *BingxCore) WatchBalance(optionalArgs ...any) <- chan any {
             var swapMessageHash any = "swap:balance"
             var messageHash any = ccxt.Ternary(ccxt.IsTrue(isSpot), spotMessageHash, swapMessageHash)
             var subscriptionHash any = ccxt.Ternary(ccxt.IsTrue(isSpot), spotSubHash, swapSubHash)
-            var request any = nil
+            var request any = map[string]any {}
             var baseUrl any = nil
             var uuid any = this.Uuid()
             if ccxt.IsTrue(ccxt.IsEqual(typeVar, "swap")) {
@@ -1444,7 +1444,7 @@ func  (this *BingxCore) WatchPositions(optionalArgs ...any) <- chan any {
             var market any = nil
             var messageHash any = ""
             symbols = this.MarketSymbols(symbols)
-            if !ccxt.IsTrue(this.IsEmpty(symbols)) {
+            if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(symbols, nil))) && !ccxt.IsTrue(this.IsEmpty(symbols))) {
                 market = this.GetMarketFromSymbols(symbols)
                 messageHash = ccxt.Add("::", ccxt.Join(symbols, ","))
             }

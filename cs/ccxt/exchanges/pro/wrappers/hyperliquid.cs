@@ -291,7 +291,7 @@ public partial class hyperliquid
     /// <item>
     /// <term>params.dex</term>
     /// <description>
-    /// string : for for hip3 tokens subscription, eg: 'xyz' or 'flx`, if symbols are provided we will infer it from the first symbol's market
+    /// string : for hip3 tokens subscription, eg: 'xyz' or 'flx`, if symbols are provided we will infer it from the first symbol's market
     /// </description>
     /// </item>
     /// </list>
@@ -425,7 +425,7 @@ public partial class hyperliquid
     /// <item>
     /// <term>params.dex</term>
     /// <description>
-    /// string : for for hip3 tokens subscription, eg: 'xyz' or 'flx'
+    /// string : for hip3 tokens subscription, eg: 'xyz' or 'flx'
     /// </description>
     /// </item>
     /// </list>
@@ -452,6 +452,12 @@ public partial class hyperliquid
     /// <term>limit</term>
     /// <description>
     /// int : the maximum number of positions to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.dex</term>
+    /// <description>
+    /// string : for hip3 tokens subscription, eg: 'xyz' or 'flx`, if symbols are provided we will infer it from the first symbol's market
     /// </description>
     /// </item>
     /// </list>
