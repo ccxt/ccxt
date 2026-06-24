@@ -1,12 +1,12 @@
 import deepcoinRest from '../deepcoin.js';
-import type { Dict, Int, Market, MarketInterface, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
+import type { Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class deepcoin extends deepcoinRest {
     describe(): any;
     ping(client: Client): string;
     handlePong(client: Client, message: any): any;
     requestId(): any;
-    createPublicRequest(market: MarketInterface, requestId: number, topicID: string, suffix?: string, unWatch?: boolean): {
+    createPublicRequest(market: any, requestId: number, topicID: string, suffix?: string, unWatch?: boolean): {
         sendTopicAction: {
             Action: string;
             FilterValue: string;
@@ -15,8 +15,8 @@ export default class deepcoin extends deepcoinRest {
             TopicID: string;
         };
     };
-    watchPublic(market: MarketInterface, messageHash: string, topicID: string, params?: Dict, suffix?: string): Promise<any>;
-    unWatchPublic(market: MarketInterface, messageHash: string, topicID: string, params?: Dict, subscription?: Dict, suffix?: string): Promise<any>;
+    watchPublic(market: any, messageHash: string, topicID: string, params?: Dict, suffix?: string): Promise<any>;
+    unWatchPublic(market: any, messageHash: string, topicID: string, params?: Dict, subscription?: Dict, suffix?: string): Promise<any>;
     watchPrivate(messageHash: string, params?: Dict): Promise<any>;
     authenticate(params?: {}): Promise<string>;
     /**
