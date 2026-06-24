@@ -21,7 +21,7 @@ import ccxt from '../../js/ccxt.js';
         catch (e) {
             console.log(exchangeId, e.message.slice(0, 100));
         }
-        resolve();
+        resolve(tickers);
     })));
     console.log('-----------------------------------------------------------');
     console.log(Object

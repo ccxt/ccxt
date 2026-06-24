@@ -106,7 +106,7 @@ async function main() {
     else {
         log(table);
     }
-    log('Summary: ', ccxt.exchanges.length.toString(), 'exchanges; ', 'Methods [' + total.toString() + ' total]: ', implemented.toString().green, 'implemented,', emulated.toString().yellow, 'emulated,', (inexistentApi.toString().red.dim), 'inexistentApi,', (notImplemented.toString().lightRed), 'notImplemented');
-    log("\nMessy? Try piping to less (e.g. node script.js | less -S -R --header=3 )\n".red);
+    log('Summary: ', ccxt.exchanges.length.toString(), 'exchanges; ', 'Methods [' + total.toString() + ' total]: ', implemented.toString().green, 'implemented,', emulated.toString().yellow, 'emulated,', inexistentApi.toString().red.dim, 'inexistentApi,', notImplemented.toString().lightRed, 'notImplemented');
+    log(("\nMessy? Try piping to less (e.g. node script.js | less -S -R --header=3 )\n").red);
 }
 main();

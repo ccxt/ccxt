@@ -18,7 +18,7 @@ async function main() {
     console.log('Started');
     const start = Date.now();
     try {
-        const promises = Object.values(exchanges).map(exchange => ((async () => {
+        const promises = Object.values(exchanges).map((exchange) => ((async () => {
             console.log(exchange.id);
             try {
                 const response = await exchange.fetchTickers();

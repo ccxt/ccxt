@@ -48,6 +48,7 @@ if (!(keysGlobalExists || keysLocalExists)) {
 }
 let globalKeysFile = keysGlobalExists ? keysGlobal : false;
 let localKeysFile = keysLocalExists ? keysLocal : globalKeysFile;
+// @ts-ignore
 const dynamicLocalKeysFile = JSON.parse(fs.readFileSync(localKeysFile));
 let settings = localKeysFile ? (dynamicLocalKeysFile || {}) : {};
 //-----------------------------------------------------------------------------
@@ -156,7 +157,7 @@ function initializeAllExchanges() {
                 sum += parseFloat(result[currency]);
             }
         });
-        total[currency] = decimalToPrecision(sum, ROUND, 8, DECIMAL_PLACES);
+        total[currency] = decimalToPrecision(sum.toString(), ROUND, 8, DECIMAL_PLACES);
     }
     results.push(extend({ 'exchange': 'total' }, total));
     results = results.map(result => {
@@ -180,7 +181,7 @@ function initializeAllExchanges() {
         });
         return extend({
             'exchange': result.exchange,
-            '$': decimalToPrecision(value, ROUND, 2, DECIMAL_PLACES, PAD_WITH_ZERO),
+            '$': decimalToPrecision(value.toString(), ROUND, 2, DECIMAL_PLACES, PAD_WITH_ZERO),
         }, result);
     });
     const tableResults = table(results);

@@ -1,6 +1,5 @@
-"use strict";
 // @NO_AUTO_TRANSPILE
-const ccxt = require('../../ccxt');
+import ccxt from '../../js/ccxt.js';
 console.log('CCXT Version:', ccxt.version);
 async function main() {
     const exchange = new ccxt.gate({

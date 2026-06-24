@@ -74,7 +74,7 @@ let proxies = [
             }
             log(id.green, 'loaded', exchange.symbols.length.toString().green, 'markets');
         }
-        log('Loaded all markets'.green);
+        log(('Loaded all markets'.green));
         // get all unique symbols
         let uniqueSymbols = ccxt.unique(ccxt.flatten(ids.map(id => exchanges[id].symbols)));
         // filter out symbols that are not present on at least two exchanges
