@@ -20,12 +20,11 @@ let printUsage = function () {
 }
 
 let printExchangeSymbolsAndMarkets = function (exchange) {
-    log (getExchangeSymbols (exchange))
     log (getExchangeMarketsTable (exchange))
 }
 
 let getExchangeMarketsTable = (exchange) => {
-    return asTable.configure ({ delimiter: ' | ' }) (Object.values (markets))
+    return asTable.configure ({ delimiter: ' | ' }) (Object.values (exchange.markets))
 }
 
 let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms));
