@@ -8260,7 +8260,10 @@ export default class Exchange {
         for (let i = 0; i < responseKeys.length; i++) {
             const entry = responseKeys[i];
             const dictionary = isArray ? entry : response[entry];
-            const currencyId = isArray ? ((currencyIdKey === undefined) ? undefined : this.safeString (dictionary, currencyIdKey)) : entry;
+            let currencyId = entry;
+            if (isArray) {
+                currencyId = (currencyIdKey === undefined) ? undefined : this.safeString (dictionary, currencyIdKey);
+            }
             const currency = this.safeCurrency (currencyId);
             const code = this.safeString (currency, 'code');
             if ((codes === undefined) || (this.inArray (code, codes))) {
