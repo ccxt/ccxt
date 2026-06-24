@@ -39,7 +39,7 @@ async function main () {
             try {
                 await exchange.loadMarkets ()
                 const { id, markets } = exchange
-                await writeFile (file, JSON.stringify ({ id, markets }))
+                await fs.promises.writeFile (file, JSON.stringify ({ id, markets }))
                 console.log ('Loaded markets from', id, 'to', file)
             } catch (e) {
                 console.log ('Failed to load markets from', id, 'to', file, e.constructor.name)
@@ -48,7 +48,7 @@ async function main () {
     }
 
     const started = ccxt.milliseconds ()
-    const loaders = Array (maxConcurrency).fill ().map (x => load ())
+    const loaders = (Array (maxConcurrency) as any).fill ().map (x => load ())
     await Promise.all (loaders)
     const stopped  = ccxt.milliseconds ()
     console.log ('Done loading', allExchanges.length, 'exchanges in', ((stopped - started) / 1000).toFixed (2), 'seconds')

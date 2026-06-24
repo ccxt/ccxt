@@ -13,11 +13,11 @@ const { noLocate } = ololog;
 const log = noLocate;
 
 let printSupportedExchanges = function () {
-    log ('Supported exchanges:', ccxt.exchanges.join (', ').green)
+    log ('Supported exchanges:', (ccxt.exchanges.join (', ') as any).green)
 }
 
 let printUsage = function () {
-    log ('Usage: node', process.argv[1], 'exchange'.green)
+    log ('Usage: node', process.argv[1], ('exchange' as any).green)
     printSupportedExchanges ()
 }
 
@@ -41,8 +41,8 @@ let printTickers = async (id) => {
 
             log ('--------------------------------------------------------')
             log (exchange.id.green, exchange.iso8601 (exchange.milliseconds ()))
-            log ('Fetched', Object.values (tickers).length.toString ().green, 'tickers:')
-            log (asTable.configure ({ delimiter: ' | '.dim, right: true }) (
+            log ('Fetched', (Object.values (tickers).length.toString ()  as any).green, 'tickers:')
+            log (asTable.configure ({ delimiter: (' | ' as any).dim, right: true }) (
                 ccxt.sortBy (Object.values (tickers), 'quoteVolume', true)
                                    .slice (0,20)
                                    .map (ticker => ({
