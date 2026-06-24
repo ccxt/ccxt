@@ -41,7 +41,7 @@ let printTickers = async (id) => {
 
             log ('--------------------------------------------------------')
             log (exchange.id.green, exchange.iso8601 (exchange.milliseconds ()))
-            log ('Fetched', (Object.values (tickers).length.toString ()  as any).green, 'tickers:')
+            log ('Fetched', (Object.values (tickers).length.toString () as any).green, 'tickers:')
             log (asTable.configure ({ delimiter: (' | ' as any).dim, right: true }) (
                 ccxt.sortBy (Object.values (tickers), 'quoteVolume', true)
                                    .slice (0,20)
