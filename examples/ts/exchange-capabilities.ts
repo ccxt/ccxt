@@ -53,7 +53,7 @@ async function main () {
         previous[current] = (previous[current] || 0) + 1
         return previous
     }, {})
-    const unified = Object.entries (reduced).filter (([ _, count ]) => count > 1)
+    const unified = Object.entries (reduced).filter (([ _, count ]) => count as any > 1)
     const methods = unified.map (([ method, _ ]) => method).sort ()
     if (selectedExchanges.length > 0) {
         exchanges = exchanges.filter ((exchange) => selectedExchanges.includes(exchange.id))
@@ -124,13 +124,13 @@ async function main () {
     log ('Summary: ',
         ccxt.exchanges.length.toString (), 'exchanges; ',
         'Methods [' + total.toString () + ' total]: ',
-        implemented.toString ().green, 'implemented,',
-        emulated.toString ().yellow, 'emulated,',
-        (inexistentApi.toString ().red.dim), 'inexistentApi,',
-        (notImplemented.toString ().lightRed), 'notImplemented',
+        (implemented.toString () as any).green, 'implemented,',
+        (emulated.toString () as any).yellow, 'emulated,',
+        (inexistentApi.toString () as any).red.dim, 'inexistentApi,',
+        (notImplemented.toString () as any).lightRed, 'notImplemented',
     )
 
-    log("\nMessy? Try piping to less (e.g. node script.js | less -S -R --header=3 )\n".red)
+    log((("\nMessy? Try piping to less (e.g. node script.js | less -S -R --header=3 )\n") as any).red)
 
 }
 

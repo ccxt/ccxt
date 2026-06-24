@@ -38,7 +38,7 @@ import ccxt from '../../js/ccxt.js';
                 console.log (exchangeId, e.message.slice (0, 100))
             }
 
-            resolve ()
+            resolve (tickers)
 
         })
 

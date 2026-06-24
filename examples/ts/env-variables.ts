@@ -9,7 +9,7 @@ import ololog from 'ololog'
 
 // ----------------------------------------------------------------------------
 
-const log = ololog.configure.handleNodeErrors (), asTable = require("as-table").configure({ delimiter: " | " });
+const log = (ololog.configure as any).handleNodeErrors (), asTable = require("as-table").configure({ delimiter: " | " });
 
 // ----------------------------------------------------------------------------
 

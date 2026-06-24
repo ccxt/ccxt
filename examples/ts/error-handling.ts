@@ -11,7 +11,7 @@ const verbose   = process.argv.includes ('--verbose');
 const printSupportedExchanges = () => console.log ('Supported exchanges:', ccxt.exchanges.join (', '))
 
 const printUsage = () => {
-    console.log ('Usage: node', process.argv[1], 'id'.green)
+    console.log ('Usage: node', process.argv[1], ('id' as any).green)
     printSupportedExchanges ()
 }
 
