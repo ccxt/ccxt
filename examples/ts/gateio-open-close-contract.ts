@@ -1,6 +1,6 @@
 // @NO_AUTO_TRANSPILE
 
-const ccxt = require ('../../ccxt');
+import ccxt from '../../js/ccxt.js';
 
 
 const exchange = new ccxt.gate ({

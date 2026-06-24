@@ -25,7 +25,7 @@ const exchange = new ccxt.htx ({
     let amount = 1
     let price = 1
     let clientOrderId = 6;
-    let params = {
+    let params: any = {
         'offset': offset,
         'lever_rate': leverage,
         'client_order_id': clientOrderId

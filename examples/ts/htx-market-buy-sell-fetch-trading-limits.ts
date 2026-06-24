@@ -3,7 +3,7 @@
 import ccxt from '../../js/ccxt.js';
 import ololog from 'ololog'
 
-const log = ololog.configure .unlimited.handleNodeErrors (),
+const log = (ololog.configure as any).unlimited.handleNodeErrors (),
       { NotSupported } = ccxt,
       enableRateLimit = true,
       symbol = 'ADA/BTC',
