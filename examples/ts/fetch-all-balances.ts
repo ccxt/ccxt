@@ -16,9 +16,9 @@ ansicolor.nice
 //-----------------------------------------------------------------------------
 
 const table = asTable.configure ({
-        delimiter: '|'.lightGray.dim,
+        delimiter: ('|' as any).lightGray.dim,
         right: true,
-        title: x => String (x).lightGray,
+        title: x => (String (x) as any).lightGray,
         print: x => {
             if (typeof x === 'object') {
                 const j = JSON.stringify (x).trim ()
@@ -60,6 +60,7 @@ if (!(keysGlobalExists || keysLocalExists)) {
 
 let globalKeysFile = keysGlobalExists ? keysGlobal : false
 let localKeysFile = keysLocalExists ? keysLocal : globalKeysFile
+// @ts-ignore
 const dynamicLocalKeysFile = JSON.parse (fs.readFileSync (localKeysFile));
 let settings = localKeysFile ? (dynamicLocalKeysFile || {}) : {}
 
@@ -181,7 +182,7 @@ function initializeAllExchanges () {
                 sum += parseFloat (result[currency])
             }
         })
-        total[currency] = decimalToPrecision (sum, ROUND, 8, DECIMAL_PLACES)
+        total[currency] = decimalToPrecision (sum.toString (), ROUND, 8, DECIMAL_PLACES)
     }
 
     results.push (extend ({ 'exchange': 'total' }, total))
@@ -206,7 +207,7 @@ function initializeAllExchanges () {
         })
         return extend ({
             'exchange': result.exchange,
-            '$': decimalToPrecision (value, ROUND, 2, DECIMAL_PLACES, PAD_WITH_ZERO),
+            '$': decimalToPrecision (value.toString (), ROUND, 2, DECIMAL_PLACES, PAD_WITH_ZERO),
         }, result);
     })
 
