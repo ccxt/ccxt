@@ -41,11 +41,11 @@ const exchange = new ccxt.gate ({
         // and therefore close our previous position
         side = 'sell'
         type = 'market'
-        reduce_only = true
-        params = {'reduce_only': reduce_only}
+        const reduce_only = true
+        const params = {'reduce_only': reduce_only}
         const opositeOrder = await exchange.createOrder (symbol, type, side, amount, price, params)
         console.log (opositeOrder)
-    } catch (e) {
+    } catch (e: any) {
         console.log (e.constructor.name, e.message)
     }
 }) ()
