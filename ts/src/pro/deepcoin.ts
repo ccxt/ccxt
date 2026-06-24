@@ -3,7 +3,7 @@
 
 import deepcoinRest from '../deepcoin.js';
 import { BadRequest, ExchangeError } from '../base/errors.js';
-import type { Dict, Int, Market, MarketInterface, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
+import type { Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 
