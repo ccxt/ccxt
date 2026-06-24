@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import ascendexRest from '../ascendex.js';
 import { AuthenticationError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, OHLCV, Balances, Dict, Bool } from '../base/types.js';
+import type { Balances, Bool, Dict, Fee, Int, List, Market, OHLCV, Order, OrderBook, Str, Trade, NullableList } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -186,8 +186,8 @@ export default class ascendex extends ascendexRest {
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false, true, true);
-        const marketIds = [];
-        const messageHashes = [];
+        const marketIds: List = [];
+        const messageHashes: List = [];
         if (symbols !== undefined) {
             for (let i = 0; i < symbols.length; i++) {
                 const market = this.market (symbols[i]);
@@ -421,8 +421,8 @@ export default class ascendex extends ascendexRest {
     async watchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
         const [ type, query ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
-        let channel = undefined;
-        let messageHash = undefined;
+        let channel: Str = undefined;
+        let messageHash: Str = undefined;
         if ((type === 'spot') || (type === 'margin')) {
             const accountCategories = this.safeValue (this.options, 'accountCategories', {});
             let accountCategory = this.safeString (accountCategories, type, 'cash'); // cash, margin,
@@ -488,7 +488,7 @@ export default class ascendex extends ascendexRest {
         //
         const channel = this.safeString (message, 'm');
         let result = undefined;
-        let type = undefined;
+        let type: Str = undefined;
         if ((channel === 'order') || (channel === 'futures-order')) {
             const data = this.safeValue (message, 'data');
             const marketId = this.safeString (data, 's');
@@ -514,7 +514,7 @@ export default class ascendex extends ascendexRest {
             type = this.safeString (categoriesAccounts, accountType, 'spot');
             result = this.safeValue (this.balance, type, {});
             const data = this.safeValue (message, 'data');
-            let balances = undefined;
+            let balances: NullableList = undefined;
             if (data === undefined) {
                 balances = this.safeValue (message, 'col');
             } else {
@@ -546,14 +546,14 @@ export default class ascendex extends ascendexRest {
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
         }
         const [ type, query ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
-        let messageHash = undefined;
-        let channel = undefined;
+        let messageHash: Str = undefined;
+        let channel: Str = undefined;
         if (type !== 'spot' && type !== 'margin') {
             channel = 'futures-order';
             messageHash = 'order:FUTURES';
@@ -703,7 +703,7 @@ export default class ascendex extends ascendexRest {
         const type = this.safeStringLower (order, 'ot');
         const side = this.safeStringLower (order, 'sd');
         const feeCost = this.safeNumber (order, 'cf');
-        let fee = undefined;
+        let fee: Fee = undefined;
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (order, 'fa');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);

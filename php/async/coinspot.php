@@ -690,7 +690,6 @@ class coinspot extends Exchange {
                 'amount' => $amount,
                 'rate' => $price,
             );
-            $response = null;
             if ($sideUpper === 'BUY') {
                 $response = Async\await($this->privatePostMyBuy ($this->extend($request, $params)));
             } elseif ($sideUpper === 'SELL') {
@@ -728,7 +727,6 @@ class coinspot extends Exchange {
             $request = array(
                 'id' => $id,
             );
-            $response = null;
             if ($side === 'buy') {
                 $response = Async\await($this->privatePostMyBuyCancel ($this->extend($request, $params)));
             } else {
@@ -755,7 +753,7 @@ class coinspot extends Exchange {
         return null;
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $isVersionedApi = (gettype($api) === 'array' && array_keys($api) === array_keys(array_keys($api)));
         $version = $isVersionedApi ? $api[0] : null;
         $accessType = $isVersionedApi ? $api[1] : $api;

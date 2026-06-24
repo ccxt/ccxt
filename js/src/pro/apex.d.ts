@@ -1,7 +1,6 @@
 import apexRest from '../apex.js';
-import type { Int, Trade, OrderBook, Ticker, Strings, Tickers, Bool } from '../base/types.js';
+import type { Bool, Int, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import { OHLCV, Order, Position, Str } from '../base/types.js';
 export default class apex extends apexRest {
     describe(): any;
     /**

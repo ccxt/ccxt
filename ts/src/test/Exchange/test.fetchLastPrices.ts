@@ -1,3 +1,4 @@
+import type { Str } from './../../base/types.js';
 import assert from 'assert';
 import { Exchange } from "../../../ccxt.js";
 import testLastPrice from './base/test.lastPrice.js';
@@ -8,7 +9,7 @@ async function testFetchLastPrices (exchange: Exchange, skippedProperties: objec
     const method = 'fetchLastprices';
     // log ('fetching all tickers at once...')
     let response: LastPrices = undefined;
-    let checkedSymbol = undefined;
+    let checkedSymbol: Str
     try {
         response = await exchange.fetchLastPrices ();
     } catch (e) {
@@ -22,7 +23,7 @@ async function testFetchLastPrices (exchange: Exchange, skippedProperties: objec
     for (let i = 0; i < values.length; i++) {
         // todo: symbol check here
         testLastPrice (exchange, skippedProperties, method, values[i], checkedSymbol);
-        atLeastOnePassed = atLeastOnePassed || (exchange.safeNumber (values[i], 'price') > 0);
+        atLeastOnePassed = atLeastOnePassed || ((exchange.safeNumber (values[i], 'price') as number) > 0);
     }
     assert (atLeastOnePassed, exchange.id + ' ' + method + ' ' + checkedSymbol + ' at least one symbol should pass the test');
     return true;

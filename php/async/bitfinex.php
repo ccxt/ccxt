@@ -1737,7 +1737,7 @@ class bitfinex extends Exchange {
          */
         $market = $this->market($symbol);
         $amountString = $this->amount_to_precision($symbol, $amount);
-        $amountString = ($side === 'buy') ? $amountString : Precise::string_neg($amountString);
+        $amountString = ($side === 'buy') ? $amountString : (Precise::string_neg($amountString));
         $request = array(
             'symbol' => $market['id'],
             'amount' => $amountString,
@@ -1995,7 +1995,6 @@ class bitfinex extends Exchange {
              */
             Async\await($this->load_markets());
             $cid = $this->safe_value_2($params, 'cid', 'clientOrderId'); // client $order $id
-            $request = null;
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -2174,7 +2173,6 @@ class bitfinex extends Exchange {
             Async\await($this->load_markets());
             $request = array();
             $market = null;
-            $response = null;
             if ($symbol === null) {
                 $response = Async\await($this->privatePostAuthROrders ($this->extend($request, $params)));
             } else {
@@ -2260,7 +2258,6 @@ class bitfinex extends Exchange {
             }
             list($request, $params) = $this->handle_until_option('end', $request, $params);
             $market = null;
-            $response = null;
             if ($symbol === null) {
                 $response = Async\await($this->privatePostAuthROrdersHist ($this->extend($request, $params)));
             } else {
@@ -2373,7 +2370,6 @@ class bitfinex extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit; // default 25, max 1000
             }
-            $response = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
@@ -2719,8 +2715,8 @@ class bitfinex extends Exchange {
             $takerFee = $this->safe_number($takerData, 0);
             $takerFeeFiat = $this->safe_number($takerData, 2);
             $takerFeeDeriv = $this->safe_number($takerData, 5);
-            for ($i = 0; $i < count($this->symbols); $i++) {
-                $symbol = $this->symbols[$i];
+            for ($i = 0; $i < count(($this->symbols)); $i++) {
+                $symbol = ($this->symbols)[$i];
                 $market = $this->market($symbol);
                 $fee = array(
                     'info' => $response,
@@ -2767,7 +2763,6 @@ class bitfinex extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit; // max 1000
             }
-            $response = null;
             if ($code !== null) {
                 $currency = $this->currency($code);
                 $request['currency'] = $currency['id'];
@@ -3028,7 +3023,7 @@ class bitfinex extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $request = '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'v1') {
@@ -3187,7 +3182,6 @@ class bitfinex extends Exchange {
                 $request['limit'] = $limit;
             }
             list($request, $params) = $this->handle_until_option('end', $request, $params);
-            $response = null;
             if ($code !== null) {
                 $currency = $this->currency($code);
                 $request['currency'] = $currency['id'];
@@ -3837,7 +3831,7 @@ class bitfinex extends Exchange {
         }) ();
     }
 
-    public function parse_margin_modification($data, $market = null): array {
+    public function parse_margin_modification($data, ?array $market = null): array {
         //
         // setMargin
         //
@@ -3851,7 +3845,7 @@ class bitfinex extends Exchange {
         $marginStatus = ($marginStatusRaw === 1) ? 'ok' : 'failed';
         return array(
             'info' => $data,
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'type' => null,
             'marginMode' => 'isolated',
             'amount' => null,
@@ -3881,7 +3875,6 @@ class bitfinex extends Exchange {
                 'id' => array( $this->parse_to_numeric($id) ),
             );
             $market = null;
-            $response = null;
             if ($symbol === null) {
                 $response = Async\await($this->privatePostAuthROrders ($this->extend($request, $params)));
             } else {
@@ -3963,7 +3956,7 @@ class bitfinex extends Exchange {
             );
             if ($amount !== null) {
                 $amountString = $this->amount_to_precision($symbol, $amount);
-                $amountString = ($side === 'buy') ? $amountString : Precise::string_neg($amountString);
+                $amountString = ($side === 'buy') ? $amountString : (Precise::string_neg($amountString));
                 $request['amount'] = $amountString;
             }
             $triggerPrice = $this->safe_string_2($params, 'stopPrice', 'triggerPrice');

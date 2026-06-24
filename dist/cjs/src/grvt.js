@@ -2958,7 +2958,7 @@ class grvt extends grvt$1["default"] {
         let price = undefined;
         let filled = undefined;
         let avgPrice = undefined;
-        const legs = this.safeList(order, 'legs');
+        const legs = this.safeList(order, 'legs', []);
         const metadata = this.safeDict(order, 'metadata', {});
         const stateObj = this.safeDict(order, 'state', {});
         const filledAmounts = this.safeList(stateObj, 'traded_size', []);
@@ -2986,7 +2986,7 @@ class grvt extends grvt$1["default"] {
             'lastTradeTimeStamp': undefined,
             'lastUpdateTimestamp': this.safeIntegerProduct(stateObj, 'update_time', 0.000001),
             'status': this.parseOrderStatus(this.safeString(stateObj, 'status')),
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'type': orderType,
             'timeInForce': timeInForce,
             'postOnly': isPostOnly,

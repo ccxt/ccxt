@@ -1,5 +1,5 @@
 import Exchange from './abstract/bullish.js';
-import { Account, Balances, Currencies, Currency, DepositAddress, Dict, Int, int, FundingRateHistory, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, OpenInterest } from './base/types.js';
+import { Account, Balances, Currencies, Currency, DepositAddress, Dict, Int, int, FundingRateHistory, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, OpenInterest, NullableDict } from './base/types.js';
 /**
  * @class bullish
  * @augments Exchange
@@ -35,7 +35,7 @@ export default class bullish extends Exchange {
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
     parseMarket(market: Dict): Market;
-    parseMarketType(type: string, defaultType?: Str): string;
+    parseMarketType(type?: Str, defaultType?: Str): Str;
     /**
      * @method
      * @name bullish#fetchOrderBook
@@ -438,11 +438,11 @@ export default class bullish extends Exchange {
      */
     fetchOpenInterest(symbol: string, params?: {}): Promise<OpenInterest>;
     parseOpenInterest(interest: any, market?: Market): OpenInterest;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: string;
+        headers: Dict;
     };
     /**
      * @method

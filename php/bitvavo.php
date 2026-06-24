@@ -531,7 +531,7 @@ class bitvavo extends Exchange {
         return $result;
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array ()): array {
         /**
          *
          * @see https://docs.bitvavo.com/docs/rest-api/get-asset-data/
@@ -962,7 +962,7 @@ class bitvavo extends Exchange {
         return $this->parse_trading_fees($response);
     }
 
-    public function parse_trading_fees($fees, $market = null) {
+    public function parse_trading_fees($fees, ?array $market = null) {
         //
         //     {
         //         "fees" => {
@@ -976,8 +976,8 @@ class bitvavo extends Exchange {
         $maker = $this->safe_number($feesValue, 'maker');
         $taker = $this->safe_number($feesValue, 'taker');
         $result = array();
-        for ($i = 0; $i < count($this->symbols); $i++) {
-            $symbol = $this->symbols[$i];
+        for ($i = 0; $i < count(($this->symbols)); $i++) {
+            $symbol = ($this->symbols)[$i];
             $result[$symbol] = array(
                 'info' => $fees,
                 'symbol' => $symbol,
@@ -1607,7 +1607,7 @@ class bitvavo extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function edit_order_request(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order_request(string $id, $symbol, $type, $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         $request = array();
         $market = $this->market($symbol);
         $amountRemaining = $this->safe_number($params, 'amountRemaining');
@@ -2286,7 +2286,7 @@ class bitvavo extends Exchange {
         ), $currency);
     }
 
-    public function withdraw_request(?string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw_request(?string $code, $amount, $address, ?string $tag = null, $params = array ()) {
         $currency = $this->currency($code);
         $request = array(
             'symbol' => $currency['id'],
@@ -2616,7 +2616,7 @@ class bitvavo extends Exchange {
         return $this->parse_deposit_withdraw_fees($response, $codes, 'symbol');
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
         $url = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $getOrDelete = ($method === 'GET') || ($method === 'DELETE');

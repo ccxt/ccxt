@@ -6,7 +6,7 @@ import bitfinexRest from '../bitfinex.js';
 import { Precise } from '../base/Precise.js';
 import { ExchangeError, AuthenticationError, ChecksumError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Market, NullableDict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -226,7 +226,7 @@ export default class bitfinex extends bitfinexRest {
         //   ]
         //
         const data = this.safeValue (message, 1, []);
-        let ohlcvs = undefined;
+        let ohlcvs: any[] = [];
         const first = this.safeValue (data, 0);
         if (Array.isArray (first)) {
             // snapshot
@@ -236,7 +236,7 @@ export default class bitfinex extends bitfinexRest {
             ohlcvs = [ data ];
         }
         const channel = this.safeValue (subscription, 'channel');
-        const key = this.safeString (subscription, 'key');
+        const key = this.safeString (subscription, 'key', '');
         const keyParts = key.split (':');
         const interval = this.safeString (keyParts, 1);
         let marketId = key;
@@ -247,11 +247,11 @@ export default class bitfinex extends bitfinexRest {
         const symbol = market['symbol'];
         const messageHash = channel + ':' + interval + ':' + marketId;
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        let stored = this.safeValue (this.ohlcvs[symbol], (timeframe as string));
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+            this.ohlcvs[symbol][(timeframe as string)] = stored;
         }
         const ohlcvsLength = ohlcvs.length;
         for (let i = 0; i < ohlcvsLength; i++) {
@@ -366,7 +366,7 @@ export default class bitfinex extends bitfinexRest {
         const data = this.safeValue (message, 2);
         const trade = this.parseWsTrade (data);
         const symbol = trade['symbol'];
-        const market = this.market (symbol);
+        const market = this.market ((symbol as string));
         const messageHash = name + ':' + market['id'];
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -449,7 +449,7 @@ export default class bitfinex extends bitfinexRest {
         client.resolve (stored, messageHash);
     }
 
-    parseWsTrade (trade, market = undefined) {
+    parseWsTrade (trade, market: Market = undefined) {
         //
         //    [
         //        1128060969, // id
@@ -514,13 +514,13 @@ export default class bitfinex extends bitfinexRest {
         const price = this.safeString (trade, priceKey);
         const amountString = this.safeString (trade, amountKey);
         const amount = this.parseNumber (Precise.stringAbs (amountString));
-        let side = undefined;
+        let side: Str = undefined;
         if (amount !== undefined) {
             side = Precise.stringGt (amountString, '0') ? 'buy' : 'sell';
         }
         const symbol = this.safeSymbol (marketId, market);
         const feeValue = this.safeString (trade, 9);
-        let fee = undefined;
+        let fee: NullableDict = undefined;
         if (feeValue !== undefined) {
             const currencyId = this.safeString (trade, 10);
             const code = this.safeCurrencyCode (currencyId);
@@ -530,7 +530,7 @@ export default class bitfinex extends bitfinexRest {
             };
         }
         const maker = this.safeInteger (trade, 8);
-        let takerOrMaker = undefined;
+        let takerOrMaker: Str = undefined;
         if (maker !== undefined) {
             takerOrMaker = (maker === -1) ? 'taker' : 'maker';
         }
@@ -580,7 +580,7 @@ export default class bitfinex extends bitfinexRest {
         client.resolve (parsed, messageHash);
     }
 
-    parseWsTicker (ticker, market = undefined) {
+    parseWsTicker (ticker, market: Market = undefined) {
         //
         //     [
         //         236.62,        // 1 BID float Price of last highest bid
@@ -713,6 +713,9 @@ export default class bitfinex extends bitfinexRest {
                 for (let i = 0; i < deltas.length; i++) {
                     const delta = deltas[i];
                     const amount = this.safeNumber (delta, 2);
+                    if (amount === undefined) {
+                        continue;
+                    }
                     const counter = this.safeNumber (delta, 1);
                     const price = this.safeNumber (delta, 0);
                     const size = (amount < 0) ? -amount : amount;
@@ -763,7 +766,7 @@ export default class bitfinex extends bitfinexRest {
             return;
         }
         const depth = 25; // covers the first 25 bids and asks
-        const stringArray = [];
+        const stringArray: string[] = [];
         const bids = book['bids'];
         const asks = book['asks'];
         const prec = this.safeString (subscription, 'prec', 'P0');
@@ -774,13 +777,13 @@ export default class bitfinex extends bitfinexRest {
             const bid = this.safeValue (bids, i);
             const ask = this.safeValue (asks, i);
             if (bid !== undefined) {
-                stringArray.push (this.numberToString (bids[i][idToCheck]));
-                stringArray.push (this.numberToString (bids[i][1]));
+                stringArray.push (this.numberToString (bids[i][idToCheck]) as string);
+                stringArray.push (this.numberToString (bids[i][1]) as string);
             }
             if (ask !== undefined) {
-                stringArray.push (this.numberToString (asks[i][idToCheck]));
+                stringArray.push (this.numberToString (asks[i][idToCheck]) as string);
                 const aski1 = asks[i][1];
-                stringArray.push (this.numberToString (-aski1));
+                stringArray.push (this.numberToString (-aski1) as string);
             }
         }
         const payload = stringArray.join (':');
@@ -877,7 +880,7 @@ export default class bitfinex extends bitfinexRest {
         //   ]
         //
         const updateType = this.safeValue (message, 1);
-        let data = undefined;
+        let data: any[] = [];
         if (updateType === 'ws') {
             data = this.safeValue (message, 2);
         } else {
@@ -890,11 +893,11 @@ export default class bitfinex extends bitfinexRest {
             const code = this.safeCurrencyCode (currencyId);
             const balance = this.parseWsBalance (rawBalance);
             const balanceType = this.safeString (rawBalance, 0);
-            const oldBalance = this.safeValue (this.balance, balanceType, {});
+            const oldBalance = this.safeValue (this.balance, (balanceType as string), {});
             oldBalance[code] = balance;
             oldBalance['info'] = message;
-            this.balance[balanceType] = this.safeBalance (oldBalance);
-            updatedTypes[balanceType] = true;
+            this.balance[(balanceType as string)] = this.safeBalance (oldBalance);
+            updatedTypes[(balanceType as string)] = true;
         }
         const updatesKeys = Object.keys (updatedTypes);
         for (let i = 0; i < updatesKeys.length; i++) {
@@ -958,7 +961,7 @@ export default class bitfinex extends bitfinexRest {
             const subHash = subMessageHashes[i];
             this.cleanUnsubscription (client, subHash, messageHash);
         }
-        this.cleanCache (subscription);
+        this.cleanCache (subscription as Dict);
         return true;
     }
 
@@ -983,7 +986,7 @@ export default class bitfinex extends bitfinexRest {
         //  }
         //
         const channelId = this.safeString (message, 'chanId');
-        client.subscriptions[channelId] = message;
+        client.subscriptions[(channelId as string)] = message;
         // store the opposite direction too for unWatch
         const mappings: Dict = {
             'book': 'orderbook',
@@ -1131,14 +1134,14 @@ export default class bitfinex extends bitfinexRest {
                 const value = data[i];
                 const parsed = this.parseWsOrder (value);
                 const symbol = parsed['symbol'];
-                symbolIds[symbol] = true;
+                symbolIds[(symbol as string)] = true;
                 orders.append (parsed);
             }
         } else {
             const parsed = this.parseWsOrder (data);
             orders.append (parsed);
             const symbol = parsed['symbol'];
-            symbolIds[symbol] = true;
+            symbolIds[(symbol as string)] = true;
         }
         const name = 'orders';
         client.resolve (this.orders, name);
@@ -1161,7 +1164,7 @@ export default class bitfinex extends bitfinexRest {
         return this.safeString (statuses, status, status);
     }
 
-    parseWsOrder (order, market = undefined) {
+    parseWsOrder (order, market: Market = undefined) {
         //
         //   [
         //       97084883506, // order id
@@ -1210,20 +1213,20 @@ export default class bitfinex extends bitfinexRest {
             side = 'sell';
         }
         const remaining = Precise.stringAbs (this.safeString (order, 6));
-        let type = this.safeString (order, 8);
+        let type = this.safeString (order, 8, '');
         if (type.indexOf ('LIMIT') > -1) {
             type = 'limit';
         } else if (type.indexOf ('MARKET') > -1) {
             type = 'market';
         }
-        const rawState = this.safeString (order, 13);
+        const rawState = this.safeString (order, 13, '');
         const stateParts = rawState.split (' ');
         const trimmedStatus = this.safeString (stateParts, 0);
         const status = this.parseWsOrderStatus (trimmedStatus);
         const price = this.safeString (order, 16);
         const timestamp = this.safeInteger2 (order, 5, 4);
         const average = this.safeString (order, 17);
-        const stopPrice = this.omitZero (this.safeString (order, 18));
+        const stopPrice = this.omitZero ((this.safeString (order, 18) as string));
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -1279,7 +1282,7 @@ export default class bitfinex extends bitfinexRest {
             if (message[1] === 'hb') {
                 return; // skip heartbeats within subscription channels for now
             }
-            const subscription = this.safeValue (client.subscriptions, channelId, {});
+            const subscription = this.safeValue (client.subscriptions, (channelId as string), {});
             const channel = this.safeString (subscription, 'channel');
             const name = this.safeString (message, 1);
             const publicMethods: Dict = {
@@ -1300,9 +1303,9 @@ export default class bitfinex extends bitfinexRest {
             };
             let method = undefined;
             if (channelId === '0') {
-                method = this.safeValue (privateMethods, name);
+                method = this.safeValue (privateMethods, (name as string));
             } else {
-                method = this.safeValue2 (publicMethods, name, channel);
+                method = this.safeValue2 (publicMethods, (name as string), (channel as string));
             }
             if (method !== undefined) {
                 method.call (this, client, message, subscription);

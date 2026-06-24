@@ -4010,7 +4010,7 @@ final Object finalI = i;
             put( "marginMode", "isolated" );
             put( "amount", CoinexCore.this.parseNumber(Precise.stringAbs(change)) );
             put( "total", CoinexCore.this.safeNumber(data, "margin_avbl") );
-            put( "code", Helpers.GetValue(market, "quote") );
+            put( "code", CoinexCore.this.safeString(market, "quote") );
             put( "status", null );
             put( "timestamp", timestamp );
             put( "datetime", CoinexCore.this.iso8601(timestamp) );

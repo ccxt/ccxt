@@ -16,7 +16,6 @@ use React\Async;
 use React\Promise;
 
 
-// AUTO-TRANSPILE //
 // watch and handle constinuosly
 function watch_positions_continuously($exchange) {
     return Async\async(function () use ($exchange) {

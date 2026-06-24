@@ -1459,7 +1459,7 @@ public partial class extended : Exchange
         //
         object timestamp = this.safeInteger(interest, "t");
         return this.safeOpenInterest(new Dictionary<string, object>() {
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeString(market, "symbol") },
             { "openInterestAmount", this.safeNumber(interest, "I") },
             { "openInterestValue", this.safeNumber(interest, "i") },
             { "baseVolume", this.safeNumber(interest, "I") },
@@ -3209,7 +3209,7 @@ public partial class extended : Exchange
             clientOrderIds = new List<object>() {clientOrderId};
         }
         object hasClientOrderIds = !isEqual(clientOrderIds, null);
-        if (isTrue(hasClientOrderIds))
+        if (isTrue(!isEqual(clientOrderIds, null)))
         {
             object clientOrderIdsLength = getArrayLength(clientOrderIds);
             if (isTrue(isGreaterThan(clientOrderIdsLength, 0)))

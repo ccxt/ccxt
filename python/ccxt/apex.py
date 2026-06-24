@@ -347,7 +347,7 @@ class apex(Exchange, ImplicitAPI):
         # }
         #
         timestamp = self.milliseconds()
-        result: dict = {
+        result = {
             'info': response,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -509,7 +509,7 @@ class apex(Exchange, ImplicitAPI):
         currencyId = self.safe_string(currency, 'token')
         code = self.safe_currency_code(currencyId)
         name = self.safe_string(currency, 'displayName')
-        networks: dict = {}
+        networks = {}
         chains = self.options['_temp_currencies_chains']
         for j in range(0, len(chains)):
             chain = chains[j]
@@ -773,7 +773,7 @@ class apex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id2'],
         }
         response = self.publicGetV3Ticker(self.extend(request, params))
@@ -812,7 +812,7 @@ class apex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
             'symbol': market['id2'],
         }
@@ -863,7 +863,7 @@ class apex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id2'],
         }
         if limit is None:
@@ -918,7 +918,7 @@ class apex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id2'],
         }
         if limit is None:
@@ -998,7 +998,7 @@ class apex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id2'],
         }
         response = self.publicGetV3Ticker(self.extend(request, params))
@@ -1055,7 +1055,7 @@ class apex(Exchange, ImplicitAPI):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         self.load_markets()
-        request: dict = {}
+        request = {}
         market = self.market(symbol)
         request['symbol'] = market['id']
         if since is not None:
@@ -1201,7 +1201,7 @@ class apex(Exchange, ImplicitAPI):
         }, market)
 
     def parse_time_in_force(self, timeInForce: Str):
-        timeInForces: dict = {
+        timeInForces = {
             'GOOD_TIL_CANCEL': 'GOOD_TIL_CANCEL',
             'FILL_OR_KILL': 'FILL_OR_KILL',
             'IMMEDIATE_OR_CANCEL': 'IMMEDIATE_OR_CANCEL',
@@ -1211,7 +1211,7 @@ class apex(Exchange, ImplicitAPI):
 
     def parse_order_status(self, status: Str):
         if status is not None:
-            statuses: dict = {
+            statuses = {
                 'PENDING': 'open',
                 'OPEN': 'open',
                 'FILLED': 'filled',
@@ -1223,7 +1223,7 @@ class apex(Exchange, ImplicitAPI):
         return status
 
     def parse_order_type(self, type: Str):
-        types: dict = {
+        types = {
             'LIMIT': 'limit',
             'MARKET': 'market',
             'STOP_LIMIT': 'limit',
@@ -1352,7 +1352,7 @@ class apex(Exchange, ImplicitAPI):
         if triggerPrice is not None:
             orderToSign['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
         signature = self.get_zk_contract_signature_obj(self.remove0x_prefix(self.get_seeds()), orderToSign)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'side': orderSide,
             'type': orderType,  # LIMIT/MARKET/STOP_LIMIT/STOP_MARKET
@@ -1442,7 +1442,7 @@ class apex(Exchange, ImplicitAPI):
                 'isContract': True,
             }
             signature = self.get_zk_transfer_signature_obj(self.remove0x_prefix(self.get_seeds()), orderToSign)
-            request: dict = {
+            request = {
                 'amount': amount,
                 'expireTime': expireTime,
                 'clientWithdrawId': finalClientOrderId,
@@ -1476,7 +1476,7 @@ class apex(Exchange, ImplicitAPI):
             signature = self.get_zk_transfer_signature_obj(self.remove0x_prefix(self.get_seeds()), orderToSign)
             amountStr = str(amount)
             ts = timestampSeconds  # java req
-            request: dict = {
+            request = {
                 'amount': amountStr,
                 'timestamp': ts,
                 'clientTransferId': finalClientOrderId,
@@ -1532,7 +1532,7 @@ class apex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = None
-        request: dict = {}
+        request = {}
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -1551,7 +1551,7 @@ class apex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        request: dict = {}
+        request = {}
         clientOrderId = self.safe_string_n(params, ['clientId', 'clientOrderId', 'client_order_id'])
         response = None
         if clientOrderId is not None:
@@ -1578,7 +1578,7 @@ class apex(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
-        request: dict = {}
+        request = {}
         clientOrderId = self.safe_string_n(params, ['clientId', 'clientOrderId', 'client_order_id'])
         response = None
         if clientOrderId is not None:
@@ -1627,7 +1627,7 @@ class apex(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
-        request: dict = {}
+        request = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -1659,7 +1659,7 @@ class apex(Exchange, ImplicitAPI):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         self.load_markets()
-        request: dict = {}
+        request = {}
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clientId')
         if clientOrderId is not None:
             request['clientOrderId'] = clientOrderId
@@ -1688,7 +1688,7 @@ class apex(Exchange, ImplicitAPI):
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         self.load_markets()
-        request: dict = {}
+        request = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -1722,7 +1722,7 @@ class apex(Exchange, ImplicitAPI):
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=funding-history-structure>`
         """
         self.load_markets()
-        request: dict = {}
+        request = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -1787,7 +1787,7 @@ class apex(Exchange, ImplicitAPI):
         market = self.market(symbol)
         leverageString = self.number_to_string(leverage)
         initialMarginRate = Precise.string_div('1', leverageString, 4)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'initialMarginRate': initialMarginRate,
         }
@@ -1863,7 +1863,7 @@ class apex(Exchange, ImplicitAPI):
             'percentage': None,
         })
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.implode_hostname(self.urls['api'][api]) + '/' + path
         headers = {
             'User-Agent': 'apex-CCXT',

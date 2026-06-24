@@ -695,7 +695,7 @@ func (this *CryptomusCore) ParseTrade(trade any, optionalArgs ...any) any {
 		"id":           this.SafeString(trade, "trade_id"),
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
-		"symbol":       GetValue(market, "symbol"),
+		"symbol":       this.SafeString(market, "symbol"),
 		"side":         this.SafeString(trade, "type"),
 		"price":        this.SafeString(trade, "price"),
 		"amount":       this.SafeString(trade, "quote_volume"),
@@ -1278,8 +1278,14 @@ func (this *CryptomusCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 		var feeTiers any = this.SafeList(data, "tariff_steps", []any{})
 		var result any = map[string]any{}
 		var tiers any = this.ParseFeeTiers(feeTiers)
-		for i := 0; IsLessThan(i, GetArrayLength(this.Symbols)); i++ {
-			var symbol any = GetValue(this.Symbols, i)
+		var symbols any = this.Symbols
+		if IsTrue(IsEqual(symbols, nil)) {
+
+			ch <- result
+			return nil
+		}
+		for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
+			var symbol any = GetValue(symbols, i)
 			AddElementToObject(result, symbol, map[string]any{
 				"info":       response,
 				"symbol":     symbol,

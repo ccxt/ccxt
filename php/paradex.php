@@ -1452,7 +1452,7 @@ class paradex extends Exchange {
         //
         $timestamp = $this->safe_integer($order, 'created_at');
         $orderId = $this->safe_string($order, 'id');
-        $clientOrderId = $this->omit_zero($this->safe_string($order, 'client_id'));
+        $clientOrderId = $this->omit_zero(($this->safe_string($order, 'client_id')));
         $marketId = $this->safe_string($order, 'market');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
@@ -1469,8 +1469,8 @@ class paradex extends Exchange {
             }
         }
         $side = $this->safe_string_lower($order, 'side');
-        $average = $this->omit_zero($this->safe_string($order, 'avg_fill_price'));
-        $remaining = $this->omit_zero($this->safe_string($order, 'remaining_size'));
+        $average = $this->omit_zero(($this->safe_string($order, 'avg_fill_price')));
+        $remaining = $this->omit_zero(($this->safe_string($order, 'remaining_size')));
         $lastUpdateTimestamp = $this->safe_integer($order, 'last_updated_at');
         $flags = $this->safe_list($order, 'flags', array());
         $reduceOnly = null;
@@ -1876,7 +1876,6 @@ class paradex extends Exchange {
         $this->load_markets();
         $request = array();
         $clientOrderId = $this->safe_string_n($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
-        $response = null;
         if ($clientOrderId !== null) {
             $request['client_id'] = $clientOrderId;
             $response = $this->privateDeleteOrdersByClientIdClientId ($this->extend($request, $params));
@@ -2013,7 +2012,6 @@ class paradex extends Exchange {
         $request = array();
         $clientOrderId = $this->safe_string_n($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
         $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
-        $response = null;
         if ($clientOrderId !== null) {
             $request['client_id'] = $clientOrderId;
             $response = $this->privateGetOrdersByClientIdClientId ($this->extend($request, $params));
@@ -2801,7 +2799,7 @@ class paradex extends Exchange {
         $marginMode = $this->safe_string_lower($rawMarginMode, 'margin_type');
         return array(
             'info' => $rawMarginMode,
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'marginMode' => $marginMode,
         );
     }
@@ -3238,7 +3236,7 @@ class paradex extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $version = $this->version;
         if (mb_strpos($path, 'v2/') === 0) {
             $version = 'v2';

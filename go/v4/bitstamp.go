@@ -1195,14 +1195,14 @@ func (this *BitstampCore) ParseTrade(trade any, optionalArgs ...any) any {
 		market = this.GetMarketFromTrade(trade)
 	}
 	var feeCostString any = this.SafeString(trade, "fee")
-	var feeCurrency any = GetValue(market, "quote")
-	var priceId any = Ternary(IsTrue((!IsEqual(rawMarketId, nil))), rawMarketId, GetValue(market, "id"))
+	var feeCurrency any = this.SafeString(market, "quote")
+	var priceId any = Ternary(IsTrue((!IsEqual(rawMarketId, nil))), rawMarketId, this.SafeString(market, "id"))
 	priceString = this.SafeString(trade, priceId, priceString)
-	amountString = this.SafeString(trade, GetValue(market, "baseId"), amountString)
-	costString = this.SafeString(trade, GetValue(market, "quoteId"), costString)
+	amountString = this.SafeString(trade, this.SafeString(market, "baseId"), amountString)
+	costString = this.SafeString(trade, this.SafeString(market, "quoteId"), costString)
 	// this endpoint is not aligned with "markets" endpoint
-	var baseIdLower any = ToLower(GetValue(market, "baseId"))
-	var quoteIdLower any = ToLower(GetValue(market, "quoteId"))
+	var baseIdLower any = this.SafeStringLower(market, "baseId")
+	var quoteIdLower any = this.SafeStringLower(market, "quoteId")
 	var dashedIdLower any = Add(Add(baseIdLower, "_"), quoteIdLower)
 	if IsTrue(IsEqual(priceString, nil)) {
 		priceString = this.SafeString(trade, dashedIdLower)
@@ -1213,7 +1213,7 @@ func (this *BitstampCore) ParseTrade(trade any, optionalArgs ...any) any {
 	if IsTrue(IsEqual(costString, nil)) {
 		costString = this.SafeString(trade, quoteIdLower)
 	}
-	symbol = GetValue(market, "symbol")
+	symbol = this.SafeString(market, "symbol")
 	var datetimeString any = this.SafeString2(trade, "date", "datetime")
 	var timestamp any = nil
 	if IsTrue(!IsEqual(datetimeString, nil)) {
@@ -2668,7 +2668,7 @@ func (this *BitstampCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 			"referenceId":      GetValue(parsedTrade, "order"),
 			"referenceAccount": nil,
 			"type":             typeVar,
-			"currency":         GetValue(market, "base"),
+			"currency":         this.SafeString(market, "base"),
 			"amount":           GetValue(parsedTrade, "amount"),
 			"before":           nil,
 			"after":            nil,

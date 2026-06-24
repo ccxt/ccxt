@@ -604,7 +604,7 @@ public partial class toobit : Exchange
         object id = this.safeString(rawCurrency, "coinId");
         object code = this.safeCurrencyCode(id);
         object networks = new Dictionary<string, object>() {};
-        object rawNetworks = this.safeList(rawCurrency, "chainTypes");
+        object rawNetworks = this.safeList(rawCurrency, "chainTypes", new List<object>() {});
         for (object j = 0; isLessThan(j, getArrayLength(rawNetworks)); postFixIncrement(ref j))
         {
             object rawNetwork = getValue(rawNetworks, j);

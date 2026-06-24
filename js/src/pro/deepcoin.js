@@ -105,7 +105,7 @@ export default class deepcoin extends deepcoinRest {
     createPublicRequest(market, requestId, topicID, suffix = '', unWatch = false) {
         let marketId = market['symbol']; // spot markets use symbol with slash
         if (market['type'] === 'swap') {
-            marketId = market['baseId'] + market['quoteId']; // swap markets use symbol without slash
+            marketId = this.safeString(market, 'baseId', '') + this.safeString(market, 'quoteId', ''); // swap markets use symbol without slash
         }
         let action = '1'; // subscribe
         if (unWatch) {
@@ -295,13 +295,13 @@ export default class deepcoin extends deepcoinRest {
         const ask = this.safeNumber(ticker, 'AP1');
         let baseVolume = this.safeNumber(ticker, 'V');
         let quoteVolume = this.safeNumber(ticker, 'T');
-        if (market['inverse']) {
+        if (this.safeBool(market, 'inverse')) {
             const temp = baseVolume;
             baseVolume = quoteVolume;
             quoteVolume = temp;
         }
         return this.safeTicker({
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'high': high,
@@ -450,7 +450,7 @@ export default class deepcoin extends deepcoinRest {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'id': this.safeString2(trade, 'TradeID', 'TI'),
             'order': this.safeString(trade, 'OS'),
             'type': undefined,
@@ -704,7 +704,7 @@ export default class deepcoin extends deepcoinRest {
                 orderedEntries['asks'].push([price, volume]);
             }
         }
-        const timestamp = this.safeInteger(message, 'mt');
+        const timestamp = this.safeInteger(message, 'mt', 0);
         const snapshot = this.parseOrderBook(orderedEntries, symbol, timestamp);
         orderbook.reset(snapshot);
         const cachedMessages = orderbook.cache;
@@ -732,7 +732,7 @@ export default class deepcoin extends deepcoinRest {
         //         "mt": 1760975816446
         //     }
         //
-        const timestamp = this.safeInteger(message, 'mt');
+        const timestamp = this.safeInteger(message, 'mt', 0);
         if (timestamp > orderbook['timestamp']) {
             const response = this.safeList(message, 'r', []);
             this.handleDeltas(orderbook, response);
@@ -939,7 +939,7 @@ export default class deepcoin extends deepcoinRest {
             'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': this.safeTimestamp(order, 'U'),
             'status': this.parseWsOrderStatus(state),
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'type': undefined,
             'timeInForce': undefined,
             'side': this.parseTradeSide(direction),
@@ -1063,7 +1063,7 @@ export default class deepcoin extends deepcoinRest {
         const direction = this.safeString(position, 'p');
         const marginMode = this.safeString(position, 'i');
         return this.safePosition({
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'id': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),

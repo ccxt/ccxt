@@ -1032,7 +1032,7 @@ class bigone extends bigone$1["default"] {
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        let response = undefined;
+        let response;
         if (market['contract']) {
             const request = {
                 'symbol': market['id'],
@@ -1207,8 +1207,8 @@ class bigone extends bigone$1["default"] {
             'cost': undefined,
             'info': trade,
         };
-        let makerCurrencyCode;
-        let takerCurrencyCode;
+        let makerCurrencyCode = undefined;
+        let takerCurrencyCode = undefined;
         if (takerOrMaker !== undefined) {
             if (side === 'buy') {
                 if (takerOrMaker === 'maker') {
@@ -1433,7 +1433,7 @@ class bigone extends bigone$1["default"] {
         await this.loadMarkets();
         const type = this.safeString(params, 'type', '');
         params = this.omit(params, 'type');
-        let response = undefined;
+        let response;
         if (type === 'funding' || type === 'fund') {
             response = await this.privateGetFundAccounts(params);
         }

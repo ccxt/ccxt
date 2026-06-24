@@ -38,7 +38,7 @@ public class TestWatchOrderBookForSymbols extends BaseTest {
                 // continue;
                 success = false;
             }
-            if (Helpers.isTrue(Helpers.isEqual(success, true)))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(success, true))) && Helpers.isTrue((!Helpers.isEqual(response, null)))))
             {
                 // [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
                 Assert(exchange.isDictionary(response), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), exchange.json(symbols)), " must return an object. "), exchange.json(response)));
@@ -46,7 +46,7 @@ public class TestWatchOrderBookForSymbols extends BaseTest {
                 TestSharedMethods.AssertInArray(exchange, skippedProperties, method, response, "symbol", symbols);
                 TestOrderBook.testOrderBook(exchange, skippedProperties, method, response, null);
                 Object symbol = Helpers.GetValue(response, "symbol");
-                if (!Helpers.isTrue(exchange.inArray(symbol, returnedSymbols)))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(symbol, null))) && !Helpers.isTrue(exchange.inArray(symbol, returnedSymbols))))
                 {
                     ((java.util.List<Object>)returnedSymbols).add(symbol);
                 }

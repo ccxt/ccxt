@@ -669,7 +669,7 @@ export default class coinspot extends Exchange {
             'amount': amount,
             'rate': price,
         };
-        let response = undefined;
+        let response;
         if (sideUpper === 'BUY') {
             response = await this.privatePostMyBuy(this.extend(request, params));
         }
@@ -706,7 +706,7 @@ export default class coinspot extends Exchange {
         const request = {
             'id': id,
         };
-        let response = undefined;
+        let response;
         if (side === 'buy') {
             response = await this.privatePostMyBuyCancel(this.extend(request, params));
         }

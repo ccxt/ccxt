@@ -28,14 +28,14 @@ async function testWatchOrderBookForSymbols(exchange, skippedProperties, symbols
             // continue;
             success = false;
         }
-        if (success === true) {
+        if ((success === true) && (response !== undefined)) {
             // [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
             assert(exchange.isDictionary(response), exchange.id + ' ' + method + ' ' + exchange.json(symbols) + ' must return an object. ' + exchange.json(response));
             now = exchange.milliseconds();
             testSharedMethods.assertInArray(exchange, skippedProperties, method, response, 'symbol', symbols);
             testOrderBook(exchange, skippedProperties, method, response, undefined);
             const symbol = response['symbol'];
-            if (!exchange.inArray(symbol, returnedSymbols)) {
+            if ((symbol !== undefined) && !exchange.inArray(symbol, returnedSymbols)) {
                 returnedSymbols.push(symbol);
             }
         }

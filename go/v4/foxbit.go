@@ -2164,7 +2164,7 @@ func (this *FoxbitCore) ParseTradingFee(entry any, optionalArgs ...any) any {
 	_ = market
 	return map[string]any{
 		"info":       entry,
-		"symbol":     GetValue(market, "symbol"),
+		"symbol":     this.SafeString(market, "symbol"),
 		"maker":      this.SafeNumber(entry, "maker"),
 		"taker":      this.SafeNumber(entry, "taker"),
 		"percentage": true,
@@ -2229,7 +2229,7 @@ func (this *FoxbitCore) ParseTrade(trade any, optionalArgs ...any) any {
 		"info":         trade,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
-		"symbol":       GetValue(market, "symbol"),
+		"symbol":       this.SafeString(market, "symbol"),
 		"order":        nil,
 		"type":         nil,
 		"side":         side,

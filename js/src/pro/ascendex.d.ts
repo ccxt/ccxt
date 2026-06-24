@@ -1,5 +1,5 @@
 import ascendexRest from '../ascendex.js';
-import type { Int, Str, OrderBook, Order, Trade, OHLCV, Balances, Bool } from '../base/types.js';
+import type { Balances, Bool, Int, OHLCV, Order, OrderBook, Str, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class ascendex extends ascendexRest {
     describe(): any;

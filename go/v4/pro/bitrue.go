@@ -380,7 +380,7 @@ func  (this *BitrueCore) WatchOrderBook(symbol any, optionalArgs ...any) <- chan
                 cbId = wsId
                 url = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "futurePublic")
             } else {
-                var marketIdLowercase any = ccxt.ToLower(ccxt.GetValue(market, "id"))
+                var marketIdLowercase any = this.SafeStringLower(market, "id")
                 channel = ccxt.Add(ccxt.Add("market_", marketIdLowercase), "_simple_depth_step0")
                 cbId = marketIdLowercase
                 url = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")

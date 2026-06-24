@@ -1030,7 +1030,7 @@ export default class bitteam extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeDict(response, 'result');
+        const result = this.safeDict(response, 'result', {});
         return this.parseOrder(result, market);
     }
     /**
@@ -1104,7 +1104,7 @@ export default class bitteam extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
-            'pairId': market['numericId'].toString(),
+            'pairId': this.safeString(market, 'numericId'),
             'type': type,
             'side': side,
             'amount': this.amountToPrecision(symbol, amount),
@@ -1186,7 +1186,7 @@ export default class bitteam extends Exchange {
         const request = {};
         if (symbol !== undefined) {
             market = this.market(symbol);
-            request['pairId'] = market['numericId'].toString();
+            request['pairId'] = this.safeString(market, 'numericId');
         }
         else {
             request['pairId'] = '0'; // '0' for all markets

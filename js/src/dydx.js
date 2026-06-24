@@ -634,7 +634,7 @@ export default class dydx extends Exchange {
         // }
         //
         const timestamp = this.parse8601(this.safeString(trade, 'createdAt'));
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol');
         const price = this.safeString(trade, 'price');
         const amount = this.safeString(trade, 'size');
         const side = this.safeStringLower(trade, 'side');
@@ -1257,7 +1257,7 @@ export default class dydx extends Exchange {
         // }
         //
         const response = await this.nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress(request);
-        const account = this.safeDict(response, 'info');
+        const account = this.safeDict(response, 'info', {});
         account['pub_key'] = {
             // encode with binary key would fail in python
             'key': account['pub_key']['key'],
@@ -1290,7 +1290,7 @@ export default class dydx extends Exchange {
         const postOnly = this.isPostOnly(isMarket, undefined, params);
         const amountStr = this.amountToPrecision(symbol, amount);
         const priceStr = this.priceToPrecision(symbol, price);
-        const marketInfo = this.safeDict(market, 'info');
+        const marketInfo = this.safeDict(market, 'info', {});
         const atomicResolution = marketInfo['atomicResolution'];
         const quantumScale = this.pow('10', Precise.stringNeg(atomicResolution));
         const quantums = Precise.stringMul(amountStr, quantumScale);
@@ -1803,7 +1803,7 @@ export default class dydx extends Exchange {
         }
         const defaultFeeDenom = this.safeString(this.options, 'defaultFeeDenom');
         const defaultFeeMultiplier = this.safeString(this.options, 'defaultFeeMultiplier');
-        const feeDenom = this.safeDict(this.options, 'feeDenom');
+        const feeDenom = this.safeDict(this.options, 'feeDenom', {});
         let gasPrice = undefined;
         let denom = undefined;
         if (defaultFeeDenom === 'uusdc') {

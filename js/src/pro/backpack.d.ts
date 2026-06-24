@@ -68,7 +68,7 @@ export default class backpack extends backpackRest {
      */
     unWatchBidsAsks(symbols?: Strings, params?: {}): Promise<any>;
     handleBidAsk(client: Client, message: any): void;
-    parseWsBidAsk(ticker: any, market?: any): Ticker;
+    parseWsBidAsk(ticker: any, market?: Market): Ticker;
     /**
      * @method
      * @name backpack#watchOHLCV
@@ -162,7 +162,7 @@ export default class backpack extends backpackRest {
      */
     unWatchTradesForSymbols(symbols: string[], params?: {}): Promise<any>;
     handleTrades(client: Client, message: any): void;
-    parseWsTrade(trade: any, market?: any): Trade;
+    parseWsTrade(trade: any, market?: Market): Trade;
     /**
      * @method
      * @name backpack#watchOrderBook
@@ -232,7 +232,7 @@ export default class backpack extends backpackRest {
      */
     unWatchOrders(symbol?: Str, params?: {}): Promise<any>;
     handleOrder(client: Client, message: any): void;
-    parseWsOrder(order: any, market?: any): Order;
+    parseWsOrder(order: any, market?: Market): Order;
     parseWsOrderStatus(status: any, market?: any): string;
     parseWsOrderSide(side: Str): string;
     /**

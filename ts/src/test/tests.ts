@@ -2,7 +2,7 @@
 
 import assert from 'assert';
 import { Exchange } from '../../ccxt.js';
-import { Str } from '../base/types.js';
+import type { Bool, Dict, Str, Strings } from '../base/types.js';
 
 import {
     // errors
@@ -280,7 +280,7 @@ class testMainClass {
         if (!isPublic && (methodName in this.checkedPublicTests) && !isFetchCurrencies) {
             return true;
         }
-        let skipMessage = undefined;
+        let skipMessage: Str = undefined;
         const supportedByExchange = (methodName in exchange.has) && exchange.has[methodName];
         if (!isLoadMarkets && (this.onlySpecificTests.length > 0 && !exchange.inArray (methodName, this.onlySpecificTests))) {
             skipMessage = '[INFO] IGNORED_TEST';
@@ -399,8 +399,8 @@ class testMainClass {
                     if (i === maxRetries - 1) {
                         const isOnMaintenance = (e instanceof OnMaintenance);
                         const isExchangeNotAvailable = (e instanceof ExchangeNotAvailable);
-                        let shouldFail = undefined;
-                        let retSuccess = undefined;
+                        let shouldFail: Bool = undefined;
+                        let retSuccess: Bool = undefined;
                         if (isLoadMarkets) {
                             // if "loadMarkets" does not succeed, we must return "false" to caller method, to stop tests continual
                             retSuccess = false;
@@ -563,7 +563,7 @@ class testMainClass {
     }
 
     getTestSymbol (exchange, isSpot, symbols) {
-        let symbol = undefined;
+        let symbol: Str = undefined;
         const preferredSpotSymbol = exchange.safeString (this.skippedSettingsForExchange, 'preferredSpotSymbol');
         const preferredSwapSymbol = exchange.safeString (this.skippedSettingsForExchange, 'preferredSwapSymbol');
         if (isSpot && preferredSpotSymbol) {
@@ -711,7 +711,7 @@ class testMainClass {
             const valuesLength = values.length;
             if (valuesLength > 0) {
                 const first = values[0];
-                if (first !== undefined) {
+                if (first) {
                     symbol = first['symbol'];
                 }
             }
@@ -720,8 +720,8 @@ class testMainClass {
     }
 
     async testExchange (exchange, providedSymbol = undefined) {
-        let spotSymbols = undefined;
-        let swapSymbols = undefined;
+        let spotSymbols: Strings = undefined;
+        let swapSymbols: Strings = undefined;
         if (providedSymbol !== undefined) {
             const market = exchange.market (providedSymbol);
             if (market['spot']) {
@@ -1202,7 +1202,7 @@ class testMainClass {
     }
 
     varToString (obj:any = undefined) {
-        let newString = undefined;
+        let newString: Str = undefined;
         if (obj === undefined) {
             newString = 'undefined';
         } else if (isNullValue (obj)) {
@@ -1286,8 +1286,8 @@ class testMainClass {
     }
 
     async testRequestStatically (exchange, method: string, data: object, type: string, skipKeys: string[]) {
-        let output = undefined;
-        let requestUrl = undefined;
+        let output: Str = undefined;
+        let requestUrl: Str = undefined;
         if (this.info) {
             dump ('[INFO] STATIC REQUEST TEST:', method, ':', data['description']);
         }
@@ -1345,8 +1345,8 @@ class testMainClass {
     initOfflineExchange (exchangeName: string) {
         const markets = this.loadMarketsFromFile (exchangeName);
         const currencies = this.loadCurrenciesFromFile (exchangeName);
-        let wasmExecPath = undefined;
-        let libraryPath = undefined;
+        let wasmExecPath: Str = undefined;
+        let libraryPath: Str = undefined;
         // const wasmExecPath = getRootDir () + '/src/test/static/binaries/wasm_exec.js';
         // const ligherWasmPath = getRootDir () + 'ts/src/test/static/binaries/lighter.wasm';
         // const binaryPath = getRootDir () + '/ts/src/test/static/binaries/lighter-signer-linux-amd64.so';

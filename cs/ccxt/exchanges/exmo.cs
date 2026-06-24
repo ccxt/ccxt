@@ -249,7 +249,7 @@ public partial class exmo : Exchange
             { "position_id", getValue(market, "id") },
             { "quantity", amount },
         };
-        object response = null;
+        object response = new Dictionary<string, object>() {};
         if (isTrue(isEqual(type, "add")))
         {
             response = await this.privatePostMarginUserPositionMarginAdd(this.extend(request, parameters));
@@ -769,7 +769,7 @@ public partial class exmo : Exchange
                     ((IDictionary<string,object>)getValue(getValue(networkEntry, "limits"), "withdraw"))["min"] = minValue;
                     ((IDictionary<string,object>)getValue(getValue(networkEntry, "limits"), "withdraw"))["max"] = maxValue;
                 }
-                object info = this.safeList(networkEntry, "info");
+                object info = this.safeList(networkEntry, "info", new List<object>() {});
                 ((IList<object>)info).Add(provider);
                 ((IDictionary<string,object>)networkEntry)["info"] = info;
                 ((IDictionary<string,object>)networks)[(string)networkCode] = networkEntry;
@@ -1128,17 +1128,20 @@ public partial class exmo : Exchange
         if (isTrue(isEqual(symbols, null)))
         {
             object allIds = this.ids;
-            ids = String.Join(",", ((IList<object>)allIds).ToArray());
-            // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
-            if (isTrue(isGreaterThan(getArrayLength(ids), 2048)))
+            if (isTrue(!isEqual(allIds, null)))
             {
-                object numIds = getArrayLength(this.ids);
-                throw new ExchangeError ((string)add(add(add(this.id, " fetchOrderBooks() has "), ((object)numIds).ToString()), " symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks")) ;
+                ids = String.Join(",", ((IList<object>)allIds).ToArray());
+                // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
+                if (isTrue(isGreaterThan(((string)ids).Length, 2048)))
+                {
+                    object numIds = getArrayLength(allIds);
+                    throw new ExchangeError ((string)add(add(add(this.id, " fetchOrderBooks() has "), ((object)numIds).ToString()), " symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks")) ;
+                }
             }
         } else
         {
-            ids = this.marketIds(symbols);
-            ids = String.Join(",", ((IList<object>)ids).ToArray());
+            object requestedIds = this.marketIds(symbols);
+            ids = String.Join(",", ((IList<object>)requestedIds).ToArray());
         }
         object request = new Dictionary<string, object>() {
             { "pair", ids },

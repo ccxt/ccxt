@@ -6,7 +6,7 @@ import Exchange from './abstract/coinone.js';
 import { BadSymbol, BadRequest, ExchangeError, ArgumentsRequired, OrderNotFound, OnMaintenance } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int, DepositAddress, Currency } from './base/types.js';
+import type { Balances, Currencies, Currency, DepositAddress, Dict, Int, Market, NullableDict, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -410,7 +410,7 @@ export default class coinone extends Exchange {
         //     }
         //
         const tickers = this.safeList (response, 'tickers', []);
-        const result = [];
+        const result: any[] = [];
         for (let i = 0; i < tickers.length; i++) {
             const entry = this.safeValue (tickers, i);
             const id = this.safeString (entry, 'id');
@@ -570,11 +570,11 @@ export default class coinone extends Exchange {
         const request: Dict = {
             'quote_currency': 'KRW',
         };
-        let market = undefined;
-        let response = undefined;
+        let market: Market = undefined;
+        let response: NullableDict = undefined;
         if (symbols !== undefined) {
             const first = this.safeString (symbols, 0);
-            market = this.market (first);
+            market = this.market ((first as string));
             request['quote_currency'] = market['quote'];
             request['target_currency'] = market['base'];
             response = await this.v2PublicGetTickerNewQuoteCurrencyTargetCurrency (this.extend (request, params));
@@ -759,7 +759,7 @@ export default class coinone extends Exchange {
         const timestamp = this.safeInteger (trade, 'timestamp');
         market = this.safeMarket (undefined, market);
         const isSellerMaker = this.safeBool (trade, 'is_seller_maker');
-        let side = undefined;
+        let side: Str = undefined;
         if (isSellerMaker !== undefined) {
             side = isSellerMaker ? 'sell' : 'buy';
         }
@@ -767,7 +767,7 @@ export default class coinone extends Exchange {
         const amountString = this.safeString (trade, 'qty');
         const orderId = this.safeString (trade, 'orderId');
         let feeCostString = this.safeString (trade, 'fee');
-        let fee = undefined;
+        let fee: NullableDict = undefined;
         if (feeCostString !== undefined) {
             feeCostString = Precise.stringAbs (feeCostString);
             let feeRateString = this.safeString (trade, 'feeRate');
@@ -865,7 +865,7 @@ export default class coinone extends Exchange {
             'currency': market['id'],
             'qty': amount,
         };
-        const method = 'privatePostOrder' + this.capitalize (type) + this.capitalize (side);
+        const method = 'privatePostOrder' + this.capitalize (type) + this.capitalize ((side as string));
         const response = await this[method] (this.extend (request, params));
         //
         //     {
@@ -929,7 +929,7 @@ export default class coinone extends Exchange {
             'filled': 'closed',
             'canceled': 'canceled',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -979,15 +979,15 @@ export default class coinone extends Exchange {
         const id = this.safeString (order, 'orderId');
         const baseId = this.safeString (order, 'baseCurrency');
         const quoteId = this.safeString (order, 'targetCurrency');
-        let base = undefined;
-        let quote = undefined;
+        let base: Str = undefined;
+        let quote: Str = undefined;
         if (baseId !== undefined) {
             base = this.safeCurrencyCode (baseId);
         }
         if (quoteId !== undefined) {
             quote = this.safeCurrencyCode (quoteId);
         }
-        let symbol = undefined;
+        let symbol: Str = undefined;
         if ((base !== undefined) && (quote !== undefined)) {
             symbol = base + '/' + quote;
             market = this.safeMarket (symbol, market, '/');
@@ -1012,7 +1012,7 @@ export default class coinone extends Exchange {
             }
         }
         status = this.parseOrderStatus (status);
-        let fee = undefined;
+        let fee: NullableDict = undefined;
         const feeCostString = this.safeString (order, 'fee');
         if (feeCostString !== undefined) {
             const feeCurrencyCode = (side === 'sell') ? quote : base;
@@ -1232,7 +1232,7 @@ export default class coinone extends Exchange {
         return result as DepositAddress[];
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const request = this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         let url = this.urls['api']['rest'] + '/';

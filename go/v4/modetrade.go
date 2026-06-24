@@ -706,7 +706,7 @@ func (this *ModetradeCore) FetchCurrencies(optionalArgs ...any) <-chan any {
 }
 func (this *ModetradeCore) ParseCurrency(rawCurrency any) any {
 	var currencyId any = this.SafeString(rawCurrency, "token")
-	var networks any = this.SafeList(rawCurrency, "chain_details")
+	var networks any = this.SafeList(rawCurrency, "chain_details", []any{})
 	var code any = this.SafeCurrencyCode(currencyId)
 	var minPrecision any = nil
 	var resultingNetworks any = map[string]any{}
@@ -1817,7 +1817,7 @@ func (this *ModetradeCore) CreateOrder(symbol any, typeVar any, side any, amount
 			response = (<-this.V1PrivatePostOrder(request))
 			PanicOnError(response)
 		}
-		var data any = this.SafeDict(response, "data")
+		var data any = this.SafeDict(response, "data", map[string]any{})
 		AddElementToObject(data, "timestamp", this.SafeInteger(response, "timestamp"))
 		var order any = this.ParseOrder(data, market)
 		AddElementToObject(order, "type", typeVar)
@@ -2038,7 +2038,7 @@ func (this *ModetradeCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 			market = this.Market(symbol)
 		}
 		var request any = map[string]any{
-			"symbol": GetValue(market, "id"),
+			"symbol": this.SafeString(market, "id"),
 		}
 		var clientOrderIdUnified any = this.SafeString2(params, "clOrdID", "clientOrderId")
 		var clientOrderIdExchangeSpecific any = this.SafeString(params, "client_order_id", clientOrderIdUnified)
@@ -3235,7 +3235,7 @@ func (this *ModetradeCore) ParseLeverage(leverage any, optionalArgs ...any) any 
 	var leverageValue any = this.SafeInteger(leverage, "max_leverage")
 	return map[string]any{
 		"info":          leverage,
-		"symbol":        GetValue(market, "symbol"),
+		"symbol":        this.SafeString(market, "symbol"),
 		"marginMode":    nil,
 		"longLeverage":  leverageValue,
 		"shortLeverage": leverageValue,

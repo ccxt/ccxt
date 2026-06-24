@@ -1,5 +1,5 @@
 import bitstampRest from '../bitstamp.js';
-import type { Int, Str, OrderBook, Order, Trade, Bool } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Market, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bitstamp extends bitstampRest {
     describe(): any;
@@ -28,7 +28,7 @@ export default class bitstamp extends bitstampRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    parseWsTrade(trade: any, market?: any): Trade;
+    parseWsTrade(trade: any, market?: Market): Trade;
     handleTrade(client: Client, message: any): void;
     /**
      * @method
@@ -42,7 +42,7 @@ export default class bitstamp extends bitstampRest {
      */
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     handleOrders(client: Client, message: any): void;
-    parseWsOrder(order: any, market?: any): Order;
+    parseWsOrder(order: any, market?: Market): Order;
     handleOrderBookSubscription(client: Client, message: any): void;
     handleSubscriptionStatus(client: Client, message: any): void;
     handleSubject(client: Client, message: any): void;

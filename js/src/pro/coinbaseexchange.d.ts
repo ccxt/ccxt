@@ -1,5 +1,5 @@
 import coinbaseexchangeRest from '../coinbaseexchange.js';
-import type { Tickers, Int, Ticker, Str, Strings, OrderBook, Trade, Order, Bool } from '../base/types.js';
+import type { Tickers, Int, Ticker, Str, Strings, OrderBook, Trade, Order, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class coinbaseexchange extends coinbaseexchangeRest {
     describe(): any;
@@ -118,12 +118,12 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     handleTrade(client: Client, message: any): any;
     handleMyTrade(client: Client, message: any): any;
-    parseWsTrade(trade: any, market?: any): Trade;
+    parseWsTrade(trade: any, market?: Market): Trade;
     parseWsOrderStatus(status: any): string;
     handleOrder(client: Client, message: any): void;
-    parseWsOrder(order: any, market?: any): Order;
+    parseWsOrder(order: any, market?: Market): Order;
     handleTicker(client: Client, message: any): any;
-    parseTicker(ticker: any, market?: any): Ticker;
+    parseTicker(ticker: any, market?: Market): Ticker;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
     handleOrderBook(client: Client, message: any): void;

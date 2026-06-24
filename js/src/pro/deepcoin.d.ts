@@ -6,7 +6,7 @@ export default class deepcoin extends deepcoinRest {
     ping(client: Client): string;
     handlePong(client: Client, message: any): any;
     requestId(): any;
-    createPublicRequest(market: Market, requestId: number, topicID: string, suffix?: string, unWatch?: boolean): {
+    createPublicRequest(market: any, requestId: number, topicID: string, suffix?: string, unWatch?: boolean): {
         sendTopicAction: {
             Action: string;
             FilterValue: string;
@@ -15,8 +15,8 @@ export default class deepcoin extends deepcoinRest {
             TopicID: string;
         };
     };
-    watchPublic(market: Market, messageHash: string, topicID: string, params?: Dict, suffix?: string): Promise<any>;
-    unWatchPublic(market: Market, messageHash: string, topicID: string, params?: Dict, subscription?: Dict, suffix?: string): Promise<any>;
+    watchPublic(market: any, messageHash: string, topicID: string, params?: Dict, suffix?: string): Promise<any>;
+    unWatchPublic(market: any, messageHash: string, topicID: string, params?: Dict, subscription?: Dict, suffix?: string): Promise<any>;
     watchPrivate(messageHash: string, params?: Dict): Promise<any>;
     authenticate(params?: {}): Promise<string>;
     /**

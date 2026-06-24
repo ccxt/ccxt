@@ -622,7 +622,7 @@ class derive extends derive$1["default"] {
     }
     parseMarket(market) {
         const type = this.safeString(market, 'instrument_type');
-        let marketType;
+        let marketType = undefined;
         let spot = false;
         let margin = true;
         let swap = false;
@@ -1274,7 +1274,7 @@ class derive extends derive$1["default"] {
         }
         request['signature'] = signature;
         params = this.omit(params, ['reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'test', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trigger_price', 'stopLoss', 'takeProfit', 'trigger_price_type']);
-        let response = undefined;
+        let response;
         if (test) {
             response = await this.privatePostOrderDebug(this.extend(request, params));
         }
@@ -1351,7 +1351,7 @@ class derive extends derive$1["default"] {
         const result = this.safeDict(response, 'result');
         let rawOrder = this.safeDict(result, 'raw_data');
         if (rawOrder === undefined) {
-            rawOrder = this.safeDict(result, 'order');
+            rawOrder = this.safeDict(result, 'order', {});
         }
         const order = this.parseOrder(rawOrder, market);
         order['type'] = type;
@@ -1521,7 +1521,7 @@ class derive extends derive$1["default"] {
         //   }
         //
         const result = this.safeDict(response, 'result');
-        const rawOrder = this.safeDict(result, 'order');
+        const rawOrder = this.safeDict(result, 'order', {});
         const order = this.parseOrder(rawOrder, market);
         return order;
     }
@@ -1554,7 +1554,7 @@ class derive extends derive$1["default"] {
         const clientOrderIdUnified = this.safeString(params, 'clientOrderId');
         const clientOrderIdExchangeSpecific = this.safeString(params, 'label', clientOrderIdUnified);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
-        let response = undefined;
+        let response;
         if (isByClientOrder) {
             request['label'] = clientOrderIdExchangeSpecific;
             params = this.omit(params, ['clientOrderId', 'label']);
@@ -1613,7 +1613,7 @@ class derive extends derive$1["default"] {
         // }
         //
         const extendParams = { 'symbol': symbol };
-        const order = this.safeDict(response, 'result');
+        const order = this.safeDict(response, 'result', {});
         if (isByClientOrder) {
             extendParams['client_order_id'] = clientOrderIdExchangeSpecific;
         }
@@ -1641,7 +1641,7 @@ class derive extends derive$1["default"] {
         const request = {
             'subaccount_id': subaccountId,
         };
-        let response = undefined;
+        let response;
         if (market !== undefined) {
             request['instrument_name'] = market['id'];
             response = await this.privatePostCancelByInstrument(this.extend(request, params));
@@ -1756,12 +1756,12 @@ class derive extends derive$1["default"] {
         const page = this.safeInteger(params, 'page');
         if (page !== undefined) {
             const pagination = this.safeDict(data, 'pagination');
-            const currentPage = this.safeInteger(pagination, 'num_pages');
+            const currentPage = this.safeInteger(pagination, 'num_pages', 0);
             if (page > currentPage) {
                 return [];
             }
         }
-        const orders = this.safeList(data, 'orders');
+        const orders = this.safeList(data, 'orders', []);
         return this.parseOrders(orders, market, since, limit);
     }
     /**
@@ -1899,7 +1899,7 @@ class derive extends derive$1["default"] {
         if (marketId !== undefined) {
             market = this.safeMarket(marketId, market);
         }
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol');
         const price = this.safeString(order, 'limit_price');
         const average = this.safeString(order, 'average_price');
         const amount = this.safeString(order, 'desired_amount');
@@ -2113,7 +2113,7 @@ class derive extends derive$1["default"] {
         const page = this.safeInteger(params, 'page');
         if (page !== undefined) {
             const pagination = this.safeDict(result, 'pagination');
-            const currentPage = this.safeInteger(pagination, 'num_pages');
+            const currentPage = this.safeInteger(pagination, 'num_pages', 0);
             if (page > currentPage) {
                 return [];
             }
@@ -2330,7 +2330,7 @@ class derive extends derive$1["default"] {
         const page = this.safeInteger(params, 'page');
         if (page !== undefined) {
             const pagination = this.safeDict(result, 'pagination');
-            const currentPage = this.safeInteger(pagination, 'num_pages');
+            const currentPage = this.safeInteger(pagination, 'num_pages', 0);
             if (page > currentPage) {
                 return [];
             }
@@ -2497,7 +2497,7 @@ class derive extends derive$1["default"] {
         //
         const currency = this.safeCurrency(code);
         const result = this.safeDict(response, 'result', {});
-        const events = this.safeList(result, 'events');
+        const events = this.safeList(result, 'events', []);
         return this.parseTransactions(events, currency, since, limit, params);
     }
     /**
@@ -2543,7 +2543,7 @@ class derive extends derive$1["default"] {
         //
         const currency = this.safeCurrency(code);
         const result = this.safeDict(response, 'result', {});
-        const events = this.safeList(result, 'events');
+        const events = this.safeList(result, 'events', []);
         return this.parseTransactions(events, currency, since, limit, params);
     }
     parseTransaction(transaction, currency = undefined) {

@@ -394,7 +394,7 @@ public partial class bitopro : ccxt.bitopro
         //
         object marketId = this.safeString(message, "pair");
         // market-ids are lowercase in REST API and uppercase in WS API
-        object market = this.safeMarket(((string)marketId).ToLower(), null, "_");
+        object market = this.safeMarket(((bool) isTrue(!isEqual(marketId, null))) ? ((string)marketId).ToLower() : null, null, "_");
         object symbol = getValue(market, "symbol");
         object eventVar = this.safeString(message, "event");
         object messageHash = add(add(eventVar, ":"), symbol);

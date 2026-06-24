@@ -1419,7 +1419,7 @@ func (this *PacificaCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		params = GetValue(requestparamsVariable, 1)
 		AddElementToObject(request, "account", userAddress)
 		if IsTrue(!IsEqual(symbol, nil)) {
-			AddElementToObject(request, "symbol", GetValue(market, "id"))
+			AddElementToObject(request, "symbol", this.SafeString(market, "id"))
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit", limit)
@@ -2231,7 +2231,7 @@ func (this *PacificaCore) EditOrderRequest(id any, symbol any, typeVar any, side
 	var priceNormalized any = this.PriceToPrecision(symbol, price)
 	var amountNormalized any = this.AmountToPrecision(symbol, amount)
 	var sigPayload any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": this.SafeString(market, "id"),
 		"price":  priceNormalized,
 		"amount": amountNormalized,
 	}

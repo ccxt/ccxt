@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import bitvavoRest from '../bitvavo.js';
 import { AuthenticationError, ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Int, Str, OrderSide, OrderType, OrderBook, Ticker, Trade, Order, OHLCV, Balances, Num, TradingFees, Dict, Strings, Tickers, Bool, Currencies } from '../base/types.js';
+import { Int, Str, OrderSide, OrderType, OrderBook, Ticker, Trade, Order, OHLCV, Balances, Num, TradingFees, Dict, List, Strings, Tickers, Bool, Currencies, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -88,7 +88,7 @@ export default class bitvavo extends bitvavoRest {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const messageHashes = [ methodName ];
-        const args = [];
+        const args: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market (symbols[i]);
             args.push (market['id']);
@@ -162,7 +162,7 @@ export default class bitvavo extends bitvavoRest {
         this.handleBidAsk (client, message);
         const event = this.safeString (message, 'event');
         const tickers = this.safeValue (message, 'data', []);
-        const result = [];
+        const result: List = [];
         for (let i = 0; i < tickers.length; i++) {
             const data = tickers[i];
             const marketId = this.safeString (data, 'market');
@@ -197,7 +197,7 @@ export default class bitvavo extends bitvavoRest {
     handleBidAsk (client: Client, message) {
         const event = 'bidask';
         const tickers = this.safeValue (message, 'data', []);
-        const result = [];
+        const result: List = [];
         for (let i = 0; i < tickers.length; i++) {
             const data = tickers[i];
             const ticker = this.parseWsBidAsk (data);
@@ -727,14 +727,14 @@ export default class bitvavo extends bitvavoRest {
         await this.loadMarkets ();
         await this.authenticate ();
         const request: Dict = {};
-        let operatorId = undefined;
+        let operatorId: Str = undefined;
         [ operatorId, params ] = this.handleOptionAndParams (params, 'cancelAllOrdersWs', 'operatorId');
         if (operatorId !== undefined) {
             request['operatorId'] = this.parseToInt (operatorId);
         } else {
             throw new ArgumentsRequired (this.id + ' canceAllOrdersWs() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890');
         }
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['market'] = market['id'];
@@ -841,7 +841,7 @@ export default class bitvavo extends bitvavoRest {
         const request: Dict = {
             // 'market': market['id'], // rate limit 25 without a market, 1 with market specified
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['market'] = market['id'];

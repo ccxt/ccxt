@@ -1,5 +1,5 @@
 import { Exchange } from '../../ccxt.js';
-import { Str } from '../base/types.js';
+import type { Str } from '../base/types.js';
 declare class testMainClass {
     idTests: boolean;
     requestTestsFailed: boolean;
@@ -33,7 +33,7 @@ declare class testMainClass {
     addPadding(message: string, size: any): string;
     testMethod(methodName: string, exchange: any, args: any[], isPublic: boolean): Promise<boolean>;
     getSkips(exchange: Exchange, methodName: string): {};
-    testSafe(methodName: any, exchange: any, args?: any[], isPublic?: boolean): Promise<any>;
+    testSafe(methodName: any, exchange: any, args?: any[], isPublic?: boolean): Promise<boolean>;
     runPublicTests(exchange: any, symbols: any): Promise<boolean>;
     runTests(exchange: any, tests: any, isPublicTest: boolean): Promise<boolean>;
     loadExchange(exchange: any): Promise<boolean>;
@@ -56,7 +56,7 @@ declare class testMainClass {
     urlencodedToDict(url: string): {};
     assertNewAndStoredOutputInner(exchange: Exchange, skipKeys: string[], newOutput: any, storedOutput: any, strictTypeCheck?: boolean, assertingKey?: any): boolean;
     assertNewAndStoredOutput(exchange: Exchange, skipKeys: string[], newOutput: any, storedOutput: any, strictTypeCheck?: boolean, assertingKey?: any): boolean;
-    varToString(obj?: any): any;
+    varToString(obj?: any): string;
     assertStaticRequestOutput(exchange: any, type: string, skipKeys: string[], storedUrl: string, requestUrl: string, storedOutput: any, newOutput: any): boolean;
     assertStaticResponseOutput(exchange: Exchange, skipKeys: string[], computedResult: any, storedResult: any): void;
     sanitizeDataInput(input: any): any[];

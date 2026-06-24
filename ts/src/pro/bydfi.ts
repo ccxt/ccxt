@@ -565,7 +565,7 @@ export default class bydfi extends bydfiRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        let symbols = undefined;
+        let symbols: Strings = undefined;
         if (symbol !== undefined) {
             symbols = [ symbol ];
         }
@@ -680,7 +680,7 @@ export default class bydfi extends bydfiRest {
         market = this.safeMarket (marketId, market);
         const rawStatus = this.safeString (order, 'st');
         const rawType = this.safeString (order, 't');
-        let fee = undefined;
+        let fee: Dict = undefined;
         const feeCost = this.safeString (order, 'fee');
         if (feeCost !== undefined) {
             fee = {

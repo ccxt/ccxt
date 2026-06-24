@@ -1259,6 +1259,7 @@ class bitbns extends bitbns$1["default"] {
             };
             const payload = this.stringToBase64(this.json(auth));
             const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha512);
+            headers = (headers === undefined) ? {} : headers;
             headers['X-BITBNS-PAYLOAD'] = payload;
             headers['X-BITBNS-SIGNATURE'] = signature;
             headers['Content-Type'] = 'application/x-www-form-urlencoded';

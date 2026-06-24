@@ -919,7 +919,7 @@ class delta extends delta$1["default"] {
                 'settleId': settleId,
                 'type': type,
                 'spot': spot,
-                'margin': spot ? undefined : false,
+                'margin': false,
                 'swap': swap,
                 'future': future,
                 'option': option,
@@ -3215,7 +3215,7 @@ class delta extends delta$1["default"] {
         const result = this.safeList(response, 'result', []);
         const settlements = this.parseSettlements(result, market);
         const sorted = this.sortBy(settlements, 'timestamp');
-        return this.filterBySymbolSinceLimit(sorted, market['symbol'], since, limit);
+        return this.filterBySymbolSinceLimit(sorted, this.safeString(market, 'symbol'), since, limit);
     }
     parseSettlement(settlement, market) {
         //
@@ -3431,7 +3431,7 @@ class delta extends delta$1["default"] {
             'bidPrice': this.safeNumber(quotes, 'best_bid'),
             'askPrice': this.safeNumber(quotes, 'best_ask'),
             'markPrice': this.safeNumber(greeks, 'mark_price'),
-            'lastPrice': undefined,
+            'lastPrice': this.safeNumber(greeks, 'last_price'),
             'underlyingPrice': this.safeNumber(greeks, 'spot_price'),
             'info': greeks,
         };
@@ -3679,7 +3679,7 @@ class delta extends delta$1["default"] {
         const timestamp = this.safeIntegerProduct(chain, 'timestamp', 0.001);
         return {
             'info': chain,
-            'currency': undefined,
+            'currency': this.safeString(chain, 'currency'),
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
@@ -3689,12 +3689,12 @@ class delta extends delta$1["default"] {
             'askPrice': this.safeNumber(quotes, 'best_ask'),
             'midPrice': this.safeNumber(quotes, 'impact_mid_price'),
             'markPrice': this.safeNumber(chain, 'mark_price'),
-            'lastPrice': undefined,
+            'lastPrice': this.safeNumber(chain, 'last_price'),
             'underlyingPrice': this.safeNumber(chain, 'spot_price'),
-            'change': undefined,
-            'percentage': undefined,
+            'change': this.safeNumber(chain, 'change'),
+            'percentage': this.safeNumber(chain, 'percentage'),
             'baseVolume': this.safeNumber(chain, 'volume'),
-            'quoteVolume': undefined,
+            'quoteVolume': this.safeNumber(chain, 'quote_volume'),
         };
     }
     /**
@@ -4062,7 +4062,7 @@ class delta extends delta$1["default"] {
             'datetime': datetime,
         };
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = 'public', method = 'GET', params = {}, headers = {}, body = undefined) {
         const requestPath = '/' + this.version + '/' + this.implodeParams(path, params);
         let url = this.urls['api'][api] + requestPath;
         const query = this.omit(params, this.extractParams(path));

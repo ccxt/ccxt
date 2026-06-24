@@ -734,7 +734,7 @@ class p2b extends p2b$1["default"] {
             'amount': this.safeString(trade, 'amount'),
             'cost': this.safeString(trade, 'deal'),
             'fee': {
-                'currency': market['quote'],
+                'currency': this.safeString(market, 'quote'),
                 'cost': this.safeString2(trade, 'fee', 'deal_fee'),
             },
         }, market);

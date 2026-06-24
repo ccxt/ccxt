@@ -537,7 +537,7 @@ class cryptocom extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          *
@@ -782,7 +782,7 @@ class cryptocom extends Exchange {
             $strike = $this->safe_string($market, 'strike');
             $marginBuyEnabled = $this->safe_bool($market, 'margin_buy_enabled');
             $marginSellEnabled = $this->safe_bool($market, 'margin_sell_enabled');
-            $expiryString = $this->omit_zero($this->safe_string($market, 'expiry_timestamp_ms'));
+            $expiryString = $this->omit_zero(($this->safe_string($market, 'expiry_timestamp_ms')));
             $expiry = ($expiryString !== null) ? intval($expiryString) : null;
             $symbol = $base . '/' . $quote;
             $type = null;
@@ -2598,7 +2598,7 @@ class cryptocom extends Exchange {
         );
     }
 
-    public function custom_handle_margin_mode_and_params($methodName, $params = array ()) {
+    public function custom_handle_margin_mode_and_params($methodName, $params = array ()): array {
         /**
          * @ignore
          * $marginMode specified by $params["marginMode"], $this->options["marginMode"], $this->options["defaultMarginMode"], $params["margin"] = true or $this->options["defaultType"] = 'margin'
@@ -3338,8 +3338,8 @@ class cryptocom extends Exchange {
             $objectKeys = is_array($object) ? array_keys($object) : array();
             $paramsKeys = $this->sort($objectKeys);
         }
-        for ($i = 0; $i < count($paramsKeys); $i++) {
-            $key = $paramsKeys[$i];
+        for ($i = 0; $i < count(($paramsKeys)); $i++) {
+            $key = ($paramsKeys)[$i];
             $returnString .= $key;
             $value = $object[$key];
             if ($value === 'null') {
@@ -3478,8 +3478,8 @@ class cryptocom extends Exchange {
         //
         $result = array();
         $result['info'] = $response;
-        for ($i = 0; $i < count($this->symbols); $i++) {
-            $symbol = $this->symbols[$i];
+        for ($i = 0; $i < count(($this->symbols)); $i++) {
+            $symbol = ($this->symbols)[$i];
             $market = $this->market($symbol);
             $isSwap = $market['swap'];
             $takerFeeKey = $isSwap ? 'effective_deriv_taker_rate_bps' : 'effective_spot_taker_rate_bps';
@@ -3517,7 +3517,7 @@ class cryptocom extends Exchange {
         );
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $type = $this->safe_string($api, 0);
         $access = $this->safe_string($api, 1);
         $url = $this->urls['api'][$type] . '/' . $path;

@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Any, Balances, Bool, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import AuthenticationError
@@ -277,7 +277,7 @@ class whitebit(ccxt.async_support.whitebit):
             market = self.market(symbols[i])
             messageHashes.append('ticker:' + market['symbol'])
             args.append(market['id'])
-        request: dict = {
+        request = {
             'id': id,
             'method': method,
             'params': args,
@@ -449,7 +449,7 @@ class whitebit(ccxt.async_support.whitebit):
         messageHash = 'myTrades:' + symbol
         client.resolve(stored, messageHash)
 
-    def parse_ws_trade(self, trade, market=None):
+    def parse_ws_trade(self, trade, market: Market = None):
         #
         #   [
         #         1894994106,  # id
@@ -557,7 +557,7 @@ class whitebit(ccxt.async_support.whitebit):
         messageHash = 'orders:' + symbol
         client.resolve(self.orders, messageHash)
 
-    def parse_ws_order(self, order, market=None):
+    def parse_ws_order(self, order, market: Market = None):
         #
         #   {
         #         "id": 96433622651,
@@ -645,7 +645,7 @@ class whitebit(ccxt.async_support.whitebit):
         }, market)
 
     def parse_ws_order_type(self, status):
-        statuses: dict = {
+        statuses = {
             '1': 'limit',
             '2': 'market',
             '202': 'market',
@@ -721,7 +721,7 @@ class whitebit(ccxt.async_support.whitebit):
     async def watch_public(self, messageHash, method, reqParams=[], params={}):
         url = self.urls['api']['ws']
         id = self.nonce()
-        request: dict = {
+        request = {
             'id': id,
             'method': method,
             'params': reqParams,
@@ -737,7 +737,7 @@ class whitebit(ccxt.async_support.whitebit):
         request = None
         marketIds = []
         if client is None:
-            subscription: dict = {}
+            subscription = {}
             market = self.market(symbol)
             marketId = market['id']
             subscription[marketId] = True
@@ -769,7 +769,7 @@ class whitebit(ccxt.async_support.whitebit):
                 marketIdsNew = list(subscription.keys())
                 if isNested:
                     marketIdsNew = [marketIdsNew]
-                resubRequest: dict = {
+                resubRequest = {
                     'id': id,
                     'method': method,
                     'params': marketIdsNew,
@@ -783,7 +783,7 @@ class whitebit(ccxt.async_support.whitebit):
         await self.authenticate()
         url = self.urls['api']['ws']
         id = self.nonce()
-        request: dict = {
+        request = {
             'id': id,
             'method': method,
             'params': reqParams,
@@ -807,7 +807,7 @@ class whitebit(ccxt.async_support.whitebit):
             #
             token = self.safe_string(authToken, 'websocket_token')
             id = self.nonce()
-            request: dict = {
+            request = {
                 'id': id,
                 'method': 'authorize',
                 'params': [
@@ -815,7 +815,7 @@ class whitebit(ccxt.async_support.whitebit):
                     'public',
                 ],
             }
-            subscription: dict = {
+            subscription = {
                 'id': id,
                 'method': self.handle_authenticate,
             }
@@ -874,7 +874,7 @@ class whitebit(ccxt.async_support.whitebit):
         if id is not None:
             self.handle_subscription_status(client, message, id)
             return
-        methods: dict = {
+        methods = {
             'market_update': self.handle_ticker,
             'trades_update': self.handle_trades,
             'depth_update': self.handle_order_book,

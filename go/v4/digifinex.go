@@ -1603,7 +1603,7 @@ func (this *DigifinexCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	if IsTrue(GetValue(market, "swap")) {
+	if IsTrue(this.SafeBool(market, "swap")) {
 		return []any{this.SafeInteger(ohlcv, 0), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, 5)}
 	} else {
 		return []any{this.SafeTimestamp(ohlcv, 0), this.SafeNumber(ohlcv, 5), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 1)}
@@ -2110,7 +2110,7 @@ func (this *DigifinexCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 			if IsTrue(IsEqual(symbol, nil)) {
 				panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 			}
-			AddElementToObject(request, "instrument_id", GetValue(market, "id"))
+			AddElementToObject(request, "instrument_id", this.SafeString(market, "id"))
 		} else {
 			AddElementToObject(request, "market", marketType)
 		}
@@ -2178,8 +2178,8 @@ func (this *DigifinexCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 	return ch
 }
 func (this *DigifinexCore) ParseCancelOrders(response any) any {
-	var success any = this.SafeList(response, "success")
-	var error any = this.SafeList(response, "error")
+	var success any = this.SafeList(response, "success", []any{})
+	var error any = this.SafeList(response, "error", []any{})
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(success)); i++ {
 		var order any = GetValue(success, i)
@@ -2843,7 +2843,7 @@ func (this *DigifinexCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		}
 		var marketIdRequest any = Ternary(IsTrue((IsEqual(marketType, "swap"))), "instrument_id", "symbol")
 		if IsTrue(!IsEqual(symbol, nil)) {
-			AddElementToObject(request, marketIdRequest, GetValue(market, "id"))
+			AddElementToObject(request, marketIdRequest, this.SafeString(market, "id"))
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit", limit)
@@ -5011,7 +5011,7 @@ func (this *DigifinexCore) ParseMarginModification(data any, optionalArgs ...any
 		"marginMode": "isolated",
 		"amount":     this.SafeNumber(data, "amount"),
 		"total":      nil,
-		"code":       GetValue(market, "settle"),
+		"code":       this.SafeString(market, "settle"),
 		"status":     nil,
 		"timestamp":  nil,
 		"datetime":   nil,

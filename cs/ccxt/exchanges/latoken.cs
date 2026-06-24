@@ -1866,6 +1866,7 @@ public partial class latoken : Exchange
     {
         api ??= "public";
         method ??= "GET";
+        parameters ??= new Dictionary<string, object>();
         object request = add(add(add("/", this.version), "/"), this.implodeParams(path, parameters));
         object requestString = request;
         object query = this.omit(parameters, this.extractParams(path));

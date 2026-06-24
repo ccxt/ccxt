@@ -307,7 +307,7 @@ func (this *HibachiCore) ParseMarket(market any) any {
 		"optionType":     nil,
 		"precision": map[string]any{
 			"amount": this.ParseNumber(this.ParsePrecision(this.SafeString(market, "underlyingDecimals"))),
-			"price":  Divide(this.ParseNumber(GetValue(this.SafeList(market, "orderbookGranularities"), 0)), 10000),
+			"price":  Divide(this.ParseNumber(this.SafeValue(this.SafeList(market, "orderbookGranularities", []any{}), 0)), 10000),
 		},
 		"limits": map[string]any{
 			"leverage": map[string]any{
@@ -1062,7 +1062,7 @@ func (this *HibachiCore) CreateOrders(orders any, optionalArgs ...any) <-chan an
 		// { "orders": [ { nonce: '1754349993908', orderId: '589642085255349248' } ] }
 		//
 		var ret any = []any{}
-		var responseOrders any = this.SafeList(response, "orders")
+		var responseOrders any = this.SafeList(response, "orders", []any{})
 		for i := 0; IsLessThan(i, GetArrayLength(responseOrders)); i++ {
 			var responseOrder any = GetValue(responseOrders, i)
 			AppendToArray(&ret, this.SafeOrder(map[string]any{
@@ -1194,7 +1194,7 @@ func (this *HibachiCore) EditOrders(orders any, optionalArgs ...any) <-chan any 
 		// { "orders": [ { "orderId": "589636801329628160" } ] }
 		//
 		var ret any = []any{}
-		var responseOrders any = this.SafeList(response, "orders")
+		var responseOrders any = this.SafeList(response, "orders", []any{})
 		for i := 0; IsLessThan(i, GetArrayLength(responseOrders)); i++ {
 			var responseOrder any = GetValue(responseOrders, i)
 			AppendToArray(&ret, this.SafeOrder(map[string]any{
@@ -1298,7 +1298,7 @@ func (this *HibachiCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
 		// { "orders": [ { "orderId": "589636801329628160" } ] }
 		//
 		var ret any = []any{}
-		var responseOrders any = this.SafeList(response, "orders")
+		var responseOrders any = this.SafeList(response, "orders", []any{})
 		for i := 0; IsLessThan(i, GetArrayLength(responseOrders)); i++ {
 			var responseOrder any = GetValue(responseOrders, i)
 			AppendToArray(&ret, this.SafeOrder(map[string]any{
@@ -2330,7 +2330,7 @@ func (this *HibachiCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		//         },
 		//     ]
 		// }
-		var transactions any = this.SafeList(response, "transactions")
+		var transactions any = this.SafeList(response, "transactions", []any{})
 		var deposits any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(transactions)); i++ {
 			var transaction any = GetValue(transactions, i)
@@ -2408,7 +2408,7 @@ func (this *HibachiCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		//         },
 		//     ]
 		// }
-		var transactions any = this.SafeList(response, "transactions")
+		var transactions any = this.SafeList(response, "transactions", []any{})
 		var withdrawals any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(transactions)); i++ {
 			var transaction any = GetValue(transactions, i)
@@ -2614,7 +2614,7 @@ func (this *HibachiCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any
 		//     ]
 		// }
 		//
-		var data any = this.SafeList(response, "data")
+		var data any = this.SafeList(response, "data", []any{})
 		var rates any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
 			var entry any = GetValue(data, i)

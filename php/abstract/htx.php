@@ -883,9 +883,6 @@ abstract class htx extends \ccxt\Exchange {
     public function contract_public_get_linear_swap_ex_market_history_trade($params = array()) {
         return $this->request('linear-swap-ex/market/history/trade', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function contract_public_get_linear_swap_api_v1_swap_risk_info($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_risk_info', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 1));
-    }
     public function contract_public_get_swap_api_v1_linear_swap_api_v1_swap_insurance_fund($params = array()) {
         return $this->request('swap-api/v1/linear-swap-api/v1/swap_insurance_fund', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -907,20 +904,11 @@ abstract class htx extends \ccxt\Exchange {
     public function contract_public_get_linear_swap_api_v1_swap_api_state($params = array()) {
         return $this->request('linear-swap-api/v1/swap_api_state', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function contract_public_get_linear_swap_api_v1_swap_cross_transfer_state($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_cross_transfer_state', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function contract_public_get_linear_swap_api_v1_swap_cross_trade_state($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_cross_trade_state', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 1));
-    }
     public function contract_public_get_linear_swap_api_v1_swap_elite_account_ratio($params = array()) {
         return $this->request('linear-swap-api/v1/swap_elite_account_ratio', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function contract_public_get_linear_swap_api_v1_swap_elite_position_ratio($params = array()) {
         return $this->request('linear-swap-api/v1/swap_elite_position_ratio', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function contract_public_get_linear_swap_api_v1_swap_liquidation_orders($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_liquidation_orders', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function contract_public_get_linear_swap_api_v1_swap_settlement_records($params = array()) {
         return $this->request('linear-swap-api/v1/swap_settlement_records', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 1));
@@ -978,30 +966,6 @@ abstract class htx extends \ccxt\Exchange {
     }
     public function contract_private_get_swap_api_v1_swap_api_trading_status($params = array()) {
         return $this->request('swap-api/v1/swap_api_trading_status', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function contract_private_get_linear_swap_api_v1_swap_sub_auth_list($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_sub_auth_list', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function contract_private_get_linear_swap_api_v1_swap_api_trading_status($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_api_trading_status', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function contract_private_get_linear_swap_api_v1_swap_cross_position_side($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_cross_position_side', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function contract_private_get_linear_swap_api_v1_swap_position_side($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_position_side', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function contract_private_get_linear_swap_api_v3_unified_account_info($params = array()) {
-        return $this->request('linear-swap-api/v3/unified_account_info', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function contract_private_get_linear_swap_api_v3_fix_position_margin_change_record($params = array()) {
-        return $this->request('linear-swap-api/v3/fix_position_margin_change_record', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function contract_private_get_linear_swap_api_v3_swap_unified_account_type($params = array()) {
-        return $this->request('linear-swap-api/v3/swap_unified_account_type', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function contract_private_get_linear_swap_api_v3_linear_swap_overview_account_info($params = array()) {
-        return $this->request('linear-swap-api/v3/linear_swap_overview_account_info', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function contract_private_get_v5_account_asset_mode($params = array()) {
         return $this->request('v5/account/asset_mode', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 0.20834));
@@ -1389,123 +1353,6 @@ abstract class htx extends \ccxt\Exchange {
     }
     public function contract_private_post_swap_api_v1_swap_track_hisorders($params = array()) {
         return $this->request('swap-api/v1/swap_track_hisorders', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contract_private_post_linear_swap_api_v1_swap_lever_position_limit($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_lever_position_limit', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contract_private_post_linear_swap_api_v1_swap_cross_lever_position_limit($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_cross_lever_position_limit', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contract_private_post_linear_swap_api_v1_swap_balance_valuation($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_balance_valuation', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contract_private_post_linear_swap_api_v1_swap_sub_auth($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_sub_auth', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contract_private_post_linear_swap_api_v1_swap_sub_account_list($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_sub_account_list', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contract_private_post_linear_swap_api_v1_swap_cross_sub_account_list($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_cross_sub_account_list', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contract_private_post_linear_swap_api_v1_swap_sub_account_info_list($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_sub_account_info_list', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contract_private_post_linear_swap_api_v1_swap_cross_sub_account_info_list($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_cross_sub_account_info_list', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contract_private_post_linear_swap_api_v1_swap_sub_account_info($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_sub_account_info', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contract_private_post_linear_swap_api_v1_swap_cross_sub_account_info($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_cross_sub_account_info', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contract_private_post_linear_swap_api_v1_swap_sub_position_info($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_sub_position_info', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contract_private_post_linear_swap_api_v1_swap_cross_sub_position_info($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_cross_sub_position_info', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contract_private_post_linear_swap_api_v1_swap_financial_record($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_financial_record', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contract_private_post_linear_swap_api_v1_swap_financial_record_exact($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_financial_record_exact', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contract_private_post_linear_swap_api_v1_swap_user_settlement_records($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_user_settlement_records', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contract_private_post_linear_swap_api_v1_swap_cross_user_settlement_records($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_cross_user_settlement_records', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contract_private_post_linear_swap_api_v1_swap_available_level_rate($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_available_level_rate', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contract_private_post_linear_swap_api_v1_swap_cross_available_level_rate($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_cross_available_level_rate', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contract_private_post_linear_swap_api_v1_swap_order_limit($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_order_limit', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contract_private_post_linear_swap_api_v1_swap_fee($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_fee', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contract_private_post_linear_swap_api_v1_swap_transfer_limit($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_transfer_limit', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contract_private_post_linear_swap_api_v1_swap_cross_transfer_limit($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_cross_transfer_limit', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contract_private_post_linear_swap_api_v1_swap_position_limit($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_position_limit', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contract_private_post_linear_swap_api_v1_swap_cross_position_limit($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_cross_position_limit', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contract_private_post_linear_swap_api_v1_swap_master_sub_transfer($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_master_sub_transfer', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contract_private_post_linear_swap_api_v1_swap_master_sub_transfer_record($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_master_sub_transfer_record', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contract_private_post_linear_swap_api_v1_swap_transfer_inner($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_transfer_inner', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contract_private_post_linear_swap_api_v3_swap_financial_record($params = array()) {
-        return $this->request('linear-swap-api/v3/swap_financial_record', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contract_private_post_linear_swap_api_v3_swap_financial_record_exact($params = array()) {
-        return $this->request('linear-swap-api/v3/swap_financial_record_exact', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contract_private_post_linear_swap_api_v1_swap_cross_matchresults($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_cross_matchresults', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contract_private_post_linear_swap_api_v1_swap_cross_matchresults_exact($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_cross_matchresults_exact', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contract_private_post_linear_swap_api_v1_linear_cancel_after($params = array()) {
-        return $this->request('linear-swap-api/v1/linear-cancel-after', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contract_private_post_linear_swap_api_v3_swap_cross_matchresults($params = array()) {
-        return $this->request('linear-swap-api/v3/swap_cross_matchresults', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contract_private_post_linear_swap_api_v3_swap_cross_matchresults_exact($params = array()) {
-        return $this->request('linear-swap-api/v3/swap_cross_matchresults_exact', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contract_private_post_linear_swap_api_v3_fix_position_margin_change($params = array()) {
-        return $this->request('linear-swap-api/v3/fix_position_margin_change', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contract_private_post_linear_swap_api_v3_swap_switch_account_type($params = array()) {
-        return $this->request('linear-swap-api/v3/swap_switch_account_type', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contract_private_post_linear_swap_api_v3_linear_swap_fee_switch($params = array()) {
-        return $this->request('linear-swap-api/v3/linear_swap_fee_switch', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contract_private_post_linear_swap_api_v1_swap_relation_tpsl_order($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_relation_tpsl_order', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contract_private_post_linear_swap_api_v1_swap_cross_relation_tpsl_order($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_cross_relation_tpsl_order', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function contract_private_post_v5_account_asset_mode($params = array()) {
         return $this->request('v5/account/asset_mode', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 100));
@@ -2428,9 +2275,6 @@ abstract class htx extends \ccxt\Exchange {
     public function contractPublicGetLinearSwapExMarketHistoryTrade($params = array()) {
         return $this->request('linear-swap-ex/market/history/trade', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function contractPublicGetLinearSwapApiV1SwapRiskInfo($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_risk_info', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 1));
-    }
     public function contractPublicGetSwapApiV1LinearSwapApiV1SwapInsuranceFund($params = array()) {
         return $this->request('swap-api/v1/linear-swap-api/v1/swap_insurance_fund', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -2452,20 +2296,11 @@ abstract class htx extends \ccxt\Exchange {
     public function contractPublicGetLinearSwapApiV1SwapApiState($params = array()) {
         return $this->request('linear-swap-api/v1/swap_api_state', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function contractPublicGetLinearSwapApiV1SwapCrossTransferState($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_cross_transfer_state', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function contractPublicGetLinearSwapApiV1SwapCrossTradeState($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_cross_trade_state', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 1));
-    }
     public function contractPublicGetLinearSwapApiV1SwapEliteAccountRatio($params = array()) {
         return $this->request('linear-swap-api/v1/swap_elite_account_ratio', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function contractPublicGetLinearSwapApiV1SwapElitePositionRatio($params = array()) {
         return $this->request('linear-swap-api/v1/swap_elite_position_ratio', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function contractPublicGetLinearSwapApiV1SwapLiquidationOrders($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_liquidation_orders', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function contractPublicGetLinearSwapApiV1SwapSettlementRecords($params = array()) {
         return $this->request('linear-swap-api/v1/swap_settlement_records', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 1));
@@ -2523,30 +2358,6 @@ abstract class htx extends \ccxt\Exchange {
     }
     public function contractPrivateGetSwapApiV1SwapApiTradingStatus($params = array()) {
         return $this->request('swap-api/v1/swap_api_trading_status', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function contractPrivateGetLinearSwapApiV1SwapSubAuthList($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_sub_auth_list', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function contractPrivateGetLinearSwapApiV1SwapApiTradingStatus($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_api_trading_status', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function contractPrivateGetLinearSwapApiV1SwapCrossPositionSide($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_cross_position_side', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function contractPrivateGetLinearSwapApiV1SwapPositionSide($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_position_side', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function contractPrivateGetLinearSwapApiV3UnifiedAccountInfo($params = array()) {
-        return $this->request('linear-swap-api/v3/unified_account_info', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function contractPrivateGetLinearSwapApiV3FixPositionMarginChangeRecord($params = array()) {
-        return $this->request('linear-swap-api/v3/fix_position_margin_change_record', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function contractPrivateGetLinearSwapApiV3SwapUnifiedAccountType($params = array()) {
-        return $this->request('linear-swap-api/v3/swap_unified_account_type', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function contractPrivateGetLinearSwapApiV3LinearSwapOverviewAccountInfo($params = array()) {
-        return $this->request('linear-swap-api/v3/linear_swap_overview_account_info', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function contractPrivateGetV5AccountAssetMode($params = array()) {
         return $this->request('v5/account/asset_mode', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 0.20834));
@@ -2934,123 +2745,6 @@ abstract class htx extends \ccxt\Exchange {
     }
     public function contractPrivatePostSwapApiV1SwapTrackHisorders($params = array()) {
         return $this->request('swap-api/v1/swap_track_hisorders', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contractPrivatePostLinearSwapApiV1SwapLeverPositionLimit($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_lever_position_limit', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contractPrivatePostLinearSwapApiV1SwapCrossLeverPositionLimit($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_cross_lever_position_limit', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contractPrivatePostLinearSwapApiV1SwapBalanceValuation($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_balance_valuation', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contractPrivatePostLinearSwapApiV1SwapSubAuth($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_sub_auth', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contractPrivatePostLinearSwapApiV1SwapSubAccountList($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_sub_account_list', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contractPrivatePostLinearSwapApiV1SwapCrossSubAccountList($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_cross_sub_account_list', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contractPrivatePostLinearSwapApiV1SwapSubAccountInfoList($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_sub_account_info_list', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contractPrivatePostLinearSwapApiV1SwapCrossSubAccountInfoList($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_cross_sub_account_info_list', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contractPrivatePostLinearSwapApiV1SwapSubAccountInfo($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_sub_account_info', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contractPrivatePostLinearSwapApiV1SwapCrossSubAccountInfo($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_cross_sub_account_info', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contractPrivatePostLinearSwapApiV1SwapSubPositionInfo($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_sub_position_info', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contractPrivatePostLinearSwapApiV1SwapCrossSubPositionInfo($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_cross_sub_position_info', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contractPrivatePostLinearSwapApiV1SwapFinancialRecord($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_financial_record', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contractPrivatePostLinearSwapApiV1SwapFinancialRecordExact($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_financial_record_exact', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contractPrivatePostLinearSwapApiV1SwapUserSettlementRecords($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_user_settlement_records', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contractPrivatePostLinearSwapApiV1SwapCrossUserSettlementRecords($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_cross_user_settlement_records', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contractPrivatePostLinearSwapApiV1SwapAvailableLevelRate($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_available_level_rate', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contractPrivatePostLinearSwapApiV1SwapCrossAvailableLevelRate($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_cross_available_level_rate', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contractPrivatePostLinearSwapApiV1SwapOrderLimit($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_order_limit', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contractPrivatePostLinearSwapApiV1SwapFee($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_fee', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contractPrivatePostLinearSwapApiV1SwapTransferLimit($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_transfer_limit', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contractPrivatePostLinearSwapApiV1SwapCrossTransferLimit($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_cross_transfer_limit', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contractPrivatePostLinearSwapApiV1SwapPositionLimit($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_position_limit', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contractPrivatePostLinearSwapApiV1SwapCrossPositionLimit($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_cross_position_limit', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contractPrivatePostLinearSwapApiV1SwapMasterSubTransfer($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_master_sub_transfer', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contractPrivatePostLinearSwapApiV1SwapMasterSubTransferRecord($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_master_sub_transfer_record', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contractPrivatePostLinearSwapApiV1SwapTransferInner($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_transfer_inner', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contractPrivatePostLinearSwapApiV3SwapFinancialRecord($params = array()) {
-        return $this->request('linear-swap-api/v3/swap_financial_record', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contractPrivatePostLinearSwapApiV3SwapFinancialRecordExact($params = array()) {
-        return $this->request('linear-swap-api/v3/swap_financial_record_exact', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contractPrivatePostLinearSwapApiV1SwapCrossMatchresults($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_cross_matchresults', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contractPrivatePostLinearSwapApiV1SwapCrossMatchresultsExact($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_cross_matchresults_exact', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contractPrivatePostLinearSwapApiV1LinearCancelAfter($params = array()) {
-        return $this->request('linear-swap-api/v1/linear-cancel-after', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contractPrivatePostLinearSwapApiV3SwapCrossMatchresults($params = array()) {
-        return $this->request('linear-swap-api/v3/swap_cross_matchresults', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contractPrivatePostLinearSwapApiV3SwapCrossMatchresultsExact($params = array()) {
-        return $this->request('linear-swap-api/v3/swap_cross_matchresults_exact', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contractPrivatePostLinearSwapApiV3FixPositionMarginChange($params = array()) {
-        return $this->request('linear-swap-api/v3/fix_position_margin_change', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contractPrivatePostLinearSwapApiV3SwapSwitchAccountType($params = array()) {
-        return $this->request('linear-swap-api/v3/swap_switch_account_type', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contractPrivatePostLinearSwapApiV3LinearSwapFeeSwitch($params = array()) {
-        return $this->request('linear-swap-api/v3/linear_swap_fee_switch', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contractPrivatePostLinearSwapApiV1SwapRelationTpslOrder($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_relation_tpsl_order', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function contractPrivatePostLinearSwapApiV1SwapCrossRelationTpslOrder($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_cross_relation_tpsl_order', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function contractPrivatePostV5AccountAssetMode($params = array()) {
         return $this->request('v5/account/asset_mode', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 100));

@@ -668,7 +668,7 @@ class coinspot extends coinspot$1["default"] {
             'amount': amount,
             'rate': price,
         };
-        let response = undefined;
+        let response;
         if (sideUpper === 'BUY') {
             response = await this.privatePostMyBuy(this.extend(request, params));
         }
@@ -705,7 +705,7 @@ class coinspot extends coinspot$1["default"] {
         const request = {
             'id': id,
         };
-        let response = undefined;
+        let response;
         if (side === 'buy') {
             response = await this.privatePostMyBuyCancel(this.extend(request, params));
         }

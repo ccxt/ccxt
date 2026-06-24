@@ -952,8 +952,8 @@ func (this *DeepcoinCore) FetchTrades(symbol any, optionalArgs ...any) <-chan an
 }
 func (this *DeepcoinCore) GetProductGroupFromMarket(market any) any {
 	var productGroup any = "Spot"
-	if IsTrue(GetValue(market, "swap")) {
-		if IsTrue(GetValue(market, "linear")) {
+	if IsTrue(this.SafeBool(market, "swap")) {
+		if IsTrue(this.SafeBool(market, "linear")) {
 			productGroup = "SwapU"
 		} else {
 			productGroup = "Swap"

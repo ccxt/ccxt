@@ -182,11 +182,11 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
         Object parsedTrade = this.parseTrade(data);
         Object symbol = Helpers.GetValue(parsedTrade, "symbol");
         Object messageHash = this.safeString(parameters, "channel");
-        Object stored = this.safeValue(this.trades, symbol);
+        Object stored = this.safeValue(this.trades, ((String)symbol));
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
             stored = new ArrayCache(((Number)this.safeInteger(this.options, "tradesLimit", 1000)).intValue());
-            Helpers.addElementToObject(this.trades, symbol, stored);
+            Helpers.addElementToObject(this.trades, ((String)symbol), stored);
         }
         Helpers.callDynamically(stored, "append", new Object[]{parsedTrade});
         client.resolve(stored, messageHash);
@@ -273,7 +273,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
             put( "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
         }};
         Object inserts = this.safeList(data, "inserts");
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(inserts)); i++)
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength((java.util.List<Object>)(inserts))); i++)
         {
             Object insert = this.safeDict(inserts, i);
             Object side = this.safeString(insert, "side");
@@ -637,7 +637,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
         Object data = this.safeDict(parameters, "data", new java.util.HashMap<String, Object>() {{}});
         Object fundingRate = this.parseFundingRateWs(data);
         Object symbol = Helpers.GetValue(fundingRate, "symbol");
-        Helpers.addElementToObject(this.fundingRates, symbol, fundingRate);
+        Helpers.addElementToObject(this.fundingRates, ((String)symbol), fundingRate);
         Object channel = this.safeString(parameters, "channel");
         Object messageHash = Helpers.add(Helpers.add(channel, "."), symbol);
         client.resolve(fundingRate, messageHash);
@@ -765,7 +765,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
         if (Helpers.isTrue(!Helpers.isEqual(data, null)))
         {
             Object channel = this.safeString(data, "channel");
-            Object parts = Helpers.split(channel, ".");
+            Object parts = Helpers.split(((String)channel), ".");
             Object name = this.safeString(parts, 0);
             Object methods = new java.util.HashMap<String, Object>() {{
                 put( "trades", "handleTrade");
@@ -774,7 +774,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
                 put( "orders", "handleOrder");
                 put( "funding_data", "handleFundingRate");
             }};
-            Object method = this.safeValue(methods, name);
+            Object method = this.safeValue(methods, ((String)name));
             if (Helpers.isTrue(!Helpers.isEqual(method, null)))
             {
                 Helpers.callDynamically(this, method, new Object[] {client, message});

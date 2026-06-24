@@ -1426,7 +1426,7 @@ public class HashkeyCore extends HashkeyApi
                 {
                     throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a symbol argument for swap markets")) ;
                 }
-                Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
+                Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
                 if (Helpers.isTrue(!Helpers.isEqual(accountId, null)))
                 {
                     Helpers.addElementToObject(request, "subAccountId", accountId);
@@ -1599,7 +1599,7 @@ public class HashkeyCore extends HashkeyApi
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 1000)).join();
             }
             Object market = this.market(symbol);
-            timeframe = this.safeString(this.timeframes, timeframe, timeframe);
+            timeframe = ((String)this.safeString(this.timeframes, timeframe, timeframe));
             final Object finalTimeframe = timeframe;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -3597,7 +3597,7 @@ public class HashkeyCore extends HashkeyApi
                 {
                     throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a symbol argument for swap markets")) ;
                 }
-                Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
+                Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
                 Object isTrigger = false;
                 var isTriggerparametersVariable = this.handleTriggerOptionAndParams(parameters, methodName, isTrigger);
                 isTrigger = ((java.util.List<Object>) isTriggerparametersVariable).get(0);
@@ -3770,7 +3770,7 @@ public class HashkeyCore extends HashkeyApi
         {
             type = "market";
         }
-        Object price = this.omitZero(this.safeString(order, "price"));
+        Object price = this.omitZero(((String)this.safeString(order, "price")));
         if (Helpers.isTrue(Helpers.isEqual(type, "STOP")))
         {
             if (Helpers.isTrue(Helpers.isEqual(price, null)))
@@ -3787,7 +3787,7 @@ public class HashkeyCore extends HashkeyApi
         type = ((java.util.List<Object>) typetimeInForcepostOnlyVariable).get(0);
         timeInForce = ((java.util.List<Object>) typetimeInForcepostOnlyVariable).get(1);
         postOnly = ((java.util.List<Object>) typetimeInForcepostOnlyVariable).get(2);
-        Object average = this.omitZero(this.safeString(order, "avgPrice"));
+        Object average = this.omitZero(((String)this.safeString(order, "avgPrice")));
         if (Helpers.isTrue(Helpers.isEqual(price, null)))
         {
             price = average;
@@ -3824,17 +3824,17 @@ public class HashkeyCore extends HashkeyApi
             put( "side", finalSide );
             put( "price", finalPrice );
             put( "average", average );
-            put( "amount", HashkeyCore.this.omitZero(HashkeyCore.this.safeString(order, "origQty")) );
+            put( "amount", HashkeyCore.this.omitZero(((String)HashkeyCore.this.safeString(order, "origQty"))) );
             put( "filled", HashkeyCore.this.safeString(order, "executedQty") );
             put( "remaining", null );
-            put( "triggerPrice", HashkeyCore.this.omitZero(HashkeyCore.this.safeString(order, "stopPrice")) );
+            put( "triggerPrice", HashkeyCore.this.omitZero(((String)HashkeyCore.this.safeString(order, "stopPrice"))) );
             put( "takeProfitPrice", null );
             put( "stopLossPrice", null );
-            put( "cost", HashkeyCore.this.omitZero(HashkeyCore.this.safeString2(order, "cumulativeQuoteQty", "cummulativeQuoteQty")) );
+            put( "cost", HashkeyCore.this.omitZero(((String)HashkeyCore.this.safeString2(order, "cumulativeQuoteQty", "cummulativeQuoteQty"))) );
             put( "trades", null );
             put( "fee", new java.util.HashMap<String, Object>() {{
                 put( "currency", HashkeyCore.this.safeCurrencyCode(finalFeeCurrncyId) );
-                put( "amount", HashkeyCore.this.omitZero(HashkeyCore.this.safeString(order, "feeAmount")) );
+                put( "amount", HashkeyCore.this.omitZero(((String)HashkeyCore.this.safeString(order, "feeAmount"))) );
             }} );
             put( "reduceOnly", finalReduceOnly );
             put( "postOnly", finalPostOnly );
@@ -4248,7 +4248,7 @@ public class HashkeyCore extends HashkeyApi
         Object leverageValue = this.safeNumber(leverage, "leverage");
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );
-            put( "symbol", Helpers.GetValue(market, "symbol") );
+            put( "symbol", HashkeyCore.this.safeString(market, "symbol") );
             put( "marginMode", marginMode );
             put( "longLeverage", leverageValue );
             put( "shortLeverage", leverageValue );
@@ -4507,7 +4507,7 @@ final Object finalI = i;
             {
                 Object fee = this.safeDict(data, i, new java.util.HashMap<String, Object>() {{}});
                 Object parsedFee = this.parseTradingFee(fee);
-                Helpers.addElementToObject(result, Helpers.GetValue(parsedFee, "symbol"), parsedFee);
+                Helpers.addElementToObject(result, ((String)Helpers.GetValue(parsedFee, "symbol")), parsedFee);
             }
             return result;
         });

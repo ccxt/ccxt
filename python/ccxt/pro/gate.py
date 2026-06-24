@@ -419,7 +419,7 @@ class gate(ccxt.async_support.gate):
             payload = [marketId, interval]
             stringLimit = str(limit)
             payload.append(stringLimit)
-        subscription: dict = {
+        subscription = {
             'symbol': symbol,
             'limit': limit,
         }
@@ -743,7 +743,7 @@ class gate(ccxt.async_support.gate):
             messageHashes.append(prefix + ':' + symbol)
         tickerOrBidAsk = await self.subscribe_public_multiple(url, messageHashes, marketIds, channel, params)
         if self.newUpdates:
-            items: dict = {}
+            items = {}
             items[tickerOrBidAsk['symbol']] = tickerOrBidAsk
             return items
         result = self.tickers if isWatchTickers else self.bidsasks
@@ -944,7 +944,7 @@ class gate(ccxt.async_support.gate):
         result = self.safe_value(message, 'result')
         if not isinstance(result, list):
             result = [result]
-        marketIds: dict = {}
+        marketIds = {}
         for i in range(0, len(result)):
             ohlcv = result[i]
             subscription = self.safe_string(ohlcv, 'n', '')
@@ -1049,7 +1049,7 @@ class gate(ccxt.async_support.gate):
             cachedTrades = ArrayCacheBySymbolById(limit)
             self.myTrades = cachedTrades
         parsed = self.parse_trades(result)
-        marketIds: dict = {}
+        marketIds = {}
         for i in range(0, len(parsed)):
             trade = parsed[i]
             cachedTrades.append(trade)
@@ -1432,7 +1432,7 @@ class gate(ccxt.async_support.gate):
         if self.orders is None:
             self.orders = ArrayCacheBySymbolById(limit)
         stored = self.orders
-        marketIds: dict = {}
+        marketIds = {}
         parsedOrders = self.parse_orders(orders)
         for i in range(0, len(parsedOrders)):
             parsed = parsedOrders[i]
@@ -1579,7 +1579,7 @@ class gate(ccxt.async_support.gate):
             client.resolve(symbolLiquidations, 'myLiquidations::' + symbol)
         client.resolve(newLiquidations, 'myLiquidations')
 
-    def parse_ws_liquidation(self, liquidation, market=None):
+    def parse_ws_liquidation(self, liquidation, market: Market = None):
         #
         # future / delivery
         #    {
@@ -1716,7 +1716,7 @@ class gate(ccxt.async_support.gate):
 
     def handle_subscription_status(self, client: Client, message):
         channel = self.safe_string(message, 'channel')
-        methods: dict = {
+        methods = {
             'balance': self.handle_balance_subscription,
             'spot.order_book_update': self.handle_order_book_subscription,
             'futures.order_book_update': self.handle_order_book_subscription,
@@ -1876,7 +1876,7 @@ class gate(ccxt.async_support.gate):
             return
         channelParts = channel.split('.')
         channelType = self.safe_value(channelParts, 1)
-        v4Methods: dict = {
+        v4Methods = {
             'usertrades': self.handle_my_trades,
             'candlesticks': self.handle_ohlcv,
             'orders': self.handle_order,
@@ -1927,7 +1927,7 @@ class gate(ccxt.async_support.gate):
             return url
 
     def get_market_type_by_url(self, url: str):
-        findBy: dict = {
+        findBy = {
             'op-': 'option',
             'delivery': 'future',
             'fx': 'swap',
@@ -1951,7 +1951,7 @@ class gate(ccxt.async_support.gate):
     async def subscribe_public(self, url, messageHash, payload, channel, params={}, subscription=None):
         requestId = self.request_id()
         time = self.seconds()
-        request: dict = {
+        request = {
             'id': requestId,
             'time': time,
             'channel': channel,
@@ -1969,7 +1969,7 @@ class gate(ccxt.async_support.gate):
     async def subscribe_public_multiple(self, url, messageHashes, payload, channel, params={}):
         requestId = self.request_id()
         time = self.seconds()
-        request: dict = {
+        request = {
             'id': requestId,
             'time': time,
             'channel': channel,
@@ -1982,7 +1982,7 @@ class gate(ccxt.async_support.gate):
     async def un_subscribe_public_multiple(self, url, topic, symbols, messageHashes, subMessageHashes, payload, channel, params={}):
         requestId = self.request_id()
         time = self.seconds()
-        request: dict = {
+        request = {
             'id': requestId,
             'time': time,
             'channel': channel,
@@ -2027,7 +2027,7 @@ class gate(ccxt.async_support.gate):
         # unfortunately, PHP demands double quotes for the escaped newline symbol
         signatureString = "\n".join([event, channel, self.json(reqParams), str(time)])  # eslint-disable-line quotes
         signature = self.hmac(self.encode(signatureString), self.encode(self.secret), hashlib.sha512, 'hex')
-        payload: dict = {
+        payload = {
             'req_id': requestId,
             'timestamp': str(time),
             'api_key': self.apiKey,
@@ -2038,7 +2038,7 @@ class gate(ccxt.async_support.gate):
             payload['req_header'] = {
                 'X-Gate-Channel-Id': 'ccxt',
             }
-        request: dict = {
+        request = {
             'id': requestId,
             'time': time,
             'channel': channel,
@@ -2062,13 +2062,13 @@ class gate(ccxt.async_support.gate):
         event = 'subscribe'
         signaturePayload = 'channel=' + channel + '&' + 'event=' + event + '&' + 'time=' + str(time)
         signature = self.hmac(self.encode(signaturePayload), self.encode(self.secret), hashlib.sha512, 'hex')
-        auth: dict = {
+        auth = {
             'method': 'api_key',
             'KEY': self.apiKey,
             'SIGN': signature,
         }
         requestId = self.request_id()
-        request: dict = {
+        request = {
             'id': requestId,
             'time': time,
             'channel': channel,

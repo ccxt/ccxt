@@ -423,7 +423,7 @@ class hyperliquid extends Exchange {
         return $this->safe_integer($response, 'time');
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          *
@@ -518,7 +518,7 @@ class hyperliquid extends Exchange {
          * @return {array[]} an array of objects representing market data
          */
         $options = $this->safe_dict($this->options, 'fetchMarkets', array());
-        $types = $this->safe_list($options, 'types');
+        $types = $this->safe_list($options, 'types', array());
         $rawPromises = array();
         for ($i = 0; $i < count($types); $i++) {
             $marketType = $types[$i];
@@ -1591,7 +1591,7 @@ class hyperliquid extends Exchange {
         $significantDigits = max (5, strlen($integerPart));
         $result = $this->decimal_to_precision($price, ROUND, $significantDigits, SIGNIFICANT_DIGITS, $this->paddingMode);
         $maxDecimals = $market['spot'] ? 8 : 6;
-        $subtractedValue = $maxDecimals - $this->precision_from_string($this->safe_string($market['precision'], 'amount'));
+        $subtractedValue = $maxDecimals - $this->precision_from_string(($this->safe_string($market['precision'], 'amount')));
         return $this->decimal_to_precision($result, ROUND, $subtractedValue, DECIMAL_PLACES, $this->paddingMode);
     }
 
@@ -1620,7 +1620,7 @@ class hyperliquid extends Exchange {
         );
     }
 
-    public function action_hash($action, $vaultAddress, $nonce, $expiresAfter = null) {
+    public function action_hash($action, $vaultAddress, $nonce, ?int $expiresAfter = null) {
         $dataBinary = $this->packb($action);
         $dataHex = bin2hex($dataBinary);
         $data = $dataHex;
@@ -1638,7 +1638,7 @@ class hyperliquid extends Exchange {
         return $this->hash($this->base16_to_binary($data), 'keccak', 'binary');
     }
 
-    public function sign_l1_action($action, $nonce, $vaultAdress = null, $expiresAfter = null): array {
+    public function sign_l1_action($action, $nonce, ?string $vaultAdress = null, ?int $expiresAfter = null): array {
         $hash = $this->action_hash($action, $vaultAdress, $nonce, $expiresAfter);
         $isTestnet = $this->safe_bool($this->options, 'sandboxMode', false);
         $phantomAgent = $this->construct_phantom_agent($hash, $isTestnet);
@@ -1859,7 +1859,7 @@ class hyperliquid extends Exchange {
         return true;
     }
 
-    public function is_unified_enabled(string $method, ?string $address = null, $shouldRefresh = false, $params = array ()) {
+    public function is_unified_enabled(string $method, ?string $address = null, $shouldRefresh = false, $params = array ()): array {
         /**
          *
          * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-abstraction-state
@@ -2422,7 +2422,7 @@ class hyperliquid extends Exchange {
         //
         $innerResponse = $this->safe_dict($response, 'response');
         $data = $this->safe_dict($innerResponse, 'data');
-        $statuses = $this->safe_list($data, 'statuses');
+        $statuses = $this->safe_list($data, 'statuses', array());
         $orders = array();
         for ($i = 0; $i < count($statuses); $i++) {
             $status = $statuses[$i];
@@ -4106,7 +4106,6 @@ class hyperliquid extends Exchange {
         $params = $this->omit($params, 'vaultAddress');
         $nonce = $this->milliseconds();
         $action = array();
-        $sig = null;
         if ($vaultAddress !== null) {
             $action = array(
                 'type' => 'vaultTransfer',
@@ -4450,7 +4449,7 @@ class hyperliquid extends Exchange {
             for ($i = 0; $i < count($records); $i++) {
                 $record = $records[$i];
                 if ($record['type'] === 'vaultDeposit') {
-                    $delta = $this->safe_dict($record, 'delta');
+                    $delta = $this->safe_dict($record, 'delta', array());
                     if ($delta['vault'] === '0x' . $vaultAddress) {
                         $deposits[] = $record;
                     }
@@ -4512,7 +4511,7 @@ class hyperliquid extends Exchange {
             for ($i = 0; $i < count($records); $i++) {
                 $record = $records[$i];
                 if ($record['type'] === 'vaultWithdraw') {
-                    $delta = $this->safe_dict($record, 'delta');
+                    $delta = $this->safe_dict($record, 'delta', array());
                     if ($delta['vault'] === '0x' . $vaultAddress) {
                         $withdrawals[] = $record;
                     }
@@ -4743,7 +4742,7 @@ class hyperliquid extends Exchange {
         return $address;
     }
 
-    public function handle_public_address(string $methodName, array $params) {
+    public function handle_public_address(string $methodName, array $params): array {
         $userAux = null;
         list($userAux, $params) = $this->handle_option_and_params_2($params, $methodName, 'user', 'subAccountAddress');
         $user = $userAux;
@@ -4831,7 +4830,7 @@ class hyperliquid extends Exchange {
         return null;
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $url = $this->implode_hostname($this->urls['api'][$api]) . '/' . $path;
         if ($method === 'POST') {
             $headers = array(

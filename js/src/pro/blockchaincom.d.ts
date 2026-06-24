@@ -1,5 +1,5 @@
 import blockchaincomRest from '../blockchaincom.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class blockchaincom extends blockchaincomRest {
     describe(): any;
@@ -38,7 +38,7 @@ export default class blockchaincom extends blockchaincomRest {
      */
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     handleTicker(client: Client, message: any): void;
-    parseWsUpdatedTicker(ticker: any, lastTicker?: any, market?: any): Ticker;
+    parseWsUpdatedTicker(ticker: any, lastTicker?: any, market?: Market): Ticker;
     /**
      * @method
      * @name blockchaincom#watchTrades
@@ -52,7 +52,7 @@ export default class blockchaincom extends blockchaincomRest {
      */
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleTrades(client: Client, message: any): void;
-    parseWsTrade(trade: any, market?: any): Trade;
+    parseWsTrade(trade: any, market?: Market): Trade;
     /**
      * @method
      * @name blockchaincom#fetchOrders
@@ -66,7 +66,7 @@ export default class blockchaincom extends blockchaincomRest {
      */
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     handleOrders(client: Client, message: any): void;
-    parseWsOrder(order: any, market?: any): Order;
+    parseWsOrder(order: any, market?: Market): Order;
     parseWsOrderStatus(status: any): string;
     /**
      * @method

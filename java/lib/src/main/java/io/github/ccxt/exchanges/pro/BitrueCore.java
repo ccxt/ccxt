@@ -375,7 +375,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
                 url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "futurePublic");
             } else
             {
-                Object marketIdLowercase = ((String)Helpers.GetValue(market, "id")).toLowerCase();
+                Object marketIdLowercase = this.safeStringLower(market, "id");
                 channel = Helpers.add(Helpers.add("market_", marketIdLowercase), "_simple_depth_step0");
                 cbId = marketIdLowercase;
                 url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public");
