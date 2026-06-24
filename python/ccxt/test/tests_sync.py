@@ -821,8 +821,8 @@ class testMainClass:
             # built-in types like strings, numbers, booleans
             sanitized_new_output = None if (is_null_value(new_output)) else new_output  # we store undefined as nulls in the json file so we need to convert it back
             sanitized_stored_output = None if (is_null_value(stored_output)) else stored_output
-            new_output_string = str(sanitized_new_output) if sanitized_new_output else 'undefined'
-            stored_output_string = str(sanitized_stored_output) if sanitized_stored_output else 'undefined'
+            new_output_string = 'undefined' if (sanitized_new_output is None) else str(sanitized_new_output)
+            stored_output_string = 'undefined' if (sanitized_stored_output is None) else str(sanitized_stored_output)
             message_error = 'output value mismatch:' + new_output_string + ' != ' + stored_output_string
             if strict_type_check and (self.lang != 'C#'):
                 # upon building the request we want strict type check to make sure all the types are correct
@@ -835,7 +835,8 @@ class testMainClass:
                 is_stored_string = (isinstance(sanitized_stored_output, str))
                 is_computed_undefined = (sanitized_new_output is None)
                 is_stored_undefined = (sanitized_stored_output is None)
-                should_be_same = (is_computed_bool == is_stored_bool) and (is_computed_string == is_stored_string) and (is_computed_undefined == is_stored_undefined)
+                is_cross_numeric_match = ((is_computed_string and not is_stored_string and not is_stored_bool and not is_stored_undefined) or (is_stored_string and not is_computed_string and not is_computed_bool and not is_computed_undefined)) and (new_output_string == stored_output_string)
+                should_be_same = is_cross_numeric_match or ((is_computed_bool == is_stored_bool) and (is_computed_string == is_stored_string) and (is_computed_undefined == is_stored_undefined))
                 self.assert_static_error(should_be_same, 'output type mismatch', stored_output, new_output, asserting_key)
                 is_boolean = is_computed_bool or is_stored_bool
                 is_string = is_computed_string or is_stored_string

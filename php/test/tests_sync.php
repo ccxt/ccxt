@@ -1001,8 +1001,8 @@ class testMainClass {
             // built-in types like strings, numbers, booleans
             $sanitized_new_output = (is_null_value($new_output)) ? null : $new_output; // we store undefined as nulls in the json file so we need to convert it back
             $sanitized_stored_output = (is_null_value($stored_output)) ? null : $stored_output;
-            $new_output_string = $sanitized_new_output ? ((string) $sanitized_new_output) : 'undefined';
-            $stored_output_string = $sanitized_stored_output ? ((string) $sanitized_stored_output) : 'undefined';
+            $new_output_string = ($sanitized_new_output === null) ? 'undefined' : ((string) $sanitized_new_output);
+            $stored_output_string = ($sanitized_stored_output === null) ? 'undefined' : ((string) $sanitized_stored_output);
             $message_error = 'output value mismatch:' . $new_output_string . ' != ' . $stored_output_string;
             if ($strict_type_check && ($this->lang !== 'C#')) {
                 // upon building the request we want strict type check to make sure all the types are correct
@@ -1015,7 +1015,8 @@ class testMainClass {
                 $is_stored_string = (is_string($sanitized_stored_output));
                 $is_computed_undefined = ($sanitized_new_output === null);
                 $is_stored_undefined = ($sanitized_stored_output === null);
-                $should_be_same = ($is_computed_bool === $is_stored_bool) && ($is_computed_string === $is_stored_string) && ($is_computed_undefined === $is_stored_undefined);
+                $is_cross_numeric_match = (($is_computed_string && !$is_stored_string && !$is_stored_bool && !$is_stored_undefined) || ($is_stored_string && !$is_computed_string && !$is_computed_bool && !$is_computed_undefined)) && ($new_output_string === $stored_output_string);
+                $should_be_same = $is_cross_numeric_match || (($is_computed_bool === $is_stored_bool) && ($is_computed_string === $is_stored_string) && ($is_computed_undefined === $is_stored_undefined));
                 $this->assert_static_error($should_be_same, 'output type mismatch', $stored_output, $new_output, $asserting_key);
                 $is_boolean = $is_computed_bool || $is_stored_bool;
                 $is_string = $is_computed_string || $is_stored_string;

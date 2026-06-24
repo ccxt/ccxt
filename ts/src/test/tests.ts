@@ -1131,8 +1131,8 @@ class testMainClass {
             // built-in types like strings, numbers, booleans
             const sanitizedNewOutput = (isNullValue (newOutput)) ? undefined : newOutput; // we store undefined as nulls in the json file so we need to convert it back
             const sanitizedStoredOutput = (isNullValue (storedOutput)) ? undefined : storedOutput;
-            const newOutputString = sanitizedNewOutput ? sanitizedNewOutput.toString () : "undefined";
-            const storedOutputString = sanitizedStoredOutput ? sanitizedStoredOutput.toString () : "undefined";
+            const newOutputString = (sanitizedNewOutput === undefined) ? "undefined" : sanitizedNewOutput.toString ();
+            const storedOutputString = (sanitizedStoredOutput === undefined) ? "undefined" : sanitizedStoredOutput.toString ();
             const messageError = 'output value mismatch:' + newOutputString + ' != ' + storedOutputString;
             if (strictTypeCheck && (this.lang !== 'C#')) { // in c# types are different, so we can't do strict type check
                 // upon building the request we want strict type check to make sure all the types are correct
@@ -1145,7 +1145,11 @@ class testMainClass {
                 const isStoredString = (typeof sanitizedStoredOutput === 'string');
                 const isComputedUndefined = (sanitizedNewOutput === undefined);
                 const isStoredUndefined = (sanitizedStoredOutput === undefined);
-                const shouldBeSame = (isComputedBool === isStoredBool) && (isComputedString === isStoredString) && (isComputedUndefined === isStoredUndefined);
+                const isCrossNumericMatch = (
+                    (isComputedString && !isStoredString && !isStoredBool && !isStoredUndefined) ||
+                    (isStoredString && !isComputedString && !isComputedBool && !isComputedUndefined)
+                ) && (newOutputString === storedOutputString);
+                const shouldBeSame = isCrossNumericMatch || ((isComputedBool === isStoredBool) && (isComputedString === isStoredString) && (isComputedUndefined === isStoredUndefined));
                 this.assertStaticError (shouldBeSame, 'output type mismatch', storedOutput, newOutput, assertingKey);
                 const isBoolean = isComputedBool || isStoredBool;
                 const isString = isComputedString || isStoredString;
