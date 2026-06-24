@@ -873,6 +873,35 @@
                 "output": "{\"currency\":\"usdt\",\"amount\":1}"
             }
         ],
+        "fetchTransfers": [
+            {
+                "description": "fetch transfers with currency code",
+                "method": "fetchTransfers",
+                "url": "https://api.huobi.pro/v5/account/universal_transfer_records?AccessKeyId=2544d3b4-b9b13e98-nbtycf4rw2-7b485&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2026-06-24T11%3A47%3A49&currency=usdt&Signature=1VnCeDBKoTSLF0%2B0FRUZP925H%2FpPKnUyDaEm%2F%2Bf%2FVxw%3D",
+                "input": [
+                    "USDT"
+                ]
+            },
+            {
+                "description": "fetch transfers without code",
+                "method": "fetchTransfers",
+                "url": "https://api.huobi.pro/v5/account/universal_transfer_records?AccessKeyId=2544d3b4-b9b13e98-nbtycf4rw2-7b485&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2026-06-24T11%3A48%3A22&Signature=Nu%2FdT0f6%2BqAQxHYG4ebYBc1keIEFBThOdWMv8RhYMac%3D",
+                "input": []
+            },
+            {
+                "description": "fetch transfers with since, limit and until",
+                "method": "fetchTransfers",
+                "url": "https://api.huobi.pro/v5/account/universal_transfer_records?AccessKeyId=2544d3b4-b9b13e98-nbtycf4rw2-7b485&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2026-06-24T11%3A48%3A08&end_time=1700100000000&limit=10&start_time=1700000000000&Signature=4bGXJzGEiVei7ke1H%2FtDGAURwKrEgVKRBhKS5ls9dZg%3D",
+                "input": [
+                    null,
+                    1700000000000,
+                    10,
+                    {
+                        "until": 1700100000000
+                    }
+                ]
+            }
+        ],
         "fetchDepositAddress": [
             {
                 "description": "fetch USDT deposit address",
