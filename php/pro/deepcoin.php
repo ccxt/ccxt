@@ -109,7 +109,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         return $newValue;
     }
 
-    public function create_public_request(array $market, float $requestId, string $topicID, string $suffix = '', bool $unWatch = false) {
+    public function create_public_request($market, float $requestId, string $topicID, string $suffix = '', bool $unWatch = false) {
         $marketId = $market['symbol']; // spot markets use symbol with slash
         if ($market['type'] === 'swap') {
             $marketId = $this->safe_string($market, 'baseId', '') . $this->safe_string($market, 'quoteId', ''); // swap markets use symbol without slash
@@ -130,7 +130,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         return $request;
     }
 
-    public function watch_public(array $market, string $messageHash, string $topicID, array $params = array (), string $suffix = ''): PromiseInterface {
+    public function watch_public($market, string $messageHash, string $topicID, array $params = array (), string $suffix = ''): PromiseInterface {
         return Async\async(function () use ($market, $messageHash, $topicID, $params, $suffix) {
             $url = $this->urls['api']['ws']['public'][$market['type']];
             $requestId = $this->request_id();
@@ -143,7 +143,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         }) ();
     }
 
-    public function un_watch_public(array $market, string $messageHash, string $topicID, array $params = array (), array $subscription = array (), string $suffix = ''): PromiseInterface {
+    public function un_watch_public($market, string $messageHash, string $topicID, array $params = array (), array $subscription = array (), string $suffix = ''): PromiseInterface {
         return Async\async(function () use ($market, $messageHash, $topicID, $params, $subscription, $suffix) {
             $url = $this->urls['api']['ws']['public'][$market['type']];
             $requestId = $this->request_id();
